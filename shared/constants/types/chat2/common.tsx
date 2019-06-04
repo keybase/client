@@ -1,7 +1,5 @@
 // Used by meta/message/etc
-// @flow strict
-
-export type ConversationIDKey = string;
+export type ConversationIDKey = string
 export const stringToConversationIDKey = __DEV__
   ? (s: string): ConversationIDKey => {
       if (!s) {
@@ -18,4 +16,5 @@ export const noConversationIDKey = stringToConversationIDKey('EMPTY')
 // A pending conversation that we're looking for a real convo or noConvo but don't know yet
 export const pendingWaitingConversationIDKey = stringToConversationIDKey('PENDING-WAITING')
 
-export const isValidConversationIDKey = (id: ConversationIDKey): boolean => !!id && id !== noConversationIDKey && id !== pendingWaitingConversationIDKey
+export const isValidConversationIDKey = (id: ConversationIDKey): boolean =>
+  !!id && id !== noConversationIDKey && id !== pendingWaitingConversationIDKey

@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 // @ts-ignore not converted
 import Box from './box'
 // @ts-ignore not converted
-import Text, {getStyle as getTextStyle} from './text'
+import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
@@ -260,7 +260,11 @@ class Input extends Component<Props, State> {
       flexGrow: 1,
       lineHeight: lineHeight,
       ...(this.props.small
-        ? {...globalStyles.fontRegular, fontSize: _bodyTextStyle.fontSize, textAlign: 'left'}
+        ? {
+            ...globalStyles.fontRegular,
+            fontSize: _bodyTextStyle.fontSize,
+            textAlign: 'left',
+          }
         : {
             ...globalStyles.fontSemibold,
             fontSize: _headerTextStyle.fontSize,
@@ -392,10 +396,10 @@ class Input extends Component<Props, State> {
   }
 }
 
-const _headerTextStyle = getTextStyle('Header')
-const _bodyTextStyle = getTextStyle('Body')
-const _bodySmallTextStyle = getTextStyle('BodySmall')
-const _bodyErrorTextStyle = getTextStyle('BodySmallError')
+const _headerTextStyle: any = getTextStyle('Header')
+const _bodyTextStyle: any = getTextStyle('Body')
+const _bodySmallTextStyle: any = getTextStyle('BodySmall')
+const _bodyErrorTextStyle: any = getTextStyle('BodySmallError')
 
 const styles = styleSheetCreate({
   error: {minHeight: _bodyErrorTextStyle.lineHeight},

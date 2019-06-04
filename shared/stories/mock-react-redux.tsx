@@ -1,4 +1,3 @@
-// @noflow
 const inject = () => {
   // Monkeypatch redux connect
   const redux = require('react-redux')

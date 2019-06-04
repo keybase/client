@@ -70,9 +70,9 @@ export type Props = {
   // doesn't enforce on longer `props.value`s coming in
   maxBytes?: number
   multiline?: boolean
-  onBlur?: (() => void)
-  onChangeText?: ((text: string) => void)
-  onFocus?: (() => void)
+  onBlur?: () => void
+  onChangeText?: (text: string) => void
+  onFocus?: () => void
   placeholder?: string
   placeholderColor?: string
   rowsMin?: number
@@ -83,29 +83,27 @@ export type Props = {
   value?: string // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API,
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
-  onEnterKeyDown?: (() => void)
+  onEnterKeyDown?: () => void
   // Desktop only
-  onClick?: ((event: Event) => void)
-  onKeyDown?: ((event: React.KeyboardEvent, isComposingIME: boolean) => void)
-  onKeyUp?: ((event: React.KeyboardEvent, isComposingIME: boolean) => void)
+  onClick?: (event: Event) => void
+  onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
+  onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   // Mobile only
   children?: React.ReactNode
-  onKeyPress?: ((
-    event: {
-      nativeEvent: {
-        key: 'Enter' | 'Backspace' | string
-      }
+  onKeyPress?: (event: {
+    nativeEvent: {
+      key: 'Enter' | 'Backspace' | string
     }
-  ) => void)
+  }) => void
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   keyboardType?: KeyboardType
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
   selectTextOnFocus?: boolean
-  onEndEditing?: (() => void)
+  onEndEditing?: () => void
   // very flakey, don't rely on this for up to date
   // selection; only works with multiline={true}
-  onSelectionChange?: ((selection: Selection) => void)
+  onSelectionChange?: (selection: Selection) => void
   // iOS only - give some context as to what is supposed to go in this input
   // so the keyboard can give better recommendations. e.g.
   // newPassword - suggest strong password
@@ -140,10 +138,10 @@ export type InternalProps = {} & DefaultProps & Props
 
 declare class PlainInput extends React.Component<Props> {
   defaultProps: DefaultProps
-  blur: (() => void)
-  focus: (() => void)
-  isFocused: (() => boolean)
-  getSelection: (() => Selection | null)
+  blur: () => void
+  focus: () => void
+  isFocused: () => boolean
+  getSelection: () => Selection | null
 
   /**
    *  This can only be used when the input is controlled. Use `transformText` if
@@ -153,14 +151,14 @@ declare class PlainInput extends React.Component<Props> {
    *  selection will only appear when the input is focused. Call `focus()`
    *  before this if you want to be sure the user will see the selection.
    **/
-  setSelection: ((selection: Selection) => void)
+  setSelection: (selection: Selection) => void
 
   /**
    *  This can only be used when the input is uncontrolled. Like `setSelection`,
    *  if you want to be sure the user will see a selection use `focus()` before
    *  calling this.
    **/
-  transformText: ((fn: ((textInfo: TextInfo) => TextInfo), reflectChange?: boolean) => void)
+  transformText: (fn: (textInfo: TextInfo) => TextInfo, reflectChange?: boolean) => void
 }
 
 export default PlainInput

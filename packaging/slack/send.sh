@@ -11,3 +11,12 @@ echo "$@"
 if [ -f $sender ]; then
   go run $sender -i=1 "$@"
 fi
+
+# send to keybase chat if we have it in the environment
+convid=${KEYBASE_CHAT_CONVID:-}
+if [ -n "$convid" ]; then
+  echo "Sending to Keybase convID: $convid"
+  location=${KEYBASE_LOCATION:-"keybase"}
+  home=${KEYBASE_HOME:-$HOME}
+  $location --home $home chat api -m "{\"method\":\"send\", \"params\": {\"options\": { \"conversation_id\": \"$convid\" , \"message\": { \"body\": \"$@\" }}}}"
+fi

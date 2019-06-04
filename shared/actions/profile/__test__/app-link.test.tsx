@@ -1,4 +1,3 @@
-// @noflow
 /* eslint-env jest */
 import URL from 'url-parse'
 import {urlToUsername} from '../../../constants/config'

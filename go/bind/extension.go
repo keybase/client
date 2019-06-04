@@ -226,6 +226,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	kbChatCtx.MessageDeliverer.Connected(context.Background())
+	kbChatCtx.InboxSource.Start(context.Background(), uid)
 	return nil
 }
 

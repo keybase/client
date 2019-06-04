@@ -78,7 +78,6 @@ describe('provisioningManagerAddingDevice', () => {
     ]
     keys.forEach(k => {
       const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
       callMap[k](undefined, response, undefined)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).not.toHaveBeenCalled()

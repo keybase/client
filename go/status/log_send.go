@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"mime/multipart"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -64,6 +66,48 @@ type LogSendContext struct {
 	processesLog     string
 }
 
+var noncharacterRxx = regexp.MustCompile(`[^\w]`)
+
+const redactedReplacer = "[REDACTED]"
+const serialPaperKeyWordThreshold = 5
+
+func redactPotentialPaperKeys(s string) string {
+	doubleDelimited := noncharacterRxx.ReplaceAllFunc([]byte(s), func(x []byte) []byte {
+		return []byte{'~', '~', '~', x[0], '~', '~', '~'} // regexp is single char so we can take first elem
+	})
+	allWords := strings.Split(string(doubleDelimited), "~~~")
+	var checkWords []string
+	var checkWordLocations []int // keep track of each checkWord's index in allWords
+	for idx, word := range allWords {
+		if !(len(word) == 1 && noncharacterRxx.MatchString(word)) {
+			checkWords = append(checkWords, word)
+			checkWordLocations = append(checkWordLocations, idx)
+		}
+	}
+	didRedact := false
+	start := -1
+	for idx, word := range checkWords {
+		if !libkb.ValidSecWord(word) {
+			start = -1
+			continue
+		}
+		if start == -1 {
+			start = idx
+		} else if idx-start+1 == serialPaperKeyWordThreshold {
+			for jdx := start; jdx <= idx; jdx++ {
+				allWords[checkWordLocations[jdx]] = redactedReplacer
+			}
+			didRedact = true
+		} else if idx-start+1 > serialPaperKeyWordThreshold {
+			allWords[checkWordLocations[idx]] = redactedReplacer
+		}
+	}
+	if didRedact {
+		return "[redacted feedback follows] " + strings.Join(allWords, "")
+	}
+	return s
+}
+
 func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, statusJSON, feedback string) *LogSendContext {
 	logs := logFilesFromStatus(g, fstatus)
 
@@ -76,6 +120,8 @@ func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, sta
 	if uid.IsNil() {
 		g.Log.Info("Not sending up a UID for logged in user; none found")
 	}
+
+	feedback = redactPotentialPaperKeys(feedback)
 
 	return &LogSendContext{
 		Contextified: libkb.NewContextified(g),

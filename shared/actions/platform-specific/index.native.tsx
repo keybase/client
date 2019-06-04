@@ -109,14 +109,7 @@ const openAppSettings = () => {
 
 const getContentTypeFromURL = (
   url: string,
-  cb: (
-    arg0: {
-      error?: any
-      statusCode?: number
-      contentType?: string
-      disposition?: string
-    }
-  ) => void
+  cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
 ) =>
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
@@ -314,8 +307,7 @@ function* loadStartupDetails() {
     try {
       const item = JSON.parse(routeState)
       if (item) {
-        startupConversation = // Auto generated from flowToTs. Please clean me!
-          item.param === null || item.param === undefined ? undefined : item.param.selectedConversationIDKey
+        startupConversation = item.param && item.param.selectedConversationIDKey
         startupTab = item.routeName
       }
 

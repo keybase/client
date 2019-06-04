@@ -176,7 +176,6 @@ function main() {
       console.log(`Generating ${ns}`)
       const desc = json5.parse(fs.readFileSync(path.join(root, file)))
       const outPath = path.join(root, '..', ns + '-gen.tsx')
-      // $FlowIssue
       const generated = prettier.format(compile(ns, desc), {
         ...prettier.resolveConfig.sync(outPath),
         parser: 'typescript',
@@ -187,7 +186,6 @@ function main() {
   console.log(`Generating typed-actions-gen`)
   const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
   const typedActions = makeTypedActions(created)
-  // $FlowIssue
   const generated = prettier.format(typedActions, prettier.resolveConfig.sync(outPath))
   fs.writeFileSync(outPath, generated)
 }

@@ -52,14 +52,14 @@ func validPhrase(p string, entropies []int) error {
 		return fmt.Errorf("phrase had %d words, expected %v", len(words), entropies)
 	}
 	for _, w := range words {
-		if !validWord(w) {
+		if !ValidSecWord(w) {
 			return fmt.Errorf("word %q is not a valid word", w)
 		}
 	}
 	return nil
 }
 
-func validWord(w string) bool {
+func ValidSecWord(w string) bool {
 	return secwordSet[w]
 }
 

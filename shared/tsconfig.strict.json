@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "tsBuildInfoFile": "./.tsOuts/.tsOutStrict/cache",
+    "outDir": "./.tsOuts/.tsOutStrict/emit"
+  },
+  "files": [
+    "constants/types/chat2/common.tsx",
+    "constants/types/chat2/index.tsx",
+    "util/errors.tsx"
+  ]
+}

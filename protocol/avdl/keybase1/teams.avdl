@@ -35,6 +35,12 @@ protocol teams {
   @typedef("int")
   record PerTeamKeyGeneration {}
 
+
+  // In the future, there might be bot and admin keys
+  enum PTKType {
+    READER_0
+  }
+
   record TeamApplicationKey {
     TeamApplication application;
     PerTeamKeyGeneration keyGeneration;
@@ -229,6 +235,41 @@ protocol teams {
     boolean loadedLatest;
   }
 
+  record HiddenTeamChainData {
+    @lint("ignore") TeamID ID;
+    boolean public;
+
+    Seqno last;
+
+    // Chain links based on outer objects.
+    map<Seqno, LinkID> outer;
+
+    // For any link where we have it, fill in merkle sequence information,
+    // parent chain pointer info, and also PTK information (inner data);
+    map<Seqno, HiddenTeamChainLink> inner;
+
+  }
+
+  // Snapshot of a hidden team load
+  record HiddenTeamChain {
+    @mpackkey("v") @jsonkey("v")
+    int subversion;
+
+    HiddenTeamChainData data;
+
+    // Maps a PTK Generation to the chain seqno it showed up in; more info there as
+    // to what the PTK is, etc.
+    map<PerTeamKeyGeneration, Seqno> perTeamKeys;
+
+    // This is the latest hidden chain tail link known for this team;
+    // the existence of a known ratchet means the team better be at least up to this
+    // point, and maybe beyond it.
+    union { null, LinkTriple } ratchet;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    Time cachedAt;
+  }
+
   record LinkTriple {
     Seqno seqno;
     SeqType seqType;
@@ -246,6 +287,30 @@ protocol teams {
     TeamID id;
     string nameComponent;
     boolean isDeleted;
+  }
+
+  record Signer {
+    Seqno e; // eldest seqno
+    KID k;   // signer KID
+    UID u;   // signer UID
+  }
+
+  record HiddenTeamChainLink {
+    // The merkle root at the time the link was generated
+    @jsonkey("m") @mpackkey("m")
+    MerkleRootV2 merkleRoot;
+
+    // Last known link of the main team chain
+    @jsonkey("p") @mpackkey("p")
+    LinkTriple parentChain;
+
+    // The signer for this link
+    @jsonkey("s") @mpackkey("s")
+    Signer signer;
+
+    // The PTK that's getting signed in.
+    @jsonkey("k") @mpackkey("k")
+    map<PTKType, PerTeamKey>  ptk;
   }
 
   // FastTeamSigChainState is the state computed by doing a fast reply of the

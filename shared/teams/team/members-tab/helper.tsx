@@ -80,7 +80,6 @@ export const mapStateHelper = (
 })
 
 export const getRows = ({_memberInfo, _you, _yourOperations}: StateProps) =>
-  // $FlowIssue not sure
   getOrderedMemberArray(_memberInfo, _you, _yourOperations).map(i => ({
     type: 'member',
     username: i.username,

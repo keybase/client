@@ -1,4 +1,3 @@
-// @noflow
 /*
  * This file injects performance marks using the performance api (see the chrome timeline view). It:
  * --- We don't do this anymore -- 1. Monkeypatches redux connect to time mapStateToProps, mapDispatchToProps, mergeProps helpers

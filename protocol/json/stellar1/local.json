@@ -263,6 +263,21 @@
         },
         {
           "type": "boolean",
+          "name": "isAdvanced"
+        },
+        {
+          "type": "string",
+          "name": "summaryAdvanced"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
+        },
+        {
+          "type": "boolean",
           "name": "unread"
         },
         {
@@ -454,6 +469,21 @@
         {
           "type": "Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "boolean",
+          "name": "isAdvanced"
+        },
+        {
+          "type": "string",
+          "name": "summaryAdvanced"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
         },
         {
           "type": "string",
@@ -965,6 +995,21 @@
           "name": "sourceAsset"
         },
         {
+          "type": "boolean",
+          "name": "isAdvanced"
+        },
+        {
+          "type": "string",
+          "name": "summaryAdvanced"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "operations"
+        },
+        {
           "type": "AccountID",
           "name": "fromStellar"
         },
@@ -1342,6 +1387,34 @@
         {
           "type": "string",
           "name": "extra"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SignXdrResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "singedTx"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "submitErr"
+        },
+        {
+          "type": [
+            null,
+            "TransactionID"
+          ],
+          "name": "submitTxID"
         }
       ]
     }
@@ -2554,6 +2627,26 @@
         "type": "array",
         "items": "PartnerUrl"
       }
+    },
+    "signTransactionXdrLocal": {
+      "request": [
+        {
+          "name": "envelopeXdr",
+          "type": "string"
+        },
+        {
+          "name": "accountID",
+          "type": [
+            null,
+            "AccountID"
+          ]
+        },
+        {
+          "name": "submit",
+          "type": "boolean"
+        }
+      ],
+      "response": "SignXdrResult"
     }
   },
   "namespace": "stellar.1"

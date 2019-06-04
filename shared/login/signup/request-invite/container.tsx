@@ -13,8 +13,8 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onSubmit: (email: string, name: string) => dispatch(SignupGen.createRequestInvite({email, name})),
 })
-// @ts-ignore codemode issue
-export default connect<OwnProps, _, _, _, _>(
+
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

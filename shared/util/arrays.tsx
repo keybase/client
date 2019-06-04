@@ -4,7 +4,6 @@ export function intersperseFn<A, B>(
   arr: Array<A>
 ): Array<A | B> {
   if (arr.length === 0) {
-    // $FlowIssue an array with no length is a valid type for any Array
     return arr
   }
 

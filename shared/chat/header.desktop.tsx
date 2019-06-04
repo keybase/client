@@ -42,7 +42,6 @@ const descStyleOverride = {
 
 const Header = (p: Props) => {
   let description = !!p.desc && (
-    // $FlowIssue not used on mobile
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
@@ -225,10 +224,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const Connected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Header)
+const Connected = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
 
 export default Connected

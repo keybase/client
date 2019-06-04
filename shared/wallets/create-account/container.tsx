@@ -48,8 +48,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onDone: dispatchProps.onDone,
 })
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(CreateAccount)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateAccount)

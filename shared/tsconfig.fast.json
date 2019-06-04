@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["./**/*"],
+  "compilerOptions": {
+    "isolatedModules": false,
+    "tsBuildInfoFile": "./.tsOuts/.tsOutFast/cache",
+    "outDir": "./.tsOuts/.tsOutFast/emit"
+  }
+}

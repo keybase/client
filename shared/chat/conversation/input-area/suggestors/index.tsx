@@ -77,12 +77,7 @@ type SuggestorHooks = {
   onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onBlur: () => void
   onFocus: () => void
-  onSelectionChange: (
-    arg0: {
-      start: number
-      end: number
-    }
-  ) => void
+  onSelectionChange: (arg0: {start: number; end: number}) => void
 }
 
 export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps
@@ -217,7 +212,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _onChangeText = text => {
       this._lastText = text
-      // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onChangeText && this.props.onChangeText(text)
       this._checkTrigger(text)
     }
@@ -229,7 +223,6 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
       if (!this.state.active || this._getResults().length === 0) {
         // not showing list, bail
-        // $FlowIssue TODO (DA) but I don't think this is an issue
         this.props.onKeyDown && this.props.onKeyDown(evt, ici)
         return
       }
@@ -261,25 +254,21 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
 
       if (shouldCallParentCallback) {
-        // $FlowIssue TODO (DA) but I don't think this is an issue
         this.props.onKeyDown && this.props.onKeyDown(evt, ici)
       }
     }
 
     _onBlur = () => {
-      // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onBlur && this.props.onBlur()
       this._setInactive()
     }
 
     _onFocus = () => {
-      // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onFocus && this.props.onFocus()
       this._checkTrigger(this._lastText || '')
     }
 
     _onSelectionChange = selection => {
-      // $FlowIssue TODO (DA) but I don't think this is an issue
       this.props.onSelectionChange && this.props.onSelectionChange()
       this._checkTrigger(this._lastText || '')
     }

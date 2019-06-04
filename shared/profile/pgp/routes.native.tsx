@@ -17,8 +17,7 @@ const NoPGPView = props => (
   </Modal>
 )
 
-// @ts-ignore codemode issue
-const NoPGP = connect<OwnProps, _, _, _, _>(
+const NoPGP = connect(
   () => ({}),
   dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),
   (s, d, o) => ({...o, ...s, ...d})

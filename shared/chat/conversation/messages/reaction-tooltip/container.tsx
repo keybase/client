@@ -100,9 +100,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ReactionTooltip'
-)(ReactionTooltip)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ReactionTooltip')(
+  ReactionTooltip
+)

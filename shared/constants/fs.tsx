@@ -139,6 +139,12 @@ export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersP
   start: 0,
 } as Types._SyncingFoldersProgress)
 
+export const makeOverallSyncStatus: I.Record.Factory<Types._OverallSyncStatus> = I.Record({
+  diskSpaceBannerHidden: false,
+  diskSpaceStatus: Types.DiskSpaceStatus.Ok,
+  syncingFoldersProgress: makeSyncingFoldersProgress(),
+} as Types._OverallSyncStatus)
+
 export const makePathUserSetting: I.Record.Factory<Types._PathUserSetting> = I.Record({
   sort: Types.SortSetting.NameAsc,
 } as Types._PathUserSetting)
@@ -310,6 +316,7 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
   loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
+  overallSyncStatus: makeOverallSyncStatus(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map(),
@@ -318,7 +325,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   settings: makeSettings(),
   sfmi: makeSystemFileManagerIntegration(),
   softErrors: makeSoftErrors(),
-  syncingFoldersProgress: makeSyncingFoldersProgress(),
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),
@@ -990,15 +996,14 @@ export const makeActionsForShowSendAttachmentToChat = (
   ),
 ]
 
-// TODO(KBFS-4129): make this actually able to check out-of-spaceness
 export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
-  overallSyncStatus: any
+  overallSyncStatus: Types.OverallSyncStatus
 ): Types.MainBannerType =>
   kbfsDaemonStatus.online
-    ? overallSyncStatus === null
-      ? Types.MainBannerType.None
-      : Types.MainBannerType.OutOfSpace
+    ? overallSyncStatus.diskSpaceStatus === 'error'
+      ? Types.MainBannerType.OutOfSpace
+      : Types.MainBannerType.None
     : flags.kbfsOfflineMode
     ? Types.MainBannerType.Offline
     : Types.MainBannerType.None

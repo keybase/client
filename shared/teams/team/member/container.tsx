@@ -164,10 +164,6 @@ class TeamMemberStateWrapper extends React.Component<Props, State> {
 }
 
 export default compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   HeaderHoc
 )(TeamMemberStateWrapper)

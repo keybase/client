@@ -36,9 +36,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showNewChat: stateProps.showNewChat,
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ChatInboxHeaderContainer'
-)(ChatInboxHeader)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatInboxHeaderContainer')(
+  ChatInboxHeader
+)

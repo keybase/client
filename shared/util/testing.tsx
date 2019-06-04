@@ -18,7 +18,6 @@ export const makeStartReduxSaga = (
         throw e
       },
     })
-    // $FlowIssue
     const store = createStore(rootReducer, is || initialStore, applyMiddleware(sagaMiddleware))
     // @ts-ignore codemod-issue
     const getState: () => any = store.getState

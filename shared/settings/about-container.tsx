@@ -27,11 +27,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
 })
 
 const connectedHeaderHoc = Container.compose(
-  Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   HeaderHoc
   // @ts-ignore
 )(About)

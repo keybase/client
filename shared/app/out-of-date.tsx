@@ -50,8 +50,4 @@ const mapDispatchToProps = dispatch => ({
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps})
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(OutOfDate)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(OutOfDate)

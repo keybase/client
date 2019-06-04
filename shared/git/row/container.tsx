@@ -89,8 +89,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 const ConnectedRow = compose(
-  // @ts-ignore codemod issue
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'GitRow'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'GitRow'),
   withHandlers({
     onChannelClick: ({chatDisabled, _onOpenChannelSelection}) => e => {
       if (chatDisabled) {
