@@ -149,7 +149,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 	// create new user, then add pgp key
 	u := CreateAndSignupFakeUser(tc, "login")
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
-	_, _, key := armorKey(t, tc, u.Email)
+	_, _, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	require.NoError(t, err)
 
