@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"time"
 
-	dbus "github.com/guelfey/go.dbus"
+	dbus "github.com/keybase/go.dbus"
 	errors "github.com/pkg/errors"
 )
 

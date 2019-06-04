@@ -631,10 +631,16 @@
 			"revisionTime": "2018-08-01T17:02:38Z"
 		},
 		{
-			"checksumSHA1": "U4UI9YzOjjzb5wNqyLfGfZBzvcc=",
+			"checksumSHA1": "g0PJMcZdWKAs1cwRwracYXf2omQ=",
+			"path": "github.com/keybase/go-keychain",
+			"revision": "948cd561218ecd8f9c4548b09ce9d17fcd4b1ba5",
+			"revisionTime": "2019-06-04T18:42:05Z"
+		},
+		{
+			"checksumSHA1": "U/MVaUmN88p7XzeVia6QNUkSW64=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "18419f45091c941bd31260f957523063206554ef",
-			"revisionTime": "2019-04-10T17:11:33Z"
+			"revision": "948cd561218ecd8f9c4548b09ce9d17fcd4b1ba5",
+			"revisionTime": "2019-06-04T18:42:05Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
