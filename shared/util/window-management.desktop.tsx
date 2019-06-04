@@ -6,7 +6,7 @@ const closeWindow = () => {
 }
 const isMaximized = () => {
   const win = BrowserWindow && BrowserWindow.getFocusedWindow()
-  win && win.isMaximized()
+  return win && win.isMaximized()
 }
 const minimizeWindow = () => {
   const win = BrowserWindow && BrowserWindow.getFocusedWindow()
