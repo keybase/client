@@ -300,6 +300,56 @@ func (f *Favorites) closeReq(req *favReq, err error) {
 	}
 }
 
+func (f *Favorites) crossCheckWithEditHistory() {
+	// NOTE: Ideally we would wait until all edit activity processing
+	// had completed in the FBO before we do these checks, but I think
+	// in practice when the mtime changes, it'll be the edit activity
+	// processing that actually kicks off these favorites activity,
+	// and so that particular race won't be an issue.  If we see
+	// weirdness here though, it might be worth revisiting that
+	// assumption.
+
+	// Fix the favorite times to be the latest known edit history
+	// times, if possible.  If not possible, set them to be lower than
+	// the minimum known time, if they're not already.
+	var minTime keybase1.Time
+	uh := f.config.UserHistory()
+	tlfsWithNoHistory := make(map[favorites.Folder]favorites.Data)
+	for fav, data := range f.favCache {
+		h := uh.GetTlfHistory(tlf.CanonicalName(fav.Name), fav.Type)
+		if h.ServerTime == 0 {
+			if data.TlfMtime != nil {
+				tlfsWithNoHistory[fav] = data
+			}
+			continue
+		}
+		if minTime == 0 || h.ServerTime < minTime {
+			minTime = h.ServerTime
+		}
+		// Seems like the mtime in the favorites list is incorrectly
+		// in seconds, rather than milliseconds as a `keybase1.Time`
+		// is supposed to be.
+		if data.TlfMtime == nil || (*data.TlfMtime)*1000 > h.ServerTime {
+			t := h.ServerTime / 1000
+			data.TlfMtime = &t
+			f.favCache[fav] = data
+		}
+	}
+
+	// Make sure all TLFs that aren't in the recent edit history get a
+	// timestamp that's smaller than the minimum time in the edit
+	// history.
+	if minTime > 0 {
+		for fav, data := range tlfsWithNoHistory {
+			if (*data.TlfMtime)*1000 > minTime {
+				t := minTime/1000 - 1
+				data.TlfMtime = &t
+				f.favCache[fav] = data
+			}
+		}
+	}
+}
+
 // sendChangesToEditHistory notes any deleted favorites and removes them
 // from this user's kbfsedits.UserHistory.
 func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favorites.Data) (changed bool) {
@@ -321,6 +371,7 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[favorites.Folder]favor
 			changed = true
 		}
 	}
+
 	return changed
 }
 
@@ -455,6 +506,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 					}
 				}
 			}
+			f.crossCheckWithEditHistory()
 			for _, folder := range favResult.IgnoredFolders {
 				f.ignoredCache[*favorites.NewFolderFromProtocol(
 					folder)] = favorites.DataFrom(folder)
