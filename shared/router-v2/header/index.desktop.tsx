@@ -28,29 +28,29 @@ const PlainTitle = ({title}) => (
 const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
-      className="hover_background_color_greyLight"
+      className="hover_background_color_black_05  color_black_50 hover_color_black"
       direction="vertical"
       onClick={Window.minimizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
-        color={Styles.globalColors.black_50}
+        inheritColor={true}
         onClick={Window.minimizeWindow}
         style={styles.appIcon}
         type="iconfont-app-minimize"
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
-      className="hover_background_color_greyLight"
+      className="hover_background_color_black_05 color_black_50 hover_color_black"
       direction="vertical"
       onClick={Window.toggleMaximizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
-        color={Styles.globalColors.black_50}
+        inheritColor={true}
         onClick={Window.toggleMaximizeWindow}
         style={styles.appIcon}
-        type="iconfont-app-maximize"
+        type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
