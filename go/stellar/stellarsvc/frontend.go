@@ -372,9 +372,12 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	fee, err := stellar.FormatAmountDescriptionXLM(mctx, details.FeeCharged)
-	if err != nil {
-		return payment, err
+	var fee string
+	if details.FeeCharged != "" {
+		fee, err = stellar.FormatAmountDescriptionXLM(mctx, details.FeeCharged)
+		if err != nil {
+			return payment, err
+		}
 	}
 
 	payment = stellar1.PaymentDetailsLocal{

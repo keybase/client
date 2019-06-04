@@ -1436,9 +1436,11 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 
 	p.PublicNote = payment.Memo
 	p.PublicNoteType = payment.MemoType
-	p.FeeChargedDescription, err = FormatAmountDescriptionXLM(mctx, payment.FeeCharged)
-	if err != nil {
-		return res, err
+	if payment.FeeCharged != "" {
+		p.FeeChargedDescription, err = FormatAmountDescriptionXLM(mctx, payment.FeeCharged)
+		if err != nil {
+			return res, err
+		}
 	}
 
 	return p, nil
