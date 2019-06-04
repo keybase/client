@@ -104,7 +104,7 @@ gomobileinit ()
 }
 
 if [ "$arg" = "ios" ]; then
-  ios_dir=${DEST_DIR:-"$dir/ios"}
+  ios_dir=${DEST_DIR:-"$dir/../ios"}
   ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
