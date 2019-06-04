@@ -23,7 +23,7 @@ const commonSystemFileManagerIntegrationBannerActions = {
 
 export const bannerProvider = {
   ConflictBanner: (p: any) => ({
-    conflictState: p.storyProps?.conflictState || 'none',
+    conflictState: (p.storyProps && p.storyProps.conflictState) || 'none',
     isUnmergedView: false,
     onFeedback: Sb.action('onFeedback'),
     onFinishResolving: Sb.action('onFinishResolving'),

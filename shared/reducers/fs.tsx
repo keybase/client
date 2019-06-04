@@ -598,7 +598,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.tlfCrStatusChanged:
       const parsedPath = Constants.parsePath(action.payload.tlfPath)
       const newState = action.payload.status
-      if (parsedPath.kind === 'root' || parsedPath.kind === 'tlf-list') {
+      if (parsedPath.kind === Types.PathKind.Root || parsedPath.kind === Types.PathKind.TlfList) {
         // This should not happen.
         return state
       }

@@ -988,7 +988,7 @@ const startManualCR = (state, action) =>
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(() =>
     FsGen.createTlfCrStatusChanged({
-      status: 'in-manual-resolution',
+      status: Types.ConflictState.InManualResolution,
       tlfPath: action.payload.tlfPath,
     })
   ) // TODO: deal with errors
