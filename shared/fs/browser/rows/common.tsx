@@ -12,7 +12,7 @@ export type StillCommonProps = {
   inDestinationPicker?: boolean
   onOpen: () => void
   routePath: I.List<string>
-    animateActions?: boolean | null
+  animateActions?: boolean | null
 }
 
 export const StillCommon = (

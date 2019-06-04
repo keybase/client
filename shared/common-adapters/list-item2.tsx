@@ -101,7 +101,7 @@ const ListItem = (props: Props) => (
           })}
           style={Styles.collapseStyles([
             props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
-            props.onlyShowActionOnHover ? styles.hiddenNoHoverAction : {},
+            props.onlyShowActionOnHover && styles.hiddenNoHoverAction,
           ])}
         >
           {props.action}
