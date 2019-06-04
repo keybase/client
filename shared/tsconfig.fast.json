@@ -3,7 +3,7 @@
   "include": ["./**/*"],
   "compilerOptions": {
     "isolatedModules": false,
-    "tsBuildInfoFile": "./.tsOutFast/cache",
-    "outDir": "./.tsOutFast/emit"
+    "tsBuildInfoFile": "./.tsOuts/.tsOutFast/cache",
+    "outDir": "./.tsOuts/.tsOutFast/emit"
   }
 }
