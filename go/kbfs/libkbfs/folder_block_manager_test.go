@@ -455,7 +455,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -535,7 +535,7 @@ func (mtwqr modeTestWithQR) IsTestMode() bool {
 func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 	// Re-enable QR in test mode.

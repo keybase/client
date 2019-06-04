@@ -1108,7 +1108,7 @@ func makeEncryptedMerkleLeafForTesting(
 func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 
 	mdServer := makeKeyBundleMDServer(config.MDServer())
@@ -1201,7 +1201,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -1232,7 +1232,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
@@ -1334,7 +1334,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)

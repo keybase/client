@@ -186,8 +186,9 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	return mockCtrl, config, ctx, cancel
 }
 
-func kbfsTestShutdown(ctx context.Context,
-	t *testing.T, mockCtrl *gomock.Controller, config *ConfigMock, cancel context.CancelFunc) {
+func kbfsTestShutdown(
+	ctx context.Context, t *testing.T, mockCtrl *gomock.Controller,
+	config *ConfigMock, cancel context.CancelFunc) {
 	config.ctr.CheckForFailures()
 	err := config.conflictResolutionDB.Close()
 	require.NoError(t, err)
@@ -257,7 +258,8 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 	return config, session.UID, ctx, cancel
 }
 
-func kbfsTestShutdownNoMocks(ctx context.Context, t *testing.T,
+func kbfsTestShutdownNoMocks(
+	ctx context.Context, t *testing.T,
 	config *ConfigLocal, cancel context.CancelFunc) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
@@ -3983,7 +3985,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 	t *testing.T, ty tlf.Type, name string, initialMDVer kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	config1.SetMetadataVersion(initialMDVer)
 
 	config2 := ConfigAsUser(config1, u2)
@@ -4091,7 +4093,7 @@ func TestKBFSOpsMigratePublicV2ToImplicitTeam(t *testing.T) {
 func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
 	t.Log("Create a private folder for the master branch.")
 	name := "u1"
@@ -4214,7 +4216,7 @@ func (w testKBFSOpsRootWrapper) wrap(node Node) Node {
 func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
 	fs := memfs.New()
 	rw := testKBFSOpsRootWrapper{fs}
@@ -4293,7 +4295,7 @@ func (md mdServerShutdownOverride) isShutdown() bool {
 func TestKBFSOpsReset(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	md := &mdServerShutdownOverride{config.MDServer().(mdServerLocal), false}
 	config.SetMDServer(md)
 
@@ -4376,7 +4378,7 @@ func (dmc *diskMDCacheWithCommitChan) Commit(
 func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
 	dmcLocal, tempdir := newDiskMDCacheLocalForTest(t)
 	defer shutdownDiskMDCacheTest(dmcLocal, tempdir)
@@ -4486,7 +4488,7 @@ func enableDiskCacheForTest(
 func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
 	config2 := ConfigAsUser(config, u1)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -4605,7 +4607,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
@@ -4740,7 +4742,7 @@ func waitForIndirectPtrBlocksInTest(
 func TestKBFSOpsPartialSync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetVLogLevel(libkb.VLog2String)
 
 	name := "u1"
@@ -4958,7 +4960,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 	config.SetVLogLevel(libkb.VLog2String)

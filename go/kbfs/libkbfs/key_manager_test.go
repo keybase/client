@@ -854,7 +854,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -1113,7 +1113,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2, u3 kbname.NormalizedUsername = "u1", "u2", "u3"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1221,7 +1221,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1315,7 +1315,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	session1, err := config1.KBPKI().GetCurrentSession(ctx)
 
 	config1.SetMetadataVersion(ver)
@@ -1404,7 +1404,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -1534,7 +1534,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	doShutdown1 := true
 	defer func() {
 		if doShutdown1 {
-			kbfsConcurTestShutdown(t, config1, ctx, cancel)
+			kbfsConcurTestShutdown(ctx, t, config1, cancel)
 		}
 	}()
 
@@ -1714,7 +1714,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	// Explicitly run the checks with config1 before the deferred shutdowns begin.
 	// This way the shared mdserver hasn't been shutdown.
-	kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	doShutdown1 = false
 }
 
@@ -1724,7 +1724,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -1882,7 +1882,7 @@ func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1995,7 +1995,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -2122,7 +2122,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -2234,7 +2234,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -2329,7 +2329,7 @@ func (c *protectedContext) maybeReplaceContext(newCtx context.Context) {
 func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -2391,7 +2391,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
