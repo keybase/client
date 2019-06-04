@@ -15,7 +15,7 @@ const minimizeWindow = () => {
 const toggleMaximizeWindow = () => {
   const win = BrowserWindow && BrowserWindow.getFocusedWindow()
   if (win) {
-    win.isMaximized ? win.unmaximize() : win.maximize()
+    win.isMaximized() ? win.unmaximize() : win.maximize()
   }
 }
 
