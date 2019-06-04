@@ -194,7 +194,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.windowDraggingClickable,
       padding: Styles.globalMargins.tiny,
       position: 'relative',
-      right: -Styles.globalMargins.xsmall,
+      right: -Styles.globalMargins.tiny,
       top: -Styles.globalMargins.xtiny,
     },
   }),
