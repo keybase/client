@@ -128,6 +128,7 @@
     "framed-msgpack-rpc": "1.1.18",
     "iced-runtime": "1.0.3",
     "immutable": "4.0.0-rc.12",
+    "jsc-android": "241213.2.0",
     "lodash-es": "4.17.11",
     "lottie-react-native": "2.6.1",
     "lottie-react-web": "2.1.4",
