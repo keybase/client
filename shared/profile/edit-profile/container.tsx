@@ -35,10 +35,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   title: 'Edit Profile',
 })
 
-// @ts-ignore codemode issue
-export default Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'EditProfile'
-)(EditProfile)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'EditProfile')(
+  EditProfile
+)

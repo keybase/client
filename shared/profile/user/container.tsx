@@ -132,21 +132,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-// @ts-ignore codemode issue
-const connected = Container.namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'Profile2'
-)(Profile2)
+const connected = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Profile2')(
+  Profile2
+)
 
 const Header = ({onSearch, backgroundColorType}) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <ProfileSearch whiteText={true} onSearch={onSearch} />
   </Kb.Box2>
 )
-// @ts-ignore codemode issue
-const ConnectedHeader = Container.connect<{}, _, _, _, _>(
+const ConnectedHeader = Container.connect(
   () => ({}),
   dispatch => ({
     onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),

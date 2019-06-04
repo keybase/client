@@ -39,39 +39,6 @@ func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.C
 	}
 }
 
-// ListTrackers gets the list of trackers for a user by uid.
-func (h *UserHandler) ListTrackers(ctx context.Context, arg keybase1.ListTrackersArg) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackers(h.G(), arg.Uid)
-	return h.listTrackers(ctx, arg.SessionID, eng)
-}
-
-// ListTrackersByName gets the list of trackers for a user by
-// username.
-func (h *UserHandler) ListTrackersByName(ctx context.Context, arg keybase1.ListTrackersByNameArg) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackersByName(arg.Username)
-	return h.listTrackers(ctx, arg.SessionID, eng)
-}
-
-// ListTrackersSelf gets the list of trackers for the logged in
-// user.
-func (h *UserHandler) ListTrackersSelf(ctx context.Context, sessionID int) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackersSelf()
-	return h.listTrackers(ctx, sessionID, eng)
-}
-
-func (h *UserHandler) listTrackers(ctx context.Context, sessionID int, eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(sessionID),
-		SessionID: sessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
-		return nil, err
-	}
-	res := eng.ExportedList()
-	return res, nil
-}
-
 func (h *UserHandler) LoadUncheckedUserSummaries(ctx context.Context, arg keybase1.LoadUncheckedUserSummariesArg) ([]keybase1.UserSummary, error) {
 	eng := engine.NewUserSummary(h.G(), arg.Uids)
 	m := libkb.NewMetaContext(ctx, h.G())

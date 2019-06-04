@@ -47,7 +47,7 @@ const defaultProps = {
   updateMobile: Sb.action('updateMobile'),
   visible: true,
   yourMessage: true,
-}
+} as const
 
 const explodingSoonText = makeMessageText({
   author: 'cjb',

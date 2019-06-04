@@ -29,10 +29,6 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-// @ts-ignore codemode issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  () => ({}),
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
-  'Generate'
-)(Generate)
+export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Generate')(
+  Generate
+)

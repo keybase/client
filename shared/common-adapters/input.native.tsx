@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 // @ts-ignore not converted
 import Box from './box'
 // @ts-ignore not converted
-import Text, {getStyle as getTextStyle} from './text'
+import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'

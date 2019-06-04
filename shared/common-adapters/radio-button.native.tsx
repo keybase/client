@@ -1,7 +1,5 @@
 import React from 'react'
-// @ts-ignore not converted
 import ClickableBox from './clickable-box'
-// @ts-ignore not converted
 import Text from './text'
 import * as Styles from '../styles'
 import {Props} from './radio-button'
@@ -16,7 +14,7 @@ const RadioOuterCircle = Styles.styled(ClickableBox)(
     borderWidth: 1,
     height: RADIOBUTTON_SIZE,
     marginRight: RADIOBUTTON_MARGIN,
-    position: 'relative',
+    position: 'relative' as 'relative',
     width: RADIOBUTTON_SIZE,
   },
   ({disabled, selected}) => ({
@@ -44,10 +42,13 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     style={{...styleContainer, ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
-    <RadioOuterCircle disabled={disabled} selected={selected}>
-      <RadioInnerCircle selected={selected} />
-    </RadioOuterCircle>
-
+    {
+      // @ts-ignore styled is more complicated than its typing lets on
+      <RadioOuterCircle disabled={disabled} selected={selected}>
+        // @ts-ignore styled is more complicated than its typing lets on
+        <RadioInnerCircle selected={selected} />
+      </RadioOuterCircle>
+    }
     <Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}
     </Text>
@@ -56,7 +57,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
 
 const styleContainer = {
   ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
+  alignItems: 'center' as 'center',
   paddingBottom: Styles.globalMargins.xtiny,
   paddingTop: Styles.globalMargins.xtiny,
 }

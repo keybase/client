@@ -31,10 +31,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   title: 'Prove your...',
 })
 
-// @ts-ignore codemode issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ProofsList'
-)(ProofsList)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ProofsList')(ProofsList)

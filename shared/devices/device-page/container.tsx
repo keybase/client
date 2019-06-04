@@ -33,10 +33,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
   showRevokeDevicePage: () => dispatchProps._showRevokeDevicePage(stateProps.device.deviceID),
 })
 
-// @ts-ignore codemode issue
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'DevicePage'
-)(DevicePage)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'DevicePage')(DevicePage)

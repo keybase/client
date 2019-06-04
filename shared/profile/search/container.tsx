@@ -22,8 +22,7 @@ const mergeProps = (_, dispatchProps, ownProps) => {
   }
 }
 
-// @ts-ignore codemode issue
-const connected = connect<OwnProps, _, _, _, _>(
+const connected = connect(
   () => ({}),
   mapDispatchToProps,
   mergeProps
