@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/keybase/client/go/chat/attachments"
 )
 
 func wrapWriteErr(err error, hostsPath string) error {
+	attachments.LinkNoop()
 	if !os.IsPermission(err) {
 		return err
 	}
