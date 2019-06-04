@@ -26,7 +26,7 @@ export const bannerProvider = {
     return {
       hidden: false,
       onClose: Sb.action('close'),
-      onLoad: () => {},
+      onLoadNonBannerFolder: () => {},
       show: parsedPath.kind === Types.PathKind.GroupTlf && parsedPath.tlfType === Types.TlfType.Public,
       url: parsedPath.kind === Types.PathKind.GroupTlf ? `https://keybase.pub/${parsedPath.tlfName}` : '',
     }
