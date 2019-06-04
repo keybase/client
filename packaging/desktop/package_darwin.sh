@@ -16,6 +16,7 @@ run_mode="prod"
 platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
+skip_notarize=${SKIP_NOTARIZE:-}
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -275,23 +276,27 @@ package_dmg() {(
 )}
 
 # Notarize the dmg
-notorize_dmg() {(
+notarize_dmg() {(
   cd "$out_dir"
-  echo "Uploading $dmg_name to notorization service in $out_dir"
-  uuid=`xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notorization" --file "$dmg_name" 2>&1 | awk '{ print $3 }'`
-  echo "Successfully uploaded to notorization service, polling for result: $uuid"
+  if [ ! "$skip_notarize" = "" ]; then
+    echo "Skipping notarize..."
+    return
+  fi
+  echo "Uploading $dmg_name to notarization service in $out_dir"
+  uuid=`xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }'`
+  echo "Successfully uploaded to notarization service, polling for result: $uuid"
   while true; do
-    fullstatus = `xcrun altool --notorization-info $uuid --username "apple-dev@keyba.se" --password "@keychain:notorization"`
-    status=`echo $fullstatus | grep 'Status\:' | awk '{ print $2 }'`
+    fullstatus=`xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1`
+    status=`echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }'`
     if [ "$status" = "success" ]; then
-      echo "Notorization success!"
+      echo "Notarization success!"
       break
-    elif [ "$status" = "in progress" ]; then
-      echo "Notorization still in progress, sleeping for 15 seconds and trying again"
+    elif [ "$status" = "in" ]; then
+      echo "Notarization still in progress, sleeping for 15 seconds and trying again"
       sleep 15
     else
-      echo "Notorization failed! fullstatus below"
-      echo $fullstatus
+      echo "Notarization failed! fullstatus below"
+      echo "$fullstatus"
       exit 1
     fi
   done
@@ -369,7 +374,7 @@ package_app
 update_plist
 sign
 package_dmg
-notorize_dmg
+notarize_dmg
 create_sourcemap_zip
 create_zip
 kbsign
