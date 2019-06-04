@@ -641,6 +641,11 @@ export const usernameInPath = (username: string, path: Types.Path) => {
   return elems.length >= 3 && elems[2].split(',').includes(username)
 }
 
+export const getUsernamesFromTlfName = (tlfName: string): I.List<string> => {
+  const split = splitTlfIntoReadersAndWriters(tlfName)
+  return split.writers.concat(split.readers || I.List([]))
+}
+
 export const isOfflineUnsynced = (
   daemonStatus: Types.KbfsDaemonStatus,
   pathItem: Types.PathItem,
