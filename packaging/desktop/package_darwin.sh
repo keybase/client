@@ -85,11 +85,11 @@ if [ "$kbnm_version" = "" ]; then
   echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
-# if [ "$comment" = "" ]; then
-#   comment=`git rev-parse --short HEAD`
-#   echo "Using comment: $comment"
-# fi
-# comment="+$comment"
+if [ "$comment" = "" ]; then
+  comment=`git rev-parse --short HEAD`
+  echo "Using comment: $comment"
+fi
+comment="+$comment"
 
 out_dir="$build_dir/Keybase-darwin-x64"
 app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
@@ -274,6 +274,30 @@ package_dmg() {(
   "$node_bin/appdmg" "$appdmg" "$dmg_name"
 )}
 
+# Notarize the dmg
+notorize_dmg() {(
+  cd "$out_dir"
+  echo "Uploading $dmg_name to notorization service in $out_dir"
+  uuid=`xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notorization" --file "$dmg_name" 2>&1 | awk '{ print $3 }'`
+  echo "Successfully uploaded to notorization service, polling for result: $uuid"
+  while true; do
+    fullstatus = `xcrun altool --notorization-info $uuid --username "apple-dev@keyba.se" --password "@keychain:notorization"`
+    status=`echo $fullstatus | grep 'Status\:' | awk '{ print $2 }'`
+    if [ "$status" = "success" ]; then
+      echo "Notorization success!"
+      break
+    elif [ "$status" = "in progress" ]; then
+      echo "Notorization still in progress, sleeping for 15 seconds and trying again"
+      sleep 15
+    else
+      echo "Notorization failed! fullstatus below"
+      echo $fullstatus
+      exit 1
+    fi
+  done
+  xcrun stapler staple "$dmg_name"
+)}
+
 create_sourcemap_zip() {(
   cd "$out_dir"
   echo "Creating $sourcemap_name from $desktop_dir/dist"
@@ -345,6 +369,7 @@ package_app
 update_plist
 sign
 package_dmg
+notorize_dmg
 create_sourcemap_zip
 create_zip
 kbsign
