@@ -81,7 +81,6 @@ def VERSION_NAME = "4.0.0"
 // KB:
 project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
-    // Extra .. since we're up a level higher than normal
     root: "../../",
 ]
 
