@@ -516,6 +516,10 @@
             "string"
           ],
           "name": "inflationSource"
+        },
+        {
+          "type": "string",
+          "name": "feeChargedDescription"
         }
       ]
     },
