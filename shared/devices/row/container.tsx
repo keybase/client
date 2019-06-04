@@ -35,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
     dispatchProps._showExistingDevicePage(ownProps.deviceID)
   },
   type: stateProps.type,
-  whut: 'boo'
+  whut: 'boo',
 })
 
 const C = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)
