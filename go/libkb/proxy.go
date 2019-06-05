@@ -30,7 +30,7 @@ possible to switch the client to trust the public CA system. This can be done in
 ``` bash
 keybase config set disable-ssl-pinning true
 # OR
-export disable_ssl_pinning="true"
+export DISABLE_SSL_PINNING="true"
 # OR
 keybase --disable-ssl-pinning
 ```

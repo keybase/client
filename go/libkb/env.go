@@ -40,7 +40,7 @@ func (n NullConfiguration) GetEmail() string                                    
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetProxyType() string                                           { return "" }
-func (n NullConfiguration) IsSSLPinningEnabled() bool									   { return true }
+func (n NullConfiguration) IsSSLPinningEnabled() bool                                      { return true }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
 func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)                      { return 0, false }
@@ -1084,10 +1084,10 @@ func (e *Env) GetProxy() string {
 		// Prioritze tor mode over configured proxies
 		func() string { return e.cmd.GetProxy() },
 		func() string { return e.GetConfig().GetProxy() },
-		func() string { return os.Getenv("proxy") },
+		func() string { return os.Getenv("PROXY") },
 		// Prioritize the keybase specific methods of configuring a proxy above the standard unix env variables
-		func() string { return os.Getenv("https_proxy") },
-		func() string { return os.Getenv("http_proxy") },
+		func() string { return os.Getenv("HTTPS_PROXY") },
+		func() string { return os.Getenv("HTTP_PROXY") },
 	)
 }
 
@@ -1096,7 +1096,7 @@ func (e *Env) IsSSLPinningEnabled() bool {
 	if !e.cmd.IsSSLPinningEnabled() {
 		return false
 	}
-	res, isSet := e.getEnvBool("disable_ssl_pinning")
+	res, isSet := e.getEnvBool("DISABLE_SSL_PINNING")
 	if isSet && res {
 		return false
 	}
