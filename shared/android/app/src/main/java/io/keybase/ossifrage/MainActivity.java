@@ -32,6 +32,7 @@ import io.keybase.ossifrage.modules.IntentHandler;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
+import io.keybase.ossifrage.util.MobileOSVersion;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -80,7 +81,7 @@ public class MainActivity extends ReactFragmentActivity {
 
         createDummyFile();
         initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper());
+                new DNSNSFetcher(), new VideoHelper(), MobileOSVersion.Get());
 
         super.onCreate(null);
 

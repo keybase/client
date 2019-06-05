@@ -21,6 +21,7 @@ import java.util.Map;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
+import io.keybase.ossifrage.util.MobileOSVersion;
 import keybase.Keybase;
 import keybase.PushNotifier;
 
@@ -35,7 +36,7 @@ public class KeybasePushNotificationListenerService extends RNPushNotificationLi
             NativeLogger.error("Exception in KeybasePushNotificationListenerService.onCreate while trying to link the Android KeyStore to go bind", e);
         }
         initOnce(getApplicationContext().getFilesDir().getPath(), "", getApplicationContext().getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper());
+                new DNSNSFetcher(), new VideoHelper(), MobileOSVersion.Get());
         NativeLogger.info("KeybasePushNotificationListenerService created. path: " + getApplicationContext().getFilesDir().getPath());
     }
 

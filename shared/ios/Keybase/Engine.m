@@ -55,7 +55,8 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 }
 
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
-  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
+  NSString* systemVer = [[UIDevice currentDevice] systemVersion]
+  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, systemVer, error);
 }
 
 - (void)setupQueues {
