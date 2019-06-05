@@ -193,7 +193,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 	}
 
-	err := env.EnableProxy()
+	err := EnableProxy(env)
 	if err != nil {
 		// We failed to set an environment variable, something is very wrong
 		panic(err)
