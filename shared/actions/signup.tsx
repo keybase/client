@@ -24,10 +24,10 @@ const noErrors = (state: TypedState) =>
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 
-const showUserEmailOnNoErrors = (state: TypedState) =>
+const showUserOnNoErrors = (state: TypedState) =>
   noErrors(state) && [
     RouteTreeGen.createNavigateUp(),
-    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']}),
+    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterUsername']}),
   ]
 
 const showInviteScreen = () =>
@@ -191,10 +191,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     SignupGen.requestedAutoInvite,
     showInviteScreen
   )
-  yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(
-    SignupGen.checkedInviteCode,
-    showUserEmailOnNoErrors
-  )
+  yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(SignupGen.checkedInviteCode, showUserOnNoErrors)
   yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
 
   // actually make the signup call
@@ -222,5 +219,5 @@ export const _testing = {
   showErrorOrCleanupAfterSignup,
   showInviteScreen,
   showInviteSuccessOnNoErrors,
-  showUserEmailOnNoErrors,
+  showUserOnNoErrors,
 }

@@ -179,15 +179,20 @@ class Header extends React.PureComponent<Props> {
                 onClick={this.props.allowBack ? this.props.onPop : null}
               />
             )}
-            {flags.kbfsOfflineMode && <SyncingFolders />}
-            {!title && rightActions}
-            {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
+            <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
+              {flags.kbfsOfflineMode && <SyncingFolders />}
+              {!title && rightActions}
+              {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
+            </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
             key="bottomBar"
             direction="horizontal"
             fullWidth={true}
-            style={opt.headerExpandable ? styles.bottomExpandable : styles.bottom}
+            style={Styles.collapseStyles([
+              opt.headerExpandable ? styles.bottomExpandable : styles.bottom,
+              opt.headerBottomStyle,
+            ])}
           >
             <Kb.Box2 direction="horizontal" style={styles.bottomTitle}>
               {title}
@@ -265,6 +270,7 @@ const styles = Styles.styleSheetCreate({
   plainText: {
     ...Styles.globalStyles.flexGrow,
   },
+  topRightContainer: {flex: 1, justifyContent: 'flex-end'},
 })
 
 export default Header

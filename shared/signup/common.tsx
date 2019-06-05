@@ -8,6 +8,7 @@ type InfoIconProps = {
   invisible: boolean
   onDocumentation: () => void
   onFeedback: () => void
+  style: Styles.StylesCrossPlatform
 }
 
 type InfoIconOwnProps = {
@@ -22,7 +23,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
       type="iconfont-question-mark"
       onClick={props.invisible ? undefined : props.toggleShowingMenu}
       ref={props.setAttachmentRef}
-      style={props.invisible ? styles.opacityNone : undefined}
+      style={Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}
     />
     <Kb.FloatingMenu
       items={[
@@ -48,9 +49,6 @@ export const InfoIcon = Container.namedConnect(
 // Only used on desktop
 const Header = props => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-      <InfoIcon invisible={props.negative as boolean} />
-    </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
@@ -188,10 +186,6 @@ const styles = Styles.styleSheetCreate({
   fixIconAlignment: {
     position: 'relative',
     top: 2,
-  },
-  infoIconContainer: {
-    justifyContent: 'flex-end',
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
   },
   opacityNone: {
     opacity: 0,
