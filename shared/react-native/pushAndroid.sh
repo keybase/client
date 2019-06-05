@@ -6,12 +6,14 @@ IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
 GOPATH0=${GOPATH_ARRAY[0]}
 
 APK_DIR="$GOPATH0/src/github.com/keybase/client/shared/android/app/build/outputs/apk"
-APK_FILENAME="app-debug.apk"
 
 ADB_DEVICE=""
 if [ -n "${ADB_DEVICE_ID-}" ]; then
     ADB_DEVICE="-s $ADB_DEVICE_ID"
 fi
+
+ADB_ABI="$(adb shell getprop ro.product.cpu.abi)"
+APK_FILENAME="app-$ADB_ABI-debug.apk"
 
 # The exact location of the .apk varies.
 echo "Looking for $APK_FILENAME in $APK_DIR..."
