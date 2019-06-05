@@ -67,7 +67,7 @@ const ConflictBanner = (props: Props) => {
       break
     case Types.ConflictState.InManualResolution:
       if (props.isUnmergedView) {
-        actions = [onSeeGlobalView, finishRes, feedbackAction, helpAction]
+        actions = [onSeeGlobalView, feedbackAction, helpAction]
       } else {
         actions = [onSeeLocalView, finishRes, feedbackAction, helpAction]
       }
