@@ -113,7 +113,7 @@ const IconOnly = (props: Props) => {
       if (parsedPath.tlfType === Types.TlfType.Public && props.type === Types.PathType.Folder) {
         return <Kb.Icon type={icons.tlfList.public[getIconSizeString(props.size)]} />
       } else {
-        return <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+        return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
       }
     case Types.PathKind.InTeamTlf:
       return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />

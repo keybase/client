@@ -15,7 +15,6 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   resetBannerType: Constants.resetBannerType(state, path),
   shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
-  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
@@ -31,7 +30,6 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => (
   resetBannerType: stateProps.resetBannerType,
   routePath,
   shouldShowSFMIBanner: stateProps.shouldShowSFMIBanner,
-  username: stateProps.username,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Browser')(Browser)

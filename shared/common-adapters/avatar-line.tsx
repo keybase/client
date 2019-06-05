@@ -45,52 +45,55 @@ const getTextSize = size => (size >= 48 ? 'BodySmallBold' : 'BodyTinyBold')
 
 const avatarSizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 24, 16]
 
-const styleMap = avatarSizes.reduce(function(styles, size) {
-  styles[size] = {
-    horizontal: Styles.styleSheetCreate({
-      avatar: {
-        marginRight: -size / 3,
-      },
-      container: {
-        marginLeft: 2,
-        marginRight: size / 3 + 2,
-      },
-      overflowBox: {
-        backgroundColor: Styles.globalColors.grey,
-        borderBottomRightRadius: size,
-        borderTopRightRadius: size,
-        height: size,
-        justifyContent: 'flex-end',
-        paddingLeft: size / 2,
-      },
-      text: {
-        color: Styles.globalColors.black_40,
-        paddingRight: size / 5,
-      },
-    }),
-    vertical: Styles.styleSheetCreate({
-      avatar: {
-        marginBottom: -size / 3,
-      },
-      container: {
-        marginBottom: size / 3 + 2,
-        marginTop: 2,
-      },
-      overflowBox: {
-        backgroundColor: Styles.globalColors.grey,
-        borderBottomLeftRadius: size,
-        borderBottomRightRadius: size,
-        justifyContent: 'flex-end',
-        paddingTop: size / 2,
-        width: size,
-      },
-      text: {
-        color: Styles.globalColors.black_40,
-        paddingBottom: size / 5,
-      },
-    }),
-  }
-  return styles
-}, {})
+const styleMap = avatarSizes.reduce(
+  (styles, size) => ({
+    ...styles,
+    [size]: {
+      horizontal: Styles.styleSheetCreate({
+        avatar: {
+          marginRight: -size / 3,
+        },
+        container: {
+          marginLeft: 2,
+          marginRight: size / 3 + 2,
+        },
+        overflowBox: {
+          backgroundColor: Styles.globalColors.grey,
+          borderBottomRightRadius: size,
+          borderTopRightRadius: size,
+          height: size,
+          justifyContent: 'flex-end',
+          paddingLeft: size / 2,
+        },
+        text: {
+          color: Styles.globalColors.black_40,
+          paddingRight: size / 5,
+        },
+      }),
+      vertical: Styles.styleSheetCreate({
+        avatar: {
+          marginBottom: -size / 3,
+        },
+        container: {
+          marginBottom: size / 3 + 2,
+          marginTop: 2,
+        },
+        overflowBox: {
+          backgroundColor: Styles.globalColors.grey,
+          borderBottomLeftRadius: size,
+          borderBottomRightRadius: size,
+          justifyContent: 'flex-end',
+          paddingTop: size / 2,
+          width: size,
+        },
+        text: {
+          color: Styles.globalColors.black_40,
+          paddingBottom: size / 5,
+        },
+      }),
+    },
+  }),
+  {}
+)
 
 export default AvatarLine

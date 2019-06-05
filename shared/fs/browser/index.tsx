@@ -19,7 +19,6 @@ type Props = {
   shouldShowSFMIBanner: boolean
   resetBannerType: Types.ResetBannerType
   offline: boolean
-  username: string
 }
 
 const WithContent = (props: Props) => (

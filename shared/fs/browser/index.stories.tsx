@@ -37,7 +37,6 @@ export default () => {
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
-          username="foo"
         />
       </Kb.Box2>
     ))
@@ -49,7 +48,6 @@ export default () => {
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
-          username="foo"
         />
       </Kb.Box2>
     ))
@@ -61,7 +59,6 @@ export default () => {
           shouldShowSFMIBanner={true}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={false}
-          username="foo"
         />
       </Kb.Box2>
     ))
@@ -73,7 +70,6 @@ export default () => {
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.Self}
           offline={false}
-          username="foo"
         />
       </Kb.Box2>
     ))
@@ -85,7 +81,6 @@ export default () => {
           shouldShowSFMIBanner={false}
           resetBannerType={1}
           offline={false}
-          username="foo"
         />
       </Kb.Box2>
     ))
@@ -97,7 +92,6 @@ export default () => {
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={true}
-          username="foo"
         />
       </Kb.Box2>
     ))

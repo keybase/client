@@ -11,21 +11,24 @@ type OwnProps = {
 }
 
 type Props = {
-  hidden: boolean
+  clearLastPublicBannerClosedTlf: () => void
+  lastPublicBannerClosedTlf: string
   onClose: () => void
-  onLoadNonBannerFolder: () => void
-  show: boolean
+  public: boolean
+  tlfName: string
   url: string
+  writable: boolean
 }
 const PublicBanner = (props: Props) => {
   React.useEffect(() => {
-    if (!props.show) {
-      props.onLoadNonBannerFolder()
+    if (props.lastPublicBannerClosedTlf !== '' && props.lastPublicBannerClosedTlf !== props.tlfName) {
+      props.clearLastPublicBannerClosedTlf()
     }
-  })
+  }, [props.tlfName, props.lastPublicBannerClosedTlf])
   return (
-    props.show &&
-    !props.hidden && (
+    props.writable &&
+    props.public &&
+    props.lastPublicBannerClosedTlf !== props.tlfName && (
       <Kb.Banner
         color="yellow"
         text="Everything you upload in here can be viewed by everyone at "
@@ -41,10 +44,10 @@ const PublicBanner = (props: Props) => {
   )
 }
 
-type StateProps = {_lastClosedTlf: string; _writable: boolean}
+type StateProps = {lastPublicBannerClosedTlf: string; writable: boolean}
 const mapStateToProps = (state, ownProps: OwnProps) => ({
-  _lastClosedTlf: state.fs.lastPublicBannerClosedTlf,
-  _writable: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).writable,
+  lastPublicBannerClosedTlf: state.fs.lastPublicBannerClosedTlf,
+  writable: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).writable,
 })
 
 type DispatchProps = {setLastPublicBannerClosedTlf: (string) => () => void}
@@ -58,18 +61,20 @@ const mergeProps = (s, d, o: OwnProps) => {
     case Types.PathKind.GroupTlf:
     case Types.PathKind.InGroupTlf:
       return {
-        hidden: s._lastClosedTlf === parsedPath.tlfName,
+        ...s,
+        clearLastPublicBannerClosedTlf: d.setLastPublicBannerClosedTlf(''),
         onClose: d.setLastPublicBannerClosedTlf(parsedPath.tlfName),
-        onLoadNonBannerFolder: s._lastClosedTlf === '' ? () => {} : d.setLastPublicBannerClosedTlf(''),
-        show: s._writable && parsedPath.tlfType === Types.TlfType.Public,
+        public: parsedPath.tlfType === Types.TlfType.Public,
+        tlfName: parsedPath.tlfName,
         url: `https://keybase.pub/${parsedPath.tlfName}`,
       }
     default:
       return {
-        hidden: false,
+        ...s,
+        clearLastPublicBannerClosedTlf: d.setLastPublicBannerClosedTlf(''),
         onClose: () => {},
-        onLoadNonBannerFolder: s._lastClosedTlf === '' ? () => {} : d.setLastPublicBannerClosedTlf(''),
-        show: false,
+        public: false,
+        tlfName: '',
         url: '',
       }
   }
