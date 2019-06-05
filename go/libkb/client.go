@@ -160,6 +160,8 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		DualStack: true,
 	}
 	xprt := http.Transport{
+		// Don't change this without re-testing proxy support. Currently the client supports proxies through
+		// environment variables that ProxyFromEnvironment picks up
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&dialer).DialContext,
 		MaxIdleConns:          200,
