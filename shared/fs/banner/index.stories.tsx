@@ -129,25 +129,25 @@ export default () => {
     .add('Conflict Resolution - in conflict, not stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        {...Sb.propOverridesForStory({conflictState: 'in-conflict-not-stuck'})}
+        {...Sb.propOverridesForStory({conflictState: Types.ConflictState.InConflictNotStuck})}
       />
     ))
     .add('Conflict Resolution - in conflict, stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        {...Sb.propOverridesForStory({conflictState: 'in-conflict-stuck'})}
+        {...Sb.propOverridesForStory({conflictState: Types.ConflictState.InConflictStuck})}
       />
     ))
     .add('Conflict Resolution - in resolution, server view', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        {...Sb.propOverridesForStory({conflictState: 'in-manual-resolution'})}
+        {...Sb.propOverridesForStory({conflictState: Types.ConflictState.InManualResolution})}
       />
     ))
     .add('Conflict Resolution - finishing', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        {...Sb.propOverridesForStory({conflictState: 'finishing'})}
+        {...Sb.propOverridesForStory({conflictState: Types.ConflictState.Finishing})}
       />
     ))
 }
