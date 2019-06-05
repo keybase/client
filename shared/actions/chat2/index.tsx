@@ -2746,7 +2746,10 @@ const unfurlResolvePrompt = (state, action: Chat2Gen.UnfurlResolvePromptPayload)
 const toggleInfoPanel = (state, action: Chat2Gen.ToggleInfoPanelPayload) => {
   const visibleScreen = Router2Constants.getVisibleScreen()
   if (visibleScreen && visibleScreen.routeName === 'chatInfoPanel') {
-    return RouteTreeGen.createNavigateUp()
+    return [
+      Chat2Gen.createClearAttachmentView({conversationIDKey: state.chat2.selectedConversation}),
+      RouteTreeGen.createNavigateUp(),
+    ]
   } else {
     return RouteTreeGen.createNavigateAppend({
       path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
