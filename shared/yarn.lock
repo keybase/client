@@ -7082,6 +7082,11 @@ expo-permissions@~5.0.0:
   resolved "https://registry.yarnpkg.com/expo-permissions/-/expo-permissions-5.0.0.tgz#ab6cf7666f7f54b06cf4d6737f61b36f258aa12a"
   integrity sha512-kBz4syNX0f+oxAuReimTuOxCTDMkypCvG9MyRdR7TfXhZ1Vyaal4L5uY0EIZBlV6N5Qe7qDdIuGKjHqb2O3G8A==
 
+expo-sms@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/expo-sms/-/expo-sms-5.0.0.tgz#80d2ea6491ba2fe4b26006b5a0dee11246d0609f"
+  integrity sha512-exjbj6jeW24rIUYDDLApbbSbWIgaLrJBUBKBnkbV8g5AKyi5Aq075Fij2n5p6pwhmebzUhyUQHReFXt+UmyYGg==
+
 express@^4.16.2, express@^4.16.3:
   version "4.16.4"
   resolved "https://registry.yarnpkg.com/express/-/express-4.16.4.tgz#fddef61926109e24c515ea97fd2f1bdbf62df12e"
