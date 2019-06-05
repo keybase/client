@@ -125,7 +125,7 @@
     "emoji-datasource-apple": "4.1.0",
     "emoji-mart": "2.9.2",
     "exif-js": "2.3.0",
-    "expo-sms": "^5.0.0",
+    "expo-sms": "5.0.0",
     "framed-msgpack-rpc": "1.1.18",
     "iced-runtime": "1.0.3",
     "immutable": "4.0.0-rc.12",
