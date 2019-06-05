@@ -278,7 +278,7 @@ package_dmg() {(
 # Notarize the dmg
 notarize_dmg() {(
   cd "$out_dir"
-  if [ ! "$skip_notarize" = "" ]; then
+  if [ "$skip_notarize" = "1" ]; then
     echo "Skipping notarize..."
     return
   fi
