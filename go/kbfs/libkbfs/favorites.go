@@ -309,9 +309,14 @@ func (f *Favorites) crossCheckWithEditHistory() {
 	// weirdness here though, it might be worth revisiting that
 	// assumption.
 
-	// Fix the favorite times to be the latest known edit history
-	// times, if possible.  If not possible, set them to be lower than
-	// the minimum known time, if they're not already.
+	// The mtime attached to the favorites data returned by the API
+	// server is updated both on git activity, background collection,
+	// and pure deletion ops, none of which add new interesting
+	// content to the TLF.  So, fix the favorite times to be the
+	// latest known edit history times, if possible.  If not possible,
+	// that means the TLF is definitely not included in the latest
+	// list of TLF edit activity; so set these to be lower than the
+	// minimum known time, if they're not already.
 	var minTime keybase1.Time
 	uh := f.config.UserHistory()
 	tlfsWithNoHistory := make(map[favorites.Folder]favorites.Data)
