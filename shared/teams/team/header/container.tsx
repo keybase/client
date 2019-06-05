@@ -16,7 +16,7 @@ export type OwnProps = {
 const mapStateToProps = (state, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
-    _canRenameTeam: yourOperations.manageSubteams && teamname.includes('.'),
+    _canRenameTeam: yourOperations.renameTeam,
     _you: state.config.username,
     canChat: yourOperations.chat,
     canEditDescription: yourOperations.editTeamDescription,

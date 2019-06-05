@@ -199,6 +199,8 @@ protocol local {
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
     boolean isInflation;            // true if payment from known inflation source
     union { null, string } inflationSource; // name of inflation source
+    
+    string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
   }
 
   // accountID should be the accountID that you want the details for.
@@ -615,6 +617,11 @@ protocol local {
     string note;
     string noteErr;
     boolean unread;
+
+    // details
+    string publicNote;              // public memo for the payment
+    string publicNoteType;          // public memo type: "text", "id", "hash", "return"
+    string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
   }
   array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
 
