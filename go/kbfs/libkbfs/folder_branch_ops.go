@@ -1312,7 +1312,8 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 		// If we're not syncing the TLF at all, start a partial "sync"
 		// using the recently-edited files list, storing the blocks in
 		// the working set cache.
-		if !fbo.config.Mode().TLFEditHistoryEnabled() {
+		if !fbo.config.Mode().TLFEditHistoryEnabled() ||
+			fbo.config.Mode().DefaultBlockRequestAction() == BlockRequestSolo {
 			return
 		}
 		err := fbo.editActivity.Wait(ctx)

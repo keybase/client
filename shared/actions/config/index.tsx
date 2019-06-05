@@ -114,14 +114,16 @@ function* loadDaemonBootstrapStatus(
       )
       break
     case GregorGen.updateReachable:
-      if (!action.payload.reachable) break
-    // else fall through
-    case ConfigGen.loggedIn: // fallthrough
+        if (action.payload.reachable) {
+          yield* makeCall()
+        }
+      break
+    case ConfigGen.loggedIn:
+      yield* makeCall()
+      break
     case ConfigGen.loggedOut:
       yield* makeCall()
       break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
 }
 
