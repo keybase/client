@@ -19,11 +19,11 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	}
 
 	secAndroid := &secretStoreAndroid{}
+
 	var androidOsVersion int64
 	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion, 10, 32); err != nil {
 		androidOsVersion = v
 	}
-
 	shouldUpgradeOpportunistically := func() bool {
 		return true
 	}
