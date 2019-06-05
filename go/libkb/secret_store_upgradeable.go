@@ -3,17 +3,25 @@
 
 package libkb
 
+type SecretStoreFallbackBehavior int
+
+const (
+	SecretStoreFallbackBehaviorOnError SecretStoreFallbackBehavior = iota
+	SecretStoreFallbackBehaviorAlways
+	SecretStoreFallbackBehaviorNever
+)
+
 type SecretStoreUpgradeable struct {
 	a                              SecretStoreAll
 	b                              SecretStoreAll
 	shouldUpgradeOpportunistically func() bool
-	shouldStoreInFallback          func(*SecretStoreOptions) bool
+	shouldStoreInFallback          func(*SecretStoreOptions) SecretStoreFallbackBehavior
 	options                        *SecretStoreOptions
 }
 
 var _ SecretStoreAll = (*SecretStoreUpgradeable)(nil)
 
-func NewSecretStoreUpgradeable(a, b SecretStoreAll, shouldUpgradeOpportunistically func() bool, shouldStoreInFallback func(*SecretStoreOptions) bool) *SecretStoreUpgradeable {
+func NewSecretStoreUpgradeable(a, b SecretStoreAll, shouldUpgradeOpportunistically func() bool, shouldStoreInFallback func(*SecretStoreOptions) SecretStoreFallbackBehavior) *SecretStoreUpgradeable {
 	return &SecretStoreUpgradeable{
 		a:                              a,
 		b:                              b,
@@ -31,10 +39,10 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 
 	mctx.Debug("Failed to find secret in system keyring (%s), falling back to file-based secret store.", err1)
 	secret, err2 := s.b.RetrieveSecret(mctx, username)
-	if !s.shouldUpgradeOpportunistically() || s.shouldStoreInFallback(s.options) {
-		// Do not upgrade opportunistically, or we are still in fallback mode
-		// and should exclusively use store B - do not try fall through to try
-		// to store in A.
+	if !s.shouldUpgradeOpportunistically() || (s.shouldStoreInFallback(s.options) == SecretStoreFallbackBehaviorAlways) {
+		// Do not upgrade opportunistically, or we are still in Fallback Mode
+		// ALWAYS and should exclusively use store B - do not try fall through
+		// to try to store in A.
 		return secret, err2
 	}
 
@@ -57,8 +65,9 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
 	defer mctx.TraceTimed("SecretStoreUpgradeable.StoreSecret", func() error { return err })()
 
-	if s.shouldStoreInFallback(s.options) {
-		mctx.Debug("shouldStoreInFallback returned true for options %v, storing in store B", s.options)
+	fallbackBehavior := s.shouldStoreInFallback(s.options)
+	if fallbackBehavior == SecretStoreFallbackBehaviorAlways {
+		mctx.Debug("shouldStoreInFallback returned ALWAYS for options %v, storing in store B", s.options)
 		return s.b.StoreSecret(mctx, username, secret)
 	}
 
@@ -73,6 +82,11 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 			mctx.Debug("Failed to clear secret for %s from secretstore b: %s", username, clearBErr)
 		}
 		return nil
+	}
+
+	if fallbackBehavior == SecretStoreFallbackBehaviorNever {
+		mctx.Warning("Failed to reach system keyring (store A: %s), do not falling back to store B because of fallback behavior.", err1)
+		return err1
 	}
 
 	mctx.Warning("Failed to reach system keyring (store A: %s), falling back to file-based secret store (store B).", err1)

@@ -22,7 +22,7 @@ type secretStoreUpgForTest struct {
 	memA  *SecretStoreMem
 	memB  *SecretStoreMem
 
-	shouldFallback bool
+	shouldFallback SecretStoreFallbackBehavior
 	shouldUpgrade  bool
 }
 
@@ -35,7 +35,7 @@ func newSecretStoreUpgForTest() *secretStoreUpgForTest {
 	shouldUpgradeOpportunistically := func() bool {
 		return store.shouldUpgrade
 	}
-	shouldStoreInFallback := func(options *SecretStoreOptions) bool {
+	shouldStoreInFallback := func(options *SecretStoreOptions) SecretStoreFallbackBehavior {
 		return store.shouldFallback
 	}
 
@@ -49,7 +49,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	testStore := newSecretStoreUpgForTest()
-	testStore.shouldFallback = true
+	testStore.shouldFallback = SecretStoreFallbackBehaviorAlways
 	ss := testStore.store
 
 	m := NewMetaContextForTest(tc)
@@ -73,7 +73,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 		// Try the whole thing twice to ensure consistent behaviour.
 	}
 
-	testStore.shouldFallback = false
+	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
 	for i := 0; i < 2; i++ {
 		// Not doing fallback anymore, store B should be cleared for NU and
 		// secret should be exclusively in store A.
@@ -95,7 +95,7 @@ func TestUSSUpgrade(t *testing.T) {
 	defer tc.Cleanup()
 
 	testStore := newSecretStoreUpgForTest()
-	testStore.shouldFallback = true
+	testStore.shouldFallback = SecretStoreFallbackBehaviorAlways
 	ss := testStore.store
 
 	m := NewMetaContextForTest(tc)
@@ -116,7 +116,7 @@ func TestUSSUpgrade(t *testing.T) {
 
 	// Not in fallback anymore, subsequent stores should store secret in store
 	// A (and clear leftovers in store B).
-	testStore.shouldFallback = false
+	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
 
 	// Retrieve does not upgrade us because shouldUpgrade returns false.
 	rSecret, err = ss.RetrieveSecret(m, nu)
@@ -143,7 +143,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 	defer tc.Cleanup()
 
 	testStore := newSecretStoreUpgForTest()
-	testStore.shouldFallback = true
+	testStore.shouldFallback = SecretStoreFallbackBehaviorAlways
 	testStore.shouldUpgrade = true
 	ss := testStore.store
 
@@ -170,7 +170,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 
 	// Change shouldFallback to false (user upgraded their machine / settings
 	// for example).
-	testStore.shouldFallback = false
+	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
 
 	rSecret, err = ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)

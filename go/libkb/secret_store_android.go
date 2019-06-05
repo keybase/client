@@ -5,6 +5,8 @@
 
 package libkb
 
+import "strconv"
+
 func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	secFile := NewSecretStoreFile(mctx.G().Env.GetDataDir())
 	// Note: do not set up notifySecretStoreCreate for secret store file on
@@ -17,12 +19,24 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	}
 
 	secAndroid := &secretStoreAndroid{}
+	var androidOsVersion int
+	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion); err != nil {
+		androidOsVersion = v
+	}
 
 	shouldUpgradeOpportunistically := func() bool {
-		return false
+		return true
 	}
-	shouldStoreInFallback := func(options *SecretStoreOptions) bool {
-		return false
+	shouldStoreInFallback := func(options *SecretStoreOptions) SecretStoreFallbackBehavior {
+		if androidOsVersion <= 22 {
+			// Use file based secret store on old Android version (or when
+			// version detection didn't work).
+			return SecretStoreFallbackBehaviorAlways
+		}
+		// Never fall back to file version, always use external secure secret
+		// store.
+		return SecretStoreFallbackBehaviorNever
+
 	}
 	return NewSecretStoreUpgradeable(secAndroid, secFile,
 		shouldUpgradeOpportunistically, shouldStoreInFallback)
