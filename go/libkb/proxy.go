@@ -20,6 +20,24 @@ Internally, we support proxies by setting the HTTP_PROXY and HTTPS_PROXY environ
 http.ProxyFromEnvironment automatically reads from. Note that http.ProxyFromEnvironment does support
 socks5 proxies and basic auth.
 
+By default, the client reaches out to api-0.core.keybaseapi.com which has a self-signed certificate. This
+is actually more secure than relying on the standard CA system since we pin the client to only accept this
+certificate. By pinning this certificate, we make it so that any proxies that MITM TLS cannot intercept the
+client's traffic since even though their certificate is "trusted" according to the CA system, it isn't
+trusted by the client. In order to disable SSL pinning and allow TLS MITMing proxies to function, it is
+possible to switch the client to trust the public CA system. This can be done in one of three ways:
+
+``` bash
+keybase config set disable-ssl-pinning true
+# OR
+export disable_ssl_pinning="true"
+# OR
+keybase --disable-ssl-pinning
+```
+
+Note that enabling this option is NOT recommended. Enabling this option allows the proxy to view all traffic between
+the client and the Keybase servers. 
+
  */
 
 package libkb
