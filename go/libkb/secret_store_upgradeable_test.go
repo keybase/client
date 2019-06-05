@@ -62,7 +62,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 		require.NoError(t, err)
 
 		// Secret should go to secret store B, and not secret store A
-		// because we shouldStoreInFallback returns true.
+		// because of fallback behavior.
 		require.Len(t, testStore.memA.secrets, 0)
 		require.Len(t, testStore.memB.secrets, 1)
 
@@ -234,4 +234,10 @@ func TestUSSFallback(t *testing.T) {
 		// - failed StoreSecret to primary secret store does not affect subsequent
 		// retrievals from fallback.
 	}
+
+	// Clear should clear fallback store as well, despite behavior setting.
+	t.Logf("Trying to ClearSecret")
+	err = store.ClearSecret(m, nu)
+	require.NoError(t, err)
+	require.Len(t, memB.secrets, 0)
 }
