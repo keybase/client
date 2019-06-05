@@ -6,6 +6,7 @@ android/.idea
 android/**/build/
 android/dist
 android/**/*.iml
+react-native/android
 
 # iOS
 !default.mode1v3
@@ -34,5 +35,6 @@ keybase.framework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision
 ios/dist
+react-native/ios
 
 main.jsbundle
