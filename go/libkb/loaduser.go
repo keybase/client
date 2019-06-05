@@ -547,17 +547,31 @@ func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u
 
 	// Res.body might already have been preloaded as a result of a Resolve call earlier.
 	if body == nil {
-		res, err := m.G().API.Get(m, APIArg{
-			Endpoint:    "user/lookup",
-			SessionType: APISessionTypeNONE,
-			Args: HTTPArgs{
-				"uid":          UIDArg(uid),
-				"load_deleted": B{true},
-			},
-		})
+		makeRequest := func(sessionType APISessionType) (*APIRes, error) {
+			// Not using session gives us additional privacy but sometimes we
+			// have to reveal ourselves to lookup user that is deleted, but
+			// readable for us.
+			return m.G().API.Get(m, APIArg{
+				Endpoint:    "user/lookup",
+				SessionType: sessionType,
+				Args: HTTPArgs{
+					"uid":          UIDArg(uid),
+					"load_deleted": B{true},
+				},
+			})
+		}
 
+		res, err := makeRequest(APISessionTypeNONE)
 		if err != nil {
-			return nil, err
+			if aerr, ok := err.(AppStatusError); ok && aerr.Code == SCDeleted && !m.CurrentUID().IsNil() {
+				m.Debug("User %s is deleted, trying again with session", uid)
+				res, err = makeRequest(APISessionTypeREQUIRED)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				return nil, err
+			}
 		}
 		body = res.Body.AtKey("them")
 	} else {
