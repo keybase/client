@@ -258,7 +258,7 @@ class PlainInput extends Component<InternalProps, State> {
     if (props.value) {
       this._lastNativeText = props.value
     }
-    return <NativeTextInput {...props} />
+    return <NativeTextInput {...props} text={props.value} />
   }
 }
 
