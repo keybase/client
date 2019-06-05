@@ -36,7 +36,7 @@ keybase --disable-ssl-pinning
 ```
 
 Note that enabling this option is NOT recommended. Enabling this option allows the proxy to view all traffic between
-the client and the Keybase servers. 
+the client and the Keybase servers.
 
  */
 
@@ -56,9 +56,7 @@ const (
 var ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HTTP_Connect}
 
 // Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
-func EnableProxy(e *Env) error {
-	proxyType := e.GetProxyType()
-
+func EnableProxy(proxyType ProxyType, proxyAddress string) error {
 	if proxyType == No_Proxy {
 		// No proxy so nothing to do
 		return nil
@@ -66,9 +64,9 @@ func EnableProxy(e *Env) error {
 
 	realProxyAddress := ""
 	if proxyType == Socks {
-		realProxyAddress = "socks5://" + e.GetProxy()
+		realProxyAddress = "socks5://" + proxyAddress
 	} else {
-		realProxyAddress = e.GetProxy()
+		realProxyAddress = proxyAddress
 	}
 
 	e1 := os.Setenv("HTTP_PROXY", realProxyAddress)
@@ -81,4 +79,3 @@ func EnableProxy(e *Env) error {
 	}
 	return nil
 }
-
