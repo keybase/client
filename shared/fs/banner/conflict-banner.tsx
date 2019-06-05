@@ -11,7 +11,7 @@ export type Props = {
   onFinishResolving: () => void
   onFeedback: () => void
   onHelp: () => void
-  tlfName: string
+  tlfPath: Types.Path
 }
 
 const getMessage = (tlf: string, conflictState: Types.ConflictState, isUnmerged): string => {
@@ -74,7 +74,7 @@ const ConflictBanner = (props: Props) => {
     props.conflictState !== Types.ConflictState.None &&
     props.conflictState !== Types.ConflictState.InConflictNotStuck && (
       <Kb.Banner
-        text={getMessage(props.tlfName, props.conflictState, props.isUnmergedView)}
+        text={getMessage(props.tlfPath, props.conflictState, props.isUnmergedView)}
         color="red"
         actions={actions}
       />

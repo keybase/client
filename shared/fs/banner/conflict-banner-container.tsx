@@ -1,6 +1,8 @@
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
+import * as SettingsConstants from '../../constants/settings'
 import * as FsGen from '../../actions/fs-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import ConflictBanner, {Props} from './conflict-banner'
 import openUrl from '../../util/open-url'
@@ -9,7 +11,9 @@ type OwnProps = {
   path: Types.Path
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({})
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
+})
 type DispatchProps = {
   onFeedback: () => void
   onFinishResolving: () => void
@@ -18,7 +22,17 @@ type DispatchProps = {
   onStartResolving: () => void
 }
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onFeedback: () => {},
+  onFeedback: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {feedback: `Conflict Resolution failed in \`${ownProps.path}\`.\n`},
+            selected: SettingsConstants.feedbackTab,
+          },
+        ],
+      })
+    ),
   onFinishResolving: () => {},
   onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict_resolution'),
   onSeeOtherView: () => {},
@@ -29,7 +43,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
   ...d,
   conflictState: s._tlf.conflict.state,
   isUnmergedView: Constants.isUnmergedView(o.path),
-  tlfName: s._tlf.name,
+  tlfPath: Types.pathToTlfPath(o.path),
 })
 
 const ConnectedBanner = namedConnect<OwnProps, {}, DispatchProps, Props, {}>(
