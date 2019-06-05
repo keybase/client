@@ -125,7 +125,7 @@ func ExtensionIsInited() bool {
 }
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
-	accessGroupOverride bool, pusher PushNotifier) (err error) {
+	accessGroupOverride bool, pusher PushNotifier, mobileOsVersion string) (err error) {
 	extensionInitMu.Lock()
 	defer extensionInitMu.Unlock()
 	defer func() { err = flattenError(err) }()
@@ -153,6 +153,9 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
+
+	fmt.Printf("Go: Mobile OS version is: %q\n", mobileOsVersion)
+	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
