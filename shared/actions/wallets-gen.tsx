@@ -121,7 +121,14 @@ type _CancelRequestPayload = {
   readonly ordinal?: ChatTypes.Ordinal
   readonly requestID: StellarRPCTypes.KeybaseRequestID
 }
-type _ChangeAccountNamePayload = {readonly accountID: Types.AccountID; readonly name: string}
+type _ChangeAccountNamePayload = {
+  readonly accountID: Types.AccountID
+  readonly name: string
+  readonly uiPromise: {
+    readonly resolve: (res: string) => void
+    readonly reject: (err: Error) => void
+  }
+}
 type _ChangeAirdropPayload = {readonly accept: boolean}
 type _ChangeDisplayCurrencyPayload = {readonly accountID: Types.AccountID; readonly code: Types.CurrencyCode}
 type _ChangeMobileOnlyModePayload = {readonly accountID: Types.AccountID; readonly enabled: boolean}

@@ -24,7 +24,7 @@ type FileDesc = {
 
 type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) => string
 
-const reservedPayloadKeys = ['_description']
+const reservedPayloadKeys = ['_description', 'uiPromise', 'uiPromise?']
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
@@ -92,12 +92,32 @@ function payloadOptional(p: Object) {
   return keys.length && keys.every(key => key.endsWith('?'))
 }
 
+function payloadUIPromise(p: Object) {
+  const pType = p['uiPromise'] || p['uiPromise?']
+  const optional = !!p['uiPromise?']
+  if (pType) {
+    if (p['uiPromise'] && p['uiPromise?']) {
+      throw new Error(
+        `Only one of 'uiPromise' and 'uiPromise?' allowed in payload with keys ${Object.keys(p)}`
+      )
+    }
+    return `,
+    readonly uiPromise${optional ? '?' : ''}: {
+      readonly resolve: (res: ${pType}) => void
+      readonly reject: (err: Error) => void
+    }`
+  }
+  return ''
+}
+
 function printPayload(p: Object) {
+  let uiPromise = payloadUIPromise(p)
   return payloadKeys(p).length
     ? '{' +
         payloadKeys(p)
           .map(key => `readonly ${key}: ${Array.isArray(p[key]) ? p[key].join(' | ') : p[key]}`)
           .join(',\n') +
+        uiPromise +
         '}'
     : 'void'
 }

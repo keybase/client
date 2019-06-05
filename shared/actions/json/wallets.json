@@ -174,7 +174,8 @@
     "changeAccountName": {
       "_description": "Change the name of an account",
       "accountID": "Types.AccountID",
-      "name": "string"
+      "name": "string",
+      "uiPromise": "string"
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",

@@ -20,6 +20,18 @@ export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation
 export type TypedDispatch = (action: TypedActions) => void
 export type Dispatch = TypedDispatch
 
+type WithUIPromise<T> = {
+  uiPromise: {
+    resolve: (arg: T) => void
+    reject: (err: Error) => void
+  }
+}
+// type UIPromiseType<T> = T extends
+
+function makeUIPromise<T>(arg: string) {
+  return new Promise<T>((resolve, reject) => {})
+}
+
 export {
   branch,
   compose,
