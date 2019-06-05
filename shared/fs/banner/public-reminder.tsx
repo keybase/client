@@ -26,9 +26,7 @@ const PublicBanner = (props: Props) => {
     }
   }, [props.tlfName, props.lastPublicBannerClosedTlf])
   return (
-    props.writable &&
-    props.public &&
-    props.lastPublicBannerClosedTlf !== props.tlfName && (
+    (props.writable && props.public && props.lastPublicBannerClosedTlf !== props.tlfName && (
       <Kb.Banner
         color="yellow"
         text="Everything you upload in here can be viewed by everyone at "
@@ -40,7 +38,8 @@ const PublicBanner = (props: Props) => {
         ]}
         onClose={props.onClose}
       />
-    )
+    )) ||
+    null
   )
 }
 
