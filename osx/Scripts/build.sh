@@ -76,9 +76,9 @@ $code_sign_identity
 "
 
 helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
-codesign --verbose -o library --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" "$helper"
+codesign --verbose -o library --force --timestamp --options runtime --preserve-metadata=identifier,entitlements --sign "$code_sign_identity" "$helper"
 
-codesign --verbose -o library --force  --deep --timestamp=none --sign  "$code_sign_identity"  $app_name.app
+codesign --verbose -o library --force  --deep --timestamp --options runtime --sign  "$code_sign_identity"  $app_name.app
 echo " "
 
 echo "Checking app..."

@@ -16,6 +16,7 @@ run_mode="prod"
 platform="darwin"
 s3host=${S3HOST:-}
 istest=${TEST:-}
+skip_notarize=${SKIP_NOTARIZE:-}
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -85,11 +86,11 @@ if [ "$kbnm_version" = "" ]; then
   echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
-# if [ "$comment" = "" ]; then
-#   comment=`git rev-parse --short HEAD`
-#   echo "Using comment: $comment"
-# fi
-# comment="+$comment"
+if [ "$comment" = "" ]; then
+  comment=`git rev-parse --short HEAD`
+  echo "Using comment: $comment"
+fi
+comment="+$comment"
 
 out_dir="$build_dir/Keybase-darwin-x64"
 app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
@@ -97,9 +98,9 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.75-darwin.tgz"
+installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.76-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
-updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-darwin.tgz"
+updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.7-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
@@ -233,7 +234,14 @@ update_plist() {(
 sign() {(
   cd "$out_dir"
   code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
-  codesign --verbose --force --deep --sign "$code_sign_identity" "$app_name.app"
+  # need to sign some stuff from electron that doesn't get picked up for some reason
+  codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Libraries/libffmpeg.dylib"
+  codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Resources/crashpad_handler"
+  codesign --verbose --force --deep --timestamp --options runtime --sign "$code_sign_identity" "$app_name.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt"
+
+  codesign --verbose --force --deep --timestamp --options runtime --entitlements $client_dir/osx/Keybase.entitlements --sign "$code_sign_identity" "$app_name.app"
+
+
 
   echo "Verify codesigning..."
   codesign --verify --verbose=4 "$app_name.app"
@@ -265,6 +273,36 @@ package_dmg() {(
 
   rm -rf "$dmg_name"
   "$node_bin/appdmg" "$appdmg" "$dmg_name"
+)}
+
+# Notarize the dmg
+notarize_dmg() {(
+  cd "$out_dir"
+  if [ "$skip_notarize" = "1" ]; then
+    echo "Skipping notarize..."
+    return
+  fi
+  echo "Uploading $dmg_name to notarization service in $out_dir"
+  uuid=`xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }'`
+  echo "Successfully uploaded to notarization service, polling for result: $uuid"
+  sleep 15
+  while :
+  do
+    fullstatus=`xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1`
+    status=`echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }'`
+    if [ "$status" = "success" ]; then
+      echo "Notarization success"
+      xcrun stapler staple "$dmg_name"
+      return
+    elif [ "$status" = "in" ]; then
+      echo "Notarization still in progress, sleeping for 15 seconds and trying again"
+      sleep 15
+    else
+      echo "Notarization failed fullstatus below"
+      echo "$fullstatus"
+      exit 1
+    fi
+  done
 )}
 
 create_sourcemap_zip() {(
@@ -338,6 +376,7 @@ package_app
 update_plist
 sign
 package_dmg
+notarize_dmg
 create_sourcemap_zip
 create_zip
 kbsign

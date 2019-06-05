@@ -31,10 +31,10 @@ tar zcvpf $dir/fsbundle.tgz  .
 
 # Sign the kext
 cd $dir
-codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Extensions/10.11/kbfuse.kext
-codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/mount_kbfuse
-codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/load_kbfuse
-codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle
+codesign --verbose --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Extensions/10.11/kbfuse.kext
+codesign --verbose --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/mount_kbfuse
+codesign --verbose --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Resources/load_kbfuse
+codesign --verbose --force --deep --timestamp --options runtime --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle
 
 # Verify
 codesign --verbose --verify kbfuse.bundle/Contents/Extensions/10.11/kbfuse.kext

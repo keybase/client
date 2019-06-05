@@ -14,11 +14,11 @@
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		CcktCW88gGkCOgyY7n0Nckg8zWQ=
+		Y0QqN8yNXvRM/UfpDIQKEGI+TVQ=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		xc0iCWtWWDLudb7A5iCSmJynwRQ=
+		RdTYNJDcxGXt+NsT2YRi+USIaQw=
 		</data>
 		<key>version.plist</key>
 		<data>
@@ -42,11 +42,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			lmUSfjIuBy4vCsYoZYOEcZAH8HU=
+			Jf9oxAi9h1eW1piXWKjXTZtVL4I=
 			</data>
 			<key>hash2</key>
 			<data>
-			ZAZXtYXojj+Y9JI8LVk+iqCAhN/N5WdSXm6sg3yAuk0=
+			st7VE6sGkQ9+RvCKFqjHrpv/+jAX1yHCeSkbYlm61Ko=
 			</data>
 		</dict>
 		<key>Extensions/10.11/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
@@ -101,22 +101,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			CcktCW88gGkCOgyY7n0Nckg8zWQ=
+			Y0QqN8yNXvRM/UfpDIQKEGI+TVQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			R1FXtAHG6dDpbMwWbYpeNBY1X/U/RPNfPDrZHzCAdbg=
+			RS3eUy2AYIeDLYi/NH+g8dqwK1eeNo+3quZaKsjF+rs=
 			</data>
 		</dict>
 		<key>Resources/mount_kbfuse</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			xc0iCWtWWDLudb7A5iCSmJynwRQ=
+			RdTYNJDcxGXt+NsT2YRi+USIaQw=
 			</data>
 			<key>hash2</key>
 			<data>
-			FXZMzDkQAvtf9P5stss5wa7+ItwRZV+Lxrc5mzqfK+E=
+			LBZzNYvc2BQG1o2o3sCnW7DaWD4jqGq6EACLNX64PvE=
 			</data>
 		</dict>
 		<key>version.plist</key>
