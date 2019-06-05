@@ -53,7 +53,6 @@ const onNewPinentry = (_, action: PinentryGen.NewPinentryPayload) =>
 const onSubmit = (_, action: PinentryGen.OnSubmitPayload) => {
   const {password} = action.payload
   if (_response) {
-    // $FlowIssue flow is correct in that we need store secret but we weren't sending it before and i don't want to change any existing behavior
     _response.result({passphrase: password})
     _response = null
   }

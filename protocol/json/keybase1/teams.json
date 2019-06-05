@@ -42,6 +42,13 @@
       "typedef": "int"
     },
     {
+      "type": "enum",
+      "name": "PTKType",
+      "symbols": [
+        "READER_0"
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamApplicationKey",
       "fields": [
@@ -526,6 +533,76 @@
     },
     {
       "type": "record",
+      "name": "HiddenTeamChainData",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "Seqno",
+          "name": "last"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "outer"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "HiddenTeamChainLink",
+            "keys": "Seqno"
+          },
+          "name": "inner"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HiddenTeamChain",
+      "fields": [
+        {
+          "type": "int",
+          "name": "subversion",
+          "mpackkey": "v",
+          "jsonkey": "v"
+        },
+        {
+          "type": "HiddenTeamChainData",
+          "name": "data"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Seqno",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeys"
+        },
+        {
+          "type": [
+            null,
+            "LinkTriple"
+          ],
+          "name": "ratchet"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "LinkTriple",
       "fields": [
         {
@@ -579,6 +656,58 @@
         {
           "type": "boolean",
           "name": "isDeleted"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Signer",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "e"
+        },
+        {
+          "type": "KID",
+          "name": "k"
+        },
+        {
+          "type": "UID",
+          "name": "u"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HiddenTeamChainLink",
+      "fields": [
+        {
+          "type": "MerkleRootV2",
+          "name": "merkleRoot",
+          "jsonkey": "m",
+          "mpackkey": "m"
+        },
+        {
+          "type": "LinkTriple",
+          "name": "parentChain",
+          "jsonkey": "p",
+          "mpackkey": "p"
+        },
+        {
+          "type": "Signer",
+          "name": "signer",
+          "jsonkey": "s",
+          "mpackkey": "s"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "PTKType"
+          },
+          "name": "ptk",
+          "jsonkey": "k",
+          "mpackkey": "k"
         }
       ]
     },
@@ -2360,6 +2489,10 @@
         {
           "type": "boolean",
           "name": "renameChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "renameTeam"
         },
         {
           "type": "boolean",

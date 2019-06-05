@@ -36,6 +36,8 @@ export const serialize: any = {
           }
     }, {}),
   daemonHandshakeState: v => v,
+  diskSpaceBannerHidden: v => v,
+  diskSpaceStatus: v => v,
   endEstimate: v => v,
   externalRemoteWindow: v => v,
   fileName: v => v,
@@ -56,6 +58,7 @@ export const serialize: any = {
     return toSend.equals(old) ? undefined : toSend
   },
   username: v => v,
+  widgetBadge: v => v,
   windowComponent: v => v,
   windowOpts: v => v,
   windowParam: v => v,

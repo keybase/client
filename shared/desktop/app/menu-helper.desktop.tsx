@@ -95,7 +95,6 @@ export default function makeMenu(window: any) {
         ...helpMenu,
       },
     ]
-    // $FlowIssue not sure yet
     const menu = SafeElectron.Menu.buildFromTemplate(template)
     SafeElectron.Menu.setApplicationMenu(menu)
   } else {
@@ -126,7 +125,6 @@ export default function makeMenu(window: any) {
         label: '&Help',
       },
     ]
-    // $FlowIssue not sure yet
     const menu = SafeElectron.Menu.buildFromTemplate(template)
     window.setAutoHideMenuBar(true)
     window.setMenuBarVisibility(false)

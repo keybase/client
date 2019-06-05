@@ -37,7 +37,7 @@ export type BaseUsernamesProps = {
 }
 
 export type Props = {
-  onUsernameClicked?: ((username: string) => void)
+  onUsernameClicked?: (username: string) => void
   users: UserList
 } & BaseUsernamesProps
 
@@ -144,7 +144,7 @@ const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
 class Usernames extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['style', 'containerStyle', 'users'].includes(key)) {
+      if (['style', 'containerStyle', 'users'].includes(key as string)) {
         return shallowEqual(obj, oth)
       }
       return undefined
@@ -204,7 +204,7 @@ const divider = Styles.isMobile ? ', ' : ',\u200a'
 class PlaintextUsernames extends React.Component<PlaintextProps> {
   shouldComponentUpdate(nextProps: PlaintextProps) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['containerStyle', 'users'].includes(key)) {
+      if (['containerStyle', 'users'].includes(key as string)) {
         return shallowEqual(obj, oth)
       }
       return undefined

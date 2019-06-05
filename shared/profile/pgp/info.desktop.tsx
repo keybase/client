@@ -90,8 +90,7 @@ const mapDispatchToProps = dispatch => ({
   onNext: () => dispatch(ProfileGen.createGeneratePgp()),
 })
 
-// @ts-ignore codemode issue
-export default namedConnect<OwnProps, _, _, _, _>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d, nextDisabled: !s.email1 || !s.fullName || !!s.errorText}),

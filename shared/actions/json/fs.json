@@ -121,6 +121,7 @@
     "setDriverStatus": {
       "driverStatus": "Types.DriverStatus"
     },
+    "hideDiskSpaceBanner": {},
     "hideSystemFileManagerIntegrationBanner": {},
     "showSystemFileManagerIntegrationBanner": {},
     "driverEnable": {
@@ -248,7 +249,8 @@
       "online": "boolean"
     },
     "overallSyncStatusChanged": {
-      "progress": "Types.SyncingFoldersProgress"
+      "progress": "Types.SyncingFoldersProgress",
+      "outOfSpace": "boolean",
     },
     "setPathSoftError": {
       "path": "Types.Path",

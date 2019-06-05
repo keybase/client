@@ -12,8 +12,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
 })
 
-// @ts-ignore codemode issue
-const ConnectedSignupError = connect<OwnProps, _, _, _, _>(
+const ConnectedSignupError = connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

@@ -20,7 +20,7 @@ function lineClamp(lines: number | null, mode: string | null): Object {
   }
 }
 
-function fontSizeToSizeStyle(fontSize: number): Object | null {
+function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} | null {
   const lineHeight = {
     '13': 17,
     '15': 19,

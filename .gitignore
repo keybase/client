@@ -45,11 +45,12 @@ shared/node_modules
 shared/.static-storybook
 shared/fonts-for-web
 shared/constants/types/rpc*js*
+shared/report.*.json
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
 pvl-tools/node_modules
-shared/.tsOut
+shared/.tsOuts/.*
 # Storybook
 shared/.cache
 

@@ -33,6 +33,7 @@ const commonProps = {
     manageMembers: true,
     manageSubteams: true,
     renameChannel: true,
+    renameTeam: true,
     setMemberShowcase: true,
     setMinWriterRole: true,
     setPublicityAny: true,

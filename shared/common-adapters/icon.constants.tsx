@@ -2603,4 +2603,4 @@ const iconMeta_ = {
 }
 
 export type IconType = keyof typeof iconMeta_
-export const iconMeta: {[K in IconType]: IconMeta} = iconMeta_
+export const iconMeta: {[k in IconType]: IconMeta} = iconMeta_

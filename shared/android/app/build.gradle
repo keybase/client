@@ -208,6 +208,11 @@ android {
             }
         }
     }
+
+    // KB:
+    packagingOptions {
+        pickFirst '**/libjsc.so'
+    }
 }
 
 // KB:
@@ -217,6 +222,9 @@ play {
 }
 
 dependencies {
+    // Make sure to put android-jsc at the the first
+    implementation "org.webkit:android-jsc:r241213"
+
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation "com.android.support:multidex:1.0.3"

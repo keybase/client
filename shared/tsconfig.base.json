@@ -7,7 +7,6 @@
     "jsx": "preserve",
     "module": "commonjs",
     "noImplicitAny": false,
-    "outDir": "./.tsOut/emit",
     "paths": {
       "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"],
       "popper": ["custom-d.ts/popper.d.ts"],
@@ -15,11 +14,10 @@
     },
     "sourceMap": true,
     "target": "es2017",
-    "tsBuildInfoFile": "./.tsOut/cache"
+    "outDir": "./.tsOuts/.tsOut/emit",
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
-  "include": [
-    "globals.d.ts",
-  ],
+  "include": ["globals.d.ts"],
   "exclude": [
     "node_modules",
     "node_modules/popper.js/index.d.ts",

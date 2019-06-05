@@ -87,7 +87,7 @@ const metaMapReducer = (metaMap, action) => {
               snippet: error.message,
               snippetDecoration: '',
               trustedState: 'error',
-            })
+            } as const)
             return metaMap.set(conversationIDKey, newMeta)
           }
           default:
@@ -310,7 +310,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         if (!ordinal) {
           return l
         }
-        // $FlowIssue it's not really possible to do anything to a message in general
         return l.concat({msg: msg.message.set('ordinal', ordinal), ordinal})
       }, [])
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
@@ -337,7 +336,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return messages.withMutations(msgs => {
           ordinals.forEach(ordinal =>
             msgs.updateIn([ordinal], msg =>
-              // $FlowIssue thinks `message` is the inner type
               msg
                 .set('exploded', true)
                 .set('explodedBy', action.payload.explodedBy || '')
@@ -1201,7 +1199,6 @@ const rootReducer = (
     }
     case Chat2Gen.setMaybeMentionInfo: {
       const {name, info} = action.payload
-      // $FlowIssue complains about using name for setIn for unknown reason
       return state.setIn(['maybeMentionMap', name], info)
     }
     case Chat2Gen.requestInfoReceived: {

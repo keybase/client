@@ -1521,6 +1521,10 @@ export enum Outcome {
   ignored = 2,
 }
 
+export enum PTKType {
+  reader = 0,
+}
+
 export enum PassphraseRecoveryPromptType {
   encryptedPgpKeys = 0,
 }
@@ -2192,6 +2196,9 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
+export type HiddenTeamChain = {readonly v: /* subversion */ Int; readonly data: HiddenTeamChainData; readonly perTeamKeys: {[key: string]: Seqno}; readonly ratchet?: LinkTriple | null; readonly cachedAt: Time}
+export type HiddenTeamChainData = {readonly ID: TeamID; readonly public: Boolean; readonly last: Seqno; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}}
+export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKey}}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
 export type HomeScreenAnnouncement = {readonly id: HomeScreenAnnouncementID; readonly version: HomeScreenAnnouncementVersion; readonly appLink: AppLinkType; readonly confirmLabel: String; readonly dismissable: Boolean; readonly iconUrl: String; readonly text: String; readonly url: String}
 export type HomeScreenAnnouncementID = Int
@@ -2391,6 +2398,7 @@ export type SigListArgs = {readonly sessionID: Int; readonly username: String; r
 export type SigTypes = {readonly track: Boolean; readonly proof: Boolean; readonly cryptocurrency: Boolean; readonly isSelf: Boolean}
 export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
+export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean}
 export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
@@ -2461,7 +2469,7 @@ export type TeamNamePart = String
 export type TeamNewlyAddedRow = {readonly id: TeamID; readonly name: String}
 export type TeamOpenReqMsg = {readonly teamID: TeamID; readonly tars?: Array<TeamAccessRequest> | null}
 export type TeamOpenSweepMsg = {readonly teamID: TeamID; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
-export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSubteams: Boolean; readonly createChannel: Boolean; readonly chat: Boolean; readonly deleteChannel: Boolean; readonly renameChannel: Boolean; readonly editChannelDescription: Boolean; readonly editTeamDescription: Boolean; readonly setTeamShowcase: Boolean; readonly setMemberShowcase: Boolean; readonly setRetentionPolicy: Boolean; readonly setMinWriterRole: Boolean; readonly changeOpenTeam: Boolean; readonly leaveTeam: Boolean; readonly joinTeam: Boolean; readonly setPublicityAny: Boolean; readonly listFirst: Boolean; readonly changeTarsDisabled: Boolean; readonly deleteChatHistory: Boolean; readonly deleteOtherMessages: Boolean; readonly deleteTeam: Boolean}
+export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSubteams: Boolean; readonly createChannel: Boolean; readonly chat: Boolean; readonly deleteChannel: Boolean; readonly renameChannel: Boolean; readonly renameTeam: Boolean; readonly editChannelDescription: Boolean; readonly editTeamDescription: Boolean; readonly setTeamShowcase: Boolean; readonly setMemberShowcase: Boolean; readonly setRetentionPolicy: Boolean; readonly setMinWriterRole: Boolean; readonly changeOpenTeam: Boolean; readonly leaveTeam: Boolean; readonly joinTeam: Boolean; readonly setPublicityAny: Boolean; readonly listFirst: Boolean; readonly changeTarsDisabled: Boolean; readonly deleteChatHistory: Boolean; readonly deleteOtherMessages: Boolean; readonly deleteTeam: Boolean}
 export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type TeamProfileAddEntry = {readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
@@ -2483,7 +2491,6 @@ export type TrackOptions = {readonly localOnly: Boolean; readonly bypassConfirm:
 export type TrackProof = {readonly proofType: String; readonly proofName: String; readonly idString: String}
 export type TrackSummary = {readonly username: String; readonly time: Time; readonly isRemote: Boolean}
 export type TrackToken = String
-export type Tracker = {readonly tracker: UID; readonly status: Int; readonly mTime: Time}
 export type UID = String
 export type UPAKVersioned = {v: UPAKVersion.v1; v1: UserPlusAllKeys | null} | {v: UPAKVersion.v2; v2: UserPlusKeysV2AllIncarnations | null}
 export type UPKLiteV1 = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys: {[key: string]: PublicKeyV2NaCl}; readonly reset?: ResetSummary | null}
@@ -3282,9 +3289,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.track.track'
 // 'keybase.1.track.fakeTrackingChanged'
 // 'keybase.1.ui.promptYesNo'
-// 'keybase.1.user.listTrackers'
-// 'keybase.1.user.listTrackersByName'
-// 'keybase.1.user.listTrackersSelf'
 // 'keybase.1.user.loadUncheckedUserSummaries'
 // 'keybase.1.user.loadUser'
 // 'keybase.1.user.loadUserByName'

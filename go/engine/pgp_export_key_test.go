@@ -20,7 +20,7 @@ func TestPGPExportOptions(t *testing.T) {
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
-	fp, kid, key := armorKey(t, tc, u.Email)
+	fp, kid, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
@@ -162,7 +162,7 @@ func TestPGPExportEncryption(t *testing.T) {
 	secui.Passphrase = pgpPassphrase
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
-	fp, _, key := armorKey(t, tc, u.Email)
+	fp, _, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	require.NoError(t, err)
 
@@ -224,5 +224,66 @@ func TestPGPExportEncryption(t *testing.T) {
 
 	for i, subkey := range entity.Subkeys {
 		require.False(t, subkey.PrivateKey.Encrypted, "Subkey %d is encrypted", i)
+	}
+}
+
+func TestPGPExportMultipleSyncedKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpexport")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "pgp")
+
+	secui := &PGPTestSecretUI{}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+
+	// Generate two keys and import with pushPrivate.
+	fps := make([]libkb.PGPFingerprint, 2)
+	for i := range fps {
+		fp, _, key := genPGPKeyAndArmor(t, tc, u.Email)
+		eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true /* pushPrivate */)
+		require.NoError(t, err)
+
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err = RunEngine2(m, eng)
+		require.NoError(t, err)
+
+		fps[i] = fp
+	}
+
+	// Purge PGP keys from local keychain so we are forced to fetch server
+	// synced keys.
+	{
+		eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{
+			DoPurge: true,
+		})
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := RunEngine2(m, eng)
+		require.NoError(t, err)
+	}
+
+	t.Logf("Trying to export keys now")
+
+	// Try to export each key.
+	for _, fp := range fps {
+		arg := keybase1.PGPExportArg{
+			Options: keybase1.PGPQuery{
+				Secret:     true,
+				Query:      fp.String(),
+				ExactMatch: true,
+			},
+			Encrypted: false,
+		}
+		eng := NewPGPKeyExportEngine(tc.G, arg)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err := RunEngine2(m, eng)
+		require.NoError(t, err)
+
+		require.Len(t, eng.Results(), 1)
+
+		entity, _, err := libkb.ReadOneKeyFromString(eng.Results()[0].Key)
+		require.NoError(t, err)
+
+		require.NotNil(t, entity.PrivateKey, "Key isn't private key")
+		require.Equal(t, fp, entity.GetFingerprint())
 	}
 }

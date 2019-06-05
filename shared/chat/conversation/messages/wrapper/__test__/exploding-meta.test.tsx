@@ -1,4 +1,3 @@
-// @noflow
 /* eslint-env jest */
 import {getLoopInterval} from '../exploding-meta'
 

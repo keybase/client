@@ -1,5 +1,3 @@
-// @flow
-
 // Cache in the module. This can get called from multiple places and env vars can get lost
 let isElectron = null
 let isReactNative = null

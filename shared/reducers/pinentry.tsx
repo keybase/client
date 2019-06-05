@@ -10,7 +10,6 @@ export default function(state: Types.State = initialState, action: PinentryGen.A
       return initialState
     case PinentryGen.deleteEntity: {
       const {keyPath, ids} = action.payload
-      // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, map => map.deleteAll(ids))
     }
     case PinentryGen.mergeEntity: {
@@ -23,7 +22,6 @@ export default function(state: Types.State = initialState, action: PinentryGen.A
     }
     case PinentryGen.subtractEntity: {
       const {keyPath, entities} = action.payload
-      // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, set => set.subtract(entities))
     }
     // Saga only actions

@@ -144,7 +144,7 @@ func TestDirDataGetChildren(t *testing.T) {
 }
 
 func testDirDataCheckLookup(
-	t *testing.T, ctx context.Context, dd *DirData, name string, size uint64) {
+	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64) {
 	de, err := dd.Lookup(ctx, name)
 	require.NoError(t, err)
 	require.Equal(t, size, de.Size)
@@ -164,7 +164,7 @@ func TestDirDataLookup(t *testing.T) {
 
 	t.Log("Single entry, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "a", 1)
-	testDirDataCheckLookup(t, ctx, dd, "a", 1)
+	testDirDataCheckLookup(ctx, t, dd, "a", 1)
 	_, err = dd.Lookup(ctx, "b")
 	require.Equal(t, idutil.NoSuchNameError{Name: "b"}, err)
 
@@ -200,14 +200,14 @@ func TestDirDataLookup(t *testing.T) {
 	cleanBcache.Put(
 		ptr2, dd.tree.file.Tlf, block2, TransientEntry, SkipCacheHash)
 
-	testDirDataCheckLookup(t, ctx, dd, "a", 1)
-	testDirDataCheckLookup(t, ctx, dd, "b", 2)
-	testDirDataCheckLookup(t, ctx, dd, "z1", 3)
-	testDirDataCheckLookup(t, ctx, dd, "z2", 4)
+	testDirDataCheckLookup(ctx, t, dd, "a", 1)
+	testDirDataCheckLookup(ctx, t, dd, "b", 2)
+	testDirDataCheckLookup(ctx, t, dd, "z1", 3)
+	testDirDataCheckLookup(ctx, t, dd, "z2", 4)
 }
 
 func addFakeDirDataEntry(
-	t *testing.T, ctx context.Context, dd *DirData, name string, size uint64) {
+	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64) {
 	_, err := dd.AddEntry(ctx, name, DirEntry{
 		EntryInfo: EntryInfo{
 			Size: size,
@@ -316,14 +316,14 @@ func TestDirDataAddEntry(t *testing.T) {
 		SkipCacheHash)
 
 	t.Log("Add first entry")
-	addFakeDirDataEntry(t, ctx, dd, "a", 1)
+	addFakeDirDataEntry(ctx, t, dd, "a", 1)
 	require.True(t, dirtyBcache.IsDirty(
 		dd.tree.file.Tlf, dd.rootBlockPointer(), MasterBranch))
 	require.Len(t, topBlock.Children, 1)
 
 	t.Log("Force a split")
-	addFakeDirDataEntry(t, ctx, dd, "b", 2)
-	addFakeDirDataEntry(t, ctx, dd, "c", 3)
+	addFakeDirDataEntry(ctx, t, dd, "b", 2)
+	addFakeDirDataEntry(ctx, t, dd, "c", 3)
 	expectedLeafs := []testDirDataLeaf{
 		{"", 1, true},
 		{"b", 2, true},
@@ -331,7 +331,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 
 	t.Log("Fill in the first block")
-	addFakeDirDataEntry(t, ctx, dd, "a1", 4)
+	addFakeDirDataEntry(ctx, t, dd, "a1", 4)
 	expectedLeafs = []testDirDataLeaf{
 		{"", 2, true},
 		{"b", 2, true},
@@ -339,7 +339,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 
 	t.Log("Shift a block over")
-	addFakeDirDataEntry(t, ctx, dd, "a2", 5)
+	addFakeDirDataEntry(ctx, t, dd, "a2", 5)
 	expectedLeafs = []testDirDataLeaf{
 		{"", 1, true},
 		{"a1", 2, true},
@@ -349,7 +349,7 @@ func TestDirDataAddEntry(t *testing.T) {
 
 	t.Log("Clean up the cache and dirty just one leaf")
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
-	addFakeDirDataEntry(t, ctx, dd, "a0", 6)
+	addFakeDirDataEntry(ctx, t, dd, "a0", 6)
 	expectedLeafs = []testDirDataLeaf{
 		{"", 2, true},
 		{"a1", 2, false},
@@ -358,14 +358,14 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 
 	t.Log("Expand a bunch more")
-	addFakeDirDataEntry(t, ctx, dd, "a00", 7)
-	addFakeDirDataEntry(t, ctx, dd, "b1", 8)
-	addFakeDirDataEntry(t, ctx, dd, "d", 9)
-	addFakeDirDataEntry(t, ctx, dd, "a000", 10)
-	addFakeDirDataEntry(t, ctx, dd, "z", 11)
-	addFakeDirDataEntry(t, ctx, dd, "q", 12)
-	addFakeDirDataEntry(t, ctx, dd, "b2", 13)
-	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
+	addFakeDirDataEntry(ctx, t, dd, "a00", 7)
+	addFakeDirDataEntry(ctx, t, dd, "b1", 8)
+	addFakeDirDataEntry(ctx, t, dd, "d", 9)
+	addFakeDirDataEntry(ctx, t, dd, "a000", 10)
+	addFakeDirDataEntry(ctx, t, dd, "z", 11)
+	addFakeDirDataEntry(ctx, t, dd, "q", 12)
+	addFakeDirDataEntry(ctx, t, dd, "b2", 13)
+	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
 	expectedLeafs = []testDirDataLeaf{
 		{"", 2, true},    // " 1" and "a"
 		{"a0", 1, true},  // "a0"
@@ -380,20 +380,20 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 
 	t.Log("Verify lookups")
-	testDirDataCheckLookup(t, ctx, dd, "a", 1)
-	testDirDataCheckLookup(t, ctx, dd, "b", 2)
-	testDirDataCheckLookup(t, ctx, dd, "c", 3)
-	testDirDataCheckLookup(t, ctx, dd, "a1", 4)
-	testDirDataCheckLookup(t, ctx, dd, "a2", 5)
-	testDirDataCheckLookup(t, ctx, dd, "a0", 6)
-	testDirDataCheckLookup(t, ctx, dd, "a00", 7)
-	testDirDataCheckLookup(t, ctx, dd, "b1", 8)
-	testDirDataCheckLookup(t, ctx, dd, "d", 9)
-	testDirDataCheckLookup(t, ctx, dd, "a000", 10)
-	testDirDataCheckLookup(t, ctx, dd, "z", 11)
-	testDirDataCheckLookup(t, ctx, dd, "q", 12)
-	testDirDataCheckLookup(t, ctx, dd, "b2", 13)
-	testDirDataCheckLookup(t, ctx, dd, " 1", 14)
+	testDirDataCheckLookup(ctx, t, dd, "a", 1)
+	testDirDataCheckLookup(ctx, t, dd, "b", 2)
+	testDirDataCheckLookup(ctx, t, dd, "c", 3)
+	testDirDataCheckLookup(ctx, t, dd, "a1", 4)
+	testDirDataCheckLookup(ctx, t, dd, "a2", 5)
+	testDirDataCheckLookup(ctx, t, dd, "a0", 6)
+	testDirDataCheckLookup(ctx, t, dd, "a00", 7)
+	testDirDataCheckLookup(ctx, t, dd, "b1", 8)
+	testDirDataCheckLookup(ctx, t, dd, "d", 9)
+	testDirDataCheckLookup(ctx, t, dd, "a000", 10)
+	testDirDataCheckLookup(ctx, t, dd, "z", 11)
+	testDirDataCheckLookup(ctx, t, dd, "q", 12)
+	testDirDataCheckLookup(ctx, t, dd, "b2", 13)
+	testDirDataCheckLookup(ctx, t, dd, " 1", 14)
 
 	t.Log("Adding an existing name should error")
 	_, err := dd.AddEntry(ctx, "a", DirEntry{
@@ -413,29 +413,29 @@ func TestDirDataRemoveEntry(t *testing.T) {
 		SkipCacheHash)
 
 	t.Log("Make a simple dir and remove one entry")
-	addFakeDirDataEntry(t, ctx, dd, "a", 1)
-	addFakeDirDataEntry(t, ctx, dd, "z", 2)
+	addFakeDirDataEntry(ctx, t, dd, "a", 1)
+	addFakeDirDataEntry(ctx, t, dd, "z", 2)
 	_, err := dd.RemoveEntry(ctx, "z")
 	require.NoError(t, err)
 	require.Len(t, topBlock.Children, 1)
-	testDirDataCheckLookup(t, ctx, dd, "a", 1)
+	testDirDataCheckLookup(ctx, t, dd, "a", 1)
 	_, err = dd.Lookup(ctx, "z")
 	require.Equal(t, idutil.NoSuchNameError{Name: "z"}, err)
 
 	t.Log("Make a big complicated tree and remove an entry")
-	addFakeDirDataEntry(t, ctx, dd, "b", 2)
-	addFakeDirDataEntry(t, ctx, dd, "c", 3)
-	addFakeDirDataEntry(t, ctx, dd, "a1", 4)
-	addFakeDirDataEntry(t, ctx, dd, "a2", 5)
-	addFakeDirDataEntry(t, ctx, dd, "a0", 6)
-	addFakeDirDataEntry(t, ctx, dd, "a00", 7)
-	addFakeDirDataEntry(t, ctx, dd, "b1", 8)
-	addFakeDirDataEntry(t, ctx, dd, "d", 9)
-	addFakeDirDataEntry(t, ctx, dd, "a000", 10)
-	addFakeDirDataEntry(t, ctx, dd, "z", 11)
-	addFakeDirDataEntry(t, ctx, dd, "q", 12)
-	addFakeDirDataEntry(t, ctx, dd, "b2", 13)
-	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
+	addFakeDirDataEntry(ctx, t, dd, "b", 2)
+	addFakeDirDataEntry(ctx, t, dd, "c", 3)
+	addFakeDirDataEntry(ctx, t, dd, "a1", 4)
+	addFakeDirDataEntry(ctx, t, dd, "a2", 5)
+	addFakeDirDataEntry(ctx, t, dd, "a0", 6)
+	addFakeDirDataEntry(ctx, t, dd, "a00", 7)
+	addFakeDirDataEntry(ctx, t, dd, "b1", 8)
+	addFakeDirDataEntry(ctx, t, dd, "d", 9)
+	addFakeDirDataEntry(ctx, t, dd, "a000", 10)
+	addFakeDirDataEntry(ctx, t, dd, "z", 11)
+	addFakeDirDataEntry(ctx, t, dd, "q", 12)
+	addFakeDirDataEntry(ctx, t, dd, "b2", 13)
+	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
 	_, err = dd.RemoveEntry(ctx, "c")
@@ -463,29 +463,29 @@ func TestDirDataUpdateEntry(t *testing.T) {
 		SkipCacheHash)
 
 	t.Log("Make a simple dir and update one entry")
-	addFakeDirDataEntry(t, ctx, dd, "a", 1)
+	addFakeDirDataEntry(ctx, t, dd, "a", 1)
 	_, err := dd.UpdateEntry(ctx, "a", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
 	})
 	require.NoError(t, err)
-	testDirDataCheckLookup(t, ctx, dd, "a", 100)
+	testDirDataCheckLookup(ctx, t, dd, "a", 100)
 
 	t.Log("Make a big complicated tree and update an entry")
-	addFakeDirDataEntry(t, ctx, dd, "b", 2)
-	addFakeDirDataEntry(t, ctx, dd, "c", 3)
-	addFakeDirDataEntry(t, ctx, dd, "a1", 4)
-	addFakeDirDataEntry(t, ctx, dd, "a2", 5)
-	addFakeDirDataEntry(t, ctx, dd, "a0", 6)
-	addFakeDirDataEntry(t, ctx, dd, "a00", 7)
-	addFakeDirDataEntry(t, ctx, dd, "b1", 8)
-	addFakeDirDataEntry(t, ctx, dd, "d", 9)
-	addFakeDirDataEntry(t, ctx, dd, "a000", 10)
-	addFakeDirDataEntry(t, ctx, dd, "z", 11)
-	addFakeDirDataEntry(t, ctx, dd, "q", 12)
-	addFakeDirDataEntry(t, ctx, dd, "b2", 13)
-	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
+	addFakeDirDataEntry(ctx, t, dd, "b", 2)
+	addFakeDirDataEntry(ctx, t, dd, "c", 3)
+	addFakeDirDataEntry(ctx, t, dd, "a1", 4)
+	addFakeDirDataEntry(ctx, t, dd, "a2", 5)
+	addFakeDirDataEntry(ctx, t, dd, "a0", 6)
+	addFakeDirDataEntry(ctx, t, dd, "a00", 7)
+	addFakeDirDataEntry(ctx, t, dd, "b1", 8)
+	addFakeDirDataEntry(ctx, t, dd, "d", 9)
+	addFakeDirDataEntry(ctx, t, dd, "a000", 10)
+	addFakeDirDataEntry(ctx, t, dd, "z", 11)
+	addFakeDirDataEntry(ctx, t, dd, "q", 12)
+	addFakeDirDataEntry(ctx, t, dd, "b2", 13)
+	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
 	_, err = dd.UpdateEntry(ctx, "c", DirEntry{
@@ -494,7 +494,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	testDirDataCheckLookup(t, ctx, dd, "c", 1000)
+	testDirDataCheckLookup(ctx, t, dd, "c", 1000)
 	expectedLeafs := []testDirDataLeaf{
 		{"", 2, false},    // " 1" and "a"
 		{"a0", 1, false},  // "a0"
@@ -526,9 +526,9 @@ func TestDirDataShifting(t *testing.T) {
 		SkipCacheHash)
 
 	for i := 0; i <= 10; i++ {
-		addFakeDirDataEntry(t, ctx, dd, strconv.Itoa(i), uint64(i+1))
+		addFakeDirDataEntry(ctx, t, dd, strconv.Itoa(i), uint64(i+1))
 	}
-	testDirDataCheckLookup(t, ctx, dd, "10", 11)
+	testDirDataCheckLookup(ctx, t, dd, "10", 11)
 	expectedLeafs := []testDirDataLeaf{
 		{"", 1, true},
 		{"1", 1, true},

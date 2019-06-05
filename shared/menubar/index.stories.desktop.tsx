@@ -7,6 +7,7 @@ import * as Constants from '../constants/fs'
 import Menubar from './index.desktop'
 import OutOfDate from './out-of-date'
 import {FileUpdate} from './files.desktop'
+import SpaceWarning from './space-warning'
 
 const props = {
   badgeInfo: {
@@ -26,6 +27,9 @@ const props = {
     // TODO: fill in a few.
   ],
   daemonHandshakeState: 'done' as 'done',
+
+  diskSpaceBannerHidden: false,
+  diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   fileName: null,
   files: 0,
   folderProps: null,
@@ -34,7 +38,9 @@ const props = {
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
+  onHideDiskSpaceBanner: Storybook.action('hideDiskSpaceBanner'),
   onRekey: Storybook.action('onRekey'),
+  onRetrySync: Storybook.action('onRetrySync'),
   onSelectConversation: () => {},
   openApp: Storybook.action('openApp'),
   quit: Storybook.action('quit'),
@@ -109,6 +115,22 @@ const load = () => {
         <OutOfDate
           outOfDate={ConfigConstants.makeOutOfDate({critical: true, message: 'This is a critical message.'})}
           updateNow={Storybook.action('updateNow')}
+        />
+      </Kb.Box2>
+    ))
+    .add('Out of space banner', () => (
+      <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
+        <SpaceWarning
+          diskSpaceStatus={Types.DiskSpaceStatus.Warning}
+          onRetry={Storybook.action('retry')}
+          hidden={false}
+          onClose={Storybook.action('hide')}
+        />
+        <SpaceWarning
+          diskSpaceStatus={Types.DiskSpaceStatus.Error}
+          onRetry={Storybook.action('retry')}
+          hidden={false}
+          onClose={() => {}}
         />
       </Kb.Box2>
     ))

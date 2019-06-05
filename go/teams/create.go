@@ -247,6 +247,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 			Encryption: perTeamEncryptionKey.GetKID(),
 			Signing:    perTeamSigningKey.GetKID(),
 		},
+		Version: libkb.KeybaseSignatureV2,
 	}
 
 	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
@@ -492,6 +493,7 @@ func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSi
 		SeqType:    seqType,
 		SigInner:   string(newSubteamSigJSON),
 		TeamID:     parentTeam.GetID(),
+		Version:    libkb.KeybaseSignatureV2,
 	}
 	return item, nil
 }

@@ -23,7 +23,7 @@ class List2<T> extends PureComponent<Props<T>> {
   // Need to pass in itemData to make items re-render on prop changes.
   _fixed = ({height, width, itemHeight}) => (
     <FixedSizeList
-      style={this.props.style}
+      style={this.props.style as React.CSSProperties}
       height={height}
       width={width}
       itemCount={this.props.items.length}
@@ -37,7 +37,7 @@ class List2<T> extends PureComponent<Props<T>> {
 
   _variable = ({height, width, getItemLayout}) => (
     <VariableSizeList
-      style={this.props.style}
+      style={this.props.style as React.CSSProperties}
       height={height}
       width={width}
       itemCount={this.props.items.length}
@@ -68,7 +68,5 @@ class List2<T> extends PureComponent<Props<T>> {
     )
   }
 }
-
-function shouldBe<T>(arg: T) {}
 
 export default List2

@@ -1503,9 +1503,9 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 
 func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamOperation, err error) {
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:    teamname,
-		StaleOK: true,
-		Public:  false, // assume private team
+		Name:                      teamname,
+		StaleOK:                   true,
+		Public:                    false, // assume private team
 		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {
@@ -1589,6 +1589,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.SetPublicityAny = isAdmin || isImplicitAdmin
 	ret.ManageMembers = isAdmin || isImplicitAdmin
 	ret.ManageSubteams = isAdmin || isImplicitAdmin
+	ret.RenameTeam = team.IsSubteam() && isImplicitAdmin
 	ret.SetTeamShowcase = isAdmin || isImplicitAdmin
 	ret.ChangeOpenTeam = isAdmin || isImplicitAdmin
 	ret.ChangeTarsDisabled = isAdmin || isImplicitAdmin

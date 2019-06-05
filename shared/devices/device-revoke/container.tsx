@@ -27,8 +27,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   waiting: stateProps.waiting,
 })
 
-// @ts-ignore codemode issue
-export default connect<OwnProps, _, _, _, _>(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps

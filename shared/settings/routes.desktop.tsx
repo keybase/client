@@ -32,7 +32,6 @@ class SettingsSubNav extends React.PureComponent<any> {
     const Settings = require('./').default
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-        {/* $FlowIssue */}
         <Settings routeSelected={descriptor.state.routeName}>
           <SceneView
             navigation={childNav}

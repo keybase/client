@@ -15,8 +15,8 @@ const mapDispatchToProps = dispatch => ({
   onSubmit: (pass1: string, pass2: string) =>
     dispatch(SignupGen.createCheckPassword({pass1: new HiddenString(pass1), pass2: new HiddenString(pass2)})),
 })
-// @ts-ignore codemode issue
-export default connect<OwnProps, _, _, _, _>(
+
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})
