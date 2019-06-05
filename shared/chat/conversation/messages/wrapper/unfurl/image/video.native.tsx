@@ -21,8 +21,9 @@ export class Video extends React.Component<Props, State> {
   }
 
   render() {
+    const uri = this.props.url.length > 0 ? this.props.url : 'https://'
     const source = {
-      uri: `${this.props.url}&autoplay=${this.props.autoPlay ? 'true' : 'false'}&contentforce=true`,
+      uri: `${uri}&autoplay=${this.props.autoPlay ? 'true' : 'false'}&contentforce=true`,
     }
     return (
       <Kb.ClickableBox
