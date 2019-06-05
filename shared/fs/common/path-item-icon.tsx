@@ -102,17 +102,19 @@ const IconOnly = (props: Props) => {
   const iconPathType = props.type === Types.PathType.Folder ? 'folder' : 'file'
   switch (parsedPath.kind) {
     case Types.PathKind.GroupTlf:
-      const usernames = parsedPath.writers.concat(parsedPath.readers)
-      return (
-        <Kb.Avatar
-          size={getIconSize(props.size)}
-          username={usernames.find(w => w !== props.username) || usernames.first()}
-        />
-      )
+      if (parsedPath.tlfType === Types.TlfType.Public) {
+        return <Kb.Icon type={icons.tlfList.public[getIconSizeString(props.size)]} />
+      } else {
+        return <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
+      }
     case Types.PathKind.TeamTlf:
-      return <Kb.Avatar size={getIconSize(props.size)} teamname={parsedPath.team} isTeam={true} />
+      return <Kb.Icon type={icons.folder[getIconSizeString(props.size)]} />
     case Types.PathKind.InGroupTlf:
-      return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
+      if (parsedPath.tlfType === Types.TlfType.Public && props.type === Types.PathType.Folder) {
+        return <Kb.Icon type={icons.tlfList.public[getIconSizeString(props.size)]} />
+      } else {
+        return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
+      }
     case Types.PathKind.InTeamTlf:
       return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
     default:

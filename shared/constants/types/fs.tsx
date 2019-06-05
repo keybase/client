@@ -590,6 +590,7 @@ export type _State = {
   errors: I.Map<string, FsError>
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
+  lastPublicBannerClosedTlf: string
   loadingPaths: I.Map<Path, I.Set<string>>
   localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus

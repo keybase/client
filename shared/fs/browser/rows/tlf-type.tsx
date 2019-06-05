@@ -24,7 +24,7 @@ const TlfType = (props: TlfTypeProps) => (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Text
           type={Constants.pathTypeToTextType(PathType.Folder)}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
+          style={rowStyles.rowText}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
