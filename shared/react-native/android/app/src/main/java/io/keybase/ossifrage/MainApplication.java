@@ -6,6 +6,7 @@ import android.support.multidex.MultiDex;
 
 import com.reactnativecommunity.netinfo.NetInfoPackage;
 import com.evernote.android.job.JobManager;
+import com.facebook.react.PackageList;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -85,34 +86,36 @@ public class MainApplication extends Application implements ReactApplication {
 
             MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
 
-            return Arrays.<ReactPackage>asList(
-                    new MainReactPackage(appConfig),
-                    new KBReactPackage() {
-                        @Override
-                        public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-                            if (BuildConfig.BUILD_TYPE == "storyBook") {
-                                List<NativeModule> modules = new ArrayList<>();
-                                modules.add(new StorybookConstants(reactApplicationContext));
-                                return modules;
-                            } else {
-                                return super.createNativeModules(reactApplicationContext);
-                            }
-                        }
-                    },
-                    new ReactNativePushNotificationPackage(),
-                    new RNCameraPackage(),
-                    new ImagePickerPackage(),
-                    new RNFetchBlobPackage(),
-                    new ReactNativeContacts(),
-                    //new FastImageViewPackage(),
-                    new LottiePackage(),
-                    new RNGestureHandlerPackage(),
-                    new RNScreensPackage(),
-                    new NetInfoPackage(),
-                    new RNCWebViewPackage(),
-                    new ReactVideoPackage(),
-                    new ReanimatedPackage()
-            );
+
+            List<ReactPackage> packages = new PackageList(this).getPackages();
+            // new MainReactPackage(appConfig), // removed from rn-diff but maybe we need it for fresco config?
+            packages.add(new KBReactPackage() {
+                @Override
+                public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
+                    if (BuildConfig.BUILD_TYPE == "storyBook") {
+                        List<NativeModule> modules = new ArrayList<>();
+                        modules.add(new StorybookConstants(reactApplicationContext));
+                        return modules;
+                    } else {
+                        return super.createNativeModules(reactApplicationContext);
+                    }
+                }
+            })
+            // TODO maybe auto link works?
+            packages.add(new ReactNativePushNotificationPackage())
+            packages.add(new RNCameraPackage())
+            packages.add(new ImagePickerPackage())
+            packages.add(new RNFetchBlobPackage())
+            packages.add(new ReactNativeContacts())
+            //new FastImageViewPackage()
+            packages.add(new LottiePackage())
+            packages.add(new RNGestureHandlerPackage())
+            packages.add(new RNScreensPackage())
+            packages.add(new NetInfoPackage())
+            packages.add(new RNCWebViewPackage())
+            packages.add(new ReactVideoPackage())
+            packages.add(new ReanimatedPackage())
+            return packages
         }
         @Override
         protected String getJSMainModuleName() {
