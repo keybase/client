@@ -171,8 +171,6 @@ const _Icon = (p: Props, ref: any) => {
       activeOpacity={0.8}
       underlayColor={p.underlayColor || Styles.globalColors.white}
       ref={ref}
-      // @ts-ignore the TS compiler doesn't know enough about symbols to
-      // know whether they can be used as keys - see https://github.com/Microsoft/TypeScript/issues/24587
       style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
     >
       {icon}

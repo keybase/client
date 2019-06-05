@@ -97,5 +97,4 @@ const styleCopyToastText = {
   color: globalColors.white,
 }
 
-// @ts-ignore HOCTimers typing is wrong
 export default HOCTimers(CopyableText)

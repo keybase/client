@@ -15,7 +15,6 @@ import * as Types from '../../constants/types/fs'
 import {TypedActions} from '../typed-actions-gen'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
-// @ts-ignore
 import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -407,13 +406,11 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
       localPath = Constants.downloadFilePathFromPathNoSearch(path)
       break
     default:
-      // @ts-ignore codemod-issue
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
       localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
       break
   }
 
-  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   yield Saga.put(
     FsGen.createDownloadStarted({
       intent,
@@ -638,7 +635,6 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
   new Promise((resolve, reject) =>
     getContentTypeFromURL(
       Constants.generateFileURL(path, localHTTPServerInfo),
-      // @ts-ignore TODO fix this when actions/platform-specific is converted
       ({error, statusCode, contentType, disposition}) => {
         if (error) {
           reject(error)
@@ -821,7 +817,6 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
       ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
       : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
     )
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
       // We get source/dest paths from state rather than action, so we can't
       // just retry it. If we do want retry in the future we can include those

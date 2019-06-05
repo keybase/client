@@ -1,5 +1,4 @@
 import * as React from 'react'
-// @ts-ignore not converted
 import Text from './text'
 import {Props} from './radio-button'
 import {globalStyles, globalColors, transition, desktopStyles, styled} from '../styles'

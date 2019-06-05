@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Placeholder from './placeholder'
 import * as Styles from '../styles'
-// @ts-ignore not converted
 import Box from './box'
 
 const load = () => {

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../constants/types/retention-policy'
 import {Box2, Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {InlineDropdown} from '../../../common-adapters/dropdown'

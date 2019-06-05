@@ -211,7 +211,6 @@ describe('reply with device type', () => {
     expect(() =>
       makeInit({
         initialStore: {
-          // @ts-ignore codemod issue
           provision: Constants.makeState({
             codePageOtherDeviceType: 'backup',
           } as any),

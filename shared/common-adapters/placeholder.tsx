@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-// @ts-ignore not converted
 import Box from './box'
 
 type PlaceholderProps = {

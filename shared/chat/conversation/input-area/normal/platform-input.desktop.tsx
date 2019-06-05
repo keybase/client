@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {Picker} from 'emoji-mart'
-// @ts-ignore
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import {formatDurationShort} from '../../../../util/timestamp'

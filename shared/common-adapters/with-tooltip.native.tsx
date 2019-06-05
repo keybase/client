@@ -1,9 +1,7 @@
 import * as React from 'react'
 import {Dimensions, View} from 'react-native'
-// @ts-ignore remove when typed
 import FloatingBox from './floating-box'
 import hOCTimers, {PropsWithTimer} from './hoc-timers'
-// @ts-ignore remove when typed
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Animated from './animated'

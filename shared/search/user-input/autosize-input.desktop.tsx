@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../styles'
-// @ts-ignore
 import {getStyle as getTextStyle} from '../../common-adapters/text'
 
 type Props = {

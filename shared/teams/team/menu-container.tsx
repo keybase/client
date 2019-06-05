@@ -4,7 +4,6 @@ import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import {connect} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-// @ts-ignore not typed yet
 import {MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
 

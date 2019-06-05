@@ -7,7 +7,6 @@ import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import * as TeamsTypes from '../constants/types/teams'
 import HiddenString from '../util/hidden-string'
-// @ts-ignore until constants is converted
 import {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants

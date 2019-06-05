@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-// @ts-ignore codemode issue
 import DesktopStyle from '../common-adapters/desktop-style'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
