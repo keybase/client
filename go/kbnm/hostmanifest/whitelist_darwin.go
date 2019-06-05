@@ -11,6 +11,8 @@ import (
 )
 
 func wrapWriteErr(err error, hostsPath string) error {
+	// we do this temporarily to get the macOS SDK version to 10.14
+	// see https://github.com/keybase/client/pull/17811
 	attachments.LinkNoop()
 	if !os.IsPermission(err) {
 		return err
