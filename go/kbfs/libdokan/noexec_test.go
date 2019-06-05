@@ -69,7 +69,7 @@ func testNoExec(t *testing.T, users []string) error {
 	// Background flushed needed for large files.
 	config.SetDoBackgroundFlushes(true)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
