@@ -623,3 +623,33 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 	}
 	return libkb.UserCard(mctx, uid, arg.UseSession)
 }
+
+func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
+	return h.blockUserHelper(mctx, username, false)
+}
+
+func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
+	return h.blockUserHelper(mctx, username, true)
+}
+
+func (h *UserHandler) blockUserHelper(mctx libkb.MetaContext, username string, unblock bool) error {
+	uid, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(username))
+	if err != nil {
+		return err
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/block",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"block_uid": libkb.S{Val: uid.String()},
+			"unblock":   libkb.B{Val: unblock},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	mctx.G().CardCache().Delete(uid)
+	return err
+}

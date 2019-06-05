@@ -9,6 +9,7 @@ import FollowButton from './follow-button'
 type Props = {
   followThem: boolean
   followsYou: boolean
+  blocked: boolean
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
@@ -21,12 +22,14 @@ type Props = {
   onRequestLumens: () => void
   onSendLumens: () => void
   onUnfollow: () => void
+  onBlock: () => void
+  onUnblock: () => void
   state: Types.DetailsState
 }
 
 type DropdownProps = Pick<
   Props,
-  'onAddToTeam' | 'onOpenPrivateFolder' | 'onBrowsePublicFolder' | 'onSendLumens' | 'onRequestLumens'
+  'onAddToTeam' | 'onOpenPrivateFolder' | 'onBrowsePublicFolder' | 'onSendLumens' | 'onRequestLumens' | 'onBlock' | 'onUnblock' | 'blocked'
 > & {onUnfollow?: () => void}
 
 const Actions = (p: Props) => {
@@ -40,6 +43,9 @@ const Actions = (p: Props) => {
       onBrowsePublicFolder={p.onBrowsePublicFolder}
       onSendLumens={p.onSendLumens}
       onRequestLumens={p.onRequestLumens}
+      onBlock={p.onBlock}
+      onUnblock={p.onUnblock}
+      blocked={p.blocked}
     />
   )
 
@@ -134,7 +140,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {newTag: true, onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
     !Styles.isMobile ? {onClick: p.onOpenPrivateFolder, title: 'Open private folder'} : null,
     !Styles.isMobile ? {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'} : null,
-    p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'},
+    p.blocked ? {danger: true, onClick: p.onUnblock, title: 'Unblock'} : {danger: true, onClick: p.onBlock, title: 'Block'},
   ].filter(Boolean)
 
   return (

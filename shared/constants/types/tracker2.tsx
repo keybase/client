@@ -63,6 +63,7 @@ export type _Details = {
   state: DetailsState
   teamShowcase: I.List<TeamShowcase> | null
   username: string
+  blocked: boolean
 }
 export type Details = I.RecordOf<_Details>
 
