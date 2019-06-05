@@ -25,18 +25,20 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(DevicesGen.createShowDevicePage({deviceID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  // firstItem: ownProps.firstItem,
-  isCurrentDevice: stateProps.isCurrentDevice,
-  isNew: stateProps.isNew,
-  isRevoked: stateProps.isRevoked,
-  name: stateProps.name,
-  showExistingDevicePage: () => {
-    dispatchProps._showExistingDevicePage(ownProps.deviceID)
-  },
-  type: stateProps.type,
-  whut: 'boo',
-})
-
-const C = Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'DeviceRow')(DeviceRow)
+const C = Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => ({
+    firstItem: ownProps.firstItem,
+    isCurrentDevice: stateProps.isCurrentDevice,
+    isNew: stateProps.isNew,
+    isRevoked: stateProps.isRevoked,
+    name: stateProps.name,
+    showExistingDevicePage: () => {
+      dispatchProps._showExistingDevicePage(ownProps.deviceID)
+    },
+    type: stateProps.type,
+  }),
+  'DeviceRow'
+)(DeviceRow)
 export default C
