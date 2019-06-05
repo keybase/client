@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import Avatar, {AvatarSize} from '../avatar'
 import Box from '../box'
-// @ts-ignore
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, IconType} from '../icon'
 import Text, {TextType} from '../text'

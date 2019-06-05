@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-// @ts-ignore not converted
 import ClickableBox from './clickable-box'
-// @ts-ignore not converted
 import {Box2} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'

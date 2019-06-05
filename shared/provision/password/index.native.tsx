@@ -1,5 +1,4 @@
 // TODO remove Container
-// @ts-ignore codemode issue
 import Container from '../../login/forms/container'
 import * as React from 'react'
 import {Button, UserCard, Text, FormWithCheckbox} from '../../common-adapters'

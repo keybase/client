@@ -1,6 +1,5 @@
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
-// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../constants/types/retention-policy'
 import * as TeamsGen from '../../../actions/teams-gen'
 import {connect} from '../../../util/container'

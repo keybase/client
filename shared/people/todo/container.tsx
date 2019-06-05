@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {Task} from '.'
 import * as PeopleGen from '../../actions/people-gen'
-// @ts-ignore codemod issue
 import * as Types from '../../constants/types/people'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
@@ -171,40 +170,28 @@ const TeamShowcaseConnector = connect(
 
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
-    // @ts-ignore codemod issue
     case todoTypes.avatarTeam:
       return <AvatarTeamConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.avatarUser:
       return <AvatarUserConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.bio:
       return <BioConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.proof:
       return <ProofConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.device:
       return <DeviceConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.follow:
       return <FollowConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.chat:
       return <ChatConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.paperkey:
       return <PaperKeyConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.team:
       return <TeamConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.folder:
       return <FolderConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.gitRepo:
       return <GitRepoConnector {...props} />
-    // @ts-ignore codemod issue
     case todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
   }

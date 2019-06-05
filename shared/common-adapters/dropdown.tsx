@@ -3,10 +3,8 @@ import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Overlay from './overlay'
-// @ts-ignore
 import ScrollView from './scroll-view'
 import OverlayParentHOC, {OverlayParentProps} from './overlay/parent-hoc'
-// @ts-ignore
 import {Position} from './relative-popup-hoc.types'
 import Icon from './icon'
 import * as Styles from '../styles'

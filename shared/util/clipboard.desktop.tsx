@@ -1,5 +1,4 @@
 import * as SafeElectron from './safe-electron.desktop'
-// @ts-ignore codemod-issue
 import fs from 'fs'
 import {tmpRandFile} from './file.desktop'
 

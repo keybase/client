@@ -4,7 +4,6 @@ import {Box, Box2} from '../box'
 import HeaderOrPopup from '../header-or-popup'
 import ButtonBar from '../button-bar'
 import Icon from '../icon'
-// @ts-ignore
 import ScrollView from '../scroll-view'
 import Text from '../text'
 import * as Styles from '../../styles'

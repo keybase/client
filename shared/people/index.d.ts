@@ -1,5 +1,4 @@
 import * as React from 'react'
-// @ts-ignore codemod issue
 import * as Types from '../constants/types/people'
 
 export type Props = {

@@ -13,7 +13,6 @@ class Text extends React.Component<Props> {
   highlightText() {
     const el = this._spanRef.current
     const range = document.createRange()
-    // @ts-ignore
     range.selectNodeContents(el)
 
     const sel = window.getSelection()

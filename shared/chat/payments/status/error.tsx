@@ -1,12 +1,8 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
-// @ts-ignore
 import {Box2} from '../../../common-adapters/box'
-// @ts-ignore
 import Divider from '../../../common-adapters/divider'
-// @ts-ignore
 import Text from '../../../common-adapters/text'
-// @ts-ignore
 import FloatingMenu from '../../../common-adapters/floating-menu'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed

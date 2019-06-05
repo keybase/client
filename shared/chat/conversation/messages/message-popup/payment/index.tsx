@@ -1,23 +1,14 @@
 import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
 import * as Styles from '../../../../../styles'
-// @ts-ignore
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
-// @ts-ignore
 import {Box2} from '../../../../../common-adapters/box'
-// @ts-ignore
 import Text from '../../../../../common-adapters/text'
-// @ts-ignore
 import Icon, {castPlatformStyles as iconCastPlatformStyles} from '../../../../../common-adapters/icon'
-// @ts-ignore
 import Avatar from '../../../../../common-adapters/avatar'
-// @ts-ignore
 import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
-// @ts-ignore
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
-// @ts-ignore
 import Divider from '../../../../../common-adapters/divider'
-// @ts-ignore
 import FloatingMenu from '../../../../../common-adapters/floating-menu'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed

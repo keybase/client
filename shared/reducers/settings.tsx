@@ -56,7 +56,6 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.update('notifications', notifications =>
         notifications.merge({
           allowEdit: false,
-          // @ts-ignore codemod issue
           groups: state.notifications.groups.merge(I.Map(changed)) as any,
         })
       )

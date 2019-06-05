@@ -5,9 +5,7 @@ import OpenMeta from './openmeta'
 import FloatingMenu from '../../../common-adapters/floating-menu'
 import ConnectedUsernames from '../../../common-adapters/usernames/container'
 import NameWithIcon from '../../../common-adapters/name-with-icon'
-// @ts-ignore codemode issue
 import Text from '../../../common-adapters/text'
-// @ts-ignore codemode issue
 import {Box2} from '../../../common-adapters/box'
 import WaitingButton from '../../../common-adapters/waiting-button'
 

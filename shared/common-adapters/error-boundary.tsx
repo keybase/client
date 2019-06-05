@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Box from './box'
-// @ts-ignore
 import ScrollView from './scroll-view'
 import Text from './text'
 import Icon from './icon'
