@@ -11,6 +11,9 @@ PODS:
   - EXPermissions (5.0.0):
     - UMCore
     - UMPermissionsInterface
+  - EXSMS (5.0.0):
+    - UMCore
+    - UMPermissionsInterface
   - FLAnimatedImage (1.0.12)
   - Folly (2018.10.22.00):
     - boost-for-react-native
@@ -138,6 +141,7 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
+  - EXSMS (from `../node_modules/expo-sms/ios`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - lottie-ios (from `../node_modules/lottie-ios`)
@@ -195,6 +199,9 @@ EXTERNAL SOURCES:
   EXPermissions:
     :path: !ruby/object:Pathname
     path: ../node_modules/expo-permissions/ios
+  EXSMS:
+    :path: !ruby/object:Pathname
+    path: ../node_modules/expo-sms/ios
   Folly:
     :podspec: ../node_modules/react-native/third-party-podspecs/Folly.podspec
   glog:
@@ -273,6 +280,7 @@ SPEC CHECKSUMS:
   EXConstants: 6ad60de0802ba69068b6d7b63e4e82c06d6807a4
   EXFileSystem: 22a53ba7e31987166aca49778e53cce8181b1ad8
   EXPermissions: 332e6241b48d34a8363a78d87d90a20436a9eff9
+  EXSMS: c7db65e9cb87c749a03f4ed21fda2056cd08db20
   FLAnimatedImage: 4a0b56255d9b05f18b6dd7ee06871be5d3b89e31
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
