@@ -169,6 +169,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
 
 	fmt.Printf("Go: Mobile OS version is: %q\n", mobileOsVersion)
+	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))

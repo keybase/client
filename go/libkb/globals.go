@@ -155,6 +155,10 @@ type GlobalContext struct {
 	switchUserMu  *VerboseLock
 	ActiveDevice  *ActiveDevice
 	switchedUsers map[NormalizedUsername]bool // bookkeep users who have been switched over (and are still in secret store)
+
+	// OS Version passed from mobile native code. iOS and Android only.
+	// See go/bind/keybase.go
+	MobileOsVersion string
 }
 
 type GlobalTestOptions struct {
