@@ -1038,8 +1038,15 @@ func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
 
 // Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
 func (e *Env) EnableProxy() error {
+	proxyType := e.GetProxyType()
+
+	if proxyType == No_Proxy {
+		// No proxy so nothing to do
+		return nil
+	}
+
 	realProxyAddress := ""
-	if e.GetProxyType() == Socks {
+	if proxyType == Socks {
 		realProxyAddress = "socks5://" + e.GetProxy()
 	} else {
 		realProxyAddress = e.GetProxy()
@@ -1067,10 +1074,11 @@ func (e *Env) GetProxyType() ProxyType {
 		func() string { return os.Getenv("PROXY_TYPE") },
 		func() string { return e.GetConfig().GetProxyType() },
 	)
-	proxyType, ok := ProxyTypeStrToEnum[proxyTypeStr]
+	proxyType, ok := ProxyTypeStrToEnum[strings.ToLower(proxyTypeStr)]
 	if ok {
 		return proxyType
 	}
+	// If they give us a bogus proxy type we just don't enable a proxy
 	return No_Proxy
 }
 
