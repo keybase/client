@@ -78,6 +78,7 @@ type configGetter interface {
 	GetProofCacheSize() (int, bool)
 	GetProxy() string
 	GetProxyType() string
+	IsSSLPinningEnabled() bool
 	GetRunMode() (RunMode, error)
 	GetScraperTimeout() (time.Duration, bool)
 	GetSecretKeyringTemplate() string

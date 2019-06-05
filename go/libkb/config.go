@@ -524,6 +524,14 @@ func (f *JSONConfigFile) GetProxy() string {
 func (f *JSONConfigFile) GetProxyType() string {
 	return f.GetTopLevelString("proxy-type")
 }
+func (f *JSONConfigFile) IsSSLPinningEnabled() bool {
+	res, isSet := f.GetTopLevelBool("disable-ssl-pinning")
+	if !isSet {
+		// Enable SSL pinning if the flag is not set
+		return true
+	}
+	return !res
+}
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
 }

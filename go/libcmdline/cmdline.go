@@ -384,6 +384,12 @@ func (p CommandLine) GetProxyType() string {
 	return p.GetGString("proxy-type")
 }
 
+func (p CommandLine) IsSSLPinningEnabled() bool {
+	r1, _ := p.GetBool("disable-ssl-pinning", true)
+	// Defaults to false since it is a boolean flag, so just invert it
+	return !r1
+}
+
 func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
@@ -546,6 +552,11 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.BoolFlag{
+			Name:  "disable-ssl-pinning",
+			Usage: "Disable SSL pinning within the app. WARNING: This reduces the security of the app. Do not use " +
+				"unless necessary!",
 		},
 		cli.BoolFlag{
 			Name:  "display-raw-untrusted-output",

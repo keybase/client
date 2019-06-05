@@ -40,6 +40,7 @@ func (n NullConfiguration) GetEmail() string                                    
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetProxyType() string                                           { return "" }
+func (n NullConfiguration) IsSSLPinningEnabled() bool									   { return true }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
 func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)                      { return 0, false }
@@ -542,14 +543,28 @@ func (e *Env) GetServerURI() string {
 	// check for test flag here in order for production api endpoint
 	// tests to pass.
 	if e.Test.UseProductionRunMode {
-		return ServerLookup[e.GetRunMode()]
+		server, e := ServerLookup(*e, e.GetRunMode())
+		if e != nil {
+			// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
+			// way to get a URL in this case
+			panic(e)
+		}
+		return server
 	}
 
 	return e.GetString(
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.GetConfig().GetServerURI() },
-		func() string { return ServerLookup[e.GetRunMode()] },
+		func() string {
+			server, e := ServerLookup(*e, e.GetRunMode())
+			if e != nil {
+				// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
+				// way to get a URL in this case
+				panic(e)
+			}
+			return server
+		},
 	)
 }
 
@@ -1074,6 +1089,21 @@ func (e *Env) GetProxy() string {
 		func() string { return os.Getenv("https_proxy") },
 		func() string { return os.Getenv("http_proxy") },
 	)
+}
+
+func (e *Env) IsSSLPinningEnabled() bool {
+	// SSL Pinning is enabled if none of the config options say it is disabled
+	if !e.cmd.IsSSLPinningEnabled() {
+		return false
+	}
+	res, isSet := e.getEnvBool("disable_ssl_pinning")
+	if isSet && res {
+		return false
+	}
+	if !e.GetConfig().IsSSLPinningEnabled() {
+		return false
+	}
+	return true
 }
 
 func (e *Env) GetGpgHome() string {
