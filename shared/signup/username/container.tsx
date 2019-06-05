@@ -12,6 +12,7 @@ const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onChangeUsername: () => {},
 })
 
 const ConnectedEnterUsername = Container.connect(mapStateToProps, mapDispatchToProps)(EnterUsername)
