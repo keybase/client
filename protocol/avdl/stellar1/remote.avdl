@@ -186,6 +186,7 @@ protocol remote {
     string memoType;
     @lint("ignore")
     string externalTxURL;           // link to external web page with tx details
+    string feeCharged;
   }
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);

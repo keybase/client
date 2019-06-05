@@ -54,7 +54,7 @@ func (c *cmdWalletDetail) Run() (err error) {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	printPayment(c.G(), detail, true /* verbose */, dui)
+	printPayment(c.G(), detail, true /* verbose */, true /* details */, dui)
 	return nil
 }
 
