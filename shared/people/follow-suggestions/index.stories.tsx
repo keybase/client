@@ -66,10 +66,8 @@ const props2 = {
   ].map(Constants.makeFollowSuggestion),
 }
 
-// @ts-ignore codemod issue
 const props3 = {
   suggestions: props2.suggestions.concat(
-    // @ts-ignore codemod issue
     props2.suggestions.map(suggestion => suggestion.set('username', suggestion.username + '1'))
   ),
 }

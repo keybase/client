@@ -1,4 +1,3 @@
-// @ts-ignore codemode issue
 import net from 'net'
 import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
@@ -10,7 +9,6 @@ class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
-    // @ts-ignore codemode issue
     this.needsConnect = true
   }
 
@@ -38,7 +36,6 @@ class NativeTransport extends TransportShared {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
     }
-    // @ts-ignore codemode issue
     super.packetize_data(m)
   }
 }
@@ -50,7 +47,6 @@ function windowsHack() {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  // @ts-ignore codemode issue
   if (!isWindows || process.type !== 'renderer') {
     return
   }

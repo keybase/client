@@ -95,7 +95,6 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
-    // @ts-ignore don't use recompose
     {
       _conversationIDKey: Constants.noConversationIDKey,
       _lastLoadMoreOrdinalTime: Date.now(),

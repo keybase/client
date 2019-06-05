@@ -1,8 +1,6 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
-// @ts-ignore not converted
 import {TextType} from './text'
-// @ts-ignore not converted
 import {TextContentType} from './plain-input'
 
 /**

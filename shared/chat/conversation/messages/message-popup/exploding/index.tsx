@@ -14,10 +14,8 @@ import {
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, TickerID} from '../../../../../util/second-timer'
-// @ts-ignore
 import {MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
 import {DeviceType} from '../../../../../constants/types/devices'
-// @ts-ignore
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'

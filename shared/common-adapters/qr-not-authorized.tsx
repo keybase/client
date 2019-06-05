@@ -1,11 +1,8 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import {namedConnect} from '../util/container'
-// @ts-ignore not converted
 import Text from './text'
-// @ts-ignore not converted
 import {Box2} from './box'
-// @ts-ignore not converted
 import Icon from './icon'
 import {styleSheetCreate, globalColors} from '../styles'
 

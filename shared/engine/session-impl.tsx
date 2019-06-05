@@ -183,14 +183,11 @@ class Session {
       return false
     }
 
-    // @ts-ignore codemode issue
     if (response && response.seqid) {
       this._seqIDResponded[String(response.seqid)] = false
     }
 
-    // @ts-ignore codemode issue
     const waitingHandler = this._makeWaitingHandler(false, method, response && response.seqid)
-    // @ts-ignore codemode issue
     const incomingRequest = new IncomingRequest(method, param, response, waitingHandler, handler)
     this._incomingRequests.push(incomingRequest)
     const actions = incomingRequest.handle()

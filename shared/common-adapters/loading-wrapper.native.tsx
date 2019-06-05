@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {Animated} from 'react-native'
-// @ts-ignore not converted
 import Box from './box'
 
 type Props = {

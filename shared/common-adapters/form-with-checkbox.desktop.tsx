@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import Checkbox, {Props as CheckboxProps} from './checkbox'
 import {Props} from './form-with-checkbox'
-// @ts-ignore
 import Input from './input'
 import Box from './box'
 import Text from './text'

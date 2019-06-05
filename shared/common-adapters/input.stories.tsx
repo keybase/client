@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Button from './button'
 import Input, {Props} from './input'
-// @ts-ignore not converted
 import Box from './box'
 import {globalStyles} from '../styles'
 

@@ -1,4 +1,3 @@
-// @ts-ignore not converted
 import Icon from './icon'
 import * as React from 'react'
 import {Props} from './progress-indicator'

@@ -89,7 +89,6 @@ class TransportShared extends RobustTransport {
     // @ts-ignore codemode issue
     this.hooks = {
       connected: () => {
-        // @ts-ignore codemode issue
         this.needsConnect = false
         connectCallback && connectCallback()
       },

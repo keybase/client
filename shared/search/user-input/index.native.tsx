@@ -1,12 +1,10 @@
 import {last} from 'lodash-es'
 import React, {Component} from 'react'
 import {TextInput, Animated} from 'react-native'
-// @ts-ignore
 import {Box, Text, Icon, ClickableBox} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
-// @ts-ignore
 import {getStyle as getTextStyle} from '../../common-adapters/text'
 import {UserDetails, Props} from './'
 

@@ -1,11 +1,7 @@
 import React from 'react'
-// @ts-ignore
 import Text from '../../../common-adapters/text'
-// @ts-ignore
 import Button from '../../../common-adapters/button'
-// @ts-ignore
 import {Box2} from '../../../common-adapters/box'
-// @ts-ignore
 import FloatingMenu from '../../../common-adapters/floating-menu'
 import * as Styles from '../../../styles'
 
