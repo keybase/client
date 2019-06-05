@@ -19,8 +19,8 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	}
 
 	secAndroid := &secretStoreAndroid{}
-	var androidOsVersion int
-	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion); err != nil {
+	var androidOsVersion int64
+	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion, 10, 32); err != nil {
 		androidOsVersion = v
 	}
 
@@ -31,6 +31,12 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 		if androidOsVersion <= 22 {
 			// Use file based secret store on old Android version (or when
 			// version detection didn't work).
+
+			// Do not even try to use external secret store (so no
+			// SecretStoreFallbackBehaviorOnError) - we've found that on older
+			// systems, secret store would often work for some time and then
+			// start failing with errors. That could leave users stuck.
+
 			return SecretStoreFallbackBehaviorAlways
 		}
 		// Never fall back to file version, always use external secure secret

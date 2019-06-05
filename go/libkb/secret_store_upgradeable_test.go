@@ -73,7 +73,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 		// Try the whole thing twice to ensure consistent behaviour.
 	}
 
-	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
+	testStore.shouldFallback = SecretStoreFallbackBehaviorNever
 	for i := 0; i < 2; i++ {
 		// Not doing fallback anymore, store B should be cleared for NU and
 		// secret should be exclusively in store A.
@@ -116,7 +116,7 @@ func TestUSSUpgrade(t *testing.T) {
 
 	// Not in fallback anymore, subsequent stores should store secret in store
 	// A (and clear leftovers in store B).
-	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
+	testStore.shouldFallback = SecretStoreFallbackBehaviorNever
 
 	// Retrieve does not upgrade us because shouldUpgrade returns false.
 	rSecret, err = ss.RetrieveSecret(m, nu)
@@ -170,7 +170,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 
 	// Change shouldFallback to false (user upgraded their machine / settings
 	// for example).
-	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
+	testStore.shouldFallback = SecretStoreFallbackBehaviorNever
 
 	rSecret, err = ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
@@ -179,4 +179,59 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 	// Retrieving secret should have upgraded us to store A.
 	require.Len(t, testStore.memA.secrets, 1)
 	require.Len(t, testStore.memB.secrets, 0)
+}
+
+func TestUSSFallback(t *testing.T) {
+	tc := SetupTest(t, "secret store ops", 1)
+	defer tc.Cleanup()
+
+	failA := NewSecretStoreFail()
+	memB := NewSecretStoreMem()
+
+	behavior := SecretStoreFallbackBehaviorOnError
+	shouldUpgradeOpportunistically := func() bool {
+		return true
+	}
+	shouldStoreInFallback := func(options *SecretStoreOptions) SecretStoreFallbackBehavior {
+		return behavior
+	}
+
+	store := NewSecretStoreUpgradeable(failA, memB,
+		shouldUpgradeOpportunistically, shouldStoreInFallback)
+
+	m := NewMetaContextForTest(tc)
+	nu := NewNormalizedUsername("tusername")
+	secret := makeRandomSecretForTest(t)
+
+	err := store.StoreSecret(m, nu, secret)
+	require.NoError(t, err)
+	require.Len(t, memB.secrets, 1)
+
+	rSecret, err := store.RetrieveSecret(m, nu)
+	require.NoError(t, err)
+	require.True(t, rSecret.Equal(secret))
+
+	t.Logf("Changing behavior to SecretStoreFallbackBehaviorNever")
+	behavior = SecretStoreFallbackBehaviorNever
+
+	for i := 0; i < 2; i++ {
+		t.Logf("Attempt %d", i)
+
+		// We should still be able to retrieve our secret.
+		rSecret, err := store.RetrieveSecret(m, nu)
+		require.NoError(t, err)
+		require.True(t, rSecret.Equal(secret))
+
+		// But we can't store a new one.
+		err = store.StoreSecret(m, nu, secret)
+		require.Error(t, err)
+
+		// Still has old secret.
+		require.Len(t, memB.secrets, 1)
+
+		// Try this twice, to be sure that:
+		// - first retrieval does not affect subsequent ones.
+		// - failed StoreSecret to primary secret store does not affect subsequent
+		// retrievals from fallback.
+	}
 }
