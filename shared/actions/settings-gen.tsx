@@ -47,7 +47,6 @@ export const onUpdateEmailError = 'settings:onUpdateEmailError'
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
-export const prefilledFeedback = 'settings:prefilledFeedback'
 export const processorProfile = 'settings:processorProfile'
 export const sendFeedback = 'settings:sendFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
@@ -99,7 +98,6 @@ type _OnUpdateEmailErrorPayload = {readonly error: Error}
 type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
-type _PrefilledFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
@@ -281,10 +279,6 @@ export const createOnUpdatePasswordError = (
 export const createOnUpdatedPGPSettings = (
   payload: _OnUpdatedPGPSettingsPayload
 ): OnUpdatedPGPSettingsPayload => ({payload, type: onUpdatedPGPSettings})
-export const createPrefilledFeedback = (payload: _PrefilledFeedbackPayload): PrefilledFeedbackPayload => ({
-  payload,
-  type: prefilledFeedback,
-})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload): ProcessorProfilePayload => ({
   payload,
   type: processorProfile,
@@ -459,10 +453,6 @@ export type OnUpdatedPGPSettingsPayload = {
   readonly payload: _OnUpdatedPGPSettingsPayload
   readonly type: 'settings:onUpdatedPGPSettings'
 }
-export type PrefilledFeedbackPayload = {
-  readonly payload: _PrefilledFeedbackPayload
-  readonly type: 'settings:prefilledFeedback'
-}
 export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
   readonly type: 'settings:processorProfile'
@@ -540,7 +530,6 @@ export type Actions =
   | OnUpdatePGPSettingsPayload
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
-  | PrefilledFeedbackPayload
   | ProcessorProfilePayload
   | SendFeedbackPayload
   | SetAllowDeleteAccountPayload
