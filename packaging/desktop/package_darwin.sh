@@ -86,12 +86,6 @@ if [ "$kbnm_version" = "" ]; then
   echo "KBNM_VERSION unspecified, defaulting to: $kbnm_version"
 fi
 
-if [ "$comment" = "" ]; then
-  comment=`git rev-parse --short HEAD`
-  echo "Using comment: $comment"
-fi
-comment="+$comment"
-
 out_dir="$build_dir/Keybase-darwin-x64"
 app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
