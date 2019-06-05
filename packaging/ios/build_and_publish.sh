@@ -7,8 +7,7 @@ gopath=${GOPATH:-}
 kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
-rn_dir="$gopath/src/github.com/keybase/client/shared/react-native"
-ios_dir="$gopath/src/github.com/keybase/client/shared/react-native/ios"
+ios_dir="$gopath/src/github.com/keybase/client/shared/ios"
 clean=${CLEAN:-}
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
@@ -31,7 +30,7 @@ rn_packager_pid=""
 function reset {
   (cd "$kbfs_dir" && git checkout $kbfs_branch)
   (cd "$client_dir" && git checkout $client_branch)
-  (cd "$client_dir" && git checkout shared/react-native/ios/)
+  (cd "$client_dir" && git checkout shared/ios/)
 
   if [ ! "$rn_packager_pid" = "" ]; then
     echo "Killing packager $rn_packager_pid"

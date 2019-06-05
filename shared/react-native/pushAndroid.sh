@@ -5,7 +5,7 @@ set -e -u -o pipefail # Fail on error
 IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
 GOPATH0=${GOPATH_ARRAY[0]}
 
-APK_DIR="$GOPATH0/src/github.com/keybase/client/shared/react-native/android/app/build/outputs/apk"
+APK_DIR="$GOPATH0/src/github.com/keybase/client/shared/android/app/build/outputs/apk"
 APK_FILENAME="app-debug.apk"
 
 ADB_DEVICE=""
