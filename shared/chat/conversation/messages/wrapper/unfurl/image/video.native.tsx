@@ -21,6 +21,12 @@ export class Video extends React.Component<Props, State> {
   }
 
   render() {
+    /*
+    The react-native-video library thinks any URI that doesn't start with /https?:// to be an asset bundled
+    with the app, and will straight crash of that is not true. Solution here is if we somehow end up with a
+    blank URL in a native video component, then just put some bogus string in there that at least doesn't
+    send the library down the crasher path.
+    */
     const uri = this.props.url.length > 0 ? this.props.url : 'https://'
     const source = {
       uri: `${uri}&autoplay=${this.props.autoPlay ? 'true' : 'false'}&contentforce=true`,
