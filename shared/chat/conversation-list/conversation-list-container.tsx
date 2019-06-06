@@ -159,35 +159,36 @@ const selectNext = (rows, current, delta) => {
   return rows[nextIndex].conversationIDKey
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {selectedIndex, rows} = getRows(stateProps, ownProps)
-  return {
-    filter: ownProps.onSetFilter && {
-      filter: ownProps.filter || '',
-      isLoading: false,
-      onSetFilter: ownProps.onSetFilter,
-    },
-    focusFilterOnMount: ownProps.focusFilterOnMount,
-    onBack: dispatchProps.onBack,
-    onEnsureSelection: () => {
-      if (selectedIndex === null) {
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {selectedIndex, rows} = getRows(stateProps, ownProps)
+    return {
+      filter: ownProps.onSetFilter && {
+        filter: ownProps.filter || '',
+        isLoading: false,
+        onSetFilter: ownProps.onSetFilter,
+      },
+      focusFilterOnMount: ownProps.focusFilterOnMount,
+      onBack: dispatchProps.onBack,
+      onEnsureSelection: () => {
+        if (selectedIndex === null) {
+          const nextConvIDKey = selectNext(rows, selectedIndex, 1)
+          nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+        }
+        ownProps.onDone && ownProps.onDone()
+      },
+      onSelectDown: () => {
         const nextConvIDKey = selectNext(rows, selectedIndex, 1)
         nextConvIDKey && ownProps.onSelect(nextConvIDKey)
-      }
-      ownProps.onDone && ownProps.onDone()
-    },
-    onSelectDown: () => {
-      const nextConvIDKey = selectNext(rows, selectedIndex, 1)
-      nextConvIDKey && ownProps.onSelect(nextConvIDKey)
-    },
-    onSelectUp: () => {
-      const nextConvIDKey = selectNext(rows, selectedIndex, -1)
-      nextConvIDKey && ownProps.onSelect(nextConvIDKey)
-    },
-    rows,
-  }
-}
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConversationList')(
-  ConversationList
-)
+      },
+      onSelectUp: () => {
+        const nextConvIDKey = selectNext(rows, selectedIndex, -1)
+        nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+      },
+      rows,
+    }
+  },
+  'ConversationList'
+)(ConversationList)

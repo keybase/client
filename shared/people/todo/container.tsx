@@ -31,7 +31,7 @@ const AvatarTeamConnector = connect(
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})),
     onDismiss: () => {},
   }),
-  (stateProps, dispatchProps, ownProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     onConfirm: () => dispatchProps.onConfirm(),
     onDismiss: dispatchProps.onDismiss,
@@ -44,7 +44,7 @@ const AvatarUserConnector = connect(
     _onConfirm: username => dispatch(ProfileGen.createEditAvatar()),
     onDismiss: () => {},
   }),
-  (stateProps, dispatchProps, ownProps) => ({
+  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
     onDismiss: dispatchProps.onDismiss,
@@ -60,7 +60,7 @@ const BioConnector = connect(
     },
     onDismiss: () => {},
   }),
-  (stateProps, dispatchProps, ownProps) => ({
+  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
     onDismiss: dispatchProps.onDismiss,
@@ -73,7 +73,7 @@ const ProofConnector = connect(
     _onConfirm: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onDismiss: onSkipTodo('proof', dispatch),
   }),
-  (stateProps, dispatchProps, ownProps) => ({
+  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     onConfirm: () => dispatchProps._onConfirm(stateProps.myUsername),
     onDismiss: dispatchProps.onDismiss,
@@ -86,7 +86,7 @@ const DeviceConnector = connect(
     onConfirm: () => openURL(installLinkURL),
     onDismiss: onSkipTodo('device', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const FollowConnector = connect(
@@ -96,7 +96,7 @@ const FollowConnector = connect(
       dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.peopleTab], path: ['profileSearch']})),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d, showSearchBar: true})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d, showSearchBar: true})
 )(Task)
 
 const ChatConnector = connect(
@@ -105,7 +105,7 @@ const ChatConnector = connect(
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const PaperKeyConnector = connect(
@@ -119,7 +119,7 @@ const PaperKeyConnector = connect(
       ),
     onDismiss: () => {},
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const TeamConnector = connect(
@@ -131,7 +131,7 @@ const TeamConnector = connect(
     },
     onDismiss: onSkipTodo('team', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const FolderConnector = connect(
@@ -140,7 +140,7 @@ const FolderConnector = connect(
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab})),
     onDismiss: onSkipTodo('folder', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const GitRepoConnector = connect(
@@ -156,7 +156,7 @@ const GitRepoConnector = connect(
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const TeamShowcaseConnector = connect(
@@ -165,7 +165,7 @@ const TeamShowcaseConnector = connect(
     onConfirm: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab})),
     onDismiss: onSkipTodo('teamShowcase', dispatch),
   }),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: TodoOwnProps) => ({...o, ...s, ...d})
 )(Task)
 
 const TaskChooser = (props: TodoOwnProps) => {
