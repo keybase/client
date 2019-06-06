@@ -50,6 +50,7 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 
 	testStore := newSecretStoreUpgForTest()
 	testStore.shouldFallback = SecretStoreFallbackBehaviorAlways
+	testStore.shouldUpgrade = false
 	ss := testStore.store
 
 	m := NewMetaContextForTest(tc)
@@ -70,10 +71,15 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, rSecret.Equal(secret))
 
+		// Retrieve does not upgrade because shouldUpgrade=false
+		require.Len(t, testStore.memA.secrets, 0)
+		require.Len(t, testStore.memB.secrets, 1)
+
 		// Try the whole thing twice to ensure consistent behaviour.
 	}
 
-	testStore.shouldFallback = SecretStoreFallbackBehaviorNever
+	// Change fallback behavior, primary secret store can be used again.
+	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
 	for i := 0; i < 2; i++ {
 		// Not doing fallback anymore, store B should be cleared for NU and
 		// secret should be exclusively in store A.
@@ -90,12 +96,13 @@ func TestUSSUpgradeOnStore(t *testing.T) {
 	}
 }
 
-func TestUSSUpgrade(t *testing.T) {
+func TestUSSRetrieveWhenFallback(t *testing.T) {
 	tc := SetupTest(t, "secret store ops", 1)
 	defer tc.Cleanup()
 
 	testStore := newSecretStoreUpgForTest()
-	testStore.shouldFallback = SecretStoreFallbackBehaviorAlways
+	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
+	testStore.shouldUpgrade = true
 	ss := testStore.store
 
 	m := NewMetaContextForTest(tc)
@@ -105,34 +112,36 @@ func TestUSSUpgrade(t *testing.T) {
 	err := ss.StoreSecret(m, nu, secret)
 	require.NoError(t, err)
 
-	// Secret should go to secret store B, and not secret store A
-	// because we shouldStoreInFallback returns true.
-	require.Len(t, testStore.memA.secrets, 0)
-	require.Len(t, testStore.memB.secrets, 1)
+	// Should store in primary secret store.
+	require.Len(t, testStore.memA.secrets, 1)
+	require.Len(t, testStore.memB.secrets, 0)
 
 	rSecret, err := ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
 	require.True(t, rSecret.Equal(secret))
 
-	// Not in fallback anymore, subsequent stores should store secret in store
-	// A (and clear leftovers in store B).
-	testStore.shouldFallback = SecretStoreFallbackBehaviorNever
+	// Enable fallback - assume user changed system settings / configuration.
+	testStore.shouldFallback = SecretStoreFallbackBehaviorAlways
 
-	// Retrieve does not upgrade us because shouldUpgrade returns false.
+	// Retrieve should still find the secret in primary store.
 	rSecret, err = ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
 	require.True(t, rSecret.Equal(secret))
 
-	require.Len(t, testStore.memA.secrets, 0)
-	require.Len(t, testStore.memB.secrets, 1)
-
-	// StoreSecret again will upgrade us and clear store B for username.
-	err = ss.StoreSecret(m, nu, secret)
-	require.NoError(t, err)
-
 	require.Len(t, testStore.memA.secrets, 1)
 	require.Len(t, testStore.memB.secrets, 0)
 
+	// StoreSecret will skip primary store and store the secret in secondary
+	// store. So it will be stored in both.
+	secret2 := makeRandomSecretForTest(t)
+	err = ss.StoreSecret(m, nu, secret2)
+	require.NoError(t, err)
+
+	require.Len(t, testStore.memA.secrets, 1)
+	require.Len(t, testStore.memB.secrets, 1)
+
+	// Retrieve still works.
+	// TODO: Bug - retrieve still retrieves from primary store.
 	rSecret, err = ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
 	require.True(t, rSecret.Equal(secret))
@@ -151,6 +160,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 	nu := NewNormalizedUsername("tusername")
 	secret := makeRandomSecretForTest(t)
 
+	t.Logf("Storing secret with fallback=Always")
 	err := ss.StoreSecret(m, nu, secret)
 	require.NoError(t, err)
 
@@ -159,6 +169,7 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 	require.Len(t, testStore.memA.secrets, 0)
 	require.Len(t, testStore.memB.secrets, 1)
 
+	t.Logf("Retrieving secret with fallback=Always")
 	rSecret, err := ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
 	require.True(t, rSecret.Equal(secret))
@@ -168,10 +179,11 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 	require.Len(t, testStore.memA.secrets, 0)
 	require.Len(t, testStore.memB.secrets, 1)
 
-	// Change shouldFallback to false (user upgraded their machine / settings
+	// Change shouldFallback to OnError (user upgraded their machine / settings
 	// for example).
-	testStore.shouldFallback = SecretStoreFallbackBehaviorNever
+	testStore.shouldFallback = SecretStoreFallbackBehaviorOnError
 
+	t.Logf("Changed shouldFallback to OnError, trying to retrieve")
 	rSecret, err = ss.RetrieveSecret(m, nu)
 	require.NoError(t, err)
 	require.True(t, rSecret.Equal(secret))
@@ -179,6 +191,13 @@ func TestUSSOpportunisticUpgrade(t *testing.T) {
 	// Retrieving secret should have upgraded us to store A.
 	require.Len(t, testStore.memA.secrets, 1)
 	require.Len(t, testStore.memB.secrets, 0)
+
+	// Try to retrieve again, should retrieve exclusively from primary secret
+	// store.
+	t.Logf("Retrieving again")
+	rSecret, err = ss.RetrieveSecret(m, nu)
+	require.NoError(t, err)
+	require.True(t, rSecret.Equal(secret))
 }
 
 func TestUSSFallback(t *testing.T) {
@@ -240,4 +259,36 @@ func TestUSSFallback(t *testing.T) {
 	err = store.ClearSecret(m, nu)
 	require.NoError(t, err)
 	require.Len(t, memB.secrets, 0)
+}
+
+func TestUSSBothFail(t *testing.T) {
+	tc := SetupTest(t, "secret store ops", 1)
+	defer tc.Cleanup()
+
+	failA := NewSecretStoreFail()
+	failB := NewSecretStoreFail()
+
+	shouldUpgradeOpportunistically := func() bool {
+		return true
+	}
+	shouldStoreInFallback := func(options *SecretStoreOptions) SecretStoreFallbackBehavior {
+		return SecretStoreFallbackBehaviorOnError
+	}
+
+	store := NewSecretStoreUpgradeable(failA, failB,
+		shouldUpgradeOpportunistically, shouldStoreInFallback)
+
+	m := NewMetaContextForTest(tc)
+	nu := NewNormalizedUsername("tusername")
+	secret := makeRandomSecretForTest(t)
+
+	err := store.StoreSecret(m, nu, secret)
+	require.Error(t, err)
+
+	_, err = store.RetrieveSecret(m, nu)
+	require.Error(t, err)
+
+	// Clear returns an error when both stores fail to clear.
+	err = store.ClearSecret(m, nu)
+	require.Error(t, err)
 }

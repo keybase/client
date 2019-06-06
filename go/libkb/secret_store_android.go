@@ -39,9 +39,10 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 
 			return SecretStoreFallbackBehaviorAlways
 		}
-		// Never fall back to file version, always use external secure secret
-		// store.
-		return SecretStoreFallbackBehaviorNever
+		// Fallback to file store on error - when external store is not
+		// available. This may be the case when user does not have lock screen
+		// or pin code set up.
+		return SecretStoreFallbackBehaviorOnError
 
 	}
 	return NewSecretStoreUpgradeable(secAndroid, secFile,

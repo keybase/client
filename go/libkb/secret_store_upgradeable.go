@@ -3,6 +3,8 @@
 
 package libkb
 
+import "fmt"
+
 type SecretStoreFallbackBehavior int
 
 const (
@@ -31,35 +33,49 @@ func NewSecretStoreUpgradeable(a, b SecretStoreAll, shouldUpgradeOpportunistical
 }
 
 func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
-	defer mctx.TraceTimed("SecretStoreUpgradeable.RetrieveSecret", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreUpgradeable.RetrieveSecret(%s)", username),
+		func() error { return err })()
+
+	mctx.Debug("Trying to retrieve secret from primary store")
 	secret, err1 := s.a.RetrieveSecret(mctx, username)
 	if err1 == nil {
+		// Found secret in primary store - return, we don't need to do anything
+		// else here.
+		mctx.Debug("Found secret in primary store")
 		return secret, nil
 	}
 
-	mctx.Debug("Failed to find secret in system keyring (%s), falling back to file-based secret store.", err1)
+	mctx.Debug("Failed to find secret in primary store (%s), falling back to secondary store.", err1)
+
 	secret, err2 := s.b.RetrieveSecret(mctx, username)
-	if !s.shouldUpgradeOpportunistically() || (s.shouldStoreInFallback(s.options) == SecretStoreFallbackBehaviorAlways) {
+	if err2 != nil {
+		mctx.Debug("Failed to retrieve secret from secondary store: %v", err2)
+		return LKSecFullSecret{}, CombineErrors(err1, err2)
+	}
+
+	shouldUpgrade := s.shouldUpgradeOpportunistically()
+	fallbackBehavior := s.shouldStoreInFallback(s.options)
+	mctx.Debug("Fallback settings are: shouldUpgrade: %t, fallbackBehavior: %v", shouldUpgrade, fallbackBehavior)
+	if !shouldUpgrade || fallbackBehavior == SecretStoreFallbackBehaviorAlways {
 		// Do not upgrade opportunistically, or we are still in Fallback Mode
 		// ALWAYS and should exclusively use store B - do not try fall through
 		// to try to store in A.
-		return secret, err2
-	}
-
-	if err2 == nil {
-		storeAErr := s.a.StoreSecret(mctx, username, secret)
-		if storeAErr == nil {
-			mctx.Debug("Upgraded secret for %s to secretstore a", username)
-
-			clearBErr := s.b.ClearSecret(mctx, username)
-			mctx.Debug("After secret upgrade: clearSecret from store B returned: %v", clearBErr)
-		} else {
-			mctx.Debug("Failed to upgrade secret for %s to secretstore a: %s", username, storeAErr)
-		}
+		mctx.Debug("Not trying to upgrade after retrieving from secondary store")
 		return secret, nil
 	}
-	err = CombineErrors(err1, err2)
-	return LKSecFullSecret{}, err
+
+	mctx.Debug("Secret found in secondary store, trying to upgrade to primary store")
+
+	storeAErr := s.a.StoreSecret(mctx, username, secret)
+	if storeAErr == nil {
+		mctx.Debug("Upgraded secret for %s to secretstore a", username)
+
+		clearBErr := s.b.ClearSecret(mctx, username)
+		mctx.Debug("After secret upgrade: clearSecret from store B returned: %v", clearBErr)
+	} else {
+		mctx.Debug("Failed to upgrade secret for %s to secretstore a: %s", username, storeAErr)
+	}
+	return secret, nil
 }
 
 func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
@@ -67,7 +83,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 
 	fallbackBehavior := s.shouldStoreInFallback(s.options)
 	if fallbackBehavior == SecretStoreFallbackBehaviorAlways {
-		mctx.Debug("shouldStoreInFallback returned ALWAYS for options %v, storing in store B", s.options)
+		mctx.Debug("shouldStoreInFallback returned ALWAYS for options %v, storing in secondary store", s.options)
 		return s.b.StoreSecret(mctx, username, secret)
 	}
 
