@@ -32,8 +32,6 @@ export type Props = {
   fontSize?: number
   // TODO cleanup how this container stuff works, this is to allow you to style the box that sometimes exists
   boxStyle?: StylesCrossPlatform
-  // TODO investigate removing this. I don't think this even hooked up
-  size?: any
   // only applies to icon fonts
   sizeType?: SizeType
   padding?: keyof typeof globalMargins

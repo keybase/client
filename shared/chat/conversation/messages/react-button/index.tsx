@@ -42,7 +42,7 @@ if (!Styles.isMobile) {
 }
 
 const ButtonBox = Styles.styled(ClickableBox)(
-  (props: React.ComponentProps<typeof ClickableBox> & {border?: boolean}) =>
+  (props: React.ComponentProps<typeof ClickableBox> & {border?: 1 | 0}) =>
     Styles.isMobile
       ? {borderColor: Styles.globalColors.black_10}
       : {
@@ -179,7 +179,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     return (
       <ButtonBox
         onLongPress={this.props.onLongPress}
-        border={this.props.showBorder}
+        border={this.props.showBorder ? 1 : 0}
         onClick={this._onShowPicker}
         onMouseLeave={this._stopCycle}
         onMouseEnter={this._startCycle}

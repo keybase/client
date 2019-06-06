@@ -156,7 +156,7 @@ export const WalletSwitcher = (props: Props) => {
       >
         <Row onPress={whatOnPress} containerStyle={styles.infoTextRowContainer} style={styles.infoTextRow}>
           <Kb.Box2 centerChildren={true} direction="horizontal">
-            <Kb.Icon size={16} type="iconfont-info" />
+            <Kb.Icon type="iconfont-info" />
             <Kb.Text style={styles.infoText} type="BodySemibold">
               What is Stellar?
             </Kb.Text>

@@ -17,7 +17,7 @@ const IconOrAvatar = ({service, username, icon, opacity, avatarSize, style, font
   service === 'Keybase' ? (
     <Avatar opacity={opacity} username={username} size={avatarSize} style={style} />
   ) : icon ? (
-    <Icon type={icon} style={style} size={avatarSize - 8} fontSize={fontSize} />
+    <Icon type={icon} style={style} fontSize={fontSize} />
   ) : null
 
 export default IconOrAvatar
