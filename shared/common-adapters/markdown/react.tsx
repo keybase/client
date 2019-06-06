@@ -5,7 +5,6 @@ import Text from '../text'
 import KbfsPath from './kbfs-path-container'
 import {MarkdownMeta, StyleOverride} from '.'
 import Box from '../box'
-// @ts-ignore
 import Emoji, {Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
 import ServiceDecoration from './service-decoration'

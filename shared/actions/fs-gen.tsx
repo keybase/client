@@ -69,6 +69,7 @@ export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
+export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
@@ -187,6 +188,7 @@ type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly 
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string}
 type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
+type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadKeyPayload = {readonly key: string | null}
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
@@ -428,6 +430,9 @@ export const createSetFolderViewFilter = (
 export const createSetIncomingShareLocalPath = (
   payload: _SetIncomingShareLocalPathPayload
 ): SetIncomingShareLocalPathPayload => ({payload, type: setIncomingShareLocalPath})
+export const createSetLastPublicBannerClosedTlf = (
+  payload: _SetLastPublicBannerClosedTlfPayload
+): SetLastPublicBannerClosedTlfPayload => ({payload, type: setLastPublicBannerClosedTlf})
 export const createSetMoveOrCopySource = (
   payload: _SetMoveOrCopySourcePayload
 ): SetMoveOrCopySourcePayload => ({payload, type: setMoveOrCopySource})
@@ -723,6 +728,10 @@ export type SetIncomingShareLocalPathPayload = {
   readonly payload: _SetIncomingShareLocalPathPayload
   readonly type: 'fs:setIncomingShareLocalPath'
 }
+export type SetLastPublicBannerClosedTlfPayload = {
+  readonly payload: _SetLastPublicBannerClosedTlfPayload
+  readonly type: 'fs:setLastPublicBannerClosedTlf'
+}
 export type SetMoveOrCopySourcePayload = {
   readonly payload: _SetMoveOrCopySourcePayload
   readonly type: 'fs:setMoveOrCopySource'
@@ -886,6 +895,7 @@ export type Actions =
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
+  | SetLastPublicBannerClosedTlfPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload

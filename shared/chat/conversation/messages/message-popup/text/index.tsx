@@ -2,7 +2,6 @@ import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
 import {DeviceType} from '../../../../../constants/types/devices'
-// @ts-ignore
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 

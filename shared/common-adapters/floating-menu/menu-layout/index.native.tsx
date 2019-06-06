@@ -5,7 +5,6 @@ import Box, {Box2} from '../../box'
 import Text from '../../text'
 import Meta from '../../meta'
 import Divider from '../../divider'
-// @ts-ignore
 import ScrollView from '../../scroll-view'
 import {isLargeScreen} from '../../../constants/platform'
 import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {Props as CheckboxProps} from './checkbox'
-// @ts-ignore
 import {Props as InputProps} from './input'
 import FormWithCheckbox from './form-with-checkbox'
 import {action, storiesOf} from '../stories/storybook'

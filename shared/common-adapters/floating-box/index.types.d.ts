@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../../styles/css'
-// @ts-ignore
 import {Position} from '../relative-popup-hoc.types'
 
 // GatewayDests:

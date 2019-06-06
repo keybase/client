@@ -1,4 +1,3 @@
-// @ts-ignore not converted
 import Box from './box'
 import RadioButton from './radio-button'
 import React from 'react'

@@ -9,7 +9,6 @@ import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
-// @ts-ignore codemod issue
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 import {Loading} from '../fs/simple-screens'

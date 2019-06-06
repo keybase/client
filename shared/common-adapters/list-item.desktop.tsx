@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-// @ts-ignore not converted
 import Box from './box'
 import {globalStyles, desktopStyles} from '../styles'
 import {Props} from './list-item'

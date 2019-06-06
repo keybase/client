@@ -5,7 +5,6 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
-// @ts-ignore until constants is converted
 import {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants

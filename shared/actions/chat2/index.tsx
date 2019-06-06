@@ -26,7 +26,6 @@ import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
-// @ts-ignore codemod-issue
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -1122,7 +1121,6 @@ function* loadMoreMessages(
       incomingCallMap: {
         // @ts-ignore
         'chat.1.chatUi.chatThreadCached': p => onGotThread(p, 'cached'),
-        // @ts-ignore
         'chat.1.chatUi.chatThreadFull': p => onGotThread(p, 'full'),
       },
       params: {
@@ -2700,7 +2698,6 @@ const setMinWriterRole = (_, action: Chat2Gen.SetMinWriterRolePayload, logger) =
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
   return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
-    // @ts-ignore for now while constants is untyped codemod-issue
     role: RPCTypes.TeamRole[role],
   }).then(() => {})
 }
@@ -2749,7 +2746,10 @@ const unfurlResolvePrompt = (state, action: Chat2Gen.UnfurlResolvePromptPayload)
 const toggleInfoPanel = (state, action: Chat2Gen.ToggleInfoPanelPayload) => {
   const visibleScreen = Router2Constants.getVisibleScreen()
   if (visibleScreen && visibleScreen.routeName === 'chatInfoPanel') {
-    return RouteTreeGen.createNavigateUp()
+    return [
+      Chat2Gen.createClearAttachmentView({conversationIDKey: state.chat2.selectedConversation}),
+      RouteTreeGen.createNavigateUp(),
+    ]
   } else {
     return RouteTreeGen.createNavigateAppend({
       path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
@@ -2803,7 +2803,6 @@ const onChatCommandMarkdown = (status, action: EngineGen.Chat1ChatUiChatCommandM
 }
 
 const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
-  // @ts-ignore codemod issue - investigate
   const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetMaybeMentionInfo({
     info,

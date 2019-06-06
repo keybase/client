@@ -1,9 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import ListItem from './list-item'
-// @ts-ignore not converted
 import Box from './box'
-// @ts-ignore not converted
 import Text from './text'
 import Button from './button'
 import {globalColors} from '../styles'

@@ -26,6 +26,7 @@ const ff: FeatureFlags = {
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
+  kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,

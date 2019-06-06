@@ -67,10 +67,7 @@ class Header extends React.PureComponent<Props> {
             <CommaSeparatedName
               type="BodySmallSemibold"
               name={Types.getPathName(this.props.path)}
-              elementStyle={Styles.collapseStyles([
-                styles.stylesNameText,
-                {color: Constants.getPathTextColor(this.props.path)},
-              ])}
+              elementStyle={styles.stylesNameText}
             />
           </Kb.WithTooltip>
           {this.props.type === Types.PathType.File && (

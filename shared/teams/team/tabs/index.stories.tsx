@@ -19,6 +19,7 @@ const yourOperations = {
   manageMembers: false,
   manageSubteams: false,
   renameChannel: false,
+  renameTeam: false,
   setMemberShowcase: false,
   setMinWriterRole: false,
   setPublicityAny: false,

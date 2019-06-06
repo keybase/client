@@ -14,6 +14,7 @@ const Kb = {
 
 const StandardScreen = (props: Props) => {
   return (
+    // @ts-ignore for now
     <Kb.NativeScrollView scrollEnabled={props.scrollEnabled}>
       {!!props.notification && (
         <Kb.Box

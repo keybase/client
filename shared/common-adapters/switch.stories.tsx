@@ -2,7 +2,6 @@ import * as React from 'react'
 import Box, {Box2} from './box'
 import Text from './text'
 import Icon from './icon'
-// @ts-ignore todo
 import ClickableBox from './clickable-box'
 import Switch from './switch'
 import * as Sb from '../stories/storybook'

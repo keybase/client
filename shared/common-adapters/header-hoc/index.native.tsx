@@ -1,11 +1,9 @@
 import * as React from 'react'
 import Text from '../text'
-// @ts-ignore
 import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
-// @ts-ignore
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import {Action, Props, LeftActionProps} from './types'

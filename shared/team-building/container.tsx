@@ -14,7 +14,6 @@ import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
-// @ts-ignore codemode issue
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 
 type OwnProps = {

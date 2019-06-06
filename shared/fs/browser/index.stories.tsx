@@ -40,6 +40,17 @@ export default () => {
         />
       </Kb.Box2>
     ))
+    .add('public', () => (
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        <Browser
+          path={Types.stringToPath('/keybase/public/foo')}
+          routePath={I.List([])}
+          shouldShowSFMIBanner={false}
+          resetBannerType={Types.ResetBannerNoOthersType.None}
+          offline={false}
+        />
+      </Kb.Box2>
+    ))
     .add('with SystemFileManagerIntegrationBanner', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser

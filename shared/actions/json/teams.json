@@ -2,7 +2,6 @@
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
-    "// @ts-ignore until constants is converted",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {

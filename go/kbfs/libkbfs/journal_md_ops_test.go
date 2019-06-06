@@ -73,7 +73,8 @@ func setupJournalMDOpsTest(t *testing.T) (
 	return tempdir, ctx, cancel, config, oldMDOps, jManager
 }
 
-func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
+func teardownJournalMDOpsTest(
+	ctx context.Context, t *testing.T, tempdir string,
 	cancel context.CancelFunc, config Config) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
@@ -98,7 +99,7 @@ func makeMDForJournalMDOpsTest(
 
 func TestJournalMDOpsBasics(t *testing.T) {
 	tempdir, ctx, cancel, config, oldMDOps, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -277,7 +278,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -313,7 +314,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 
 func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
@@ -347,7 +348,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalMDOpsTest(ctx, t, tempdir, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)

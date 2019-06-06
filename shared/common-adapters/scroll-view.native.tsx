@@ -1,7 +1,5 @@
-// import {ScrollView} from 'react-native'
-// TODO import this type from RN
+import {ScrollView} from 'react-native'
 import * as React from 'react'
-class ScrollView extends React.Component<any> {}
 // Out of the box the ScrollView will consume taps of all children to dismiss the keyboard. This means if you have
 // an input with focus and a button, tapping the button won't work until you click it twice. Setting these defaults
 // changes this behavior: https://github.com/facebook/react-native/issues/4087

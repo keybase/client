@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import {globalStyles, globalMargins} from '../styles'
 import {Box, Text, Checkbox, HeaderHoc} from '../common-adapters'
-// @ts-ignore not typed yet
 import {getSecureFlagSetting, setSecureFlagSetting} from '../native/screenprotector'
 import {isAndroid} from '../constants/platform'
 

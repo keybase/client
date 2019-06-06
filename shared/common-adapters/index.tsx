@@ -9,6 +9,7 @@ export const NavigationEvents = _NavigationEvents
 export {default as Animated} from './animated'
 export {default as Animation} from './animation'
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
+export {default as AvatarLine} from './avatar-line'
 export {default as BackButton} from './back-button'
 export {default as BackgroundRepeatBox} from './background-repeat-box'
 export {default as Badge} from './badge'

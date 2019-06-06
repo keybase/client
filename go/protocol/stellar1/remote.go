@@ -603,6 +603,7 @@ type PaymentDetails struct {
 	Memo          string         `codec:"memo" json:"memo"`
 	MemoType      string         `codec:"memoType" json:"memoType"`
 	ExternalTxURL string         `codec:"externalTxURL" json:"externalTxURL"`
+	FeeCharged    string         `codec:"feeCharged" json:"feeCharged"`
 }
 
 func (o PaymentDetails) DeepCopy() PaymentDetails {
@@ -611,6 +612,7 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 		Memo:          o.Memo,
 		MemoType:      o.MemoType,
 		ExternalTxURL: o.ExternalTxURL,
+		FeeCharged:    o.FeeCharged,
 	}
 }
 

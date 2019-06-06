@@ -6,6 +6,7 @@ import ResetBanner from './reset-banner'
 import SystemFileManagerIntegrationBanner from './system-file-manager-integration-banner'
 import KextPermissionPopup from './system-file-manager-integration-banner/kext-permission-popup'
 import {commonProvider} from '../common/index.stories'
+import PublicReminder from './public-reminder'
 
 const resetBannerCommon = {
   onOpenWithoutResetUsers: Sb.action('onOpenWithoutResetUsers'),
@@ -20,6 +21,16 @@ const commonSystemFileManagerIntegrationBannerActions = {
 }
 
 export const bannerProvider = {
+  PublicReminder: ({path}: {path: Types.Path}) => {
+    const parsedPath = Constants.parsePath(path)
+    return {
+      hidden: false,
+      onClose: Sb.action('close'),
+      onLoadNonBannerFolder: () => {},
+      show: parsedPath.kind === Types.PathKind.GroupTlf && parsedPath.tlfType === Types.TlfType.Public,
+      url: parsedPath.kind === Types.PathKind.GroupTlf ? `https://keybase.pub/${parsedPath.tlfName}` : '',
+    }
+  },
   ResetBanner: ({path}: {path: Types.Path}) => ({
     ...resetBannerCommon,
     isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
@@ -43,6 +54,9 @@ export default () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('ResetBanner - other', () => (
       <ResetBanner resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
+    ))
+    .add('Public Reminder Banner', () => (
+      <PublicReminder path={Types.stringToPath('/keybase/public/jakob223,songgao')} />
     ))
     .add('SystemFileManagerIntegrationBanner - disabled', () => (
       <SystemFileManagerIntegrationBanner

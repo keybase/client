@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import {List, Set} from 'immutable'
-// @ts-ignore
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
 import Input, {Props as InputProps} from '.'

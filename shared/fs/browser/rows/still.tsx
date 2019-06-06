@@ -41,7 +41,7 @@ const Still = (props: StillProps) => (
         <Filename
           path={props.path}
           type={Constants.pathTypeToTextType(props.type)}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
+          style={rowStyles.rowText}
         />
         {props.isEmpty && (
           <Kb.Meta
