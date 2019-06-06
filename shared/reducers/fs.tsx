@@ -133,24 +133,19 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
   if (!oldTlf) {
     return newTlf
   }
-  // TODO: Ideally this should come in with other data from the same RPC.
-  const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
-  if (
-    !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
-    !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
-  ) {
-    return newTlfDontClearSyncConfig
+  if (!I.is(newTlf.syncConfig, oldTlf.syncConfig) && !haveSamePartialSyncConfig(oldTlf, newTlf)) {
+    return newTlf
   }
   if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
-    return newTlfDontClearSyncConfig
+    return newTlf
   }
   if (!newTlf.conflict.equals(oldTlf.conflict)) {
-    return newTlfDontClearSyncConfig
+    return newTlf
   }
   // syncConfig, resetParticipants, and conflict all stayed thte same in value,
   // so just reuse old reference.
   return oldTlf.merge(
-    newTlfDontClearSyncConfig.withMutations(n =>
+    newTlf.withMutations(n =>
       n
         .set('syncConfig', oldTlf.syncConfig)
         .set('resetParticipants', oldTlf.resetParticipants)
@@ -264,30 +259,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           )
         )
       )
-    case FsGen.tlfSyncConfigsForAllSyncEnabledTlfsLoaded:
-      // This should come in after favorites are loaded. Go through existing
-      // TLFs, and update their syncConfig as needed based on the incoming
-      // payload. Note that if a TLF that we know of doesn't appear in the
-      // payload, we assume it's sync-disable.
-      return [Types.TlfType.Private, Types.TlfType.Public, Types.TlfType.Team].reduce((state, tlfType) => {
-        const tlfsFromAction = action.payload[tlfType] || I.Map()
-        return state.update('tlfs', tlfs =>
-          tlfs.update(tlfType, tlfList =>
-            tlfList.withMutations(tlfList =>
-              tlfList.map((tlf, tlfName) => {
-                const syncConfigFromAction = tlfsFromAction.get(tlfName, Constants.tlfSyncDisabled)
-                // Can't just use equal as flow would freak out on different
-                // types. Enable/disable are constants, so no need to deep
-                // compare for them; can just set.
-                return syncConfigFromAction.mode === Types.TlfSyncMode.Partial &&
-                  syncConfigFromAction.equals(tlf.syncConfig)
-                  ? tlf
-                  : tlf.set('syncConfig', syncConfigFromAction)
-              })
-            )
-          )
-        )
-      }, state)
     case FsGen.sortSetting:
       return state.update('pathUserSettings', pathUserSettings =>
         pathUserSettings.update(action.payload.path, setting =>

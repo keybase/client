@@ -90,7 +90,6 @@ export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const tlfCrStatusChanged = 'fs:tlfCrStatusChanged'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
-export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
@@ -214,11 +213,6 @@ type _TlfSyncConfigLoadedPayload = {
   readonly tlfType: Types.TlfType
   readonly tlfName: string
   readonly syncConfig: Types.TlfSyncConfig
-}
-type _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {
-  readonly private: I.Map<string, Types.TlfSyncConfig>
-  readonly public: I.Map<string, Types.TlfSyncConfig>
-  readonly team: I.Map<string, Types.TlfSyncConfig>
 }
 type _TriggerSendLinkToChatPayload = void
 type _UninstallKBFSConfirmPayload = void
@@ -505,12 +499,6 @@ export const createTlfCrStatusChanged = (payload: _TlfCrStatusChangedPayload): T
 export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
 ): TlfSyncConfigLoadedPayload => ({payload, type: tlfSyncConfigLoaded})
-export const createTlfSyncConfigsForAllSyncEnabledTlfsLoaded = (
-  payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
-): TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload => ({
-  payload,
-  type: tlfSyncConfigsForAllSyncEnabledTlfsLoaded,
-})
 export const createTriggerSendLinkToChat = (
   payload: _TriggerSendLinkToChatPayload
 ): TriggerSendLinkToChatPayload => ({payload, type: triggerSendLinkToChat})
@@ -817,10 +805,6 @@ export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
   readonly type: 'fs:tlfSyncConfigLoaded'
 }
-export type TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload = {
-  readonly payload: _TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
-  readonly type: 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
-}
 export type TriggerSendLinkToChatPayload = {
   readonly payload: _TriggerSendLinkToChatPayload
   readonly type: 'fs:triggerSendLinkToChat'
@@ -935,7 +919,6 @@ export type Actions =
   | StartManualConflictResolutionPayload
   | TlfCrStatusChangedPayload
   | TlfSyncConfigLoadedPayload
-  | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload
   | UploadPayload
