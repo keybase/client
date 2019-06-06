@@ -219,6 +219,7 @@ type ProxyState = {
   address: string
   port: string
   proxyType: ProxyType
+  certPinning: boolean
   edited: boolean
 }
 
@@ -227,9 +228,11 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     super(props)
 
     this.state = {
+      // TODO: How does this work once the data is actually persisted?
       address: "",
       port: "",
       proxyType: ProxyType.No_Proxy,
+      certPinning: true,
       edited: false,
     }
   }
@@ -244,11 +247,15 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     this.setState({port, edited})
   }
 
-  setProxyType(proxyType: string) {
-    this.setState({proxyType: ProxyType[proxyType]})
-    alert(JSON.stringify(this.state))
-    alert(proxyType)
-    alert(JSON.stringify(ProxyType))
+  setProxyType(proxyTypeStr: string) {
+    var proxyType = ProxyType[proxyTypeStr]
+    var edited = (proxyType !== this.state.proxyType) || this.state.edited
+    this.setState({proxyType, edited})
+  }
+
+  toggleCertPinning() {
+    // TODO: Warn them before setting the state to true
+    this.setState({certPinning: !this.state.certPinning})
   }
 
   saveProxySettings() {
@@ -268,28 +275,31 @@ class ProxySettings extends React.Component<Props, ProxyState> {
               <Kb.Button 
                 style={{margin: Styles.globalMargins.tiny}} 
                 onClick={() => this.setProxyType(proxyType)}
-                color={this.state.proxyType == proxyType ? 'Default' : 'Dim'}
+                type={this.state.proxyType == proxyType ? 'Default' : 'Dim'}
                 >
                 {proxyType}
               </Kb.Button>
             )
           }
         </Kb.Box>
-        <Kb.Box>
-          <Kb.Input
-            hintText="Proxy Address"
-            value={this.state.address}
-            onChangeText={addr => this.handleAddressChange(addr)}
-            style={{width: 400}}
-          />
-          <Kb.Input
-            hintText="Proxy Port"
-            value={this.state.port}
-            onChangeText={port => this.handlePortChange(port)}
-            style={{width: 200}}
-          />
-        </Kb.Box>
-        <Kb.Button 
+        <Kb.Input
+          hintText="Proxy Address"
+          value={this.state.address}
+          onChangeText={addr => this.handleAddressChange(addr)}
+          style={{width: 400}}
+        />
+        <Kb.Input
+          hintText="Proxy Port"
+          value={this.state.port}
+          onChangeText={port => this.handlePortChange(port)}
+          style={{width: 200}}
+        />
+        {/*<Kb.Switch */}
+        {/*  on={this.state.certPinning}*/}
+        {/*  // onClick={this.toggleCertPinning}*/}
+        {/*  label="Allow TLS Interception"  */}
+        {/*/>*/}
+        <Kb.Button
           style={{margin: Styles.globalMargins.xsmall}} 
           onClick={this.saveProxySettings()}>  
           Save Proxy Settings
