@@ -277,6 +277,7 @@ const _defaultPaymentDetail = {
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   txID: '',
+  feeChargedDescription: '',
 }
 
 const _defaultPayment = {
@@ -347,6 +348,7 @@ export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal)
     externalTxURL: p.externalTxURL,
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
+    feeChargedDescription: p.feeChargedDescription,
     txID: p.txID,
   })
 

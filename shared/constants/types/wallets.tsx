@@ -172,6 +172,7 @@ export type _PaymentDetail = {
   publicMemo: HiddenString
   publicMemoType: string
   txID: string
+  feeChargedDescription: string
 } & _PaymentCommon
 
 export type _Payment = {} & _PaymentResult & _PaymentDetail
