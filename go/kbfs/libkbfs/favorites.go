@@ -331,11 +331,8 @@ func (f *Favorites) crossCheckWithEditHistory() {
 		if minTime == 0 || h.ServerTime < minTime {
 			minTime = h.ServerTime
 		}
-		// Seems like the mtime in the favorites list is incorrectly
-		// in seconds, rather than milliseconds as a `keybase1.Time`
-		// is supposed to be.
-		if data.TlfMtime == nil || (*data.TlfMtime)*1000 > h.ServerTime {
-			t := h.ServerTime / 1000
+		if data.TlfMtime == nil || *data.TlfMtime > h.ServerTime {
+			t := h.ServerTime
 			data.TlfMtime = &t
 			f.favCache[fav] = data
 		}
@@ -346,8 +343,8 @@ func (f *Favorites) crossCheckWithEditHistory() {
 	// history.
 	if minTime > 0 {
 		for fav, data := range tlfsWithNoHistory {
-			if (*data.TlfMtime)*1000 > minTime {
-				t := minTime/1000 - 1
+			if *data.TlfMtime > minTime {
+				t := minTime - 1
 				data.TlfMtime = &t
 				f.favCache[fav] = data
 			}
