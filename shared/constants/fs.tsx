@@ -1047,9 +1047,9 @@ export const getTlfPath = (path: Types.Path): Types.Path | null => {
 }
 
 export const hasPublicTag = (path: Types.Path): boolean => {
-  return (
-    Types.getPathVisibility(path) === Types.TlfType.Public && path !== Types.stringToPath('/keybase/public')
-  )
+  const publicPrefix = '/keybase/public/'
+  // The slash after public in `publicPrefix` prevents /keybase/public from counting.
+  return Types.pathToString(path).startsWith(publicPrefix)
 }
 
 export const getPathUserSetting = (
