@@ -10,6 +10,12 @@ type InfoIconProps = {
   onFeedback: () => void
 }
 
+type InfoIconOwnProps = {
+  invisible?: boolean
+  onDocumentation?: () => void
+  onFeedback?: () => void
+}
+
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   <>
     <Kb.Icon
@@ -30,21 +36,20 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
     />
   </>
 )
-export const InfoIcon: any = Container.compose(
-  Container.namedConnect(
-    () => ({}),
-    () => ({onDocumentation: () => {}, onFeedback: () => {}}),
-    (s, d, o: InfoIconProps) => ({...o, ...s, ...d}),
-    'SignupInfoIcon'
-  ),
-  Kb.OverlayParentHOC
-)(_InfoIcon)
+
+export const InfoIcon = Container.namedConnect(
+  () => ({}),
+  // TODO: This should be a todo I guess?
+  () => ({onDocumentation: () => {}, onFeedback: () => {}}),
+  (s, d, o: InfoIconOwnProps) => ({...s, ...d, ...o}),
+  'SignupInfoIcon'
+)(Kb.OverlayParentHOC(_InfoIcon))
 
 // Only used on desktop
 const Header = props => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-      <InfoIcon invisible={props.negative} />
+      <InfoIcon invisible={props.negative as boolean} />
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (

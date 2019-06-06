@@ -6,7 +6,7 @@ import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
 import {Props, TextType} from './text'
 
-const StyledText = Styles.styled(NativeText)({}, props => props.style)
+const StyledText = Styles.styled(NativeText)({}, (props: any) => props.style)
 
 const modes = ['positive', 'negative']
 

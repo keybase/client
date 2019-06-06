@@ -71,14 +71,15 @@ const styleOuterBox = {
   marginBottom: globalMargins.tiny,
 }
 
-const stylesAvatarWrapper = (avatarSize: number) => ({
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  height: avatarSize,
-  position: 'relative',
-  top: AVATAR_SIZE / 2,
-  zIndex: 10,
-})
+const stylesAvatarWrapper = (avatarSize: number) =>
+  ({
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    height: avatarSize,
+    position: 'relative',
+    top: AVATAR_SIZE / 2,
+    zIndex: 10,
+  } as const)
 const stylesAvatar = platformStyles({
   isElectron: {
     ...desktopStyles.clickable,

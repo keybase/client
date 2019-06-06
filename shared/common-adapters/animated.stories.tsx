@@ -6,7 +6,7 @@ import * as Styles from '../styles'
 const load = () => {
   Sb.storiesOf('Common', module).add('Animated', () => (
     <Kb.Animated config={{delay: 1000}} from={{left: 0}} to={{left: 300}}>
-      {({left}) => <Kb.Box style={Styles.collapseStyles([styles.container, {left}])} />}
+      {({left}: any) => <Kb.Box style={Styles.collapseStyles([styles.container, {left}])} />}
     </Kb.Animated>
   ))
 }

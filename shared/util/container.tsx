@@ -3,6 +3,7 @@ import {TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps} from '../route-tree/render-route'
 import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-navigation'
 import {StatusCode} from '../constants/types/rpc-gen'
+export {flowRight as compose} from 'lodash-es'
 
 export const NullComponent = () => null
 export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
@@ -22,7 +23,6 @@ export type Dispatch = TypedDispatch
 
 export {
   branch,
-  compose,
   defaultProps,
   lifecycle,
   pure,

@@ -42,7 +42,7 @@ export function subtitle(platform: PlatformsExpandedType): string | null {
 export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'pgp' | 'reddit' | 'twitter'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
-  return {
+  return ({
     facebook: 'iconfont-identity-facebook',
     github: 'iconfont-identity-github',
     hackernews: 'iconfont-identity-hn',
@@ -50,11 +50,11 @@ export function serviceIdToIcon(service: ServiceId): IconType {
     pgp: 'iconfont-identity-pgp',
     reddit: 'iconfont-identity-reddit',
     twitter: 'iconfont-identity-twitter',
-  }[service]
+  } as const)[service]
 }
 
 export function serviceIdToLogo24(service: ServiceId): IconType {
-  return {
+  return ({
     facebook: 'icon-facebook-logo-24',
     github: 'icon-github-logo-24',
     hackernews: 'icon-hacker-news-logo-24',
@@ -62,7 +62,7 @@ export function serviceIdToLogo24(service: ServiceId): IconType {
     pgp: 'icon-pgp-key-24',
     reddit: 'icon-reddit-logo-24',
     twitter: 'icon-twitter-logo-24',
-  }[service]
+  } as const)[service]
 }
 
 // a user id in the form of 'foo' if a keybase user

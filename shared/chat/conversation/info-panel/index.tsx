@@ -70,7 +70,7 @@ type LinkProps = {
 
 export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
-  participants: Array<ParticipantTyp>
+  participants: ReadonlyArray<ParticipantTyp>
   isPreview: boolean
   teamname: string | null
   channelname: string | null

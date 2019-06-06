@@ -31,7 +31,7 @@ type Props = {
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
     ...(props.isDeleteable
-      ? [
+      ? ([
           'Divider',
           {
             danger: true,
@@ -40,7 +40,7 @@ const AttachmentPopupMenu = (props: Props) => {
             subTitle: 'Deletes this attachment for everyone',
             title: 'Delete',
           },
-        ]
+        ] as const)
       : []),
 
     'Divider',
@@ -53,7 +53,7 @@ const AttachmentPopupMenu = (props: Props) => {
       : []),
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-  ]
+  ] as const
 
   const header = {
     title: 'header',

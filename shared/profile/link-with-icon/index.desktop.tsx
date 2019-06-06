@@ -13,7 +13,7 @@ const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
 const styleLabel = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-}
+} as const
 
 const styleIcon = {
   marginRight: globalMargins.tiny,

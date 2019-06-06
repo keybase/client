@@ -208,6 +208,7 @@
     "@types/classnames": "2.2.7",
     "@types/emoji-mart": "2.8.4",
     "@types/lodash-es": "4.17.3",
+    "@types/memoize-one": "4.1.1",
     "@types/moment": "2.13.0",
     "@types/mousetrap": "1.6.2",
     "@types/path-parse": "1.0.19",

@@ -62,6 +62,6 @@ const styles = Styles.styleSheetCreate({
 
 const _metaStyle = {
   alignSelf: 'flex-start',
-}
+} as const
 
 export default DeviceRow

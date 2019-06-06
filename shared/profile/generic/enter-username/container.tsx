@@ -79,6 +79,7 @@ const ConnectedEnterUsername = Container.namedConnect(
   'ConnectedEnterUsername'
 )(EnterUsername)
 
+// @ts-ignore
 ConnectedEnterUsername.navigationOptions = {
   gesturesEnabled: false,
 }

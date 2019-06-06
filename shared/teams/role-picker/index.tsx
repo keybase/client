@@ -229,7 +229,7 @@ const RolePicker = (props: Props) => {
               ? undefined
               : () => props.onSelectRole(disabledRole)
           return (
-            <Kb.ClickableBox key={role} onClick={onSelect}>
+            <Kb.ClickableBox key={role as string} onClick={onSelect}>
               <RoleRow
                 selected={selectedRole === role}
                 title={nodeMap.title}
@@ -419,8 +419,8 @@ export const sendNotificationFooter = (
 export const roleIconMap = {
   admin: 'iconfont-crown-admin',
   owner: 'iconfont-crown-owner',
-  reader: '',
-  writer: '',
-}
+  reader: undefined,
+  writer: undefined,
+} as const
 
 export default RolePicker

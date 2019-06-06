@@ -99,16 +99,16 @@ export const WalletSwitcher = (props: Props) => {
     return null
   }
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     ...(flags.airdrop
-      ? [
+      ? ([
           {
             key: 'airdrop',
             onPress: props.onJoinAirdrop,
             title: 'Join the airdrop',
             type: 'airdrop',
           },
-        ]
+        ] as const)
       : []),
     {
       key: 'newAccount',
@@ -122,11 +122,14 @@ export const WalletSwitcher = (props: Props) => {
       title: 'Link an existing Stellar account',
       type: 'item',
     },
-    ...props.accountIDs.map(accountID => ({
-      accountID,
-      key: accountID,
-      type: 'wallet',
-    })),
+    ...props.accountIDs.map(
+      (accountID: Types.AccountID) =>
+        ({
+          accountID,
+          key: accountID,
+          type: 'wallet',
+        } as const)
+    ),
   ]
 
   // Kind of a pain we have to calculate the height manually.

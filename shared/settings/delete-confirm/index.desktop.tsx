@@ -50,6 +50,6 @@ const iconStyle = {
   padding: '1px 0px 0px 1px',
   position: 'absolute',
   right: -4,
-}
+} as const
 
 export default DeleteConfirm

@@ -121,13 +121,13 @@ const styleInput = {
 
 const UpdatePasswordWrapper = (props: Props) => {
   const notification = props.error
-    ? {message: props.error.message, type: 'error'}
+    ? ({message: props.error.message, type: 'error'} as const)
     : props.hasPGPKeyOnServer
-    ? {
+    ? ({
         message:
           "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
         type: 'error',
-      }
+      } as const)
     : null
   return (
     <Kb.StandardScreen notification={notification} style={{alignItems: 'center', margin: 0}}>

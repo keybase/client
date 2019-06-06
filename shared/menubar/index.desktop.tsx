@@ -226,7 +226,7 @@ class MenubarRender extends React.Component<Props, State> {
     const sectionTabs =
       startingUp || loggedOut
         ? []
-        : [
+        : ([
             {
               onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
@@ -248,7 +248,7 @@ class MenubarRender extends React.Component<Props, State> {
               view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap[Tabs.settingsTab]),
             },
             'Divider',
-          ]
+          ] as const)
 
     const openApp = startingUp
       ? []
@@ -366,7 +366,7 @@ const iconMap = {
   [Tabs.devicesTab]: 'iconfont-nav-2-devices',
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
-}
+} as const
 const BadgeIcon = ({tab, countMap, openApp}) => {
   const count = countMap[tab]
   const iconType = iconMap[tab]

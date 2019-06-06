@@ -1,4 +1,9 @@
 import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
+import {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
+import {MenuItem, MenuItems} from './floating-menu/menu-layout'
+import {PropsWithTimer} from './hoc-timers'
+import {IconType} from './icon.constants'
+import {WebViewProps, WebViewInjections} from './web-view'
 export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
@@ -32,7 +37,8 @@ export {default as FloatingBox} from './floating-box'
 export {default as FloatingMenu} from './floating-menu'
 export {default as FloatingPicker} from './floating-picker'
 export {default as OverlayParentHOC} from './overlay/parent-hoc'
-export {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
+export type OverlayParentProps = OverlayParentProps
+export type PropsWithOverlay<P> = PropsWithOverlay<P>
 export {default as FormWithCheckbox} from './form-with-checkbox'
 export {default as Header} from './header'
 export {default as HeaderHoc, HeaderHocHeader} from './header-hoc'
@@ -55,7 +61,9 @@ export {
 } from './list-item2'
 export {default as Markdown} from './markdown'
 export {MaybePopup, MaybePopupHoc} from './maybe-popup'
-export {MenuItem, MenuItems} from './floating-menu/menu-layout'
+export type MenuItem = MenuItem
+export type MenuItems = MenuItems
+
 export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'
 export {default as NameWithIcon} from './name-with-icon'
@@ -91,9 +99,10 @@ export {default as UserCard} from './user-card'
 export {default as ConnectedUsernames} from './usernames/container'
 export {default as WaitingButton} from './waiting-button'
 export {default as HOCTimers} from './hoc-timers'
-export {PropsWithTimer} from './hoc-timers'
-export {IconType} from './icon.constants'
+export type PropsWithTimer<P> = PropsWithTimer<P>
+export type IconType = IconType
 export {default as Video} from './video'
 export {default as WebView} from './web-view'
-export {WebViewProps, WebViewInjections} from './web-view'
+export type WebViewProps = WebViewProps
+export type WebViewInjections = WebViewInjections
 export {default as WithTooltip} from './with-tooltip'

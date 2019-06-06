@@ -159,7 +159,7 @@ const defaultBoxStyle = {
   borderWidth: 2,
   padding: 4,
   width: isMobile ? 300 : 480,
-}
+} as const
 
 const load = () => {
   Sb.storiesOf('Search/UserInput', module)

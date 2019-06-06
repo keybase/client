@@ -21,7 +21,7 @@ const headerButtonBoxStyle = {
   alignItems: 'center',
   marginLeft: marginHorizontal,
   marginRight: marginHorizontal,
-}
+} as const
 
 const HeaderButton = (props: HeaderButtonProps) => (
   <ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>

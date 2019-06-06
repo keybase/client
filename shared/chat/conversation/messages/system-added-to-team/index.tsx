@@ -22,7 +22,7 @@ const connectedUsernamesProps = {
   onUsernameClicked: 'profile',
   type: 'BodySmallSemibold',
   underline: true,
-}
+} as const
 
 const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'

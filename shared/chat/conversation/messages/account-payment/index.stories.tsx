@@ -59,18 +59,18 @@ const sendingProps = {
   loading: false,
   memo: ':beer:',
   pending: true,
-}
+} as const
 
 const claimableProps = {
   ...sendingProps,
   claimButtonLabel: 'Claim lumens worth',
-}
+} as const
 
 const cancelableProps = {
   ...sendingProps,
   cancelButtonInfo: `This transaction can be canceled because barb does not yet have a wallet. Encourage barb to claim this and set up a wallet.`,
   cancelButtonLabel: 'Cancel',
-}
+} as const
 
 const requestCommon = {
   ...common,
@@ -80,14 +80,14 @@ const requestCommon = {
   icon: 'iconfont-stellar-request',
   loading: false,
   pending: false,
-}
+} as const
 
 const youRequestProps = {
   ...requestCommon,
   amount: '$34',
   memo: 'for beers',
   onSend: unexpected('onSend'),
-}
+} as const
 
 const theyRequestProps = {
   ...requestCommon,
@@ -95,7 +95,7 @@ const theyRequestProps = {
   memo: 'things',
   onSend: action('onSend'),
   sendButtonLabel: 'Send Lumens worth',
-}
+} as const
 
 const sentAssetProps = {
   ...common,
@@ -108,7 +108,7 @@ const sentAssetProps = {
   memo: '₿',
   pending: false,
   showCoinsIcon: true,
-}
+} as const
 
 const loadingProps = {
   ...common,
@@ -120,7 +120,7 @@ const loadingProps = {
   loading: true,
   memo: '',
   pending: false,
-}
+} as const
 
 const load = () => {
   storiesOf('Chat/Conversation/Account payments', module)

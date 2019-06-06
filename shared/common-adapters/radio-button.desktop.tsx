@@ -11,6 +11,7 @@ export const RADIOBUTTON_MARGIN = 8
 const StyledRadio = styled.div(
   {
     ...transition('background'),
+    // @ts-ignore
     borderRadius: '100%',
     height: RADIOBUTTON_SIZE,
     marginRight: RADIOBUTTON_MARGIN,
