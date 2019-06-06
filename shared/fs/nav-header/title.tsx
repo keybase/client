@@ -85,7 +85,7 @@ const Breadcrumb = Kb.OverlayParentHOC(
 )
 
 const MaybePublicTag = ({path}: {path: Types.Path}) =>
-  Types.getPathVisibility(path) === Types.TlfType.Public && (
+  Constants.hasPublicTag(path) && (
     <Kb.Box2 direction="horizontal">
       <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
     </Kb.Box2>

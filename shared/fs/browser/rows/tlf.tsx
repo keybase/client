@@ -17,6 +17,29 @@ type TlfProps = StillCommonProps & {
   usernames: I.List<string>
 }
 
+const Content = (props: TlfProps) => (
+  <Kb.BoxGrow>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.leftBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
+        <Filename
+          type={Constants.pathTypeToTextType(Types.PathType.Folder)}
+          style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
+          path={props.path}
+        />
+      </Kb.Box2>
+      <TlfInfo path={props.path} mode="row" />
+    </Kb.Box2>
+  </Kb.BoxGrow>
+)
+const Avatars = (props: TlfProps) => (
+  <Kb.Box style={styles.avatarBox}>
+    {Constants.isTeamPath(props.path) ? (
+      <Kb.Avatar size={32} isTeam={true} teamname={props.usernames.get(0)} />
+    ) : (
+      <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+    )}
+  </Kb.Box>
+)
 const Tlf = (props: TlfProps) => (
   <StillCommon
     name={props.name}
@@ -29,34 +52,14 @@ const Tlf = (props: TlfProps) => (
   >
     {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.BoxGrow>
-          <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.leftBox}>
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
-              <Filename
-                type={Constants.pathTypeToTextType(Types.PathType.Folder)}
-                style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
-                path={props.path}
-              />
-            </Kb.Box2>
-            <TlfInfo path={props.path} mode="row" />
-          </Kb.Box2>
-        </Kb.BoxGrow>
-        {!Styles.isMobile && (
-          <Kb.Box style={styles.avatarBox}>
-            {Constants.isTeamPath(props.path) ? (
-              <Kb.Avatar size={32} isTeam={true} teamname={props.usernames.get(0)} />
-            ) : (
-              <Kb.AvatarLine
-                maxShown={4}
-                size={32}
-                layout="horizontal"
-                usernames={props.usernames.toArray()}
-              />
-            )}
-          </Kb.Box>
-        )}
-      </Kb.Box2>
+      {Styles.isMobile ? (
+        <Content {...props} />
+      ) : (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Content {...props} />
+          <Avatars {...props} />
+        </Kb.Box2>
+      )}
     </Kb.Box>
   </StillCommon>
 )
