@@ -543,7 +543,7 @@ func (e *Env) GetServerURI() string {
 	// check for test flag here in order for production api endpoint
 	// tests to pass.
 	if e.Test.UseProductionRunMode {
-		server, e := ServerLookup(*e, e.GetRunMode())
+		server, e := ServerLookup(e, e.GetRunMode())
 		if e != nil {
 			// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
 			// way to get a URL in this case
@@ -557,7 +557,7 @@ func (e *Env) GetServerURI() string {
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.GetConfig().GetServerURI() },
 		func() string {
-			server, e := ServerLookup(*e, e.GetRunMode())
+			server, e := ServerLookup(e, e.GetRunMode())
 			if e != nil {
 				// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
 				// way to get a URL in this case

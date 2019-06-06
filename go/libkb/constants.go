@@ -41,7 +41,7 @@ const (
 	NoRunMode         RunMode = kbconst.NoRunMode
 )
 
-func ServerLookup(env Env, mode RunMode) (string, error) {
+func ServerLookup(env *Env, mode RunMode) (string, error) {
 	if mode == DevelRunMode {
 		return DevelServerURI, nil
 	}
@@ -54,9 +54,8 @@ func ServerLookup(env Env, mode RunMode) (string, error) {
 			// cert signed by a publicly trusted CA (compared to api-0.keybaseapi.com which has a non-trusted but
 			// pinned certificate
 			return ProductionServerURI, nil
-		} else {
-			return ProductionSiteURI, nil
 		}
+		return ProductionSiteURI, nil
 	}
 	return "", fmt.Errorf("Did not find a server to use with the current RunMode!")
 }

@@ -29,22 +29,22 @@ type MockedConfigReader struct {
 	NullConfiguration
 }
 
-var globalTorMode TorMode = TorNone
+var globalTorMode = TorNone
 func (nc MockedConfigReader) GetTorMode() (TorMode, error) {
 	return globalTorMode, nil
 }
 
-var globalProxyType string = ""
+var globalProxyType = ""
 func (nc MockedConfigReader) GetProxyType() string {
 	return globalProxyType
 }
 
-var globalProxyAddress string = ""
+var globalProxyAddress = ""
 func (nc MockedConfigReader) GetProxy() string {
 	return globalProxyAddress
 }
 
-var globalIsSSLPinningEnabled bool = true
+var globalIsSSLPinningEnabled = true
 func (nc MockedConfigReader) IsSSLPinningEnabled() bool {
 	return globalIsSSLPinningEnabled
 }
