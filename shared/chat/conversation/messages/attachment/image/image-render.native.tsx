@@ -27,8 +27,9 @@ export class ImageRender extends React.Component<Props, State> {
 
   render() {
     if (this.props.inlineVideoPlayable && this.props.videoSrc.length > 0) {
+      const uri = this.props.videoSrc.length > 0 ? this.props.videoSrc : 'https://'
       const source = {
-        uri: `${this.props.videoSrc}&contentforce=true&poster=${encodeURIComponent(this.props.src)}`,
+        uri: `${uri}&contentforce=true&poster=${encodeURIComponent(this.props.src)}`,
       }
       // poster not working correctly so we need this box
       // https://github.com/react-native-community/react-native-video/issues/1509
