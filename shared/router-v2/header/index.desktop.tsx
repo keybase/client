@@ -74,6 +74,9 @@ class Header extends React.PureComponent<Props> {
   componentDidMount() {
     this._registerWindowEvents()
   }
+  componentWillUnmount() {
+    this._unregisterWindowEvents()
+  }
   // We need to forceUpdate when maximizing and unmaximizing the window to update the
   // app icon on Windows and Linux.
   _registerWindowEvents() {
@@ -82,6 +85,13 @@ class Header extends React.PureComponent<Props> {
     if (!win) return
     win.on('maximize', () => this.forceUpdate())
     win.on('unmaximize', () => this.forceUpdate())
+  }
+  _unregisterWindowEvents() {
+    if (Platform.isDarwin) return
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    win.removeListener('maximize', () => this.forceUpdate())
+    win.removeListener('unmaximize', () => this.forceUpdate())
   }
   render() {
     // TODO add more here as we use more options on the mobile side maybe
