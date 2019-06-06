@@ -1,12 +1,12 @@
 @namespace("keybase.1")
 
-protocol BTC {
+protocol Proxy {
   import idl "common.avdl";
 
   enum ProxyType {
-    No_Proxy,
-    HTTP_Connect,
-    Socks_Proxy
+    No_Proxy_0,
+    HTTP_Connect_1,
+    Socks_2
   }
 
   record ProxyData {

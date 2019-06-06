@@ -1,5 +1,5 @@
 {
-  "protocol": "BTC",
+  "protocol": "Proxy",
   "imports": [
     {
       "path": "common.avdl",
@@ -11,9 +11,9 @@
       "type": "enum",
       "name": "ProxyType",
       "symbols": [
-        "No_Proxy",
-        "HTTP_Connect",
-        "Socks_Proxy"
+        "No_Proxy_0",
+        "HTTP_Connect_1",
+        "Socks_2"
       ]
     },
     {

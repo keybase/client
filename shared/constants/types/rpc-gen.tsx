@@ -1646,9 +1646,9 @@ export enum ProvisionMethod {
 }
 
 export enum ProxyType {
-  no = NaN,
-  http = NaN,
-  socks = NaN,
+  noProxy = 0,
+  httpConnect = 1,
+  socks = 2,
 }
 
 export enum PushReason {
@@ -3217,8 +3217,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.provisionUi.PromptNewDeviceName'
 // 'keybase.1.provisionUi.ProvisioneeSuccess'
 // 'keybase.1.provisionUi.ProvisionerSuccess'
-// 'keybase.1.BTC.setProxyData'
-// 'keybase.1.BTC.getProxyData'
+// 'keybase.1.Proxy.setProxyData'
+// 'keybase.1.Proxy.getProxyData'
 // 'keybase.1.quota.verifySession'
 // 'keybase.1.rekey.getPendingRekeyStatus'
 // 'keybase.1.rekey.debugShowRekeyStatus'

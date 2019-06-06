@@ -11,23 +11,23 @@ import (
 type ProxyType int
 
 const (
-	ProxyType_No    ProxyType = Proxy
-	ProxyType_HTTP  ProxyType = Connect
-	ProxyType_Socks ProxyType = Proxy
+	ProxyType_No_Proxy     ProxyType = 0
+	ProxyType_HTTP_Connect ProxyType = 1
+	ProxyType_Socks        ProxyType = 2
 )
 
 func (o ProxyType) DeepCopy() ProxyType { return o }
 
 var ProxyTypeMap = map[string]ProxyType{
-	"No":    Proxy,
-	"HTTP":  Connect,
-	"Socks": Proxy,
+	"No_Proxy":     0,
+	"HTTP_Connect": 1,
+	"Socks":        2,
 }
 
 var ProxyTypeRevMap = map[ProxyType]string{
-	Proxy:   "No",
-	Connect: "HTTP",
-	Proxy:   "Socks",
+	0: "No_Proxy",
+	1: "HTTP_Connect",
+	2: "Socks",
 }
 
 func (e ProxyType) String() string {
@@ -58,14 +58,14 @@ type SetProxyDataArg struct {
 type GetProxyDataArg struct {
 }
 
-type BTCInterface interface {
+type ProxyInterface interface {
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
 }
 
-func BTCProtocol(i BTCInterface) rpc.Protocol {
+func ProxyProtocol(i ProxyInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name: "keybase.1.BTC",
+		Name: "keybase.1.Proxy",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"setProxyData": {
 				MakeArg: func() interface{} {
@@ -96,17 +96,17 @@ func BTCProtocol(i BTCInterface) rpc.Protocol {
 	}
 }
 
-type BTCClient struct {
+type ProxyClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c BTCClient) SetProxyData(ctx context.Context, proxyData ProxyData) (err error) {
+func (c ProxyClient) SetProxyData(ctx context.Context, proxyData ProxyData) (err error) {
 	__arg := SetProxyDataArg{ProxyData: proxyData}
-	err = c.Cli.Call(ctx, "keybase.1.BTC.setProxyData", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.Proxy.setProxyData", []interface{}{__arg}, nil)
 	return
 }
 
-func (c BTCClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.BTC.getProxyData", []interface{}{GetProxyDataArg{}}, &res)
+func (c ProxyClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.Proxy.getProxyData", []interface{}{GetProxyDataArg{}}, &res)
 	return
 }
