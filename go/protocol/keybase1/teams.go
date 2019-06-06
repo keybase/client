@@ -750,6 +750,7 @@ type FastTeamData struct {
 	Name                      TeamName                                             `codec:"name" json:"name"`
 	Chain                     FastTeamSigChainState                                `codec:"chain" json:"chain"`
 	PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeed              `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
+	SeedChecks                map[PerTeamKeyGeneration]PerTeamSeedCheck            `codec:"seedChecks" json:"seedChecks"`
 	LatestKeyGeneration       PerTeamKeyGeneration                                 `codec:"latestKeyGeneration" json:"latestKeyGeneration"`
 	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
 	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
@@ -775,6 +776,18 @@ func (o FastTeamData) DeepCopy() FastTeamData {
 			}
 			return ret
 		})(o.PerTeamKeySeedsUnverified),
+		SeedChecks: (func(x map[PerTeamKeyGeneration]PerTeamSeedCheck) map[PerTeamKeyGeneration]PerTeamSeedCheck {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PerTeamKeyGeneration]PerTeamSeedCheck, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SeedChecks),
 		LatestKeyGeneration: o.LatestKeyGeneration.DeepCopy(),
 		ReaderKeyMasks: (func(x map[TeamApplication]map[PerTeamKeyGeneration]MaskB64) map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 {
 			if x == nil {

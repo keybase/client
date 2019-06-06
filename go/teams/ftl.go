@@ -282,7 +282,12 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 		return seed, NewFastLoadError(fmt.Sprintf("no per team key public halves at generation %d", gen))
 	}
 
-	km, err := NewTeamKeyManagerWithSecret(tmp, gen)
+	check, ok := state.SeedChecks[gen]
+	if !ok {
+		return seed, NewFastLoadError(fmt.Sprintf("no per team key seed check at %d", gen))
+	}
+
+	km, err := NewTeamKeyManagerWithSecret(state.ID(), tmp, gen, &check)
 	if err != nil {
 		return seed, err
 	}
@@ -1101,6 +1106,29 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 	return nil
 }
 
+func (f *FastTeamChainLoader) computeSeedChecks(m libkb.MetaContext, state *keybase1.FastTeamData) (err error) {
+	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
+	return computeSeedChecks(
+		m.Ctx(),
+		state.ID(),
+		latestChainGen,
+		func(g keybase1.PerTeamKeyGeneration) (check *keybase1.PerTeamSeedCheck, seed keybase1.PerTeamKeySeed, err error) {
+			seed, ok := state.PerTeamKeySeedsUnverified[g]
+			if !ok {
+				return nil, keybase1.PerTeamKeySeed{}, fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified at %d", g)
+			}
+			tmp, ok := state.SeedChecks[g]
+			if ok {
+				check = &tmp
+			}
+			return check, seed, nil
+		},
+		func(g keybase1.PerTeamKeyGeneration, check keybase1.PerTeamSeedCheck) {
+			state.SeedChecks[g] = check
+		},
+	)
+}
+
 func setCachedAtToNow(m libkb.MetaContext, state *keybase1.FastTeamData) {
 	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
 }
@@ -1132,6 +1160,10 @@ func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, 
 	if err != nil {
 		return err
 	}
+	err = f.computeSeedChecks(m, state)
+	if err != nil {
+		return err
+	}
 	err = f.putMetadata(m, arg, state)
 	if err != nil {
 		return err
@@ -1147,6 +1179,7 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 	}
 	return &keybase1.FastTeamData{
 		PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
+		SeedChecks:                make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamSeedCheck),
 		ReaderKeyMasks:            make(map[keybase1.TeamApplication](map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)),
 		Chain: keybase1.FastTeamSigChainState{
 			ID:                      arg.ID,

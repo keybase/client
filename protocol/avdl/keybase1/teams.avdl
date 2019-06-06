@@ -256,6 +256,11 @@ protocol teams {
     @mpackkey("perTeamKeySeeds")
     map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsUnverified;
 
+    // A rolling hash of all seeds, so that whoever rekeys needs to prove
+    // knowledge of all keys. Entirely derivable from the above field,
+    // but we cache it here for performance.
+    map<PerTeamKeyGeneration,PerTeamSeedCheck> seedChecks;
+
     PerTeamKeyGeneration latestKeyGeneration;
 
     // application -> generation -> mask

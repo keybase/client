@@ -571,6 +571,14 @@
           "mpackkey": "perTeamKeySeeds"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "PerTeamSeedCheck",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "seedChecks"
+        },
+        {
           "type": "PerTeamKeyGeneration",
           "name": "latestKeyGeneration"
         },

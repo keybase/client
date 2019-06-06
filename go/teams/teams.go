@@ -137,7 +137,7 @@ func (t *Team) getKeyManager(ctx context.Context) (km *TeamKeyManager, err error
 		if err != nil {
 			return nil, err
 		}
-		t.keyManager, err = NewTeamKeyManagerWithSecret(item.Seed, gen)
+		t.keyManager, err = NewTeamKeyManagerWithSeedItem(t.ID, item)
 		if err != nil {
 			return nil, err
 		}
@@ -203,7 +203,7 @@ func (t *Team) encryptionKeyAtGen(ctx context.Context, gen keybase1.PerTeamKeyGe
 	if err != nil {
 		return key, err
 	}
-	keyManager, err := NewTeamKeyManagerWithSecret(item.Seed, gen)
+	keyManager, err := NewTeamKeyManagerWithSeedItem(t.ID, item)
 	if err != nil {
 		return key, err
 	}

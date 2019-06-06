@@ -1,9 +1,7 @@
 package teams
 
 import (
-	"crypto/hmac"
 	"crypto/sha256"
-	"crypto/sha512"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -975,87 +973,27 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 	return newName, nil
 }
 
-func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *keybase1.PerTeamSeedCheck) (keybase1.PerTeamSeedCheckValue, error) {
-	prevData := func(prev *keybase1.PerTeamSeedCheck) (keybase1.PerTeamSeedCheckValue, error) {
-		if prev == nil {
-			ret := []byte(libkb.TeamKeySeedCheckDerivationString)
-			ret = append(ret, byte(0))
-			ret = append(ret, id.ToBytes()...)
-			return keybase1.PerTeamSeedCheckValue(ret), nil
-		}
-		if prev.Version != keybase1.PerTeamSeedCheckVersion_V1 {
-			return nil, fmt.Errorf("cannot handle PerTeamSeedCheck version > 1")
-		}
-		return prev.Value, nil
-	}
-
-	g := func(seed keybase1.PerTeamKeySeed, prev keybase1.PerTeamSeedCheckValue) keybase1.PerTeamSeedCheckValue {
-		digest := hmac.New(sha512.New, seed[:])
-		digest.Write([]byte(prev))
-		return keybase1.PerTeamSeedCheckValue(digest.Sum(nil)[:32])
-	}
-
-	d, err := prevData(prev)
-	if err != nil {
-		return nil, err
-	}
-	return g(seed, d), nil
-}
-
 // computeSeedChecks looks at the PerTeamKeySeedsUnverified for the the given team and adds the
 // PerTeamSeedChecks to the sequence. We make the assumption that, potentially, all such links are
 // null because it's a legacy team. OR only the new links are null since they were just added.
 // In either case, after this function runs, all seeds get seed checks computed.
 func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.TeamData) (err error) {
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-
-	var firstNonNilCheck keybase1.PerTeamKeyGeneration
-	var foundLinkToUpdate bool
-
-	for i := latestChainGen; i >= 1; i-- {
-		ptksu, ok := state.PerTeamKeySeedsUnverified[i]
-		if !ok {
-			return fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified at %d", i)
-		}
-		if ptksu.Check != nil {
-			firstNonNilCheck = i
-			break
-		}
-		foundLinkToUpdate = true
-	}
-
-	if !foundLinkToUpdate {
-		// NoOp, we're all up-to-date
-		return nil
-	}
-
-	var prev *keybase1.PerTeamSeedCheck
-
-	if firstNonNilCheck > keybase1.PerTeamKeyGeneration(0) {
-		ptksu, ok := state.PerTeamKeySeedsUnverified[firstNonNilCheck]
-		if !ok {
-			return fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified at %d", firstNonNilCheck)
-		}
-		prev = ptksu.Check
-		if prev == nil {
-			return fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified.Check at %d", firstNonNilCheck)
-		}
-	}
-
-	start := firstNonNilCheck + keybase1.PerTeamKeyGeneration(1)
-
-	for i := start; i <= latestChainGen; i++ {
-		ptksu := state.PerTeamKeySeedsUnverified[i]
-		value, err := computeSeedCheck(state.ID(), ptksu.Seed, prev)
-		if err != nil {
-			return err
-		}
-		ptksu.Check = &keybase1.PerTeamSeedCheck{
-			Version: keybase1.PerTeamSeedCheckVersion_V1,
-			Value:   value,
-		}
-		state.PerTeamKeySeedsUnverified[i] = ptksu
-		prev = ptksu.Check
-	}
-	return nil
+	return computeSeedChecks(
+		ctx,
+		state.ID(),
+		latestChainGen,
+		func(g keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamSeedCheck, keybase1.PerTeamKeySeed, error) {
+			ptksu, ok := state.PerTeamKeySeedsUnverified[g]
+			if !ok {
+				return nil, keybase1.PerTeamKeySeed{}, fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified at %d", g)
+			}
+			return ptksu.Check, ptksu.Seed, nil
+		},
+		func(g keybase1.PerTeamKeyGeneration, check keybase1.PerTeamSeedCheck) {
+			ptksu := state.PerTeamKeySeedsUnverified[g]
+			ptksu.Check = &check
+			state.PerTeamKeySeedsUnverified[g] = ptksu
+		},
+	)
 }
