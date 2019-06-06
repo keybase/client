@@ -148,7 +148,7 @@ func (t *TeamKeyManager) SharedSecretBoxes(mctx libkb.MetaContext, senderKey lib
 }
 
 func (t *TeamKeyManager) updateSeedCheck(mctx libkb.MetaContext, nextSecret *keybase1.PerTeamKeySeed) (err error) {
-	return nil
+	return fmt.Errorf("unimplemented")
 }
 
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
