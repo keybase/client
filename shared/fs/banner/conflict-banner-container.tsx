@@ -43,7 +43,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
   ...d,
   conflictState: s._tlf.conflict.state,
   isUnmergedView: Constants.isUnmergedView(o.path),
-  tlfPath: Types.pathToTlfPath(o.path),
+  tlfPath: Constants.getTlfPath(o.path),
 })
 
 const ConnectedBanner = namedConnect<OwnProps, {}, DispatchProps, Props, {}>(

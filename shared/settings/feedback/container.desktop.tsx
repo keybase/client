@@ -1,5 +1,5 @@
 import Feedback from './index'
-import {namedConnect, RouteProps} from '../../util/container'
+import {namedConnect, RouteProps, getRouteProps} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {anyWaiting} from '../../constants/waiting'
@@ -21,7 +21,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (s, d, o: OwnProps) => ({
   ...s,
   ...d,
-  feedback: o.routeProps.get('feedback'),
+  feedback: getRouteProps(o, 'feedback') || '',
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Feedback')(Feedback)

@@ -645,11 +645,6 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
-export const pathToTlfPath = (p: Path): Path =>
-  '/' +
-  getPathElements(p)
-    .slice(0, 3)
-    .join('/')
 export const getPathElements = memoize((p: Path): Array<string> => (!p ? [] : p.split('/').slice(1)))
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
