@@ -1046,6 +1046,12 @@ export const getTlfPath = (path: Types.Path): Types.Path | null => {
   return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
 }
 
+export const hasPublicTag = (path: Types.Path): boolean => {
+  return (
+    Types.getPathVisibility(path) === Types.TlfType.Public && path !== Types.stringToPath('/keybase/public')
+  )
+}
+
 export const getPathUserSetting = (
   pathUserSettings: I.Map<Types.Path, Types.PathUserSetting>,
   path: Types.Path
