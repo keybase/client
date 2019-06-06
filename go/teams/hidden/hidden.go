@@ -188,13 +188,14 @@ func GenerateKeyRotation(mctx libkb.MetaContext, teamID keybase1.TeamID, isPubli
 			IsPublic:   isPublic,
 			IsImplicit: isImplicit,
 		},
+		ClientInfo: makeClientInfo(),
 	}
 
 	return nil, fmt.Errorf("unimplemented %+v", inner)
 }
 
-func makeClientInfo() sig3.ClientInfo {
-	return sig3.ClientInfo{
+func makeClientInfo() *sig3.ClientInfo {
+	return &sig3.ClientInfo{
 		Desc:    libkb.GoClientID,
 		Version: libkb.Version,
 	}
