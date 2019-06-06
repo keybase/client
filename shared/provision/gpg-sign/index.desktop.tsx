@@ -1,5 +1,4 @@
 // TODO remove Container
-// @ts-ignore codemode issue
 import Container from '../../login/forms/container'
 import * as React from 'react'
 import Row, {RowCSS} from './row.desktop'

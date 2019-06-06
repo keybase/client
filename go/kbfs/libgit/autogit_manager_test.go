@@ -87,15 +87,15 @@ func addFileToWorktree(
 }
 
 func addFileToWorktreeAndCommit(
-	t *testing.T, ctx context.Context, config libkbfs.Config,
+	ctx context.Context, t *testing.T, config libkbfs.Config,
 	h *tlfhandle.Handle, repo *gogit.Repository, worktreeFS billy.Filesystem,
 	name, data string) {
 	addFileToWorktree(t, repo, worktreeFS, name, data)
-	commitWorktree(t, ctx, config, h, worktreeFS)
+	commitWorktree(ctx, t, config, h, worktreeFS)
 }
 
 func commitWorktree(
-	t *testing.T, ctx context.Context, config libkbfs.Config,
+	ctx context.Context, t *testing.T, config libkbfs.Config,
 	h *tlfhandle.Handle, worktreeFS billy.Filesystem) {
 	err := worktreeFS.(*libfs.FS).SyncAll()
 	require.NoError(t, err)

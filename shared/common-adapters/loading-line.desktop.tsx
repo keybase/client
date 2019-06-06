@@ -1,4 +1,3 @@
-// @ts-ignore not converted
 import Box from './box'
 import * as React from 'react'
 import * as Styles from '../styles'

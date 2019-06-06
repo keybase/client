@@ -38,22 +38,6 @@ func absoluteTimeToUnix(abs C.CFAbsoluteTime) (int64, int64) {
 	return int64(int) + absoluteTimeIntervalSince1970(), int64(frac * nsPerSec)
 }
 
-func absoluteTimeToDebugString(abs C.CFAbsoluteTime) string {
-	dateFormatter := C.CFDateFormatterCreate(C.kCFAllocatorDefault, C.CFLocaleCopyCurrent(), C.kCFDateFormatterFullStyle, C.kCFDateFormatterFullStyle)
-	defer Release(C.CFTypeRef(dateFormatter))
-	cfStr := C.CFDateFormatterCreateStringWithAbsoluteTime(C.kCFAllocatorDefault, dateFormatter, abs)
-	defer Release(C.CFTypeRef(cfStr))
-	return CFStringToString(cfStr)
-}
-
-func cfDateToDebugString(d C.CFDateRef) string {
-	dateFormatter := C.CFDateFormatterCreate(C.kCFAllocatorDefault, C.CFLocaleCopyCurrent(), C.kCFDateFormatterFullStyle, C.kCFDateFormatterFullStyle)
-	defer Release(C.CFTypeRef(dateFormatter))
-	cfStr := C.CFDateFormatterCreateStringWithDate(C.kCFAllocatorDefault, dateFormatter, d)
-	defer Release(C.CFTypeRef(cfStr))
-	return CFStringToString(cfStr)
-}
-
 // TimeToCFDate will convert the given time.Time to a CFDateRef, which
 // must be released with Release(ref).
 func TimeToCFDate(t time.Time) C.CFDateRef {

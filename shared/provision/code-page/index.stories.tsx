@@ -59,7 +59,6 @@ const load = () => {
     Sb.createPropProviderWithCommon({
       // @ts-ignore codemode issue
       QRScan: QRScanProps,
-      // @ts-ignore codemode issue
       QRScanNotAuthorized: {
         // @ts-ignore codemode issue
         onOpenSettings: Sb.action('onOpenSettings'),

@@ -6,7 +6,6 @@ import * as TeamsTypes from '../../constants/types/teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import {IconType} from '../../common-adapters/icon.constants'
-// @ts-ignore TODO: remove this ignore when common-adapters are TSed
 import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
@@ -591,6 +590,7 @@ export type _State = {
   errors: I.Map<string, FsError>
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
+  lastPublicBannerClosedTlf: string
   loadingPaths: I.Map<Path, I.Set<string>>
   localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus

@@ -109,10 +109,8 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
       this._attachmentRef.current = r
       if (typeof this.props.forwardedRef === 'function') {
-        // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
         this.props.forwardedRef(r)
       } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
-        // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
         this.props.forwardedRef.current = r
       } // intentionally not supporting string refs
     }

@@ -25,7 +25,6 @@ class NativeTransport extends TransportShared {
     super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
     // We're connected locally so we never get disconnected
-    // @ts-ignore codemode issue
     this.needsConnect = false
   }
 

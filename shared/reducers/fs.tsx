@@ -611,6 +611,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : tlfErrors.remove(action.payload.path)
         )
       )
+    case FsGen.setLastPublicBannerClosedTlf:
+      return state.set('lastPublicBannerClosedTlf', action.payload.tlf)
     case FsGen.settingsLoaded:
       return action.payload.settings
         ? state.set('settings', action.payload.settings)

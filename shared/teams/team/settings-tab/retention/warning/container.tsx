@@ -2,7 +2,6 @@ import * as Container from '../../../../../util/container'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import RetentionWarning from '.'
 import {RetentionEntityType} from '..'
-// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../../../constants/types/retention-policy'
 
 type OwnProps = Container.RouteProps<

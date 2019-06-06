@@ -1589,6 +1589,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.SetPublicityAny = isAdmin || isImplicitAdmin
 	ret.ManageMembers = isAdmin || isImplicitAdmin
 	ret.ManageSubteams = isAdmin || isImplicitAdmin
+	ret.RenameTeam = team.IsSubteam() && isImplicitAdmin
 	ret.SetTeamShowcase = isAdmin || isImplicitAdmin
 	ret.ChangeOpenTeam = isAdmin || isImplicitAdmin
 	ret.ChangeTarsDisabled = isAdmin || isImplicitAdmin

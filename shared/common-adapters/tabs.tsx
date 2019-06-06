@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Box from './box'
-// @ts-ignore todo
 import ClickableBox from './clickable-box'
 import Divider from './divider'
 import {

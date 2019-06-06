@@ -23,14 +23,14 @@ def withKbweb(closure) {
     sh "docker-compose stop"
     helpers.logContainer('docker-compose', 'mysql')
     helpers.logContainer('docker-compose', 'gregor')
-    logKbwebServices('docker-compose', kbwebName)
+    logKbwebServices(kbwebName)
     throw ex
   } finally {
     sh "docker-compose down"
   }
 }
 
-def logKbwebServices(composefile, container) {
+def logKbwebServices(container) {
   sh "docker cp ${container}:/keybase/logs ./kbweb-logs"
   sh "tar -C kbweb-logs -czvf kbweb-logs.tar.gz ."
   archive("kbweb-logs.tar.gz")

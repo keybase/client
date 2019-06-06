@@ -5,9 +5,7 @@
 // components inside of a popup have access to the mocked out Provider component
 
 import * as React from 'react'
-// @ts-ignore
 import Overlay from '../overlay'
-// @ts-ignore
 import {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {MenuItem} from './menu-layout'
 import {StylesCrossPlatform} from '../../styles'

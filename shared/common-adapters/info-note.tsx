@@ -1,7 +1,5 @@
 import * as React from 'react'
-// @ts-ignore not converted
 import Box, {Box2} from './box'
-// @ts-ignore not converted
 import Icon from './icon'
 import * as Styles from '../styles'
 

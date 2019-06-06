@@ -455,10 +455,6 @@ func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
 	return false
 }
 
-func (mc modeConstrained) TLFEditHistoryEnabled() bool {
-	return false
-}
-
 func (mc modeConstrained) SendEditNotificationsEnabled() bool {
 	return true
 }
@@ -507,6 +503,10 @@ func (mml modeMemoryLimited) LocalHTTPServerEnabled() bool {
 
 func (mml modeMemoryLimited) MaxCleanBlockCacheCapacity() uint64 {
 	return 1 * (1 << 20) // 1 MB
+}
+
+func (mml modeMemoryLimited) TLFEditHistoryEnabled() bool {
+	return false
 }
 
 // Wrapper for tests.

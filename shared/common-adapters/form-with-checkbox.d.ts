@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import {StylesCrossPlatform} from '../styles'
 import {Props as CheckboxProps} from './checkbox'
-// @ts-ignore
 import {Props as InputProps} from './input'
 
 // TODO: Do we really need this as a common component? It's used in

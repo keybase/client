@@ -19,7 +19,6 @@ export const makeStartReduxSaga = (
       },
     })
     const store = createStore(rootReducer, is || initialStore, applyMiddleware(sagaMiddleware))
-    // @ts-ignore codemod-issue
     const getState: () => any = store.getState
     const dispatch = store.dispatch
     sagaMiddleware.run(rootSaga)

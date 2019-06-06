@@ -55,11 +55,11 @@ func getDriveLetterLock(driveLetter byte) *sync.Mutex {
 	return nil
 }
 
-func makeFS(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal) (*compatMount, *FS, func()) {
-	return makeFSE(t, ctx, config, 'T')
+func makeFS(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal) (*compatMount, *FS, func()) {
+	return makeFSE(ctx, t, config, 'T')
 }
 
-func makeFSE(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal,
+func makeFSE(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal,
 	driveLetter byte) (*compatMount, *FS, func()) {
 	makeSuccess := false
 	lock := getDriveLetterLock(driveLetter)
@@ -153,7 +153,7 @@ func TestStatRoot(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -171,7 +171,7 @@ func TestStatPrivate(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -189,7 +189,7 @@ func TestStatPublic(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -207,7 +207,7 @@ func TestStatMyFolder(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -225,7 +225,7 @@ func TestStatNonexistentFolder(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -239,7 +239,7 @@ func TestStatAlias(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -269,7 +269,7 @@ func TestStatMyPublic(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -287,7 +287,7 @@ func TestReaddirRoot(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -303,7 +303,7 @@ func TestReaddirPrivate(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -328,7 +328,7 @@ func TestReaddirPublic(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -353,7 +353,7 @@ func TestReaddirMyFolderEmpty(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -396,7 +396,7 @@ func TestReaddirMyFolderWithFiles(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -447,7 +447,7 @@ func TestCreateThenRead(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -464,7 +464,7 @@ func TestMultipleCreateThenRead(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -479,7 +479,7 @@ func TestReadUnflushed(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -513,7 +513,7 @@ func TestMountAgain(t *testing.T) {
 	const input = "hello, world\n"
 	const filename = "myfile"
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -525,7 +525,7 @@ func TestMountAgain(t *testing.T) {
 	}()
 
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 		p := filepath.Join(mnt.Dir, PrivateName, "jdoe", filename)
@@ -544,7 +544,7 @@ func TestMkdir(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -566,7 +566,7 @@ func TestMkdirNewFolder(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -597,7 +597,7 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 	const input = "hello, world\n"
 
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -618,7 +618,7 @@ func TestMkdirAndCreateDeep(t *testing.T) {
 
 	// unmount to flush cache
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -641,7 +641,7 @@ func TestSymlink(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -653,7 +653,7 @@ func TestSymlink(t *testing.T) {
 
 	// unmount to flush cache
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -673,7 +673,7 @@ func TestRename(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -712,7 +712,7 @@ func TestRenameOverwrite(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -754,7 +754,7 @@ func TestRenameCrossDir(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -799,7 +799,7 @@ func TestRenameCrossFolder(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -852,7 +852,7 @@ func TestWriteThenRename(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -908,7 +908,7 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -971,7 +971,7 @@ func TestRemoveFile(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -999,7 +999,7 @@ func TestRemoveDir(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1025,7 +1025,7 @@ func TestRemoveDirNotEmpty(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1055,7 +1055,7 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1092,7 +1092,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1139,13 +1139,13 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
 	defer config1.Shutdown(ctx)
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer config2.Shutdown(ctx)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1198,13 +1198,13 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
 	defer config1.Shutdown(ctx)
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer config2.Shutdown(ctx)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1274,7 +1274,7 @@ func TestTruncateGrow(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1314,7 +1314,7 @@ func TestTruncateShrink(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1354,7 +1354,7 @@ func TestSetattrFileMtime(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1389,7 +1389,7 @@ func TestSetattrFileMtimeNow(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1433,7 +1433,7 @@ func TestSetattrDirMtime(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1466,7 +1466,7 @@ func TestSetattrDirMtimeNow(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1509,7 +1509,7 @@ func TestFsync(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1538,7 +1538,7 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1576,7 +1576,7 @@ func TestReaddirMyPublic(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1602,7 +1602,7 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -1617,7 +1617,7 @@ func TestReaddirOtherFolderAsReader(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFS(t, ctx, c2)
+	mnt, _, cancelFn := makeFS(ctx, t, c2)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1632,7 +1632,7 @@ func TestStatOtherFolder(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -1647,7 +1647,7 @@ func TestStatOtherFolder(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFSE(t, ctx, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1668,7 +1668,7 @@ func TestStatOtherFolderFirstUse(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFSE(t, ctx, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1686,7 +1686,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -1701,7 +1701,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFSE(t, ctx, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1724,7 +1724,7 @@ func TestReadPublicFile(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	const input = "hello, world\n"
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -1738,7 +1738,7 @@ func TestReadPublicFile(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFSE(t, ctx, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1758,7 +1758,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -1773,7 +1773,7 @@ func TestReaddirOtherFolderPublicAsAnyone(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFSE(t, ctx, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1789,7 +1789,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	func() {
-		mnt, _, cancelFn := makeFS(t, ctx, config)
+		mnt, _, cancelFn := makeFS(ctx, t, config)
 		defer mnt.Close()
 		defer cancelFn()
 
@@ -1804,7 +1804,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 
 	c2 := libkbfs.ConfigAsUser(config, "wsmith")
 	defer c2.Shutdown(ctx)
-	mnt, _, cancelFn := makeFSE(t, ctx, c2, 'U')
+	mnt, _, cancelFn := makeFSE(ctx, t, c2, 'U')
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -1840,10 +1840,10 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config)
+	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1898,10 +1898,10 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config)
+	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -1956,10 +1956,10 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config)
+	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2014,7 +2014,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -2078,10 +2078,10 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config)
+	mnt1, _, cancelFn1 := makeFS(ctx, t, config)
 	defer mnt1.Close()
 	defer cancelFn1()
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2148,7 +2148,7 @@ func TestErrorFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	config.SetReporter(libkbfs.NewReporterSimple(config.Clock(), 0))
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -2200,13 +2200,13 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2288,13 +2288,13 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, _, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2356,13 +2356,13 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2435,7 +2435,7 @@ func TestStatusFile(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	mnt, _, cancelFn := makeFS(t, ctx, config)
+	mnt, _, cancelFn := makeFS(ctx, t, config)
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -2485,13 +2485,13 @@ func TestUnstageFile(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2594,12 +2594,12 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2749,12 +2749,12 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -2938,12 +2938,12 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, fs1, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 
@@ -3126,13 +3126,13 @@ func TestKbfsFileInfo(t *testing.T) {
 	defer libcontext.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
-	mnt1, _, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, _, cancelFn1 := makeFS(ctx, t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
-	mnt2, fs2, cancelFn2 := makeFSE(t, ctx, config2, 'U')
+	mnt2, fs2, cancelFn2 := makeFSE(ctx, t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
 

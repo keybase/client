@@ -3,9 +3,9 @@ repos:
     hooks:
     -   id: rn-story-mode
         name: rn-story-mode
-        entry: shared/react-native/ios/Keybase/git-hook
+        entry: shared/ios/Keybase/git-hook
         language: script
-        files: shared/react-native/ios/Keybase/Storybook.m
+        files: shared/ios/Keybase/Storybook.m
     -   id: eslint
         name: eslint
         entry: shared/node_modules/.bin/eslint

@@ -333,7 +333,11 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.small,
     },
   }),
-  serviceProofIcon: {bottom: 0, position: 'absolute', right: 0},
+  serviceProofIcon: {
+    bottom: -Styles.globalMargins.tiny,
+    position: 'absolute',
+    right: -Styles.globalMargins.tiny,
+  },
   unreachableBox: Styles.platformStyles({
     common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
     isElectron: {width: 360},

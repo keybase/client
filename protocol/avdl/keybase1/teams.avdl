@@ -1147,6 +1147,7 @@ protocol teams {
     boolean chat;
     boolean deleteChannel;
     boolean renameChannel;
+    boolean renameTeam;
     boolean editChannelDescription;
     boolean editTeamDescription;
     boolean setTeamShowcase;

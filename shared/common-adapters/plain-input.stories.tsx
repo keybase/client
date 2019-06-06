@@ -1,10 +1,8 @@
 import * as React from 'react'
 import PlainInput from './plain-input'
-// @ts-ignore not converted
 import Box, {Box2} from './box'
 import Button from './button'
 import ButtonBar from './button-bar'
-// @ts-ignore not converted
 import Text from './text'
 import {action, scrollViewDecorator, storiesOf} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'

@@ -47,7 +47,7 @@ KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
 ## Android Studio
 
 Select "Open an existing Android Studio Project" and point it to
-`shared/react-native/android`. Not necessary to register the `client`
+`shared/android`. Not necessary to register the `client`
 dir as a VCS-controlled dir with Android studio, but may as well.
 
 You'll get various prompts about installing various tools. You should
@@ -95,8 +95,8 @@ Then run
 # Build the apk.
 yarn rn-build-android
 
-# Or with gradle (inside react-native/android)
-# You can also use the gradle wrapper `./gradlew` in react-native/android
+# Or with gradle (inside android)
+# You can also use the gradle wrapper `./gradlew` in android
 gradle installDebug
 
 
@@ -176,7 +176,7 @@ To recap, you should have run:
 1. `adb devices` (should list *exactly* one device) 
 1. `yarn rn-gobuild-android`,
 1. `yarn rn-start android`
-1. `yarn rn-build-android` (or `gradle installDebug` inside react-native/android),
+1. `yarn rn-build-android` (or `gradle installDebug` inside android),
 1. `yarn rn-push-android` (To install the apk on the device. NOTE: `gradle installDebug` does this automatically)
 
 and have an emulator or android device connected. (i.e. `adb devices` should list *exactly* one device) 

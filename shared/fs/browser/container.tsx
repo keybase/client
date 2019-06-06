@@ -13,7 +13,6 @@ type OwnProps = {
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  _username: state.config.username,
   resetBannerType: Constants.resetBannerType(state, path),
   shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
 })

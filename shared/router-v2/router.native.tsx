@@ -9,7 +9,6 @@ import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-// @ts-ignore
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'

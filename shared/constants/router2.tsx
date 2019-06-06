@@ -4,7 +4,6 @@ export const _setNavigator = (navigator: any) => {
   _navigator = navigator
   if (__DEV__) {
     if (require('./platform').isMobile) {
-      // @ts-ignore
       global.DEBUGNavigator = _navigator
     } else {
       // @ts-ignore

@@ -35,7 +35,7 @@ func teardownBlockDiskStoreTest(t *testing.T, tempdir string) {
 }
 
 func putBlockDisk(
-	t *testing.T, ctx context.Context, s *blockDiskStore, data []byte) (
+	ctx context.Context, t *testing.T, s *blockDiskStore, data []byte) (
 	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
 	bID, err := kbfsblock.MakePermanentID(
 		data, kbfscrypto.EncryptionSecretboxWithKeyNonce)
@@ -57,7 +57,7 @@ func putBlockDisk(
 }
 
 func addBlockDiskRef(
-	t *testing.T, ctx context.Context, s *blockDiskStore,
+	ctx context.Context, t *testing.T, s *blockDiskStore,
 	bID kbfsblock.ID) kbfsblock.Context {
 	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
@@ -73,7 +73,7 @@ func addBlockDiskRef(
 }
 
 func getAndCheckBlockDiskData(
-	t *testing.T, ctx context.Context, s *blockDiskStore,
+	ctx context.Context, t *testing.T, s *blockDiskStore,
 	bID kbfsblock.ID, bCtx kbfsblock.Context, expectedData []byte,
 	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
 	data, serverHalf, err := s.getDataWithContext(ctx, bID, bCtx)
@@ -89,24 +89,24 @@ func TestBlockDiskStoreBasic(t *testing.T) {
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
-	bID, bCtx, serverHalf := putBlockDisk(t, ctx, s, data)
+	bID, bCtx, serverHalf := putBlockDisk(ctx, t, s, data)
 
 	// Make sure we get the same block back.
-	getAndCheckBlockDiskData(t, ctx, s, bID, bCtx, data, serverHalf)
+	getAndCheckBlockDiskData(ctx, t, s, bID, bCtx, data, serverHalf)
 
 	// Add a reference.
-	bCtx2 := addBlockDiskRef(t, ctx, s, bID)
+	bCtx2 := addBlockDiskRef(ctx, t, s, bID)
 
 	// Make sure we get the same block via that reference.
-	getAndCheckBlockDiskData(t, ctx, s, bID, bCtx2, data, serverHalf)
+	getAndCheckBlockDiskData(ctx, t, s, bID, bCtx2, data, serverHalf)
 
 	// Shutdown and restart.
 	s = makeBlockDiskStore(s.codec, tempdir)
 
 	// Make sure we get the same block for both refs.
 
-	getAndCheckBlockDiskData(t, ctx, s, bID, bCtx, data, serverHalf)
-	getAndCheckBlockDiskData(t, ctx, s, bID, bCtx2, data, serverHalf)
+	getAndCheckBlockDiskData(ctx, t, s, bID, bCtx, data, serverHalf)
+	getAndCheckBlockDiskData(ctx, t, s, bID, bCtx2, data, serverHalf)
 }
 
 func TestBlockDiskStoreAddReference(t *testing.T) {
@@ -120,7 +120,7 @@ func TestBlockDiskStoreAddReference(t *testing.T) {
 	require.NoError(t, err)
 
 	// Add a reference, which should succeed.
-	bCtx := addBlockDiskRef(t, ctx, s, bID)
+	bCtx := addBlockDiskRef(ctx, t, s, bID)
 
 	// Of course, the block get should still fail.
 	_, _, err = s.getDataWithContext(ctx, bID, bCtx)
@@ -134,10 +134,10 @@ func TestBlockDiskStoreArchiveReferences(t *testing.T) {
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
-	bID, bCtx, serverHalf := putBlockDisk(t, ctx, s, data)
+	bID, bCtx, serverHalf := putBlockDisk(ctx, t, s, data)
 
 	// Add a reference.
-	bCtx2 := addBlockDiskRef(t, ctx, s, bID)
+	bCtx2 := addBlockDiskRef(ctx, t, s, bID)
 
 	// Archive references.
 	err := s.archiveReferences(
@@ -145,7 +145,7 @@ func TestBlockDiskStoreArchiveReferences(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get block should still succeed.
-	getAndCheckBlockDiskData(t, ctx, s, bID, bCtx, data, serverHalf)
+	getAndCheckBlockDiskData(ctx, t, s, bID, bCtx, data, serverHalf)
 }
 
 func TestBlockDiskStoreArchiveNonExistentReference(t *testing.T) {
@@ -175,10 +175,10 @@ func TestBlockDiskStoreRemoveReferences(t *testing.T) {
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
-	bID, bCtx, serverHalf := putBlockDisk(t, ctx, s, data)
+	bID, bCtx, serverHalf := putBlockDisk(ctx, t, s, data)
 
 	// Add a reference.
-	bCtx2 := addBlockDiskRef(t, ctx, s, bID)
+	bCtx2 := addBlockDiskRef(ctx, t, s, bID)
 
 	// Remove references.
 	liveCount, err := s.removeReferences(
@@ -204,7 +204,7 @@ func TestBlockDiskStoreRemove(t *testing.T) {
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
-	bID, bCtx, _ := putBlockDisk(t, ctx, s, data)
+	bID, bCtx, _ := putBlockDisk(ctx, t, s, data)
 
 	// Should not be removable.
 	err := s.remove(ctx, bID)

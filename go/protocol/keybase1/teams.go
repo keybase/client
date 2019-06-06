@@ -2788,6 +2788,7 @@ type TeamOperation struct {
 	Chat                   bool `codec:"chat" json:"chat"`
 	DeleteChannel          bool `codec:"deleteChannel" json:"deleteChannel"`
 	RenameChannel          bool `codec:"renameChannel" json:"renameChannel"`
+	RenameTeam             bool `codec:"renameTeam" json:"renameTeam"`
 	EditChannelDescription bool `codec:"editChannelDescription" json:"editChannelDescription"`
 	EditTeamDescription    bool `codec:"editTeamDescription" json:"editTeamDescription"`
 	SetTeamShowcase        bool `codec:"setTeamShowcase" json:"setTeamShowcase"`
@@ -2813,6 +2814,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		Chat:                   o.Chat,
 		DeleteChannel:          o.DeleteChannel,
 		RenameChannel:          o.RenameChannel,
+		RenameTeam:             o.RenameTeam,
 		EditChannelDescription: o.EditChannelDescription,
 		EditTeamDescription:    o.EditTeamDescription,
 		SetTeamShowcase:        o.SetTeamShowcase,

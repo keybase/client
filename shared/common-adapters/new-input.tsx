@@ -1,11 +1,7 @@
 import * as React from 'react'
-// @ts-ignore not converted
 import PlainInput, {PropsWithInput, KeyboardType} from './plain-input'
-// @ts-ignore not converted
 import Box, {Box2} from './box'
-// @ts-ignore not converted
 import Icon, {IconType, castPlatformStyles} from './icon'
-// @ts-ignore not converted
 import {getStyle as getTextStyle, TextType} from './text'
 import {
   StylesCrossPlatform,

@@ -106,7 +106,6 @@ export default connect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    // @ts-ignore codemod issue
     if (stateProps.bootstrapDone === false) {
       return {
         bootstrapDone: false,
@@ -117,7 +116,6 @@ export default connect(
     return {
       bootstrapDone: true,
       originalProps: {
-        // @ts-ignore codemod issue
         ...stateProps.originalProps,
         clearBillingError: dispatchProps.clearBillingError,
         onSubmit: (

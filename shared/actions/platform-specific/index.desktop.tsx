@@ -7,7 +7,6 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import path from 'path'
-// @ts-ignore codemod-issue
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
@@ -267,7 +266,6 @@ const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePa
 const prepareLogSend = (_, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   dumpLogs().then(() => {
-    // @ts-ignore codemod-issue
     response && response.result()
   })
 }

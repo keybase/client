@@ -84,10 +84,18 @@ const Breadcrumb = Kb.OverlayParentHOC(
   ))
 )
 
+const MaybePublicTag = ({path}: {path: Types.Path}) =>
+  Types.getPathVisibility(path) === Types.TlfType.Public && (
+    <Kb.Box2 direction="horizontal">
+      <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
+    </Kb.Box2>
+  )
+
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
     {flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <Kbfs.SyncStatus path={props.path} />}
     <Kbfs.Filename path={props.path} selectable={true} style={styles.mainTitleText} type="Header" />
+    <MaybePublicTag path={props.path} />
   </Kb.Box2>
 )
 
@@ -107,7 +115,7 @@ export default FsNavHeaderTitle
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      marginTop: -Styles.globalMargins.xsmall,
+      marginTop: -Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.xsmall,
     },
     isElectron: Styles.desktopStyles.windowDraggingClickable,

@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-// @ts-ignore not converted
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'

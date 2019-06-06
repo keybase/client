@@ -400,6 +400,32 @@ func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *S
 	return
 }
 
+func (u *User) SyncedSecretKeyWithSka(m MetaContext, ska SecretKeyArg) (ret *SKB, err error) {
+	keys, err := u.GetSyncedSecretKeys(m)
+	if err != nil {
+		return nil, err
+	}
+
+	var errors []error
+	for _, key := range keys {
+		pub, err := key.GetPubKey()
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		if KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
+			return key, nil
+		}
+	}
+
+	if len(errors) > 0 {
+		// No matching key found and we hit errors.
+		return nil, CombineErrors(errors...)
+	}
+
+	return nil, NoSecretKeyError{}
+}
+
 func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 	defer m.Trace("User#GetSyncedSecretKey", func() error { return err })()
 	skbs, err := u.GetSyncedSecretKeys(m)
