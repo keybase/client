@@ -50,7 +50,10 @@ func (s *SecretStoreUpgradeable) RetrieveSecret(mctx MetaContext, username Norma
 	secret, err2 := s.b.RetrieveSecret(mctx, username)
 	if err2 != nil {
 		mctx.Debug("Failed to retrieve secret from secondary store: %v", err2)
-		return LKSecFullSecret{}, CombineErrors(err1, err2)
+		// Do not return combined errors here. We want to return typed errors,
+		// like: `SecretStoreError`. Secret store API consumers rely on error
+		// types.
+		return LKSecFullSecret{}, err2
 	}
 
 	shouldUpgrade := s.shouldUpgradeOpportunistically()
