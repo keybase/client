@@ -183,7 +183,7 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
-    
+
     // for non-payment txs, multiple ops:
     boolean isAdvanced;
     string summaryAdvanced;         // if isAdvanced is true, just show this string
@@ -199,7 +199,7 @@ protocol local {
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
     boolean isInflation;            // true if payment from known inflation source
     union { null, string } inflationSource; // name of inflation source
-    
+
     string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
   }
 
@@ -543,6 +543,9 @@ protocol local {
 
   // airdropRegisterLocal registers a user for an airdrop.
   void airdropRegisterLocal(int sessionID, boolean register);
+
+  // search by user search string
+  array<Asset> fuzzyAssetSearchLocal(int sessionID, string searchString);
 
   // Trustline operations:
   // In addTrustline, limit is optional, if not supplied, max limit will be used.

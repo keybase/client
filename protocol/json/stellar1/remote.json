@@ -1286,6 +1286,22 @@
         "items": "Asset"
       }
     },
+    "fuzzyAssetSearch": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "searchString",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
     "changeTrustline": {
       "request": [
         {

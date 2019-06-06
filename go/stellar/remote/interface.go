@@ -48,4 +48,5 @@ type Remoter interface {
 	ChangeTrustline(ctx context.Context, signedTx string) error
 	FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error)
 	PostAnyTransaction(mctx libkb.MetaContext, signedTx string) error
+	FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error)
 }

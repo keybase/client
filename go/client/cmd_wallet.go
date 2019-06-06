@@ -11,6 +11,7 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 	subcommands := []cli.Command{
 		newCmdWalletAddTrustline(cl, g),
 		newCmdWalletAPI(cl, g),
+		newCmdWalletAssetSearch(cl, g),
 		newCmdWalletBalances(cl, g),
 		newCmdWalletCancel(cl, g),
 		newCmdWalletCancelRequest(cl, g),
