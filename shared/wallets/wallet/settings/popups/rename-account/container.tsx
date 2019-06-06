@@ -32,10 +32,13 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
-    new Promise((resolve, reject) =>
+  _onChangeAccountName: (callbacks: any, accountID: Types.AccountID, name: string) => {
+    new Promise((resolve, reject) => {
       dispatch(WalletsGen.createChangeAccountName({accountID, name, uiPromise: {resolve, reject}}))
-    ),
+    })
+      .then(callbacks.onResolve)
+      .catch(callbacks.onReject)
+  },
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (name: string) => {
@@ -48,7 +51,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   initialName: stateProps.initialName,
   nameValidationState: stateProps.nameValidationState,
   onCancel: dispatchProps.onCancel,
-  onChangeAccountName: name => dispatchProps._onChangeAccountName(stateProps.accountID, name),
+  onChangeAccountName: (callbacks, name) =>
+    dispatchProps._onChangeAccountName(callbacks, stateProps.accountID, name),
   onClearErrors: dispatchProps.onClearErrors,
   onDone: dispatchProps.onDone,
   renameAccountError: stateProps.renameAccountError,
