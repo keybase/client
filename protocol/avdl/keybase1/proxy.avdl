@@ -1,0 +1,21 @@
+@namespace("keybase.1")
+
+protocol BTC {
+  import idl "common.avdl";
+
+  enum ProxyType {
+    No_Proxy,
+    HTTP_Connect,
+    Socks_Proxy
+  }
+
+  record ProxyData {
+    string addressWithPort;
+    ProxyType proxyType;
+    boolean certPinning;
+  }
+
+  void setProxyData(ProxyData proxyData);
+
+  ProxyData getProxyData();
+}

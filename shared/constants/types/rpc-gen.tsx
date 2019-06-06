@@ -1645,6 +1645,12 @@ export enum ProvisionMethod {
   gpgSign = 4,
 }
 
+export enum ProxyType {
+  no = NaN,
+  http = NaN,
+  socks = NaN,
+}
+
 export enum PushReason {
   none = 0,
   reconnected = 1,
@@ -2337,6 +2343,7 @@ export type ProofSuggestion = {readonly key: String; readonly belowFold: Boolean
 export type ProofSuggestionsRes = {readonly suggestions?: Array<ProofSuggestion> | null; readonly showMore: Boolean}
 export type Proofs = {readonly social?: Array<TrackProof> | null; readonly web?: Array<WebProof> | null; readonly publicKeys?: Array<PublicKey> | null}
 export type ProveParameters = {readonly logoFull?: Array<SizedImage> | null; readonly logoBlack?: Array<SizedImage> | null; readonly title: String; readonly subtext: String; readonly suffix: String; readonly buttonLabel: String}
+export type ProxyData = {readonly addressWithPort: String; readonly proxyType: ProxyType; readonly certPinning: Boolean}
 export type PublicKey = {readonly KID: KID; readonly PGPFingerprint: String; readonly PGPIdentities?: Array<PGPIdentity> | null; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly parentID: String; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: String; readonly cTime: Time; readonly eTime: Time; readonly isRevoked: Boolean}
 export type PublicKeyV2 = {keyType: KeyType.nacl; nacl: PublicKeyV2NaCl | null} | {keyType: KeyType.pgp; pgp: PublicKeyV2PGPSummary | null}
 export type PublicKeyV2Base = {readonly kid: KID; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly cTime: Time; readonly eTime: Time; readonly provisioning: SignatureMetadata; readonly revocation?: SignatureMetadata | null}
@@ -3210,6 +3217,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.provisionUi.PromptNewDeviceName'
 // 'keybase.1.provisionUi.ProvisioneeSuccess'
 // 'keybase.1.provisionUi.ProvisionerSuccess'
+// 'keybase.1.BTC.setProxyData'
+// 'keybase.1.BTC.getProxyData'
 // 'keybase.1.quota.verifySession'
 // 'keybase.1.rekey.getPendingRekeyStatus'
 // 'keybase.1.rekey.debugShowRekeyStatus'

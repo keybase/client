@@ -1,0 +1,54 @@
+{
+  "protocol": "BTC",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ProxyType",
+      "symbols": [
+        "No_Proxy",
+        "HTTP_Connect",
+        "Socks_Proxy"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProxyData",
+      "fields": [
+        {
+          "type": "string",
+          "name": "addressWithPort"
+        },
+        {
+          "type": "ProxyType",
+          "name": "proxyType"
+        },
+        {
+          "type": "boolean",
+          "name": "certPinning"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "setProxyData": {
+      "request": [
+        {
+          "name": "proxyData",
+          "type": "ProxyData"
+        }
+      ],
+      "response": null
+    },
+    "getProxyData": {
+      "request": [],
+      "response": "ProxyData"
+    }
+  },
+  "namespace": "keybase.1"
+}
