@@ -5,7 +5,8 @@ import WalletSwitcher from './wallet-switcher/container'
 
 type Props = React.PropsWithChildren<{}>
 
-const NoSwitcher: React.FunctionComponent<Props> = props => <>props.children</>
+// @ts-ignore to fix wrap in fragment
+const NoSwitcher: React.FunctionComponent<Props> = props => props.children
 
 const _Switcher: React.FunctionComponent<Props & Kb.OverlayParentProps> = props => (
   <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
