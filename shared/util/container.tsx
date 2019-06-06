@@ -20,54 +20,6 @@ export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation
 export type TypedDispatch = (action: TypedActions) => void
 export type Dispatch = TypedDispatch
 
-// type WithUIPromise<T> = {
-//   uiPromise: {
-//     resolve: (arg: T) => void
-//     reject: (err: Error) => void
-//   }
-// }
-// type UIPromiseType<A> = A extends WithUIPromise<infer U> ? WithUIPromise<U> : never
-// export function dispatchUIPromise<T>(
-//   dispatch,
-//   actionCreator: (payload: UIPromiseType<T>) => Object,
-//   arg: Omit<UIPromiseType<T>, 'uiPromise'>
-// ): Promise<T> {
-//   return new Promise<T>((resolve, reject) => dispatch(actionCreator({...arg, uiPromise: {resolve, reject}})))
-// }
-
-// interface UIPromiseActionCreatorArg<T> {
-//   uiPromise: {
-//     resolve: (arg: T) => void
-//     reject: (err: Error) => void
-//   }
-// }
-
-// type UIPromiseActionCreator<AC extends (...args) => any> = Parameters<AC> extends UIPromiseActionCreatorArg<infer T>
-//   ? (arg: UIPromiseActionCreatorArg<T>) => Object
-//   : never
-
-// export function dispatchUIPromise<AC extends UIPromiseActionCreator<infer U>>(dispatch, actionCreator: AC, arg: Omit<Parameters<AC>, 'uiPromise'>) {
-//   return new Promise<U>((resolve, reject) => dispatch(actionCreator({...arg, uiPromise: {resolve, reject}})))
-// }
-interface UIPromiseActionCreatorArg<PType> {
-  uiPromise: {
-    resolve: (res: PType) => void
-    reject: (err: Error) => void
-  }
-}
-type UI<Payload> = Payload extends UIPromiseActionCreatorArg<infer PType>
-  ? (payload: Payload) => object
-  : never
-export function dispatchUIPromise<PType>(
-  dispatch,
-  actionCreator: (arg: UIPromiseActionCreatorArg<PType>) => object,
-  payload: Omit<UIPromiseActionCreatorArg<PType>, 'uiPromise'>
-) {
-  return new Promise<PType>((resolve, reject) =>
-    dispatch(actionCreator({...payload, uiPromise: {resolve, reject}}))
-  )
-}
-
 export {
   branch,
   compose,
