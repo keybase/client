@@ -364,3 +364,23 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 	}
 	return raw.Res, nil
 }
+
+func (h ConfigHandler) GetProxyData(ctx context.Context, arg keybase1.GetProxyDataArg) (res keybase1.ProxyData, err error) {
+	env := h.G().Env
+	proxyAddress := env.GetProxy()
+	proxyType := env.GetProxyType()
+	certPinning := env.IsSSLPinningEnabled()
+
+	var convertedProxyType keybase1.ProxyType
+	if proxyType == libkb.No_Proxy {
+		convertedProxyType = keybase1.ProxyType_No_Proxy
+	} else if proxyType == libkb.HTTP_Connect {
+		convertedProxyType = keybase1.ProxyType_HTTP_Connect
+	} else if proxyType == libkb.Socks {
+		convertedProxyType = keybase1.ProxyType_Socks
+	} else {
+		return keybase1.ProxyData{nil, nil, nil}, fmt.Errorf("Failed to convert proxy type %s into a protocol compatible proxy type!", proxyType)
+	}
+
+	return keybase1.ProxyData{proxyAddress, convertedProxyType, certPinning}, nil
+}

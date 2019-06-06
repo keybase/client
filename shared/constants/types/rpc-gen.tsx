@@ -2983,6 +2983,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.clearValue'
 // 'keybase.1.config.checkAPIServerOutOfDateWarning'
+// 'keybase.1.config.setProxyData'
+// 'keybase.1.config.getProxyData'
 // 'keybase.1.contacts.lookupContactList'
 // 'keybase.1.crypto.signED25519'
 // 'keybase.1.crypto.signED25519ForKBFS'
