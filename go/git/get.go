@@ -58,7 +58,7 @@ func (r *ServerResponse) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func formatRepoURL(folder keybase1.Folder, repoName string) string {
+func formatRepoURL(folder keybase1.FolderHandle, repoName string) string {
 	return "keybase://" + folder.ToString() + "/" + repoName
 }
 
@@ -69,43 +69,42 @@ func formatUniqueRepoID(teamID keybase1.TeamID, repoID keybase1.RepoID) string {
 
 // Implicit teams need to be converted back into the folder that matches their
 // display name. Regular teams become a regular team folder.
-func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isImplicit bool) (keybase1.Folder, error) {
+func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isImplicit bool) (keybase1.FolderHandle, error) {
 	if isImplicit {
 		return folderFromTeamIDImplicit(ctx, g, teamID)
 	}
 	return folderFromTeamIDNamed(ctx, g, teamID)
 }
 
-func folderFromTeamIDNamed(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.Folder, error) {
+func folderFromTeamIDNamed(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.FolderHandle, error) {
 	name, err := teams.ResolveIDToName(ctx, g, teamID)
 	if err != nil {
-		return keybase1.Folder{}, err
+		return keybase1.FolderHandle{}, err
 	}
-	return keybase1.Folder{
+	return keybase1.FolderHandle{
 		Name:       name.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		Private:    !teamID.IsPublic(),
 	}, nil
 }
 
 // folderFromTeamIDImplicit converts from a teamID for implicit teams
-func folderFromTeamIDImplicit(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.Folder, error) {
+func folderFromTeamIDImplicit(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.FolderHandle, error) {
 
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 		ID:     teamID,
 		Public: teamID.IsPublic(),
 	})
 	if err != nil {
-		return keybase1.Folder{}, err
+		return keybase1.FolderHandle{}, err
 	}
 	if !team.IsImplicit() {
-		return keybase1.Folder{}, fmt.Errorf("Expected an implicit team, but team load said otherwise (%s)", teamID)
+		return keybase1.FolderHandle{}, fmt.Errorf("Expected an implicit team, but team load said otherwise (%s)", teamID)
 	}
 
 	// TODO: This function doesn't currently support conflict info.
 	name, err := team.ImplicitTeamDisplayNameString(ctx)
 	if err != nil {
-		return keybase1.Folder{}, err
+		return keybase1.FolderHandle{}, err
 	}
 	var folderType keybase1.FolderType
 	if team.IsPublic() {
@@ -113,15 +112,14 @@ func folderFromTeamIDImplicit(ctx context.Context, g *libkb.GlobalContext, teamI
 	} else {
 		folderType = keybase1.FolderType_PRIVATE
 	}
-	return keybase1.Folder{
+	return keybase1.FolderHandle{
 		Name:       name,
 		FolderType: folderType,
-		Private:    !team.IsPublic(),
 	}, nil
 }
 
 // If folder is nil, get for all folders.
-func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keybase1.Folder) ([]keybase1.GitRepoResult, error) {
+func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keybase1.FolderHandle) ([]keybase1.GitRepoResult, error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	teamer := NewTeamer(g)
 
@@ -211,13 +209,13 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 
 // if skip is true the other return values are nil
 func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
-	folder *keybase1.Folder, responseRepo ServerResponseRepo) (info *keybase1.GitRepoInfo, skip bool, err error) {
+	folder *keybase1.FolderHandle, responseRepo ServerResponseRepo) (info *keybase1.GitRepoInfo, skip bool, err error) {
 
 	cryptoer := NewCrypto(g)
 
 	// If the folder was passed in, use it. Otherwise, load the team to
 	// figure it out.
-	var repoFolder keybase1.Folder
+	var repoFolder keybase1.FolderHandle
 	if folder != nil {
 		repoFolder = *folder
 	} else {
@@ -239,7 +237,7 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	teamIDVis := keybase1.TeamIDWithVisibility{
 		TeamID: responseRepo.TeamID,
 	}
-	if repoFolder.Private {
+	if repoFolder.FolderType != keybase1.FolderType_PUBLIC {
 		teamIDVis.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else {
 		teamIDVis.Visibility = keybase1.TLFVisibility_PUBLIC
@@ -342,7 +340,7 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	}, false, nil
 }
 
-func GetMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Folder) ([]keybase1.GitRepoResult, error) {
+func GetMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.FolderHandle) ([]keybase1.GitRepoResult, error) {
 	return getMetadataInner(ctx, g, &folder)
 }
 

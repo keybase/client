@@ -19,9 +19,8 @@ import (
 
 func doPut(t *testing.T, g *libkb.GlobalContext, teamName string, repoID string, repoName string) {
 	err := PutMetadata(context.Background(), g, keybase1.PutGitMetadataArg{
-		Folder: keybase1.Folder{
+		Folder: keybase1.FolderHandle{
 			Name:       teamName,
-			Private:    true,
 			FolderType: keybase1.FolderType_TEAM,
 		},
 		RepoID: keybase1.RepoID(repoID),
@@ -80,15 +79,13 @@ func TestPutAndGet(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedIDNames[string(repo.RepoID)], string(repo.LocalMetadata.RepoName))
 		require.Equal(t, repo.Folder.FolderType, keybase1.FolderType_TEAM)
-		require.Equal(t, repo.Folder.Private, true)
 		require.Equal(t, repo.ServerMetadata.LastModifyingUsername, u.Username)
 		require.Equal(t, repo.CanDelete, true)
 	}
 
 	// Now get the repos for just one team. Should be only one of the two we just created.
-	oneRepoList, err := GetMetadata(context.Background(), tc.G, keybase1.Folder{
+	oneRepoList, err := GetMetadata(context.Background(), tc.G, keybase1.FolderHandle{
 		Name:       teamName1,
-		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
 	require.NoError(t, err)
@@ -113,9 +110,8 @@ func TestPutAndGet(t *testing.T) {
 	ResetAccountAndLogout(tc, u)
 
 	t.Logf("we can still read metadata last posted by reset user")
-	oneRepoList, err = GetMetadata(context.Background(), tc2.G, keybase1.Folder{
+	oneRepoList, err = GetMetadata(context.Background(), tc2.G, keybase1.FolderHandle{
 		Name:       teamName1,
-		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
 	require.NoError(t, err)
@@ -149,9 +145,8 @@ func TestDeleteRepo(t *testing.T) {
 	// Create a personal repo for this user. (This also exercises the
 	// personal-repos-create-an-implicit-team flow.)
 	repoName := keybase1.GitRepoName("testRepo123")
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       u.Username,
-		Private:    true,
 		FolderType: keybase1.FolderType_PRIVATE,
 	}
 	err = PutMetadata(context.Background(), tc.G, keybase1.PutGitMetadataArg{
@@ -215,9 +210,8 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 
 	t.Logf("me only repo")
 	repoName1 := keybase1.GitRepoName("me only repo")
-	testFolder1 := keybase1.Folder{
+	testFolder1 := keybase1.FolderHandle{
 		Name:       u2.Username,
-		Private:    !public,
 		FolderType: folderType,
 	}
 	err = PutMetadata(context.TODO(), tc.G, keybase1.PutGitMetadataArg{
@@ -233,9 +227,8 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 	repoName2 := keybase1.GitRepoName(fmt.Sprintf("two person %s repo", publicnessStr))
 	normalizedTLFName, err := tlf.NormalizeNamesInTLF(libkb.NewMetaContextForTest(tc), []string{u1.Username, u2.Username}, nil, "")
 	require.NoError(t, err)
-	testFolder2 := keybase1.Folder{
+	testFolder2 := keybase1.FolderHandle{
 		Name:       normalizedTLFName,
-		Private:    !public,
 		FolderType: folderType,
 	}
 	err = PutMetadata(context.Background(), tc.G, keybase1.PutGitMetadataArg{
@@ -250,12 +243,11 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 	// Now make sure we can query these repos (or not, as appropriate for the
 	// multi-person case).
 
-	assertStuffAboutRepo := func(t *testing.T, repoRes keybase1.GitRepoResult, folder keybase1.Folder, repoName keybase1.GitRepoName) {
+	assertStuffAboutRepo := func(t *testing.T, repoRes keybase1.GitRepoResult, folder keybase1.FolderHandle, repoName keybase1.GitRepoName) {
 		repo, err := repoRes.GetIfOk()
 		require.NoError(t, err)
 		require.Equal(t, repoName, repo.LocalMetadata.RepoName)
 		require.Equal(t, folderType, repo.Folder.FolderType)
-		require.Equal(t, !public, repo.Folder.Private)
 		require.Equal(t, kbtest.DefaultDeviceName, repo.ServerMetadata.LastModifyingDeviceName)
 		require.Equal(t, "keybase://"+publicnessStr+"/"+folder.Name+"/"+string(repoName), repo.RepoUrl)
 		require.Equal(t, repo.CanDelete, true)

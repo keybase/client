@@ -337,7 +337,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	handles := []*tlfhandle.Handle{handle1, handle2, handle2}
 	for _, h := range handles {
 		config.KeybaseService().FavoriteAdd(
-			context.Background(), h.ToFavorite().ToKBFolder(false))
+			context.Background(), h.ToFavorite().ToKBFolderHandle(false))
 	}
 
 	// The favorites list contains our own public dir by default, even

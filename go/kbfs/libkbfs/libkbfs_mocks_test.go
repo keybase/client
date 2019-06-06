@@ -1710,7 +1710,7 @@ func (mr *MockKBPKIMockRecorder) CreateTeamTLF(arg0, arg1, arg2 interface{}) *go
 }
 
 // FavoriteAdd mocks base method
-func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1724,7 +1724,7 @@ func (mr *MockKBPKIMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // FavoriteDelete mocks base method
-func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1978,7 +1978,7 @@ func (mr *MockKBPKIMockRecorder) NotifyPathUpdated(arg0, arg1 interface{}) *gomo
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.Folder, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
+func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -2176,7 +2176,7 @@ func (mr *MockKeybaseServiceMockRecorder) EstablishMountDir(arg0 interface{}) *g
 }
 
 // FavoriteAdd mocks base method
-func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2190,7 +2190,7 @@ func (mr *MockKeybaseServiceMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *g
 }
 
 // FavoriteDelete mocks base method
-func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2407,7 +2407,7 @@ func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.Folder, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
+func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)

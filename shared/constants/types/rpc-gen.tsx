@@ -444,11 +444,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.favorite.favoriteAdd': {
-    inParam: {readonly folder: Folder}
+    inParam: {readonly folder: FolderHandle}
     outParam: void
   }
   'keybase.1.favorite.favoriteIgnore': {
-    inParam: {readonly folder: Folder}
+    inParam: {readonly folder: FolderHandle}
     outParam: void
   }
   'keybase.1.git.createPersonalRepo': {
@@ -472,11 +472,11 @@ export type MessageTypes = {
     outParam: Array<GitRepoResult> | null
   }
   'keybase.1.git.getGitMetadata': {
-    inParam: {readonly folder: Folder}
+    inParam: {readonly folder: FolderHandle}
     outParam: Array<GitRepoResult> | null
   }
   'keybase.1.git.setTeamRepoSettings': {
-    inParam: {readonly folder: Folder; readonly repoID: RepoID; readonly channelName?: String | null; readonly chatDisabled: Boolean}
+    inParam: {readonly folder: FolderHandle; readonly repoID: RepoID; readonly channelName?: String | null; readonly chatDisabled: Boolean}
     outParam: void
   }
   'keybase.1.gpgUi.confirmDuplicateKeyChosen': {
@@ -2162,6 +2162,7 @@ export type FileDescriptor = {readonly name: String; readonly type: FileType}
 export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
 export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
+export type FolderHandle = {readonly name: String; readonly folderType: FolderType; readonly created: Boolean}
 export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
@@ -2186,7 +2187,7 @@ export type GitLocalMetadata = {readonly repoName: GitRepoName; readonly refs?: 
 export type GitLocalMetadataV1 = {readonly repoName: GitRepoName}
 export type GitLocalMetadataVersioned = {version: GitLocalMetadataVersion.v1; v1: GitLocalMetadataV1 | null}
 export type GitRefMetadata = {readonly refName: String; readonly commits?: Array<GitCommit> | null; readonly moreCommitsAvailable: Boolean; readonly isDelete: Boolean}
-export type GitRepoInfo = {readonly folder: Folder; readonly repoID: RepoID; readonly localMetadata: GitLocalMetadata; readonly serverMetadata: GitServerMetadata; readonly repoUrl: String; readonly globalUniqueID: String; readonly canDelete: Boolean; readonly teamRepoSettings?: GitTeamRepoSettings | null}
+export type GitRepoInfo = {readonly folder: FolderHandle; readonly repoID: RepoID; readonly localMetadata: GitLocalMetadata; readonly serverMetadata: GitServerMetadata; readonly repoUrl: String; readonly globalUniqueID: String; readonly canDelete: Boolean; readonly teamRepoSettings?: GitTeamRepoSettings | null}
 export type GitRepoName = String
 export type GitRepoResult = {state: GitRepoResultState.err; err: String | null} | {state: GitRepoResultState.ok; ok: GitRepoInfo | null}
 export type GitServerMetadata = {readonly ctime: Time; readonly mtime: Time; readonly lastModifyingUsername: String; readonly lastModifyingDeviceID: DeviceID; readonly lastModifyingDeviceName: String}
