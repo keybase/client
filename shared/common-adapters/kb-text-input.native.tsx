@@ -63,7 +63,7 @@ if (isAndroid) {
           // @ts-ignore no RN types
           onTextInput={this._onTextInput}
           // @ts-ignore no RN types
-          text={this.props.value || this.props.text || this.props.defaultValue || ''}
+          text={this.props.value || this.props.defaultValue || ''}
           children={children}
           // @ts-ignore no RN types
           disableFullscreenUI={this.props.disableFullscreenUI}
