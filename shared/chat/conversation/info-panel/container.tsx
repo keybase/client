@@ -113,14 +113,18 @@ const mapDispatchToProps = (
     dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
     onSelectAttachmentView(viewType)
   },
-  onBack: () => {
-    dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
-    onBack()
-  },
-  onCancel: () => {
-    dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
-    onCancel()
-  },
+  onBack: onBack
+    ? () => {
+        onBack()
+        dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+      }
+    : null,
+  onCancel: onCancel
+    ? () => {
+        onCancel()
+        dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+      }
+    : null,
   onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
