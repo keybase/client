@@ -77,7 +77,7 @@ const stylesIcon = {
   textAlign: 'center',
   width: 'inherit',
   zIndex: 1,
-}
+} as const
 const stylesIconBackground = {
   ...transition('opacity'),
   backgroundColor: globalColors.greyLight,

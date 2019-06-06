@@ -2,11 +2,10 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
-type Props = {
-  children: React.ElementType
+type Props = React.PropsWithChildren<{
   onCancel?: () => void
   skipButton?: boolean
-}
+}>
 
 const Modal = ({children, onCancel, skipButton}: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>

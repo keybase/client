@@ -105,7 +105,7 @@ export const TeamRequestRow = (props: Props) => {
 const styleCharm = {
   alignSelf: 'center',
   marginRight: Styles.globalMargins.xtiny,
-}
+} as const
 
 const styles = Styles.styleSheetCreate({
   floatingRolePicker: Styles.platformStyles({

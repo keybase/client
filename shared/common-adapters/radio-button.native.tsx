@@ -7,7 +7,8 @@ import {Props} from './radio-button'
 export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8
 
-const RadioOuterCircle = Styles.styled(ClickableBox)(
+type ExtraProps = {disabled?: boolean; selected: boolean}
+const RadioOuterCircle = Styles.styled<typeof ClickableBox, ExtraProps>(ClickableBox)(
   {
     backgroundColor: Styles.globalColors.white,
     borderRadius: 100,
@@ -23,7 +24,7 @@ const RadioOuterCircle = Styles.styled(ClickableBox)(
   })
 )
 
-const RadioInnerCircle = Styles.styled(ClickableBox)(
+const RadioInnerCircle = Styles.styled<typeof ClickableBox, ExtraProps>(ClickableBox)(
   {
     borderColor: Styles.globalColors.white,
     borderRadius: 10,
@@ -42,11 +43,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     style={{...styleContainer, ...style}}
     onClick={disabled ? undefined : () => onSelect(!selected)}
   >
-    {/*
-    // @ts-ignore styled is more complicated than its typing lets on */}
     <RadioOuterCircle disabled={disabled} selected={selected}>
-      {/*
-      // @ts-ignore styled is more complicated than its typing lets on */}
       <RadioInnerCircle selected={selected} />
     </RadioOuterCircle>
     <Text type="Body" style={{color: Styles.globalColors.black}}>

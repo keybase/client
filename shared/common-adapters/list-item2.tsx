@@ -28,6 +28,7 @@ type Props = {
 const HoverBox = Styles.isMobile
   ? Box2
   : Styles.styled(Box2)({
+      // @ts-ignore
       '.hidden-no-hover': {
         justifyContent: 'flex-end',
         maxWidth: 0,

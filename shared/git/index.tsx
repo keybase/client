@@ -4,14 +4,14 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Row from './row/container'
 
-type Props = {
+export type Props = {
   expandedSet: I.Set<string>
-  clearBadges: (() => void)
+  clearBadges: () => void
   loading: boolean
-  onShowDelete: ((id: string) => void)
-  onNewPersonalRepo: (() => void)
-  onNewTeamRepo: (() => void)
-  onToggleExpand: ((id: string) => void)
+  onShowDelete: (id: string) => void
+  onNewPersonalRepo: () => void
+  onNewTeamRepo: () => void
+  onToggleExpand: (id: string) => void
   personals: Array<string>
   teams: Array<string>
 }

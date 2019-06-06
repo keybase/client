@@ -8,7 +8,8 @@ const ChoiceList = ({options}: Props) => {
     <Box>
       <style>{rawCSS}</style>
       {options.map((op, idx) => {
-        const iconType: IconType = op.icon
+        // TODO is this okay?
+        const iconType: IconType = op.icon as IconType
         return (
           <Box style={styleEntry} key={idx} className="cl-entry" onClick={() => op.onClick()}>
             <Box style={styleIconContainer} className="cl-icon-container">

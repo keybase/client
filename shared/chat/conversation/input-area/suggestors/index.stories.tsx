@@ -72,6 +72,7 @@ const typingTests = () => {
   test = <TestArea {...extraJunk} />
 
   const testAreaFunc = (props: TestAreaProps) => {}
+  // @ts-ignore todo investigate
   AddSuggestors(testAreaFunc)
 }
 

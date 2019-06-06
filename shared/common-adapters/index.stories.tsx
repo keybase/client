@@ -1,4 +1,3 @@
-// @flow
 import animated from './animated.stories'
 import avatar from './avatar.stories'
 import avatarLine from './avatar-line.stories'

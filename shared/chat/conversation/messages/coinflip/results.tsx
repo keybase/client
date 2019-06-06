@@ -258,7 +258,7 @@ const paragraphOverrides = {
     fontSize: Styles.isMobile ? 20 : 18,
     fontWeight: '700',
     lineHeight: Styles.isMobile ? 24 : undefined,
-  },
+  } as const,
 }
 
 const styles = Styles.styleSheetCreate({

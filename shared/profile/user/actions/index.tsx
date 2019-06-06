@@ -24,6 +24,11 @@ type Props = {
   state: Types.DetailsState
 }
 
+type DropdownProps = Pick<
+  Props,
+  'onAddToTeam' | 'onOpenPrivateFolder' | 'onBrowsePublicFolder' | 'onSendLumens' | 'onRequestLumens'
+> & {onUnfollow?: () => void}
+
 const Actions = (p: Props) => {
   let buttons = []
 
@@ -122,7 +127,7 @@ const Actions = (p: Props) => {
   )
 }
 
-const DropdownButton = Kb.OverlayParentHOC(p => {
+const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items = [
     {onClick: p.onAddToTeam, title: 'Add to team...'},
     {newTag: true, onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},

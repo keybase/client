@@ -30,7 +30,7 @@ const data = {
   [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
   [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
-}
+} as const
 
 const tabs = Tabs.desktopTabOrder
 
@@ -65,31 +65,32 @@ class TabBar extends React.PureComponent<Props, State> {
       </Kb.Box2>
     ),
   })
-  _menuItems = () => [
-    {
-      onClick: this.props.onProfileClick,
-      title: 'View profile',
-    },
-    'Divider',
-    {
-      onClick: this.props.onSettings,
-      title: 'Settings',
-    },
-    {
-      onClick: this.props.onHelp,
-      title: 'Help',
-    },
-    {
-      danger: true,
-      onClick: this.props.onSignOut,
-      title: 'Sign out',
-    },
-    {
-      danger: true,
-      onClick: this.props.onQuit,
-      title: 'Quit Keybase',
-    },
-  ]
+  _menuItems = () =>
+    [
+      {
+        onClick: this.props.onProfileClick,
+        title: 'View profile',
+      },
+      'Divider',
+      {
+        onClick: this.props.onSettings,
+        title: 'Settings',
+      },
+      {
+        onClick: this.props.onHelp,
+        title: 'Help',
+      },
+      {
+        danger: true,
+        onClick: this.props.onSignOut,
+        title: 'Sign out',
+      },
+      {
+        danger: true,
+        onClick: this.props.onQuit,
+        title: 'Quit Keybase',
+      },
+    ] as const
 
   render() {
     const p = this.props

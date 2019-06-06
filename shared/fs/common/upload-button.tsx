@@ -1,6 +1,7 @@
 import {namedConnect} from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import {TypedState} from '../../constants/reducer'
 import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as React from 'react'
@@ -12,7 +13,50 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform | null
 }
 
-const UploadButton = Kb.OverlayParentHOC(props => {
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  _pathItem: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem),
+})
+
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+  openAndUploadBoth: Platforms.isDarwin
+    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
+    : null,
+  openAndUploadDirectory:
+    Platforms.isElectron && !Platforms.isDarwin
+      ? () =>
+          dispatch(
+            FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory})
+          )
+      : null,
+  openAndUploadFile:
+    Platforms.isElectron && !Platforms.isDarwin
+      ? () =>
+          dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
+      : null,
+  pickAndUploadMixed: Platforms.isIOS
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
+    : null,
+  pickAndUploadPhoto: Platforms.isAndroid
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
+    : null,
+  pickAndUploadVideo: Platforms.isAndroid
+    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
+    : null,
+})
+
+const mergeProps = (
+  s: ReturnType<typeof mapStateToProps>,
+  d: ReturnType<typeof mapDispatchToProps>,
+  o: OwnProps
+) => ({
+  canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
+  style: o.style,
+  ...d,
+})
+
+type UploadButtonProps = ReturnType<typeof mergeProps>
+
+const UploadButton = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<UploadButtonProps>) => {
   if (!props.canUpload) {
     return null
   }
@@ -80,43 +124,6 @@ const UploadButton = Kb.OverlayParentHOC(props => {
       />
     </>
   )
-})
-
-const mapStateToProps = (state, ownProps: OwnProps) => ({
-  _pathItem: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem),
-})
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  openAndUploadBoth: Platforms.isDarwin
-    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
-    : null,
-  openAndUploadDirectory:
-    Platforms.isElectron && !Platforms.isDarwin
-      ? () =>
-          dispatch(
-            FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory})
-          )
-      : null,
-  openAndUploadFile:
-    Platforms.isElectron && !Platforms.isDarwin
-      ? () =>
-          dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
-      : null,
-  pickAndUploadMixed: Platforms.isIOS
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
-    : null,
-  pickAndUploadPhoto: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
-    : null,
-  pickAndUploadVideo: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
-    : null,
-})
-
-const mergeProps = (s, d, o) => ({
-  canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
-  style: o.style,
-  ...d,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'UploadButton')(UploadButton)

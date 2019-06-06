@@ -166,7 +166,7 @@ class ChooseAsset extends React.Component<Props, State> {
           ]),
     ]
     return (
-      <Kb.MaybePopup onClose={this.props.onBack} style={styles.mobileFlex}>
+      <Kb.MaybePopup onClose={this.props.onBack}>
         <Kb.Box2 direction="vertical" style={styles.container}>
           <Header isRequest={this.props.isRequest} onBack={this.props.onBack} whiteBackground={true} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
@@ -337,9 +337,6 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       flex: 1,
     },
-  }),
-  mobileFlex: Styles.platformStyles({
-    isMobile: {flex: 1},
   }),
   sectionHeaderContainer: Styles.platformStyles({
     common: {

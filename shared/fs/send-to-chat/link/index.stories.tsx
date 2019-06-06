@@ -11,8 +11,8 @@ const common = {
   onCancel: Sb.action('onCancel'),
   onSent: Sb.action('onSent'),
   send: Sb.action('send'),
-  sendLinkToChatState: 'ready-to-send',
-}
+  sendLinkToChatState: Types.SendLinkToChatState.ReadyToSend,
+} as const
 
 const channels = [
   {

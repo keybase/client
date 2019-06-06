@@ -1,3 +1,4 @@
+// @ts-ignore not typed
 import * as SMS from 'expo-sms'
 
 const openSMS = (phonenos: Array<string>, body?: string): Promise<any> => {
