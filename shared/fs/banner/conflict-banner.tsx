@@ -23,13 +23,6 @@ const getMessage = (tlf: string, conflictState: Types.ConflictState, isUnmerged)
         ' so you need to manually resolve the conflict. This is not' +
         ' supposed to happen!'
       )
-    case Types.ConflictState.InConflictNotStuck:
-      return (
-        `Your changes to ${tlf} conflict with changes made to this` +
-        ' folder on another device. We are trying to fix it automatically,' +
-        ' but you may need to manually resolve the conflict. This is not' +
-        ' supposed to happen!'
-      )
     case Types.ConflictState.InManualResolution:
       return isUnmerged
         ? `You're resolving a conflict in ${tlf}. This is your local view.` +
@@ -40,6 +33,7 @@ const getMessage = (tlf: string, conflictState: Types.ConflictState, isUnmerged)
     case Types.ConflictState.Finishing:
       return 'Finishing conflict resolution...'
     case Types.ConflictState.None:
+    case Types.ConflictState.InConflictNotStuck:
       return 'This should not happen.'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(conflictState)
@@ -79,7 +73,8 @@ const ConflictBanner = (props: Props) => {
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conflictState)
   }
   return (
-    props.conflictState !== Types.ConflictState.None && (
+    props.conflictState !== Types.ConflictState.None &&
+    props.conflictState !== Types.ConflictState.InConflictNotStuck && (
       <Kb.Banner
         text={getMessage(props.tlfName, props.conflictState, props.isUnmergedView)}
         color="red"
