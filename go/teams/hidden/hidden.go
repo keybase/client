@@ -146,3 +146,14 @@ func ProcessUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.
 	}
 	return ret, nil
 }
+
+func GenerateKeyRotation(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb.GenericKey, mainPrev keybase1.LinkTriple, hiddenPrev *keybase1.LinkTriple) (bun *sig3.ExportJSON, err error) {
+	return nil, fmt.Errorf("unimplemented")
+}
+
+func makeClientInfo() sig3.ClientInfo {
+	return sig3.ClientInfo{
+		Desc:    libkb.GoClientID,
+		Version: libkb.Version,
+	}
+}

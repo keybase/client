@@ -147,6 +147,10 @@ func (t *TeamKeyManager) SharedSecretBoxes(mctx libkb.MetaContext, senderKey lib
 	return t.sharedBoxes(t.sharedSecret, t.generation, n, senderKey, recipients)
 }
 
+func (t *TeamKeyManager) updateSeedCheck(mctx libkb.MetaContext, nextSecret *keybase1.PerTeamKeySeed) (err error) {
+	return nil
+}
+
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
 // required PerTeamKey section.
 func (t *TeamKeyManager) RotateSharedSecretBoxes(mctx libkb.MetaContext, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
@@ -177,6 +181,11 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(mctx libkb.MetaContext, senderK
 
 	// encode encrypted prev key
 	prevKeyEncoded, err := encodeSealedPrevKey(nonceBytes, sealed)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = t.updateSeedCheck(mctx, &nextSecret)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -17,6 +17,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	hidden "github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -549,6 +550,35 @@ func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr 
 }
 
 func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
+
+	mctx := libkb.NewMetaContext(ctx, t.G())
+	currentSeqno := t.CurrentSeqno()
+	lastLinkID := t.chain().GetLatestLinkID()
+
+	mainChainPrev := keybase1.LinkTriple{
+		Seqno:   currentSeqno,
+		SeqType: keybase1.SeqType_SEMIPRIVATE,
+		LinkID:  lastLinkID,
+	}
+
+	me, err := loadMeForSignatures(ctx, t.G())
+	if err != nil {
+		return err
+	}
+	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
+	if err != nil {
+		return err
+	}
+	hiddenPrev, err := t.G().GetHiddenTeamChainManager().Tail(mctx, t.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = hidden.GenerateKeyRotation(mctx, me, deviceSigningKey, mainChainPrev, hiddenPrev)
+	if err != nil {
+		return err
+	}
+
 	return errors.New("Team@rotatePostHidden unimplemented")
 }
 
