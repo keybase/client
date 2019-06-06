@@ -105,7 +105,7 @@ export type _Tlf = {
   resetParticipants: I.List<string> // usernames
   // TODO: when we move this stuff into SimpleFS, this should no longer need
   //  to be nullable
-  syncConfig: TlfSyncConfig | null
+  syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
   /*
