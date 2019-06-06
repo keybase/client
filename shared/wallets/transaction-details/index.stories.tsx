@@ -22,6 +22,7 @@ const props = {
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
+  feeChargedDescription: '',
   issuerAccountID: null,
   issuerDescription: '',
   loading: false as false,
