@@ -34,7 +34,7 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 	return mctx.G().Env.GetRunMode() == libkb.DevelRunMode || mctx.G().Env.RunningInCI() || mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureBoxAuditor)
 }
 
-const CurrentBoxAuditVersion Version = 6
+const CurrentBoxAuditVersion boxAuditVersion = 6
 const JailLRUSize = 100
 const BoxAuditIDLen = 16
 const MaxBoxAuditRetryAttempts = 6
@@ -96,7 +96,7 @@ func VerifyBoxAudit(mctx libkb.MetaContext, teamID keybase1.TeamID) (newMctx lib
 // encrypted (which is somewhat trivial, since members can leak the secret if
 // they want regardless of server cooperation).
 type BoxAuditor struct {
-	Version Version
+	Version boxAuditVersion
 
 	// Singleflight lock on team ID.
 	locktab libkb.LockTable
@@ -147,7 +147,11 @@ func (a *BoxAuditor) OnDbNuke(mctx libkb.MetaContext) error {
 }
 
 func NewBoxAuditor(g *libkb.GlobalContext) *BoxAuditor {
-	a := &BoxAuditor{Version: CurrentBoxAuditVersion}
+	return newBoxAuditorWithVersion(g, CurrentBoxAuditVersion)
+}
+
+func newBoxAuditorWithVersion(g *libkb.GlobalContext, version boxAuditVersion) *BoxAuditor {
+	a := &BoxAuditor{Version: version}
 	a.resetJailLRU()
 	return a
 }
@@ -670,16 +674,16 @@ type BoxAuditLog struct {
 	// Whether the last Audit is still in progress; false initially.
 	InProgress bool
 
-	Version Version
+	Version boxAuditVersion
 }
 
-var _ Versioned = &BoxAuditLog{}
+var _ boxAuditVersioned = &BoxAuditLog{}
 
-func (l *BoxAuditLog) GetVersion() Version {
+func (l *BoxAuditLog) getVersion() boxAuditVersion {
 	return l.Version
 }
 
-func NewBoxAuditLog(version Version) *BoxAuditLog {
+func NewBoxAuditLog(version boxAuditVersion) *BoxAuditLog {
 	return &BoxAuditLog{
 		Audits:     nil,
 		InProgress: false,
@@ -716,16 +720,16 @@ func NewBoxAuditID() (BoxAuditID, error) {
 // from the queue.
 type BoxAuditQueue struct {
 	Items   []BoxAuditQueueItem
-	Version Version
+	Version boxAuditVersion
 }
 
-var _ Versioned = &BoxAuditQueue{}
+var _ boxAuditVersioned = &BoxAuditQueue{}
 
-func (q *BoxAuditQueue) GetVersion() Version {
+func (q *BoxAuditQueue) getVersion() boxAuditVersion {
 	return q.Version
 }
 
-func NewBoxAuditQueue(version Version) *BoxAuditQueue {
+func NewBoxAuditQueue(version boxAuditVersion) *BoxAuditQueue {
 	return &BoxAuditQueue{
 		Items:   nil,
 		Version: version,
@@ -743,16 +747,16 @@ type BoxAuditQueueItem struct {
 // unless they are explicitly loaded by the fast or slow team loaders.
 type BoxAuditJail struct {
 	TeamIDs map[keybase1.TeamID]bool
-	Version Version
+	Version boxAuditVersion
 }
 
-var _ Versioned = &BoxAuditJail{}
+var _ boxAuditVersioned = &BoxAuditJail{}
 
-func (j *BoxAuditJail) GetVersion() Version {
+func (j *BoxAuditJail) getVersion() boxAuditVersion {
 	return j.Version
 }
 
-func NewBoxAuditJail(version Version) *BoxAuditJail {
+func NewBoxAuditJail(version boxAuditVersion) *BoxAuditJail {
 	return &BoxAuditJail{
 		TeamIDs: make(map[keybase1.TeamID]bool),
 		Version: version,
@@ -1025,9 +1029,9 @@ func keySetToTeamIDs(dbKeySet libkb.DBKeySet) ([]keybase1.TeamID, error) {
 	return teamIDs, nil
 }
 
-type Version int
-type Versioned interface {
-	GetVersion() Version
+type boxAuditVersion int
+type boxAuditVersioned interface {
+	getVersion() boxAuditVersion
 }
 
 func BoxAuditLogDbKey(mctx libkb.MetaContext, teamID keybase1.TeamID) libkb.DbKey {
@@ -1069,7 +1073,7 @@ func (a *BoxAuditor) maybeGetJail(mctx libkb.MetaContext) (*BoxAuditJail, error)
 	return &jail, nil
 }
 
-func (a *BoxAuditor) maybeGetIntoVersioned(mctx libkb.MetaContext, v Versioned, dbKey libkb.DbKey) (found bool, err error) {
+func (a *BoxAuditor) maybeGetIntoVersioned(mctx libkb.MetaContext, v boxAuditVersioned, dbKey libkb.DbKey) (found bool, err error) {
 	defer mctx.TraceTimed("maybeGetIntoVersioned", func() error { return err })()
 	found, err = mctx.G().LocalDb.GetInto(v, dbKey)
 	if err != nil {
@@ -1080,8 +1084,8 @@ func (a *BoxAuditor) maybeGetIntoVersioned(mctx libkb.MetaContext, v Versioned, 
 	if !found {
 		return false, nil
 	}
-	if v.GetVersion() != a.Version {
-		mctx.Debug("Not returning outdated obj at version %d (now at version %d)", v.GetVersion(), a.Version)
+	if v.getVersion() != a.Version {
+		mctx.Debug("Not returning outdated obj at version %d (now at version %d)", v.getVersion(), a.Version)
 		// We do not delete the old data.
 		return false, nil
 	}
