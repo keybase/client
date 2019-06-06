@@ -83,7 +83,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttachmentView}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch,
+  {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
+) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onEditChannel: (teamname: string) =>
@@ -109,6 +112,14 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttach
   onAttachmentViewChange: viewType => {
     dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
     onSelectAttachmentView(viewType)
+  },
+  onBack: () => {
+    dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+    onBack()
+  },
+  onCancel: () => {
+    dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+    onCancel()
   },
   onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
@@ -226,8 +237,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
         }
       : {onLoadMore: () => {}, status: 'loading', thumbs: []},
   onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
-  onBack: ownProps.onBack,
-  onCancel: ownProps.onCancel,
+  onBack: dispatchProps.onBack,
+  onCancel: dispatchProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onHideConv: dispatchProps.onHideConv,
   onJoinChannel: dispatchProps.onJoinChannel,
