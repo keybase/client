@@ -10,16 +10,9 @@
     "module": "commonjs",
     "noFallthroughCasesInSwitch": true,
     "outDir": "./.tsOuts/.tsOut/emit",
-    "paths": {
-      "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob/index.d.ts"],
-    },
     "sourceMap": true,
     "target": "es2017",
-    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache",
-    "typeRoots": [
-      "./node_modules/@types/",
-      "./custom-d.ts/"
-    ]
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["globals.d.ts"],
   "exclude": [
