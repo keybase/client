@@ -2,6 +2,7 @@ package sig3
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"github.com/keybase/client/go/kbcrypto"
@@ -345,6 +346,22 @@ type KeyPair struct {
 	pub  KID
 }
 
+func NewKeyPair(priv kbcrypto.NaclSigningKeyPrivate, pub KID) *KeyPair {
+	return &KeyPair{priv, pub}
+}
+
+func genRandomBytes(i int) ([]byte, error) {
+	ret := make([]byte, i, i)
+	n, err := rand.Reader.Read(ret[:])
+	if err != nil {
+		return nil, err
+	}
+	if n != i {
+		return nil, newSig3Error("short random entropy read")
+	}
+	return ret, nil
+}
+
 // Sign the RotateKey structure, with the given user's keypair (outer), and with the new
 // PTKs (inner). Return a Sig3Bundle, which was the exportable information, that you can
 // export either to local storage or up to the server.
@@ -359,6 +376,12 @@ func (r RotateKey) Sign(outer KeyPair, inners []KeyPair) (ret *Sig3Bundle, err e
 	o.LinkType = LinkTypeRotateKey
 	o.ChainType = ChainTypeTeamPrivateHidden
 	i.Signer.KID = outer.pub
+	if i.Entropy == nil {
+		i.Entropy, err = genRandomBytes(16)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	for j := range r.rkb().PTKs {
 		ptk := &r.rkb().PTKs[j]

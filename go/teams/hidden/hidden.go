@@ -147,51 +147,112 @@ func ProcessUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.
 	return ret, nil
 }
 
-func GenerateKeyRotation(mctx libkb.MetaContext, teamID keybase1.TeamID, isPublic bool, isImplicit bool, mr *libkb.MerkleRoot, me libkb.UserForSignatures, key libkb.GenericKey, mainPrev keybase1.LinkTriple, hiddenPrev *keybase1.LinkTriple, sk libkb.NaclSigningKeyPair, ek libkb.NaclDHKeyPair, check keybase1.PerTeamSeedCheck) (bun *sig3.ExportJSON, err error) {
+type GenerateKeyRotationParams struct {
+	TeamID           keybase1.TeamID
+	IsPublic         bool
+	IsImplicit       bool
+	MerkleRoot       *libkb.MerkleRoot
+	Me               libkb.UserForSignatures
+	SigningKey       libkb.GenericKey
+	MainPrev         keybase1.LinkTriple
+	HiddenPrev       *keybase1.LinkTriple
+	Gen              keybase1.PerTeamKeyGeneration
+	NewSigningKey    libkb.NaclSigningKeyPair
+	NewEncryptionKey libkb.NaclDHKeyPair
+	Check            keybase1.PerTeamSeedCheck
+}
+
+func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, err error) {
 	outer := sig3.OuterLink{}
-	if hiddenPrev != nil {
-		outer.Seqno = hiddenPrev.Seqno + 1
-		if !hiddenPrev.LinkID.IsNil() {
-			tmp, err := sig3.ImportLinkID(hiddenPrev.LinkID)
+	if p.HiddenPrev != nil {
+		outer.Seqno = p.HiddenPrev.Seqno + 1
+		if !p.HiddenPrev.LinkID.IsNil() {
+			tmp, err := sig3.ImportLinkID(p.HiddenPrev.LinkID)
 			if err != nil {
 				return nil, err
 			}
 			outer.Prev = tmp
 		}
 	}
-	tmp, err := sig3.ImportTail(mainPrev)
+	tmp, err := sig3.ImportTail(p.MainPrev)
 	if err != nil {
 		return nil, err
 	}
-	rsq := mr.Seqno()
+	rsq := p.MerkleRoot.Seqno()
 	if rsq == nil {
 		return nil, fmt.Errorf("cannot work with a nil merkle root seqno")
 	}
-	teamIDimport, err := sig3.ImportTeamID(teamID)
+	teamIDimport, err := sig3.ImportTeamID(p.TeamID)
 	if err != nil {
 		return nil, err
 	}
 	inner := sig3.InnerLink{
+		Ctime:      keybase1.ToTime(mctx.G().Clock().Now()),
+		ClientInfo: makeClientInfo(),
 		MerkleRoot: sig3.MerkleRoot{
-			Ctime: mr.CtimeMsec(),
-			Hash:  mr.HashMeta(),
+			Ctime: p.MerkleRoot.CtimeMsec(),
+			Hash:  p.MerkleRoot.HashMeta(),
 			Seqno: *rsq,
 		},
 		ParentChain: *tmp,
 		Signer: sig3.Signer{
-			UID:         sig3.ImportUID(me.GetUID()),
-			KID:         sig3.ImportKID(key.GetKID()),
-			EldestSeqno: me.GetEldestSeqno(),
+			UID:         sig3.ImportUID(p.Me.GetUID()),
+			KID:         sig3.ImportKID(p.SigningKey.GetKID()),
+			EldestSeqno: p.Me.GetEldestSeqno(),
 		},
 		Team: &sig3.Team{
 			TeamID:     *teamIDimport,
-			IsPublic:   isPublic,
-			IsImplicit: isImplicit,
+			IsPublic:   p.IsPublic,
+			IsImplicit: p.IsImplicit,
 		},
-		ClientInfo: makeClientInfo(),
+	}
+	checkPostImage, err := p.Check.Hash()
+	if err != nil {
+		return nil, err
+	}
+	rkb := sig3.RotateKeyBody{
+		PTKs: []sig3.PerTeamKey{
+			sig3.PerTeamKey{
+				AppkeyDerivationVersion: sig3.AppkeyDerivationXOR,
+				Generation:              p.Gen,
+				SeedCheck:               *checkPostImage,
+				EncryptionKID:           sig3.KID(p.NewEncryptionKey.GetBinaryKID()),
+				SigningKID:              sig3.KID(p.NewSigningKey.GetBinaryKID()),
+				PTKType:                 keybase1.PTKType_READER,
+			},
+		},
 	}
 
-	return nil, fmt.Errorf("unimplemented %+v", inner)
+	keyPair := func(g libkb.GenericKey) (*sig3.KeyPair, error) {
+		signing, ok := g.(libkb.NaclSigningKeyPair)
+		if !ok {
+			return nil, fmt.Errorf("bad key pair, wrong type: %T", g)
+		}
+		if signing.Private == nil {
+			return nil, fmt.Errorf("bad key pair, got null private key")
+		}
+		return sig3.NewKeyPair(*signing.Private, sig3.KID(g.GetBinaryKID())), nil
+	}
+
+	rk := sig3.NewRotateKey(outer, inner, rkb)
+	outerKeyPair, err := keyPair(p.SigningKey)
+	if err != nil {
+		return nil, err
+	}
+	innerKeyPair, err := keyPair(p.NewSigningKey)
+	if err != nil {
+		return nil, err
+	}
+
+	sig, err := rk.Sign(*outerKeyPair, []sig3.KeyPair{*innerKeyPair})
+	if err != nil {
+		return nil, err
+	}
+	bun, err := sig.Export()
+	if err != nil {
+		return nil, err
+	}
+	return &bun, nil
 }
 
 func makeClientInfo() *sig3.ClientInfo {

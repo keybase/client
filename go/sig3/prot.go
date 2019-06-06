@@ -19,9 +19,14 @@ type Entropy []byte
 type Sig [64]byte
 type PTKType = keybase1.PTKType
 type SeedCheck [32]byte
+type AppkeyDerivationVersion int
 
 const (
 	SigVersion3 SigVersion = 3
+)
+
+const (
+	AppkeyDerivationXOR AppkeyDerivationVersion = 1
 )
 
 // These values are picked so they don't conflict with Sigchain V1 and V2 link types
@@ -106,7 +111,7 @@ type RotateKeyBody struct {
 }
 
 type PerTeamKey struct {
-	AppkeyDerivationVersion int                                `codec:"a"`
+	AppkeyDerivationVersion AppkeyDerivationVersion            `codec:"a"`
 	SeedCheck               keybase1.PerTeamSeedCheckPostImage `codec:"c"` // SHA256(f(i)); see teams.avdl for f(i) definition
 	EncryptionKID           KID                                `codec:"e"`
 	Generation              PerTeamKeyGeneration               `codec:"g"`

@@ -137,6 +137,10 @@ func (t *TeamKeyManager) Check() keybase1.PerTeamSeedCheck {
 	return t.check
 }
 
+func (t *TeamKeyManager) Generation() keybase1.PerTeamKeyGeneration {
+	return t.generation
+}
+
 // EncryptionKey returns the derived NaclDHKeyPair from the team's shared secret.
 func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 	if t.encryptionKey == nil {

@@ -37,9 +37,7 @@ func makeKID(key []byte, typ byte) KID {
 }
 
 func randomBytes(t *testing.T, i int) []byte {
-	ret := make([]byte, i, i)
-	n, err := rand.Reader.Read(ret[:])
-	require.Equal(t, n, i)
+	ret, err := genRandomBytes(i)
 	require.NoError(t, err)
 	return ret
 }
