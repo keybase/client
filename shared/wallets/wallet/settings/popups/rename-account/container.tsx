@@ -33,9 +33,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = dispatch => ({
   _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
-    new Promise((resolve, reject) =>
-      dispatch(WalletsGen.createChangeAccountName({accountID, name, uiPromise: {resolve, reject}}))
-    ),
+    Container.dispatchUIPromise(dispatch, WalletsGen.createChangeAccountName, {accountID, name}),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (name: string) => {

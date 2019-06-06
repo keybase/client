@@ -20,16 +20,20 @@ export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation
 export type TypedDispatch = (action: TypedActions) => void
 export type Dispatch = TypedDispatch
 
-type WithUIPromise<T> = {
+interface UIPromiseActionCreatorArg<PType> {
   uiPromise: {
-    resolve: (arg: T) => void
+    resolve: (res: PType) => void
     reject: (err: Error) => void
   }
 }
-// type UIPromiseType<T> = T extends
-
-function makeUIPromise<T>(arg: string) {
-  return new Promise<T>((resolve, reject) => {})
+export function dispatchUIPromise<PType>(
+  dispatch,
+  actionCreator: (arg: UIPromiseActionCreatorArg<PType>) => object,
+  payload: Omit<UIPromiseActionCreatorArg<PType>, 'uiPromise'>
+) {
+  return new Promise<PType>((resolve, reject) =>
+    dispatch(actionCreator({...payload, uiPromise: {resolve, reject}}))
+  )
 }
 
 export {
