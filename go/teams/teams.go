@@ -574,7 +574,18 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		return err
 	}
 
-	_, err = hidden.GenerateKeyRotation(mctx, me, deviceSigningKey, mainChainPrev, hiddenPrev)
+	sk, err := t.keyManager.SigningKey()
+	if err != nil {
+		return err
+	}
+
+	ek, err := t.keyManager.EncryptionKey()
+	if err != nil {
+		return err
+	}
+	check := t.keyManager.Check()
+
+	_, err = hidden.GenerateKeyRotation(mctx, t.ID, t.IsPublic(), t.IsImplicit(), mr, me, deviceSigningKey, mainChainPrev, hiddenPrev, sk, ek, check)
 	if err != nil {
 		return err
 	}

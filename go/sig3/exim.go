@@ -75,3 +75,49 @@ func ExportToPrevLinkTriple(g Generic) keybase1.LinkTriple {
 		LinkID:  g.Prev().Export(),
 	}
 }
+
+func ImportLinkID(l keybase1.LinkID) (*LinkID, error) {
+	if len(l) != 64 {
+		return nil, fmt.Errorf("failed to import linkID; wrong length: %d", len(l))
+	}
+	tmp, err := hex.DecodeString(string(l))
+	if err != nil {
+		return nil, err
+	}
+	var ret LinkID
+	copy(ret[:], tmp)
+	return &ret, nil
+}
+
+func ImportTail(l keybase1.LinkTriple) (*Tail, error) {
+	hash, err := ImportLinkID(l.LinkID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Tail{
+		Seqno:     l.Seqno,
+		ChainType: l.SeqType,
+		Hash:      *hash,
+	}, nil
+}
+
+func ImportUID(u keybase1.UID) (ret UID) {
+	tmp := u.ToBytes()
+	copy(ret[:], tmp)
+	return ret
+}
+
+func ImportKID(k keybase1.KID) (ret KID) {
+	return KID(k.ToBinaryKID())
+}
+
+func ImportTeamID(t keybase1.TeamID) (*TeamID, error) {
+	tmp, err := hex.DecodeString(string(t))
+	if err != nil {
+		return nil, err
+	}
+	var ret TeamID
+	copy(ret[:], tmp)
+	return &ret, nil
+}

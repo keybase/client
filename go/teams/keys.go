@@ -133,6 +133,10 @@ func (t *TeamKeyManager) SigningKey() (libkb.NaclSigningKeyPair, error) {
 	return *t.signingKey, nil
 }
 
+func (t *TeamKeyManager) Check() keybase1.PerTeamSeedCheck {
+	return t.check
+}
+
 // EncryptionKey returns the derived NaclDHKeyPair from the team's shared secret.
 func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 	if t.encryptionKey == nil {
@@ -435,7 +439,12 @@ func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *ke
 	}, nil
 }
 
-// computeSeedChecks
+// computeSeedChecks looks at a sequence of checks, newest to oldest, trying to find the first nil. Once it finds
+// such a nil, it goes forward and fills in the checks, based on the current seeds. There's an unfortunately level
+// of indirection since we need the same code to work over slow and fast team loading; thus we have setters and getters
+// as functions. But the idea is the same in both cases. Not that we're assuming there aren't "holes". That the nils
+// are at the back of the sequence and not interspersed throughout. This is valid so long as we always compute
+// these checks on load of new links.
 func computeSeedChecks(ctx context.Context, teamID keybase1.TeamID, latestChainGen keybase1.PerTeamKeyGeneration, getter func(g keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamSeedCheck, keybase1.PerTeamKeySeed, error), setter func(g keybase1.PerTeamKeyGeneration, c keybase1.PerTeamSeedCheck)) error {
 
 	var firstNonNilCheck keybase1.PerTeamKeyGeneration

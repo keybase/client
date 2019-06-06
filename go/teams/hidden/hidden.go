@@ -147,8 +147,50 @@ func ProcessUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.
 	return ret, nil
 }
 
-func GenerateKeyRotation(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb.GenericKey, mainPrev keybase1.LinkTriple, hiddenPrev *keybase1.LinkTriple) (bun *sig3.ExportJSON, err error) {
-	return nil, fmt.Errorf("unimplemented")
+func GenerateKeyRotation(mctx libkb.MetaContext, teamID keybase1.TeamID, isPublic bool, isImplicit bool, mr *libkb.MerkleRoot, me libkb.UserForSignatures, key libkb.GenericKey, mainPrev keybase1.LinkTriple, hiddenPrev *keybase1.LinkTriple, sk libkb.NaclSigningKeyPair, ek libkb.NaclDHKeyPair, check keybase1.PerTeamSeedCheck) (bun *sig3.ExportJSON, err error) {
+	outer := sig3.OuterLink{}
+	if hiddenPrev != nil {
+		outer.Seqno = hiddenPrev.Seqno + 1
+		if !hiddenPrev.LinkID.IsNil() {
+			tmp, err := sig3.ImportLinkID(hiddenPrev.LinkID)
+			if err != nil {
+				return nil, err
+			}
+			outer.Prev = tmp
+		}
+	}
+	tmp, err := sig3.ImportTail(mainPrev)
+	if err != nil {
+		return nil, err
+	}
+	rsq := mr.Seqno()
+	if rsq == nil {
+		return nil, fmt.Errorf("cannot work with a nil merkle root seqno")
+	}
+	teamIDimport, err := sig3.ImportTeamID(teamID)
+	if err != nil {
+		return nil, err
+	}
+	inner := sig3.InnerLink{
+		MerkleRoot: sig3.MerkleRoot{
+			Ctime: mr.CtimeMsec(),
+			Hash:  mr.HashMeta(),
+			Seqno: *rsq,
+		},
+		ParentChain: *tmp,
+		Signer: sig3.Signer{
+			UID:         sig3.ImportUID(me.GetUID()),
+			KID:         sig3.ImportKID(key.GetKID()),
+			EldestSeqno: me.GetEldestSeqno(),
+		},
+		Team: &sig3.Team{
+			TeamID:     *teamIDimport,
+			IsPublic:   isPublic,
+			IsImplicit: isImplicit,
+		},
+	}
+
+	return nil, fmt.Errorf("unimplemented %+v", inner)
 }
 
 func makeClientInfo() sig3.ClientInfo {

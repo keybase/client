@@ -941,6 +941,10 @@ func (mc *MerkleClient) LastRoot(m MetaContext) *MerkleRoot {
 	return ret.ShallowCopy()
 }
 
+func (mr MerkleRoot) CtimeMsec() keybase1.Time {
+	return keybase1.TimeFromSeconds(mr.payload.unpacked.Ctime)
+}
+
 func (mr MerkleRoot) ExportToAVDL(g *GlobalContext) keybase1.MerkleRootAndTime {
 	hashMeta := mr.ShortHash()
 	return keybase1.MerkleRootAndTime{
