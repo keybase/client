@@ -30,7 +30,7 @@ build/
 project.xcworkspace
 xcuserdata
 shared
-fastlane/README.md
+ios/fastlane/README.md
 keybase.framework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision
