@@ -88,6 +88,7 @@ const Advanced = (props: Props) => {
           />
         </Kb.Box>
       )}
+      <ProxySettings {...props} />
       <Developer {...props} />
     </Kb.Box>
   )
@@ -208,6 +209,97 @@ class Developer extends React.Component<Props, State> {
   }
 }
 
+enum ProxyType {
+  Socks5 = "Socks5",
+  HTTP_Connect = "HTTP_Connect",
+  No_Proxy = "No_Proxy",
+}
+
+type ProxyState = {
+  address: string
+  port: string
+  proxyType: ProxyType
+  edited: boolean
+}
+
+class ProxySettings extends React.Component<Props, ProxyState> {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      address: "",
+      port: "",
+      proxyType: ProxyType.No_Proxy,
+      edited: false,
+    }
+  }
+
+  handleAddressChange(address: string) {
+    var edited = (address !== this.state.address) || this.state.edited
+    this.setState({address, edited})
+  }
+
+  handlePortChange(port: string) {
+    var edited = (port !== this.state.port) || this.state.edited
+    this.setState({port, edited})
+  }
+
+  setProxyType(proxyType: string) {
+    this.setState({proxyType: ProxyType[proxyType]})
+    alert(JSON.stringify(this.state))
+    alert(proxyType)
+    alert(JSON.stringify(ProxyType))
+  }
+
+  saveProxySettings() {
+    // TODO
+  }
+
+  render() {
+    return (
+      <Kb.Box style={styles.proxyContainer}>
+        <Kb.Divider style={styles.divider} />
+        <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
+          Configure a HTTP(s) or SOCKS5 proxy
+        </Kb.Text>
+        <Kb.Box>
+          {
+            Object.keys(ProxyType).map(proxyType => 
+              <Kb.Button 
+                style={{margin: Styles.globalMargins.tiny}} 
+                onClick={() => this.setProxyType(proxyType)}
+                color={this.state.proxyType == proxyType ? 'Default' : 'Dim'}
+                >
+                {proxyType}
+              </Kb.Button>
+            )
+          }
+        </Kb.Box>
+        <Kb.Box>
+          <Kb.Input
+            hintText="Proxy Address"
+            value={this.state.address}
+            onChangeText={addr => this.handleAddressChange(addr)}
+            style={{width: 400}}
+          />
+          <Kb.Input
+            hintText="Proxy Port"
+            value={this.state.port}
+            onChangeText={port => this.handlePortChange(port)}
+            style={{width: 200}}
+          />
+        </Kb.Box>
+        <Kb.Button 
+          style={{margin: Styles.globalMargins.xsmall}} 
+          onClick={this.saveProxySettings()}>  
+          Save Proxy Settings
+        </Kb.Button>
+
+      </Kb.Box>
+    );
+  }
+}
+
 const styles = Styles.styleSheetCreate({
   advancedContainer: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -232,6 +324,13 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.xlarge,
+  },
+  proxyContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.large,
   },
   divider: {
     marginTop: Styles.globalMargins.xsmall,
