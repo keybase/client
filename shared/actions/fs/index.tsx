@@ -25,11 +25,11 @@ import {NotifyPopup} from '../../native/notifications'
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
     case RPCTypes.FolderType.private:
-      return 'private'
+      return Types.TlfType.Private
     case RPCTypes.FolderType.public:
-      return 'public'
+      return Types.TlfType.Public
     case RPCTypes.FolderType.team:
-      return 'team'
+      return Types.TlfType.Team
     default:
       return null
   }
@@ -52,7 +52,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
         folders.reduce((mutablePayload, folder) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
-            tlfType === 'private' || tlfType === 'public'
+            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
               ? tlfToPreferredOrder(folder.name, state.config.username)
               : folder.name
           return !tlfType

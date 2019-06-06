@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.Folder, repoName keybase1.GitRepoName) error {
+func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1.FolderHandle, repoName keybase1.GitRepoName) error {
 	teamer := NewTeamer(g)
 	mctx := libkb.NewMetaContext(ctx, g)
 

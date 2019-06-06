@@ -511,13 +511,12 @@ export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.Loc
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
-export const folderRPCFromPath = (path: Types.Path): RPCTypes.Folder | null => {
+export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
   const pathElems = Types.getPathElements(path)
   if (pathElems.length === 0) return null
 
   const visibility = Types.getVisibilityFromElems(pathElems)
   if (visibility === null) return null
-  const isPrivate = visibility === Types.TlfType.Private || visibility === Types.TlfType.Team
 
   const name = Types.getPathNameFromElems(pathElems)
   if (name === '') return null
@@ -526,7 +525,6 @@ export const folderRPCFromPath = (path: Types.Path): RPCTypes.Folder | null => {
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
-    private: isPrivate,
   }
 }
 

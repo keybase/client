@@ -561,7 +561,7 @@ type KBFSOps interface {
 }
 
 type gitMetadataPutter interface {
-	PutGitMetadata(ctx context.Context, folder keybase1.Folder,
+	PutGitMetadata(ctx context.Context, folder keybase1.FolderHandle,
 		repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error
 }
 
@@ -572,11 +572,11 @@ type KeybaseService interface {
 	gitMetadataPutter
 
 	// FavoriteAdd adds the given folder to the list of favorites.
-	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteAdd removes the given folder from the list of
 	// favorites.
-	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+	FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteList returns the current list of favorites.
 	FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult,
@@ -765,11 +765,11 @@ type KBPKI interface {
 
 	// FavoriteAdd adds folder to the list of the logged in user's
 	// favorite folders.  It is idempotent.
-	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteDelete deletes folder from the list of the logged in user's
 	// favorite folders.  It is idempotent.
-	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+	FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.

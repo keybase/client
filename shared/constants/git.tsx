@@ -27,7 +27,7 @@ export const makeState = I.Record<Types._State>({
 const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | null => {
   if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
     const r: RPCTypes.GitRepoInfo = result.ok
-    if (!r.folder.private) {
+    if (r.folder.folderType === RPCTypes.FolderType.public) {
       // Skip public repos
       return null
     }

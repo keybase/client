@@ -74,13 +74,9 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
     channelName: action.payload.channelName,
     chatDisabled: action.payload.chatDisabled,
     folder: {
-      // @ts-ignore codemod-issue
-      conflictType: RPCTypes.FolderConflictType.none,
       created: false,
       folderType: RPCTypes.FolderType.team,
       name: action.payload.teamname,
-      notificationsOn: false,
-      private: true,
     },
     repoID: action.payload.repoID,
   }).then(() => GitGen.createLoadGit())

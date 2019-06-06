@@ -82,7 +82,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	if arg.ChannelName != nil && *(arg.ChannelName) != "" {
 		// lookup the conv id for the channel name
 		vis := keybase1.TLFVisibility_PRIVATE
-		if !arg.Folder.Private {
+		if arg.Folder.FolderType == keybase1.FolderType_PUBLIC {
 			vis = keybase1.TLFVisibility_PUBLIC
 		}
 		convs, err := g.ChatHelper.FindConversations(ctx, arg.Folder.Name, arg.ChannelName,
@@ -113,7 +113,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 }
 
 func settingsArg(ctx context.Context, g *libkb.GlobalContext,
-	folder keybase1.Folder, repoID keybase1.RepoID) (apiArg *libkb.APIArg, teamID keybase1.TeamID, err error) {
+	folder keybase1.FolderHandle, repoID keybase1.RepoID) (apiArg *libkb.APIArg, teamID keybase1.TeamID, err error) {
 	teamer := NewTeamer(g)
 	teamIDVis, err := teamer.LookupOrCreate(ctx, folder)
 	if err != nil {
