@@ -550,8 +550,28 @@ func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr 
 }
 
 func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
-
 	mctx := libkb.NewMetaContext(ctx, t.G())
+
+	// Generate a "sig multi item" that we POST up to the API endpoint
+	smi, err := t.rotateHiddenGenerateSigMultiItem(mctx, section, mr)
+	if err != nil {
+		return err
+	}
+
+	// Combine the "sig multi item" above with the various off-chain items, like boxes.
+	payload := t.sigPayload([]libkb.SigMultiItem{*smi}, payloadArgs)
+
+	// Post the changes up to the server
+	err = t.postMulti(mctx, payload)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, err error) {
+
 	currentSeqno := t.CurrentSeqno()
 	lastLinkID := t.chain().GetLatestLinkID()
 
@@ -561,30 +581,30 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		LinkID:  lastLinkID,
 	}
 
-	me, err := loadMeForSignatures(ctx, t.G())
+	me, err := loadMeForSignatures(mctx.Ctx(), mctx.G())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hiddenPrev, err := t.G().GetHiddenTeamChainManager().Tail(mctx, t.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	sk, err := t.keyManager.SigningKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ek, err := t.keyManager.EncryptionKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
+	ret, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
 		TeamID:           t.ID,
 		IsPublic:         t.IsPublic(),
 		IsImplicit:       t.IsImplicit(),
@@ -598,11 +618,8 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		NewEncryptionKey: ek,
 		Check:            t.keyManager.Check(),
 	})
-	if err != nil {
-		return err
-	}
 
-	return errors.New("Team@rotatePostHidden unimplemented")
+	return ret, err
 }
 
 func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {

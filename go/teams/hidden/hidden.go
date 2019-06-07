@@ -162,7 +162,34 @@ type GenerateKeyRotationParams struct {
 	Check            keybase1.PerTeamSeedCheck
 }
 
-func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, err error) {
+func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, err error) {
+
+	s3, err := generateKeyRotationSig3(mctx, p)
+	if err != nil {
+		return nil, err
+	}
+
+	sigMultiItem := &libkb.SigMultiItem{
+		SigningKID: p.SigningKey.GetKID(),
+		Type:       "team.rotate_key_hidden",
+		SeqType:    sig3.ChainTypeTeamPrivateHidden,
+		TeamID:     p.TeamID,
+		Sig3: &libkb.Sig3{
+			Inner: s3.Inner,
+			Outer: s3.Outer,
+			Sig:   s3.Sig,
+		},
+		PublicKeys: &libkb.SigMultiItemPublicKeys{
+			Encryption: p.NewEncryptionKey.GetKID(),
+			Signing:    p.NewSigningKey.GetKID(),
+		},
+	}
+
+	return sigMultiItem, nil
+}
+
+func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, err error) {
+
 	outer := sig3.OuterLink{}
 	if p.HiddenPrev != nil {
 		outer.Seqno = p.HiddenPrev.Seqno + 1
