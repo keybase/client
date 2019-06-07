@@ -554,15 +554,6 @@ const changeDisplayCurrency = (state, action: WalletsGen.ChangeDisplayCurrencyPa
     Constants.changeDisplayCurrencyWaitingKey
   ).then(_ => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
-const changeAccountName = (state, action: WalletsGen.ChangeAccountNamePayload) =>
-  RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
-    {
-      accountID: action.payload.accountID,
-      newName: action.payload.name,
-    },
-    Constants.changeAccountNameWaitingKey
-  ).then(res => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
-
 const deleteAccount = (state, action: WalletsGen.DeleteAccountPayload) =>
   RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
     {
@@ -1194,11 +1185,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.setAccountAsDefault,
     setAccountAsDefault,
     'setAccountAsDefault'
-  )
-  yield* Saga.chainAction<WalletsGen.ChangeAccountNamePayload>(
-    WalletsGen.changeAccountName,
-    changeAccountName,
-    'changeAccountName'
   )
   yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(
     WalletsGen.selectAccount,

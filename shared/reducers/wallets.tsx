@@ -393,7 +393,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.markAsRead:
     case WalletsGen.loadDisplayCurrency:
     case WalletsGen.changeDisplayCurrency:
-    case WalletsGen.changeAccountName:
     case WalletsGen.checkDisclaimer:
     case WalletsGen.changedAccountName:
     case WalletsGen.deleteAccount:
