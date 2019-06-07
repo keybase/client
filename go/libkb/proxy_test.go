@@ -22,19 +22,19 @@ func TestProxyTypeStrToEnum(t *testing.T) {
 
 func TestMakeProxy(t *testing.T) {
 	f := MakeProxy(noProxy, "localhost:8090")
-	retUrl, err := f(nil)
+	retURL, err := f(nil)
 
-	// A nil retUrl means no proxy
-	require.Equal(t, (*url.URL)(nil), retUrl)
+	// A nil retURL means no proxy
+	require.Equal(t, (*url.URL)(nil), retURL)
 	require.Equal(t, nil, err)
 
 	f = MakeProxy(socks, "localhost:8090")
-	retUrl, err = f(nil)
+	retURL, err = f(nil)
 	require.Equal(t, nil, err)
-	require.Equal(t, "socks5://localhost:8090", retUrl.String())
+	require.Equal(t, "socks5://localhost:8090", retURL.String())
 
 	f = MakeProxy(httpConnect, "localhost:8090")
-	retUrl, err = f(nil)
+	retURL, err = f(nil)
 	require.Equal(t, nil, err)
-	require.Equal(t, "localhost:8090", retUrl.String())
+	require.Equal(t, "localhost:8090", retURL.String())
 }

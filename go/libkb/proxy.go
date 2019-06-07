@@ -81,12 +81,12 @@ func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request)(*
 			realProxyAddress = proxyAddress
 		}
 
-		realProxyUrl, err := url.Parse(realProxyAddress)
+		realProxyURL, err := url.Parse(realProxyAddress)
 		if err != nil {
 			return nil, err
 		}
 
-		return realProxyUrl, nil
+		return realProxyURL, nil
 	}
 }
 
