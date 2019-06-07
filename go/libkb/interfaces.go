@@ -82,7 +82,7 @@ type configGetter interface {
 	GetRunMode() (RunMode, error)
 	GetScraperTimeout() (time.Duration, bool)
 	GetSecretKeyringTemplate() string
-	GetServerURI() string
+	GetServerURI() (string, error)
 	GetSessionFilename() string
 	GetSocketFile() string
 	GetStandalone() (bool, bool)
@@ -559,7 +559,7 @@ type VLogContext interface {
 type APIContext interface {
 	GetAPI() API
 	GetExternalAPI() ExternalAPI
-	GetServerURI() string
+	GetServerURI() (string, error)
 }
 
 type NetContext interface {

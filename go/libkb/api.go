@@ -272,7 +272,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 	cli, err := api.getCli(needSession)
 	if err != nil {
-		return 
+		return
 	}
 
 	// Actually send the request via Go's libraries

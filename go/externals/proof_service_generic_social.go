@@ -52,7 +52,11 @@ func (c *GenericSocialProofConfig) parseAndValidate(g *libkb.GlobalContext) (err
 	// In devel, we need to update the config url with the IP for the CI
 	// container.
 	if g.Env.GetRunMode() == libkb.DevelRunMode {
-		serverURI := g.Env.GetServerURI()
+		serverURI, err := g.Env.GetServerURI()
+		if err != nil {
+			return err
+		}
+
 		c.ProfileUrl = strings.Replace(c.ProfileUrl, libkb.DevelServerURI, serverURI, 1)
 		c.PrefillUrl = strings.Replace(c.PrefillUrl, libkb.DevelServerURI, serverURI, 1)
 		c.CheckUrl = strings.Replace(c.CheckUrl, libkb.DevelServerURI, serverURI, 1)

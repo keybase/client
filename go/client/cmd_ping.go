@@ -39,7 +39,13 @@ func (v *CmdPing) Run() error {
 	if err != nil {
 		return err
 	}
-	v.G().Log.Info(fmt.Sprintf("API Server at %s is up", v.G().Env.GetServerURI()))
+
+	serverUri, err := v.G().Env.GetServerURI()
+	if err != nil {
+		return err
+	}
+
+	v.G().Log.Info(fmt.Sprintf("API Server at %s is up", serverUri))
 
 	return nil
 }

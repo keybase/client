@@ -80,7 +80,11 @@ func ShortCA(raw string) string {
 // requests
 func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
 	e := g.Env
-	serverURI := e.GetServerURI()
+	serverURI, err := e.GetServerURI()
+
+	if err != nil {
+		return nil, err
+	}
 
 	if e.GetTorMode().Enabled() {
 		serverURI = e.GetTorHiddenAddress()

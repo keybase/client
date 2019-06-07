@@ -399,8 +399,8 @@ func (f *JSONConfigFile) GetHome() string {
 func (f *JSONConfigFile) GetMobileSharedHome() string {
 	return f.GetTopLevelString("mobile_shared_home")
 }
-func (f *JSONConfigFile) GetServerURI() string {
-	return f.GetTopLevelString("server")
+func (f *JSONConfigFile) GetServerURI() (string, error) {
+	return f.GetTopLevelString("server"), nil
 }
 func (f *JSONConfigFile) GetConfigFilename() string {
 	return f.GetTopLevelString("config_file")

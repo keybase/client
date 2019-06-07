@@ -42,8 +42,13 @@ func TestProductionCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	if tc.G.Env.GetServerURI() != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", tc.G.Env.GetServerURI(), uriExpected)
+	serverUri, err := tc.G.Env.GetServerURI()
+	if err != nil {
+		t.Fatalf("Failed to retrieve the server uri!")
+	}
+
+	if serverUri != uriExpected {
+		t.Fatalf("production server uri: %s, expected %s", serverUri, uriExpected)
 	}
 
 	tc.G.ConfigureAPI()
@@ -59,7 +64,7 @@ func TestProductionCA(t *testing.T) {
 		t.Fatalf("api url: %s, expected %s", url.String(), pingExpected)
 	}
 
-	_, err := tc.G.API.Post(mctx, arg)
+	_, err = tc.G.API.Post(mctx, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,8 +83,13 @@ func TestProductionBadCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	if tc.G.Env.GetServerURI() != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", tc.G.Env.GetServerURI(), uriExpected)
+	serverUri, err := tc.G.Env.GetServerURI()
+	if err != nil {
+		t.Fatalf("Failed to retrieve the server URI!")
+	}
+
+	if serverUri != uriExpected {
+		t.Fatalf("production server uri: %s, expected %s", serverUri, uriExpected)
 	}
 
 	// change the api CA to one that api.keybase.io doesn't know:
@@ -101,7 +111,7 @@ func TestProductionBadCA(t *testing.T) {
 		t.Fatalf("api url: %s, expected %s", iurl.String(), pingExpected)
 	}
 
-	_, err := tc.G.API.Post(mctx, arg)
+	_, err = tc.G.API.Post(mctx, arg)
 	if err == nil {
 		t.Errorf("api ping POST worked with unknown CA")
 	} else {

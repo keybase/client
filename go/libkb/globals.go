@@ -166,7 +166,7 @@ func (g *GlobalContext) GetLog() logger.Logger                         { return 
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetServerURI() (string, error)                 { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }

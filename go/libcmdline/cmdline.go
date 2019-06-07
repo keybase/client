@@ -72,8 +72,8 @@ func (p CommandLine) GetHome() string {
 func (p CommandLine) GetMobileSharedHome() string {
 	return p.GetGString("mobile-shared-home")
 }
-func (p CommandLine) GetServerURI() string {
-	return p.GetGString("server")
+func (p CommandLine) GetServerURI() (string, error) {
+	return p.GetGString("server"), nil
 }
 func (p CommandLine) GetConfigFilename() string {
 	return p.GetGString("config-file")

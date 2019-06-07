@@ -24,7 +24,7 @@ type NullConfiguration struct{}
 
 func (n NullConfiguration) GetHome() string                                                { return "" }
 func (n NullConfiguration) GetMobileSharedHome() string                                    { return "" }
-func (n NullConfiguration) GetServerURI() string                                           { return "" }
+func (n NullConfiguration) GetServerURI() (string, error)                                  { return "", nil }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
 func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
@@ -538,34 +538,47 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 	return def
 }
 
-func (e *Env) GetServerURI() string {
+func (e *Env) GetServerURI() (string, error) {
 	// appveyor and os x travis CI set server URI, so need to
 	// check for test flag here in order for production api endpoint
 	// tests to pass.
 	if e.Test.UseProductionRunMode {
 		server, e := ServerLookup(e, e.GetRunMode())
 		if e != nil {
-			// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
-			// way to get a URL in this case
-			panic(e)
+			return "", nil
 		}
-		return server
+		return server, nil
 	}
 
-	return e.GetString(
-		func() string { return e.cmd.GetServerURI() },
-		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
-		func() string { return e.GetConfig().GetServerURI() },
+	serverUri := e.GetString(
 		func() string {
-			server, err := ServerLookup(e, e.GetRunMode())
+			serverUri, err := e.cmd.GetServerURI()
 			if err != nil {
-				// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
-				// way to get a URL in this case
-				panic(err)
+				return ""
 			}
-			return server
+			return serverUri
+		},
+		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
+		func() string {
+			serverUri, err := e.GetConfig().GetServerURI()
+			if err != nil {
+				return ""
+			}
+			return serverUri
+		},
+		func() string {
+			serverUri, err := ServerLookup(e, e.GetRunMode())
+			if err != nil {
+				return ""
+			}
+			return serverUri
 		},
 	)
+
+	if serverUri == "" {
+		return "", fmt.Errorf("Env failed to read a server URI from any source!")
+	}
+	return serverUri, nil
 }
 
 func (e *Env) GetUseRootConfigFile() bool {
@@ -1693,8 +1706,8 @@ func (c AppConfig) GetMobileSharedHome() string {
 	return c.MobileSharedHomeDir
 }
 
-func (c AppConfig) GetServerURI() string {
-	return c.ServerURI
+func (c AppConfig) GetServerURI() (string, error) {
+	return c.ServerURI, nil
 }
 
 func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
