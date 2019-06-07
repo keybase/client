@@ -199,10 +199,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 	}
 
-	err := EnableProxy(env.GetProxyType(), env.GetProxy())
-	if err != nil {
-		return nil, err
-	}
+	xprt.Proxy = MakeProxy(env.GetProxyType(), env.GetProxy())
 
 	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {
 		xprt.Proxy = func(req *http.Request) (*url.URL, error) {
@@ -237,7 +234,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 		ret.cli.Jar = jar
 	}
 	ret.cli.Transport = &xprt
-	return ret, err
+	return ret, nil
 }
 
 func ServerLookup(env *Env, mode RunMode) (string, error) {

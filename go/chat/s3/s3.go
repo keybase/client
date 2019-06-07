@@ -974,6 +974,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
+				//Proxy: libkb.MakeProxy(ctx.)
 			},
 		}
 	}

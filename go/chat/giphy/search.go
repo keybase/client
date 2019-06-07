@@ -135,6 +135,8 @@ func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURL
 		return res, err
 	}
 	req.Host = APIHost
+	//mctx.G().Env //TODO(TES)
+
 	resp, err := ctxhttp.Do(mctx.Ctx(), APIClient(), req)
 	if err != nil {
 		return res, err

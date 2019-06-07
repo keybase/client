@@ -43,7 +43,8 @@ the client and the Keybase servers.
 package libkb
 
 import (
-	"os"
+	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -67,26 +68,25 @@ func GetCommaSeparatedListOfProxyTypes() string {
 }
 
 // Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
-func EnableProxy(proxyType ProxyType, proxyAddress string) error {
-	if proxyType == noProxy {
-		// No proxy so nothing to do
-		return nil
-	}
+func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request)(*url.URL, error) {
+	return func(r *http.Request) (*url.URL, error) {
+		if proxyType == noProxy {
+			// No proxy so returning nil tells it not to use a proxy
+			return nil, nil
+		}
+		realProxyAddress := ""
+		if proxyType == socks {
+			realProxyAddress = "socks5://" + proxyAddress
+		} else {
+			realProxyAddress = proxyAddress
+		}
 
-	realProxyAddress := ""
-	if proxyType == socks {
-		realProxyAddress = "socks5://" + proxyAddress
-	} else {
-		realProxyAddress = proxyAddress
-	}
+		realProxyUrl, err := url.Parse(realProxyAddress)
+		if err != nil {
+			return nil, err
+		}
 
-	e1 := os.Setenv("HTTP_PROXY", realProxyAddress)
-	if e1 != nil {
-		return e1
+		return realProxyUrl, nil
 	}
-	e2 := os.Setenv("HTTPS_PROXY", realProxyAddress)
-	if e2 != nil {
-		return e2
-	}
-	return nil
 }
+
