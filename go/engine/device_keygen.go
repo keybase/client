@@ -22,6 +22,10 @@ type DeviceKeygenArgs struct {
 	IsSelfProvision bool
 	PerUserKeyring  *libkb.PerUserKeyring
 	EkReboxer       *ephemeralKeyReboxer
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -211,6 +215,9 @@ func (e *DeviceKeygen) setup(m libkb.MetaContext) {
 	}
 
 	e.naclSignGen = e.newNaclKeyGen(m, func() (libkb.NaclKeyPair, error) {
+		if e.args.naclSigningKeyPair != nil {
+			return e.args.naclSigningKeyPair, nil
+		}
 		kp, err := libkb.GenerateNaclSigningKeyPair()
 		if err != nil {
 			return nil, err
@@ -219,13 +226,15 @@ func (e *DeviceKeygen) setup(m libkb.MetaContext) {
 	}, e.device(), libkb.NaclEdDSAExpireIn)
 
 	e.naclEncGen = e.newNaclKeyGen(m, func() (libkb.NaclKeyPair, error) {
+		if e.args.naclEncryptionKeyPair != nil {
+			return e.args.naclEncryptionKeyPair, nil
+		}
 		kp, err := libkb.GenerateNaclDHKeyPair()
 		if err != nil {
 			return nil, err
 		}
 		return kp, nil
 	}, e.device(), libkb.NaclDHExpireIn)
-
 }
 
 func (e *DeviceKeygen) generate(m libkb.MetaContext) {

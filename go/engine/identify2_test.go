@@ -1,12 +1,15 @@
 package engine
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/keybase/go-crypto/ed25519"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -1211,6 +1214,93 @@ func TestTrackThenRevokeThenIdentifyWithDifferentChatModes(t *testing.T) {
 
 	err = runIdentify(keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
+}
+
+// Alice signs up using key X, Bob signs up, Bob tracks Alice,
+// Alice resets and provisions using the same key X, Bob ids Alice
+func TestTrackResetReuseKey(t *testing.T) {
+	// Prepare key X
+	var keyX [ed25519.SeedSize]byte
+	_, err := rand.Read(keyX[:])
+	require.NoError(t, err)
+
+	// Alice signs up using key X
+	tcX := SetupEngineTest(t, "id")
+	defer tcX.Cleanup()
+	fuX := NewFakeUserOrBust(t, "id")
+	suArg := MakeTestSignupEngineRunArg(fuX)
+	pairX, err := libkb.GenerateNaclSigningKeyPairFromSeed(keyX)
+	require.NoError(t, err)
+	suArg.naclSigningKeyPair = pairX
+	fuX.DeviceName = suArg.DeviceName
+	SignupFakeUserWithArg(tcX, fuX, suArg)
+	require.NoError(t, AssertProvisioned(tcX))
+
+	// Bob signs up using whatever key
+	tcY := SetupEngineTest(t, "id")
+	defer tcY.Cleanup()
+	fuY := CreateAndSignupFakeUser(tcY, "id")
+	require.NoError(t, AssertProvisioned(tcY))
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tcY.G.SetClock(fakeClock)
+
+	// Bob should be able to ID Alice without any issues
+	idUI := &FakeIdentifyUI{}
+	require.NoError(t, RunEngine2(
+		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
+			LogUI:      tcY.G.UI.GetLogUI(),
+			IdentifyUI: idUI,
+		}),
+		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
+			UserAssertion:    fuX.Username,
+			ForceDisplay:     true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+		})),
+	)
+	require.False(t, idUI.BrokenTracking)
+	//require.True(t, idUI.BrokenTracking, fmt.Sprintf("%+v", idUI))
+
+	// Bob tracks Alice
+	trackUser(tcY, fuY, fuX.NormalizedUsername(), libkb.GetDefaultSigVersion(tcX.G))
+	assertTracking(tcY, fuX.Username)
+
+	// Alice gets reset and logs out
+	ResetAccount(tcX, fuX)
+
+	// Alice logs in (and provisions) again
+	eng := NewLogin(tcX.G, libkb.DeviceTypeDesktop, fuX.Username, keybase1.ClientType_CLI)
+	eng.naclSigningKeyPair = pairX
+	require.NoError(t,
+		RunEngine2(
+			NewMetaContextForTest(tcX).WithUIs(libkb.UIs{
+				ProvisionUI: newTestProvisionUI(),
+				LoginUI:     &libkb.TestLoginUI{},
+				LogUI:       tcX.G.UI.GetLogUI(),
+				SecretUI:    fuX.NewSecretUI(),
+				GPGUI:       &gpgtestui{},
+			}),
+			eng,
+		),
+	)
+	require.NoError(t, AssertProvisioned(tcX))
+
+	// Blast through the cache
+	fakeClock.Advance(libkb.Identify2CacheLongTimeout + time.Minute*2)
+
+	// Bob should see that Alice reset even though the eldest kid is the same
+	idUI = &FakeIdentifyUI{}
+	require.NoError(t, RunEngine2(
+		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
+			LogUI:      tcY.G.UI.GetLogUI(),
+			IdentifyUI: idUI,
+		}),
+		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
+			UserAssertion:    fuX.Username,
+			ForceDisplay:     true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+		})),
+	)
+	require.True(t, idUI.BrokenTracking, fmt.Sprintf("%s %+v", fuX.Username, idUI))
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
