@@ -78,7 +78,7 @@ class UnfurlGeneric extends React.Component<Props> {
           {showBottomImage && !this.props.isCollapsed && (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <UnfurlImage
-                url={this.props.imageURL || ''} // showBottomImage checks all these, this is to pass Flow.
+                url={this.props.imageURL || ''}
                 linkURL={this.props.url}
                 height={this.props.imageHeight || 0}
                 width={this.props.imageWidth || 0}

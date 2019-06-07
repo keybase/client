@@ -59,7 +59,7 @@ function maybeUpgradeSearchResultIdToKeybaseId(
 }
 
 function platformToLogo24(service: Types.Service): IconType {
-  return {
+  return ({
     Facebook: 'icon-facebook-logo-24',
     GitHub: 'icon-github-logo-24',
     'Hacker News': 'icon-hacker-news-logo-24',
@@ -67,7 +67,7 @@ function platformToLogo24(service: Types.Service): IconType {
     Pgp: 'icon-pgp-key-24',
     Reddit: 'icon-reddit-logo-24',
     Twitter: 'icon-twitter-logo-24',
-  }[service]
+  } as const)[service]
 }
 
 const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>

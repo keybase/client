@@ -28,6 +28,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   className: ownProps.className,
+  // @ts-ignore cache busting that isn't typed
   emojis: getEmojis(currentMinute()).slice(0, 5),
   onReact: emoji => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
   onReply: () => dispatchProps._onReply(ownProps.conversationIDKey, ownProps.ordinal),

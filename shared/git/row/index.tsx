@@ -264,7 +264,7 @@ const _iconCaretStyle = Styles.platformStyles({
 const _metaStyle = {
   alignSelf: 'center',
   marginLeft: 6,
-}
+} as const
 
 const _rowTopStyle = {
   ...Styles.globalStyles.flexBoxRow,

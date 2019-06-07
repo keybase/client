@@ -180,7 +180,7 @@ const commonProps = {
   ],
   selectedConversationIDKey: Constants.noConversationIDKey,
   spinnerForHide: false,
-}
+} as const
 
 const conversationProps = {
   ...commonProps,
@@ -202,7 +202,7 @@ const conversationProps = {
   selectedTab: 'attachments',
   smallTeam: false,
   teamname: null,
-}
+} as const
 
 const teamCommonProps = {
   ...commonProps,
@@ -218,7 +218,7 @@ const teamCommonProps = {
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
   selectedTab: 'settings',
   teamname: 'someteam',
-}
+} as const
 
 const smallTeamProps = {
   ...teamCommonProps,
@@ -230,7 +230,7 @@ const smallTeamProps = {
   onJoinChannel: Sb.unexpected('onJoinChannel'),
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
   smallTeam: true,
-}
+} as const
 
 const bigTeamCommonProps = {
   ...teamCommonProps,
@@ -238,7 +238,7 @@ const bigTeamCommonProps = {
   description: 'The best channel. /keybase/team/kbkbfstest.sub/best-folder',
   onEditChannel: Sb.action('onEditChannel'),
   smallTeam: false,
-}
+} as const
 
 const bigTeamPreviewProps = {
   ...bigTeamCommonProps,
@@ -249,7 +249,7 @@ const bigTeamPreviewProps = {
 
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
   smallTeam: false,
-}
+} as const
 
 const bigTeamNoPreviewProps = {
   ...bigTeamCommonProps,
@@ -264,12 +264,15 @@ const bigTeamNoPreviewProps = {
 
 const bigTeamLotsaUsersCommonProps = {
   ...bigTeamNoPreviewProps,
-  participants: new Array(100).fill(0).map((_, i) => ({
-    fullname: `Agent ${i}`,
-    isAdmin: false,
-    isOwner: false,
-    username: `agnt${i}`,
-  })),
+  participants: new Array(100).fill(0).map(
+    (_, i) =>
+      ({
+        fullname: `Agent ${i}`,
+        isAdmin: false,
+        isOwner: false,
+        username: `agnt${i}`,
+      } as const)
+  ),
 }
 
 const hideSpinnerLayout = () => (

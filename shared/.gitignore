@@ -6,7 +6,8 @@ android/.idea
 android/**/build/
 android/dist
 android/**/*.iml
-react-native/android
+android/.project
+android/.settings/**
 
 # iOS
 !default.mode1v3
@@ -30,7 +31,7 @@ build/
 project.xcworkspace
 xcuserdata
 shared
-fastlane/README.md
+ios/fastlane/README.md
 keybase.framework
 ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
 ios/AppStore_keybase.ios.mobileprovision

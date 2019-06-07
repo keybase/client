@@ -173,7 +173,7 @@ const styleInput = {
   fontSize: 13,
   fontWeight: 'normal',
   textAlign: 'left',
-}
+} as const
 
 const _styleCover = {
   alignItems: 'center',

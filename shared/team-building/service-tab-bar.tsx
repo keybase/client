@@ -25,7 +25,8 @@ type IconProps = {
   isActive: boolean
 }
 
-const HoverIcon = Styles.styled(Kb.Icon)(props => ({
+type ExtraProps = {service: ServiceIdWithContact; isActive: boolean}
+const HoverIcon = Styles.styled<typeof Kb.Icon, ExtraProps>(Kb.Icon)(props => ({
   '&:hover': {
     color: serviceIdToAccentColor(props.service),
   },

@@ -7,16 +7,8 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
-  names: Constants.getTyping(state, conversationIDKey),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-})
-
 export default connect(
-  mapStateToProps,
+  (state, {conversationIDKey}: OwnProps) => ({names: Constants.getTyping(state, conversationIDKey)}),
   () => ({}),
-  mergeProps
+  (stateProps, _, __: OwnProps) => ({...stateProps})
 )(Typing)

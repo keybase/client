@@ -7,7 +7,7 @@ import Meta from '../../meta'
 import Divider from '../../divider'
 import ScrollView from '../../scroll-view'
 import {isLargeScreen} from '../../../constants/platform'
-import {MenuItem, MenuLayoutProps} from '.'
+import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   isHeader?: boolean
@@ -50,12 +50,9 @@ const MenuRow = (props: MenuRowProps) => (
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
   render() {
-    const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
-      if (mi && mi !== 'Divider') {
-        arr.push(mi)
-      }
-      return arr
-    }, [])
+    const menuItemsNoDividers: MenuItem[] = this.props.items.filter(
+      (x): x is MenuItem => x && x !== 'Divider'
+    )
     const beginningDivider = this.props.items[0] === 'Divider'
 
     return (

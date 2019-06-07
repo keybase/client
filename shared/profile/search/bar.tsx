@@ -16,7 +16,7 @@ type State = {
 class ProfileSearch extends React.PureComponent<Props, State> {
   state = {show: false}
 
-  _ref = React.createRef()
+  _ref: React.RefObject<Kb.Box2> = React.createRef()
   _onShow = () => {
     this.setState({show: true})
     this.props.onSearch()

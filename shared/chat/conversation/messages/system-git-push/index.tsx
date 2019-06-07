@@ -25,7 +25,7 @@ const connectedUsernamesProps = {
   onUsernameClicked: 'profile',
   type: 'BodySmallSemibold',
   underline: true,
-}
+} as const
 
 const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
   return (

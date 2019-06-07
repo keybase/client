@@ -144,7 +144,7 @@ export const commonProvider = {
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
 
 const pathItemActionCommonProps = {
-  clickable: {type: 'icon'},
+  clickable: {type: 'icon'} as const,
   init: Sb.action('init'),
   onHidden: Sb.action('onHidden'),
 }

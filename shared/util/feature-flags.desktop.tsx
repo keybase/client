@@ -13,6 +13,7 @@ const ff: FeatureFlags = {
   admin: false,
   airdrop: false,
   chatIndexProfilingEnabled: false,
+  conflictResolution: false,
   dbCleanEnabled: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,

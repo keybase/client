@@ -69,6 +69,7 @@ export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
+export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
@@ -86,6 +87,8 @@ export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
+export const startManualConflictResolution = 'fs:startManualConflictResolution'
+export const tlfCrStatusChanged = 'fs:tlfCrStatusChanged'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
@@ -187,6 +190,7 @@ type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly 
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string}
 type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
+type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadKeyPayload = {readonly key: string | null}
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
@@ -204,6 +208,8 @@ type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.P
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
+type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
+type _TlfCrStatusChangedPayload = {readonly status: Types.ConflictState; readonly tlfPath: Types.Path}
 type _TlfSyncConfigLoadedPayload = {
   readonly tlfType: Types.TlfType
   readonly tlfName: string
@@ -428,6 +434,9 @@ export const createSetFolderViewFilter = (
 export const createSetIncomingShareLocalPath = (
   payload: _SetIncomingShareLocalPathPayload
 ): SetIncomingShareLocalPathPayload => ({payload, type: setIncomingShareLocalPath})
+export const createSetLastPublicBannerClosedTlf = (
+  payload: _SetLastPublicBannerClosedTlfPayload
+): SetLastPublicBannerClosedTlfPayload => ({payload, type: setLastPublicBannerClosedTlf})
 export const createSetMoveOrCopySource = (
   payload: _SetMoveOrCopySourcePayload
 ): SetMoveOrCopySourcePayload => ({payload, type: setMoveOrCopySource})
@@ -485,6 +494,13 @@ export const createShowSystemFileManagerIntegrationBanner = (
 export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayload => ({
   payload,
   type: sortSetting,
+})
+export const createStartManualConflictResolution = (
+  payload: _StartManualConflictResolutionPayload
+): StartManualConflictResolutionPayload => ({payload, type: startManualConflictResolution})
+export const createTlfCrStatusChanged = (payload: _TlfCrStatusChangedPayload): TlfCrStatusChangedPayload => ({
+  payload,
+  type: tlfCrStatusChanged,
 })
 export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
@@ -723,6 +739,10 @@ export type SetIncomingShareLocalPathPayload = {
   readonly payload: _SetIncomingShareLocalPathPayload
   readonly type: typeof setIncomingShareLocalPath
 }
+export type SetLastPublicBannerClosedTlfPayload = {
+  readonly payload: _SetLastPublicBannerClosedTlfPayload
+  readonly type: typeof setLastPublicBannerClosedTlf
+}
 export type SetMoveOrCopySourcePayload = {
   readonly payload: _SetMoveOrCopySourcePayload
   readonly type: typeof setMoveOrCopySource
@@ -785,6 +805,14 @@ export type ShowSystemFileManagerIntegrationBannerPayload = {
   readonly type: typeof showSystemFileManagerIntegrationBanner
 }
 export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: typeof sortSetting}
+export type StartManualConflictResolutionPayload = {
+  readonly payload: _StartManualConflictResolutionPayload
+  readonly type: typeof startManualConflictResolution
+}
+export type TlfCrStatusChangedPayload = {
+  readonly payload: _TlfCrStatusChangedPayload
+  readonly type: typeof tlfCrStatusChanged
+}
 export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
   readonly type: typeof tlfSyncConfigLoaded
@@ -886,6 +914,7 @@ export type Actions =
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
+  | SetLastPublicBannerClosedTlfPayload
   | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload
@@ -903,6 +932,8 @@ export type Actions =
   | ShowMoveOrCopyPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
+  | StartManualConflictResolutionPayload
+  | TlfCrStatusChangedPayload
   | TlfSyncConfigLoadedPayload
   | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload

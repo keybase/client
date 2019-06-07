@@ -1,7 +1,9 @@
 import * as React from 'react'
-import {Props, LeftActionProps} from './types'
+import {Props as HeaderHocProps, LeftActionProps} from './types'
 
-export declare class HeaderHocHeader extends React.Component<Props> {}
+export declare class HeaderHocHeader extends React.Component<HeaderHocProps> {}
 export declare class LeftAction extends React.Component<LeftActionProps> {}
-declare function HeaderHoc<P>(WrappedComponent: P): P
+declare function HeaderHoc<P extends {}>(
+  WrappedComponent: React.ComponentType<P>
+): React.ComponentType<P & HeaderHocProps>
 export default HeaderHoc

@@ -85,7 +85,7 @@ export const todoTypeToDismissable: {[K in Types.TodoType]: boolean} = {
   teamShowcase: true,
 }
 export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
-  annoncementPlaceholder: 'iconfont-delete',
+  annoncementPlaceholder: 'iconfont-close',
   avatarTeam: 'icon-onboarding-team-avatar-48',
   avatarUser: 'icon-onboarding-user-avatar-48',
   bio: 'icon-onboarding-user-info-48',
@@ -94,12 +94,12 @@ export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   folder: 'icon-onboarding-folder-48',
   follow: 'icon-onboarding-follow-48',
   gitRepo: 'icon-onboarding-git-48',
-  none: 'iconfont-delete',
+  none: 'iconfont-close',
   paperkey: 'icon-onboarding-paper-key-48',
   proof: 'icon-onboarding-proofs-48',
   team: 'icon-onboarding-team-48',
   teamShowcase: 'icon-onboarding-team-publicity-48',
-}
+} as const
 
 export const reduceRPCItemToPeopleItem = (
   list: I.List<Types.PeopleScreenItem>,

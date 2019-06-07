@@ -44,10 +44,7 @@ const Uploading = (props: UploadingProps) => (
         <Filename
           path={props.path}
           type={Constants.pathTypeToTextType(props.type)}
-          style={Styles.collapseStyles([
-            rowStyles.rowText_30,
-            {color: Constants.getPathTextColor(props.path)},
-          ])}
+          style={rowStyles.rowText_30}
         />
         {props.errorRetry ? (
           <Kb.Text type="BodySmall" style={styles.textFailed}>

@@ -85,7 +85,7 @@ export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 export enum ConflictState {
   None = 'none',
   InConflictStuck = 'in-conflict-stuck',
-  InCondlictNotStuck = 'in-conflict-not-stuck',
+  InConflictNotStuck = 'in-conflict-not-stuck',
   InManualResolution = 'in-manual-resolution',
   Finishing = 'finishing',
 }
@@ -590,6 +590,7 @@ export type _State = {
   errors: I.Map<string, FsError>
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
+  lastPublicBannerClosedTlf: string
   loadingPaths: I.Map<Path, I.Set<string>>
   localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus

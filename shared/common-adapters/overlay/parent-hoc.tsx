@@ -9,16 +9,17 @@ export type OverlayParentProps = {
   toggleShowingMenu: () => void
 }
 
-export type PropsWithOverlay<Props> = {} & Props & OverlayParentProps
+export type PropsWithOverlay<Props> = Props & OverlayParentProps
+export type PropsWithoutOverlay<Props> = Exclude<Props, OverlayParentProps>
 
 type OverlayParentState = {
   showingMenu: boolean
 }
 
-const OverlayParentHOC = <T extends OverlayParentProps>(
-  ComposedComponent: React.ComponentType<T>
-): React.ComponentType<Exclude<T, OverlayParentProps>> => {
-  class _OverlayParent extends React.Component<Exclude<T, OverlayParentProps>, OverlayParentState> {
+const OverlayParentHOC = <Props extends {}>(
+  ComposedComponent: React.ComponentType<PropsWithOverlay<Props>>
+): React.ComponentType<PropsWithoutOverlay<Props>> => {
+  class _OverlayParent extends React.Component<PropsWithoutOverlay<Props>, OverlayParentState> {
     state = {showingMenu: false}
     _ref: React.Component<any> | null = null
     setShowingMenu = (showingMenu: boolean) =>
@@ -44,7 +45,7 @@ const OverlayParentHOC = <T extends OverlayParentProps>(
       )
     }
   }
-  const OverlayParent: React.ComponentType<Exclude<T, OverlayParentProps>> = _OverlayParent
+  const OverlayParent: React.ComponentClass<PropsWithoutOverlay<Props>, OverlayParentState> = _OverlayParent
   OverlayParent.displayName = ComposedComponent.displayName || 'OverlayParent'
   return OverlayParent
 }

@@ -111,7 +111,7 @@ class Chat extends React.Component<Props, State> {
                       {wlremoved ? 'Restore' : 'Remove'}
                     </Kb.Text>
                   </Kb.Box2>
-                  <Kb.Divider fullWidth={true} />
+                  <Kb.Divider />
                 </React.Fragment>
               )
             })}

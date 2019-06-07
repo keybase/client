@@ -1,14 +1,16 @@
 import * as React from 'react'
 import PopupDialog from './popup-dialog'
 
-type HocExtractProps = {
+export type HocExtractProps = {
   onClosePopup: () => void
 }
 
-function popupDialogHoc<Config extends HocExtractProps>(
-  Component: React.ComponentType<Omit<Config, keyof HocExtractProps>>
-): React.FunctionComponent<Config & HocExtractProps> {
-  return function WrappedPopupDialog(props: Config) {
+export type WithoutPopupProps<P> = P extends HocExtractProps ? Omit<P, keyof HocExtractProps> : P
+
+function popupDialogHoc<P extends {}>(
+  Component: React.ComponentType<Omit<P, keyof HocExtractProps>>
+): React.ComponentType<P & HocExtractProps> {
+  return function WrappedPopupDialog(props: P & HocExtractProps) {
     const {onClosePopup, ...rest} = props
     return (
       <PopupDialog onClose={onClosePopup}>
