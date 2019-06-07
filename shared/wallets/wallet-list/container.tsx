@@ -1,16 +1,16 @@
-import {WalletList, Props} from '.'
+import {WalletList} from '.'
 import * as Constants from '../../constants/wallets'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
-import {connect} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {
   style: Styles.StylesCrossPlatform
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   return {
     accounts: Constants.getAccountIDs(state),
     airdropSelected: false, // TODO path === 'airdrop' || path === 'airdropQualify',
@@ -19,7 +19,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onAddNew: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -38,21 +38,19 @@ const mapDispatchToProps = dispatch => ({
   onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
-  accountIDs: stateProps.accounts.toArray(),
-  airdropSelected: stateProps.airdropSelected,
-  inAirdrop: stateProps.inAirdrop,
-  loading: stateProps.loading,
-  onAddNew: dispatchProps.onAddNew,
-  onJoinAirdrop: dispatchProps.onJoinAirdrop,
-  onLinkExisting: dispatchProps.onLinkExisting,
-  onWhatIsStellar: dispatchProps.onWhatIsStellar,
-  style: ownProps.style,
-  title: 'Wallets',
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    accountIDs: stateProps.accounts.toArray(),
+    airdropSelected: stateProps.airdropSelected,
+    inAirdrop: stateProps.inAirdrop,
+    loading: stateProps.loading,
+    onAddNew: dispatchProps.onAddNew,
+    onJoinAirdrop: dispatchProps.onJoinAirdrop,
+    onLinkExisting: dispatchProps.onLinkExisting,
+    onWhatIsStellar: dispatchProps.onWhatIsStellar,
+    style: ownProps.style,
+    title: 'Wallets',
+  })
 )(WalletList)

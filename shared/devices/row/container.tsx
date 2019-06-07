@@ -29,8 +29,7 @@ export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    aaa: 'whut',
-    // firstItem: ownProps.firstItem,
+    firstItem: ownProps.firstItem,
     isCurrentDevice: stateProps.isCurrentDevice,
     isNew: stateProps.isNew,
     isRevoked: stateProps.isRevoked,

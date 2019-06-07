@@ -157,9 +157,29 @@ export type ResolveThunks<TDispatchProps> =
  * @param mergeProps
  * @param options
  */
+
+type InferableComponentEnhancerWithProps<TInjectedProps, TNeedsProps> = <C>(
+    component: C
+  // ) => [
+  //   TInjectedProps,
+  //   GetProps<C> ,
+  //   TInjectedProps extends GetProps<C> ? '1' : '2'
+  // ]
+  ) => TInjectedProps extends GetProps<C> ? React.ComponentType<TNeedsProps> : Omit<GetProps<C>, keyof TInjectedProps>
+
 export interface Connect {
+    // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
+    // when you really didn't. If the types don't match it spits out the missing keys (omit) as a way to help you out but the error cases
+    // aren't great
+    <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
+        mapStateToProps: MapStateToProps<TStateProps, TOwnProps>,
+        mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
+        mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
+        options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+      ): <C>(component: C) => TMergedProps extends GetProps<C> ? React.ComponentType<TOwnProps> : Omit<GetProps<C>, keyof TMergedProps>
+
     // tslint:disable:no-unnecessary-generics
-    (): InferableComponentEnhancer<DispatchProp>;
+//    (): InferableComponentEnhancer<DispatchProp>;
 
     // <TStateProps = {}, no_dispatch = {}, TOwnProps = {}, State = {}>(
         // mapStateToProps: MapStateToPropsParam<TStateProps, TOwnProps, State>
@@ -209,12 +229,12 @@ export interface Connect {
         // mergeProps: MergeProps<undefined, undefined, TOwnProps, TMergedProps>,
     // ): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps>;
 
-    <TStateProps = {}, TDispatchProps = {}, TOwnProps = {}, TMergedProps = {}>(
-        mapStateToProps: MapStateToPropsParam<TStateProps, TOwnProps>,
-        mapDispatchToProps: MapDispatchToPropsParam<TDispatchProps, TOwnProps>,
-        mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
-        options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
-    ): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps>;
+    // <TStateProps = {}, TDispatchProps = {}, TOwnProps = {}, TMergedProps = {}>(
+    //     mapStateToProps: MapStateToPropsParam<TStateProps, TOwnProps>,
+    //     mapDispatchToProps: MapDispatchToPropsParam<TDispatchProps, TOwnProps>,
+    //     mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
+    //     options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+    // ): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps>;
 
     // <TStateProps = {}, no_dispatch = {}, TOwnProps = {}, State = {}>(
         // mapStateToProps: MapStateToPropsParam<TStateProps, TOwnProps, State>,

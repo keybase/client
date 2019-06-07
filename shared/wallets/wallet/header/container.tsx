@@ -1,17 +1,20 @@
-import {connect, isMobile} from '../../../util/container'
+import * as Container from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import Header from '.'
 
-const otherUnreadPayments = memoize((map, accID) => !!map.delete(accID).some(Boolean))
+const otherUnreadPayments = memoize(
+  (map: Container.TypedState['wallets']['unreadPaymentsMap'], accID: Types.AccountID) =>
+    !!map.delete(accID).some(Boolean)
+)
 
 type OwnProps = {
   onBack: () => void
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   const accountID = Constants.getSelectedAccount(state)
   const selectedAccount = Constants.getAccount(state, accountID)
   return {
@@ -24,7 +27,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onReceive: (accountID: Types.AccountID) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -38,14 +41,12 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  onBack: isMobile ? ownProps.onBack : null,
-  onReceive: () => dispatchProps._onReceive(stateProps.accountID),
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    ...stateProps,
+    onBack: Container.isMobile ? ownProps.onBack : null,
+    onReceive: () => dispatchProps._onReceive(stateProps.accountID),
+  })
 )(Header)
