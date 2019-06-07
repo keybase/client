@@ -1,6 +1,7 @@
 import {namedConnect, RouteProps} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -9,7 +10,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onCancel: () => dispatch(ownProps.navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
 
