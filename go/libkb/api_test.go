@@ -42,13 +42,13 @@ func TestProductionCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	serverUri, err := tc.G.Env.GetServerURI()
+	serverURI, err := tc.G.Env.GetServerURI()
 	if err != nil {
 		t.Fatalf("Failed to retrieve the server uri!")
 	}
 
-	if serverUri != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", serverUri, uriExpected)
+	if serverURI != uriExpected {
+		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
 	}
 
 	tc.G.ConfigureAPI()
@@ -83,13 +83,13 @@ func TestProductionBadCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	serverUri, err := tc.G.Env.GetServerURI()
+	serverURI, err := tc.G.Env.GetServerURI()
 	if err != nil {
 		t.Fatalf("Failed to retrieve the server URI!")
 	}
 
-	if serverUri != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", serverUri, uriExpected)
+	if serverURI != uriExpected {
+		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
 	}
 
 	// change the api CA to one that api.keybase.io doesn't know:

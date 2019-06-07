@@ -550,35 +550,35 @@ func (e *Env) GetServerURI() (string, error) {
 		return server, nil
 	}
 
-	serverUri := e.GetString(
+	serverURI := e.GetString(
 		func() string {
-			serverUri, err := e.cmd.GetServerURI()
+			serverURI, err := e.cmd.GetServerURI()
 			if err != nil {
 				return ""
 			}
-			return serverUri
+			return serverURI
 		},
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string {
-			serverUri, err := e.GetConfig().GetServerURI()
+			serverURI, err := e.GetConfig().GetServerURI()
 			if err != nil {
 				return ""
 			}
-			return serverUri
+			return serverURI
 		},
 		func() string {
-			serverUri, err := ServerLookup(e, e.GetRunMode())
+			serverURI, err := ServerLookup(e, e.GetRunMode())
 			if err != nil {
 				return ""
 			}
-			return serverUri
+			return serverURI
 		},
 	)
 
-	if serverUri == "" {
+	if serverURI == "" {
 		return "", fmt.Errorf("Env failed to read a server URI from any source!")
 	}
-	return serverUri, nil
+	return serverURI, nil
 }
 
 func (e *Env) GetUseRootConfigFile() bool {

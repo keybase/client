@@ -94,12 +94,12 @@ func NewCmdAPICall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 func (c *CmdAPICall) Run() error {
 	if c.parsedHost != "" {
-		serverUri, err := c.G().Env.GetServerURI()
+		serverURI, err := c.G().Env.GetServerURI()
 		if err != nil {
 			return err
 		}
 
-		if !strings.EqualFold(c.parsedHost, serverUri) {
+		if !strings.EqualFold(c.parsedHost, serverURI) {
 			return fmt.Errorf("Unexpected host in URL mode: %s. This only works for Keybase API.", c.parsedHost)
 		}
 		c.G().Log.Info("Parsed URL as endpoint: %q, args: %+v", c.endpoint, c.args)

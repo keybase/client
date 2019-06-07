@@ -127,12 +127,12 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 }
 
 func GetConfig(mctx libkb.MetaContext, forkType keybase1.ForkType) (c keybase1.Config, err error) {
-	serverUri, err := mctx.G().Env.GetServerURI()
+	serverURI, err := mctx.G().Env.GetServerURI()
 	if err != nil {
 		return c, err
 	}
 
-	c.ServerURI = serverUri
+	c.ServerURI = serverURI
 	c.RunMode = string(mctx.G().Env.GetRunMode())
 	c.SocketFile, err = mctx.G().Env.GetSocketBindFile()
 	if err != nil {
