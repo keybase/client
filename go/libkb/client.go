@@ -197,8 +197,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 
 	err := EnableProxy(env.GetProxyType(), env.GetProxy())
 	if err != nil {
-		// We failed to set an environment variable, something is very wrong
-		panic(err)
+		// TODO
 	}
 
 	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {
@@ -235,4 +234,23 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 	}
 	ret.cli.Transport = &xprt
 	return ret
+}
+
+func ServerLookup(env *Env, mode RunMode) (string, error) {
+	if mode == DevelRunMode {
+		return DevelServerURI, nil
+	}
+	if mode == StagingRunMode {
+		return StagingServerURI, nil
+	}
+	if mode == ProductionRunMode {
+		if env.IsCertPinningEnabled() {
+			// In order to disable SSL pinning we switch to doing requests against keybase.io which has a TLS
+			// cert signed by a publicly trusted CA (compared to api-0.keybaseapi.com which has a non-trusted but
+			// pinned certificate
+			return ProductionServerURI, nil
+		}
+		return ProductionSiteURI, nil
+	}
+	return "", fmt.Errorf("Did not find a server to use with the current RunMode!")
 }

@@ -44,16 +44,16 @@ func (nc MockedConfigReader) GetProxy() string {
 	return globalProxyAddress
 }
 
-var globalIsSSLPinningEnabled = true
-func (nc MockedConfigReader) IsSSLPinningEnabled() bool {
-	return globalIsSSLPinningEnabled
+var globalIsCertPinningEnabled = true
+func (nc MockedConfigReader) IsCertPinningEnabled() bool {
+	return globalIsCertPinningEnabled
 }
 
 func resetGlobals() {
 	globalTorMode = TorNone
 	globalProxyType = ""
 	globalProxyAddress = ""
-	globalIsSSLPinningEnabled = true
+	globalIsCertPinningEnabled = true
 }
 
 func TestTorMode(t *testing.T) {
@@ -63,21 +63,21 @@ func TestTorMode(t *testing.T) {
 	mocked_env := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
 
 	// Test that when tor mode is enabled, a socks proxy is properly configured
-	require.Equal(t, No_Proxy, mocked_env.GetProxyType())
+	require.Equal(t, noProxy, mocked_env.GetProxyType())
 	require.Equal(t, "", mocked_env.GetProxy())
 
 	globalTorMode = TorLeaky
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 	require.Equal(t, "localhost:9050", mocked_env.GetProxy())
 
 	globalTorMode = TorStrict
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 	require.Equal(t, "localhost:9050", mocked_env.GetProxy())
 
 	// Test that tor mode overrides proxy settings
 	globalProxyType = "http"
 	globalProxyAddress = "localhost:8080"
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 	require.Equal(t, "localhost:9050", mocked_env.GetProxy())
 }
 
@@ -86,33 +86,33 @@ func TestGetProxyType(t *testing.T) {
 	os.Clearenv()
 
 	default_env := NewEnv(nil, nil, makeLogGetter(t))
-	require.Equal(t, No_Proxy, default_env.GetProxyType())
+	require.Equal(t, noProxy, default_env.GetProxyType())
 
 	mocked_env := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
-	require.Equal(t, No_Proxy, mocked_env.GetProxyType())
+	require.Equal(t, noProxy, mocked_env.GetProxyType())
 
 	globalProxyType = "socks"
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 	globalProxyType = "SOCKS"
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 	globalProxyType = "SoCkS"
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 
 	globalProxyType = "http_connect"
-	require.Equal(t, HTTP_Connect, mocked_env.GetProxyType())
+	require.Equal(t, httpConnect, mocked_env.GetProxyType())
 	globalProxyType = "HTTP_CONNECT"
-	require.Equal(t, HTTP_Connect, mocked_env.GetProxyType())
+	require.Equal(t, httpConnect, mocked_env.GetProxyType())
 
 	globalProxyType = "BOGUS"
-	require.Equal(t, No_Proxy, mocked_env.GetProxyType())
+	require.Equal(t, noProxy, mocked_env.GetProxyType())
 
 	resetGlobals()
-	require.Equal(t, No_Proxy, mocked_env.GetProxyType())
+	require.Equal(t, noProxy, mocked_env.GetProxyType())
 
 	os.Setenv("PROXY_TYPE", "socks")
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, socks, mocked_env.GetProxyType())
 	os.Setenv("PROXY_TYPE", "http_connect")
-	require.Equal(t, HTTP_Connect, mocked_env.GetProxyType())
+	require.Equal(t, httpConnect, mocked_env.GetProxyType())
 }
 
 func TestGetProxy(t *testing.T) {
@@ -144,26 +144,26 @@ func TestGetProxy(t *testing.T) {
 	os.Clearenv()
 }
 
-func TestIsSSLPinningEnabled(t *testing.T) {
+func TestIsCertPinningEnabled(t *testing.T) {
 	resetGlobals()
 	os.Clearenv()
 
 	default_env := NewEnv(nil, nil, makeLogGetter(t))
-	require.Equal(t, true, default_env.IsSSLPinningEnabled())
+	require.Equal(t, true, default_env.IsCertPinningEnabled())
 
 	mocked_env := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
-	require.Equal(t, true, mocked_env.IsSSLPinningEnabled())
+	require.Equal(t, true, mocked_env.IsCertPinningEnabled())
 
-	globalIsSSLPinningEnabled = false
-	require.Equal(t, false, mocked_env.IsSSLPinningEnabled())
+	globalIsCertPinningEnabled = false
+	require.Equal(t, false, mocked_env.IsCertPinningEnabled())
 
-	globalIsSSLPinningEnabled = true
-	require.Equal(t, true, mocked_env.IsSSLPinningEnabled())
+	globalIsCertPinningEnabled = true
+	require.Equal(t, true, mocked_env.IsCertPinningEnabled())
 
 	os.Setenv("DISABLE_SSL_PINNING", "true")
-	require.Equal(t, false, mocked_env.IsSSLPinningEnabled())
+	require.Equal(t, false, mocked_env.IsCertPinningEnabled())
 	os.Setenv("DISABLE_SSL_PINNING", "no")
-	require.Equal(t, true, mocked_env.IsSSLPinningEnabled())
+	require.Equal(t, true, mocked_env.IsCertPinningEnabled())
 	os.Clearenv()
-	require.Equal(t, true, mocked_env.IsSSLPinningEnabled())
+	require.Equal(t, true, mocked_env.IsCertPinningEnabled())
 }

@@ -40,7 +40,7 @@ func (n NullConfiguration) GetEmail() string                                    
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetProxyType() string                                           { return "" }
-func (n NullConfiguration) IsSSLPinningEnabled() bool                                      { return true }
+func (n NullConfiguration) IsCertPinningEnabled() bool                                      { return true }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
 func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)                      { return 0, false }
@@ -557,11 +557,11 @@ func (e *Env) GetServerURI() string {
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.GetConfig().GetServerURI() },
 		func() string {
-			server, e := ServerLookup(e, e.GetRunMode())
-			if e != nil {
+			server, err := ServerLookup(e, e.GetRunMode())
+			if err != nil {
 				// ServerLookup only returns an error if the RunMode is bogus. Panic since there is no
 				// way to get a URL in this case
-				panic(e)
+				panic(err)
 			}
 			return server
 		},
@@ -1055,7 +1055,7 @@ func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
 func (e *Env) GetProxyType() ProxyType {
 	if e.GetTorMode() != TorNone {
 		// Tor mode is enabled. Tor mode is implemented via a socks proxy
-		return Socks
+		return socks
 	}
 	var proxyTypeStr = e.GetString(
 		func() string { return e.cmd.GetProxyType() },
@@ -1067,7 +1067,7 @@ func (e *Env) GetProxyType() ProxyType {
 		return proxyType
 	}
 	// If they give us a bogus proxy type we just don't enable a proxy
-	return No_Proxy
+	return noProxy
 }
 
 // Get the address (optionally including a port) of the currently configured proxy. Returns an empty string if no proxy
@@ -1091,16 +1091,16 @@ func (e *Env) GetProxy() string {
 	)
 }
 
-func (e *Env) IsSSLPinningEnabled() bool {
+func (e *Env) IsCertPinningEnabled() bool {
 	// SSL Pinning is enabled if none of the config options say it is disabled
-	if !e.cmd.IsSSLPinningEnabled() {
+	if !e.cmd.IsCertPinningEnabled() {
 		return false
 	}
 	res, isSet := e.getEnvBool("DISABLE_SSL_PINNING")
 	if isSet && res {
 		return false
 	}
-	if !e.GetConfig().IsSSLPinningEnabled() {
+	if !e.GetConfig().IsCertPinningEnabled() {
 		return false
 	}
 	return true

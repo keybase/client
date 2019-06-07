@@ -384,8 +384,8 @@ func (p CommandLine) GetProxyType() string {
 	return p.GetGString("proxy-type")
 }
 
-func (p CommandLine) IsSSLPinningEnabled() bool {
-	r1, _ := p.GetBool("disable-ssl-pinning", true)
+func (p CommandLine) IsCertPinningEnabled() bool {
+	r1, _ := p.GetBool("disable-cert-pinning", true)
 	// Defaults to false since it is a boolean flag, so just invert it
 	return !r1
 }
@@ -554,9 +554,9 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Enable debugging mode.",
 		},
 		cli.BoolFlag{
-			Name:  "disable-ssl-pinning",
-			Usage: "Disable SSL pinning within the app. WARNING: This reduces the security of the app. Do not use " +
-				"unless necessary!",
+			Name:  "disable-cert-pinning",
+			Usage: "Disable certificate pinning within the app. WARNING: This reduces the security of the app. Do not use " +
+				"unless necessary! This should only be used if you are running keybase behind a proxy that does TLS interception.",
 		},
 		cli.BoolFlag{
 			Name:  "display-raw-untrusted-output",
@@ -632,19 +632,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "proxy-type",
-			Usage: fmt.Sprintf("set the proxy type; One of: %s", func() string {
-				// This function retrieves the list of valid proxy types from the dict that tracks them
-				proxyTypes := ""
-				for k := range libkb.ProxyTypeStrToEnum {
-					if proxyTypes != "" {
-						// Add a comma only if it is a non-empty string so that we don't get ", SOCKS, HTTP_Connect"
-						// or "SOCKS, HTTP_Connect, "
-						proxyTypes += ", "
-					}
-					proxyTypes += k
-				}
-				return proxyTypes
-			}()),
+			Usage: fmt.Sprintf("set the proxy type; One of: %s", libkb.GetCommaSeparatedListOfProxyTypes()),
 		},
 		cli.BoolFlag{
 			Name:  "push-disabled",

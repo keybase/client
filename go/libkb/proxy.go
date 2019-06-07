@@ -42,28 +42,39 @@ the client and the Keybase servers.
 
 package libkb
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 // Represents the different types of supported proxies
 type ProxyType int
 const (
-	No_Proxy ProxyType = iota
-	Socks
-	HTTP_Connect
+	noProxy ProxyType = iota
+	socks
+	httpConnect
 )
 // Maps a string to an enum. Used to list the different types of supported proxies and to convert
 // config options into the enum
-var ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HTTP_Connect}
+var ProxyTypeStrToEnum = map[string]ProxyType{"socks": socks, "http_connect": httpConnect}
+
+func GetCommaSeparatedListOfProxyTypes() string {
+	var proxyTypes []string
+	for k := range ProxyTypeStrToEnum {
+		proxyTypes = append(proxyTypes, k)
+	}
+	return strings.Join(proxyTypes, ",")
+}
 
 // Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
 func EnableProxy(proxyType ProxyType, proxyAddress string) error {
-	if proxyType == No_Proxy {
+	if proxyType == noProxy {
 		// No proxy so nothing to do
 		return nil
 	}
 
 	realProxyAddress := ""
-	if proxyType == Socks {
+	if proxyType == socks {
 		realProxyAddress = "socks5://" + proxyAddress
 	} else {
 		realProxyAddress = proxyAddress
