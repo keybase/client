@@ -8,9 +8,13 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isDarwin, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {sendToMainWindow} from '../remote/util.desktop'
+import * as ConfigGen from '../../actions/config-gen'
+import logger from '../../logger'
 
 let mainWindow = null
+let startupURL = null
 
 const installCrashReporter = () => {
   if (process.env.KEYBASE_CRASH_REPORT) {
@@ -56,7 +60,7 @@ const appShouldDieOnStartup = () => {
   return false
 }
 
-const focusSelfOnAnotherInstanceLaunching = () => {
+const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   if (!mainWindow) {
     return
   }
@@ -64,6 +68,12 @@ const focusSelfOnAnotherInstanceLaunching = () => {
   mainWindow.show()
   if (isWindows) {
     mainWindow.window && mainWindow.window.focus()
+  }
+
+  // The new instance might be due to a deeplink launch.
+  logger.info('Launched with deeplink', commandLine)
+  if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
+    sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
   }
 }
 
@@ -139,6 +149,18 @@ const createMainWindow = () => {
   SafeElectron.getIpcMain().on('remoteWindowWantsProps', (_, windowComponent, windowParam) => {
     mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
   })
+
+  SafeElectron.getIpcMain().on('launchStartupURLIfPresent', () => {
+    if (startupURL) {
+      // Mac calls open-url for a launch URL before redux is up, so we
+      // stash a startupURL to be dispatched when we're ready for it.
+      sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
+      startupURL = null
+    } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('web+stellar:')) {
+      // Windows and Linux instead store a launch URL in argv.
+      sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
+    }
+  })
 }
 
 const handleInstallCheck = (event, arg) => {
@@ -174,6 +196,16 @@ const handleQuitting = event => {
   executeActionsForContext('beforeQuit')
 }
 
+const willFinishLaunching = () => {
+  SafeElectron.getApp().on('open-url', (event, link) => {
+    event.preventDefault()
+    if (!startupURL && link) {
+      startupURL = link
+    }
+    sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
+  })
+}
+
 const start = () => {
   handleCrashes()
   installCrashReporter()
@@ -185,7 +217,7 @@ const start = () => {
 
   console.log('Version:', SafeElectron.getApp().getVersion())
 
-  // Foreground if another instance tries to launch
+  // Foreground if another instance tries to launch, look for SEP7 link
   SafeElectron.getApp().on('second-instance', focusSelfOnAnotherInstanceLaunching)
 
   fixWindowsNotifications()
@@ -195,6 +227,7 @@ const start = () => {
   // Load menubar and get its browser window id so we can tell the main window
   setupMenubar()
 
+  SafeElectron.getApp().once('will-finish-launching', willFinishLaunching)
   SafeElectron.getApp().once('ready', createMainWindow)
   SafeElectron.getIpcMain().on('install-check', handleInstallCheck)
   SafeElectron.getIpcMain().on('kb-service-check', handleKBServiceCheck)

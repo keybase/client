@@ -88,6 +88,9 @@ function setupApp(store, runSagas) {
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
+
+  // Check for a startup URL
+  SafeElectron.getIpcRenderer().send('launchStartupURLIfPresent')
 }
 
 const FontLoader = () => (
