@@ -162,11 +162,11 @@ type GenerateKeyRotationParams struct {
 	Check            keybase1.PerTeamSeedCheck
 }
 
-func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, err error) {
+func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
 
-	s3, err := generateKeyRotationSig3(mctx, p)
+	s3, ratchet, err := generateKeyRotationSig3(mctx, p)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	sigMultiItem := &libkb.SigMultiItem{
@@ -185,10 +185,10 @@ func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (r
 		},
 	}
 
-	return sigMultiItem, nil
+	return sigMultiItem, ratchet, nil
 }
 
-func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, err error) {
+func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
 
 	outer := sig3.OuterLink{}
 	if p.HiddenPrev != nil {
@@ -196,25 +196,26 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 		if !p.HiddenPrev.LinkID.IsNil() {
 			tmp, err := sig3.ImportLinkID(p.HiddenPrev.LinkID)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			outer.Prev = tmp
 		}
 	}
 	tmp, err := sig3.ImportTail(p.MainPrev)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	rsq := p.MerkleRoot.Seqno()
 	if rsq == nil {
-		return nil, fmt.Errorf("cannot work with a nil merkle root seqno")
+		return nil, nil, fmt.Errorf("cannot work with a nil merkle root seqno")
 	}
 	teamIDimport, err := sig3.ImportTeamID(p.TeamID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	now := keybase1.ToTime(mctx.G().Clock().Now())
 	inner := sig3.InnerLink{
-		Ctime: keybase1.ToTime(mctx.G().Clock().Now()),
+		Ctime: now,
 		ClientInfo: &sig3.ClientInfo{
 			Desc:    libkb.GoClientID,
 			Version: libkb.Version,
@@ -238,7 +239,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	}
 	checkPostImage, err := p.Check.Hash()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	rkb := sig3.RotateKeyBody{
 		PTKs: []sig3.PerTeamKey{
@@ -267,20 +268,34 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	rk := sig3.NewRotateKey(outer, inner, rkb)
 	outerKeyPair, err := keyPair(p.SigningKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	innerKeyPair, err := keyPair(p.NewSigningKey)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	sig, err := rk.Sign(*outerKeyPair, []sig3.KeyPair{*innerKeyPair})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	bun, err := sig.Export()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &bun, nil
+	outerHash, err := outer.Hash()
+	if err != nil {
+		return nil, nil, err
+	}
+	ratchet = &keybase1.HiddenTeamChainRatchet{
+		Self: &keybase1.LinkTripleAndTime{
+			Triple: keybase1.LinkTriple{
+				Seqno:   outer.Seqno,
+				SeqType: sig3.ChainTypeTeamPrivateHidden,
+				LinkID:  outerHash.Export(),
+			},
+			Time: now,
+		},
+	}
+	return &bun, ratchet, nil
 }

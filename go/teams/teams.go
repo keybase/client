@@ -553,7 +553,7 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	mctx := libkb.NewMetaContext(ctx, t.G())
 
 	// Generate a "sig multi item" that we POST up to the API endpoint
-	smi, err := t.rotateHiddenGenerateSigMultiItem(mctx, section, mr)
+	smi, ratchet, err := t.rotateHiddenGenerateSigMultiItem(mctx, section, mr)
 	if err != nil {
 		return err
 	}
@@ -567,10 +567,17 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		return err
 	}
 
+	// Inform local caching that we've ratcheted forward the hidden chain with a change
+	// that we made.
+	tmp := mctx.G().GetHiddenTeamChainManager().Ratchet(mctx, t.ID, *ratchet)
+	if tmp != nil {
+		mctx.Warning("Failed to ratchet forward team chain: %s", tmp.Error())
+	}
+
 	return err
 }
 
-func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, err error) {
+func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
 
 	currentSeqno := t.CurrentSeqno()
 	lastLinkID := t.chain().GetLatestLinkID()
@@ -583,28 +590,28 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 
 	me, err := loadMeForSignatures(mctx.Ctx(), mctx.G())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	hiddenPrev, err := t.G().GetHiddenTeamChainManager().Tail(mctx, t.ID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	sk, err := t.keyManager.SigningKey()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ek, err := t.keyManager.EncryptionKey()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	ret, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
+	ret, ratchet, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
 		TeamID:           t.ID,
 		IsPublic:         t.IsPublic(),
 		IsImplicit:       t.IsImplicit(),
@@ -619,7 +626,7 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		Check:            t.keyManager.Check(),
 	})
 
-	return ret, err
+	return ret, ratchet, err
 }
 
 func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
