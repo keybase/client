@@ -36,7 +36,7 @@ const EnterUsername = (props: Props) => {
       }
       buttons={[
         {
-          disabled: !username,
+          disabled: !username || username === props.usernameTaken,
           label: 'Continue',
           onClick: onContinue,
           type: 'Success',

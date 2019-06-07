@@ -28,6 +28,7 @@ const ConnectedEnterUsername = Container.connect(mapStateToProps, mapDispatchToP
 
 // @ts-ignore fix this
 ConnectedEnterUsername.navigationOptions = {
+  header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (
