@@ -1075,6 +1075,10 @@ func (e *Env) GetProxyType() ProxyType {
 		func() string { return os.Getenv("PROXY_TYPE") },
 		func() string { return e.GetConfig().GetProxyType() },
 	)
+	return ProxyTypeStrToEnumFunc(proxyTypeStr)
+}
+
+func ProxyTypeStrToEnumFunc(proxyTypeStr string) ProxyType {
 	proxyType, ok := ProxyTypeStrToEnum[strings.ToLower(proxyTypeStr)]
 	if ok {
 		return proxyType

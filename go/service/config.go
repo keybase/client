@@ -365,11 +365,11 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 	return raw.Res, nil
 }
 
-func (h ConfigHandler) GetProxyData(ctx context.Context, arg keybase1.GetProxyDataArg) (res keybase1.ProxyData, err error) {
-	env := h.G().Env
-	proxyAddress := env.GetProxy()
-	proxyType := env.GetProxyType()
-	certPinning := env.IsSSLPinningEnabled()
+func (h ConfigHandler) GetProxyData(ctx context.Context) (keybase1.ProxyData, error) {
+	config := h.G().Env.GetConfig()
+	proxyAddress := config.GetProxy()
+	proxyType := libkb.ProxyTypeStrToEnumFunc(config.GetProxyType())
+	certPinning := config.IsSSLPinningEnabled()
 
 	var convertedProxyType keybase1.ProxyType
 	if proxyType == libkb.No_Proxy {
@@ -379,8 +379,14 @@ func (h ConfigHandler) GetProxyData(ctx context.Context, arg keybase1.GetProxyDa
 	} else if proxyType == libkb.Socks {
 		convertedProxyType = keybase1.ProxyType_Socks
 	} else {
-		return keybase1.ProxyData{nil, nil, nil}, fmt.Errorf("Failed to convert proxy type %s into a protocol compatible proxy type!", proxyType)
+		return keybase1.ProxyData{"", keybase1.ProxyType_No_Proxy, true},
+			fmt.Errorf("Failed to convert proxy type %s into a protocol compatible proxy type!", proxyType)
 	}
 
 	return keybase1.ProxyData{proxyAddress, convertedProxyType, certPinning}, nil
+}
+
+func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData) error {
+	// TODO
+	return nil
 }

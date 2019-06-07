@@ -7,6 +7,7 @@ import flags from '../../util/feature-flags'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
+import * as rpc from "../../constants/types/rpc-gen";
 
 type Props = {
   openAtLogin: boolean
@@ -209,16 +210,16 @@ class Developer extends React.Component<Props, State> {
   }
 }
 
-enum ProxyType {
-  Socks5 = "Socks5",
-  HTTP_Connect = "HTTP_Connect",
-  No_Proxy = "No_Proxy",
+const ProxyTypeToDisplayName = {
+  "noProxy": "No Proxy",
+  "httpConnect": "HTTP Connect",
+  "socks": "Socks5"
 }
 
 type ProxyState = {
   address: string
   port: string
-  proxyType: ProxyType
+  proxyType: string
   certPinning: boolean
   edited: boolean
 }
@@ -231,9 +232,32 @@ class ProxySettings extends React.Component<Props, ProxyState> {
       // TODO: How does this work once the data is actually persisted?
       address: "",
       port: "",
-      proxyType: ProxyType.No_Proxy,
+      proxyType: ProxyTypeToDisplayName["noProxy"],
       certPinning: true,
       edited: false,
+    }
+
+    RPCTypes.configGetProxyDataRpcPromise()
+        .then(this.handleProxyData(this.setState))
+        .catch(e => alert("TODOOOOOO WHY HAPPEN???" + e))
+
+  }
+
+  handleProxyData(setState: any) {
+    return (data: rpc.ProxyData) => {
+      var addressPort = data.addressWithPort.split(":")
+      var address = addressPort[0]
+      if (addressPort.length >= 2) {
+        var port = addressPort[1]
+      } else {
+        var port = "80"
+      }
+
+      var certPinning = data.certPinning
+
+      var proxyType = ProxyTypeToDisplayName[rpc.ProxyType[data.proxyType]]
+
+      this.setState({address, port, certPinning, proxyType, edited: false})
     }
   }
 
@@ -247,8 +271,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     this.setState({port, edited})
   }
 
-  setProxyType(proxyTypeStr: string) {
-    var proxyType = ProxyType[proxyTypeStr]
+  setProxyType(proxyType: string) {
     var edited = (proxyType !== this.state.proxyType) || this.state.edited
     this.setState({proxyType, edited})
   }
@@ -271,7 +294,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
         </Kb.Text>
         <Kb.Box>
           {
-            Object.keys(ProxyType).map(proxyType => 
+            Object.values(ProxyTypeToDisplayName).map(proxyType =>
               <Kb.Button 
                 style={{margin: Styles.globalMargins.tiny}} 
                 onClick={() => this.setProxyType(proxyType)}
