@@ -429,7 +429,7 @@ func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 }
 
 func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
-	conn := a.s3c.New(signer, region)
+	conn := a.s3c.New(signer, region, a.env)
 	conn.SetAccessKey(accessKey)
 	return conn
 }

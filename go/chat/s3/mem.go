@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"sort"
@@ -20,7 +21,7 @@ type Mem struct {
 
 var _ Root = &Mem{}
 
-func (m *Mem) New(signer Signer, region Region) Connection {
+func (m *Mem) New(signer Signer, region Region, env *libkb.Env) Connection {
 	return m.NewMemConn()
 }
 

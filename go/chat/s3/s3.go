@@ -17,6 +17,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"log"
@@ -84,6 +85,8 @@ type S3 struct {
 
 	// client used for requests
 	client *http.Client
+
+	env *libkb.Env
 }
 
 // The Bucket type encapsulates operations with an S3 bucket.
@@ -133,7 +136,7 @@ var DefaultAttemptStrategy = AttemptStrategy{
 }
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
-func New(signer Signer, region Region, client ...*http.Client) *S3 {
+func New(signer Signer, region Region, env *libkb.Env, client ...*http.Client) *S3 {
 
 	var httpclient *http.Client
 
@@ -146,6 +149,7 @@ func New(signer Signer, region Region, client ...*http.Client) *S3 {
 		Region:          region,
 		AttemptStrategy: DefaultAttemptStrategy,
 		client:          httpclient,
+		env:             env,
 	}
 }
 
@@ -974,7 +978,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
-				//Proxy: libkb.MakeProxy(ctx.)
+				//Proxy: libkb.MakeProxy(s3.env.GetProxyType(), s3.env.GetProxy()),
 			},
 		}
 	}

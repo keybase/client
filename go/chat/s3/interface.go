@@ -1,13 +1,14 @@
 package s3
 
 import (
+	"github.com/keybase/client/go/libkb"
 	"io"
 
 	"golang.org/x/net/context"
 )
 
 type Root interface {
-	New(signer Signer, region Region) Connection
+	New(signer Signer, region Region, env *libkb.Env) Connection
 }
 
 type Connection interface {
