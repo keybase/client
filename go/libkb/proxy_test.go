@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	"os"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,22 +20,21 @@ func TestProxyTypeStrToEnum(t *testing.T) {
 	require.Equal(t, false, ok)
 }
 
-func TestEnableProxy(t *testing.T) {
-	require.Equal(t, "", os.Getenv("HTTP_PROXY"))
-	require.Equal(t, "", os.Getenv("HTTPS_PROXY"))
+func TestMakeProxy(t *testing.T) {
+	f := MakeProxy(noProxy, "localhost:8090")
+	retUrl, err := f(nil)
 
-	e := EnableProxy(noProxy, "localhost:8090")
-	require.Equal(t, nil, e)
-	require.Equal(t, "", os.Getenv("HTTP_PROXY"))
-	require.Equal(t, "", os.Getenv("HTTPS_PROXY"))
+	// A nil retUrl means no proxy
+	require.Equal(t, (*url.URL)(nil), retUrl)
+	require.Equal(t, nil, err)
 
-	e = EnableProxy(socks, "localhost:8090")
-	require.Equal(t, nil, e)
-	require.Equal(t, "socks5://localhost:8090", os.Getenv("HTTP_PROXY"))
-	require.Equal(t, "socks5://localhost:8090", os.Getenv("HTTPS_PROXY"))
+	f = MakeProxy(socks, "localhost:8090")
+	retUrl, err = f(nil)
+	require.Equal(t, nil, err)
+	require.Equal(t, "socks5://localhost:8090", retUrl.String())
 
-	e = EnableProxy(httpConnect, "localhost:8090")
-	require.Equal(t, nil, e)
-	require.Equal(t, "localhost:8090", os.Getenv("HTTP_PROXY"))
-	require.Equal(t, "localhost:8090", os.Getenv("HTTPS_PROXY"))
+	f = MakeProxy(httpConnect, "localhost:8090")
+	retUrl, err = f(nil)
+	require.Equal(t, nil, err)
+	require.Equal(t, "localhost:8090", retUrl.String())
 }

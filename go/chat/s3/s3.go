@@ -978,7 +978,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
-				//Proxy: libkb.MakeProxy(s3.env.GetProxyType(), s3.env.GetProxy()),
+				Proxy: libkb.MakeProxy(s3.env.GetProxyType(), s3.env.GetProxy()),
 			},
 		}
 	}
