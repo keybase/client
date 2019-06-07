@@ -32,7 +32,6 @@ import io.keybase.ossifrage.modules.IntentHandler;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
-import io.keybase.ossifrage.util.MobileOSVersion;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -80,8 +79,9 @@ public class MainActivity extends ReactFragmentActivity {
         }
 
         createDummyFile();
+        String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
         initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper(), MobileOSVersion.Get());
+                new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
 
         super.onCreate(null);
 
