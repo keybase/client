@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/logger"
@@ -15,13 +16,15 @@ type Scraper struct {
 	utils.DebugLabeler
 	cache      *unfurlCache
 	giphyProxy bool
+	libkb.Contextified
 }
 
-func NewScraper(logger logger.Logger) *Scraper {
+func NewScraper(g *libkb.GlobalContext, logger logger.Logger) *Scraper {
 	return &Scraper{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
 		cache:        newUnfurlCache(),
 		giphyProxy:   true,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
