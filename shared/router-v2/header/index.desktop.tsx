@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
+import {BrowserWindow} from '../../util/safe-electron.desktop'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 import AppState from '../../app/app-state.desktop'
@@ -28,27 +29,27 @@ const PlainTitle = ({title}) => (
 const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
-      className="hover_background_color_greyLight"
+      className="hover_background_color_black_05  color_black_50 hover_color_black"
       onClick={Window.minimizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
-        color={Styles.globalColors.black_50}
+        inheritColor={true}
         onClick={Window.minimizeWindow}
         style={styles.appIcon}
         type="iconfont-app-minimize"
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
-      className="hover_background_color_greyLight"
+      className="hover_background_color_black_05 color_black_50 hover_color_black"
       onClick={Window.toggleMaximizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
-        color={Styles.globalColors.black_50}
+        inheritColor={true}
         onClick={Window.toggleMaximizeWindow}
         style={styles.appIcon}
-        type="iconfont-app-maximize"
+        type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
@@ -67,6 +68,29 @@ const SystemButtons = () => (
 )
 
 class Header extends React.PureComponent<Props> {
+  componentDidMount() {
+    this._registerWindowEvents()
+  }
+  componentWillUnmount() {
+    this._unregisterWindowEvents()
+  }
+  _refreshWindowIcons = () => this.forceUpdate()
+  // We need to forceUpdate when maximizing and unmaximizing the window to update the
+  // app icon on Windows and Linux.
+  _registerWindowEvents() {
+    if (Platform.isDarwin) return
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    win.on('maximize', this._refreshWindowIcons)
+    win.on('unmaximize', this._refreshWindowIcons)
+  }
+  _unregisterWindowEvents() {
+    if (Platform.isDarwin) return
+    const win = BrowserWindow.getFocusedWindow()
+    if (!win) return
+    win.removeListener('maximize', this._refreshWindowIcons)
+    win.removeListener('unmaximize', this._refreshWindowIcons)
+  }
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -191,7 +215,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.windowDraggingClickable,
       padding: Styles.globalMargins.tiny,
       position: 'relative',
-      right: -Styles.globalMargins.xsmall,
+      right: -Styles.globalMargins.tiny,
       top: -Styles.globalMargins.xtiny,
     },
   }),

@@ -1925,6 +1925,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-app-un-maximize': {
+    charCode: 0xe98d,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-arrow-down': {
     charCode: 0xe901,
     gridSize: 16,
@@ -2572,6 +2577,11 @@ const iconMeta_ = {
   },
   'iconfont-tweet': {
     charCode: 0xe965,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-unhide': {
+    charCode: 0xe98c,
     gridSize: 16,
     isFont: true,
   },
