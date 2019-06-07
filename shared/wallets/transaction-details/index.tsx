@@ -16,6 +16,10 @@ export type NotLoadingProps = {
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: string | null
   counterpartyType: Types.CounterpartyType
+  feeChargedDescription: string
+  // issuer, for non-xlm assets
+  issuerDescription: string
+  issuerAccountID: Types.AccountID | null
   loading: false
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
@@ -23,7 +27,6 @@ export type NotLoadingProps = {
   onBack: () => void
   onCancelPayment: (() => void) | null
   onCancelPaymentWaitingKey: string
-  title: string
   // onChat is used only when counterpartyType === 'keybaseUser'.
   onChat: (username: string) => void
   onLoadPaymentDetail: () => void
@@ -39,14 +42,12 @@ export type NotLoadingProps = {
   statusDetail: string
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null
+  title: string
   transactionID?: string
   you: string
   yourRole: Types.Role
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string
-  // issuer, for non-xlm assets
-  issuerDescription: string
-  issuerAccountID: Types.AccountID | null
 }
 export type Props =
   | NotLoadingProps
@@ -386,6 +387,13 @@ const TransactionDetails = (props: NotLoadingProps) => {
                 </Kb.Text>
               </Kb.Box2>
             )}
+        </Kb.Box2>
+
+        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+          <Kb.Text type="BodySmallSemibold">Fee:</Kb.Text>
+          <Kb.Text selectable={true} type="Body">
+            {props.feeChargedDescription}
+          </Kb.Text>
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
