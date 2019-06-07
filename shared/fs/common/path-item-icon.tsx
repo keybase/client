@@ -79,7 +79,7 @@ const icons = {
       '96': 'icon-folder-team-64', // TODO: use 96 when we have it
     },
   },
-}
+} as const
 
 const IconOnly = (props: Props) => {
   const parsedPath = Constants.parsePath(props.path)

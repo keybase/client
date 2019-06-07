@@ -48,7 +48,7 @@ export const TeamMemberRow = (props: Props) => {
   if (active && props.roleType && showCrown[props.roleType]) {
     crown = (
       <Icon
-        type={'iconfont-crown-' + props.roleType}
+        type={('iconfont-crown-' + props.roleType) as any}
         style={{
           marginRight: globalMargins.xtiny,
         }}
@@ -223,8 +223,9 @@ const stylesChatButtonDesktop = {
   padding: globalMargins.tiny,
 }
 
-const stylesChatButtonMobile = (active: boolean) => ({
-  position: 'absolute',
-  right: 16,
-  top: isLargeScreen || active ? 12 : 24,
-})
+const stylesChatButtonMobile = (active: boolean) =>
+  ({
+    position: 'absolute',
+    right: 16,
+    top: isLargeScreen || active ? 12 : 24,
+  } as const)

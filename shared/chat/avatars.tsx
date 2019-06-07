@@ -66,14 +66,17 @@ class Avatars extends React.Component<AvatarProps> {
 
     const avatarCount = Math.min(2, participants.length)
     const opacity = isLocked ? 0.4 : 1
-    const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-      loadingColor: globalColors.greyLight,
-      size: 32,
-      skipBackground: isMobile,
-      skipBackgroundAfterLoaded: isMobile,
-      username,
-    }))
+    const avatarProps = participants.slice(0, 2).map(
+      (username, idx) =>
+        ({
+          borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
+          loadingColor: globalColors.greyLight,
+          size: 32,
+          skipBackground: isMobile,
+          skipBackgroundAfterLoaded: isMobile,
+          username,
+        } as const)
+    )
 
     return (
       <Box style={avatarBoxStyle}>
@@ -146,6 +149,6 @@ const avatarIconStyle = {
   bottom: offset,
   position: 'absolute',
   right: offset,
-}
+} as const
 
 export {Avatars, TeamAvatar}

@@ -7,7 +7,7 @@ type Props = {
   enabled: boolean
   entityType: RetentionEntityType
   exploding: boolean
-  setEnabled: (arg0: boolean) => void
+  setEnabled: (enabled: boolean) => undefined
   timePeriod: string
   onConfirm: () => void
   onBack: () => void

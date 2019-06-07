@@ -32,7 +32,7 @@ type Props = {
 
 const TextPopupMenu = (props: Props) => {
   const items = [
-    ...(props.showDivider ? ['Divider'] : []),
+    ...(props.showDivider ? (['Divider'] as const) : []),
     ...(props.isDeleteable
       ? [
           {
@@ -44,7 +44,9 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory ? ['Divider'] : []),
+    ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory
+      ? (['Divider'] as const)
+      : []),
     ...(props.onEdit && props.isEditable
       ? [
           {
@@ -58,7 +60,7 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
     ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
-  ]
+  ] as const
 
   const header = {
     title: 'header',

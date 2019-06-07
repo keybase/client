@@ -153,7 +153,7 @@ const styleMeta = {
   alignSelf: 'center',
   marginLeft: globalMargins.xtiny,
   marginTop: 2,
-}
+} as const
 
 const styleWrap = {
   ...globalStyles.flexBoxRow,

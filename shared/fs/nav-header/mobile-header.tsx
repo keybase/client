@@ -16,11 +16,8 @@ type State = {
   filterExpanded: boolean
 }
 
-const isPublic = path => {
-  return Types.getPathVisibility(path) === Types.TlfType.Public
-}
 const MaybePublicTag = ({path}) =>
-    isPublic(path) && <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
+  Constants.hasPublicTag(path) && <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
 
 class NavMobileHeader extends React.PureComponent<Props, State> {
   state = {filterExpanded: false}
@@ -68,7 +65,7 @@ class NavMobileHeader extends React.PureComponent<Props, State> {
 }
 
 export const getHeight = (path: Types.Path) =>
-  Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44) + (isPublic(path) ? 7 : 0)
+  Styles.statusBarHeight + 44 + (Styles.isAndroid ? 56 : 44) + (Constants.hasPublicTag(path) ? 7 : 0)
 
 const getHeightStyle = (height: number) => ({height, maxHeight: height, minHeight: height})
 

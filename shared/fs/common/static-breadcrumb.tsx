@@ -67,6 +67,6 @@ const stylesIconArrow = {
   alignSelf: 'flex-end',
   paddingLeft: 2,
   paddingRight: 2,
-}
+} as const
 
 export default StaticBreadcrumb

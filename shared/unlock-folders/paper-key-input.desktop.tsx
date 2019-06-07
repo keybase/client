@@ -66,7 +66,7 @@ const paperKeyInputStyle = {
 
 const backStyle = {
   left: 30,
-  position: 'absolute',
+  position: 'absolute' as const,
   top: 30,
 }
 
@@ -75,6 +75,6 @@ const continueStyle = {
   height: 32,
   marginTop: 38,
   width: 116,
-}
+} as const
 
 export default PaperKeyInput

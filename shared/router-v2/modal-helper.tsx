@@ -3,19 +3,25 @@ import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Route} from './routes'
 import {connect, isMobile} from '../util/container'
+import {WithoutPopupProps, HocExtractProps} from '../common-adapters/popup-dialog-hoc'
+import {InferableComponentEnhancerWithProps, Matching} from 'react-redux'
 
 const dispatchProps = dispatch => ({
-  onClosePopup: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClosePopup: () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  },
 })
 
-function Modal<P>(
-  C: React.ComponentType<P> // eslint-disable-next-line func-call-spacing
+function Modal<P extends {}>(
+  C: React.ComponentType<Omit<P, keyof HocExtractProps>> // eslint-disable-next-line func-call-spacing
 ) {
+  const withPopup = Kb.PopupDialogHoc(C)
   return connect(
-    () => ({}),
+    (_, op: P) => ({}),
     dispatchProps,
     (_, dp, op: P) => ({...dp, ...op})
-  )(Kb.PopupDialogHoc(C))
+    // @ts-ignore TODO figure out this types
+  )(withPopup)
 }
 
 export function modalizeRoute(route: Route) {

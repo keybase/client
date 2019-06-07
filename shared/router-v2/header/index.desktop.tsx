@@ -56,7 +56,6 @@ const SystemButtons = () => (
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_red hover_color_white color_black_50"
-      direction="vertical"
       onClick={Window.closeWindow}
       style={styles.appIconBox}
     >

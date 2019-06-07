@@ -8,7 +8,7 @@ const getEmojis = memoize(() =>
     ? []
     : getFrequently()
         .get(2)
-        .map<string>(name => `:${name}:`)
+        .map(name => `:${name}:`)
 )
 
 export default getEmojis

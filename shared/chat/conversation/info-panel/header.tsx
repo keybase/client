@@ -83,7 +83,7 @@ const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
 type AdhocProps = {
   onShowNewTeamDialog: () => void
-  participants: Array<{
+  participants: ReadonlyArray<{
     username: string
     fullname: string
   }>

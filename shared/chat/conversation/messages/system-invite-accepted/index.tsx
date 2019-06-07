@@ -18,7 +18,7 @@ const connectedUsernamesProps = {
   onUsernameClicked: 'profile',
   type: 'BodySmallSemibold',
   underline: true,
-}
+} as const
 
 const InviteAddedToTeamNotice = (props: Props) => {
   if (props.you === props.message.invitee) {

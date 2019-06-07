@@ -12,7 +12,7 @@ const commonProps = {
   onConfirm: action('onConfirm'),
   setEnabled: action('setEnabled'),
   timePeriod: '5 days',
-}
+} as const
 
 const load = () => {
   storiesOf('Teams/Settings/Retention/Warning', module)

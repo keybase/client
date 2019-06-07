@@ -10,11 +10,11 @@ export type Props = {
 
 class DeviceRow extends React.Component<{device: _Device}> {
   render() {
-    const icon = {
+    const icon = ({
       backup: 'icon-paper-key-32',
       desktop: 'icon-computer-32',
       mobile: 'icon-phone-32',
-    }[this.props.device.type]
+    } as const)[this.props.device.type]
 
     return (
       <div style={{...Styles.globalStyles.flexBoxRow, marginBottom: 16}}>

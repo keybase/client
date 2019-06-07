@@ -44,7 +44,7 @@ const ShowcaseTeamsOffer = p => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={styles.placeholderTeam} />
+        <Kb.Icon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
         <Kb.Text style={styles.youPublishTeam} type="BodyPrimaryLink">
           Publish the teams you're in
         </Kb.Text>

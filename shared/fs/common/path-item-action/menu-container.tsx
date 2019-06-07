@@ -111,17 +111,7 @@ const getDownloadingStateUnmemoized = (downloads: Types.Downloads, downloadKey: 
   }
 }
 
-const getDownloadingState = memoize<
-  Types.Downloads,
-  null | string,
-  void,
-  void,
-  {
-    done: boolean
-    saving: boolean
-    sharing: boolean
-  }
->(getDownloadingStateUnmemoized)
+const getDownloadingState = memoize(getDownloadingStateUnmemoized)
 
 const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, toCancel: string | null) =>
   toCancel

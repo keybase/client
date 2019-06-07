@@ -4,6 +4,7 @@ import {memoize} from '../../../util/memoize'
 import DestinationPicker from '.'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
+import {TypedState} from '../../../constants/reducer'
 import * as FsGen from '../../../actions/fs-gen'
 import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -15,12 +16,13 @@ type OwnProps = RouteProps<
   {}
 >
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: TypedState) => ({
   _destinationPicker: state.fs.destinationPicker,
   _pathItems: state.fs.pathItems,
 })
 
-const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
+type StateProps = ReturnType<typeof mapStateToProps>
+const getDestinationParentPath = memoize((stateProps: StateProps, ownProps: OwnProps) =>
   stateProps._destinationPicker.destinationParentPath.get(
     getRouteProps(ownProps, 'index') || 0,
     stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
@@ -57,14 +59,16 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
 })
 
+type DispatchProps = ReturnType<typeof mapDispatchToProps>
+
 const canWrite = memoize(
-  (stateProps, ownProps: OwnProps) =>
+  (stateProps: StateProps, ownProps: OwnProps) =>
     Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 2 &&
     stateProps._pathItems.get(getDestinationParentPath(stateProps, ownProps), Constants.unknownPathItem)
       .writable
 )
 
-const canCopy = memoize((stateProps, ownProps: OwnProps) => {
+const canCopy = memoize((stateProps: StateProps, ownProps: OwnProps) => {
   if (!canWrite(stateProps, ownProps)) {
     return false
   }
@@ -78,7 +82,7 @@ const canCopy = memoize((stateProps, ownProps: OwnProps) => {
 })
 
 const canMove = memoize(
-  (stateProps, ownProps: OwnProps) =>
+  (stateProps: StateProps, ownProps: OwnProps) =>
     canCopy(stateProps, ownProps) &&
     stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
     Constants.pathsInSameTlf(
@@ -95,7 +99,7 @@ const canBackUp = isMobile
     )
   : (s, o) => false
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   const targetName = Constants.getDestinationPickerPathName(stateProps._destinationPicker)
   return {
     index: getIndex(ownProps),
@@ -117,6 +121,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     targetName,
   }
 }
+
+type MergedProps = ReturnType<typeof mergeProps>
 
 const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDestinationPicker')(
   DestinationPicker

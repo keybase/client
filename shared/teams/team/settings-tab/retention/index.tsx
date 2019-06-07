@@ -264,7 +264,7 @@ const displayHeadingStyle = {
 const labelStyle = {
   justifyContent: 'center',
   minHeight: Styles.isMobile ? 40 : 32,
-}
+} as const
 
 const progressIndicatorStyle = {
   height: 30,

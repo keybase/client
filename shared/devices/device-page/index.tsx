@@ -90,11 +90,11 @@ const DevicePage = (props: Props) => {
     metaOne = <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
   }
 
-  const icon: Kb.IconType = {
+  const icon: Kb.IconType = ({
     backup: 'icon-paper-key-96',
     desktop: 'icon-computer-96',
     mobile: 'icon-phone-96',
-  }[props.device.type]
+  } as const)[props.device.type]
 
   const revokeName = {
     backup: 'paper key',

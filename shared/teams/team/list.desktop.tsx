@@ -21,7 +21,7 @@ export default class extends React.PureComponent<Props> {
         indexAsKey={true}
         style={styleList}
         renderItem={this._renderItem}
-        windowsSize={10}
+        windowSize={10}
       />
     )
   }
@@ -31,4 +31,4 @@ const styleList = {
   ...globalStyles.fillAbsolute,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-}
+} as const

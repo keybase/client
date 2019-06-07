@@ -13,7 +13,7 @@ const connectedUsernamesProps = {
   onUsernameClicked: 'profile',
   type: 'BodySemibold',
   underline: true,
-}
+} as const
 
 export type NewFollow = Types.FollowedNotification
 
@@ -116,5 +116,11 @@ const scrollViewContainerStyle = {
   paddingRight: Styles.globalMargins.small,
   ...(Styles.isMobile
     ? null
-    : {...Styles.globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),
+    : ({
+        ...Styles.globalStyles.flexBoxRow,
+        flexWrap: 'wrap',
+        height: 32,
+        overflow: 'hidden',
+        width: '100%',
+      } as const)),
 }

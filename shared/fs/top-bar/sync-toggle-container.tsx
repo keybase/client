@@ -15,12 +15,16 @@ const mapStateToProps = (state, {tlfPath}: OwnProps) => ({
   waiting: anyWaiting(state, Constants.syncToggleWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {tlfPath}) => ({
+const mapDispatchToProps = (dispatch, {tlfPath}: OwnProps) => ({
   disableSync: () => dispatch(FsGen.createSetTlfSyncConfig({enabled: false, tlfPath})),
   enableSync: () => dispatch(FsGen.createSetTlfSyncConfig({enabled: true, tlfPath})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {tlfPath}: OwnProps) => ({
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  {tlfPath}: OwnProps
+) => ({
   syncConfig: Constants.getTlfFromPath(stateProps._tlfs, tlfPath).syncConfig,
   waiting: stateProps.waiting,
   ...dispatchProps,

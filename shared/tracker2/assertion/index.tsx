@@ -127,7 +127,7 @@ class _StellarValue extends React.PureComponent<
       {onClick: this.props.onCopyAddress, title: 'Copy address'},
       'Divider',
       {onClick: this.props.onWhatIsStellar, title: 'What is Stellar?'},
-    ]
+    ] as const
 
     return Styles.isMobile ? (
       <Kb.Text
@@ -217,7 +217,7 @@ class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
   _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))
   _hideMenu = () => this.setState({showingMenu: false})
-  _ref = React.createRef()
+  _ref: React.RefObject<any> = React.createRef()
   _getRef = () => this._ref.current
   _getMenu = () => {
     const p = this.props
