@@ -274,10 +274,10 @@ const _defaultPaymentResult = {
 const _defaultPaymentDetail = {
   ..._defaultPaymentCommon,
   externalTxURL: '',
+  feeChargedDescription: '',
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   txID: '',
-  feeChargedDescription: '',
 }
 
 const _defaultPayment = {
@@ -346,9 +346,9 @@ export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal)
   makePaymentDetail({
     ...rpcPaymentToPaymentCommon(p),
     externalTxURL: p.externalTxURL,
+    feeChargedDescription: p.feeChargedDescription,
     publicMemo: new HiddenString(p.publicNote),
     publicMemoType: p.publicNoteType,
-    feeChargedDescription: p.feeChargedDescription,
     txID: p.txID,
   })
 
