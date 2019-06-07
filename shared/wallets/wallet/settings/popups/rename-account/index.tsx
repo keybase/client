@@ -11,17 +11,18 @@ type Props = {
   nameValidationState: ValidationState
   onCancel: () => void
   onClearErrors: () => void
-  onChangeAccountName: (name: string) => void
+  onChangeAccountName: (name: string) => Promise<void>
   onDone: (name: string) => void
   waiting: boolean
 }
 
 type State = {
+  error: string
   name: string
 }
 
 class RenameAccountPopup extends React.Component<Props, State> {
-  state = {name: this.props.initialName}
+  state = {error: '', name: this.props.initialName}
 
   _disabled = () => !this.state.name || this.state.name === this.props.initialName
   _onNameChange = name => this.setState({name})
@@ -60,7 +61,14 @@ class RenameAccountPopup extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
-      this.props.onChangeAccountName(this.state.name)
+      this.props
+        .onChangeAccountName(this.state.name)
+        .then(() => this.props.onCancel())
+        .catch(error => {
+          this.setState({
+            error: 'There was a problem renaming your account, please try again. ' + error.message,
+          })
+        })
     }
   }
 
@@ -74,7 +82,7 @@ class RenameAccountPopup extends React.Component<Props, State> {
         headerTitle="Rename account"
       >
         <EnterName
-          error={this.props.error || this.props.renameAccountError}
+          error={this.state.error}
           name={this.state.name}
           onEnterKeyDown={this._onDone}
           onNameChange={this._onNameChange}
