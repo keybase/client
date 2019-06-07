@@ -3,8 +3,6 @@ import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
-type OwnProps = RouteProps<{}, {}>
-
 const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
 })
