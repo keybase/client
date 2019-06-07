@@ -986,12 +986,7 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
 const startManualCR = (state, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
-  }).then(() =>
-    FsGen.createTlfCrStatusChanged({
-      status: Types.ConflictState.InManualResolution,
-      tlfPath: action.payload.tlfPath,
-    })
-  ) // TODO: deal with errors
+  }).then(() => FsGen.createFavoritesLoad())
 
 const updateKbfsDaemonOnlineStatus = (
   state,

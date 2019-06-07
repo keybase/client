@@ -32,10 +32,7 @@ type State = {
 }
 
 class Feedback extends React.Component<Props, State> {
-  constructor(props) {
-    super(props)
-    this.state = {email: null, feedback: this.props.feedback, sendLogs: true, showSuccessBanner: false}
-  }
+  state = {email: null, feedback: this.props.feedback, sendLogs: true, showSuccessBanner: false}
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.sending !== this.props.sending || this.props.sendError !== prevProps.sendError) {
