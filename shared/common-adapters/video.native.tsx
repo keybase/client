@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {useVideoSizer, CheckURL} from './video.shared'
 import {NativeStatusBar, NativeWebView} from './native-wrappers.native'
 import RNVideo from 'react-native-video'
+import {StatusBar} from 'react-native'
 import logger from '../logger'
 
 const Kb = {
@@ -17,10 +18,10 @@ const Kb = {
 // There seems to be a race between navigation animation and the measurement stuff
 // here that causes stuff to be rendered off-screen. So delay mounting to avoid
 // the race.
-const DelayMount = ({children, delay}) => {
+const DelayMount = ({children}) => {
   const [mount, setMount] = React.useState(false)
   React.useEffect(() => {
-    const id = setTimeout(() => setMount(true), delay)
+    const id = setTimeout(() => setMount(true), 500)
     return () => clearTimeout(id)
   }, [])
   return mount && children
@@ -28,9 +29,14 @@ const DelayMount = ({children, delay}) => {
 
 const Video = (props: Props) => {
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
+  // Somehow onFullscreenPlayerDidDismiss doesn't trigger, and RNVideo doesn't
+  // automatically bring back the status bar either. As a workaround, call it
+  // on unmount so at least we get the status bar back when user leaves the
+  // screen.
+  React.useEffect(() => () => StatusBar.setHidden(false), [])
   return (
     <CheckURL url={props.url}>
-      <DelayMount delay={500}>
+      <DelayMount>
         <Kb.Box
           style={styles.container}
           onLayout={event =>
@@ -47,6 +53,11 @@ const Video = (props: Props) => {
             }}
             muted={true}
             controls={true}
+            onFullscreenPlayerWillPresent={() => console.log({songgao: 'onFullscreenPlayerWillPresent'})}
+            onFullscreenPlayerDidDismiss={() => {
+              console.log({songgao: 'onFullscreenPlayerDidDismiss'})
+              StatusBar.setHidden(false)
+            }}
             onLoad={loaded =>
               loaded &&
               loaded.naturalSize &&
