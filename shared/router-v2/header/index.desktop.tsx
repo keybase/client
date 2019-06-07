@@ -30,7 +30,6 @@ const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
       className="hover_background_color_black_05  color_black_50 hover_color_black"
-      direction="vertical"
       onClick={Window.minimizeWindow}
       style={styles.appIconBox}
     >
@@ -43,7 +42,6 @@ const SystemButtons = () => (
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_black_05 color_black_50 hover_color_black"
-      direction="vertical"
       onClick={Window.toggleMaximizeWindow}
       style={styles.appIconBox}
     >
