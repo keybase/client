@@ -28,12 +28,7 @@ export type Props = {
  *  waiting store (store.waiting), which will be set by a saga somewhere.
  */
 
-class WaitingButton extends React.Component<
-  Props,
-  {
-    localWaiting: boolean
-  }
-> {
+class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
   state = {localWaiting: false}
 
   _onClick = (event: React.SyntheticEvent) => {
@@ -60,15 +55,13 @@ class WaitingButton extends React.Component<
   }
 }
 
-const mapStateToProps = (state, ownProps) => {
-  const waitingKey = ownProps.waitingKey || ''
-  return {
-    storeWaiting: WaitingConstants.anyWaiting(state, waitingKey),
-  }
-}
-
 const ConnectedWaitingButton = namedConnect(
-  mapStateToProps,
+  (state, ownProps: OwnProps) => {
+    const waitingKey = ownProps.waitingKey || ''
+    return {
+      storeWaiting: WaitingConstants.anyWaiting(state, waitingKey),
+    }
+  },
   () => ({}),
   (s, d, o) => ({...o, ...s, ...d}),
   'WaitingButton'

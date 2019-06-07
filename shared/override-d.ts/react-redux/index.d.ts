@@ -146,6 +146,10 @@ export type ResolveThunks<TDispatchProps> = TDispatchProps extends {[key: string
  * @param options
  */
 
+export type ConnectedComponentType<TMergedProps, TOwnProps> = <C>(
+  component: C
+) => TMergedProps extends GetProps<C> ? React.ComponentType<TOwnProps> : () => keyof TMergedProps
+
 export interface Connect {
   // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
   // when you really didn't. If the types don't match it spits out the missing keys (omit) as a way to help you out but the error cases
@@ -155,9 +159,7 @@ export interface Connect {
     mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
     mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
     options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
-  ): <C>(
-    component: C
-  ) => TMergedProps extends GetProps<C> ? React.ComponentType<TOwnProps> : () => keyof TMergedProps
+  ): ConnectedComponentType<TMergedProps, TOwnProps>
 
   // tslint:disable:no-unnecessary-generics
   //    (): InferableComponentEnhancer<DispatchProp>;
