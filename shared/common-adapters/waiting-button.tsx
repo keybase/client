@@ -29,6 +29,10 @@ export type Props = {
  */
 
 class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
+  static defaultProps = {
+    mode: 'Primary',
+    type: 'Default',
+  }
   state = {localWaiting: false}
 
   _onClick = (event: React.SyntheticEvent) => {
@@ -63,7 +67,7 @@ const ConnectedWaitingButton = namedConnect(
     }
   },
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'WaitingButton'
 )(WaitingButton)
 export default ConnectedWaitingButton

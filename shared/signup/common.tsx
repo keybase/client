@@ -5,9 +5,9 @@ import {Props as ButtonProps} from '../common-adapters/button'
 import * as Styles from '../styles'
 
 type InfoIconProps = {
-  invisible: boolean
-  onDocumentation: () => void
-  onFeedback: () => void
+  invisible?: boolean
+  onDocumentation?: () => void
+  onFeedback?: () => void
 }
 
 type InfoIconOwnProps = {

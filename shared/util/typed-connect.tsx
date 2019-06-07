@@ -10,8 +10,7 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   mergeProps: RR.MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
   displayName: string,
   options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
-): RR.ConnectedComponentType<TMergedProps, TOwnProps> =>
-  // @ts-ignore
+) =>
   compose(
     connect(
       mapStateToProps,
@@ -20,6 +19,6 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
       options
     ),
     setDisplayName(displayName)
-  )
+  ) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
 
 export default connect

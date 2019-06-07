@@ -146,9 +146,15 @@ export type ResolveThunks<TDispatchProps> = TDispatchProps extends {[key: string
  * @param options
  */
 
-export type ConnectedComponentType<TMergedProps, TOwnProps> = <C>(
+export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
   component: C
-) => TMergedProps extends GetProps<C> ? React.ComponentType<TOwnProps> : () => keyof TMergedProps
+) => TMergedProps extends React.ComponentProps<C>
+  ? ConnectedComponentClass<C, TOwnProps>
+  : [ // just to help you debug what's going on
+    C,
+    React.ComponentProps<C>,
+    keyof TMergedProps
+    ]
 
 export interface Connect {
   // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
