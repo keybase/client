@@ -12,6 +12,19 @@ export const changeAccountName = (params: {accountID: Types.AccountID; newName: 
     .then(() => dispatch(WalletsGen.createChangedAccountName({accountID})))
     .catch(error => {
       dispatch(WalletsGen.createChangedAccountNameError({error: error.message, name: newName}))
-      throw error
+      throw new Error(error.desc)
+    })
+}
+
+export const validateAccountName = (params: {name: string}, dispatch) => {
+  const {name} = params
+  return RPCStellarGen.localValidateAccountNameLocalRpcPromise(
+    {name},
+    Constants.validateAccountNameWaitingKey
+  )
+    .then(() => dispatch(WalletsGen.createValidatedAccountName({name})))
+    .catch(err => {
+      dispatch(WalletsGen.createValidatedAccountNameError({error: err.desc, name}))
+      throw new Error(err.desc)
     })
 }
