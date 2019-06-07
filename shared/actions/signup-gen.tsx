@@ -11,9 +11,11 @@ export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassword = 'signup:checkPassword'
+export const checkUsername = 'signup:checkUsername'
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
+export const checkedUsername = 'signup:checkedUsername'
 export const checkedUsernameEmail = 'signup:checkedUsernameEmail'
 export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
@@ -28,6 +30,7 @@ type _CheckDevicenamePayload = {readonly devicename: string}
 type _CheckInviteCodePayload = {readonly inviteCode: string}
 type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
 type _CheckUsernameEmailPayload = {readonly username: string; readonly email: string}
+type _CheckUsernamePayload = {readonly username: string}
 type _CheckedDevicenamePayload = {readonly devicename: string}
 type _CheckedDevicenamePayloadError = {readonly devicename: string; readonly error: string}
 type _CheckedInviteCodePayload = {readonly inviteCode: string}
@@ -38,6 +41,11 @@ type _CheckedUsernameEmailPayloadError = {
   readonly usernameError: string
   readonly email: string
   readonly username: string
+}
+type _CheckedUsernamePayload = {
+  readonly username: string
+  readonly usernameTaken?: string
+  readonly error: string
 }
 type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
@@ -68,6 +76,10 @@ export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswo
   payload,
   type: checkPassword,
 })
+export const createCheckUsername = (payload: _CheckUsernamePayload): CheckUsernamePayload => ({
+  payload,
+  type: checkUsername,
+})
 export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload): CheckUsernameEmailPayload => ({
   payload,
   type: checkUsernameEmail,
@@ -86,6 +98,10 @@ export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload): Che
 export const createCheckedInviteCodeError = (
   payload: _CheckedInviteCodePayloadError
 ): CheckedInviteCodePayloadError => ({error: true, payload, type: checkedInviteCode})
+export const createCheckedUsername = (payload: _CheckedUsernamePayload): CheckedUsernamePayload => ({
+  payload,
+  type: checkedUsername,
+})
 export const createCheckedUsernameEmail = (
   payload: _CheckedUsernameEmailPayload
 ): CheckedUsernameEmailPayload => ({payload, type: checkedUsernameEmail})
@@ -144,6 +160,10 @@ export type CheckUsernameEmailPayload = {
   readonly payload: _CheckUsernameEmailPayload
   readonly type: 'signup:checkUsernameEmail'
 }
+export type CheckUsernamePayload = {
+  readonly payload: _CheckUsernamePayload
+  readonly type: 'signup:checkUsername'
+}
 export type CheckedDevicenamePayload = {
   readonly payload: _CheckedDevicenamePayload
   readonly type: 'signup:checkedDevicename'
@@ -170,6 +190,10 @@ export type CheckedUsernameEmailPayloadError = {
   readonly error: true
   readonly payload: _CheckedUsernameEmailPayloadError
   readonly type: 'signup:checkedUsernameEmail'
+}
+export type CheckedUsernamePayload = {
+  readonly payload: _CheckedUsernamePayload
+  readonly type: 'signup:checkedUsername'
 }
 export type GoBackAndClearErrorsPayload = {
   readonly payload: _GoBackAndClearErrorsPayload
@@ -219,12 +243,14 @@ export type Actions =
   | CheckInviteCodePayload
   | CheckPasswordPayload
   | CheckUsernameEmailPayload
+  | CheckUsernamePayload
   | CheckedDevicenamePayload
   | CheckedDevicenamePayloadError
   | CheckedInviteCodePayload
   | CheckedInviteCodePayloadError
   | CheckedUsernameEmailPayload
   | CheckedUsernameEmailPayloadError
+  | CheckedUsernamePayload
   | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload
   | RequestInvitePayload

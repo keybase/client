@@ -9,6 +9,7 @@ const props = {
   onContinue: Sb.action('onContinue'),
   onLogin: Sb.action('onLogin'),
   usernameTaken: null,
+  waiting: false,
 }
 
 const load = () => {

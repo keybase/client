@@ -6,13 +6,15 @@ import {SignupScreen} from '../common'
 
 type Props = {
   onBack: () => void
-  onContinue: () => void
-  onLogin: () => void
+  onContinue: (username: string) => void
+  onLogin: (username: string) => void
   usernameTaken: string | null
+  waiting: boolean
 }
 
 const EnterUsername = (props: Props) => {
   const [username, onChangeUsername] = React.useState('')
+  const onContinue = () => props.onContinue(username)
   return (
     <SignupScreen
       banners={
@@ -20,14 +22,27 @@ const EnterUsername = (props: Props) => {
           ? [
               <Kb.Banner
                 key="usernameTaken"
-                actions={[{onClick: props.onLogin, title: `log in as ${props.usernameTaken}?`}]}
+                actions={[
+                  {
+                    onClick: () => props.onLogin(props.usernameTaken),
+                    title: `log in as ${props.usernameTaken}?`,
+                  },
+                ]}
                 color="blue"
                 text="Sorry, this username is already taken. Did you mean to"
               />,
             ]
           : null
       }
-      buttons={[{disabled: !username, label: 'Continue', onClick: props.onContinue, type: 'Success'}]}
+      buttons={[
+        {
+          disabled: !username,
+          label: 'Continue',
+          onClick: onContinue,
+          type: 'Success',
+          waiting: props.waiting,
+        },
+      ]}
       onBack={props.onBack}
       title={Styles.isMobile ? 'Create account' : 'Create an account'}
     >
@@ -46,6 +61,7 @@ const EnterUsername = (props: Props) => {
             placeholder="Pick a username"
             maxLength={maxUsernameLength}
             onChangeText={onChangeUsername}
+            onEnterKeyDown={onContinue}
           />
           <Kb.Text type="BodySmall" style={styles.inputSub}>
             Your username is unique and can not be changed in the future.

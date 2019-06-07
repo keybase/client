@@ -87,6 +87,7 @@ const requestInvite = (state: TypedState) =>
       })
     )
 
+// TODO (DA) remove
 const checkUsernameEmail = (state: TypedState) =>
   noErrors(state) &&
   RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
@@ -104,6 +105,27 @@ const checkUsernameEmail = (state: TypedState) =>
         usernameError: `Sorry, there was a problem: ${err.desc}`,
       })
     )
+
+const checkUsername = (state: TypedState, _, logger) => {
+  logger.info(`checking ${state.signup.username}`)
+  return (
+    noErrors(state) &&
+    RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
+      .then(() => {
+        logger.info(`${state.signup.username} success`)
+        return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
+      })
+      .catch(err => {
+        logger.warn(`${state.signup.username} error: ${err.message}`)
+        return SignupGen.createCheckedUsername({
+          error: `Sorry, there was a problem: ${err.desc}`,
+          username: state.signup.username,
+          usernameTaken:
+            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : null,
+        })
+      })
+  )
+}
 
 const checkDevicename = (state: TypedState) =>
   noErrors(state) &&
@@ -169,6 +191,11 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SignupGen.CheckUsernameEmailPayload>(
     SignupGen.checkUsernameEmail,
     checkUsernameEmail
+  )
+  yield* Saga.chainAction<SignupGen.CheckUsernamePayload>(
+    SignupGen.checkUsername,
+    checkUsername,
+    'checkUsername'
   )
   yield* Saga.chainAction<SignupGen.RequestAutoInvitePayload>(SignupGen.requestAutoInvite, requestAutoInvite)
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload | SignupGen.CheckInviteCodePayload>(

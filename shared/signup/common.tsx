@@ -8,7 +8,7 @@ type InfoIconProps = {
   invisible: boolean
   onDocumentation: () => void
   onFeedback: () => void
-  style: Styles.StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
 }
 
 type InfoIconOwnProps = {
@@ -79,6 +79,7 @@ type ButtonMeta = {
   label: string
   onClick: () => void
   type: ButtonProps['type']
+  waiting?: boolean
 }
 
 type SignupScreenProps = {

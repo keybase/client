@@ -33,6 +33,14 @@
         "username": "string"
       }
     },
+    "checkUsername": {
+      "username": "string"
+    },
+    "checkedUsername": {
+      "username": "string",
+      "usernameTaken?": "string",
+      "error": "string"
+    },
     "requestInvite": {
       "email": "string",
       "name": "string"
