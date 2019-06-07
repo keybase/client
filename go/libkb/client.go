@@ -135,7 +135,7 @@ func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 	}, nil
 }
 
-func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client {
+func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client, error) {
 	extraLog := func(ctx context.Context, msg string, args ...interface{}) {}
 	if g.Env.GetExtraNetLogging() {
 		extraLog = func(ctx context.Context, msg string, args ...interface{}) {
@@ -197,7 +197,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 
 	err := EnableProxy(env.GetProxyType(), env.GetProxy())
 	if err != nil {
-		// TODO
+		return nil, err
 	}
 
 	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {
@@ -233,7 +233,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		ret.cli.Jar = jar
 	}
 	ret.cli.Transport = &xprt
-	return ret
+	return ret, err
 }
 
 func ServerLookup(env *Env, mode RunMode) (string, error) {
