@@ -54,9 +54,6 @@ const ConflictBanner = (props: Props) => {
     case Types.ConflictState.InConflictStuck:
       actions = [startRes, feedbackAction, helpAction]
       break
-    case Types.ConflictState.InConflictNotStuck:
-      actions = [startRes, feedbackAction, helpAction]
-      break
     case Types.ConflictState.Finishing:
       break
     case Types.ConflictState.InManualResolution:
@@ -66,6 +63,7 @@ const ConflictBanner = (props: Props) => {
         actions = [onSeeLocalView, finishRes, feedbackAction, helpAction]
       }
       break
+    case Types.ConflictState.InConflictNotStuck:
     case Types.ConflictState.None:
       actions = [feedbackAction]
       break
