@@ -13,6 +13,7 @@ type OwnProps = {
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
   resetBannerType: Constants.resetBannerType(state, path),
   shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
 })
@@ -24,6 +25,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => ({
+  conflictState: stateProps._tlf.conflict.state,
   offline: Constants.isOfflineUnsynced(stateProps._kbfsDaemonStatus, stateProps._pathItem, path),
   onAttach: stateProps._pathItem.writable ? dispatchProps.onAttach : null,
   path,

@@ -87,6 +87,8 @@ export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
+export const startManualConflictResolution = 'fs:startManualConflictResolution'
+export const tlfCrStatusChanged = 'fs:tlfCrStatusChanged'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const tlfSyncConfigsForAllSyncEnabledTlfsLoaded = 'fs:tlfSyncConfigsForAllSyncEnabledTlfsLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
@@ -206,6 +208,8 @@ type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.P
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
+type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
+type _TlfCrStatusChangedPayload = {readonly status: Types.ConflictState; readonly tlfPath: Types.Path}
 type _TlfSyncConfigLoadedPayload = {
   readonly tlfType: Types.TlfType
   readonly tlfName: string
@@ -490,6 +494,13 @@ export const createShowSystemFileManagerIntegrationBanner = (
 export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayload => ({
   payload,
   type: sortSetting,
+})
+export const createStartManualConflictResolution = (
+  payload: _StartManualConflictResolutionPayload
+): StartManualConflictResolutionPayload => ({payload, type: startManualConflictResolution})
+export const createTlfCrStatusChanged = (payload: _TlfCrStatusChangedPayload): TlfCrStatusChangedPayload => ({
+  payload,
+  type: tlfCrStatusChanged,
 })
 export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
@@ -794,6 +805,14 @@ export type ShowSystemFileManagerIntegrationBannerPayload = {
   readonly type: 'fs:showSystemFileManagerIntegrationBanner'
 }
 export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: 'fs:sortSetting'}
+export type StartManualConflictResolutionPayload = {
+  readonly payload: _StartManualConflictResolutionPayload
+  readonly type: 'fs:startManualConflictResolution'
+}
+export type TlfCrStatusChangedPayload = {
+  readonly payload: _TlfCrStatusChangedPayload
+  readonly type: 'fs:tlfCrStatusChanged'
+}
 export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
   readonly type: 'fs:tlfSyncConfigLoaded'
@@ -913,6 +932,8 @@ export type Actions =
   | ShowMoveOrCopyPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
+  | StartManualConflictResolutionPayload
+  | TlfCrStatusChangedPayload
   | TlfSyncConfigLoadedPayload
   | TlfSyncConfigsForAllSyncEnabledTlfsLoadedPayload
   | TriggerSendLinkToChatPayload

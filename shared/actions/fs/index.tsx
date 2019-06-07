@@ -983,6 +983,16 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
     })
 }
 
+const startManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.tlfPath),
+  }).then(() =>
+    FsGen.createTlfCrStatusChanged({
+      status: Types.ConflictState.InManualResolution,
+      tlfPath: action.payload.tlfPath,
+    })
+  ) // TODO: deal with errors
+
 const updateKbfsDaemonOnlineStatus = (
   state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
@@ -1126,6 +1136,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
       FsGen.setSpaceAvailableNotificationThreshold,
       setSpaceNotificationThreshold
+    )
+  }
+  if (flags.conflictResolution) {
+    yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
+      FsGen.startManualConflictResolution,
+      startManualCR
     )
   }
 

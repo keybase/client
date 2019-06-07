@@ -32,6 +32,7 @@ export default () => {
     .add('normal', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
+          {...Sb.propOverridesForStory({conflictState: Types.ConflictState.None})}
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -54,6 +55,7 @@ export default () => {
     .add('with SystemFileManagerIntegrationBanner', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
+          {...Sb.propOverridesForStory({conflictState: Types.ConflictState.None})}
           path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           shouldShowSFMIBanner={true}
@@ -65,6 +67,7 @@ export default () => {
     .add('I am reset', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
+          {...Sb.propOverridesForStory({conflictState: Types.ConflictState.None})}
           path={Types.stringToPath('/keybase/private/me,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -76,6 +79,7 @@ export default () => {
     .add('others reset', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
+          {...Sb.propOverridesForStory({conflictState: Types.ConflictState.None})}
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
@@ -87,11 +91,24 @@ export default () => {
     .add('offline and not synced', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Browser
+          {...Sb.propOverridesForStory({conflictState: Types.ConflictState.None})}
           path={Types.stringToPath('/keybase/private/others,reset')}
           routePath={I.List([])}
           shouldShowSFMIBanner={false}
           resetBannerType={Types.ResetBannerNoOthersType.None}
           offline={true}
+        />
+      </Kb.Box2>
+    ))
+    .add('in conflict', () => (
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        <Browser
+          {...Sb.propOverridesForStory({conflictState: Types.ConflictState.InConflictStuck})}
+          path={Types.stringToPath('/keybase/private/others,reset')}
+          routePath={I.List([])}
+          shouldShowSFMIBanner={false}
+          resetBannerType={Types.ResetBannerNoOthersType.None}
+          offline={false}
         />
       </Kb.Box2>
     ))

@@ -85,7 +85,7 @@ export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 export enum ConflictState {
   None = 'none',
   InConflictStuck = 'in-conflict-stuck',
-  InCondlictNotStuck = 'in-conflict-not-stuck',
+  InConflictNotStuck = 'in-conflict-not-stuck',
   InManualResolution = 'in-manual-resolution',
   Finishing = 'finishing',
 }

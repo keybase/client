@@ -9,6 +9,8 @@ import {isMobile} from '../../constants/platform'
 import Rows from './rows/rows-container'
 import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import ConflictBanner from '../banner/conflict-banner-container'
+import flags from '../../util/feature-flags'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 
@@ -26,6 +28,7 @@ const WithContent = (props: Props) => (
     <PublicReminder path={props.path} />
     {/* this extra box is necessary to avoid Kb.DragAndDrop (which is fullHeight) pushes other stuff over */}
     <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach}>
+      {flags.conflictResolution && <ConflictBanner path={props.path} />}
       <Rows
         path={props.path}
         routePath={props.routePath}

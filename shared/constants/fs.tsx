@@ -970,6 +970,9 @@ export const makeActionForOpenPathInFilesTab = (
 
 export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
 
+// TODO(KBFS-4155): implement this
+export const isUnmergedView = (path: Types.Path): boolean => false
+
 export const makeActionsForShowSendLinkToChat = (
   path: Types.Path,
   routePath?: I.List<string> | null
