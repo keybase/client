@@ -1,0 +1,4 @@
+- [ ] check seeds in FTL and slow load
+- [ ] back track hidden chain load to where it's first pinned
+- [ ] test case that works for hidden rotation
+- [ ] try to figure out refreshing and cache-bust store for chain17

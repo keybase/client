@@ -745,17 +745,18 @@ func (o TeamData) DeepCopy() TeamData {
 }
 
 type FastTeamData struct {
-	Frozen                    bool                                                 `codec:"frozen" json:"frozen"`
-	Tombstoned                bool                                                 `codec:"tombstoned" json:"tombstoned"`
-	Name                      TeamName                                             `codec:"name" json:"name"`
-	Chain                     FastTeamSigChainState                                `codec:"chain" json:"chain"`
-	PerTeamKeySeedsUnverified map[PerTeamKeyGeneration]PerTeamKeySeed              `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
-	SeedChecks                map[PerTeamKeyGeneration]PerTeamSeedCheck            `codec:"seedChecks" json:"seedChecks"`
-	LatestKeyGeneration       PerTeamKeyGeneration                                 `codec:"latestKeyGeneration" json:"latestKeyGeneration"`
-	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
-	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
-	CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
-	LoadedLatest              bool                                                 `codec:"loadedLatest" json:"loadedLatest"`
+	Frozen                     bool                                                 `codec:"frozen" json:"frozen"`
+	Tombstoned                 bool                                                 `codec:"tombstoned" json:"tombstoned"`
+	Name                       TeamName                                             `codec:"name" json:"name"`
+	Chain                      FastTeamSigChainState                                `codec:"chain" json:"chain"`
+	PerTeamKeySeedsUnverified  map[PerTeamKeyGeneration]PerTeamKeySeed              `codec:"perTeamKeySeeds" json:"perTeamKeySeedsUnverified"`
+	MaxContinuousPTKGeneration PerTeamKeyGeneration                                 `codec:"maxContinuousPTKGeneration" json:"maxContinuousPTKGeneration"`
+	SeedChecks                 map[PerTeamKeyGeneration]PerTeamSeedCheck            `codec:"seedChecks" json:"seedChecks"`
+	LatestKeyGeneration        PerTeamKeyGeneration                                 `codec:"latestKeyGeneration" json:"latestKeyGeneration"`
+	ReaderKeyMasks             map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	LatestSeqnoHint            Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
+	CachedAt                   Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	LoadedLatest               bool                                                 `codec:"loadedLatest" json:"loadedLatest"`
 }
 
 func (o FastTeamData) DeepCopy() FastTeamData {
@@ -776,6 +777,7 @@ func (o FastTeamData) DeepCopy() FastTeamData {
 			}
 			return ret
 		})(o.PerTeamKeySeedsUnverified),
+		MaxContinuousPTKGeneration: o.MaxContinuousPTKGeneration.DeepCopy(),
 		SeedChecks: (func(x map[PerTeamKeyGeneration]PerTeamSeedCheck) map[PerTeamKeyGeneration]PerTeamSeedCheck {
 			if x == nil {
 				return nil

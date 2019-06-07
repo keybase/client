@@ -490,6 +490,10 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 			shoppingList.generations = append(shoppingList.generations, gen)
 		}
 	}
+
+	// Let's just get all keys from the past, so figure out the minimal seed value that we have.
+	shoppingList.seedLow = computeSeedLow(state)
+
 	return fresh
 }
 
@@ -509,6 +513,23 @@ func stateHasDownPointers(m libkb.MetaContext, shoppingList *shoppingList, arg f
 	return ret
 }
 
+// computeSeedLow computes the value for ftl_seed_low that we're going to send up to the server for fetches.
+func computeSeedLow(state *keybase1.FastTeamData) keybase1.PerTeamKeyGeneration {
+	if state.MaxContinuousPTKGeneration > 0 {
+		return state.MaxContinuousPTKGeneration
+	}
+	var ret keybase1.PerTeamKeyGeneration
+	for i := keybase1.PerTeamKeyGeneration(1); i <= state.LatestKeyGeneration; i++ {
+		_, found := state.PerTeamKeySeedsUnverified[i]
+		if !found {
+			break
+		}
+		ret = i
+	}
+	state.MaxContinuousPTKGeneration = ret
+	return ret
+}
+
 // shoppingList is a list of what we need from the server.
 type shoppingList struct {
 	needMerkleRefresh bool // if we need to refresh the Merkle path for this team
@@ -524,6 +545,7 @@ type shoppingList struct {
 
 	// The generations we care about. We'll always get back the most recent RKMs
 	// if we send a needMerkleRefresh.
+	seedLow     keybase1.PerTeamKeyGeneration
 	generations []keybase1.PerTeamKeyGeneration
 }
 
@@ -633,6 +655,7 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 		"ftl_seqnos":          libkb.S{Val: seqnosToString(s.downPointers)},
 		"ftl_key_generations": libkb.S{Val: generationsToString(s.generations)},
 		"ftl_version":         libkb.I{Val: FTLVersion},
+		"ftl_seed_low":        libkb.I{Val: int(s.seedLow)},
 	}
 	if len(s.applications) > 0 {
 		ret["ftl_include_applications"] = libkb.S{Val: applicationsToString(s.applications)}

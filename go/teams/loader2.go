@@ -978,6 +978,9 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 // null because it's a legacy team. OR only the new links are null since they were just added.
 // In either case, after this function runs, all seeds get seed checks computed.
 func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.TeamData) (err error) {
+	mctx := libkb.NewMetaContext(ctx, l.G())
+	defer mctx.Trace(fmt.Sprintf("TeamLoader#computeSeedChecks(%s)", state.ID()), func() error { return err })()
+
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 	return computeSeedChecks(
 		ctx,

@@ -571,6 +571,11 @@
           "mpackkey": "perTeamKeySeeds"
         },
         {
+          "type": "PerTeamKeyGeneration",
+          "name": "maxContinuousPTKGeneration",
+          "lint": "ignore"
+        },
+        {
           "type": {
             "type": "map",
             "values": "PerTeamSeedCheck",

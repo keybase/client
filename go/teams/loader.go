@@ -743,6 +743,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}
 
+				err = l.computeSeedChecks(ctx, ret)
+				if err != nil {
+					return nil, err
+				}
+
 				if teamUpdate.LegacyTLFUpgrade != nil {
 					err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
 					if err != nil {
@@ -753,6 +758,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 
+	// Note that we might have done so just above after adding secrets, but before adding
+	// KBFS crypt keys. But it's cheap to run this method twice in a row.
 	tracer.Stage("computeSeedChecks")
 	err = l.computeSeedChecks(ctx, ret)
 	if err != nil {
