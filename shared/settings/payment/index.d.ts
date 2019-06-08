@@ -14,4 +14,4 @@ export type Props = {
   onSubmit: () => void
 }
 
-export default class PaymentForm extends Component<Props> {}
+export default class FilesSettings extends Component<Props> {}

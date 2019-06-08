@@ -40,4 +40,4 @@ const SettingsFiles = namedConnect(
   'SettingsFiles'
 )(Files)
 
-export default (isMobile ? () => null : SettingsFiles)
+export default SettingsFiles
