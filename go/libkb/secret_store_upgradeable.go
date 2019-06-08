@@ -104,7 +104,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 	}
 
 	if fallbackBehavior == SecretStoreFallbackBehaviorNever {
-		mctx.Warning("Failed to reach system keyring (store A: %s), do not falling back to store B because of fallback behavior.", err1)
+		mctx.Warning("Failed to reach system keyring (store A: %s), not falling back to store B because of fallback behavior.", err1)
 		return err1
 	}
 
