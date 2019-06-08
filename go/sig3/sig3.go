@@ -444,7 +444,10 @@ func (s Sig3Bundle) Export() (ret ExportJSON, err error) {
 		}
 	}
 	if s.Sig != nil {
-		ret.Sig = base64.StdEncoding.EncodeToString(s.Sig[:])
+		ret.Sig, err = enc(s.Sig[:])
+		if err != nil {
+			return ret, nil
+		}
 	}
 	return ret, nil
 }

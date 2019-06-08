@@ -183,6 +183,7 @@ func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (r
 			Encryption: p.NewEncryptionKey.GetKID(),
 			Signing:    p.NewSigningKey.GetKID(),
 		},
+		Version: 3,
 	}
 
 	return sigMultiItem, ratchet, nil
@@ -200,6 +201,8 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 			}
 			outer.Prev = tmp
 		}
+	} else {
+		outer.Seqno = keybase1.Seqno(1)
 	}
 	tmp, err := sig3.ImportTail(p.MainPrev)
 	if err != nil {
