@@ -468,6 +468,10 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 	return t.rotate(ctx, false /* hidden */)
 }
 
+func (t *Team) RotateHidden(ctx context.Context) (err error) {
+	return t.rotate(ctx, true)
+}
+
 func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 
 	// initialize key manager
