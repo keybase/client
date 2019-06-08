@@ -16,7 +16,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 	require.NoError(t, err)
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
-	require.Equal(t, team.Generation(), 1)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
 
 	secretBefore := team.Data.PerTeamKeySeedsUnverified[team.Generation()].Seed.ToBytes()
 	keys1, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
@@ -28,7 +28,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 	require.NoError(t, err)
 	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
-	require.Equal(t, after.Generation(), 2)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation())
 	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	require.False(t, libkb.SecureByteArrayEq(secretAfter, secretBefore))
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
