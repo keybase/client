@@ -65,7 +65,7 @@ const isPending = (props: Props) =>
 export default (props: Props) => (
   <>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-      {flags.kbfsOfflineMode && (
+      {(true || flags.kbfsOfflineMode) && (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
           <Kb.Box>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
