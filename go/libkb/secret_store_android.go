@@ -23,14 +23,22 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	var androidOsVersion int64
 	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion, 10, 32); err != nil {
 		androidOsVersion = v
+	} else {
+		mctx.Debug("Unable to figure out Android version. MobileOsVersion is: %s, errors was: %s",
+			mctx.G().MobileOsVersion, err)
 	}
+
 	shouldUpgradeOpportunistically := func() bool {
 		return true
 	}
 	shouldStoreInFallback := func(options *SecretStoreOptions) SecretStoreFallbackBehavior {
 		if androidOsVersion <= 22 {
-			// Use file based secret store on old Android version (or when
-			// version detection didn't work).
+			// Use file based secret store on old Android version (22 or less)
+			// or when Android version is unknown (0). Not detecting Android
+			// version properly would be highly unusual - either a bug in our
+			// binding code (where we pass MobileOsVersion), or some custom
+			// operating system that did not report its version properly
+			// thorugh the API that we use.
 
 			// Do not even try to use external secret store (so no
 			// SecretStoreFallbackBehaviorOnError) - we've found that on older
@@ -39,6 +47,7 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 
 			return SecretStoreFallbackBehaviorAlways
 		}
+
 		// Fallback to file store on error - when external store is not
 		// available. This may be the case when user does not have lock screen
 		// or pin code set up.
