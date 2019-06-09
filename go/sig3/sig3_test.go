@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"github.com/keybase/client/go/msgpack"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -64,15 +63,16 @@ func randomLinkIDPointer(t *testing.T) *LinkID {
 }
 
 func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex ExportJSON, rk *RotateKey, outerKey KeyPair, innerKey []KeyPair) {
+	now := TimeSec(time.Now().Unix())
 	inner := InnerLink{
-		Ctime:   keybase1.ToTime(time.Now()),
+		Ctime:   now,
 		Entropy: randomBytes(t, 16),
 		ClientInfo: &ClientInfo{
 			Desc:    "foo",
 			Version: "1.0.0-1",
 		},
 		MerkleRoot: MerkleRoot{
-			Ctime: keybase1.ToTime(time.Now()),
+			Ctime: now,
 			Seqno: 100,
 			Hash:  randomBytes(t, 32),
 		},

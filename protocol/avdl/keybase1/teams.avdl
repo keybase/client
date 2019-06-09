@@ -68,8 +68,10 @@ protocol teams {
   // server to fabricate new ones. The server gets to see the postimage of these checks
   // after a SHA256 one-way function.
   record PerTeamSeedCheckPostImage {
-     PerTeamSeedCheckVersion version;
+     @mpackkey("h") @jsonkey("h")
      PerTeamSeedCheckValuePostImage value; // SHA256(f(i)) for generation i
+     @mpackkey("v") @jsonkey("v")
+     PerTeamSeedCheckVersion version;
   }
 
   record TeamApplicationKey {

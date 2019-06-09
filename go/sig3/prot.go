@@ -11,6 +11,7 @@ type SigVersion int
 type LinkID [32]byte
 type Seqno = keybase1.Seqno
 type Time = keybase1.Time
+type TimeSec int64
 type IgnoreIfUnsupported bool
 type KID = keybase1.BinaryKID
 type TeamID [16]byte
@@ -18,7 +19,6 @@ type PerTeamKeyGeneration = keybase1.PerTeamKeyGeneration
 type Entropy []byte
 type Sig [64]byte
 type PTKType = keybase1.PTKType
-type SeedCheck [32]byte
 type AppkeyDerivationVersion int
 
 const (
@@ -59,7 +59,7 @@ type OuterLink struct {
 
 type InnerLink struct {
 	Body        interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
-	Ctime       Time        `codec:"c"` // Seconds since 1970 UTC.
+	Ctime       TimeSec     `codec:"c"` // Seconds since 1970 UTC.
 	Entropy     Entropy     `codec:"e"` // entropy for hiding the value of the inner link
 	ClientInfo  *ClientInfo `codec:"i"` // Optional client type making sig
 	MerkleRoot  MerkleRoot  `codec:"m"` // Optional snapshot of merkle root at time of sig
@@ -81,9 +81,9 @@ type Team struct {
 }
 
 type MerkleRoot struct {
-	Ctime Time   `codec:"c"`
-	Hash  []byte `codec:"h"` // HashMeta of the MerkleRoot
-	Seqno Seqno  `codec:"s"`
+	Ctime TimeSec `codec:"c"`
+	Hash  []byte  `codec:"h"` // HashMeta of the MerkleRoot
+	Seqno Seqno   `codec:"s"`
 }
 
 type ClientInfo struct {

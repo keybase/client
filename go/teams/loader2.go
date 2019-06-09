@@ -719,6 +719,8 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	if err != nil {
 		return err
 	}
+	l.G().Log.CDebugf(ctx, "TeamLoader#addSecrets at %d", latestReceivedGen)
+
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 	// Latest generation from the sigchain

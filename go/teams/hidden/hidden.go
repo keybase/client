@@ -216,15 +216,15 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	if err != nil {
 		return nil, nil, err
 	}
-	now := keybase1.ToTime(mctx.G().Clock().Now())
+	now := mctx.G().Clock().Now()
 	inner := sig3.InnerLink{
-		Ctime: now,
+		Ctime: sig3.TimeSec(now.Unix()),
 		ClientInfo: &sig3.ClientInfo{
 			Desc:    libkb.GoClientID,
 			Version: libkb.Version,
 		},
 		MerkleRoot: sig3.MerkleRoot{
-			Ctime: p.MerkleRoot.CtimeMsec(),
+			Ctime: sig3.TimeSec(p.MerkleRoot.Ctime()),
 			Hash:  p.MerkleRoot.HashMeta(),
 			Seqno: *rsq,
 		},
@@ -297,7 +297,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 				SeqType: sig3.ChainTypeTeamPrivateHidden,
 				LinkID:  outerHash.Export(),
 			},
-			Time: now,
+			Time: keybase1.ToTime(now),
 		},
 	}
 	return &bun, ratchet, nil

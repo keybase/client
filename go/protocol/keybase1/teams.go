@@ -201,14 +201,14 @@ func (o PerTeamSeedCheckValuePostImage) DeepCopy() PerTeamSeedCheckValuePostImag
 }
 
 type PerTeamSeedCheckPostImage struct {
-	Version PerTeamSeedCheckVersion        `codec:"version" json:"version"`
-	Value   PerTeamSeedCheckValuePostImage `codec:"value" json:"value"`
+	Value   PerTeamSeedCheckValuePostImage `codec:"h" json:"h"`
+	Version PerTeamSeedCheckVersion        `codec:"v" json:"v"`
 }
 
 func (o PerTeamSeedCheckPostImage) DeepCopy() PerTeamSeedCheckPostImage {
 	return PerTeamSeedCheckPostImage{
-		Version: o.Version.DeepCopy(),
 		Value:   o.Value.DeepCopy(),
+		Version: o.Version.DeepCopy(),
 	}
 }
 

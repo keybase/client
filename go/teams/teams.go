@@ -473,13 +473,15 @@ func (t *Team) RotateHidden(ctx context.Context) (err error) {
 }
 
 func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
+	mctx := t.MetaContext(ctx).WithLogTag("ROT")
+	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%v)", t.ID, hidden), func() error { return err })()
 
 	// initialize key manager
-	if _, err := t.SharedSecret(ctx); err != nil {
+	if _, err := t.SharedSecret(mctx.Ctx()); err != nil {
 		return err
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(mctx, libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -489,13 +491,13 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 
 	// Try to get the admin perms if they are available, if not, proceed anyway
 	var admin *SCTeamAdmin
-	admin, err = t.getAdminPermission(ctx)
+	admin, err = t.getAdminPermission(mctx.Ctx())
 	if err != nil {
-		t.G().Log.CDebugf(ctx, "Rotate: unable to get admin permission: %v, attempting without admin section", err)
+		mctx.Debug("Rotate: unable to get admin permission: %v, attempting without admin section", err)
 		admin = nil
 	}
 
-	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
+	if err := t.ForceMerkleRootUpdate(mctx.Ctx()); err != nil {
 		return err
 	}
 
@@ -513,7 +515,7 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 	}
 
 	// rotate the team key for all current members
-	secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+	secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(mctx.Ctx(), memSet)
 	if err != nil {
 		return err
 	}
@@ -531,15 +533,15 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 	}
 
 	if !hidden {
-		err = t.rotatePostVisible(ctx, section, mr, payloadArgs)
+		err = t.rotatePostVisible(mctx.Ctx(), section, mr, payloadArgs)
 	} else {
-		err = t.rotatePostHidden(ctx, section, mr, payloadArgs)
+		err = t.rotatePostHidden(mctx.Ctx(), section, mr, payloadArgs)
 	}
 	if err != nil {
 		return err
 	}
 
-	t.storeTeamEKPayload(ctx, teamEKPayload)
+	t.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
 
 	return nil
 }

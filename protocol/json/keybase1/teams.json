@@ -86,12 +86,16 @@
       "name": "PerTeamSeedCheckPostImage",
       "fields": [
         {
-          "type": "PerTeamSeedCheckVersion",
-          "name": "version"
+          "type": "PerTeamSeedCheckValuePostImage",
+          "name": "value",
+          "mpackkey": "h",
+          "jsonkey": "h"
         },
         {
-          "type": "PerTeamSeedCheckValuePostImage",
-          "name": "value"
+          "type": "PerTeamSeedCheckVersion",
+          "name": "version",
+          "mpackkey": "v",
+          "jsonkey": "v"
         }
       ]
     },
