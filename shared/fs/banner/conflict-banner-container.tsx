@@ -9,7 +9,9 @@ type OwnProps = {
   path: Types.Path
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({})
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
+})
 type DispatchProps = {
   onFeedback: () => void
   onFinishResolving: () => void
