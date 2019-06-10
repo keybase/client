@@ -112,7 +112,7 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 	xprt.TLSClientConfig = tlsConfig
 
 	env := mctx.G().Env
-	xprt.Proxy = libkb.MakeProxy(env.GetProxyType(), env.GetProxy())
+	xprt.Proxy = libkb.MakeProxy(env)
 
 	return &http.Client{
 		Transport: &xprt,

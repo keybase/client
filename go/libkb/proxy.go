@@ -16,9 +16,8 @@ export PROXY_TYPE=<"Socks" or "http_connect">
 export PROXY=<"localhost:8080" or "username:password@localhost:8080">
 ```
 
-Internally, we support proxies by setting the HTTP_PROXY and HTTPS_PROXY environment variables which
-http.ProxyFromEnvironment automatically reads from. Note that http.ProxyFromEnvironment does support
-socks5 proxies and basic auth.
+Internally, we support proxies by setting the Proxy field of http.Transport in order to use http's
+built in support for proxies. Note that http.Transport.Proxy does support socks5 proxies and basic auth.
 
 By default, the client reaches out to api-0.core.keybaseapi.com which has a self-signed certificate. This
 is actually more secure than relying on the standard CA system since we pin the client to only accept this
@@ -70,9 +69,13 @@ func GetCommaSeparatedListOfProxyTypes() string {
 	return strings.Join(proxyTypes, ",")
 }
 
-// Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
-func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request) (*url.URL, error) {
+
+// Return a function that can be passed to the http library in order to configure a proxy
+func MakeProxy(e *Env) func(r *http.Request)(*url.URL, error) {
 	return func(r *http.Request) (*url.URL, error) {
+		proxyType := e.GetProxyType()
+		proxyAddress := e.GetProxy()
+
 		if proxyType == NoProxy {
 			// No proxy so returning nil tells it not to use a proxy
 			return nil, nil
