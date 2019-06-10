@@ -18,7 +18,8 @@ const noErrors = (state: TypedState) =>
   !state.signup.inviteCodeError &&
   !state.signup.nameError &&
   !state.signup.usernameError &&
-  !state.signup.signupError.stringValue()
+  !state.signup.signupError.stringValue() &&
+  !state.signup.usernameTaken
 
 // Navigation side effects ///////////////////////////////////////////////////////////
 // When going back we clear all errors so we can fix things and move forward
@@ -42,8 +43,12 @@ const goToLoginRoot = () => [
   RouteTreeGen.createNavUpToScreen({routeName: loginTab}),
 ]
 
+const showEmailScreenOnNoErrors = (state: TypedState) =>
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
+
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
+  noErrors(state) &&
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
@@ -210,8 +215,12 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     SignupGen.requestedInvite,
     showInviteSuccessOnNoErrors
   )
-  yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload>(
-    SignupGen.checkedUsernameEmail,
+  yield* Saga.chainAction<SignupGen.CheckedUsernamePayload>(
+    SignupGen.checkedUsername,
+    showEmailScreenOnNoErrors
+  )
+  yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload | SignupGen.CheckEmailPayload>(
+    [SignupGen.checkedUsernameEmail, SignupGen.checkEmail],
     showDeviceScreenOnNoErrors
   )
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(

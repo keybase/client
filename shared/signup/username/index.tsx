@@ -14,7 +14,8 @@ type Props = {
 
 const EnterUsername = (props: Props) => {
   const [username, onChangeUsername] = React.useState('')
-  const onContinue = () => props.onContinue(username)
+  const disabled = !username || username === props.usernameTaken
+  const onContinue = () => (disabled ? {} : props.onContinue(username))
   return (
     <SignupScreen
       banners={
@@ -36,7 +37,7 @@ const EnterUsername = (props: Props) => {
       }
       buttons={[
         {
-          disabled: !username || username === props.usernameTaken,
+          disabled: disabled,
           label: 'Continue',
           onClick: onContinue,
           type: 'Success',

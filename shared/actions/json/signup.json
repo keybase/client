@@ -41,6 +41,9 @@
       "usernameTaken?": "string",
       "error": "string"
     },
+    "checkEmail": {
+      "email": "string"
+    },
     "requestInvite": {
       "email": "string",
       "name": "string"

@@ -9,6 +9,7 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
+export const checkEmail = 'signup:checkEmail'
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassword = 'signup:checkPassword'
 export const checkUsername = 'signup:checkUsername'
@@ -27,6 +28,7 @@ export const signedup = 'signup:signedup'
 
 // Payload Types
 type _CheckDevicenamePayload = {readonly devicename: string}
+type _CheckEmailPayload = {readonly email: string}
 type _CheckInviteCodePayload = {readonly inviteCode: string}
 type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
 type _CheckUsernameEmailPayload = {readonly username: string; readonly email: string}
@@ -67,6 +69,10 @@ type _SignedupPayloadError = {readonly error: HiddenString}
 export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDevicenamePayload => ({
   payload,
   type: checkDevicename,
+})
+export const createCheckEmail = (payload: _CheckEmailPayload): CheckEmailPayload => ({
+  payload,
+  type: checkEmail,
 })
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload): CheckInviteCodePayload => ({
   payload,
@@ -148,6 +154,7 @@ export type CheckDevicenamePayload = {
   readonly payload: _CheckDevicenamePayload
   readonly type: 'signup:checkDevicename'
 }
+export type CheckEmailPayload = {readonly payload: _CheckEmailPayload; readonly type: 'signup:checkEmail'}
 export type CheckInviteCodePayload = {
   readonly payload: _CheckInviteCodePayload
   readonly type: 'signup:checkInviteCode'
@@ -240,6 +247,7 @@ export type SignedupPayloadError = {
 // prettier-ignore
 export type Actions =
   | CheckDevicenamePayload
+  | CheckEmailPayload
   | CheckInviteCodePayload
   | CheckPasswordPayload
   | CheckUsernameEmailPayload
