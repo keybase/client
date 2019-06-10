@@ -5,6 +5,7 @@ import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen} from '../common'
 
 type Props = {
+  initialUsername?: string
   onBack: () => void
   onContinue: (username: string) => void
   onLogin: (username: string) => void
@@ -13,7 +14,7 @@ type Props = {
 }
 
 const EnterUsername = (props: Props) => {
-  const [username, onChangeUsername] = React.useState('')
+  const [username, onChangeUsername] = React.useState(props.initialUsername || '')
   const disabled = !username || username === props.usernameTaken
   const onContinue = () => (disabled ? {} : props.onContinue(username))
   return (

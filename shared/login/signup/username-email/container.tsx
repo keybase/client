@@ -1,4 +1,5 @@
 import * as SignupGen from '../../../actions/signup-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {connect} from '../../../util/container'
 import UsernameEmail from '.'
 
@@ -12,7 +13,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(SignupGen.createRestartSignup()),
+  onBack: () => {
+    dispatch(SignupGen.createRestartSignup())
+    dispatch(RouteTreeGen.createNavigateUp())
+  },
   onSubmit: (username: string, email: string) =>
     dispatch(SignupGen.createCheckUsernameEmail({email, username})),
 })

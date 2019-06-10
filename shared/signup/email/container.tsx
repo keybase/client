@@ -10,6 +10,7 @@ import EnterEmail from '.'
 const mapStateToProps = state => ({
   allowSearch: false,
   error: state.signup.emailError,
+  initialEmail: state.signup.email,
 })
 
 const mapDispatchToProps = dispatch => ({

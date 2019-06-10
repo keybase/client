@@ -4,18 +4,20 @@ import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
 type Props = {
+  initialDevicename?: string
   onBack: () => void
   onChangeDevicename: () => void
   onContinue: (devicename: string) => void
+  waiting: boolean
 }
 
 const EnterDevicename = (props: Props) => {
-  const [devicename, onChangeDevicename] = React.useState('')
+  const [devicename, onChangeDevicename] = React.useState(props.initialDevicename || '')
   const disabled = !devicename
   const onContinue = () => (disabled ? {} : props.onContinue(devicename))
   return (
     <SignupScreen
-      buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success'}]}
+      buttons={[{disabled, label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.waiting}]}
       onBack={props.onBack}
       title={Styles.isMobile ? 'Name this phone' : 'Name this computer'}
     >

@@ -7,6 +7,7 @@ import {ButtonType} from '../../common-adapters/button'
 type Props = {
   allowSearch: boolean
   error: string
+  initialEmail?: string
   onBack?: () => void
   onChangeAllowSearch?: (allow: boolean) => void
   onFinish: (email: string) => void
@@ -16,7 +17,7 @@ type Props = {
 // Parts that are commented out allow skipping entering an email, we don't want
 // to allow skipping for now. TODO Y2K-57 allow skipping.
 const EnterEmail = (props: Props) => {
-  const [email, onChangeEmail] = React.useState('')
+  const [email, onChangeEmail] = React.useState(props.initialEmail || '')
   const onContinue = () => props.onFinish(email)
   return (
     <SignupScreen

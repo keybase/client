@@ -38,11 +38,6 @@ const showInviteSuccessOnNoErrors = (state: TypedState) =>
   noErrors(state) &&
   RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
 
-const goToLoginRoot = () => [
-  RouteTreeGen.createClearModals(),
-  RouteTreeGen.createNavUpToScreen({routeName: loginTab}),
-]
-
 const showEmailScreenOnNoErrors = (state: TypedState) =>
   noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
 
@@ -209,8 +204,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<SignupGen.CheckDevicenamePayload>(SignupGen.checkDevicename, checkDevicename)
 
-  // move to next screen actions
-  yield* Saga.chainAction<SignupGen.RestartSignupPayload>(SignupGen.restartSignup, goToLoginRoot)
+  // move to next screen actions\
   yield* Saga.chainAction<SignupGen.RequestedInvitePayload>(
     SignupGen.requestedInvite,
     showInviteSuccessOnNoErrors

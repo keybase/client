@@ -12,12 +12,16 @@ import {InfoIcon} from '../common'
 type OwnProps = {}
 
 const mapStateToProps = state => ({
+  initialUsername: state.signup.username,
   usernameTaken: state.signup.usernameTaken,
   waiting: anyWaiting(state, Constants.waitingKey),
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => {
+    dispatch(SignupGen.createRestartSignup())
+    dispatch(RouteTreeGen.createNavigateUp())
+  },
   onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
   onLogin: (username: string) => {
     /* TODO */

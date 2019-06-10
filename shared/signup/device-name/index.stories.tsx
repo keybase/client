@@ -7,6 +7,7 @@ const props = {
   onBack: Sb.action('onBack'),
   onChangeDevicename: Sb.action('onChangeDeviceName'),
   onContinue: Sb.action('onContinue'),
+  waiting: false,
 }
 
 const load = () => {
