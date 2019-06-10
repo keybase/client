@@ -3,6 +3,7 @@
 - [x] test case that works for hidden rotation
 - [ ] test case where alice and bob rotate the team and they each take turns
 - [ ] precheck that a link will be accepted by the server (as does chain3)
+- [ ] feature-flag this for almost everything except for blessed prod teams (by team ID) (server + client)
 - [ ] try to figure out refreshing and cache-bust store for chain17
   - idea: merkle/path.json:
     - you're allowed to know if there's something bigger than a given linkID, without explicitly checking membership:
