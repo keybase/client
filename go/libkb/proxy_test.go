@@ -14,7 +14,7 @@ func TestProxyTypeStrToEnum(t *testing.T) {
 	require.Equal(t, true, ok)
 
 	proxyType, ok = ProxyTypeStrToEnum["http_connect"]
-	require.Equal(t, HttpConnect, proxyType)
+	require.Equal(t, HTTPConnect, proxyType)
 	require.Equal(t, true, ok)
 
 	proxyType, ok = ProxyTypeStrToEnum["bogus"]
@@ -24,11 +24,11 @@ func TestProxyTypeStrToEnum(t *testing.T) {
 func TestMakeProxy(t *testing.T) {
 	resetGlobals()
 	os.Clearenv()
-	mocked_env := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
+	mockedEnv := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
 
-	require.Equal(t, NoProxy, mocked_env.GetProxyType())
-	require.Equal(t, "", mocked_env.GetProxy())
-	f := MakeProxy(mocked_env)
+	require.Equal(t, NoProxy, mockedEnv.GetProxyType())
+	require.Equal(t, "", mockedEnv.GetProxy())
+	f := MakeProxy(mockedEnv)
 	retURL, err := f(nil)
 
 	// A nil retURL means no proxy
@@ -36,17 +36,17 @@ func TestMakeProxy(t *testing.T) {
 	require.Equal(t, nil, err)
 
 	globalProxyType = "Socks"
-	require.Equal(t, Socks, mocked_env.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	globalProxyAddress = "localhost:8090"
-	require.Equal(t, "localhost:8090", mocked_env.GetProxy())
-	f = MakeProxy(mocked_env)
+	require.Equal(t, "localhost:8090", mockedEnv.GetProxy())
+	f = MakeProxy(mockedEnv)
 	retURL, err = f(nil)
 	require.Equal(t, nil, err)
 	require.Equal(t, "socks5://localhost:8090", retURL.String())
 
 	globalProxyType = "http_connect"
-	require.Equal(t, HttpConnect, mocked_env.GetProxyType())
-	f = MakeProxy(mocked_env)
+	require.Equal(t, HTTPConnect, mockedEnv.GetProxyType())
+	f = MakeProxy(mockedEnv)
 	retURL, err = f(nil)
 	require.Equal(t, nil, err)
 	require.Equal(t, "localhost:8090", retURL.String())

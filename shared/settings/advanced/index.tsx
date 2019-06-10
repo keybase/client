@@ -7,9 +7,7 @@ import flags from '../../util/feature-flags'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
-import * as rpc from "../../constants/types/rpc-gen";
-import {ProxyType} from "../../constants/types/rpc-gen";
-import * as Types from "../../constants/types/fs";
+import * as Types from '../../constants/types/fs'
 
 type Props = {
   openAtLogin: boolean
@@ -58,17 +56,17 @@ const UseNativeFrame = (props: Props) => {
 }
 
 type AdvancedState = {
-  showCertPinningModal: boolean
   disableCertPinning: () => void | undefined
+  showCertPinningModal: boolean
 }
 
-class Advanced extends React.Component<Props, AdvancedState>  {
+class Advanced extends React.Component<Props, AdvancedState> {
   constructor(props: Props) {
     super(props)
 
     this.state = {
+      disableCertPinning: undefined,
       showCertPinningModal: false,
-      disableCertPinning: undefined
     }
   }
 
@@ -77,49 +75,57 @@ class Advanced extends React.Component<Props, AdvancedState>  {
   }
 
   render() {
-    const disabled = this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
+    const disabled =
+      this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
     return (
       <Kb.Box style={styles.advancedContainer}>
-
-        {this.state.showCertPinningModal && <Kb.Box style={{zIndex: 1}}> <Kb.ConfirmModal
-            confirmText="Yes, allow TLS MITM"
-            description="This means your proxy will be able to view all traffic between you and Keybase servers. It
+        {this.state.showCertPinningModal && (
+          <Kb.Box style={{zIndex: 1}}>
+            {' '}
+            <Kb.ConfirmModal
+              confirmText="Yes, allow TLS MITM"
+              description="This means your proxy will be able to view all traffic between you and Keybase servers. It
           is not recommended to use this option unless absolutely required."
-            header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Styles.globalColors.red}/>}
-            onCancel={() => this.setState({showCertPinningModal: false})}
-            onConfirm={() => {this.setState({showCertPinningModal: false}); this.state.disableCertPinning()}}
-            prompt="Are you sure you want to allow TLS MITM?"
-        /></Kb.Box>}
+              header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Styles.globalColors.red} />}
+              onCancel={() => this.setState({showCertPinningModal: false})}
+              onConfirm={() => {
+                this.setState({showCertPinningModal: false})
+                this.state.disableCertPinning()
+              }}
+              prompt="Are you sure you want to allow TLS MITM?"
+            />
+          </Kb.Box>
+        )}
 
         <Kb.Box style={styles.progressContainer}>
-          {this.props.settingLockdownMode && <Kb.ProgressIndicator/>}
+          {this.props.settingLockdownMode && <Kb.ProgressIndicator />}
         </Kb.Box>
         <Kb.Box style={styles.checkboxContainer}>
           <Kb.Checkbox
-              checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
-              disabled={disabled}
-              label={
-                'Forbid account changes from the website' +
-                (this.props.hasRandomPW ? ' (you need to set a password first)' : '')
-              }
-              onCheck={this.props.onChangeLockdownMode}
-              style={styles.checkbox}
+            checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
+            disabled={disabled}
+            label={
+              'Forbid account changes from the website' +
+              (this.props.hasRandomPW ? ' (you need to set a password first)' : '')
+            }
+            onCheck={this.props.onChangeLockdownMode}
+            style={styles.checkbox}
           />
         </Kb.Box>
         {!!this.props.setLockdownModeError && (
-            <Kb.Text type="BodySmall" style={styles.error}>
-              {this.props.setLockdownModeError}
-            </Kb.Text>
+          <Kb.Text type="BodySmall" style={styles.error}>
+            {this.props.setLockdownModeError}
+          </Kb.Text>
         )}
         {isLinux && <UseNativeFrame {...this.props} />}
         {!Styles.isMobile && !isLinux && (
-            <Kb.Box style={styles.openAtLoginCheckboxContainer}>
-              <Kb.Checkbox
-                  label="Open Keybase on startup"
-                  checked={this.props.openAtLogin}
-                  onCheck={this.props.onSetOpenAtLogin}
-              />
-            </Kb.Box>
+          <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+            <Kb.Checkbox
+              label="Open Keybase on startup"
+              checked={this.props.openAtLogin}
+              onCheck={this.props.onSetOpenAtLogin}
+            />
+          </Kb.Box>
         )}
         <ProxySettings {...{...this.props, confirmDisableCertPinning: this.confirmDisableCertPinning}} />
         <Developer {...this.props} />
@@ -244,14 +250,14 @@ class Developer extends React.Component<Props, State> {
 }
 
 const ProxyTypeToDisplayName = {
-  "noProxy": "No Proxy",
-  "httpConnect": "HTTP Connect",
-  "socks": "Socks5"
+  httpConnect: 'HTTP Connect',
+  noProxy: 'No Proxy',
+  socks: 'Socks5',
 }
 const DisplayNameToProxyType = {
-  "No Proxy": "noProxy",
-  "HTTP Connect": "httpConnect",
-  "Socks5": "socks"
+  'HTTP Connect': 'httpConnect',
+  'No Proxy': 'noProxy',
+  Socks5: 'socks',
 }
 
 type ProxyState = {
@@ -262,39 +268,38 @@ type ProxyState = {
   showCertPinningConfirmationModal: boolean
 }
 
-type ProxyProps = Props & {confirmDisableCertPinning: ((disableCertPinning: () => void) => void)}
+type ProxyProps = Props & {confirmDisableCertPinning: (disableCertPinning: () => void) => void}
 
 class ProxySettings extends React.Component<ProxyProps, ProxyState> {
   constructor(props: ProxyProps) {
     super(props)
 
     this.state = {
-      address: "",
-      port: "",
-      proxyType: ProxyTypeToDisplayName["noProxy"],
+      address: '',
       certPinning: true,
-      showCertPinningConfirmationModal: false
+      port: '',
+      proxyType: ProxyTypeToDisplayName['noProxy'],
+      showCertPinningConfirmationModal: false,
     }
 
     RPCTypes.configGetProxyDataRpcPromise()
-        .then(this.handleProxyData)
-        .catch(error => console.warn('Error in retrieving proxy data, using default data:', error))
+      .then(this.handleProxyData)
+      .catch(error => console.warn('Error in retrieving proxy data, using default data:', error))
   }
 
-  handleProxyData = (data: rpc.ProxyData) => {
-    var addressPort = data.addressWithPort.split(":")
+  handleProxyData = (data: RPCTypes.ProxyData) => {
+    var addressPort = data.addressWithPort.split(':')
     var address = addressPort[0]
+    var port = '80'
     if (addressPort.length >= 2) {
-      var port = addressPort[1]
-    } else {
-      var port = "80"
+      port = addressPort[1]
     }
 
     var certPinning = data.certPinning
 
-    var proxyType = ProxyTypeToDisplayName[rpc.ProxyType[data.proxyType]]
+    var proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[data.proxyType]]
 
-    this.setState({address, port, certPinning, proxyType})
+    this.setState({address, certPinning, port, proxyType})
   }
 
   handleAddressChange = (address: string) => {
@@ -319,63 +324,70 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
 
   saveProxySettings = () => {
     var proxyData = {
-      addressWithPort: this.state.address + ":" + this.state.port,
-      proxyType: rpc.ProxyType[DisplayNameToProxyType[this.state.proxyType]] as unknown as ProxyType,
+      addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.state.certPinning,
+      proxyType: (RPCTypes.ProxyType[
+        DisplayNameToProxyType[this.state.proxyType]
+      ] as unknown) as RPCTypes.ProxyType,
     }
-    RPCTypes.configSetProxyDataRpcPromise({ proxyData })
-        .catch(error => console.warn('Error in saving proxy data:', error))
+    RPCTypes.configSetProxyDataRpcPromise({proxyData}).catch(error =>
+      console.warn('Error in saving proxy data:', error)
+    )
   }
 
   render() {
     return (
-        <Kb.Box style={styles.proxyContainer}>
-          <Kb.Divider style={styles.divider} />
-          <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
-            Configure a HTTP(s) or SOCKS5 proxy
-          </Kb.Text>
-          <Kb.Box>
-            {
-              Object.values(ProxyTypeToDisplayName).map(proxyType =>
-                <Kb.Button
-                  style={{margin: Styles.globalMargins.tiny}}
-                  onClick={() => this.setProxyType(proxyType)}
-                  type={this.state.proxyType == proxyType ? 'Default' : 'Dim'}
-                >
-                  {proxyType}
-                </Kb.Button>
-              )
-            }
-          </Kb.Box>
-          <Kb.Box2 direction="vertical" centerChildren={true} style={{margin: Styles.globalMargins.mediumLarge}}>
-            <Kb.Input
-              hintText="Proxy Address"
-              value={this.state.address}
-              onChangeText={addr => this.handleAddressChange(addr)}
-              style={{width: 400, margin: Styles.globalMargins.medium}}
-            />
-            <Kb.Input
-              hintText="Proxy Port"
-              value={this.state.port}
-              onChangeText={port => this.handlePortChange(port)}
-              style={{width: 200, margin: Styles.globalMargins.medium}}
-            />
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" centerChildren={true} style={{marginTop: Styles.globalMargins.xlarge, marginBottom: Styles.globalMargins.medium}}>
-            <Kb.Switch
-              on={!this.state.certPinning}
-              onClick={this.toggleCertPinning}
-              label="Allow TLS Interception"
-            />
-          </Kb.Box2>
-          <Kb.Button
-            style={{margin: Styles.globalMargins.xsmall}}
-            onClick={this.saveProxySettings}>
-            Save Proxy Settings
-          </Kb.Button>
-
+      <Kb.Box style={styles.proxyContainer}>
+        <Kb.Divider style={styles.divider} />
+        <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
+          Configure a HTTP(s) or SOCKS5 proxy
+        </Kb.Text>
+        <Kb.Box>
+          {Object.values(ProxyTypeToDisplayName).map(proxyType => (
+            <Kb.Button
+              style={{margin: Styles.globalMargins.tiny}}
+              onClick={() => this.setProxyType(proxyType)}
+              type={this.state.proxyType === proxyType ? 'Default' : 'Dim'}
+              key={proxyType}
+            >
+              {proxyType}
+            </Kb.Button>
+          ))}
         </Kb.Box>
-    );
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          style={{margin: Styles.globalMargins.mediumLarge}}
+        >
+          <Kb.Input
+            hintText="Proxy Address"
+            value={this.state.address}
+            onChangeText={addr => this.handleAddressChange(addr)}
+            style={{margin: Styles.globalMargins.medium, width: 400}}
+          />
+          <Kb.Input
+            hintText="Proxy Port"
+            value={this.state.port}
+            onChangeText={port => this.handlePortChange(port)}
+            style={{margin: Styles.globalMargins.medium, width: 200}}
+          />
+        </Kb.Box2>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          style={{marginBottom: Styles.globalMargins.medium, marginTop: Styles.globalMargins.xlarge}}
+        >
+          <Kb.Switch
+            on={!this.state.certPinning}
+            onClick={this.toggleCertPinning}
+            label="Allow TLS Interception"
+          />
+        </Kb.Box2>
+        <Kb.Button style={{margin: Styles.globalMargins.xsmall}} onClick={this.saveProxySettings}>
+          Save Proxy Settings
+        </Kb.Button>
+      </Kb.Box>
+    )
   }
 }
 
@@ -404,13 +416,6 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.xlarge,
   },
-  proxyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.large,
-  },
   divider: {
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',
@@ -431,6 +436,13 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 32,
+  },
+  proxyContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.large,
   },
   text: Styles.platformStyles({
     isElectron: {

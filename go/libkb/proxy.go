@@ -5,14 +5,14 @@ based proxies and socks5 proxies. Proxies can be configured using: CLI flags, co
 See `keybase help advanced` for information on using CLI flags. To configure a proxy using config.json run:
 
 ``` bash
-keybase config set proxy-type <"Socks" or "http_connect">
+keybase config set proxy-type <"socks" or "http_connect">
 keybase config set proxy <"localhost:8080" or "username:password@localhost:8080">
 ```
 
 To configure a proxy using environment variables run:
 
 ``` bash
-export PROXY_TYPE=<"Socks" or "http_connect">
+export PROXY_TYPE=<"socks" or "http_connect">
 export PROXY=<"localhost:8080" or "username:password@localhost:8080">
 ```
 
@@ -53,13 +53,13 @@ type ProxyType int
 const (
 	NoProxy ProxyType = iota
 	Socks
-	HttpConnect
+	HTTPConnect
 )
 
 // Maps a string to an enum. Used to list the different types of supported proxies and to convert
 // config options into the enum
-var ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HttpConnect}
-var ProxyTypeEnumToStr = map[ProxyType]string{Socks: "socks", HttpConnect: "http_connect", NoProxy: "no_proxy"}
+var ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HTTPConnect}
+var ProxyTypeEnumToStr = map[ProxyType]string{Socks: "socks", HTTPConnect: "http_connect", NoProxy: "no_proxy"}
 
 func GetCommaSeparatedListOfProxyTypes() string {
 	var proxyTypes []string
@@ -71,7 +71,7 @@ func GetCommaSeparatedListOfProxyTypes() string {
 
 
 // Return a function that can be passed to the http library in order to configure a proxy
-func MakeProxy(e *Env) func(r *http.Request)(*url.URL, error) {
+func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 	return func(r *http.Request) (*url.URL, error) {
 		proxyType := e.GetProxyType()
 		proxyAddress := e.GetProxy()
