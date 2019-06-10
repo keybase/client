@@ -265,9 +265,11 @@ type MerkleUserLeaf struct {
 }
 
 type MerkleTeamLeaf struct {
-	TeamID        keybase1.TeamID
-	Public        *MerkleTriple
-	Private       *MerkleTriple
+	TeamID  keybase1.TeamID
+	Public  *MerkleTriple
+	Private *MerkleTriple
+	// If we passed through a linkID for the last known hidden chain link, here we pass back
+	// if it's the freshest.
 	HiddenIsFresh bool
 }
 
@@ -1768,8 +1770,17 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	return leaf, path.root, nil
 }
 
+func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, lastKnownHidden keybase1.LinkID) (leaf *MerkleTeamLeaf, err error) {
+	// Copied from LookupUser. These methods should be kept relatively in sync.
+	return mc.lookupTeam(m, teamID, lastKnownHidden)
+}
+
 func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
+	return mc.lookupTeam(m, teamID, keybase1.LinkID(""))
+}
+
+func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, lastKnownHidden keybase1.LinkID) (leaf *MerkleTeamLeaf, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
@@ -1791,6 +1802,9 @@ func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf 
 
 	q := NewHTTPArgs()
 	q.Add("leaf_id", S{Val: teamID.String()})
+	if !lastKnownHidden.IsNil() {
+		q.Add("last_hidden_link_id", S{Val: lastKnownHidden.String()})
+	}
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(m, q, rootBeforeCall, opts); err != nil {
 		return nil, err
@@ -1802,6 +1816,14 @@ func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf 
 
 	if leaf, err = path.verifyTeam(m, teamID); err != nil {
 		return nil, err
+	}
+
+	if !lastKnownHidden.IsNil() {
+		var tmp error
+		leaf.HiddenIsFresh, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
+		if tmp != nil {
+			m.Debug("Bad is_last_hidden_link: %s", tmp.Error())
+		}
 	}
 
 	m.VLogf(VLog0, "- MerkleClient.LookupTeam(%v) -> OK", teamID)

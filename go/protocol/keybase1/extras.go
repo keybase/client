@@ -418,6 +418,10 @@ func (l LinkID) IsNil() bool {
 	return len(l) == 0
 }
 
+func (l LinkID) String() string {
+	return string(l)
+}
+
 func NilTeamID() TeamID { return TeamID("") }
 
 func (s Seqno) Eq(s2 Seqno) bool {
