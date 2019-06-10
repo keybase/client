@@ -5,6 +5,7 @@ import * as Constants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import logger from '../../logger'
 import {anyWaiting} from '../../constants/waiting'
 import EnterUsername from '.'
 import {InfoIcon} from '../common'
@@ -26,6 +27,7 @@ const mapDispatchToProps = dispatch => ({
   onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
   onLogin: (username: string) => {
     /* TODO */
+    logger.warn('TODO')
   },
 })
 

@@ -18,12 +18,13 @@ type Props = {
 // to allow skipping for now. TODO Y2K-57 allow skipping.
 const EnterEmail = (props: Props) => {
   const [email, onChangeEmail] = React.useState(props.initialEmail || '')
-  const onContinue = () => props.onFinish(email)
+  const disabled = !email
+  const onContinue = () => (disabled ? {} : props.onFinish(email))
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
       buttons={[
-        {label: 'Continue', onClick: onContinue, type: 'Success'},
+        {disabled, label: 'Continue', onClick: onContinue, type: 'Success'},
         ...(Styles.isMobile ? [] : []), // [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
       ]}
       rightActionLabel="Skip"
