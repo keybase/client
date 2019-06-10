@@ -12,6 +12,7 @@ import {InfoIcon} from '../common'
 type OwnProps = {}
 
 const mapStateToProps = state => ({
+  error: state.signup.usernameError,
   initialUsername: state.signup.username,
   usernameTaken: state.signup.usernameTaken,
   waiting: anyWaiting(state, Constants.waitingKey),

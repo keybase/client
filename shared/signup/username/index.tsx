@@ -5,6 +5,7 @@ import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen} from '../common'
 
 type Props = {
+  error: string
   initialUsername?: string
   onBack: () => void
   onContinue: (username: string) => void
@@ -71,6 +72,11 @@ const EnterUsername = (props: Props) => {
           <Kb.Text type="BodySmall" style={styles.inputSub}>
             Your username is unique and can not be changed in the future.
           </Kb.Text>
+          {!!props.error && (
+            <Kb.Text type="BodySmallError" style={styles.inputSub}>
+              {props.error}
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>
