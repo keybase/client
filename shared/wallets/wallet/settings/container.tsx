@@ -5,6 +5,7 @@ import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import flags from '../../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{}, {}>
 
@@ -44,6 +45,7 @@ const mapStateToProps = state => {
     mobileOnlyWaiting,
     name,
     saveCurrencyWaiting,
+    showExternalPartners: flags.stellarExternalPartners,
     thisDeviceIsLockedOut,
     user,
   }
@@ -73,6 +75,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(WalletsGen.createLoadInflationDestination({accountID}))
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
     dispatch(WalletsGen.createLoadMobileOnlyMode({accountID}))
+    dispatch(WalletsGen.createLoadExternalPartners())
   },
 })
 

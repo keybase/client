@@ -16,6 +16,7 @@ export type SettingsProps = {
   currency: Types.Currency
   currencies: I.List<Types.Currency>
   canSubmitTx: boolean
+  externalPartners?: Array<Types.PartnerUrl>
   onBack: () => void
   onDelete: () => void
   onSetDefault: () => void
@@ -25,6 +26,7 @@ export type SettingsProps = {
   onMobileOnlyModeChange: (enabled: boolean) => void
   refresh: () => void
   saveCurrencyWaiting: boolean
+  showExternalPartners: boolean
   mobileOnlyMode: boolean
   mobileOnlyWaiting: boolean
   mobileOnlyEditable: boolean
@@ -38,6 +40,22 @@ const HoverText = Styles.isMobile
     })
 
 const Divider = () => <Kb.Divider style={styles.divider} />
+
+type PartnerRowProps = {
+  adminOnly: boolean
+  extra: string
+  description: string
+  iconFilename: string
+  title: string
+  url: string
+}
+const PartnerRow = (props: PartnerRowProps) => (
+  <Kb.Box2 direction="vertical">
+    <Kb.Text type="Body">
+      {props.title} {props.url} {props.description} {props.extra}
+    </Kb.Text>
+  </Kb.Box2>
+)
 
 class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
@@ -168,6 +186,19 @@ class AccountSettings extends React.Component<SettingsProps> {
               )}
             </Kb.Box2>
             <Divider />
+            {!!props.showExternalPartners && (
+              <>
+                ' \' \' \' \' '
+                <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true} gap="tiny">
+                  <Kb.Text type="BodySmallSemibold">External tools and partners</Kb.Text>
+                  {props.externalPartners.map(partner => (
+                    <PartnerRow key={partner.url} />
+                  ))}
+                </Kb.Box2>
+                ' \' \' '<Divider />' '
+              </>
+            )}
+
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny" fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>

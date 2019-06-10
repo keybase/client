@@ -37,6 +37,8 @@ export const noAccountID = stringToAccountID('NOACCOUNTID')
 
 export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
 
+export type PartnerUrl = StellarRPCTypes.PartnerUrl
+
 // We treat PaymentIDs from the service as opaque
 export type PaymentID = StellarRPCTypes.PaymentID
 export const noPaymentID: PaymentID = 'NOPAYMENTID'
@@ -291,6 +293,7 @@ export type _State = {
   builtRequest: BuiltRequest
   createNewAccountError: string
   currencies: I.List<Currency>
+  externalPartners: I.List<PartnerUrl>
   exportedSecretKey: HiddenString
   exportedSecretKeyAccountID: AccountID
   inflationDestinations: I.List<InflationDestination>

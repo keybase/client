@@ -136,6 +136,7 @@ export const makeState = I.Record<Types._State>({
   currencies: I.List(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
+  externalPartners: I.List(),
   inflationDestinationError: '',
   inflationDestinationMap: I.Map(),
   inflationDestinations: I.List(),
