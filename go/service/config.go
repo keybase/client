@@ -387,6 +387,31 @@ func (h ConfigHandler) GetProxyData(ctx context.Context) (keybase1.ProxyData, er
 }
 
 func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData) error {
-	// TODO
+	configWriter := h.G().Env.GetConfigWriter()
+
+	rpcProxyType := arg.ProxyType
+
+	var convertedProxyType libkb.ProxyType
+	if rpcProxyType == keybase1.ProxyType_No_Proxy {
+		convertedProxyType = libkb.No_Proxy
+	} else if rpcProxyType == keybase1.ProxyType_HTTP_Connect {
+		convertedProxyType = libkb.HTTP_Connect
+	} else if rpcProxyType == keybase1.ProxyType_Socks {
+		convertedProxyType = libkb.Socks
+	} else {
+		// Got a bogus proxy type that we couldn't convert to a libkb enum so return an error
+		return fmt.Errorf("failed to convert given proxy type to a native libkb proxy type")
+	}
+
+	proxyTypeStr, ok := libkb.ProxyTypeEnumToStr[convertedProxyType]
+
+	if !ok {
+		// Got a bogus proxy type that we couldn't convert to a string
+		return fmt.Errorf("failed to convert proxy type into a string")
+	}
+
+	configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
+	configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
+	configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
 	return nil
 }

@@ -60,6 +60,7 @@ const (
 // Maps a string to an enum. Used to list the different types of supported proxies and to convert
 // config options into the enum
 var ProxyTypeStrToEnum = map[string]ProxyType{"socks": socks, "http_connect": httpConnect}
+var ProxyTypeEnumToStr = map[ProxyType]string{socks: "socks", httpConnect: "http_connect", noProxy: "no_proxy"}
 
 func GetCommaSeparatedListOfProxyTypes() string {
 	var proxyTypes []string

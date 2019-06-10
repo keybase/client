@@ -8,6 +8,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
 import * as rpc from "../../constants/types/rpc-gen";
+import {ProxyType} from "../../constants/types/rpc-gen";
 
 type Props = {
   openAtLogin: boolean
@@ -215,6 +216,11 @@ const ProxyTypeToDisplayName = {
   "httpConnect": "HTTP Connect",
   "socks": "Socks5"
 }
+const DisplayNameToProxyType = {
+  "No Proxy": "noProxy",
+  "HTTP Connect": "httpConnect",
+  "Socks5": "socks"
+}
 
 type ProxyState = {
   address: string
@@ -238,51 +244,58 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     }
 
     RPCTypes.configGetProxyDataRpcPromise()
-        .then(this.handleProxyData(this.setState))
-        .catch(e => alert("TODOOOOOO WHY HAPPEN???" + e))
-
+        .then(this.handleProxyData)
+        .catch(e => alert("TODO: How should I handle this error:" + e))
   }
 
-  handleProxyData(setState: any) {
-    return (data: rpc.ProxyData) => {
-      var addressPort = data.addressWithPort.split(":")
-      var address = addressPort[0]
-      if (addressPort.length >= 2) {
-        var port = addressPort[1]
-      } else {
-        var port = "80"
-      }
-
-      var certPinning = data.certPinning
-
-      var proxyType = ProxyTypeToDisplayName[rpc.ProxyType[data.proxyType]]
-
-      this.setState({address, port, certPinning, proxyType, edited: false})
+  handleProxyData = (data: rpc.ProxyData) => {
+    var addressPort = data.addressWithPort.split(":")
+    var address = addressPort[0]
+    if (addressPort.length >= 2) {
+      var port = addressPort[1]
+    } else {
+      var port = "80"
     }
+
+    var certPinning = data.certPinning
+
+    var proxyType = ProxyTypeToDisplayName[rpc.ProxyType[data.proxyType]]
+
+    this.setState({address, port, certPinning, proxyType, edited: false})
   }
 
-  handleAddressChange(address: string) {
+  handleAddressChange = (address: string) => {
     var edited = (address !== this.state.address) || this.state.edited
     this.setState({address, edited})
   }
 
-  handlePortChange(port: string) {
+  handlePortChange = (port: string) => {
     var edited = (port !== this.state.port) || this.state.edited
     this.setState({port, edited})
   }
 
-  setProxyType(proxyType: string) {
+  setProxyType = (proxyType: string) => {
     var edited = (proxyType !== this.state.proxyType) || this.state.edited
     this.setState({proxyType, edited})
   }
 
-  toggleCertPinning() {
+  toggleCertPinning = () => {
     // TODO: Warn them before setting the state to true
+    if (this.state.certPinning) {
+      // Cert pinning is about to be disabled, confirm with the user before doing so
+      
+    }
     this.setState({certPinning: !this.state.certPinning})
   }
 
-  saveProxySettings() {
-    // TODO
+  saveProxySettings = () => {
+    var proxyData = {
+      addressWithPort: this.state.address + ":" + this.state.port,
+      proxyType: rpc.ProxyType[DisplayNameToProxyType[this.state.proxyType]] as unknown as ProxyType,
+      certPinning: this.state.certPinning,
+    }
+    RPCTypes.configSetProxyDataRpcPromise({ proxyData })
+        .catch(e => alert("TODO: How should I handle this error:" + e))
   }
 
   render() {
@@ -305,26 +318,31 @@ class ProxySettings extends React.Component<Props, ProxyState> {
             )
           }
         </Kb.Box>
-        <Kb.Input
-          hintText="Proxy Address"
-          value={this.state.address}
-          onChangeText={addr => this.handleAddressChange(addr)}
-          style={{width: 400}}
-        />
-        <Kb.Input
-          hintText="Proxy Port"
-          value={this.state.port}
-          onChangeText={port => this.handlePortChange(port)}
-          style={{width: 200}}
-        />
-        {/*<Kb.Switch */}
-        {/*  on={this.state.certPinning}*/}
-        {/*  // onClick={this.toggleCertPinning}*/}
-        {/*  label="Allow TLS Interception"  */}
-        {/*/>*/}
+        <Kb.Box2 direction="vertical" centerChildren={true} style={{margin: Styles.globalMargins.mediumLarge}}>
+          <Kb.Input
+            hintText="Proxy Address"
+            value={this.state.address}
+            onChangeText={addr => this.handleAddressChange(addr)}
+            style={{width: 400, margin: Styles.globalMargins.medium}}
+          />
+          <Kb.Input
+            hintText="Proxy Port"
+            value={this.state.port}
+            onChangeText={port => this.handlePortChange(port)}
+            style={{width: 200, margin: Styles.globalMargins.medium}}
+          />
+        </Kb.Box2>
+        <Kb.Box style={{marginTop: Styles.globalMargins.xlarge}}>
+          <Kb.Switch
+            on={!this.state.certPinning}
+            onClick={this.toggleCertPinning}
+            label="Allow TLS Interception"
+          />
+
+        </Kb.Box>
         <Kb.Button
-          style={{margin: Styles.globalMargins.xsmall}} 
-          onClick={this.saveProxySettings()}>  
+          style={{margin: Styles.globalMargins.xsmall}}
+          onClick={this.saveProxySettings}>
           Save Proxy Settings
         </Kb.Button>
 
