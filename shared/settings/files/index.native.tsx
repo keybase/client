@@ -62,7 +62,7 @@ const isPending = (props: Props) =>
   (props.driverStatus.type === Types.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
   (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
-export default (props: Props) => (
+const Files = (props: Props) => (
   <>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
       {(true || flags.kbfsOfflineMode) && (
@@ -101,3 +101,5 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
 })
+
+export default Kb.HeaderHoc(Files)

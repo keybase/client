@@ -9,6 +9,7 @@ const mapStateToProps = state => ({
   areSettingsLoading: state.fs.settings.isLoading,
   driverStatus: state.fs.sfmi.driverStatus,
   spaceAvailableNotificationThreshold: state.fs.settings.spaceAvailableNotificationThreshold,
+  title: 'Files',
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -16,6 +17,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(
       FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: threshold})
     ),
+  onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onDisable: () => dispatch(FsGen.createDriverDisable()),
   onDisableSyncNotifications: () =>
     dispatch(FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: 0})),
@@ -29,6 +31,7 @@ const SettingsFiles = namedConnect(
   (s, d, o) => ({
     ...s,
     ...o,
+    onBack: d.onBack,
     onChangedSyncNotifications: (selectedIdx: number) =>
       d._onEnableSyncNotifications(allowedNotificationThresholds[selectedIdx]),
     onDisable: d.onDisable,
