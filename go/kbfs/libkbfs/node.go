@@ -25,6 +25,7 @@ type nodeCore struct {
 	// used only when parent is nil (the object has been unlinked)
 	cachedPath data.Path
 	cachedDe   data.DirEntry
+	obfuscator data.Obfuscator
 }
 
 func newNodeCore(
@@ -39,6 +40,14 @@ func newNodeCore(
 		cache:     cache,
 		entryType: et,
 	}
+}
+
+func newNodeCoreForDir(
+	ptr data.BlockPointer, name string, parent Node,
+	cache *nodeCacheStandard, obfuscator data.Obfuscator) *nodeCore {
+	nc := newNodeCore(ptr, name, parent, cache, data.Dir)
+	nc.obfuscator = obfuscator
+	return nc
 }
 
 func (c *nodeCore) ParentID() NodeID {
@@ -134,3 +143,7 @@ func (n *nodeStandard) EntryType() data.EntryType {
 }
 
 func (n *nodeStandard) FillCacheDuration(d *time.Duration) {}
+
+func (n *nodeStandard) Obfuscator() data.Obfuscator {
+	return n.core.obfuscator
+}

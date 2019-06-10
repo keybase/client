@@ -232,6 +232,10 @@ type Node interface {
 	// FillCacheDuration sets `d` to the suggested cache time for this
 	// node, if desired.
 	FillCacheDuration(d *time.Duration)
+	// Obfuscator returns something that can obfuscate the child
+	// entries of this Node in the case of directories; for other
+	// types, it returns nil.
+	Obfuscator() data.Obfuscator
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect

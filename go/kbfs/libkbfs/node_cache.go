@@ -20,7 +20,8 @@ type nodeCacheEntry struct {
 // the reference counts of nodeStandard Nodes, and using their member
 // fields to construct paths.
 type nodeCacheStandard struct {
-	folderBranch data.FolderBranch
+	folderBranch   data.FolderBranch
+	makeObfuscator func() data.Obfuscator
 
 	lock         sync.RWMutex
 	nodes        map[data.BlockRef]*nodeCacheEntry
@@ -29,10 +30,12 @@ type nodeCacheStandard struct {
 
 var _ NodeCache = (*nodeCacheStandard)(nil)
 
-func newNodeCacheStandard(fb data.FolderBranch) *nodeCacheStandard {
+func newNodeCacheStandard(
+	fb data.FolderBranch, makeOb func() data.Obfuscator) *nodeCacheStandard {
 	return &nodeCacheStandard{
-		folderBranch: fb,
-		nodes:        make(map[data.BlockRef]*nodeCacheEntry),
+		folderBranch:   fb,
+		makeObfuscator: makeOb,
+		nodes:          make(map[data.BlockRef]*nodeCacheEntry),
 	}
 }
 
@@ -141,8 +144,12 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 		}
 	}
 
-	entry = &nodeCacheEntry{
-		core: newNodeCore(ptr, name, parent, ncs, et),
+	entry = &nodeCacheEntry{}
+	if et == data.Dir && ncs.makeObfuscator != nil {
+		entry.core = newNodeCoreForDir(
+			ptr, name, parent, ncs, ncs.makeObfuscator())
+	} else {
+		entry.core = newNodeCore(ptr, name, parent, ncs, et)
 	}
 	ncs.nodes[ptr.Ref()] = entry
 	return ncs.makeNodeStandardForEntryLocked(entry), nil
