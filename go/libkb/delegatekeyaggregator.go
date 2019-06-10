@@ -78,6 +78,11 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	if err != nil {
 		return err
 	}
+
+	// TODO: For testing, delete me
+	return errors.New("Erroring anyway in key/multi delegate key")
+	//
+
 	return MerkleCheckPostedUserSig(m, uid, lastSeqno, lastLinkID)
 }
 

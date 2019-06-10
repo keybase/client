@@ -5,6 +5,7 @@ package engine
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -126,9 +127,14 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	m.Info("Signed up and provisioned a device.")
+
+	// After we are provisioned, do not fail the signup process. Everything
+	// else happening here is optional.
+
 	if !s.arg.SkipPaper {
 		if err = s.genPaperKeys(m); err != nil {
-			return err
+			m.Warning("Paper key was not generated. Failed with an error: %s", err)
 		}
 	}
 
@@ -137,7 +143,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	// user interaction to make testing easier.
 	if s.arg.GenPGPBatch {
 		if err = s.genPGPBatch(m); err != nil {
-			return err
+			m.Warning("genPGPBatch failed with an error: %s", err)
 		}
 	}
 
@@ -282,12 +288,19 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	}
 
 	eng := NewDeviceWrap(m.G(), args)
-	if err := RunEngine2(m, eng); err != nil {
-		return err
+	deviceWrapErr := RunEngine2(m, eng)
+	if !eng.KeysGenerated() {
+		if deviceWrapErr != nil {
+			// Should not happen
+			return errors.New("Failed to generate device keys")
+		}
+		return deviceWrapErr
 	}
+
 	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
-		return err
+		return libkb.CombineErrors(deviceWrapErr, err)
 	}
+
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
 	did := eng.DeviceID()
@@ -302,7 +315,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	m.Debug("registered new device: %s", m.G().Env.GetDeviceID())
 	m.Debug("eldest kid: %s", s.me.GetEldestKID())
 
-	return nil
+	return deviceWrapErr
 }
 
 func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {

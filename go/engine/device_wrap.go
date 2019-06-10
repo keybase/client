@@ -18,6 +18,7 @@ type DeviceWrap struct {
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.NaclDHKeyPair
 	deviceID      keybase1.DeviceID
+	keysGenerated bool
 }
 
 type DeviceWrapArgs struct {
@@ -101,14 +102,17 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 		Signer:    e.args.Signer,
 		EldestKID: e.args.EldestKID,
 	}
-	if err = kgEng.Push(m, pargs); err != nil {
-		return err
-	}
+
+	pushErr := kgEng.Push(m, pargs)
 
 	e.signingKey = kgEng.SigningKey()
 	e.encryptionKey = kgEng.EncryptionKey()
-	// TODO get the per-user-key and save it if it was generated
+	e.keysGenerated = true
 
+	if pushErr != nil {
+		m.Warning("Failed to push keys: %s", pushErr)
+		return pushErr
+	}
 	return nil
 }
 
@@ -175,4 +179,8 @@ func (e *DeviceWrap) EncryptionKey() libkb.NaclDHKeyPair {
 
 func (e *DeviceWrap) DeviceID() keybase1.DeviceID {
 	return e.deviceID
+}
+
+func (e *DeviceWrap) KeysGenerated() bool {
+	return e.keysGenerated
 }
