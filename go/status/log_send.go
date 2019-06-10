@@ -283,20 +283,6 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 			l.StatusJSON = l.mergeExtendedStatus(l.StatusJSON)
 		}
 		l.processesLog = keybaseProcessList()
-	} else {
-		l.svcLog = ""
-		l.ekLog = ""
-		l.kbfsLog = ""
-		l.desktopLog = ""
-		l.updaterLog = ""
-		l.startLog = ""
-		l.installLog = ""
-		l.systemLog = ""
-		l.gitLog = ""
-		l.watchdogLog = ""
-		l.traceBundle = []byte{}
-		l.cpuProfileBundle = []byte{}
-		l.processesLog = ""
 	}
 
 	return l.post(mctx)
@@ -310,4 +296,22 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 		return status
 	}
 	return MergeStatusJSON(extStatus, "extstatus", status)
+}
+
+// Clear removes any log data that we don't want to stick around until the
+// next time LogSend is called, in case sendLogs is false the next time.
+func (l *LogSendContext) Clear() {
+	l.svcLog = ""
+	l.ekLog = ""
+	l.kbfsLog = ""
+	l.desktopLog = ""
+	l.updaterLog = ""
+	l.startLog = ""
+	l.installLog = ""
+	l.systemLog = ""
+	l.gitLog = ""
+	l.watchdogLog = ""
+	l.traceBundle = []byte{}
+	l.cpuProfileBundle = []byte{}
+	l.processesLog = ""
 }

@@ -284,6 +284,7 @@ func LogSend(statusJSON string, feedback string, sendLogs bool, uiLogPath, trace
 	logSendContext.Logs.CPUProfile = cpuProfileDir
 
 	logSendID, err := logSendContext.LogSend(sendLogs, status.LogSendDefaultBytesMobile, true /* mergeExtendedStatus */)
+	logSendContext.Clear()
 	return string(logSendID), err
 }
 
