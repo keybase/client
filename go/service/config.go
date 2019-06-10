@@ -369,12 +369,12 @@ func (h ConfigHandler) GetProxyData(ctx context.Context) (keybase1.ProxyData, er
 	config := h.G().Env.GetConfig()
 	proxyAddress := config.GetProxy()
 	proxyType := libkb.ProxyTypeStrToEnumFunc(config.GetProxyType())
-	certPinning := config.IsSSLPinningEnabled()
+	certPinning := config.IsCertPinningEnabled()
 
 	var convertedProxyType keybase1.ProxyType
-	if proxyType == libkb.No_Proxy {
+	if proxyType == libkb.NoProxy {
 		convertedProxyType = keybase1.ProxyType_No_Proxy
-	} else if proxyType == libkb.HTTP_Connect {
+	} else if proxyType == libkb.HttpConnect {
 		convertedProxyType = keybase1.ProxyType_HTTP_Connect
 	} else if proxyType == libkb.Socks {
 		convertedProxyType = keybase1.ProxyType_Socks
@@ -393,9 +393,9 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 
 	var convertedProxyType libkb.ProxyType
 	if rpcProxyType == keybase1.ProxyType_No_Proxy {
-		convertedProxyType = libkb.No_Proxy
+		convertedProxyType = libkb.NoProxy
 	} else if rpcProxyType == keybase1.ProxyType_HTTP_Connect {
-		convertedProxyType = libkb.HTTP_Connect
+		convertedProxyType = libkb.HttpConnect
 	} else if rpcProxyType == keybase1.ProxyType_Socks {
 		convertedProxyType = libkb.Socks
 	} else {

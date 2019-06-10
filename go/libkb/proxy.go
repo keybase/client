@@ -5,14 +5,14 @@ based proxies and socks5 proxies. Proxies can be configured using: CLI flags, co
 See `keybase help advanced` for information on using CLI flags. To configure a proxy using config.json run:
 
 ``` bash
-keybase config set proxy-type <"socks" or "http_connect">
+keybase config set proxy-type <"Socks" or "http_connect">
 keybase config set proxy <"localhost:8080" or "username:password@localhost:8080">
 ```
 
 To configure a proxy using environment variables run:
 
 ``` bash
-export PROXY_TYPE=<"socks" or "http_connect">
+export PROXY_TYPE=<"Socks" or "http_connect">
 export PROXY=<"localhost:8080" or "username:password@localhost:8080">
 ```
 
@@ -52,15 +52,15 @@ import (
 type ProxyType int
 
 const (
-	noProxy ProxyType = iota
-	socks
-	httpConnect
+	NoProxy ProxyType = iota
+	Socks
+	HttpConnect
 )
 
 // Maps a string to an enum. Used to list the different types of supported proxies and to convert
 // config options into the enum
-var ProxyTypeStrToEnum = map[string]ProxyType{"socks": socks, "http_connect": httpConnect}
-var ProxyTypeEnumToStr = map[ProxyType]string{socks: "socks", httpConnect: "http_connect", noProxy: "no_proxy"}
+var ProxyTypeStrToEnum = map[string]ProxyType{"socks": Socks, "http_connect": HttpConnect}
+var ProxyTypeEnumToStr = map[ProxyType]string{Socks: "socks", HttpConnect: "http_connect", NoProxy: "no_proxy"}
 
 func GetCommaSeparatedListOfProxyTypes() string {
 	var proxyTypes []string
@@ -73,12 +73,12 @@ func GetCommaSeparatedListOfProxyTypes() string {
 // Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
 func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request) (*url.URL, error) {
 	return func(r *http.Request) (*url.URL, error) {
-		if proxyType == noProxy {
+		if proxyType == NoProxy {
 			// No proxy so returning nil tells it not to use a proxy
 			return nil, nil
 		}
 		realProxyAddress := ""
-		if proxyType == socks {
+		if proxyType == Socks {
 			realProxyAddress = "socks5://" + proxyAddress
 		} else {
 			realProxyAddress = proxyAddress
