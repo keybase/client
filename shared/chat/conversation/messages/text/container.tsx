@@ -2,7 +2,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import TextMessage from '.'
-import {namedConnect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 
 type OwnProps = {
   message: Types.MessageText
@@ -39,14 +39,14 @@ const getReplyProps = (replyTo, onReplyClick) => {
   return undefined
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
   const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
   return {isEditing}
 }
 
-const mapDispatchToProps = (dispatch, {message}: OwnProps) => ({
-  _onReplyClick: messageID =>
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnProps) => ({
+  _onReplyClick: (messageID: Types.MessageID) =>
     dispatch(
       Chat2Gen.createReplyJump({
         conversationIDKey: message.conversationIDKey,
@@ -55,14 +55,17 @@ const mapDispatchToProps = (dispatch, {message}: OwnProps) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  isEditing: stateProps.isEditing,
-  message: ownProps.message,
-  reply: getReplyProps(ownProps.message.replyTo, dispatchProps._onReplyClick),
-  text: ownProps.message.decoratedText
-    ? ownProps.message.decoratedText.stringValue()
-    : ownProps.message.text.stringValue(),
-  type: ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending',
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TextMessage')(TextMessage)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    isEditing: stateProps.isEditing,
+    message: ownProps.message,
+    reply: getReplyProps(ownProps.message.replyTo, dispatchProps._onReplyClick),
+    text: ownProps.message.decoratedText
+      ? ownProps.message.decoratedText.stringValue()
+      : ownProps.message.text.stringValue(),
+    type: ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending',
+  }),
+  'TextMessage'
+)(TextMessage)

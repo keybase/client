@@ -25,7 +25,7 @@ type InjectedProps = {
 
 type WithInjectedProps<OriginalProps> = OriginalProps & InjectedProps
 
-export default function(component: React.ComponentType) {
+export default function(component: any) {
   return Container.namedConnect(
     mapStateToProps,
     mapDispatchToProps,

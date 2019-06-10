@@ -15,36 +15,35 @@ type OwnProps = {
 
 const noParticipants = []
 
-const mapStateToProps = (state, {flipGameID, isSendError}: OwnProps) => {
-  const status = state.chat2.getIn(['flipStatusMap', flipGameID])
-  return !status
-    ? {
-        commitmentVis: '',
-        isSendError,
-        participants: noParticipants,
-        progressText: '',
-        resultText: '',
-        revealVis: '',
-        showParticipants: false,
-      }
-    : {
-        commitmentVis: status.commitmentVisualization,
-        errorInfo: status.phase === RPCChatTypes.UICoinFlipPhase.error ? status.errorInfo : null,
-        isSendError,
-        participants: status.participants || [],
-        phase: Constants.flipPhaseToString(status.phase),
-        progressText: status.progressText,
-        resultInfo: status.resultInfo,
-        resultText: status.resultText,
-        revealVis: status.revealVisualization,
-        showParticipants: Constants.flipPhaseToString(status.phase) === 'complete',
-      }
-}
-
-const mapDispatchToProps = (dispatch, {conversationIDKey, text}: OwnProps) => ({
-  onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d}), 'CoinFlip')(
-  CoinFlip
-)
+export default namedConnect(
+  (state, {flipGameID, isSendError}: OwnProps) => {
+    const status = state.chat2.getIn(['flipStatusMap', flipGameID])
+    return !status
+      ? {
+          commitmentVis: '',
+          isSendError,
+          participants: noParticipants,
+          progressText: '',
+          resultText: '',
+          revealVis: '',
+          showParticipants: false,
+        }
+      : {
+          commitmentVis: status.commitmentVisualization,
+          errorInfo: status.phase === RPCChatTypes.UICoinFlipPhase.error ? status.errorInfo : null,
+          isSendError,
+          participants: status.participants || [],
+          phase: Constants.flipPhaseToString(status.phase),
+          progressText: status.progressText,
+          resultInfo: status.resultInfo,
+          resultText: status.resultText,
+          revealVis: status.revealVisualization,
+          showParticipants: Constants.flipPhaseToString(status.phase) === 'complete',
+        }
+  },
+  (dispatch, {conversationIDKey, text}: OwnProps) => ({
+    onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
+  }),
+  (s, d, _: OwnProps) => ({...s, ...d}),
+  'CoinFlip'
+)(CoinFlip)
