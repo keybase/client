@@ -840,10 +840,6 @@ function* getTeams(
         teamnames: teamNameSet,
       })
     )
-
-    if (action.type === TeamsGen.getTeams && action.payload.clearNavBadges) {
-      yield Saga.put(TeamsGen.createClearNavBadges())
-    }
   } catch (err) {
     if (err.code === RPCTypes.StatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
@@ -1004,14 +1000,14 @@ const setMemberPublicity = (state, action: TeamsGen.SetMemberPublicityPayload) =
     .then(() => [
       TeamsGen.createGetDetails({teamname}),
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-      TeamsGen.createGetTeams({clearNavBadges: false}),
+      TeamsGen.createGetTeams(),
     ])
     .catch(e =>
       // TODO handle error, but for now make sure loading is unset
       [
         TeamsGen.createGetDetails({teamname}),
         // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-        TeamsGen.createGetTeams({clearNavBadges: false}),
+        TeamsGen.createGetTeams(),
       ]
     )
 }
@@ -1150,7 +1146,7 @@ const teamChangedByName = (state, action: EngineGen.Keybase1NotifyTeamTeamChange
   const selectedTeamNames = Constants.getSelectedTeamNames(state)
   if (selectedTeamNames.includes(teamName) && _wasOnTeamsTab()) {
     // only reload if that team is selected
-    return [TeamsGen.createGetTeams({clearNavBadges: false}), TeamsGen.createGetDetails({teamname: teamName})]
+    return [TeamsGen.createGetTeams(), TeamsGen.createGetDetails({teamname: teamName})]
   }
   return getLoadCalls()
 }
@@ -1168,7 +1164,7 @@ const teamDeletedOrExit = (
 }
 
 const getLoadCalls = (teamname?: string) => [
-  ...(_wasOnTeamsTab() ? [TeamsGen.createGetTeams({clearNavBadges: false})] : []),
+  ...(_wasOnTeamsTab() ? [TeamsGen.createGetTeams()] : []),
   ...(teamname ? [TeamsGen.createGetDetails({teamname})] : []),
 ]
 
@@ -1338,7 +1334,7 @@ const badgeAppForTeams = (state, action: TeamsGen.BadgeAppForTeamsPayload) => {
     const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
     if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
       // We have been added to a new team & we need to refresh the list
-      actions.push(TeamsGen.createGetTeams({clearNavBadges: false}))
+      actions.push(TeamsGen.createGetTeams())
     }
 
     // getDetails for teams that have new access requests
@@ -1422,7 +1418,6 @@ const clearNavBadges = () =>
     )
     .then(() => RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'}))
     .catch(err => logError(err))
-
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
