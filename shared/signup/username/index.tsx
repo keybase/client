@@ -62,6 +62,9 @@ const EnterUsername = (props: Props) => {
             maxLength={maxUsernameLength}
             onChangeText={onChangeUsername}
             onEnterKeyDown={onContinue}
+            // TODO (DA) there's an issue with editing this causing remounts.
+            // Spent some time looking, figure out later.
+            value={username}
           />
           <Kb.Text type="BodySmall" style={styles.inputSub}>
             Your username is unique and can not be changed in the future.
