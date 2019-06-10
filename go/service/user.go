@@ -627,16 +627,16 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
-	return h.blockUserHelper(mctx, username, false)
+	return h.setUserBlock(mctx, username, true)
 }
 
 func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
-	return h.blockUserHelper(mctx, username, true)
+	return h.setUserBlock(mctx, username, false)
 }
 
-func (h *UserHandler) blockUserHelper(mctx libkb.MetaContext, username string, unblock bool) error {
+func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, block bool) error {
 	uid, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(username))
 	if err != nil {
 		return err
@@ -646,7 +646,7 @@ func (h *UserHandler) blockUserHelper(mctx libkb.MetaContext, username string, u
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"block_uid": libkb.S{Val: uid.String()},
-			"unblock":   libkb.B{Val: unblock},
+			"unblock":   libkb.B{Val: !block},
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
