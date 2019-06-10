@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"crypto/x509"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
@@ -43,9 +44,7 @@ func TestProductionCA(t *testing.T) {
 	tc.G.Env.Test.UseProductionRunMode = true
 
 	serverURI, err := tc.G.Env.GetServerURI()
-	if err != nil {
-		t.Fatalf("Failed to retrieve the server uri!")
-	}
+	require.NoError(t, err)
 
 	if serverURI != uriExpected {
 		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
@@ -84,9 +83,7 @@ func TestProductionBadCA(t *testing.T) {
 	tc.G.Env.Test.UseProductionRunMode = true
 
 	serverURI, err := tc.G.Env.GetServerURI()
-	if err != nil {
-		t.Fatalf("Failed to retrieve the server URI!")
-	}
+	require.NoError(t, err)
 
 	if serverURI != uriExpected {
 		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)

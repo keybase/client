@@ -48,9 +48,7 @@ func TestLoadParamServices(t *testing.T) {
 	require.NotZero(t, len(gubbleConf.Description))
 
 	serverURI, err := tc.G.Env.GetServerURI()
-	if err != nil {
-		t.Fatalf("Failed to retrieve a server URI!")
-	}
+	require.NoError(t, err)
 
 	gubbleRoot := fmt.Sprintf("%s/_/gubble_universe/gubble_social", serverURI)
 	gubbleAPIRoot := fmt.Sprintf("%s/_/api/1.0/gubble_universe/gubble_social", serverURI)
