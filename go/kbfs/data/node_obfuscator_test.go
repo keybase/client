@@ -52,7 +52,7 @@ func TestNodeObfuscatorCollisions(t *testing.T) {
 	expectedObs2 := strings.Join([]string{first, second, "2"}, separator)
 	require.Equal(t, expectedObs2, obs2)
 
-	t.Log("And one more, with a different hash but the same first 3 bytes")
+	t.Log("And one more, with a different hash but the same first 22 bits")
 	hasher2 := func(_ string) []byte {
 		return []byte{0, 0, 7} // first = 0, second = 1
 	}
