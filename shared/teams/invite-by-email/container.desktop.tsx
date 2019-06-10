@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onInvite: (invitees: string, role: Types.TeamRoleType) => {
     const teamname = getRouteProps(ownProps, 'teamname')
     dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamname}))
-    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
+    dispatch(TeamsGen.createGetTeams())
   },
 })
 

@@ -3,11 +3,17 @@ import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {namedConnect} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
-type Props = {
+type OwnProps = {
   path: Types.Path
   reason: Types.SoftError
+}
+
+type Props = OwnProps & {
+  openParent: () => void
 }
 
 const Explain = (props: Props) => {
@@ -55,6 +61,13 @@ const NoAccess = (props: Props) => (
         You don't have access to this folder or file.
       </Kb.Text>
       <Explain {...props} />
+      <Kb.Button
+        type="Default"
+        mode="Secondary"
+        label="Go to parent folder"
+        onClick={props.openParent}
+        style={styles.button}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -77,6 +90,13 @@ const NonExistent = (props: Props) => (
           Either it was deleted, or the path is incorrect.
         </Kb.Text>
       </Kb.Box2>
+      <Kb.Button
+        type="Default"
+        mode="Secondary"
+        label="Go to parent folder"
+        onClick={props.openParent}
+        style={styles.button}
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -93,9 +113,21 @@ const Oops = (props: Props) => {
   }
 }
 
-export default Oops
+const mapDispatchToProps = (dispatch, props: OwnProps) => ({
+  openParent: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {path: Types.getPathParent(props.path)}, selected: 'main'}],
+      })
+    ),
+})
+
+export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Oops')(Oops)
 
 const styles = Styles.styleSheetCreate({
+  button: {
+    marginTop: Styles.globalMargins.small,
+  },
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexGrow,

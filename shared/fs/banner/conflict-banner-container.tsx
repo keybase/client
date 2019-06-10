@@ -9,7 +9,10 @@ type OwnProps = {
   path: Types.Path
 }
 
-const mapStateToProps = (state: Container.TypedState): any => ({})
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+  _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
+})
+
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   onFeedback: () => {},
   onFinishResolving: () => {},

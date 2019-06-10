@@ -348,7 +348,7 @@ function* refreshNotifications() {
   const groups = results.notifications
   const notifications = mapValues(groups, group => ({
     settings: group.settings.map(settingsToPayload),
-    unsub: group.unsub,
+    unsubscribedFromAll: group.unsub,
   }))
 
   yield Saga.put(

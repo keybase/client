@@ -82,6 +82,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     amountXLM: tx.amountDescription,
     approxWorth: tx.worthAtSendTime,
     counterpartyMeta: stateProps.counterpartyMeta,
+    feeChargedDescription: tx.feeChargedDescription,
     issuerAccountID: tx.issuerAccountID,
     issuerDescription: tx.issuerDescription,
     loading: false,
