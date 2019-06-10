@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SignupGen from '../../actions/signup-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/signup'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -16,7 +15,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onContinue: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })
 

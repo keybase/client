@@ -28,7 +28,7 @@ const EnterDevicename = (props: Props) => {
         direction="vertical"
         gap={Styles.isMobile ? 'small' : 'medium'}
         fullWidth={true}
-        style={styles.flexOne}
+        style={Styles.globalStyles.flexOne}
       >
         <Kb.Icon type={Styles.isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
@@ -50,9 +50,6 @@ const EnterDevicename = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  flexOne: {
-    flex: 1,
-  },
   input: Styles.platformStyles({
     common: {},
     isElectron: {
