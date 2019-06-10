@@ -206,27 +206,37 @@ func perUserEncryptionKey(m libkb.MetaContext, userSeqno keybase1.Seqno) (*libkb
 	return kr.GetEncryptionKeyBySeqnoOrSync(m, userSeqno)
 }
 
+func (l *LoaderContextG) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, hiddenTail keybase1.LinkID) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsCurrent bool, err error) {
+	return r1, r2, false, fmt.Errorf("unimplemented")
+}
+
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeam(l.MetaContext(ctx), teamID)
-	if err != nil {
-		return r1, r2, err
+	r1, r2, _, err = l.processMerkleReply(ctx, teamID, public, leaf, err)
+	return r1, r2, err
+}
+
+func (l *LoaderContextG) processMerkleReply(ctx context.Context, teamID keybase1.TeamID, public bool, leaf *libkb.MerkleTeamLeaf, ein error) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
+	if ein != nil {
+		return r1, r2, false, ein
 	}
+
 	if !leaf.TeamID.Eq(teamID) {
-		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
+		return r1, r2, false, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
 	}
 
 	if public {
 		if leaf.Public == nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
-			return r1, r2, NewTeamDoesNotExistError(public, teamID.String())
+			return r1, r2, false, NewTeamDoesNotExistError(public, teamID.String())
 		}
-		return leaf.Public.Seqno, leaf.Public.LinkID.Export(), nil
+		return leaf.Public.Seqno, leaf.Public.LinkID.Export(), leaf.HiddenIsFresh, nil
 	}
 	if leaf.Private == nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
-		return r1, r2, NewTeamDoesNotExistError(public, teamID.String())
+		return r1, r2, false, NewTeamDoesNotExistError(public, teamID.String())
 	}
-	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
+	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), leaf.HiddenIsFresh, nil
 }
 
 func (l *LoaderContextG) getCachedCheckpointLookup(leafID keybase1.UserOrTeamID, seqno keybase1.Seqno) *libkb.MerkleGenericLeaf {

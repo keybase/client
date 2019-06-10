@@ -265,9 +265,10 @@ type MerkleUserLeaf struct {
 }
 
 type MerkleTeamLeaf struct {
-	TeamID  keybase1.TeamID
-	Public  *MerkleTriple
-	Private *MerkleTriple
+	TeamID        keybase1.TeamID
+	Public        *MerkleTriple
+	Private       *MerkleTriple
+	HiddenIsFresh bool
 }
 
 type MerkleGenericLeaf struct {
