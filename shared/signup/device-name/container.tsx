@@ -10,6 +10,7 @@ import {InfoIcon} from '../common'
 import EnterDevicename from '.'
 
 const mapStateToProps = state => ({
+  error: state.signup.devicenameError,
   initialDevicename: state.signup.devicename,
   waiting: anyWaiting(state, Constants.waitingKey),
 })

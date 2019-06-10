@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
 type Props = {
+  error: string
   initialDevicename?: string
   onBack: () => void
   onChangeDevicename: () => void
@@ -41,6 +42,11 @@ const EnterDevicename = (props: Props) => {
           <Kb.Text type="BodySmall" style={styles.inputSub}>
             Your device name will be public and can not be changed in the future.
           </Kb.Text>
+          {!!props.error && (
+            <Kb.Text type="BodySmallError" style={styles.inputSub}>
+              {props.error}
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>

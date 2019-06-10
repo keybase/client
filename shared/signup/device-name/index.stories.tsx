@@ -4,6 +4,7 @@ import {storyDecorator} from '../common-stories'
 import EnterDevicename from '.'
 
 const props = {
+  error: '',
   onBack: Sb.action('onBack'),
   onChangeDevicename: Sb.action('onChangeDeviceName'),
   onContinue: Sb.action('onContinue'),
