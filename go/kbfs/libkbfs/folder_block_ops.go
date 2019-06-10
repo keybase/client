@@ -3270,7 +3270,7 @@ func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
 			ctx, libkb.VLog1, "Root node %v doesn't exist in the node "+
 				"cache; using a throwaway node cache instead",
 			rootPtr)
-		cache = newNodeCacheStandard(fbo.folderBranch)
+		cache = newNodeCacheStandard(fbo.folderBranch, nil)
 		nodeMap, err = fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
 			newPtrs, kmd, rootPtr)
 	}

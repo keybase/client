@@ -3517,6 +3517,20 @@ func (mr *MockNodeMockRecorder) GetID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockNode)(nil).GetID))
 }
 
+// Obfuscator mocks base method
+func (m *MockNode) Obfuscator() data.Obfuscator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Obfuscator")
+	ret0, _ := ret[0].(data.Obfuscator)
+	return ret0
+}
+
+// Obfuscator indicates an expected call of Obfuscator
+func (mr *MockNodeMockRecorder) Obfuscator() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Obfuscator", reflect.TypeOf((*MockNode)(nil).Obfuscator))
+}
+
 // Readonly mocks base method
 func (m *MockNode) Readonly(arg0 context.Context) bool {
 	m.ctrl.T.Helper()

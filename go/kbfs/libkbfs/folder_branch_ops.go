@@ -404,7 +404,7 @@ func newFolderBranchOps(
 	serviceStatus *kbfsCurrentStatus, favs *Favorites) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
-		nodeCache = newNodeCacheStandard(fb)
+		nodeCache = newNodeCacheStandard(fb, nil)
 		for _, f := range config.RootNodeWrappers() {
 			nodeCache.AddRootWrapper(f)
 		}
