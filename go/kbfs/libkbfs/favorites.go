@@ -613,7 +613,8 @@ func (f *Favorites) loop() {
 			select {
 			case req, ok := <-f.bufferedReqChan:
 				if !ok {
-					return
+					// Still need to close out any regular requests.
+					continue
 				}
 				// Don't block the wait group on buffered requests
 				// until we're actually processing one.
