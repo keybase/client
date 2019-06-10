@@ -164,7 +164,7 @@ func (md modeDefault) OldStorageRootCleaningEnabled() bool {
 	return true
 }
 
-func (md modeDefault) DoRefreshCachedFavorites() bool {
+func (md modeDefault) DoRefreshFavoritesOnInit() bool {
 	return true
 }
 
@@ -311,7 +311,7 @@ func (mm modeMinimal) OldStorageRootCleaningEnabled() bool {
 	return false
 }
 
-func (mm modeMinimal) DoRefreshCachedFavorites() bool {
+func (mm modeMinimal) DoRefreshFavoritesOnInit() bool {
 	return false
 }
 
@@ -387,7 +387,7 @@ func (mso modeSingleOp) OldStorageRootCleaningEnabled() bool {
 	return false
 }
 
-func (mso modeSingleOp) DoRefreshCachedFavorites() bool {
+func (mso modeSingleOp) DoRefreshFavoritesOnInit() bool {
 	return false
 }
 
