@@ -2,8 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/profile'
-import {subtitle as platformSubtitle} from '../../util/platforms'
-import Modal from '../modal'
 
 type Props = {
   username: string
@@ -23,53 +21,31 @@ class Block extends React.Component<Props> {
 
   render() {
     const props = this.props
-    return (
-      <Modal onCancel={props.onClose} skipButton={true}>
-        {!!props.errorMessage && (
-          <Kb.Box style={styles.errorBanner}>
-            <Kb.Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
-              {props.errorMessage}
-            </Kb.Text>
-          </Kb.Box>
-        )}
-        <Kb.Box style={styles.contentContainer}>
-          <Kb.Text center={!Styles.isMobile} style={styles.descriptionText} type="Header">
-            Block {props.username}?
+    let errorBox = null
+    if (props.errorMessage) {
+      errorBox = (
+        <Kb.Box style={styles.errorBanner}>
+          <Kb.Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
+            {props.errorMessage}
           </Kb.Text>
-          <Kb.Text style={styles.reminderText} type="Body">
-			This will hide them from your followers and suggestions, and prevent them from creating new conversations or teams with you. Note that they may be able to find out that you blocked them.
-          </Kb.Text>
-          <Kb.ButtonBar>
-            <Kb.WaitingButton
-              type="Dim"
-              onClick={props.onClose}
-              label="Cancel"
-              waitingKey={Constants.waitingKey}
-            />
-            <Kb.WaitingButton
-              type="Danger"
-              onClick={props.onSubmit}
-              label={'Yes, block them'}
-              waitingKey={Constants.blockUserWaitingKey}
-            />
-          </Kb.ButtonBar>
         </Kb.Box>
-      </Modal>
-    )
+      )
+    }
+    const modalProps = {
+      confirmText: 'Yes, block them',
+      description:
+        'This will hide them from your followers and suggestions, and prevent them from creating new conversations or teams with you. Note that they may be able to find out that you block them.',
+      header: errorBox,
+      onCancel: props.onClose,
+      onConfirm: props.onSubmit,
+      prompt: `Block ${props.username}`,
+      waitingKey: Constants.blockUserWaitingKey,
+    }
+    return <Kb.ConfirmModal {...modalProps} />
   }
 }
 
 const styles = Styles.styleSheetCreate({
-  contentContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flexGrow: 1,
-    justifyContent: 'center',
-    margin: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
-    maxWidth: 512,
-    ...(Styles.isMobile ? {} : {textAlign: 'center'}),
-  },
-  descriptionText: {marginTop: Styles.globalMargins.medium},
   errorBanner: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -83,22 +59,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
     maxWidth: 512,
   },
-  platformSubtitle: {
-    color: Styles.globalColors.black_20,
-  },
-  platformUsername: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.red,
-      textDecorationLine: 'line-through',
-    },
-    isElectron: {
-      maxWidth: 400,
-      overflowWrap: 'break-word',
-    },
-  }),
-  positionRelative: {position: 'relative'},
-  reminderText: {marginTop: Styles.globalMargins.tiny},
-  siteIcon: Styles.isMobile ? {height: 64, width: 64} : {height: 48, width: 48},
 })
 
 export default Block
