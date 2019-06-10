@@ -367,9 +367,6 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
               onClick={this.toggleCertPinning}
               label="Allow TLS Interception"
             />
-            <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
-              Warning: Do not allow TLS interception unless you are using a proxy that requires it
-            </Kb.Text>
           </Kb.Box2>
           <Kb.Button
             style={{margin: Styles.globalMargins.xsmall}}
