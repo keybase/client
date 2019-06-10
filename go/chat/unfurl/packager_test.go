@@ -40,11 +40,13 @@ func (p paramsRemote) GetS3Params(ctx context.Context, convID chat1.Conversation
 }
 
 func TestPackager(t *testing.T) {
+	tc := libkb.SetupTest(t, "packager", 1)
+
 	log := logger.NewTestLogger(t)
 	store := attachments.NewStoreTesting(log, nil)
 	s3Signer := &ptsigner{}
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
-	packager := NewPackager(log, store, s3Signer, ri)
+	packager := NewPackager(tc.G, log, store, s3Signer, ri)
 	clock := clockwork.NewFakeClock()
 	packager.cache.setClock(clock)
 	srvFile := func(w io.Writer, name string) {

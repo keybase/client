@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"net"
@@ -85,7 +86,9 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 }
 
 func TestScraper(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "scraper", 1)
+
+	scraper := NewScraper(tc.G, logger.NewTestLogger(t))
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -290,7 +293,9 @@ func TestScraper(t *testing.T) {
 }
 
 func TestGiphySearchScrape(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "giphyScraper", 1)
+
+	scraper := NewScraper(tc.G, logger.NewTestLogger(t))
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
