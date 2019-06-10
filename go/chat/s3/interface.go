@@ -8,7 +8,7 @@ import (
 )
 
 type Root interface {
-	New(signer Signer, region Region, env *libkb.Env) Connection
+	New(g *libkb.GlobalContext, signer Signer, region Region) Connection
 }
 
 type Connection interface {

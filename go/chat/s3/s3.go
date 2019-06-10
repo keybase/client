@@ -86,7 +86,7 @@ type S3 struct {
 	// client used for requests
 	client *http.Client
 
-	env *libkb.Env
+	g *libkb.GlobalContext
 }
 
 // The Bucket type encapsulates operations with an S3 bucket.
@@ -136,7 +136,7 @@ var DefaultAttemptStrategy = AttemptStrategy{
 }
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
-func New(signer Signer, region Region, env *libkb.Env, client ...*http.Client) *S3 {
+func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.Client) *S3 {
 
 	var httpclient *http.Client
 
@@ -149,7 +149,7 @@ func New(signer Signer, region Region, env *libkb.Env, client ...*http.Client) *
 		Region:          region,
 		AttemptStrategy: DefaultAttemptStrategy,
 		client:          httpclient,
-		env:             env,
+		g:               g,
 	}
 }
 
@@ -978,7 +978,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
-				Proxy: libkb.MakeProxy(s3.env.GetProxyType(), s3.env.GetProxy()),
+				Proxy: libkb.MakeProxy(s3.g.Env.GetProxyType(), s3.g.Env.GetProxy()),
 			},
 		}
 	}

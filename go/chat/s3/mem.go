@@ -21,7 +21,7 @@ type Mem struct {
 
 var _ Root = &Mem{}
 
-func (m *Mem) New(signer Signer, region Region, env *libkb.Env) Connection {
+func (m *Mem) New(g *libkb.GlobalContext, signer Signer, region Region) Connection {
 	return m.NewMemConn()
 }
 
