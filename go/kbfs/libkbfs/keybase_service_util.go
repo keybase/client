@@ -123,7 +123,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session idutil.SessionI
 		go bServer.RefreshAuthToken(context.Background())
 	}
 
-	if config.Mode().DoRefreshCachedFavorites() {
+	if config.Mode().DoRefreshFavoritesOnInit() {
 		config.KBFSOps().RefreshCachedFavorites(
 			ctx, FavoritesRefreshModeInMainFavoritesLoop)
 	}

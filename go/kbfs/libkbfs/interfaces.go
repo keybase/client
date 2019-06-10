@@ -1903,9 +1903,9 @@ type InitMode interface {
 	// OldStorageRootCleaningEnabled indicates whether we should clean
 	// old temporary storage root directories.
 	OldStorageRootCleaningEnabled() bool
-	// DoRefreshCachedFavorites indicates whether we should refresh
+	// DoRefreshFavoritesOnInit indicates whether we should refresh
 	// our cached versions of the favorites immediately upon a login.
-	DoRefreshCachedFavorites() bool
+	DoRefreshFavoritesOnInit() bool
 }
 
 type initModeGetter interface {
