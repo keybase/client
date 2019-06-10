@@ -220,6 +220,7 @@ export default signupSaga
 export const _testing = {
   checkDevicename,
   checkInviteCode,
+  checkUsername,
   goBackAndClearErrors,
   reallySignupOnNoErrors,
   requestAutoInvite,

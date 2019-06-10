@@ -5,9 +5,12 @@ import * as SignupGen from '../signup-gen'
 import {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
+import {SagaLogger} from '../../util/saga'
 import * as RouteTreeGen from '../route-tree-gen'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
+
+const testLogger = new SagaLogger('TESTING', 'TESTINGFCN')
 
 jest.unmock('immutable')
 
@@ -156,52 +159,34 @@ describe('checkInviteCode', () => {
   })
 })
 
-describe('checkUsernameEmail', () => {
+describe('checkUsername', () => {
   it("ignores if there's an error", () => {
     const state = Constants.makeState({inviteCodeError: 'invite error'})
-    expect(_testing.checkUsernameEmail(makeTypedState(state))).toEqual(false)
+    expect(_testing.checkUsername(makeTypedState(state), null, testLogger)).toEqual(false)
   })
 
   it('Updates store on success', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createCheckUsernameEmail({email: 'email@email.com', username: 'username'})
+    const action = SignupGen.createCheckUsername({username: 'username'})
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.username).toEqual(action.payload.username)
   })
 
   it('Locally checks simple problems', () => {
-    const state = Constants.makeState()
-    const action = SignupGen.createCheckUsernameEmail({email: 'notAValidEmail', username: 'a.bad.username'})
-    const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.emailError).toBeTruthy()
+    let state = Constants.makeState()
+    let action = SignupGen.createCheckUsername({username: 'a.bad.username'})
+    let nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.usernameError).toBeTruthy()
-    expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.username).toEqual(action.payload.username)
   })
 })
 
-describe('checkedUsernameEmail', () => {
-  it("ignores if email doesn't match", () => {
-    const state = Constants.makeState({email: 'email@email.com', username: 'username'})
-    const action = SignupGen.createCheckedUsernameEmailError({
-      email: 'different@email.com',
-      emailError: 'a problem',
-      username: state.username,
-      usernameError: 'another problem',
-    })
-    const nextState = makeTypedState(reducer(state, action))
-    // doesn't update
-    expect(nextState).toEqual(makeTypedState(state))
-  })
-
+describe('checkedUsername', () => {
   it("ignores if username doesn't match", () => {
-    const state = Constants.makeState({email: 'email@email.com', username: 'username'})
-    const action = SignupGen.createCheckedUsernameEmailError({
-      email: state.email,
-      emailError: 'a problem',
+    const state = Constants.makeState({username: 'username'})
+    const action = SignupGen.createCheckedUsername({
+      error: 'another problem',
       username: 'different username',
-      usernameError: 'another problem',
     })
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
@@ -210,27 +195,23 @@ describe('checkedUsernameEmail', () => {
 
   it('shows error', () => {
     const state = Constants.makeState({email: 'email@email.com', username: 'username'})
-    const action = SignupGen.createCheckedUsernameEmailError({
-      email: state.email,
-      emailError: 'a problem',
+    const action = SignupGen.createCheckedUsername({
+      error: 'another problem',
       username: state.username,
-      usernameError: 'another problem',
     })
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.emailError).toEqual(action.payload.emailError)
-    expect(nextState.signup.usernameError).toEqual(action.payload.usernameError)
+    expect(nextState.signup.usernameError).toEqual(action.payload.error)
   })
 
   it('shows device name page on success', () => {
     const state = Constants.makeState({email: 'email@email.com', username: 'username'})
-    const action = SignupGen.createCheckedUsernameEmail({
-      email: state.email,
+    const action = SignupGen.createCheckedUsername({
+      error: '',
       username: state.username,
     })
     const nextState = makeTypedState(reducer(state, action))
-    // doesn't update
     expect(_testing.showDeviceScreenOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
     )
   })
 })
