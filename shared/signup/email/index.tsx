@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 import {ButtonType} from '../../common-adapters/button'
 
 type Props = {
@@ -21,6 +21,7 @@ const EnterEmail = (props: Props) => {
   const onContinue = () => props.onFinish(email)
   return (
     <SignupScreen
+      banners={errorBanner(props.error)}
       buttons={[
         {label: 'Continue', onClick: onContinue, type: 'Success'},
         ...(Styles.isMobile ? [] : []), // [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
@@ -43,11 +44,6 @@ const EnterEmail = (props: Props) => {
           // Spent some time looking, figure out later.
           value={email}
         />
-        {!!props.error && (
-          <Kb.Text type="BodySmallError" style={styles.inputSub}>
-            {props.error}
-          </Kb.Text>
-        )}
         {/* TODO hook in to "add an email" settings
           <Kb.Checkbox
           label="Allow friends to find you by this email address"
@@ -80,9 +76,6 @@ const styles = Styles.styleSheetCreate({
       width: 368,
     },
   }),
-  inputSub: {
-    marginLeft: 2,
-  },
 })
 
 export default EnterEmail

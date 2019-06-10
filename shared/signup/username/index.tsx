@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {maxUsernameLength} from '../../constants/signup'
-import {SignupScreen} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 
 type Props = {
   error: string
@@ -20,8 +20,8 @@ const EnterUsername = (props: Props) => {
   const onContinue = () => (disabled ? {} : props.onContinue(username))
   return (
     <SignupScreen
-      banners={
-        props.usernameTaken
+      banners={[
+        ...(props.usernameTaken
           ? [
               <Kb.Banner
                 key="usernameTaken"
@@ -35,8 +35,9 @@ const EnterUsername = (props: Props) => {
                 text="Sorry, this username is already taken. Did you mean to"
               />,
             ]
-          : null
-      }
+          : []),
+        ...errorBanner(props.error),
+      ]}
       buttons={[
         {
           disabled: disabled,
@@ -72,11 +73,6 @@ const EnterUsername = (props: Props) => {
           <Kb.Text type="BodySmall" style={styles.inputSub}>
             Your username is unique and can not be changed in the future.
           </Kb.Text>
-          {!!props.error && (
-            <Kb.Text type="BodySmallError" style={styles.inputSub}>
-              {props.error}
-            </Kb.Text>
-          )}
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>

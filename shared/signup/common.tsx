@@ -141,6 +141,9 @@ SignupScreen.defaultProps = {
   leftActionText: 'Back',
 }
 
+export const errorBanner = (error: string) =>
+  error.trim() ? [<Kb.Banner key="generalError" color="red" text={error} />] : []
+
 const styles = Styles.styleSheetCreate({
   backButton: {
     bottom: Styles.globalMargins.small,
