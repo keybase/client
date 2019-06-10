@@ -27,9 +27,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         ],
       })
     ),
-  onFinishResolving: () => {},
+  onFinishResolving: dispatch(FsGen.createFinishManualConflictResolution({localViewTlfPath: ownProps.path})),
+  onGoToTlf: (tlfPath: Types.Path) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path: tlfPath}, selected: 'main'}]})),
   onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict_resolution'),
-  onSeeOtherView: () => {},
   onStartResolving: () => dispatch(FsGen.createStartManualConflictResolution({tlfPath: ownProps.path})),
 })
 
@@ -38,8 +39,7 @@ const ConnectedBanner = Container.namedConnect(
   mapDispatchToProps,
   (s, d, o: OwnProps) => ({
     ...d,
-    conflictState: s._tlf.conflict.state,
-    isUnmergedView: Constants.isUnmergedView(o.path),
+    conflictState: s._tlf.conflictState,
     tlfPath: Constants.getTlfPath(o.path),
   }),
   'ConflictBanner'

@@ -5,35 +5,35 @@ import * as Types from '../../constants/types/fs'
 
 export type Props = {
   conflictState: Types.ConflictState
-  onStartResolving: () => void
-  onSeeOtherView: () => void
-  isUnmergedView: boolean
-  onFinishResolving: () => void
   onFeedback: () => void
+  onFinishResolving: () => void
+  onGoToTlf: (tlfPath: Types.Path) => void
   onHelp: () => void
+  onStartResolving: () => void
   tlfPath: Types.Path
 }
 
-const getMessage = (tlf: string, conflictState: Types.ConflictState, isUnmerged): string => {
-  switch (conflictState) {
-    case Types.ConflictState.InConflictStuck:
+const getMessage = (tlf: string, conflictState: Types.ConflictState): string => {
+  switch (conflictState.type) {
+    case Types.ConflictStateType.Automatic:
+      return conflictState.isStuck
+        ? `Your changes to ${tlf} conflict with changes made to this` +
+            ' folder on another device. Automatic conflict resolution has failed,' +
+            ' so you need to manually resolve the conflict. This is not' +
+            ' supposed to happen!'
+        : 'This should not happen.'
+    case Types.ConflictStateType.ManualLocalView:
       return (
-        `Your changes to ${tlf} conflict with changes made to this` +
-        ' folder on another device. Automatic conflict resolution has failed,' +
-        ' so you need to manually resolve the conflict. This is not' +
-        ' supposed to happen!'
+        `You're resolving a conflict in ${tlf}. This is your local view.` +
+        'You should make sure to copy any changes you want to keep into' +
+        ' the global view before clearing away this view.'
       )
-    case Types.ConflictState.InManualResolution:
-      return isUnmerged
-        ? `You're resolving a conflict in ${tlf}. This is your local view.` +
-            'You should make sure to copy any changes you want to keep into' +
-            ' the global view before clearing away this view.'
-        : `This is the rest of the world's view of ${tlf}.` +
-            " When you're satisfied with this view, you can delete the local conflict view."
-    case Types.ConflictState.Finishing:
-      return 'Finishing conflict resolution...'
-    case Types.ConflictState.None:
-    case Types.ConflictState.InConflictNotStuck:
+    case Types.ConflictStateType.ManualServerView:
+      return (
+        `This is the rest of the world's view of ${tlf}.` +
+        " When you're satisfied with this view, you can delete the local conflict view."
+      )
+    case Types.ConflictStateType.None:
       return 'This should not happen.'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(conflictState)
@@ -42,44 +42,43 @@ const getMessage = (tlf: string, conflictState: Types.ConflictState, isUnmerged)
 }
 
 const ConflictBanner = (props: Props) => {
+  const commonProps = {
+    color: 'red',
+    text: getMessage(props.tlfPath, props.conflictState),
+  } as const
+
   const helpAction = {onClick: props.onHelp, title: 'What does this mean?'}
   const feedbackAction = {onClick: props.onFeedback, title: 'Please let us know'}
   const startRes = {onClick: props.onStartResolving, title: 'Start resolving'}
   const finishRes = {onClick: props.onFinishResolving, title: 'Delete this conflict view'}
-  const onSeeGlobalView = {onClick: props.onSeeOtherView, title: 'See the global view'}
-  const onSeeLocalView = {onClick: props.onSeeOtherView, title: 'See local changes'}
 
-  let actions = []
-  switch (props.conflictState) {
-    case Types.ConflictState.InConflictStuck:
-      actions = [startRes, feedbackAction, helpAction]
-      break
-    case Types.ConflictState.Finishing:
-      break
-    case Types.ConflictState.InManualResolution:
-      if (props.isUnmergedView) {
-        actions = [onSeeGlobalView, finishRes, feedbackAction, helpAction]
-      } else {
-        actions = [onSeeLocalView, feedbackAction, helpAction]
+  switch (props.conflictState.type) {
+    case Types.ConflictStateType.Automatic:
+      return (
+        props.conflictState.isStuck && (
+          <Kb.Banner {...commonProps} actions={[startRes, feedbackAction, helpAction]} />
+        )
+      )
+    case Types.ConflictStateType.ManualLocalView:
+      const tlfPath = props.conflictState.serverViewTlfPath
+      const onSeeGlobalView = {
+        onClick: () => props.onGoToTlf(tlfPath),
+        title: 'See the global view',
       }
-      break
-    case Types.ConflictState.InConflictNotStuck:
-    case Types.ConflictState.None:
-      actions = [feedbackAction]
-      break
+      return <Kb.Banner {...commonProps} actions={[onSeeGlobalView, finishRes, feedbackAction, helpAction]} />
+    case Types.ConflictStateType.ManualServerView:
+      const count = props.conflictState.localViewTlfPaths.size
+      const onSeeLocalViews = props.conflictState.localViewTlfPaths.toArray().map((tlfPath, idx) => ({
+        onClick: () => props.onGoToTlf(tlfPath),
+        title: 'See local changes' + (count > 1 ? ` (version ${idx.toString} of ${count}` : ''),
+      }))
+      return <Kb.Banner {...commonProps} actions={[...onSeeLocalViews, feedbackAction, helpAction]} />
+    case Types.ConflictStateType.None:
+      return null
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.conflictState)
+      return null
   }
-  return (
-    props.conflictState !== Types.ConflictState.None &&
-    props.conflictState !== Types.ConflictState.InConflictNotStuck && (
-      <Kb.Banner
-        text={getMessage(props.tlfPath, props.conflictState, props.isUnmergedView)}
-        color="red"
-        actions={actions}
-      />
-    )
-  )
 }
 
 export default ConflictBanner

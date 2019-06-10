@@ -109,13 +109,35 @@ export const makeTlfSyncPartial: I.Record.Factory<Types._TlfSyncPartial> = I.Rec
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeTlfConflict: I.Record.Factory<Types._TlfConflict> = I.Record({
-  branch: '',
-  state: Types.ConflictState.None,
-} as Types._TlfConflict)
+export const conflictStateNone: Types.ConflictStateNone = I.Record({
+  type: Types.ConflictStateType.None,
+} as const)()
+
+const makeConflictStateAutomaticResolving: I.Record.Factory<
+  Types._ConflictStateAutomaticResolving
+> = I.Record({
+  isStuck: false,
+  type: Types.ConflictStateType.Automatic,
+} as Types._ConflictStateAutomaticResolving)
+export const conflictStateAutomaticResolvingNotStuck = makeConflictStateAutomaticResolving()
+export const conflictStateAutomaticResolvingStuck = makeConflictStateAutomaticResolving({isStuck: true})
+
+export const makeConflictStateManualResolvingServerView: I.Record.Factory<
+  Types._ConflictStateManualResolvingServerView
+> = I.Record({
+  localViewTlfPaths: I.List(),
+  type: Types.ConflictStateType.ManualServerView,
+})
+
+export const makeConflictStateManualResolvingLocalView: I.Record.Factory<
+  Types._ConflictStateManualResolvingLocalView
+> = I.Record({
+  serverViewTlfPath: defaultPath,
+  type: Types.ConflictStateType.ManualLocalView,
+})
 
 export const makeTlf: I.Record.Factory<Types._Tlf> = I.Record({
-  conflict: makeTlfConflict(),
+  conflictState: conflictStateNone,
   isFavorite: false,
   isIgnored: false,
   isNew: false,
@@ -968,9 +990,6 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
-
-// TODO(KBFS-4155): implement this
-export const isUnmergedView = (path: Types.Path): boolean => false
 
 export const makeActionsForShowSendLinkToChat = (
   path: Types.Path,
