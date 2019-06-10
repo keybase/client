@@ -13,11 +13,9 @@ export const checkEmail = 'signup:checkEmail'
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassword = 'signup:checkPassword'
 export const checkUsername = 'signup:checkUsername'
-export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsername = 'signup:checkedUsername'
-export const checkedUsernameEmail = 'signup:checkedUsernameEmail'
 export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
@@ -31,19 +29,11 @@ type _CheckDevicenamePayload = {readonly devicename: string}
 type _CheckEmailPayload = {readonly email: string}
 type _CheckInviteCodePayload = {readonly inviteCode: string}
 type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
-type _CheckUsernameEmailPayload = {readonly username: string; readonly email: string}
 type _CheckUsernamePayload = {readonly username: string}
 type _CheckedDevicenamePayload = {readonly devicename: string}
 type _CheckedDevicenamePayloadError = {readonly devicename: string; readonly error: string}
 type _CheckedInviteCodePayload = {readonly inviteCode: string}
 type _CheckedInviteCodePayloadError = {readonly inviteCode: string; readonly error: string}
-type _CheckedUsernameEmailPayload = {readonly username: string; readonly email: string}
-type _CheckedUsernameEmailPayloadError = {
-  readonly emailError: string
-  readonly usernameError: string
-  readonly email: string
-  readonly username: string
-}
 type _CheckedUsernamePayload = {
   readonly username: string
   readonly usernameTaken?: string
@@ -86,10 +76,6 @@ export const createCheckUsername = (payload: _CheckUsernamePayload): CheckUserna
   payload,
   type: checkUsername,
 })
-export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload): CheckUsernameEmailPayload => ({
-  payload,
-  type: checkUsernameEmail,
-})
 export const createCheckedDevicename = (payload: _CheckedDevicenamePayload): CheckedDevicenamePayload => ({
   payload,
   type: checkedDevicename,
@@ -108,12 +94,6 @@ export const createCheckedUsername = (payload: _CheckedUsernamePayload): Checked
   payload,
   type: checkedUsername,
 })
-export const createCheckedUsernameEmail = (
-  payload: _CheckedUsernameEmailPayload
-): CheckedUsernameEmailPayload => ({payload, type: checkedUsernameEmail})
-export const createCheckedUsernameEmailError = (
-  payload: _CheckedUsernameEmailPayloadError
-): CheckedUsernameEmailPayloadError => ({error: true, payload, type: checkedUsernameEmail})
 export const createGoBackAndClearErrors = (
   payload: _GoBackAndClearErrorsPayload
 ): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
@@ -163,10 +143,6 @@ export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: 'signup:checkPassword'
 }
-export type CheckUsernameEmailPayload = {
-  readonly payload: _CheckUsernameEmailPayload
-  readonly type: 'signup:checkUsernameEmail'
-}
 export type CheckUsernamePayload = {
   readonly payload: _CheckUsernamePayload
   readonly type: 'signup:checkUsername'
@@ -188,15 +164,6 @@ export type CheckedInviteCodePayloadError = {
   readonly error: true
   readonly payload: _CheckedInviteCodePayloadError
   readonly type: 'signup:checkedInviteCode'
-}
-export type CheckedUsernameEmailPayload = {
-  readonly payload: _CheckedUsernameEmailPayload
-  readonly type: 'signup:checkedUsernameEmail'
-}
-export type CheckedUsernameEmailPayloadError = {
-  readonly error: true
-  readonly payload: _CheckedUsernameEmailPayloadError
-  readonly type: 'signup:checkedUsernameEmail'
 }
 export type CheckedUsernamePayload = {
   readonly payload: _CheckedUsernamePayload
@@ -250,14 +217,11 @@ export type Actions =
   | CheckEmailPayload
   | CheckInviteCodePayload
   | CheckPasswordPayload
-  | CheckUsernameEmailPayload
   | CheckUsernamePayload
   | CheckedDevicenamePayload
   | CheckedDevicenamePayloadError
   | CheckedInviteCodePayload
   | CheckedInviteCodePayloadError
-  | CheckedUsernameEmailPayload
-  | CheckedUsernameEmailPayloadError
   | CheckedUsernamePayload
   | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload

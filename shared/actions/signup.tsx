@@ -87,25 +87,6 @@ const requestInvite = (state: TypedState) =>
       })
     )
 
-// TODO (DA) remove
-const checkUsernameEmail = (state: TypedState) =>
-  noErrors(state) &&
-  RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
-    .then(r =>
-      SignupGen.createCheckedUsernameEmail({
-        email: state.signup.email,
-        username: state.signup.username,
-      })
-    )
-    .catch(err =>
-      SignupGen.createCheckedUsernameEmailError({
-        email: state.signup.email,
-        emailError: '',
-        username: state.signup.username,
-        usernameError: `Sorry, there was a problem: ${err.desc}`,
-      })
-    )
-
 const checkUsername = (state: TypedState, _, logger) => {
   logger.info(`checking ${state.signup.username}`)
   return (
@@ -194,10 +175,6 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
   yield* Saga.chainAction<SignupGen.RequestInvitePayload>(SignupGen.requestInvite, requestInvite)
-  yield* Saga.chainAction<SignupGen.CheckUsernameEmailPayload>(
-    SignupGen.checkUsernameEmail,
-    checkUsernameEmail
-  )
   yield* Saga.chainAction<SignupGen.CheckUsernamePayload>(
     SignupGen.checkUsername,
     checkUsername,
@@ -219,10 +196,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
     SignupGen.checkedUsername,
     showEmailScreenOnNoErrors
   )
-  yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload | SignupGen.CheckEmailPayload>(
-    [SignupGen.checkedUsernameEmail, SignupGen.checkEmail],
-    showDeviceScreenOnNoErrors
-  )
+  yield* Saga.chainAction<SignupGen.CheckEmailPayload>([SignupGen.checkEmail], showDeviceScreenOnNoErrors)
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(
     SignupGen.requestedAutoInvite,
     showInviteScreen
@@ -246,7 +220,6 @@ export default signupSaga
 export const _testing = {
   checkDevicename,
   checkInviteCode,
-  checkUsernameEmail,
   goBackAndClearErrors,
   reallySignupOnNoErrors,
   requestAutoInvite,
