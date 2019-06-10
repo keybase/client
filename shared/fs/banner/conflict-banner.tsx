@@ -26,10 +26,10 @@ const getMessage = (tlf: string, conflictState: Types.ConflictState, isUnmerged)
     case Types.ConflictState.InManualResolution:
       return isUnmerged
         ? `You're resolving a conflict in ${tlf}. This is your local view.` +
-            'When you click finish, this view will go away. You should make ' +
-            'sure to copy any changes you want to keep into the global view.'
+            'You should make sure to copy any changes you want to keep into' +
+            ' the global view before clearing away this view.'
         : `This is the rest of the world's view of ${tlf}.` +
-            " When you're satisfied with this view, you can click finish."
+            " When you're satisfied with this view, you can delete the local conflict view."
     case Types.ConflictState.Finishing:
       return 'Finishing conflict resolution...'
     case Types.ConflictState.None:
@@ -45,7 +45,7 @@ const ConflictBanner = (props: Props) => {
   const helpAction = {onClick: props.onHelp, title: 'What does this mean?'}
   const feedbackAction = {onClick: props.onFeedback, title: 'Please let us know'}
   const startRes = {onClick: props.onStartResolving, title: 'Start resolving'}
-  const finishRes = {onClick: props.onFinishResolving, title: 'Finish resolving'}
+  const finishRes = {onClick: props.onFinishResolving, title: 'Delete this conflict view'}
   const onSeeGlobalView = {onClick: props.onSeeOtherView, title: 'See the global view'}
   const onSeeLocalView = {onClick: props.onSeeOtherView, title: 'See local changes'}
 
@@ -58,9 +58,9 @@ const ConflictBanner = (props: Props) => {
       break
     case Types.ConflictState.InManualResolution:
       if (props.isUnmergedView) {
-        actions = [onSeeGlobalView, feedbackAction, helpAction]
+        actions = [onSeeGlobalView, finishRes, feedbackAction, helpAction]
       } else {
-        actions = [onSeeLocalView, finishRes, feedbackAction, helpAction]
+        actions = [onSeeLocalView, feedbackAction, helpAction]
       }
       break
     case Types.ConflictState.InConflictNotStuck:
