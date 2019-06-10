@@ -283,6 +283,20 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 			l.StatusJSON = l.mergeExtendedStatus(l.StatusJSON)
 		}
 		l.processesLog = keybaseProcessList()
+	} else {
+		l.svcLog = ""
+		l.ekLog = ""
+		l.kbfsLog = ""
+		l.desktopLog = ""
+		l.updaterLog = ""
+		l.startLog = ""
+		l.installLog = ""
+		l.systemLog = ""
+		l.gitLog = ""
+		l.watchdogLog = ""
+		l.traceBundle = []byte{}
+		l.cpuProfileBundle = []byte{}
+		l.processesLog = ""
 	}
 
 	return l.post(mctx)
