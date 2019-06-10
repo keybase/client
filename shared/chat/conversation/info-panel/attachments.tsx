@@ -38,6 +38,7 @@ type Doc = {
   author: string
   ctime: number
   downloading: boolean
+  fileName: string
   message?: Types.Message
   name: string
   progress: number
@@ -264,8 +265,9 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
         <Kb.ClickableBox onClick={item.onDownload} onLongPress={this.props.toggleShowingMenu}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
             <Kb.Icon type={'icon-file-32'} style={Kb.iconCastPlatformStyles(styles.docIcon)} />
-            <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
               <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
+              {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
               <Kb.Text type="BodySmall">
                 Sent by {item.author} • {formatTimeForMessages(item.ctime)}
               </Kb.Text>
@@ -475,6 +477,15 @@ const styles = Styles.styleSheetCreate({
   docRowContainer: {
     padding: Styles.globalMargins.tiny,
   },
+  docRowTitle: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
+    isElectron: {
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-word',
+    },
+  }),
   durationContainer: {
     alignSelf: 'flex-start',
     bottom: Styles.globalMargins.xtiny,

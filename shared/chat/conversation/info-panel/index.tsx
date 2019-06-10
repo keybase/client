@@ -42,6 +42,7 @@ type Doc = {
   author: string
   ctime: number
   downloading: boolean
+  fileName: string
   name: string
   progress: number
   onDownload: null | (() => void)
