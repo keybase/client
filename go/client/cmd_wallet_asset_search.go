@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -65,8 +66,23 @@ func (c *cmdWalletAssetSearch) Run() (err error) {
 		return nil
 	}
 	dui.Printf("matching assets:\n")
-	for i, asset := range assets {
-		dui.Printf("%d: code: %s, issuer: %s\n", i, asset.Code, asset.IssuerName)
+	for _, asset := range assets {
+		dui.Printf(buildOutputStringForAsset(asset) + "\n")
 	}
 	return nil
+}
+
+func buildOutputStringForAsset(asset stellar1.Asset) string {
+	var out string
+	out = fmt.Sprintf("Asset Code: %12s", asset.Code)
+	out = fmt.Sprintf("%s | Issuer ID: %s", out, asset.Issuer)
+	switch {
+	case asset.VerifiedDomain != "":
+		out = fmt.Sprintf("%s | Verified Domain: %s", out, asset.VerifiedDomain)
+	case asset.IssuerName != "":
+		out = fmt.Sprintf("%s | Issuer Name: %s", out, asset.IssuerName)
+	case asset.InfoUrl != "":
+		out = fmt.Sprintf("%s | Info URL (not verified): %s", out, asset.InfoUrl)
+	}
+	return out
 }
