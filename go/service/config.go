@@ -413,5 +413,12 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 	configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
 	configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
 	configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
+
+	// Reload the config file in order to actually start using the proxy
+	err := h.G().ConfigReload()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
