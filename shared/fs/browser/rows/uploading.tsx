@@ -36,7 +36,7 @@ const Uploading = (props: UploadingProps) => (
         path={props.path}
         size={32}
         style={Styles.collapseStyles([rowStyles.pathItemIcon, styles.opacity30])}
-        badge="upload"
+        badge={Types.PathItemBadgeType.Upload}
       />
     }
     body={

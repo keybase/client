@@ -28,28 +28,26 @@ const reduceStatus = status => {
   }
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const {error, paymentID, message, text} = ownProps
-  const paymentInfo = paymentID ? state.chat2.getIn(['paymentStatusMap', paymentID], null) : null
-  const status = error
-    ? 'error' // Auto generated from flowToTs. Please clean me!
-    : (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.status) || 'pending'
-  return {
-    allowFontScaling: ownProps.allowFontScaling,
-    allowPopup: status === 'completed' || message.author === state.config.username,
-    errorDetail:
-      error || (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.statusDetail), // Auto generated from flowToTs. Please clean me!
-    isSendError: !!error,
-    message,
-    paymentID,
-    status: reduceStatus(status),
-    text,
-  }
-}
-
 export default namedConnect(
-  mapStateToProps,
-  (d, o) => ({}),
-  (s, d, o) => ({...o, ...s, ...d}),
+  (state, ownProps: OwnProps) => {
+    const {error, paymentID, message, text} = ownProps
+    const paymentInfo = paymentID ? state.chat2.getIn(['paymentStatusMap', paymentID]) || null : null
+    const status = error
+      ? 'error' // Auto generated from flowToTs. Please clean me!
+      : (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.status) || 'pending'
+    return {
+      allowFontScaling: ownProps.allowFontScaling,
+      allowPopup: status === 'completed' || message.author === state.config.username,
+      errorDetail:
+        error || (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.statusDetail), // Auto generated from flowToTs. Please clean me!
+      isSendError: !!error,
+      message,
+      paymentID,
+      status: reduceStatus(status),
+      text,
+    }
+  },
+  () => ({}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'PaymentStatus'
 )(PaymentStatus)
