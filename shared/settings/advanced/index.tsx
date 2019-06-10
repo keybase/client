@@ -57,44 +57,75 @@ const UseNativeFrame = (props: Props) => {
   )
 }
 
-const Advanced = (props: Props) => {
-  const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
-  return (
-    <Kb.Box style={styles.advancedContainer}>
-      <Kb.Box style={styles.progressContainer}>
-        {props.settingLockdownMode && <Kb.ProgressIndicator />}
-      </Kb.Box>
-      <Kb.Box style={styles.checkboxContainer}>
-        <Kb.Checkbox
-          checked={props.hasRandomPW || !!props.lockdownModeEnabled}
-          disabled={disabled}
-          label={
-            'Forbid account changes from the website' +
-            (props.hasRandomPW ? ' (you need to set a password first)' : '')
-          }
-          onCheck={props.onChangeLockdownMode}
-          style={styles.checkbox}
-        />
-      </Kb.Box>
-      {!!props.setLockdownModeError && (
-        <Kb.Text type="BodySmall" style={styles.error}>
-          {props.setLockdownModeError}
-        </Kb.Text>
-      )}
-      {isLinux && <UseNativeFrame {...props} />}
-      {!Styles.isMobile && !isLinux && (
-        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+type AdvancedState = {
+  showCertPinningModal: boolean
+  disableCertPinning: () => void | undefined
+}
+
+class Advanced extends React.Component<Props, AdvancedState>  {
+  constructor(props: Props) {
+    super(props)
+
+    this.state = {
+      showCertPinningModal: false,
+      disableCertPinning: undefined
+    }
+  }
+
+  confirmDisableCertPinning = (disableCertPinning: () => void) => {
+    this.setState({disableCertPinning, showCertPinningModal: true})
+  }
+
+  render() {
+    const disabled = this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
+    return (
+      <Kb.Box style={styles.advancedContainer}>
+
+        {this.state.showCertPinningModal && <Kb.Box style={{zIndex: 1}}> <Kb.ConfirmModal
+            confirmText="Yes, allow TLS MITM"
+            description="This means your proxy will be able to view all traffic between you and Keybase servers. It
+          is not recommended to use this option unless absolutely required."
+            header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Styles.globalColors.red}/>}
+            onCancel={() => this.setState({showCertPinningModal: false})}
+            onConfirm={() => {this.setState({showCertPinningModal: false}); this.state.disableCertPinning()}}
+            prompt="Are you sure you want to allow TLS MITM?"
+        /></Kb.Box>}
+
+        <Kb.Box style={styles.progressContainer}>
+          {this.props.settingLockdownMode && <Kb.ProgressIndicator/>}
+        </Kb.Box>
+        <Kb.Box style={styles.checkboxContainer}>
           <Kb.Checkbox
-            label="Open Keybase on startup"
-            checked={props.openAtLogin}
-            onCheck={props.onSetOpenAtLogin}
+              checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
+              disabled={disabled}
+              label={
+                'Forbid account changes from the website' +
+                (this.props.hasRandomPW ? ' (you need to set a password first)' : '')
+              }
+              onCheck={this.props.onChangeLockdownMode}
+              style={styles.checkbox}
           />
         </Kb.Box>
-      )}
-      <ProxySettings {...props} />
-      <Developer {...props} />
-    </Kb.Box>
-  )
+        {!!this.props.setLockdownModeError && (
+            <Kb.Text type="BodySmall" style={styles.error}>
+              {this.props.setLockdownModeError}
+            </Kb.Text>
+        )}
+        {isLinux && <UseNativeFrame {...this.props} />}
+        {!Styles.isMobile && !isLinux && (
+            <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+              <Kb.Checkbox
+                  label="Open Keybase on startup"
+                  checked={this.props.openAtLogin}
+                  onCheck={this.props.onSetOpenAtLogin}
+              />
+            </Kb.Box>
+        )}
+        <ProxySettings {...{...this.props, confirmDisableCertPinning: this.confirmDisableCertPinning}} />
+        <Developer {...this.props} />
+      </Kb.Box>
+    )
+  }
 }
 
 type StartButtonProps = {
@@ -231,8 +262,10 @@ type ProxyState = {
   showCertPinningConfirmationModal: boolean
 }
 
-class ProxySettings extends React.Component<Props, ProxyState> {
-  constructor(props: Props) {
+type ProxyProps = Props & {confirmDisableCertPinning: ((disableCertPinning: () => void) => void)}
+
+class ProxySettings extends React.Component<ProxyProps, ProxyState> {
+  constructor(props: ProxyProps) {
     super(props)
 
     this.state = {
@@ -277,8 +310,11 @@ class ProxySettings extends React.Component<Props, ProxyState> {
   }
 
   toggleCertPinning = () => {
-    // TODO: Warn them before setting the state to true
-    this.setState({certPinning: !this.state.certPinning})
+    if (this.state.certPinning) {
+      this.props.confirmDisableCertPinning(() => this.setState({certPinning: false}))
+    } else {
+      this.setState({certPinning: !this.state.certPinning})
+    }
   }
 
   saveProxySettings = () => {
@@ -305,7 +341,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
                   style={{margin: Styles.globalMargins.tiny}}
                   onClick={() => this.setProxyType(proxyType)}
                   type={this.state.proxyType == proxyType ? 'Default' : 'Dim'}
-                  >
+                >
                   {proxyType}
                 </Kb.Button>
               )
