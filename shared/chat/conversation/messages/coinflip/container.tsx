@@ -15,9 +15,9 @@ type OwnProps = {
 
 const noParticipants = []
 
-export default namedConnect(
+const C = namedConnect(
   (state, {flipGameID, isSendError}: OwnProps) => {
-    const status = state.chat2.getIn(['flipStatusMap', flipGameID])
+    const status = state.chat2.flipStatusMap.get(flipGameID)
     return !status
       ? {
           commitmentVis: '',
@@ -47,3 +47,7 @@ export default namedConnect(
   (s, d, _: OwnProps) => ({...s, ...d}),
   'CoinFlip'
 )(CoinFlip)
+export default C
+
+type D = (typeof C)[0]
+type D1 = (typeof C)[1]
