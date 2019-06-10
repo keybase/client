@@ -164,6 +164,10 @@ func (md modeDefault) OldStorageRootCleaningEnabled() bool {
 	return true
 }
 
+func (md modeDefault) DoRefreshCachedFavorites() bool {
+	return true
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -307,6 +311,10 @@ func (mm modeMinimal) OldStorageRootCleaningEnabled() bool {
 	return false
 }
 
+func (mm modeMinimal) DoRefreshCachedFavorites() bool {
+	return false
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -376,6 +384,10 @@ func (mso modeSingleOp) LocalHTTPServerEnabled() bool {
 }
 
 func (mso modeSingleOp) OldStorageRootCleaningEnabled() bool {
+	return false
+}
+
+func (mso modeSingleOp) DoRefreshCachedFavorites() bool {
 	return false
 }
 
