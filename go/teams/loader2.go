@@ -729,21 +729,19 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	l.G().Log.CDebugf(ctx, "TeamLoader.addSecrets: received:%v->%v nseeds:%v nprevs:%v",
 		earliestReceivedGen, latestReceivedGen, len(seeds), len(prevs))
 
-	if latestReceivedGen != latestChainGen {
-		return fmt.Errorf("wrong latest key generation: %v != %v",
-			latestReceivedGen, latestChainGen)
-	}
+	//
+	// TODO -- add this alert back later
+	//
+	// if latestReceivedGen != latestChainGen {
+	// 	return fmt.Errorf("wrong latest key generation: %v != %v",
+	// 		latestReceivedGen, latestChainGen)
+	// }
 
 	// Check that each key matches the chain.
-	var gotOldKeys bool
 	for i, seed := range seeds {
 		gen := int(latestReceivedGen) + i + 1 - len(seeds)
 		if gen < 1 {
 			return fmt.Errorf("gen < 1")
-		}
-
-		if gen <= int(latestChainGen) {
-			gotOldKeys = true
 		}
 
 		chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(keybase1.PerTeamKeyGeneration(gen))
@@ -757,10 +755,6 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 			Generation: chainKey.Gen,
 			Seqno:      chainKey.Seqno,
 		}
-	}
-
-	if gotOldKeys {
-		l.G().Log.CDebugf(ctx, "TeamLoader got old keys, re-checking as if new")
 	}
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.

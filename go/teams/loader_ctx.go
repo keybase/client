@@ -29,6 +29,7 @@ type LoaderContext interface {
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
+	merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error)
 	merkleLookupTripleInPast(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
@@ -206,8 +207,8 @@ func perUserEncryptionKey(m libkb.MetaContext, userSeqno keybase1.Seqno) (*libkb
 	return kr.GetEncryptionKeyBySeqnoOrSync(m, userSeqno)
 }
 
-func (l *LoaderContextG) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, hiddenTail keybase1.LinkID) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
-	leaf, err := l.G().GetMerkleClient().LookupTeamWithHidden(l.MetaContext(ctx), teamID, hiddenTail)
+func (l *LoaderContextG) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
+	leaf, err := l.G().GetMerkleClient().LookupTeamWithHidden(l.MetaContext(ctx), teamID, harg)
 	r1, r2, hiddenIsFresh, err = l.processMerkleReply(ctx, teamID, public, leaf, err)
 	return r1, r2, hiddenIsFresh, err
 }

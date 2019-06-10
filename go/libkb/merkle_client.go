@@ -1833,17 +1833,21 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *
 	if harg != nil {
 		var tmp error
 		var b bool
-		b, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
-		if tmp != nil {
-			m.Debug("Bad is_last_hidden_link: %s", tmp.Error())
-		} else if b {
-			leaf.HiddenIsFresh = true
+		if !harg.LastKnownHidden.IsNil() {
+			b, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
+			if tmp != nil {
+				m.Debug("Bad is_last_hidden_link: %s", tmp.Error())
+			} else if b {
+				leaf.HiddenIsFresh = true
+			}
 		}
-		b, tmp = apiRes.Body.AtKey("chhtc").GetBool()
-		if tmp != nil {
-			m.Debug("Bad chhtc: %s", tmp.Error())
-		} else if !b {
-			leaf.HiddenIsFresh = true
+		if !harg.PTKEncryptionKID.IsNil() {
+			b, tmp = apiRes.Body.AtKey("chhtc").GetBool()
+			if tmp != nil {
+				m.Debug("Bad chhtc: %s", tmp.Error())
+			} else if !b {
+				leaf.HiddenIsFresh = true
+			}
 		}
 	}
 
