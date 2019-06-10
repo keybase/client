@@ -1770,17 +1770,23 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	return leaf, path.root, nil
 }
 
-func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, lastKnownHidden keybase1.LinkID) (leaf *MerkleTeamLeaf, err error) {
+type LookupTeamHiddenArg struct {
+	LastKnownHidden  keybase1.LinkID
+	PTKEncryptionKID keybase1.KID
+	PTKGeneration    keybase1.PerTeamKeyGeneration
+}
+
+func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, harg *LookupTeamHiddenArg) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
-	return mc.lookupTeam(m, teamID, lastKnownHidden)
+	return mc.lookupTeam(m, teamID, harg)
 }
 
 func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
-	return mc.lookupTeam(m, teamID, keybase1.LinkID(""))
+	return mc.lookupTeam(m, teamID, nil)
 }
 
-func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, lastKnownHidden keybase1.LinkID) (leaf *MerkleTeamLeaf, err error) {
+func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *LookupTeamHiddenArg) (leaf *MerkleTeamLeaf, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
@@ -1802,8 +1808,14 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, lastKn
 
 	q := NewHTTPArgs()
 	q.Add("leaf_id", S{Val: teamID.String()})
-	if !lastKnownHidden.IsNil() {
-		q.Add("last_hidden_link_id", S{Val: lastKnownHidden.String()})
+	if harg != nil {
+		if !harg.LastKnownHidden.IsNil() {
+			q.Add("last_hidden_link_id", S{Val: harg.LastKnownHidden.String()})
+		}
+		if !harg.PTKEncryptionKID.IsNil() {
+			q.Add("chhtc_kid", S{Val: harg.PTKEncryptionKID.String()})
+			q.Add("chhtc_gen", I{Val: int(harg.PTKGeneration)})
+		}
 	}
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(m, q, rootBeforeCall, opts); err != nil {
@@ -1818,11 +1830,20 @@ func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, lastKn
 		return nil, err
 	}
 
-	if !lastKnownHidden.IsNil() {
+	if harg != nil {
 		var tmp error
-		leaf.HiddenIsFresh, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
+		var b bool
+		b, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
 		if tmp != nil {
 			m.Debug("Bad is_last_hidden_link: %s", tmp.Error())
+		} else if b {
+			leaf.HiddenIsFresh = true
+		}
+		b, tmp = apiRes.Body.AtKey("chhtc").GetBool()
+		if tmp != nil {
+			m.Debug("Bad chhtc: %s", tmp.Error())
+		} else if !b {
+			leaf.HiddenIsFresh = true
 		}
 	}
 
