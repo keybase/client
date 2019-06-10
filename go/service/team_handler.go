@@ -226,10 +226,8 @@ func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.Incoming
 		return err
 	}
 
-	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: locally dismissing %s", nm)
-	if err := r.G().GregorState.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
-		r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
-	}
+	// Note there used to be a local dismissal here, but the newly_added_to_team needs
+	// to stay in the gregor state for badging to work.
 
 	return nil
 }
