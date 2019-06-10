@@ -143,7 +143,9 @@ warn_if_weird_path() {
 }
 
 show_cryptosquirrel() {
-  [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  if tput colors &> /dev/null; then
+      [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  fi
 }
 
 warn_if_exists_and_unwritable() {
