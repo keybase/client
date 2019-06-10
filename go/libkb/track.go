@@ -141,6 +141,14 @@ func (l TrackLookup) GetEldestKID() keybase1.KID {
 	return ret
 }
 
+func (l TrackLookup) GetTrackedLinkSeqno() keybase1.Seqno {
+	ret, err := l.link.GetTrackedLinkSeqno()
+	if err != nil {
+		l.G().Log.Warning("Error in lookup of eldest KID: %s", err)
+	}
+	return ret
+}
+
 func (l TrackLookup) GetTmpExpireTime() (ret time.Time) {
 	return l.link.GetTmpExpireTime()
 }

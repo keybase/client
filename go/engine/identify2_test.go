@@ -1225,9 +1225,9 @@ func TestTrackResetReuseKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// Alice signs up using key X
-	tcX := SetupEngineTest(t, "id")
+	tcX := SetupEngineTest(t, "ida")
 	defer tcX.Cleanup()
-	fuX := NewFakeUserOrBust(t, "id")
+	fuX := NewFakeUserOrBust(t, "ida")
 	suArg := MakeTestSignupEngineRunArg(fuX)
 	pairX, err := libkb.GenerateNaclSigningKeyPairFromSeed(keyX)
 	require.NoError(t, err)
@@ -1237,28 +1237,25 @@ func TestTrackResetReuseKey(t *testing.T) {
 	require.NoError(t, AssertProvisioned(tcX))
 
 	// Bob signs up using whatever key
-	tcY := SetupEngineTest(t, "id")
+	tcY := SetupEngineTest(t, "idb")
 	defer tcY.Cleanup()
-	fuY := CreateAndSignupFakeUser(tcY, "id")
+	fuY := CreateAndSignupFakeUser(tcY, "idb")
 	require.NoError(t, AssertProvisioned(tcY))
-	fakeClock := clockwork.NewFakeClockAt(time.Now())
-	tcY.G.SetClock(fakeClock)
 
 	// Bob should be able to ID Alice without any issues
 	idUI := &FakeIdentifyUI{}
 	require.NoError(t, RunEngine2(
 		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
 			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: idUI,
+			IdentifyUI: &FakeIdentifyUI{},
 		}),
 		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
 			UserAssertion:    fuX.Username,
 			ForceDisplay:     true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		})),
 	)
 	require.False(t, idUI.BrokenTracking)
-	//require.True(t, idUI.BrokenTracking, fmt.Sprintf("%+v", idUI))
 
 	// Bob tracks Alice
 	trackUser(tcY, fuY, fuX.NormalizedUsername(), libkb.GetDefaultSigVersion(tcX.G))
@@ -1268,8 +1265,8 @@ func TestTrackResetReuseKey(t *testing.T) {
 	ResetAccount(tcX, fuX)
 
 	// Alice logs in (and provisions) again
-	eng := NewLogin(tcX.G, libkb.DeviceTypeDesktop, fuX.Username, keybase1.ClientType_CLI)
-	eng.naclSigningKeyPair = pairX
+	loginEng := NewLogin(tcX.G, libkb.DeviceTypeDesktop, fuX.Username, keybase1.ClientType_CLI)
+	loginEng.naclSigningKeyPair = pairX
 	require.NoError(t,
 		RunEngine2(
 			NewMetaContextForTest(tcX).WithUIs(libkb.UIs{
@@ -1279,17 +1276,17 @@ func TestTrackResetReuseKey(t *testing.T) {
 				SecretUI:    fuX.NewSecretUI(),
 				GPGUI:       &gpgtestui{},
 			}),
-			eng,
+			loginEng,
 		),
 	)
 	require.NoError(t, AssertProvisioned(tcX))
 
-	// Blast through the cache
-	fakeClock.Advance(libkb.Identify2CacheLongTimeout + time.Minute*2)
+	// Manually get rid of the id2 cache
+	require.NoError(t, tcY.G.Identify2Cache().Delete(fuX.UID()))
 
 	// Bob should see that Alice reset even though the eldest kid is the same
 	idUI = &FakeIdentifyUI{}
-	require.NoError(t, RunEngine2(
+	err = RunEngine2(
 		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
 			LogUI:      tcY.G.UI.GetLogUI(),
 			IdentifyUI: idUI,
@@ -1297,10 +1294,31 @@ func TestTrackResetReuseKey(t *testing.T) {
 		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
 			UserAssertion:    fuX.Username,
 			ForceDisplay:     true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
+		}),
+	)
+	require.Error(t, err)
+	require.Equal(t, "1 followed proof failed", err.(libkb.IdentifySummaryError).Problems()[0])
+	require.Len(t, idUI.DisplayKeyDiffs, 1, "key diffs count")
+	require.Equal(t, keybase1.TrackDiffType_NEW_ELDEST, idUI.DisplayKeyDiffs[0].Type, "key diff new eldest")
+
+	// He should be able to retrack
+	trackUser(tcY, fuY, fuX.NormalizedUsername(), libkb.GetDefaultSigVersion(tcX.G))
+	assertTracking(tcY, fuX.Username)
+
+	// Which should fix the identification
+	require.NoError(t, RunEngine2(
+		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
+			LogUI:      tcY.G.UI.GetLogUI(),
+			IdentifyUI: &FakeIdentifyUI{},
+		}),
+		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
+			UserAssertion:    fuX.Username,
+			ForceDisplay:     true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		})),
 	)
-	require.True(t, idUI.BrokenTracking, fmt.Sprintf("%s %+v", fuX.Username, idUI))
+	require.False(t, idUI.BrokenTracking)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

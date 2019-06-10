@@ -182,7 +182,7 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) 
 	if s.track != nil {
 		trackedEldest := s.track.GetEldestKID()
 		if observedEldest.NotEqual(trackedEldest) ||
-			s.u.GetCurrentEldestSeqno() > s.track.link.GetSeqno() {
+			s.u.GetCurrentEldestSeqno() > s.track.GetTrackedLinkSeqno() {
 			diff := TrackDiffNewEldest{tracked: trackedEldest, observed: observedEldest}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
 			display(observedEldest, diff)
