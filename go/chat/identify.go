@@ -159,51 +159,6 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 	return "", nil, errNoConvForUser
 }
 
-func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(ctx context.Context, job engine.IdentifyJob) {
-	notifier := NewCachingIdentifyNotifier(h.G())
-
-	// Get username
-	uid := job.UID()
-	username, err := h.getUsername(ctx, uid)
-	if err != nil {
-		h.Debug(ctx, "BackgroundIdentifyChanged: failed to load username: uid: %s err: %s", uid, err)
-		return
-	}
-
-	// Get TLF info out of inbox
-	tlfName, tlfID, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
-	if err != nil {
-		if err != errNoConvForUser {
-			h.Debug(ctx, "BackgroundIdentifyChanged: error finding TLF name for update: err: %s",
-				err.Error())
-		}
-		return
-	}
-
-	// Form payload
-	h.Debug(ctx, "BackgroundIdentifyChanged: using TLF name: %s", tlfName)
-	notifyPayload := keybase1.CanonicalTLFNameAndIDWithBreaks{
-		TlfID:         keybase1.TLFID(tlfID.String()),
-		CanonicalName: keybase1.CanonicalTlfName(tlfName),
-	}
-	if job.ThisError() != nil {
-		// Handle error case by transmitting a break
-		idbreak := keybase1.TLFIdentifyFailure{
-			User: keybase1.User{
-				Uid:      uid,
-				Username: username,
-			},
-		}
-		notifyPayload.Breaks = keybase1.TLFBreak{
-			Breaks: []keybase1.TLFIdentifyFailure{idbreak},
-		}
-		h.Debug(ctx, "BackgroundIdentifyChanged: transmitting a break")
-	}
-
-	// Fire away!
-	notifier.Send(ctx, notifyPayload)
-}
-
 func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error) {
 	defer h.Trace(context.Background(), func() error { return err },
 		fmt.Sprintf("HandleUserChanged(uid=%s)", uid))()
