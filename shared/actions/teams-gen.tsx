@@ -161,7 +161,7 @@ type _GetTeamOperationsPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamname: string}
 type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
-type _GetTeamsPayload = {readonly clearNavBadges?: boolean}
+type _GetTeamsPayload = void
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
   readonly destSubPath?: I.List<string>
@@ -406,10 +406,7 @@ export const createGetTeamPublicity = (payload: _GetTeamPublicityPayload): GetTe
   payload,
   type: getTeamPublicity,
 })
-export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
-  payload,
-  type: getTeams,
-})
+export const createGetTeams = (payload: _GetTeamsPayload): GetTeamsPayload => ({payload, type: getTeams})
 export const createIgnoreRequest = (payload: _IgnoreRequestPayload): IgnoreRequestPayload => ({
   payload,
   type: ignoreRequest,

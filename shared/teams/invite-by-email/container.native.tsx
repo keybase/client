@@ -64,7 +64,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         teamname,
       })
     )
-    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
+    dispatch(TeamsGen.createGetTeams())
   },
   onInvitePhone: ({invitee, role, fullName = ''}) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
@@ -76,7 +76,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         teamname: getRouteProps(ownProps, 'teamname'),
       })
     )
-    dispatch(TeamsGen.createGetTeams({clearNavBadges: false}))
+    dispatch(TeamsGen.createGetTeams())
   },
   onUninvite: (invitee: string, id?: string) => {
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
