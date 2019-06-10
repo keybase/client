@@ -34,16 +34,10 @@ class Block extends React.Component<Props> {
         )}
         <Kb.Box style={styles.contentContainer}>
           <Kb.Text center={!Styles.isMobile} style={styles.descriptionText} type="Header">
-            Really block {props.username}?
+            Block {props.username}?
           </Kb.Text>
           <Kb.Text style={styles.reminderText} type="Body">
-            Hide them from followers and suggestions.
-          </Kb.Text>
-          <Kb.Text style={styles.reminderText} type="Body">
-            Prevent them from creating new chats or teams with you.
-          </Kb.Text>
-          <Kb.Text style={styles.reminderText} type="Body">
-            They may be able to figure out that you blocked them.
+			This will hide them from your followers and suggestions, and prevent them from creating new conversations or teams with you. Note that they may be able to find out that you blocked them.
           </Kb.Text>
           <Kb.ButtonBar>
             <Kb.WaitingButton
@@ -55,7 +49,7 @@ class Block extends React.Component<Props> {
             <Kb.WaitingButton
               type="Danger"
               onClick={props.onSubmit}
-              label={'Block'}
+              label={'Yes, block them'}
               waitingKey={Constants.blockUserWaitingKey}
             />
           </Kb.ButtonBar>
