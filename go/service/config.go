@@ -374,16 +374,16 @@ func (h ConfigHandler) GetProxyData(ctx context.Context) (keybase1.ProxyData, er
 	var convertedProxyType keybase1.ProxyType
 	if proxyType == libkb.NoProxy {
 		convertedProxyType = keybase1.ProxyType_No_Proxy
-	} else if proxyType == libkb.HttpConnect {
+	} else if proxyType == libkb.HTTPConnect {
 		convertedProxyType = keybase1.ProxyType_HTTP_Connect
 	} else if proxyType == libkb.Socks {
 		convertedProxyType = keybase1.ProxyType_Socks
 	} else {
-		return keybase1.ProxyData{"", keybase1.ProxyType_No_Proxy, true},
-			fmt.Errorf("Failed to convert proxy type %s into a protocol compatible proxy type!", proxyType)
+		return keybase1.ProxyData{AddressWithPort: "", ProxyType: keybase1.ProxyType_No_Proxy, CertPinning: true},
+			fmt.Errorf("Failed to convert proxy type into a protocol compatible proxy type!")
 	}
 
-	return keybase1.ProxyData{proxyAddress, convertedProxyType, certPinning}, nil
+	return keybase1.ProxyData{AddressWithPort: proxyAddress, ProxyType: convertedProxyType, CertPinning: certPinning}, nil
 }
 
 func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData) error {
@@ -395,7 +395,7 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 	if rpcProxyType == keybase1.ProxyType_No_Proxy {
 		convertedProxyType = libkb.NoProxy
 	} else if rpcProxyType == keybase1.ProxyType_HTTP_Connect {
-		convertedProxyType = libkb.HttpConnect
+		convertedProxyType = libkb.HTTPConnect
 	} else if rpcProxyType == keybase1.ProxyType_Socks {
 		convertedProxyType = libkb.Socks
 	} else {
