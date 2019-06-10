@@ -73,7 +73,9 @@ func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 
 func (b *Badger) PushState(ctx context.Context, state gregor.State) {
 	b.G().Log.CDebugf(ctx, "Badger update with gregor state")
-	b.badgeState.UpdateWithGregor(ctx, state)
+	if err := b.badgeState.UpdateWithGregor(ctx, state); err != nil {
+		b.G().Log.Warning("Badger (PushState) UpdateWithGregor failed: %v", err)
+	}
 	if err := b.Send(ctx); err != nil {
 		b.G().Log.Warning("Badger send (PushState) failed: %v", err)
 	}
