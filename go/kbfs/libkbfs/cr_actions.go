@@ -149,7 +149,7 @@ func uniquifyName(
 		return "", err
 	}
 
-	base, ext := splitExtension(name)
+	base, ext := data.SplitFileExtension(name)
 	for i := 1; i <= 100; i++ {
 		newName := fmt.Sprintf("%s (%d)%s", base, i, ext)
 		_, err := dir.Lookup(ctx, newName)
