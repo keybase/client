@@ -1,7 +1,9 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Props as ButtonProps} from '../common-adapters/button'
+import openURL from '../util/open-url'
 import * as Styles from '../styles'
 
 type InfoIconProps = {
@@ -40,8 +42,10 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
 
 export const InfoIcon = Container.namedConnect(
   () => ({}),
-  // TODO: This should be a todo I guess?
-  () => ({onDocumentation: () => {}, onFeedback: () => {}}),
+  dispatch => ({
+    onDocumentation: () => openURL('https://keybase.io/docs'),
+    onFeedback: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})), // TODO Y2K-108 un-jankify this
+  }),
   (s, d, o: InfoIconOwnProps) => ({...s, ...d, ...o}),
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
