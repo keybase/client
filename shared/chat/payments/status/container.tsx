@@ -1,7 +1,7 @@
 import * as Types from '../../../constants/types/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
 import {namedConnect} from '../../../util/container'
-import PaymentStatus from '.'
+import PaymentStatus, {Props} from '.'
 
 type OwnProps = {
   allowFontScaling?: boolean | null
@@ -11,7 +11,8 @@ type OwnProps = {
   text: string
 }
 
-const reduceStatus = status => {
+type Status = Props['status']
+const reduceStatus = (status: string): Status => {
   switch (status) {
     case 'claimable':
     case 'completed':
@@ -28,10 +29,11 @@ const reduceStatus = status => {
   }
 }
 
+
 export default namedConnect(
   (state, ownProps: OwnProps) => {
     const {error, paymentID, message, text} = ownProps
-    const paymentInfo = paymentID ? state.chat2.getIn(['paymentStatusMap', paymentID]) || null : null
+    const paymentInfo = paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
     const status = error
       ? 'error' // Auto generated from flowToTs. Please clean me!
       : (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.status) || 'pending'
@@ -48,6 +50,6 @@ export default namedConnect(
     }
   },
   () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...s, ...d}),
   'PaymentStatus'
 )(PaymentStatus)

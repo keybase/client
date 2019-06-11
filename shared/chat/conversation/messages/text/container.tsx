@@ -1,7 +1,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import TextMessage from '.'
+import TextMessage, {Props} from '.'
 import * as Container from '../../../../util/container'
 
 type OwnProps = {
@@ -55,6 +55,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnPro
     ),
 })
 
+type MsgType = Props['type']
 export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
@@ -65,7 +66,7 @@ export default Container.namedConnect(
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
       : ownProps.message.text.stringValue(),
-    type: ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending',
+    type: (ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending') as MsgType,
   }),
   'TextMessage'
 )(TextMessage)

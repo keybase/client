@@ -1,4 +1,4 @@
-import CoinFlip from '.'
+import CoinFlip, {Props} from '.'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
@@ -13,16 +13,19 @@ type OwnProps = {
   text: HiddenString
 }
 
-const noParticipants = []
+const noParticipants: Array<RPCChatTypes.UICoinFlipParticipant> = []
+type PhaseType = Props['phase']
 
-const C = namedConnect(
+export default namedConnect(
   (state, {flipGameID, isSendError}: OwnProps) => {
     const status = state.chat2.flipStatusMap.get(flipGameID)
     return !status
       ? {
           commitmentVis: '',
+          errorInfo: null,
           isSendError,
           participants: noParticipants,
+          phase: null,
           progressText: '',
           resultText: '',
           revealVis: '',
@@ -32,8 +35,8 @@ const C = namedConnect(
           commitmentVis: status.commitmentVisualization,
           errorInfo: status.phase === RPCChatTypes.UICoinFlipPhase.error ? status.errorInfo : null,
           isSendError,
-          participants: status.participants || [],
-          phase: Constants.flipPhaseToString(status.phase),
+          participants: status.participants || noParticipants,
+          phase: Constants.flipPhaseToString(status.phase) as PhaseType,
           progressText: status.progressText,
           resultInfo: status.resultInfo,
           resultText: status.resultText,
@@ -47,7 +50,3 @@ const C = namedConnect(
   (s, d, _: OwnProps) => ({...s, ...d}),
   'CoinFlip'
 )(CoinFlip)
-export default C
-
-type D = (typeof C)[0]
-type D1 = (typeof C)[1]
