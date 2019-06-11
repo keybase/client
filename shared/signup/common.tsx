@@ -141,6 +141,8 @@ export const SignupScreen = (props: SignupScreenProps) => (
         headerStyle={props.headerStyle}
         title={props.title}
         titleComponent={props.titleComponent}
+        rightActionLabel={props.rightActionLabel}
+        onRightAction={props.onRightAction}
         leftAction={props.leftAction}
         leftActionText={props.leftActionText}
         onBack={props.onBack}
