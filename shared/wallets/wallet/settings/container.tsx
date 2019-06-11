@@ -1,6 +1,7 @@
 import Settings, {SettingsProps} from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
+import * as I from 'immutable'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -8,6 +9,28 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import flags from '../../../util/feature-flags'
 
 type OwnProps = Container.RouteProps<{}, {}>
+
+// Note: `props.user` is only the Keybase username if this is the primary
+// account. Non-primary accounts are not associated with usernames.
+const transformUrl = (accountID: string, url: string, username: string): string =>
+  url.replace('%{accountId}', accountID).replace('%{username}', username)
+
+const prepareExternalPartners = (
+  externalPartners: I.List<Types.PartnerUrl>,
+  accountID: string,
+  username: string
+): Array<Types.PartnerUrl & {showDivider: boolean}> =>
+  externalPartners
+    .map((partner, index) => ({
+      adminOnly: partner.adminOnly,
+      description: partner.description,
+      extra: partner.extra,
+      iconFilename: partner.iconFilename,
+      showDivider: index > 0,
+      title: partner.title,
+      url: transformUrl(accountID, partner.url, username),
+    }))
+    .toArray()
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -29,7 +52,11 @@ const mapStateToProps = state => {
   const canSubmitTx = account.canSubmitTx
   const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
-  const externalPartners = Constants.getExternalPartners(state, accountID).toArray()
+  const externalPartners = prepareExternalPartners(
+    Constants.getExternalPartners(state, accountID),
+    accountID,
+    user
+  )
   return {
     accountID,
     canSubmitTx,
