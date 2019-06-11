@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
+import openUrl from '../../../util/open-url'
 
 export type SettingsProps = {
   accountID: Types.AccountID
@@ -50,15 +51,17 @@ type PartnerRowProps = {
 }
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-    <Kb.Icon
+    <Kb.Box
       type={Styles.isMobile ? 'icon-placeholder-secret-user-48' : 'icon-placeholder-secret-user-32'}
-      style={{height: Styles.isMobile ? 48 : 32, width: Styles.isMobile ? 48 : 32}}
+      style={{backgroundImage: `url(${props.url})`, flexShrink: 0, height: Styles.isMobile ? 48 : 32, width: Styles.isMobile ? 48 : 32}}
     />
-    <Kb.Box2 direction="vertical" style={styles.identityBox}>
-      <Kb.Text type="Body">{props.title}</Kb.Text>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text onClickURL={props.url} style={{color: Styles.globalColors.black}} type="BodyPrimaryLink">{props.title}</Kb.Text>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
-    <Kb.Icon type="iconfont-open-browser" />
+    <Kb.Box2 direction="vertical">
+      <Kb.Icon onClick={() => openUrl(props.url)} fontSize={Styles.isMobile ? 16 : 12}type="iconfont-open-browser" />
+    </Kb.Box2>
   </Kb.Box2>
 )
 
@@ -203,17 +206,19 @@ class AccountSettings extends React.Component<SettingsProps> {
                   <Kb.Text type="BodySmallSemibold">External tools and partners</Kb.Text>
                   {props.externalPartners.map((partner, index, array) => {
                     const showDivider = index !== array.length - 1
+                    const description = index > 1 ? partner.description.concat(partner.description) : partner.description
+                    const url = partner.url.replace('%{accountId}', props.accountID)
                     return (
-                      <Kb.Box key={partner.url}>
+                      <Kb.Box2 key={partner.url} direction="vertical" style={{width: '100%'}}>
                         <PartnerRow
-                          description={partner.description}
+                          description={description}
                           extra={partner.extra}
                           iconFilename={partner.iconFilename}
                           title={partner.title}
-                          url={partner.url}
+                          url={url}
                         />
                         {showDivider && <Kb.Divider style={styles.partnerDivider} />}
-                      </Kb.Box>
+                      </Kb.Box2>
                     )
                   })}
                 </Kb.Box2>
