@@ -154,8 +154,8 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
       // just to help you debug what's going on
       Exclude<keyof GetProps<C>, keyof TMergedProps>,
       Exclude<keyof GetProps<C>, keyof GetProps<C>>,
-      GetProps<C> & {},
-      TMergedProps & {},
+      GetProps<C>,
+      TMergedProps
     ]
 
 export interface Connect {
