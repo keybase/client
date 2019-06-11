@@ -45,7 +45,6 @@ export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
-export const loadingPath = 'fs:loadingPath'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
@@ -163,7 +162,6 @@ type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly userna
 type _LoadPathMetadataPayload = {readonly path: Types.Path; readonly refreshTag?: Types.RefreshTag | null}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
-type _LoadingPathPayload = {readonly path: Types.Path; readonly id: string; readonly done: boolean}
 type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
@@ -355,10 +353,6 @@ export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsP
 export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): LoadTlfSyncConfigPayload => ({
   payload,
   type: loadTlfSyncConfig,
-})
-export const createLoadingPath = (payload: _LoadingPathPayload): LoadingPathPayload => ({
-  payload,
-  type: loadingPath,
 })
 export const createLocalHTTPServerInfo = (
   payload: _LocalHTTPServerInfoPayload
@@ -655,7 +649,6 @@ export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: 'fs:loadTlfSyncConfig'
 }
-export type LoadingPathPayload = {readonly payload: _LoadingPathPayload; readonly type: 'fs:loadingPath'}
 export type LocalHTTPServerInfoPayload = {
   readonly payload: _LocalHTTPServerInfoPayload
   readonly type: 'fs:localHTTPServerInfo'
@@ -890,7 +883,6 @@ export type Actions =
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
-  | LoadingPathPayload
   | LocalHTTPServerInfoPayload
   | MovePayload
   | NewFolderNamePayload
