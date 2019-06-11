@@ -310,7 +310,7 @@ const createElectronApp = Component => {
       }
       navigation = this._navigation
       return (
-        <NavigationProvider value={navigation}>
+        <NavigationProvider key={this.props.isDarkMode ? 'dark' : 'light'} value={navigation}>
           <Component {...this.props} navigation={navigation} />
         </NavigationProvider>
       )

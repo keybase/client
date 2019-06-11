@@ -19,7 +19,7 @@ const People = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {...Styles.globalStyles.fullHeight},
+  container: {...Styles.globalStyles.fullHeight, backgroundColor: Styles.globalColors.black},
   header: {flexGrow: 1},
   progress: {
     height: 18,

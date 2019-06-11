@@ -1,4 +1,6 @@
 import globalColors from './colors'
+import * as SafeElectron from '../util/safe-electron.desktop'
+import {isDarwin} from '../constants/platform'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import * as T from './index.types'
@@ -160,13 +162,14 @@ export {
   platformStyles,
   padding,
 } from './shared'
+
 export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
 export {default as styled} from '@emotion/styled'
-export {default as globalColors} from './colors'
+export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4
 export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = T.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
-export const isDarkMode = () => true // TEMP isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
+export const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()

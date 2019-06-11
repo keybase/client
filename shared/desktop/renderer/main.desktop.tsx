@@ -16,6 +16,8 @@ import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
+import {isDarwin} from '../../constants/platform'
+import {setIsDarkMode} from '../../styles/colors'
 
 // Top level HMR accept
 if (module.hot) {
@@ -24,7 +26,7 @@ if (module.hot) {
 
 let _store
 
-function setupStore() {
+const setupStore = () => {
   let store = _store
   let runSagas
   if (!_store) {
@@ -42,7 +44,7 @@ function setupStore() {
   return {runSagas, store}
 }
 
-function setupApp(store, runSagas) {
+const setupApp = (store, runSagas) => {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
   runSagas && runSagas()
@@ -104,24 +106,28 @@ const FontLoader = () => (
   </div>
 )
 
-function render(store, MainComponent) {
+let store
+
+const render = (Component = Main) => {
   const root = document.getElementById('root')
   if (!root) {
     throw new Error('No root element?')
   }
+
+  const isDarkMode = isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
   ReactDOM.render(
     <Root store={store}>
       <div style={{display: 'flex', flex: 1}}>
         <RemoteProxies />
         <FontLoader />
-        <MainComponent />
+        <Component isDarkMode={isDarkMode} />
       </div>
     </Root>,
     root
   )
 }
 
-function setupHMR(store) {
+const setupHMR = store => {
   const accept = module.hot && module.hot.accept
   if (!accept) {
     return
@@ -130,7 +136,7 @@ function setupHMR(store) {
   const refreshMain = () => {
     try {
       const NewMain = require('../../app/main.desktop').default
-      render(store, NewMain)
+      render(NewMain)
     } catch (_) {}
   }
 
@@ -138,7 +144,22 @@ function setupHMR(store) {
   accept('../../common-adapters/index.js', () => {})
 }
 
-function load() {
+const setupDarkMode = () => {
+  if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
+    SafeElectron.getSystemPreferences().subscribeNotification(
+      'AppleInterfaceThemeChangedNotification',
+      () => {
+        // wipe module level cache!!
+        delete require.cache
+        // kill require cache
+        setIsDarkMode(isDarwin && SafeElectron.getSystemPreferences().isDarkMode())
+        render()
+      }
+    )
+  }
+}
+
+const load = () => {
   if (global.DEBUGLoaded) {
     // only load once
     console.log('Bail on load() on HMR')
@@ -146,10 +167,13 @@ function load() {
   }
   global.DEBUGLoaded = true
   initDesktopStyles()
-  const {store, runSagas} = setupStore()
+  const temp = setupStore()
+  const {runSagas} = temp
+  store = temp.store
   setupApp(store, runSagas)
   setupHMR(store)
-  render(store, Main)
+  setupDarkMode()
+  render()
 }
 
 load()
