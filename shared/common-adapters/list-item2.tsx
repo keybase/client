@@ -21,7 +21,7 @@ type Props = {
   body: React.ReactNode
   firstItem: boolean
   action?: React.ReactNode
-  onlyShowActionOnHover?: 'appear' | 'animate' | null
+  onlyShowActionOnHover?: 'fade' | 'grow' | null
   onClick?: () => void
 }
 
@@ -29,22 +29,29 @@ const HoverBox = Styles.isMobile
   ? Box2
   : Styles.styled(Box2)({
       // @ts-ignore
-      '.hidden-no-hover': {
-        justifyContent: 'flex-end',
+      '.fade': {
+        opacity: 0,
+        ...Styles.transition('opacity'),
+      },
+      '.grow': {
         maxWidth: 0,
         overflow: 'hidden',
-      },
-      '.hidden-no-hover-animate': {
         ...Styles.transition('max-width'),
       },
       ':hover': {
         backgroundColor: Styles.globalColors.blueLighter2,
       },
       ':hover .avatar-border': {
+        // TODO: it'd be nice to move this out of this file since list-item2
+        // has nothing todo with avatars. We'd need Kb.AvatarLine to know
+        // about different background and set that on hover though.
         boxShadow: `0px 0px 0px 2px ${Styles.globalColors.blueLighter2} !important`,
       },
-      ':hover .hidden-no-hover': {
-        maxWidth: 64,
+      ':hover .fade': {
+        opacity: 1,
+      },
+      ':hover .grow': {
+        maxWidth: 'unset',
       },
     })
 
@@ -96,12 +103,11 @@ const ListItem = (props: Props) => (
         <Kb.Box2
           direction="horizontal"
           className={Styles.classNames({
-            'hidden-no-hover': props.onlyShowActionOnHover !== null,
-            'hidden-no-hover-animate': props.onlyShowActionOnHover === 'animate',
+            fade: props.onlyShowActionOnHover === 'fade',
+            grow: props.onlyShowActionOnHover === 'grow',
           })}
           style={Styles.collapseStyles([
             props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
-            props.onlyShowActionOnHover && styles.hiddenNoHoverAction,
           ])}
         >
           {props.action}
@@ -192,9 +198,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
     top: 0,
-  },
-  hiddenNoHoverAction: {
-    justifyContent: 'flex-end',
   },
   iconLarge: {
     position: 'absolute',
