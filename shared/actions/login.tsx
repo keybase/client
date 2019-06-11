@@ -79,7 +79,7 @@ function* login(state, action: LoginGen.LoginPayload) {
       })
     )
     logger.info('login call succeeded')
-    yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
+    yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
   } catch (e) {
     // If we're canceling then ignore the error
     if (e.desc !== cancelDesc) {

@@ -101,6 +101,7 @@
     "loggedOut": {},
     "loggedIn": {
       "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
+      "causedBySignup": "boolean",
       "causedByStartup": "boolean"
     },
     "updateMenubarWindowID": {"id": "number"},
