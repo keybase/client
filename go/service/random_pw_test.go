@@ -95,7 +95,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	tc := libkb.SetupTest(t, "randompw", 3)
 	defer tc.Cleanup()
 
-	u, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUserRandomPW("rpw", tc.G)
 	require.NoError(t, err)
 
 	realAPI := tc.G.API
@@ -107,22 +107,13 @@ func TestCanLogoutTimeout(t *testing.T) {
 
 	userHandler := NewUserHandler(nil, tc.G, nil, nil)
 
-	// We populate cache on login, so we know user does not have password
+	// It will fail with an error and Frontend would still send user
+	// to passphrase screen.
 	ret2, err := userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "You signed up without a password")
-
-	// Clear local db and recheck CanLogout, should fail because we don't know and API call fails
-	ctlHandler := NewCtlHandler(nil, nil, tc.G)
-	err = ctlHandler.DbDelete(context.Background(), keybase1.DbDeleteArg{
-		Key: keybase1.DbKey{DbType: keybase1.DbType_MAIN, ObjType: libkb.DBHasRandomPW, Key: u.User.GetUID().String()},
-	})
-	require.NoError(t, err)
-	ret2_5, err := userHandler.CanLogout(context.Background(), 0)
-	require.NoError(t, err)
-	require.False(t, ret2_5.CanLogout)
-	require.Contains(t, ret2_5.Reason, "We couldn't ensure that your account has a passphrase")
+	require.Contains(t, ret2.Reason, "We couldn't ensure that your account has a passphrase")
+	require.Equal(t, 1, fakeAPI.callCount)
 
 	// Switch off the timeouting for one call
 	fakeAPI.shouldTimeout = false
@@ -132,7 +123,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
 	require.Contains(t, ret2.Reason, "set a password first")
-	require.Equal(t, 3, fakeAPI.callCount)
+	require.Equal(t, 2, fakeAPI.callCount)
 
 	// Back to "offline" state.
 	fakeAPI.shouldTimeout = true
@@ -143,7 +134,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
 	require.Contains(t, ret2.Reason, "set a password first")
-	require.Equal(t, 4, fakeAPI.callCount)
+	require.Equal(t, 3, fakeAPI.callCount)
 
 	// Back to real API because we are going to change passphrase.
 	tc.G.API = realAPI
