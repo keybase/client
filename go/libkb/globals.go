@@ -577,6 +577,12 @@ func (g *GlobalContext) GetHiddenTeamChainManager() HiddenTeamChainManager {
 	return g.hiddenTeamChainManager
 }
 
+func (g *GlobalContext) SetHiddenTeamChainManager(h HiddenTeamChainManager) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.hiddenTeamChainManager = h
+}
+
 func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()

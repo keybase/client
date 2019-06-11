@@ -70,7 +70,7 @@ func (s Signer) Export() keybase1.Signer {
 
 func ExportToPrevLinkTriple(g Generic) keybase1.LinkTriple {
 	return keybase1.LinkTriple{
-		Seqno:   g.Seqno(),
+		Seqno:   g.Seqno() - 1,
 		SeqType: g.Outer().ChainType,
 		LinkID:  g.Prev().Export(),
 	}

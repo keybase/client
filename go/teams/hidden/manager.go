@@ -42,6 +42,9 @@ func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybas
 	if err != nil {
 		return nil, err
 	}
+	if state == nil {
+		return nil, nil
+	}
 	return state.Ratchet.MaxTriple(), nil
 }
 
@@ -137,9 +140,17 @@ func (m *ChainManager) checkRatchets(mctx libkb.MetaContext, state *keybase1.Hid
 	return changed, nil
 }
 
+func newHiddenTeamChainData() keybase1.HiddenTeamChainData {
+	return keybase1.HiddenTeamChainData{
+		Outer: make(map[keybase1.Seqno]keybase1.LinkID),
+		Inner: make(map[keybase1.Seqno]keybase1.HiddenTeamChainLink),
+	}
+}
+
 func newHiddenTeamChain() *keybase1.HiddenTeamChain {
 	return &keybase1.HiddenTeamChain{
 		ReaderPerTeamKeys: make(map[keybase1.PerTeamKeyGeneration]keybase1.Seqno),
+		Data:              newHiddenTeamChainData(),
 	}
 }
 
@@ -171,6 +182,9 @@ func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratch
 
 func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, prev keybase1.LinkTriple) (err error) {
 	if prev.Seqno == keybase1.Seqno(0) {
+		if !prev.LinkID.IsNil() {
+			return fmt.Errorf("first link in chain didn't have a nil priv")
+		}
 		return nil
 	}
 	link, ok := state.Data.Outer[prev.Seqno]
@@ -184,7 +198,7 @@ func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenT
 }
 
 func (m *ChainManager) checkExpectedHighSeqno(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChainData, expectedHighSeqno keybase1.Seqno) error {
-	if state.Data.HasSeqno(expectedHighSeqno) || newData.HasSeqno(expectedHighSeqno) {
+	if state.Data.HasSeqno(expectedHighSeqno) || newData.HasSeqno(expectedHighSeqno) || expectedHighSeqno == keybase1.Seqno(0) {
 		return nil
 	}
 	return fmt.Errorf("we expected a chain up to %d but it wasn't returned from the server", expectedHighSeqno)
@@ -204,6 +218,7 @@ func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTea
 		return false, err
 	}
 	update = state.Merge(newData)
+	mctx.Debug("merged %+v %+v", *state)
 	return update, nil
 }
 
@@ -272,6 +287,28 @@ func (m *ChainManager) PerTeamKeyAtGeneration(mctx libkb.MetaContext, id keybase
 	return &ptk.Ptk, nil
 }
 
-func NewChainMananger() *ChainManager {
-	return &ChainManager{}
+func NewChainMananger(g *libkb.GlobalContext) *ChainManager {
+	return &ChainManager{
+		storage: storage.NewHiddenStorage(g),
+	}
+}
+
+func NewChainManagerAndInstall(g *libkb.GlobalContext) *ChainManager {
+	ret := NewChainMananger(g)
+	g.SetHiddenTeamChainManager(ret)
+	g.AddLogoutHook(ret, "HiddenTeamChainManager")
+	g.AddDbNukeHook(ret, "HiddenTeamChainManager")
+	return ret
+}
+
+// OnLogout is called when the user logs out, which purges the LRU.
+func (m *ChainManager) OnLogout(mctx libkb.MetaContext) error {
+	m.storage.ClearMem()
+	return nil
+}
+
+// OnDbNuke is called when the disk cache is cleared, which purges the LRU.
+func (m *ChainManager) OnDbNuke(mctx libkb.MetaContext) error {
+	m.storage.ClearMem()
+	return nil
 }
