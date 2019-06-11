@@ -239,7 +239,12 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
   if (state.config.loggedIn) {
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
-      return RouteTreeGen.createSwitchRouteDef({loggedIn: true})
+      return [
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true}),
+        ...(action.payload.causedBySignup
+          ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
+          : []),
+      ]
     }
   } else {
     return RouteTreeGen.createSwitchRouteDef({loggedIn: false})
@@ -362,10 +367,13 @@ const routeToInitialScreen = state => {
     }
 
     // Just a saved tab
-    return RouteTreeGen.createSwitchRouteDef({
-      loggedIn: true,
-      path: [state.config.startupTab || Tabs.peopleTab],
-    })
+    return [
+      RouteTreeGen.createSwitchRouteDef({
+        loggedIn: true,
+        path: [state.config.startupTab || Tabs.peopleTab],
+      }),
+      RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']}), // TEMP for testing
+    ]
   } else {
     // Show a login screen
     return [

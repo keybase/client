@@ -27,4 +27,4 @@ ConnectedEnterPhoneNumber.navigationOptions = {
   ),
 }
 
-export default EnterPhoneNumber
+export default ConnectedEnterPhoneNumber
