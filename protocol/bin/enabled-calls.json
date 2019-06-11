@@ -218,6 +218,8 @@
   "keybase.1.user.profileEdit": {"promise": true},
   "keybase.1.user.proofSuggestions": {"promise": true},
   "keybase.1.user.uploadUserAvatar": {"promise": true},
+  "keybase.1.user.blockUser": {"promise": true},
+  "keybase.1.user.unblockUser": {"promise": true},
   "stellar.1.local.acceptDisclaimerLocal": {"promise": true},
   "stellar.1.local.airdropDetailsLocal": {"promise": true},
   "stellar.1.local.airdropRegisterLocal": {"promise": true},
