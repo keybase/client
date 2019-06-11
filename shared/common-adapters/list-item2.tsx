@@ -21,6 +21,9 @@ type Props = {
   body: React.ReactNode
   firstItem: boolean
   action?: React.ReactNode
+  // If 'grow' is used, the width of action cannot exceed 64. If larger width
+  // is needed, bump the `maxWidth: 64` below to a larger value. Note that if
+  // it's too large, the animation would also seem much faster.
   onlyShowActionOnHover?: 'fade' | 'grow' | null
   onClick?: () => void
 }
@@ -51,7 +54,7 @@ const HoverBox = Styles.isMobile
         opacity: 1,
       },
       ':hover .grow': {
-        maxWidth: 'unset',
+        maxWidth: 64,
       },
     })
 
@@ -108,6 +111,7 @@ const ListItem = (props: Props) => (
           })}
           style={Styles.collapseStyles([
             props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
+            props.onlyShowActionOnHover === 'grow' && styles.actionFlexEnd,
           ])}
         >
           {props.action}
@@ -123,6 +127,11 @@ const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 const statusIconWidth = Styles.isMobile ? 32 : 32
 const styles = Styles.styleSheetCreate({
+  actionFlexEnd: {
+    // This provides the correct behavior for grow where the actions show up
+    // and the content slides left from on top of the actions.
+    justifyContent: 'flex-end',
+  },
   actionLargeContainer: {
     alignItems: 'center',
     flexGrow: 0,
