@@ -155,19 +155,24 @@ func PrepareUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.
 	return ret, err
 }
 
-func (u *Update) Commit(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (ret *keybase1.HiddenTeamChainData, err error) {
+func (u *Update) Commit(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (ret *keybase1.Signer, err error) {
 
 	err = u.checkSeedSequence(mctx, seeds)
 	if err != nil {
 		return nil, err
 	}
-	ret, err = u.toHiddenTeamChainData(mctx)
+	var update *keybase1.HiddenTeamChainData
+	update, err = u.toHiddenTeamChainData(mctx)
 	if err != nil {
 		return nil, err
 	}
-	err = mctx.G().GetHiddenTeamChainManager().Advance(mctx, sig3.ExportToPrevLinkTriple(u.links[0]), *ret, u.ratchet)
+	err = mctx.G().GetHiddenTeamChainManager().Advance(mctx, sig3.ExportToPrevLinkTriple(u.links[0]), *update, u.ratchet)
 	if err != nil {
 		return nil, err
+	}
+	tail := update.Tail()
+	if tail != nil {
+		ret = &tail.Signer
 	}
 	return ret, nil
 }

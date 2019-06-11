@@ -879,24 +879,19 @@ func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase
 	mctx := libkb.NewMetaContext(ctx, l.G())
 	defer mctx.Trace("commitHiddenChainUpdate", func() error { return err })()
 
-	var htcd *keybase1.HiddenTeamChainData
-	htcd, err = update.Commit(mctx, chain.PerTeamKeySeedsUnverified)
+	var signer *keybase1.Signer
+	signer, err = update.Commit(mctx, chain.PerTeamKeySeedsUnverified)
 	if err != nil {
 		return false, err
 	}
 
 	// No known links in the hidden chain, that's fine.
-	if htcd == nil {
-		mctx.Debug("hidden chain: 0 links")
-		return false, nil
-	}
-	tail := htcd.Tail()
-	if tail == nil {
-		mctx.Debug("hidden chain: last link was nil")
+	if signer == nil {
+		mctx.Debug("hidden chain: no signer (no new links or no chain)")
 		return false, nil
 	}
 
-	needRotate, err = l.checkNeedRotate(mctx, chain, me, tail.Signer)
+	needRotate, err = l.checkNeedRotate(mctx, chain, me, *signer)
 	return needRotate, err
 }
 
