@@ -48,7 +48,7 @@ const Tlf = (props: TlfProps) => (
     inDestinationPicker={props.inDestinationPicker}
     badge={props.isNew ? Types.PathItemBadgeType.New : null}
     routePath={props.routePath}
-    animateActions={true}
+    showActionsWithGrow={true}
   >
     {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>
