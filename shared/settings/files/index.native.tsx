@@ -9,10 +9,17 @@ import {Props} from '.'
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
-class ThresholdDropdown extends React.PureComponent<Props, {visible: boolean}> {
-  state = {visible: false}
+class ThresholdDropdown extends React.PureComponent<
+  Props,
+  {visible: boolean; notificationThreshold: number}
+> {
+  state = {visible: false, notificationThreshold: this.props.spaceAvailableNotificationThreshold}
   _hide = () => this.setState({visible: false})
-  _select = selectedVal => this.props.onSetSyncNotificationThreshold(selectedVal)
+  _done = () => {
+    this.props.onSetSyncNotificationThreshold(this.state.notificationThreshold)
+    this.setState({visible: false})
+  }
+  _select = selectedVal => this.setState({notificationThreshold: selectedVal})
   _show = () => this.setState({visible: true})
   _toggleShowingMenu = () => this.setState(s => ({visible: !s.visible}))
   render() {
@@ -27,7 +34,7 @@ class ThresholdDropdown extends React.PureComponent<Props, {visible: boolean}> {
         <Kb.FloatingPicker
           items={this.props.allowedThresholds}
           visible={this.state.visible}
-          selectedValue={this.props.humanizedNotificationThreshold}
+          selectedValue={this.state.notificationThreshold}
           promptString="Pick a threshold"
           prompt={
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
@@ -36,7 +43,7 @@ class ThresholdDropdown extends React.PureComponent<Props, {visible: boolean}> {
           }
           onCancel={this._hide}
           onHidden={this._hide}
-          onDone={this._hide}
+          onDone={this._done}
           onSelect={this._select}
         />
       </>
