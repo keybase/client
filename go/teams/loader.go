@@ -253,6 +253,7 @@ func (l *TeamLoader) makeNameLookupBurstCacheLoader(ctx context.Context, g *libk
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
 // The key difference between load1 and load2 is that load2 is recursive (for subteams).
 func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
+	mctx := libkb.NewMetaContext(ctx, l.G())
 	err := l.checkArg(ctx, lArg)
 	if err != nil {
 		return nil, err
@@ -274,9 +275,9 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	if !teamID.Exists() {
 		teamID, err = l.ResolveNameToIDUntrusted(ctx, *teamName, lArg.Public, lArg.AllowNameLookupBurstCache)
 		if err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
+			mctx.Debug("TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			if code, ok := libkb.GetAppStatusCode(err); ok && code == keybase1.StatusCode_SCTeamNotFound {
-				l.G().Log.CDebugf(ctx, "replacing error: %v", err)
+				mctx.Debug("replacing error: %v", err)
 				return nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
 			}
 			return nil, err
@@ -286,7 +287,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	mungedForceRepoll := lArg.ForceRepoll
 	mungedWantMembers, err := l.mungeWantMembers(ctx, lArg.Refreshers.WantMembers)
 	if err != nil {
-		l.G().Log.CDebugf(ctx, "TeamLoader munge failed: %v", err)
+		mctx.Debug("TeamLoader munge failed: %v", err)
 		// drop the error and just force a repoll.
 		mungedForceRepoll = true
 		mungedWantMembers = nil
@@ -321,7 +322,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		// If subteams are involved the name might not correspond to the ID
 		// but it's better to have this understandable error message that's accurate
 		// most of the time than one with an ID that's always accurate.
-		l.G().Log.CDebugf(ctx, "replacing error: %v", err)
+		mctx.Debug("replacing error: %v", err)
 		return nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
 	case nil:
 	default:
@@ -333,7 +334,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 
 	// Only public teams are allowed to be behind on secrets.
 	// This is allowed because you can load a public team you're not in.
-	if !l.hasSyncedSecrets(&ret.team) && !ret.team.Chain.Public {
+	if !l.hasSyncedSecrets(mctx, &ret.team) && !ret.team.Chain.Public {
 		// this should not happen
 		return nil, fmt.Errorf("missing secrets for team")
 	}
@@ -348,14 +349,13 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		}
 	}
 
-	mctx := libkb.NewMetaContext(ctx, l.G())
 	if ShouldRunBoxAudit(mctx) {
 		newMctx, shouldReload := VerifyBoxAudit(mctx, teamID)
 		if shouldReload {
 			return l.load1(newMctx.Ctx(), me, lArg)
 		}
 	} else {
-		l.G().Log.CDebugf(ctx, "Box auditor feature flagged off; not checking jail during team load...")
+		mctx.Debug("Box auditor feature flagged off; not checking jail during team load...")
 	}
 
 	return &ret.team, nil
@@ -597,7 +597,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	} else if !hiddenIsFresh {
 		mctx.Debug("TeamLoader fetching: hidden chain wasn't fresh")
 		fetchLinksAndOrSecrets = true
-	} else if !l.hasSyncedSecrets(ret) {
+	} else if !l.hasSyncedSecrets(mctx, ret) {
 		// The cached secrets are behind the cached chain.
 		// We may need to hit the server for secrets, even though there are no new links.
 		if arg.needAdmin {
@@ -1226,19 +1226,20 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 
 // Whether the user is an admin at the snapshot, and there are no stubbed links, and keys are up to date.
 func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVersion, teamData *keybase1.TeamData) bool {
+	mctx := libkb.NewMetaContext(ctx, l.G())
 	if teamData == nil {
 		return false
 	}
 	if (TeamSigChainState{inner: teamData.Chain}.HasAnyStubbedLinks()) {
 		return false
 	}
-	if !l.hasSyncedSecrets(teamData) {
+	if !l.hasSyncedSecrets(mctx, teamData) {
 		return false
 	}
 	state := TeamSigChainState{inner: teamData.Chain}
 	role, err := state.GetUserRole(me)
 	if err != nil {
-		l.G().Log.CDebugf(ctx, "TeamLoader error getting my role: %v", err)
+		mctx.Debug("TeamLoader error getting my role: %v", err)
 		return false
 	}
 	if !role.IsAdminOrAbove() {
@@ -1247,7 +1248,7 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 		}
 		yes, err := l.isImplicitAdminOf(ctx, state.GetID(), state.GetParentID(), me, me)
 		if err != nil {
-			l.G().Log.CDebugf(ctx, "TeamLoader error getting checking implicit admin: %s", err)
+			mctx.Debug("TeamLoader error getting checking implicit admin: %s", err)
 			return false
 		}
 		if !yes {
@@ -1495,10 +1496,22 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 
 // Whether the teams secrets are synced to the same point as its sigchain
 // Does not check RKMs.
-func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
+func (l *TeamLoader) hasSyncedSecrets(mctx libkb.MetaContext, state *keybase1.TeamData) bool {
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-	return onChainGen == offChainGen
+	if onChainGen == offChainGen {
+		return true
+	}
+	ptk, err := mctx.G().GetHiddenTeamChainManager().PerTeamKeyAtGeneration(mctx, state.ID(), keybase1.PerTeamKeyGeneration(offChainGen))
+	if err != nil {
+		mctx.Debug("TeamLoader#hasSyncedSecrets: %s", err.Error())
+		return false
+	}
+	if ptk == nil {
+		mctx.Debug("TeamLoader#hasSyncedSecrets: failed to find a hidden chainlink for %d", offChainGen)
+		return false
+	}
+	return true
 }
 
 func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.TeamData) {
