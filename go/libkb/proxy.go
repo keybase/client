@@ -38,7 +38,7 @@ keybase --disable-ssl-pinning
 Note that enabling this option is NOT recommended. Enabling this option allows the proxy to view all traffic between
 the client and the Keybase servers.
 
- */
+*/
 
 package libkb
 
@@ -50,11 +50,13 @@ import (
 
 // Represents the different types of supported proxies
 type ProxyType int
+
 const (
 	noProxy ProxyType = iota
 	socks
 	httpConnect
 )
+
 // Maps a string to an enum. Used to list the different types of supported proxies and to convert
 // config options into the enum
 var ProxyTypeStrToEnum = map[string]ProxyType{"socks": socks, "http_connect": httpConnect}
@@ -68,7 +70,7 @@ func GetCommaSeparatedListOfProxyTypes() string {
 }
 
 // Enable the proxy configured by this environment by setting the HTTP_PROXY and HTTPS_PROXY environment variables
-func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request)(*url.URL, error) {
+func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request) (*url.URL, error) {
 	return func(r *http.Request) (*url.URL, error) {
 		if proxyType == noProxy {
 			// No proxy so returning nil tells it not to use a proxy
@@ -89,4 +91,3 @@ func MakeProxy(proxyType ProxyType, proxyAddress string) func(r *http.Request)(*
 		return realProxyURL, nil
 	}
 }
-

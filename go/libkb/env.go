@@ -40,7 +40,7 @@ func (n NullConfiguration) GetEmail() string                                    
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetProxyType() string                                           { return "" }
-func (n NullConfiguration) IsCertPinningEnabled() bool                                      { return true }
+func (n NullConfiguration) IsCertPinningEnabled() bool                                     { return true }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
 func (n NullConfiguration) GetBundledCA(h string) string                                   { return "" }
 func (n NullConfiguration) GetUserCacheMaxAge() (time.Duration, bool)                      { return 0, false }

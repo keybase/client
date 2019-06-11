@@ -554,7 +554,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Enable debugging mode.",
 		},
 		cli.BoolFlag{
-			Name:  "disable-cert-pinning",
+			Name: "disable-cert-pinning",
 			Usage: "Disable certificate pinning within the app. WARNING: This reduces the security of the app. Do not use " +
 				"unless necessary! This should only be used if you are running keybase behind a proxy that does TLS interception.",
 		},

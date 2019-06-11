@@ -30,4 +30,3 @@ func TestServerLookup(t *testing.T) {
 	require.Equal(t, "", server)
 	require.NotEqual(t, nil, err)
 }
-
