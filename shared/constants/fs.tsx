@@ -248,6 +248,7 @@ export const makeSendAttachmentToChat: I.Record.Factory<Types._SendAttachmentToC
   filter: '',
   path: Types.stringToPath('/keybase'),
   state: Types.SendAttachmentToChatState.None,
+  title: '',
 } as Types._SendAttachmentToChat)
 
 export const makeSendLinkToChat: I.Record.Factory<Types._SendLinkToChat> = I.Record({

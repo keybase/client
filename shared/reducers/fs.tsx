@@ -467,6 +467,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         Constants.makeSendAttachmentToChat({
           path: action.payload.path,
           state: Types.SendAttachmentToChatState.PendingSelectConversation,
+          title: Types.getPathName(action.payload.path),
         })
       )
     case FsGen.setSendAttachmentToChatConvID:
@@ -483,6 +484,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSendAttachmentToChatFilter:
       return state.update('sendAttachmentToChat', sendAttachmentToChat =>
         sendAttachmentToChat.set('filter', action.payload.filter)
+      )
+    case FsGen.setSendAttachmentToChatTitle:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('title', action.payload.title)
       )
     case FsGen.sentAttachmentToChat:
       return state.setIn(['sendAttachmentToChat', 'state'], Types.SendLinkToChatState.Sent)
