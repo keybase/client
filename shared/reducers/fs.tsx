@@ -240,10 +240,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
       )
     }
-    case FsGen.loadingPath:
-      return state.updateIn(['loadingPaths', action.payload.path], set =>
-        action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
-      )
     case FsGen.favoritesLoaded:
       return state.update('tlfs', tlfs =>
         tlfs.withMutations(tlfsMutable =>
