@@ -570,28 +570,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.tlfCrStatusChanged:
       const parsedPath = Constants.parsePath(action.payload.tlfPath)
       const newState = action.payload.status
-      if (parsedPath.kind === Types.PathKind.Root || parsedPath.kind === Types.PathKind.TlfList) {
+      if (parsedPath.kind !== Types.PathKind.TeamTlf && parsedPath.kind !== Types.PathKind.GroupTlf) {
         // This should not happen.
         return state
       }
-      return state.update('tlfs', tlfs =>
-        tlfs.update(parsedPath.tlfType, tlfList =>
-          tlfList.update(parsedPath.tlfName, tlf =>
-            tlf.update('conflict', tlfConflict => {
-              if (
-                tlfConflict.state === 'in-manual-resolution' &&
-                (newState === 'in-conflict-stuck' || newState === 'in-conflict-not-stuck')
-              ) {
-                // If the conflict is being manually resolved, ignore new
-                // conflicts that come in.
-                return tlfConflict
-              } else {
-                return tlfConflict.set('state', newState)
-              }
-            })
-          )
-        )
-      )
+      return state.setIn(['tlfs', parsedPath.tlfType, parsedPath.tlfName, 'conflict', 'state'], newState)
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
