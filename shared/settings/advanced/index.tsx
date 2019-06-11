@@ -249,11 +249,16 @@ class Developer extends React.Component<Props, State> {
   }
 }
 
-const ProxyTypeToDisplayName = {
-  httpConnect: 'HTTP Connect',
-  noProxy: 'No Proxy',
-  socks: 'Socks5',
-}
+// A list so the order of the elements is fixed
+const ProxyTypeToDisplayNameList = [
+  ['noProxy', 'No Proxy'],
+  ['httpConnect', 'HTTP Connect'],
+  ['socks', 'Socks5'],
+]
+const ProxyTypeToDisplayName = ProxyTypeToDisplayNameList.reduce((obj, item) => {
+  obj[item[0]] = item[1]
+  return obj
+}, {})
 const DisplayNameToProxyType = {
   'HTTP Connect': 'httpConnect',
   'No Proxy': 'noProxy',
@@ -343,14 +348,14 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
           Configure a HTTP(s) or SOCKS5 proxy
         </Kb.Text>
         <Kb.Box>
-          {Object.values(ProxyTypeToDisplayName).map(proxyType => (
+          {ProxyTypeToDisplayNameList.map(proxyTypeDisplayName => (
             <Kb.Button
               style={{margin: Styles.globalMargins.tiny}}
-              onClick={() => this.setProxyType(proxyType)}
-              type={this.state.proxyType === proxyType ? 'Default' : 'Dim'}
-              key={proxyType}
+              onClick={() => this.setProxyType(proxyTypeDisplayName[0])}
+              type={this.state.proxyType === proxyTypeDisplayName[0] ? 'Default' : 'Dim'}
+              key={proxyTypeDisplayName[0]}
             >
-              {proxyType}
+              {proxyTypeDisplayName[0]}
             </Kb.Button>
           ))}
         </Kb.Box>
