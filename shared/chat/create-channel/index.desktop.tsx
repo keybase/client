@@ -15,7 +15,7 @@ const CreateChannel = (props: Props) => (
         New chat channel
       </Kb.Text>
     </Kb.Box>
-    {props.errorText && <Kb.Banner color="red" text={props.errorText} />}
+    {!!props.errorText && <Kb.Banner color="red" text={props.errorText} />}
     <Kb.Box style={_boxStyle}>
       <Kb.Box style={_backStyle} onClick={props.onBack}>
         <Kb.Icon style={_backIcon} type="iconfont-arrow-left" />
