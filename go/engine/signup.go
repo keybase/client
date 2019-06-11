@@ -298,7 +298,15 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	}
 
 	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
-		return libkb.CombineErrors(deviceWrapErr, err)
+		m.Warning("Failed to switch config for active device: %s", err)
+		m.Warning("Trying again in offline mode.")
+		// We failed to switch config, possibly because of a network error. Try
+		// offline version of that for for users signing up.
+		err2 := eng.SwitchConfigAndActiveDeviceOffline(m)
+		if err2 != nil {
+			m.Warning("Failed to switch config in offline mode: %s", err2)
+			return libkb.CombineErrors(deviceWrapErr, err, err2)
+		}
 	}
 
 	s.signingKey = eng.SigningKey()

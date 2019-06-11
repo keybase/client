@@ -16,9 +16,11 @@ import (
 
 type signupAPIMock struct {
 	*libkb.NullMockAPI
+	t       *testing.T
 	realAPI libkb.API
 
 	localTimeoutKeyMulti bool
+	failEverything       bool
 }
 
 func (n *signupAPIMock) Post(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
@@ -30,32 +32,46 @@ func (n *signupAPIMock) PostJSON(m libkb.MetaContext, args libkb.APIArg) (*libkb
 	fmt.Printf("PostJSON: %s\n", args.Endpoint)
 	res, err := n.realAPI.PostJSON(m, args)
 	if n.localTimeoutKeyMulti && args.Endpoint == "key/multi" {
+		n.failEverything = true
+		n.t.Logf("Got key/multi, mocking a local timeout, all subsequent API calls will fail as well.")
 		return nil, errors.New("Mock local failure")
 	}
 	return res, err
 }
 
 func (n *signupAPIMock) Get(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
+	if n.failEverything {
+		return nil, errors.New("signupAPIMock simulated network error")
+	}
 	return n.realAPI.Get(m, args)
 }
 
 func (n *signupAPIMock) GetResp(m libkb.MetaContext, args libkb.APIArg) (*http.Response, func(), error) {
+	if n.failEverything {
+		return nil, func() {}, errors.New("signupAPIMock simulated network error")
+	}
 	return n.realAPI.GetResp(m, args)
 }
 
 func (n *signupAPIMock) GetDecode(m libkb.MetaContext, args libkb.APIArg, wrap libkb.APIResponseWrapper) error {
+	if n.failEverything {
+		return errors.New("signupAPIMock simulated network error")
+	}
 	return n.realAPI.GetDecode(m, args, wrap)
 }
 
 func (n *signupAPIMock) GetDecodeCtx(ctx context.Context, args libkb.APIArg, wrap libkb.APIResponseWrapper) error {
+	if n.failEverything {
+		return errors.New("signupAPIMock simulated network error")
+	}
 	return n.realAPI.GetDecodeCtx(ctx, args, wrap)
 }
 
 func TestSignupFailProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
-	defer tc.Cleanup()
+	//defer tc.Cleanup()
 
-	fakeAPI := &signupAPIMock{realAPI: tc.G.API}
+	fakeAPI := &signupAPIMock{t: t, realAPI: tc.G.API}
 	tc.G.API = fakeAPI
 	fakeAPI.localTimeoutKeyMulti = true
 

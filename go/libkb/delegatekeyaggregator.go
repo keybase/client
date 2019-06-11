@@ -74,14 +74,14 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	apiArg.Endpoint = "key/multi"
 	apiArg.JSONPayload = payload
 
+	// TODO: For testing, delete me
+	// return errors.New("Erroring anyway in key/multi delegate key")
+	//
+
 	_, err = m.G().API.PostJSON(m, apiArg)
 	if err != nil {
 		return err
 	}
-
-	// TODO: For testing, delete me
-	return errors.New("Erroring anyway in key/multi delegate key")
-	//
 
 	return MerkleCheckPostedUserSig(m, uid, lastSeqno, lastLinkID)
 }
