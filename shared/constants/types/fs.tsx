@@ -592,7 +592,6 @@ export type _State = {
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
-  loadingPaths: I.Map<Path, I.Set<string>>
   localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu

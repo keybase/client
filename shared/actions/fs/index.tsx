@@ -233,7 +233,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     action.type === FsGen.editSuccess
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
-  const loadingPathID = Constants.makeUUID()
 
   if (refreshTag) {
     if (folderListRefreshTags.get(refreshTag) === rootPath) {
@@ -245,8 +244,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
   }
 
   try {
-    yield Saga.put(FsGen.createLoadingPath({done: false, id: loadingPathID, path: rootPath}))
-
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
@@ -329,8 +326,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     }
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
-  } finally {
-    yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
 }
 

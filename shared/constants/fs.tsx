@@ -315,7 +315,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   folderViewFilter: '',
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
   lastPublicBannerClosedTlf: '',
-  loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
   pathItemActionMenu: makePathItemActionMenu(),
