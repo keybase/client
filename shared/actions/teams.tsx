@@ -1264,9 +1264,9 @@ const updateChannelname = (state, action: TeamsGen.UpdateChannelNamePayload) => 
     tlfPublic: false,
   }
 
-  return RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
-    TeamsGen.createSetUpdatedChannelName({conversationIDKey, newChannelName, teamname})
-  )
+  return RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKey(teamname))
+    .then(() => TeamsGen.createSetUpdatedChannelName({conversationIDKey, newChannelName, teamname}))
+    .catch(error => TeamsGen.createSetChannelCreationError({error: error.desc}))
 }
 
 const deleteChannelConfirmed = (state, action: TeamsGen.DeleteChannelConfirmedPayload) => {

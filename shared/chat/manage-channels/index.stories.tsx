@@ -122,6 +122,10 @@ const load = () => {
     .add('EditChannel', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
+          errorText={''}
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
           teamname={'stripe.usa'}
           channelName={'takeover'}
           topic={''}
@@ -139,6 +143,10 @@ const load = () => {
     .add('EditChannel - general', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
+          errorText={''}
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
           teamname={'stripe.usa'}
           channelName={'general'}
           topic={''}
@@ -156,6 +164,31 @@ const load = () => {
     .add('EditChannel - loading', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
+          errorText={''}
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
+          teamname={'stripe.usa'}
+          channelName={''}
+          topic={''}
+          title="Edit #"
+          onCancel={Sb.action('onCancel')}
+          onSave={Sb.action('onSave')}
+          onConfirmedDelete={Sb.action('onConfirmedDelete')}
+          showDelete={true}
+          deleteRenameDisabled={false}
+          waitingForGetInfo={true}
+          loadChannelInfo={Sb.action('loadChannelInfo')}
+        />
+      </Box>
+    ))
+    .add('EditChannel - loading with error', () => (
+      <Box style={toPlatformStyle(editChannelStyle)}>
+        <EditChannel
+          errorText={'invalid channel name'}
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
           teamname={'stripe.usa'}
           channelName={''}
           topic={''}
