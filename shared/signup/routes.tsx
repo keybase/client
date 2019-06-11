@@ -5,6 +5,6 @@ export const newRoutes = {
 }
 
 // Some screens in signup show up after we've actually signed up
-export const loggedInRoutes = {
+export const newModalRoutes = {
   signupEnterPhoneNumber: {getScreen: () => require('./phone-number/container').default, upgraded: true},
 }

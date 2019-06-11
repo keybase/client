@@ -23,6 +23,7 @@ const EnterPhoneNumber = (props: Props) => (
     rightActionLabel="Skip"
     onRightAction={props.onSkip}
     title="Your phone number"
+    showHeaderInfoicon={true}
   >
     <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile}>
       <PhoneInput
