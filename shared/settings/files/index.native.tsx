@@ -21,23 +21,13 @@ class ThresholdDropdown extends React.PureComponent<Props, {visible: boolean}> {
         <Kb.DropdownButton
           onPress={this.state.visible ? this._show : this._hide}
           disabled={!this.props.spaceAvailableNotificationThreshold}
-          selected={
-            <Kb.Text type="Body">
-              {Constants.humanizeBytes(
-                this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
-                0
-              )}
-            </Kb.Text>
-          }
+          selected={<Kb.Text type="Body">{this.props.humanizedNotificationThreshold}</Kb.Text>}
           toggleOpen={this._toggleShowingMenu}
         />
         <Kb.FloatingPicker
-          items={allowedNotificationThresholds.map(i => ({
-            label: Constants.humanizeBytes(i, 0),
-            value: i,
-          }))}
+          items={this.props.allowedThresholds}
           visible={this.state.visible}
-          selectedValue={this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold}
+          selectedValue={this.props.humanizedNotificationThreshold}
           promptString="Pick a threshold"
           prompt={
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>

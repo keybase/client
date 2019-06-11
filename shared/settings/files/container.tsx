@@ -1,4 +1,5 @@
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
+import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
@@ -32,6 +33,14 @@ const SettingsFiles = namedConnect(
     ...s,
     ...o,
     ...d,
+    allowedThresholds: allowedNotificationThresholds.map(i => ({
+      label: Constants.humanizeBytes(i, 0),
+      value: i,
+    })),
+    humanizedNotificationThreshold: Constants.humanizeBytes(
+      s.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
+      0
+    ),
     onChangedSyncNotifications: (selectedIdx: number) =>
       d.onSetSyncNotificationThreshold(allowedNotificationThresholds[selectedIdx]),
     onEnableSyncNotifications: () => d.onSetSyncNotificationThreshold(defaultNotificationThreshold),
