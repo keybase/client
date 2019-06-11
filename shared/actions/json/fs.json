@@ -231,6 +231,9 @@
     "setSendAttachmentToChatFilter": {
       "filter": "string"
     },
+    "setSendAttachmentToChatTitle":{
+      "title":"string"
+    },
     "sentAttachmentToChat": {},
     "initSendLinkToChat": {
       "path": "Types.Path"

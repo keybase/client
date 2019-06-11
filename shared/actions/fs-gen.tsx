@@ -76,6 +76,7 @@ export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
+export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
 export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
 export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
@@ -197,6 +198,7 @@ type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMen
 type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
+type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
 type _SetSendLinkToChatChannelsPayload = {readonly channels: I.Map<ChatTypes.ConversationIDKey, string>}
 type _SetSendLinkToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
@@ -456,6 +458,9 @@ export const createSetSendAttachmentToChatConvID = (
 export const createSetSendAttachmentToChatFilter = (
   payload: _SetSendAttachmentToChatFilterPayload
 ): SetSendAttachmentToChatFilterPayload => ({payload, type: setSendAttachmentToChatFilter})
+export const createSetSendAttachmentToChatTitle = (
+  payload: _SetSendAttachmentToChatTitlePayload
+): SetSendAttachmentToChatTitlePayload => ({payload, type: setSendAttachmentToChatTitle})
 export const createSetSendLinkToChatChannels = (
   payload: _SetSendLinkToChatChannelsPayload
 ): SetSendLinkToChatChannelsPayload => ({payload, type: setSendLinkToChatChannels})
@@ -767,6 +772,10 @@ export type SetSendAttachmentToChatFilterPayload = {
   readonly payload: _SetSendAttachmentToChatFilterPayload
   readonly type: 'fs:setSendAttachmentToChatFilter'
 }
+export type SetSendAttachmentToChatTitlePayload = {
+  readonly payload: _SetSendAttachmentToChatTitlePayload
+  readonly type: 'fs:setSendAttachmentToChatTitle'
+}
 export type SetSendLinkToChatChannelsPayload = {
   readonly payload: _SetSendLinkToChatChannelsPayload
   readonly type: 'fs:setSendLinkToChatChannels'
@@ -921,6 +930,7 @@ export type Actions =
   | SetPathSoftErrorPayload
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
+  | SetSendAttachmentToChatTitlePayload
   | SetSendLinkToChatChannelsPayload
   | SetSendLinkToChatConvIDPayload
   | SetSpaceAvailableNotificationThresholdPayload

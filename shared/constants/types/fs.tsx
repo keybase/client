@@ -450,10 +450,11 @@ export enum SendAttachmentToChatState {
 }
 
 export type _SendAttachmentToChat = {
+  convID: ChatTypes.ConversationIDKey
   filter: string
   path: Path
-  convID: ChatTypes.ConversationIDKey
   state: SendAttachmentToChatState
+  title: string
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
