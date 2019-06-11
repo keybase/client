@@ -42,7 +42,6 @@ const HoverText = Styles.isMobile
 const Divider = () => <Kb.Divider style={styles.divider} />
 
 type PartnerRowProps = {
-  adminOnly: boolean
   extra: string
   description: string
   iconFilename: string
@@ -50,10 +49,16 @@ type PartnerRowProps = {
   url: string
 }
 const PartnerRow = (props: PartnerRowProps) => (
-  <Kb.Box2 direction="vertical">
-    <Kb.Text type="Body">
-      {props.title} {props.url} {props.description} {props.extra}
-    </Kb.Text>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+    <Kb.Icon
+      type={Styles.isMobile ? 'icon-placeholder-secret-user-48' : 'icon-placeholder-secret-user-32'}
+      style={{height: Styles.isMobile ? 48 : 32, width: Styles.isMobile ? 48 : 32}}
+    />
+    <Kb.Box2 direction="vertical" style={styles.identityBox}>
+      <Kb.Text type="Body">{props.title}</Kb.Text>
+      <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+    </Kb.Box2>
+    <Kb.Icon type="iconfont-open-browser" />
   </Kb.Box2>
 )
 
@@ -187,16 +192,33 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             {!!props.showExternalPartners && (
-              <>
-                ' \' \' \' \' '
-                <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true} gap="tiny">
+              <Kb.Box>
+                <Kb.Box2
+                  direction="vertical"
+                  style={styles.section}
+                  fullWidth={true}
+                  gap="tiny"
+                  gapEnd={true}
+                >
                   <Kb.Text type="BodySmallSemibold">External tools and partners</Kb.Text>
-                  {props.externalPartners.map(partner => (
-                    <PartnerRow key={partner.url} />
-                  ))}
+                  {props.externalPartners.map((partner, index, array) => {
+                    const showDivider = index !== array.length - 1
+                    return (
+                      <Kb.Box key={partner.url}>
+                        <PartnerRow
+                          description={partner.description}
+                          extra={partner.extra}
+                          iconFilename={partner.iconFilename}
+                          title={partner.title}
+                          url={partner.url}
+                        />
+                        {showDivider && <Kb.Divider style={styles.partnerDivider} />}
+                      </Kb.Box>
+                    )
+                  })}
                 </Kb.Box2>
-                ' \' \' '<Divider />' '
-              </>
+                <Divider />
+              </Kb.Box>
             )}
 
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
@@ -301,6 +323,11 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white_90,
   },
   noShrink: {flexShrink: 0},
+  partnerDivider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: 40,
+    marginTop: Styles.globalMargins.tiny,
+  },
   red: {color: Styles.globalColors.red},
   remove: {
     ...Styles.globalStyles.flexBoxRow,

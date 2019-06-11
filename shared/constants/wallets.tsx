@@ -579,6 +579,9 @@ export const getDefaultAccountID = (state: TypedState) => {
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 
+export const getExternalPartners = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.externalPartners.toArray()
+
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())
 
