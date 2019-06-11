@@ -36,13 +36,14 @@ type Team struct {
 	rotated bool
 }
 
-func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData) *Team {
+func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData, hidden *keybase1.HiddenTeamChain) *Team {
 	chain := TeamSigChainState{teamData.Chain}
 	return &Team{
 		Contextified: libkb.NewContextified(g),
 
-		ID:   chain.GetID(),
-		Data: teamData,
+		ID:     chain.GetID(),
+		Data:   teamData,
+		Hidden: hidden,
 	}
 }
 

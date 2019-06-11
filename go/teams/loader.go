@@ -40,11 +40,11 @@ const freshnessLimit = time.Duration(1) * time.Hour
 // Load a Team from the TeamLoader.
 // Can be called from inside the teams package.
 func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg) (*Team, error) {
-	teamData, err := g.GetTeamLoader().Load(ctx, lArg)
+	teamData, hidden, err := g.GetTeamLoader().Load(ctx, lArg)
 	if err != nil {
 		return nil, err
 	}
-	ret := NewTeam(ctx, g, teamData)
+	ret := NewTeam(ctx, g, teamData, hidden)
 
 	if lArg.RefreshUIDMapper {
 		// If we just loaded the group, then inform the UIDMapper of any UID->EldestSeqno
@@ -102,13 +102,13 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 	return l
 }
 
-func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
+func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, hidden *keybase1.HiddenTeamChain, err error) {
 	me, err := l.world.getMe(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if me.IsNil() && !lArg.Public {
-		return nil, libkb.NewLoginRequiredError("login required to load a private team")
+		return nil, nil, libkb.NewLoginRequiredError("login required to load a private team")
 	}
 	return l.load1(ctx, me, lArg)
 }
@@ -252,18 +252,18 @@ func (l *TeamLoader) makeNameLookupBurstCacheLoader(ctx context.Context, g *libk
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
 // The key difference between load1 and load2 is that load2 is recursive (for subteams).
-func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
+func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 	err := l.checkArg(ctx, lArg)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var teamName *keybase1.TeamName
 	if len(lArg.Name) > 0 {
 		teamNameParsed, err := keybase1.TeamNameFromString(lArg.Name)
 		if err != nil {
-			return nil, fmt.Errorf("invalid team name: %v", err)
+			return nil, nil, fmt.Errorf("invalid team name: %v", err)
 		}
 		teamName = &teamNameParsed
 	}
@@ -278,9 +278,9 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 			mctx.Debug("TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			if code, ok := libkb.GetAppStatusCode(err); ok && code == keybase1.StatusCode_SCTeamNotFound {
 				mctx.Debug("replacing error: %v", err)
-				return nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
+				return nil, nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
 			}
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -316,27 +316,27 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	switch err := err.(type) {
 	case TeamDoesNotExistError:
 		if teamName == nil {
-			return nil, err
+			return nil, nil, err
 		}
 		// Replace the not found error so that it has a name instead of team ID.
 		// If subteams are involved the name might not correspond to the ID
 		// but it's better to have this understandable error message that's accurate
 		// most of the time than one with an ID that's always accurate.
 		mctx.Debug("replacing error: %v", err)
-		return nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
+		return nil, nil, NewTeamDoesNotExistError(lArg.Public, teamName.String())
 	case nil:
 	default:
-		return nil, err
+		return nil, nil, err
 	}
 	if ret == nil {
-		return nil, fmt.Errorf("team loader fault: got nil from load2")
+		return nil, nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
 	// Only public teams are allowed to be behind on secrets.
 	// This is allowed because you can load a public team you're not in.
 	if !l.hasSyncedSecrets(mctx, &ret.team) && !ret.team.Chain.Public {
 		// this should not happen
-		return nil, fmt.Errorf("missing secrets for team")
+		return nil, nil, fmt.Errorf("missing secrets for team")
 	}
 
 	// Check team name on the way out
@@ -345,7 +345,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	if teamName != nil {
 		// (TODO: this won't work for renamed level 3 teams or above. There's work on this in miles/teamloader-names)
 		if !teamName.Eq(ret.team.Name) {
-			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.team.Name, teamName.String())
+			return nil, nil, fmt.Errorf("team name mismatch: %v != %v", ret.team.Name, teamName.String())
 		}
 	}
 
@@ -358,7 +358,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		mctx.Debug("Box auditor feature flagged off; not checking jail during team load...")
 	}
 
-	return &ret.team, nil
+	return &ret.team, &ret.hidden, nil
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
@@ -1583,7 +1583,7 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 		}
 		return nil
 	}
-	teamData, err := l.Load(ctx, keybase1.LoadTeamArg{
+	teamData, _, err := l.Load(ctx, keybase1.LoadTeamArg{
 		ID:     id,
 		Public: id.IsPublic(),
 	})
@@ -1635,7 +1635,7 @@ func (l *TeamLoader) MapTeamAncestors(ctx context.Context, f func(t keybase1.Tea
 	}
 
 	// Load the argument team
-	team, err := l.load1(ctx, me, keybase1.LoadTeamArg{
+	team, _, err := l.load1(ctx, me, keybase1.LoadTeamArg{
 		ID:      teamID,
 		Public:  teamID.IsPublic(),
 		StaleOK: true, // We only use immutable fields.

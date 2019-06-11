@@ -47,8 +47,8 @@ func (n nullTeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID
 	return nil
 }
 
-func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
-	return nil, fmt.Errorf("null team loader")
+func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, *keybase1.HiddenTeamChain, error) {
+	return nil, nil, fmt.Errorf("null team loader")
 }
 
 func (n nullTeamLoader) Freeze(context.Context, keybase1.TeamID) error {
