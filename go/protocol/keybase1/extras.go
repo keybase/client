@@ -2897,3 +2897,18 @@ func (h HiddenTeamChainData) HasSeqno(s Seqno) bool {
 	_, found := h.Outer[s]
 	return found
 }
+
+func NewHiddenTeamChainData(id TeamID) HiddenTeamChainData {
+	return HiddenTeamChainData{
+		ID:    id,
+		Outer: make(map[Seqno]LinkID),
+		Inner: make(map[Seqno]HiddenTeamChainLink),
+	}
+}
+
+func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
+	return &HiddenTeamChain{
+		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
+		Data:              NewHiddenTeamChainData(id),
+	}
+}

@@ -12,7 +12,7 @@ type HiddenStorage struct {
 }
 
 // Increment to invalidate the disk cache.
-const hiddenDiskStorageVersion = 10
+const hiddenDiskStorageVersion = 1
 const hiddenMemCacheLRUSize = 200
 
 type hiddenDiskStorageItem struct {
@@ -42,7 +42,7 @@ func (d *hiddenDiskStorageItem) setValue(v teamDataGeneric) error {
 }
 
 func NewHiddenStorage(g *libkb.GlobalContext) *HiddenStorage {
-	s := newStorageGeneric(g, hiddenMemCacheLRUSize, hiddenDiskStorageVersion, libkb.DBHiddenChainStorage, libkb.EncryptionReasonTeamsFTLLocalStorage, "hidden", func() diskItemGeneric { return &hiddenDiskStorageItem{} })
+	s := newStorageGeneric(g, hiddenMemCacheLRUSize, hiddenDiskStorageVersion, libkb.DBHiddenChainStorage, libkb.EncryptionReasonTeamsHiddenLocalStorage, "hidden", func() diskItemGeneric { return &hiddenDiskStorageItem{} })
 	return &HiddenStorage{s}
 }
 

@@ -76,7 +76,7 @@ func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state
 	if arg.mutate != nil {
 		var changed bool
 		if state == nil {
-			state = newHiddenTeamChain()
+			state = keybase1.NewHiddenTeamChain(arg.id)
 		}
 		changed, err = arg.mutate(mctx, state)
 		if err != nil {
@@ -138,20 +138,6 @@ func (m *ChainManager) checkRatchets(mctx libkb.MetaContext, state *keybase1.Hid
 		}
 	}
 	return changed, nil
-}
-
-func newHiddenTeamChainData() keybase1.HiddenTeamChainData {
-	return keybase1.HiddenTeamChainData{
-		Outer: make(map[keybase1.Seqno]keybase1.LinkID),
-		Inner: make(map[keybase1.Seqno]keybase1.HiddenTeamChainLink),
-	}
-}
-
-func newHiddenTeamChain() *keybase1.HiddenTeamChain {
-	return &keybase1.HiddenTeamChain{
-		ReaderPerTeamKeys: make(map[keybase1.PerTeamKeyGeneration]keybase1.Seqno),
-		Data:              newHiddenTeamChainData(),
-	}
 }
 
 func (m *ChainManager) ratchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchet) (ret bool, err error) {
