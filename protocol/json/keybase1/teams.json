@@ -646,16 +646,27 @@
     },
     {
       "type": "record",
-      "name": "HiddenTeamChainData",
+      "name": "HiddenTeamChain",
       "fields": [
         {
           "type": "TeamID",
-          "name": "ID",
-          "lint": "ignore"
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "subversion"
         },
         {
           "type": "boolean",
           "name": "public"
+        },
+        {
+          "type": "boolean",
+          "name": "frozen"
+        },
+        {
+          "type": "boolean",
+          "name": "tombstoned"
         },
         {
           "type": "Seqno",
@@ -676,30 +687,6 @@
             "keys": "Seqno"
           },
           "name": "inner"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "HiddenTeamChain",
-      "fields": [
-        {
-          "type": "int",
-          "name": "subversion",
-          "mpackkey": "v",
-          "jsonkey": "v"
-        },
-        {
-          "type": "boolean",
-          "name": "frozen"
-        },
-        {
-          "type": "boolean",
-          "name": "tombstoned"
-        },
-        {
-          "type": "HiddenTeamChainData",
-          "name": "data"
         },
         {
           "type": {

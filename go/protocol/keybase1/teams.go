@@ -852,19 +852,28 @@ func (o HiddenTeamChainRatchet) DeepCopy() HiddenTeamChainRatchet {
 	}
 }
 
-type HiddenTeamChainData struct {
-	ID     TeamID                        `codec:"ID" json:"ID"`
-	Public bool                          `codec:"public" json:"public"`
-	Last   Seqno                         `codec:"last" json:"last"`
-	Outer  map[Seqno]LinkID              `codec:"outer" json:"outer"`
-	Inner  map[Seqno]HiddenTeamChainLink `codec:"inner" json:"inner"`
+type HiddenTeamChain struct {
+	Id                TeamID                         `codec:"id" json:"id"`
+	Subversion        int                            `codec:"subversion" json:"subversion"`
+	Public            bool                           `codec:"public" json:"public"`
+	Frozen            bool                           `codec:"frozen" json:"frozen"`
+	Tombstoned        bool                           `codec:"tombstoned" json:"tombstoned"`
+	Last              Seqno                          `codec:"last" json:"last"`
+	Outer             map[Seqno]LinkID               `codec:"outer" json:"outer"`
+	Inner             map[Seqno]HiddenTeamChainLink  `codec:"inner" json:"inner"`
+	ReaderPerTeamKeys map[PerTeamKeyGeneration]Seqno `codec:"readerPerTeamKeys" json:"readerPerTeamKeys"`
+	Ratchet           HiddenTeamChainRatchet         `codec:"ratchet" json:"ratchet"`
+	CachedAt          Time                           `codec:"cachedAt" json:"cachedAt"`
 }
 
-func (o HiddenTeamChainData) DeepCopy() HiddenTeamChainData {
-	return HiddenTeamChainData{
-		ID:     o.ID.DeepCopy(),
-		Public: o.Public,
-		Last:   o.Last.DeepCopy(),
+func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
+	return HiddenTeamChain{
+		Id:         o.Id.DeepCopy(),
+		Subversion: o.Subversion,
+		Public:     o.Public,
+		Frozen:     o.Frozen,
+		Tombstoned: o.Tombstoned,
+		Last:       o.Last.DeepCopy(),
 		Outer: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
 			if x == nil {
 				return nil
@@ -889,25 +898,6 @@ func (o HiddenTeamChainData) DeepCopy() HiddenTeamChainData {
 			}
 			return ret
 		})(o.Inner),
-	}
-}
-
-type HiddenTeamChain struct {
-	Subversion        int                            `codec:"v" json:"v"`
-	Frozen            bool                           `codec:"frozen" json:"frozen"`
-	Tombstoned        bool                           `codec:"tombstoned" json:"tombstoned"`
-	Data              HiddenTeamChainData            `codec:"data" json:"data"`
-	ReaderPerTeamKeys map[PerTeamKeyGeneration]Seqno `codec:"readerPerTeamKeys" json:"readerPerTeamKeys"`
-	Ratchet           HiddenTeamChainRatchet         `codec:"ratchet" json:"ratchet"`
-	CachedAt          Time                           `codec:"cachedAt" json:"cachedAt"`
-}
-
-func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
-	return HiddenTeamChain{
-		Subversion: o.Subversion,
-		Frozen:     o.Frozen,
-		Tombstoned: o.Tombstoned,
-		Data:       o.Data.DeepCopy(),
 		ReaderPerTeamKeys: (func(x map[PerTeamKeyGeneration]Seqno) map[PerTeamKeyGeneration]Seqno {
 			if x == nil {
 				return nil

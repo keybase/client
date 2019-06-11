@@ -298,9 +298,14 @@ protocol teams {
     union { null, LinkTripleAndTime } self; // if we actually bumped something locally, then this ratchet moves forward
   }
 
-  record HiddenTeamChainData {
-    @lint("ignore") TeamID ID;
+  record HiddenTeamChain {
+    TeamID id;
+
+    int subversion;
+
     boolean public;
+    boolean frozen;
+    boolean tombstoned;
 
     Seqno last;
 
@@ -310,17 +315,6 @@ protocol teams {
     // For any link where we have it, fill in merkle sequence information,
     // parent chain pointer info, and also PTK information (inner data);
     map<Seqno, HiddenTeamChainLink> inner;
-  }
-
-  // Snapshot of a hidden team load
-  record HiddenTeamChain {
-    @mpackkey("v") @jsonkey("v")
-    int subversion;
-
-    boolean frozen;
-    boolean tombstoned;
-
-    HiddenTeamChainData data;
 
     // Maps a Reader PTK Generation to the chain seqno it showed up in; more info there as
     // to what the PTK is, etc.

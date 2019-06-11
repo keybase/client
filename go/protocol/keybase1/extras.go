@@ -2680,11 +2680,11 @@ func (d FastTeamData) IsPublic() bool {
 }
 
 func (d HiddenTeamChain) ID() TeamID {
-	return d.Data.ID
+	return d.Id
 }
 
 func (d HiddenTeamChain) IsPublic() bool {
-	return d.Data.Public
+	return d.Public
 }
 
 func (f FullName) String() string {
@@ -2764,7 +2764,7 @@ func (fct *FolderConflictType) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func (h *HiddenTeamChainData) Tail() *HiddenTeamChainLink {
+func (h *HiddenTeamChain) Tail() *HiddenTeamChainLink {
 	last := h.Last
 	if last == Seqno(0) {
 		return nil
@@ -2837,17 +2837,17 @@ func (r HiddenTeamChainRatchet) MaxTriple() (ret *LinkTriple) {
 }
 
 func (d *HiddenTeamChain) RemoveLink(i Seqno) {
-	inner, ok := d.Data.Inner[i]
+	inner, ok := d.Inner[i]
 	if ok {
 		ptk, ok := inner.Ptk[PTKType_READER]
 		if ok {
 			delete(d.ReaderPerTeamKeys, ptk.Ptk.Gen)
 		}
 	}
-	delete(d.Data.Inner, i)
-	delete(d.Data.Outer, i)
-	if d.Data.Last == i {
-		d.Data.Last--
+	delete(d.Inner, i)
+	delete(d.Outer, i)
+	if d.Last == i {
+		d.Last--
 	}
 }
 
@@ -2870,20 +2870,20 @@ func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
 	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
 }
 
-func (d *HiddenTeamChain) Merge(newData HiddenTeamChainData) (updated bool) {
+func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool) {
 
-	for i := d.Data.Last + 1; i <= newData.Last; i++ {
-		d.Data.Outer[i] = newData.Outer[i]
-		d.Data.Last = i
+	for i := d.Last + 1; i <= newData.Last; i++ {
+		d.Outer[i] = newData.Outer[i]
+		d.Last = i
 		updated = true
 	}
 
 	for q, i := range newData.Inner {
-		_, found := d.Data.Inner[q]
+		_, found := d.Inner[q]
 		if found {
 			continue
 		}
-		d.Data.Inner[q] = i
+		d.Inner[q] = i
 		if ptk, ok := i.Ptk[PTKType_READER]; ok {
 			d.ReaderPerTeamKeys[ptk.Ptk.Gen] = q
 		}
@@ -2893,22 +2893,16 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChainData) (updated bool) {
 	return updated
 }
 
-func (h HiddenTeamChainData) HasSeqno(s Seqno) bool {
+func (h HiddenTeamChain) HasSeqno(s Seqno) bool {
 	_, found := h.Outer[s]
 	return found
 }
 
-func NewHiddenTeamChainData(id TeamID) HiddenTeamChainData {
-	return HiddenTeamChainData{
-		ID:    id,
-		Outer: make(map[Seqno]LinkID),
-		Inner: make(map[Seqno]HiddenTeamChainLink),
-	}
-}
-
 func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 	return &HiddenTeamChain{
+		Id:                id,
 		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
-		Data:              NewHiddenTeamChainData(id),
+		Outer:             make(map[Seqno]LinkID),
+		Inner:             make(map[Seqno]HiddenTeamChainLink),
 	}
 }

@@ -33,7 +33,7 @@ func (m *ChainManager) LastSeqno(mctx libkb.MetaContext, id keybase1.TeamID) (ke
 	if state == nil {
 		return keybase1.Seqno(0), keybase1.Seqno(0), nil
 	}
-	return state.Data.Last, state.Ratchet.Max(), nil
+	return state.Last, state.Ratchet.Max(), nil
 }
 
 func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybase1.LinkTriple, error) {
@@ -104,7 +104,7 @@ func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.Hidd
 	}
 
 	q := ratchet.Triple.Seqno
-	link, ok := state.Data.Outer[q]
+	link, ok := state.Outer[q]
 
 	// If either the ratchet didn't match a known link, or equals what's already there, great.
 	if !ok || link.Eq(ratchet.Triple.LinkID) {
@@ -119,7 +119,7 @@ func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.Hidd
 
 	// We can recover in a case in which we held provisional links that came after the last known Ratchet.
 	// We just have to remove those links though and then start again.
-	for i := state.Data.Last; i >= ratchet.Triple.Seqno; i-- {
+	for i := state.Last; i >= ratchet.Triple.Seqno; i-- {
 		mctx.Warning("Removing link at %d, since it is in front of a ratchet that it clashes with (%+v)", ratchet)
 		state.RemoveLink(i)
 	}
@@ -173,7 +173,7 @@ func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenT
 		}
 		return nil
 	}
-	link, ok := state.Data.Outer[prev.Seqno]
+	link, ok := state.Outer[prev.Seqno]
 	if !ok {
 		return fmt.Errorf("cannot advance change since prev %+v wasn't found", prev)
 	}
@@ -183,14 +183,14 @@ func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenT
 	return nil
 }
 
-func (m *ChainManager) checkExpectedHighSeqno(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChainData, expectedHighSeqno keybase1.Seqno) error {
-	if state.Data.HasSeqno(expectedHighSeqno) || newData.HasSeqno(expectedHighSeqno) || expectedHighSeqno == keybase1.Seqno(0) {
+func (m *ChainManager) checkExpectedHighSeqno(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedHighSeqno keybase1.Seqno) error {
+	if state.HasSeqno(expectedHighSeqno) || newData.HasSeqno(expectedHighSeqno) || expectedHighSeqno == keybase1.Seqno(0) {
 		return nil
 	}
 	return fmt.Errorf("we expected a chain up to %d but it wasn't returned from the server", expectedHighSeqno)
 }
 
-func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, prev keybase1.LinkTriple, newData keybase1.HiddenTeamChainData, expectedHighSeqno keybase1.Seqno) (update bool, err error) {
+func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, prev keybase1.LinkTriple, newData keybase1.HiddenTeamChain, expectedHighSeqno keybase1.Seqno) (update bool, err error) {
 	err = m.checkPrev(mctx, state, prev)
 	if err != nil {
 		return false, err
@@ -207,7 +207,7 @@ func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTea
 	return update, nil
 }
 
-func (m *ChainManager) checkRatchetOnAdvance(mctx libkb.MetaContext, r keybase1.LinkTripleAndTime, newData keybase1.HiddenTeamChainData) (err error) {
+func (m *ChainManager) checkRatchetOnAdvance(mctx libkb.MetaContext, r keybase1.LinkTripleAndTime, newData keybase1.HiddenTeamChain) (err error) {
 	q := r.Triple.Seqno
 	link, ok := newData.Outer[q]
 	if ok && !link.Eq(r.Triple.LinkID) {
@@ -216,7 +216,7 @@ func (m *ChainManager) checkRatchetOnAdvance(mctx libkb.MetaContext, r keybase1.
 	return nil
 }
 
-func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet keybase1.HiddenTeamChainRatchet, newData keybase1.HiddenTeamChainData) (err error) {
+func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet keybase1.HiddenTeamChainRatchet, newData keybase1.HiddenTeamChain) (err error) {
 	for _, r := range ratchet.Flat() {
 		err = m.checkRatchetOnAdvance(mctx, r, newData)
 		if err != nil {
@@ -226,11 +226,11 @@ func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet ke
 	return nil
 }
 
-func (m *ChainManager) Advance(mctx libkb.MetaContext, prev keybase1.LinkTriple, dat keybase1.HiddenTeamChainData, ratchet keybase1.Seqno) (err error) {
+func (m *ChainManager) Advance(mctx libkb.MetaContext, prev keybase1.LinkTriple, dat keybase1.HiddenTeamChain, ratchet keybase1.Seqno) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID()), func() error { return err })()
 	arg := loadArg{
-		id: dat.ID,
+		id: dat.ID(),
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
 			return m.advance(mctx, state, prev, dat, ratchet)
 		},
@@ -259,7 +259,7 @@ func (m *ChainManager) PerTeamKeyAtGeneration(mctx libkb.MetaContext, id keybase
 		mctx.Debug("no link found for generation")
 		return nil, nil
 	}
-	i, ok := state.Data.Inner[q]
+	i, ok := state.Inner[q]
 	if !ok {
 		mctx.Debug("no inner link for for seqno %d", q)
 		return nil, nil

@@ -54,7 +54,7 @@ func (u *Update) checkSeedSequence(mctx libkb.MetaContext, seeds map[keybase1.Pe
 	return nil
 }
 
-func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChainData, link sig3.Generic) (err error) {
+func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link sig3.Generic) (err error) {
 	hsh, err := sig3.Hash(link)
 	if err != nil {
 		return err
@@ -79,14 +79,9 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChainData, lin
 	return nil
 }
 
-func (u *Update) toHiddenTeamChainData(mctx libkb.MetaContext) (ret *keybase1.HiddenTeamChainData, err error) {
-	ret = &keybase1.HiddenTeamChainData{
-		ID:     u.id,
-		Public: u.id.IsPublic(),
-		Last:   keybase1.Seqno(0),
-		Outer:  make(map[keybase1.Seqno]keybase1.LinkID),
-		Inner:  make(map[keybase1.Seqno]keybase1.HiddenTeamChainLink),
-	}
+func (u *Update) toHiddenTeamChain(mctx libkb.MetaContext) (ret *keybase1.HiddenTeamChain, err error) {
+	ret = keybase1.NewHiddenTeamChain(u.id)
+	ret.Public = u.id.IsPublic()
 	for _, link := range u.links {
 		err = populateLink(mctx, ret, link)
 		if err != nil {
@@ -170,26 +165,25 @@ func PrepareUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.
 	return ret, err
 }
 
-func (u *Update) Commit(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (ret *keybase1.Signer, err error) {
+func (u *Update) Commit(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (data *keybase1.HiddenTeamChain, signer *keybase1.Signer, err error) {
 
 	err = u.checkSeedSequence(mctx, seeds)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	var update *keybase1.HiddenTeamChainData
-	update, err = u.toHiddenTeamChainData(mctx)
+	var update *keybase1.HiddenTeamChain
+	update, err = u.toHiddenTeamChain(mctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	err = mctx.G().GetHiddenTeamChainManager().Advance(mctx, sig3.ExportToPrevLinkTriple(u.links[0]), *update, u.ratchet)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	tail := update.Tail()
-	if tail != nil {
-		ret = &tail.Signer
+	if tail := update.Tail(); tail != nil {
+		signer = &tail.Signer
 	}
-	return ret, nil
+	return update, signer, nil
 }
 
 type GenerateKeyRotationParams struct {

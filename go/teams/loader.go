@@ -416,6 +416,7 @@ type load2ArgT struct {
 
 type load2ResT struct {
 	team      keybase1.TeamData
+	hidden    keybase1.HiddenTeamChain
 	didRepoll bool
 }
 
@@ -741,6 +742,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	var needHiddenRotate bool
 	var hiddenUpdate *hidden.Update
+	var hiddenData *keybase1.HiddenTeamChain
+
 	tracer.Stage("hidden")
 	if teamUpdate != nil {
 		hiddenUpdate, err = hidden.PrepareUpdate(mctx, ret.ID(), teamUpdate.HiddenChainRatchet, teamUpdate.HiddenChain)
@@ -818,7 +821,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	if hiddenUpdate != nil {
-		needHiddenRotate, err = l.commitHiddenChainUpdate(ctx, ret, hiddenUpdate, arg.me, arg.rotatingHiddenChain)
+		hiddenData, needHiddenRotate, err = l.commitHiddenChainUpdate(ctx, ret, hiddenUpdate, arg.me, arg.rotatingHiddenChain)
 		if err != nil {
 			return nil, err
 		}
@@ -869,30 +872,43 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	return &load2ResT{
+	load2res := load2ResT{
 		team:      *ret,
 		didRepoll: didRepoll,
-	}, nil
+	}
+
+	if hiddenData != nil {
+		load2res.hidden = *hiddenData
+	}
+
+	return &load2res, nil
 }
 
-func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase1.TeamData, update *hidden.Update, me keybase1.UserVersion, isRotating bool) (needRotate bool, err error) {
+func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase1.TeamData, update *hidden.Update, me keybase1.UserVersion, isRotating bool) (hiddenData *keybase1.HiddenTeamChain, needRotate bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 	defer mctx.Trace("commitHiddenChainUpdate", func() error { return err })()
 
 	var signer *keybase1.Signer
-	signer, err = update.Commit(mctx, chain.PerTeamKeySeedsUnverified)
+	hiddenData, signer, err = update.Commit(mctx, chain.PerTeamKeySeedsUnverified)
 	if err != nil {
-		return false, err
+		return nil, false, err
+	}
+	if hiddenData == nil {
+		return nil, false, err
 	}
 
-	// No known links in the hidden chain, that's fine.
 	if signer == nil {
+		// No known links in the hidden chain, that's fine.
 		mctx.Debug("hidden chain: no signer (no new links or no chain)")
-		return false, nil
+		return hiddenData, false, nil
 	}
 
 	needRotate, err = l.checkNeedRotate(mctx, chain, me, *signer)
-	return needRotate, err
+	if err != nil {
+		return nil, false, err
+	}
+
+	return hiddenData, needRotate, err
 }
 
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {
