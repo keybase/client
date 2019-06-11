@@ -359,6 +359,10 @@ func TestDecorateLinks(t *testing.T) {
 			body:   "google.com/mike?email=mike@gmail.com",
 			result: "$>kb$eyJ0eXAiOjQsImxpbmsiOnsiZGlzcGxheSI6Imdvb2dsZS5jb20vbWlrZT9lbWFpbD1taWtlQGdtYWlsLmNvbSIsInVybCI6Imh0dHA6Ly9nb29nbGUuY29tL21pa2U/ZW1haWw9bWlrZUBnbWFpbC5jb20ifX0=$<kb$",
 		},
+		decorateLinkTest{
+			body:   "@keybase.bots.build.macos",
+			result: "@keybase.bots.build.macos",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithLinks(context.TODO(), c.body)
