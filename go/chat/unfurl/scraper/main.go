@@ -8,8 +8,6 @@ import (
 
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
-	logging "github.com/keybase/go-logging"
 )
 
 func main() {
@@ -20,11 +18,9 @@ func main() {
 		os.Exit(3)
 	}
 
-	logger := logger.New("scraper")
-	logging.Reset()
 	url := args[0]
 	// Run it with an empty global context. Will only impact proxy support
-	scraper := unfurl.NewScraper(libkb.NewGlobalContextInit(), logger)
+	scraper := unfurl.NewScraper(libkb.NewGlobalContextInit())
 	res, err := scraper.Scrape(context.TODO(), url, nil)
 	if err != nil {
 		fmt.Printf("error scraping URL: %v\n", err)

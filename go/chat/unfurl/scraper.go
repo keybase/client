@@ -5,7 +5,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/colly"
 )
@@ -19,9 +18,9 @@ type Scraper struct {
 	libkb.Contextified
 }
 
-func NewScraper(g *libkb.GlobalContext, logger logger.Logger) *Scraper {
+func NewScraper(g *libkb.GlobalContext) *Scraper {
 	return &Scraper{
-		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Scraper", false),
 		cache:        newUnfurlCache(),
 		giphyProxy:   true,
 		Contextified: libkb.NewContextified(g),

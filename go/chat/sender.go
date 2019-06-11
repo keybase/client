@@ -41,7 +41,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             attachments.NewS3Store(g.GlobalContext, g.GetLog(), g.GetEnv(), g.GetRuntimeDir()),
+		store:             attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir()),
 		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
