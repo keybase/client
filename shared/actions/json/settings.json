@@ -5,6 +5,16 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addPhoneNumber": {
+      "_description": "Add a phone number and kick off a text message with a verification code. If the phone number is already added, just kicks off the verification message.",
+      "allowSearch": "boolean",
+      "phoneNumber": "string"
+    },
+    "verifyPhoneNumber": {
+      "_description": "Submit a verification code for a phone number",
+      "phoneNumber": "string",
+      "code": "string"
+    },
     "dbNuke": {},
     "deleteAccountForever": {},
     "invitesClearError": {},
@@ -133,6 +143,5 @@
       "_description": "An error occurred while trying to send feedback to Keybase",
       "error": "Error | null"
     }
-  },
+  }
 }
-

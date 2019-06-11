@@ -10,6 +10,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addPhoneNumber = 'settings:addPhoneNumber'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
@@ -56,9 +57,11 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
@@ -113,9 +116,17 @@ type _UnfurlSettingsSavedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: I.List<string>
 }
+type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
+/**
+ * Add a phone number and kick off a text message with a verification code. If the phone number is already added, just kicks off the verification message.
+ */
+export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
+  payload,
+  type: addPhoneNumber,
+})
 /**
  * An error occurred on the unfurl settings screen
  */
@@ -141,6 +152,13 @@ export const createUnfurlSettingsRefresh = (
 export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
+/**
+ * Submit a verification code for a phone number
+ */
+export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload): VerifyPhoneNumberPayload => ({
+  payload,
+  type: verifyPhoneNumber,
+})
 /**
  * Update unfurl settings from settings screen
  */
@@ -298,6 +316,10 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type AddPhoneNumberPayload = {
+  readonly payload: _AddPhoneNumberPayload
+  readonly type: 'settings:addPhoneNumber'
+}
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
@@ -468,6 +490,10 @@ export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
   readonly type: typeof unfurlSettingsSaved
 }
+export type VerifyPhoneNumberPayload = {
+  readonly payload: _VerifyPhoneNumberPayload
+  readonly type: 'settings:verifyPhoneNumber'
+}
 export type WaitingForResponsePayload = {
   readonly payload: _WaitingForResponsePayload
   readonly type: typeof waitingForResponse
@@ -476,6 +502,7 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddPhoneNumberPayload
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
@@ -524,5 +551,6 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: null}

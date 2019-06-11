@@ -515,6 +515,13 @@ const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: fal
 const stop = (_, action: SettingsGen.StopPayload) =>
   RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
+const addPhoneNumber = (_, action: SettingsGen.AddPhoneNumberPayload, logger) => {
+  logger.info('adding phone number')
+  const {phoneNumber, allowSearch} = action.payload
+  const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
+  RPCTypes.phoneNumbersAddPhoneNumberRpcPromise({phoneNumber, visibility}, Constants.addPhoneNumberWaitingKey)
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -581,6 +588,13 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.StopPayload>(SettingsGen.stop, stop)
 
   yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
+
+  // Phone numbers
+  yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(
+    SettingsGen.addPhoneNumber,
+    addPhoneNumber,
+    'addPhoneNumber'
+  )
 }
 
 export default settingsSaga
