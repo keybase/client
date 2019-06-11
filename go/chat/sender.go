@@ -1020,9 +1020,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: utils.PresentMessageUnboxed(ctx, s.G(), unboxedMsg, boxed.ClientHeader.Sender,
 				convID),
-			ConvID: convID,
+			ConvID:                     convID,
 			DisplayDesktopNotification: false,
-			Conv: s.presentUIItem(ctx, convLocal),
+			Conv:                       s.presentUIItem(ctx, convLocal),
 		})
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)
