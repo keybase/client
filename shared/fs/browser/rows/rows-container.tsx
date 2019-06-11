@@ -5,7 +5,7 @@ import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
 import {isMobile} from '../../../constants/platform'
 import {sortRowItems, SortableRowItem} from './sort'
-import Rows from './rows'
+import Rows, {Props} from './rows'
 import {asRows as topBarAsRow} from '../../top-bar'
 import {memoize} from '../../../util/memoize'
 
@@ -211,7 +211,7 @@ export default namedConnect(
         ? 'empty'
         : !filteredRowItems.size
         ? 'not-empty-but-no-match'
-        : 'not-empty',
+        : 'not-empty' as Props['emptyMode'],
       items: I.List([
         ...(o.headerRows || []),
         // don't show top bar in destinationPicker.

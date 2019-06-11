@@ -2,7 +2,7 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Container from '../../../util/container'
-import Confirm from './confirm'
+import Confirm, {Props} from './confirm'
 import {FloatingMenuProps} from './types'
 
 type OwnProps = {
@@ -33,7 +33,7 @@ export default Container.namedConnect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ...ownProps,
-    action: stateProps._pathItemActionMenu.view === 'confirm-save-media' ? 'save-media' : 'send-to-other-app',
+    action: stateProps._pathItemActionMenu.view === 'confirm-save-media' ? 'save-media' : 'send-to-other-app' as Props['action'],
     confirm: () => dispatchProps._confirm(stateProps._pathItemActionMenu),
     size: stateProps.size,
   }),
