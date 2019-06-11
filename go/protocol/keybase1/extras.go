@@ -2872,7 +2872,7 @@ func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
 
 func (d *HiddenTeamChain) Merge(newData HiddenTeamChainData) (updated bool) {
 
-	for i := d.Data.Last; i < newData.Last; i++ {
+	for i := d.Data.Last + 1; i <= newData.Last; i++ {
 		d.Data.Outer[i] = newData.Outer[i]
 		d.Data.Last = i
 		updated = true

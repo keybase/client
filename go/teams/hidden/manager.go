@@ -218,7 +218,6 @@ func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTea
 		return false, err
 	}
 	update = state.Merge(newData)
-	mctx.Debug("merged %+v %+v", *state)
 	return update, nil
 }
 
