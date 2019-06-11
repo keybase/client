@@ -5,13 +5,13 @@ import ConfirmForm from '../../../wallets/confirm-form'
 
 type LoadingProps = {}
 
-const PaymentsConfirmLoading = (props: LoadingProps) => (
+const PaymentsConfirmLoading = Kb.HeaderOrPopup((props: LoadingProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
       <Kb.ProgressIndicator />
     </Kb.Box2>
   </Kb.Box2>
-)
+))
 
 type ErrorProps = {
   error: string
@@ -66,7 +66,7 @@ const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
   </Kb.Box2>
 )
 
-const PaymentsConfirmError = Kb.HeaderOnMobile(_PaymentsConfirmError)
+const PaymentsConfirmError = Kb.HeaderOrPopup(_PaymentsConfirmError)
 
 type PaymentProps = {
   readonly displayAmount?: string | null
