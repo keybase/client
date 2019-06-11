@@ -7,9 +7,9 @@ import {ButtonType} from '../../common-adapters/button'
 
 type Props = {
   allowSearch: boolean
-  onChangeAllowSearch: (arg0: boolean) => void
-  onChangePhoneNumber: (arg0: string) => void
-  onChangeValidity: (arg0: boolean) => void
+  onChangeAllowSearch: (allow: boolean) => void
+  onChangePhoneNumber: (phoneNumber: string) => void
+  onChangeValidity: (valid: boolean) => void
   onContinue: () => void
   onSkip: () => void
 }
