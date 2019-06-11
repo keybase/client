@@ -29,7 +29,7 @@ const mapStateToProps = state => {
   const canSubmitTx = account.canSubmitTx
   const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
-  const externalPartners = Constants.getExternalPartners(state, accountID)
+  const externalPartners = Constants.getExternalPartners(state, accountID).toArray()
   return {
     accountID,
     canSubmitTx,

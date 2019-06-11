@@ -580,7 +580,7 @@ export const getInflationDestination = (state: TypedState, accountID: Types.Acco
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 
 export const getExternalPartners = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.externalPartners.toArray()
+  state.wallets.externalPartners
 
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())
