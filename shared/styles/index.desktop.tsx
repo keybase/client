@@ -169,3 +169,4 @@ export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = T.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
+export const isDarkMode = () => true // TEMP isDarwin && SafeElectron.getSystemPreferences().isDarkMode()

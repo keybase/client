@@ -111,6 +111,7 @@ export declare const styledKeyframes: any
 export declare const isAndroid: boolean
 export declare const isIOS: boolean
 export declare const isMobile: boolean
+export declare const isDarkMode: () => boolean
 export declare const isIPhoneX: boolean
 export declare const dimensionWidth: number
 export declare const dimensionHeight: number
