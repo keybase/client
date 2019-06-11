@@ -39,8 +39,10 @@ class Feedback extends React.Component<Props, State> {
   }
   componentDidUpdate(prevProps: Props) {
     if (prevProps.sending !== this.props.sending || this.props.sendError !== prevProps.sendError) {
+      const success = !this.props.sending && !this.props.sendError
       this.setState({
-        showSuccessBanner: !this.props.sending && !this.props.sendError,
+        feedback: success ? '' : this.state.feedback,
+        showSuccessBanner: success,
       })
     }
   }
