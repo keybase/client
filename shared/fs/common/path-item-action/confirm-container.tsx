@@ -33,7 +33,10 @@ export default Container.namedConnect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ...ownProps,
-    action: stateProps._pathItemActionMenu.view === 'confirm-save-media' ? 'save-media' : 'send-to-other-app' as Props['action'],
+    action:
+      stateProps._pathItemActionMenu.view === 'confirm-save-media'
+        ? 'save-media'
+        : ('send-to-other-app' as Props['action']),
     confirm: () => dispatchProps._confirm(stateProps._pathItemActionMenu),
     size: stateProps.size,
   }),

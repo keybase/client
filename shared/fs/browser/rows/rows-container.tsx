@@ -211,7 +211,7 @@ export default namedConnect(
         ? 'empty'
         : !filteredRowItems.size
         ? 'not-empty-but-no-match'
-        : 'not-empty' as Props['emptyMode'],
+        : ('not-empty' as Props['emptyMode']),
       items: I.List([
         ...(o.headerRows || []),
         // don't show top bar in destinationPicker.

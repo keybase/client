@@ -66,7 +66,11 @@ export default Container.namedConnect(
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
       : ownProps.message.text.stringValue(),
-    type: (ownProps.message.errorReason ? 'error' : ownProps.message.submitState === null ? 'sent' : 'pending') as MsgType,
+    type: (ownProps.message.errorReason
+      ? 'error'
+      : ownProps.message.submitState === null
+      ? 'sent'
+      : 'pending') as MsgType,
   }),
   'TextMessage'
 )(TextMessage)

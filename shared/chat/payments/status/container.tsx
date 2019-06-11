@@ -29,7 +29,6 @@ const reduceStatus = (status: string): Status => {
   }
 }
 
-
 export default namedConnect(
   (state, ownProps: OwnProps) => {
     const {error, paymentID, message, text} = ownProps
@@ -50,6 +49,6 @@ export default namedConnect(
     }
   },
   () => ({}),
-  (s, d, o: OwnProps) => ({...s, ...d}),
+  (s, d, _: OwnProps) => ({...s, ...d}),
   'PaymentStatus'
 )(PaymentStatus)
