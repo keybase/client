@@ -335,8 +335,8 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
-func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
-	k.log.CDebugf(ctx, "Current session logged in: %s", name)
+func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, arg keybase1.LoggedInArg) error {
+	k.log.CDebugf(ctx, "Current session logged in: %s, signedUp: %t", arg.Username, arg.SignedUp)
 	// Since we don't have the whole session, just clear the cache and
 	// repopulate it.  The `CurrentSession` call executes the "logged
 	// in" flow.
@@ -346,7 +346,7 @@ func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
 	if err != nil {
 		k.log.CDebugf(ctx, "Getting current session failed when %s is logged "+
 			"in, so pretending user has logged out: %v",
-			name, err)
+			arg.Username, err)
 		if k.config != nil {
 			serviceLoggedOut(ctx, k.config)
 		}
