@@ -19,36 +19,13 @@ func importChain(mctx libkb.MetaContext, raw []sig3.ExportJSON) (ret []sig3.Gene
 	return ret, nil
 }
 
-func toReaderKey(g sig3.Generic) (rotateKey *sig3.RotateKey, readerKey *sig3.PerTeamKey, err error) {
-	if sig3.IsStubbed(g) {
-		return nil, nil, nil
-	}
-	rotateKey, ok := g.(*sig3.RotateKey)
-	if !ok {
-		return nil, nil, fmt.Errorf("got bad sig3.Generic back (%T)", g)
-	}
-	readerKey = rotateKey.ReaderKey()
-	if readerKey == nil {
-		return nil, nil, fmt.Errorf("no reader key found in link")
-	}
-	return rotateKey, readerKey, nil
-}
-
-func checkSeed(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem, link sig3.Generic) (err error) {
-
-	if sig3.IsStubbed(link) {
-		return nil
-	}
-	rotateKey, ok := link.(*sig3.RotateKey)
-	if !ok {
-		return fmt.Errorf("got bad sig3.Generic back (%T)", link)
-	}
+func checkSeed(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem, rotateKey *sig3.RotateKey) (err error) {
 
 	readerKey := rotateKey.ReaderKey()
 	if readerKey == nil {
-		return fmt.Errorf("no reader key found in link")
+		// No reader key found in link, so no need to check it.
+		return nil
 	}
-
 	gen := readerKey.Generation
 	seed, ok := seeds[gen]
 	if !ok {
@@ -67,9 +44,9 @@ func checkSeed(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]k
 	return nil
 }
 
-func checkSeedSequence(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem, links []sig3.Generic) (err error) {
-	for _, link := range links {
-		err := checkSeed(mctx, seeds, link)
+func (u *Update) checkSeedSequence(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (err error) {
+	for _, rotate := range u.rotates {
+		err := checkSeed(mctx, seeds, rotate)
 		if err != nil {
 			return err
 		}
@@ -92,9 +69,8 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChainData, lin
 	}
 	rotateKey, ok := link.(*sig3.RotateKey)
 	if !ok {
-		return fmt.Errorf("got bad sig3.Generic back (%T)", link)
+		return nil
 	}
-
 	rkex, err := rotateKey.Export()
 	if err != nil {
 		return err
@@ -103,15 +79,15 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChainData, lin
 	return nil
 }
 
-func toHiddenTeamChainData(mctx libkb.MetaContext, id keybase1.TeamID, links []sig3.Generic) (ret *keybase1.HiddenTeamChainData, err error) {
+func (u *Update) toHiddenTeamChainData(mctx libkb.MetaContext) (ret *keybase1.HiddenTeamChainData, err error) {
 	ret = &keybase1.HiddenTeamChainData{
-		ID:     id,
-		Public: id.IsPublic(),
+		ID:     u.id,
+		Public: u.id.IsPublic(),
 		Last:   keybase1.Seqno(0),
 		Outer:  make(map[keybase1.Seqno]keybase1.LinkID),
 		Inner:  make(map[keybase1.Seqno]keybase1.HiddenTeamChainLink),
 	}
-	for _, link := range links {
+	for _, link := range u.links {
 		err = populateLink(mctx, ret, link)
 		if err != nil {
 			return nil, err
@@ -120,7 +96,50 @@ func toHiddenTeamChainData(mctx libkb.MetaContext, id keybase1.TeamID, links []s
 	return ret, nil
 }
 
-func ProcessUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.Seqno, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem, update []sig3.ExportJSON) (ret *keybase1.HiddenTeamChainData, err error) {
+type Update struct {
+	id        keybase1.TeamID
+	links     []sig3.Generic
+	maxRotate keybase1.PerTeamKeyGeneration
+	rotates   map[keybase1.PerTeamKeyGeneration](*sig3.RotateKey)
+	ratchet   keybase1.Seqno
+}
+
+func newUpdate(id keybase1.TeamID, links []sig3.Generic, ratchet keybase1.Seqno) (ret *Update, err error) {
+	ret = &Update{
+		id:      id,
+		links:   links,
+		rotates: make(map[keybase1.PerTeamKeyGeneration](*sig3.RotateKey)),
+		ratchet: ratchet,
+	}
+	for _, link := range links {
+		err := ret.populate(link)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ret, nil
+}
+
+func (u *Update) populate(link sig3.Generic) (err error) {
+	if sig3.IsStubbed(link) {
+		return nil
+	}
+	rotateKey, ok := link.(*sig3.RotateKey)
+	if !ok {
+		return nil
+	}
+	readerKey := rotateKey.ReaderKey()
+	if readerKey == nil {
+		return nil
+	}
+	u.rotates[readerKey.Generation] = rotateKey
+	if u.maxRotate < readerKey.Generation {
+		u.maxRotate = readerKey.Generation
+	}
+	return nil
+}
+
+func PrepareUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.Seqno, update []sig3.ExportJSON) (ret *Update, err error) {
 	if len(update) == 0 {
 		return nil, nil
 	}
@@ -132,15 +151,21 @@ func ProcessUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.
 	if err != nil {
 		return nil, err
 	}
-	err = checkSeedSequence(mctx, seeds, links)
+	ret, err = newUpdate(id, links, ratchet)
+	return ret, err
+}
+
+func (u *Update) Commit(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (ret *keybase1.HiddenTeamChainData, err error) {
+
+	err = u.checkSeedSequence(mctx, seeds)
 	if err != nil {
 		return nil, err
 	}
-	ret, err = toHiddenTeamChainData(mctx, id, links)
+	ret, err = u.toHiddenTeamChainData(mctx)
 	if err != nil {
 		return nil, err
 	}
-	err = mctx.G().GetHiddenTeamChainManager().Advance(mctx, sig3.ExportToPrevLinkTriple(links[0]), *ret, ratchet)
+	err = mctx.G().GetHiddenTeamChainManager().Advance(mctx, sig3.ExportToPrevLinkTriple(u.links[0]), *ret, u.ratchet)
 	if err != nil {
 		return nil, err
 	}

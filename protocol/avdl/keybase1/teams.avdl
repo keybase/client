@@ -112,6 +112,8 @@ protocol teams {
   record PerTeamKeySeedItem {
     PerTeamKeySeed seed;
     PerTeamKeyGeneration generation;
+
+    // This might be optional, for PTKSeeds that come from the hidden chain
     Seqno seqno;
 
     // This was added 2019-06, so earlier-cached teams might not have this.

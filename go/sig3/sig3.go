@@ -465,7 +465,7 @@ func CheckLinkSequence(v []Generic) error {
 		return nil
 	}
 	prev := v[0]
-	for _, link := range v[:] {
+	for _, link := range v[1:] {
 		if prev.Seqno()+keybase1.Seqno(1) != link.Seqno() {
 			return newSequenceError("seqno mismatch at link %d", link.Seqno())
 		}

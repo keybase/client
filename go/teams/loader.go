@@ -701,7 +701,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
 			tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
 			tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
-			l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
+			mctx.Debug("TeamLoader lkc cache hits: %v", lkc.cacheHits)
 		}
 	}
 
@@ -737,6 +737,16 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	err = l.checkProofs(ctx, ret, proofSet)
 	if err != nil {
 		return nil, err
+	}
+
+	var needHiddenRotate bool
+	var hiddenUpdate *hidden.Update
+	tracer.Stage("hidden")
+	if teamUpdate != nil {
+		hiddenUpdate, err = hidden.PrepareUpdate(mctx, ret.ID(), teamUpdate.HiddenChainRatchet, teamUpdate.HiddenChain)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	tracer.Stage("secrets")
@@ -807,10 +817,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		ret.Name = newName
 	}
 
-	tracer.Stage("hidden")
-	var needHiddenRotate bool
-	if teamUpdate != nil {
-		needHiddenRotate, err = l.processHiddenChainUpdate(ctx, ret, teamUpdate, arg.me, arg.rotatingHiddenChain)
+	if hiddenUpdate != nil {
+		needHiddenRotate, err = l.commitHiddenChainUpdate(ctx, ret, hiddenUpdate, arg.me, arg.rotatingHiddenChain)
 		if err != nil {
 			return nil, err
 		}
@@ -867,14 +875,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}, nil
 }
 
-func (l *TeamLoader) processHiddenChainUpdate(ctx context.Context, chain *keybase1.TeamData, update *rawTeam, me keybase1.UserVersion, isRotating bool) (needRotate bool, err error) {
+func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase1.TeamData, update *hidden.Update, me keybase1.UserVersion, isRotating bool) (needRotate bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
-	defer mctx.Trace("processHiddenChainUpdate", func() error { return err })()
+	defer mctx.Trace("commitHiddenChainUpdate", func() error { return err })()
 
-	// 1. process rawTeam links into HiddenTeamChainData; Error out if busted
-	// 2. call HiddenTeamChainManager with chainData and all secrets (to check against new chain links). Error out if busted
 	var htcd *keybase1.HiddenTeamChainData
-	htcd, err = hidden.ProcessUpdate(mctx, chain.ID(), update.HiddenChainRatchet, chain.PerTeamKeySeedsUnverified, update.HiddenChain)
+	htcd, err = update.Commit(mctx, chain.PerTeamKeySeedsUnverified)
 	if err != nil {
 		return false, err
 	}
