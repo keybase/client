@@ -18,6 +18,9 @@ export type SettingsProps = {
   currencies: I.List<Types.Currency>
   canSubmitTx: boolean
   externalPartners?: Array<Types.PartnerUrl>
+  mobileOnlyMode: boolean
+  mobileOnlyEditable: boolean
+  mobileOnlyWaiting: boolean
   onBack: () => void
   onDelete: () => void
   onSetDefault: () => void
@@ -28,9 +31,6 @@ export type SettingsProps = {
   refresh: () => void
   saveCurrencyWaiting: boolean
   showExternalPartners: boolean
-  mobileOnlyMode: boolean
-  mobileOnlyWaiting: boolean
-  mobileOnlyEditable: boolean
   thisDeviceIsLockedOut: boolean
 }
 
@@ -51,16 +51,19 @@ type PartnerRowProps = {
 }
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-    <Kb.Box
-      type={Styles.isMobile ? 'icon-placeholder-secret-user-48' : 'icon-placeholder-secret-user-32'}
-      style={{backgroundImage: `url(${props.url})`, flexShrink: 0, height: Styles.isMobile ? 48 : 32, width: Styles.isMobile ? 48 : 32}}
-    />
-    <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text onClickURL={props.url} style={{color: Styles.globalColors.black}} type="BodyPrimaryLink">{props.title}</Kb.Text>
+    <Kb.Icon type="icon-placeholder-secret-user-32" style={{flexShrink: 0, height: 32, width: 32}} />
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{flexShrink: 1}}>
+      <Kb.Text onClickURL={props.url} style={{color: Styles.globalColors.black}} type="BodyPrimaryLink">
+        {props.title}
+      </Kb.Text>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical">
-      <Kb.Icon onClick={() => openUrl(props.url)} fontSize={Styles.isMobile ? 16 : 12}type="iconfont-open-browser" />
+    <Kb.Box2 direction="vertical" style={{flexShrink: 0}}>
+      <Kb.Icon
+        onClick={() => openUrl(props.url)}
+        fontSize={Styles.isMobile ? 16 : 12}
+        type="iconfont-open-browser"
+      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -206,12 +209,20 @@ class AccountSettings extends React.Component<SettingsProps> {
                   <Kb.Text type="BodySmallSemibold">External tools and partners</Kb.Text>
                   {props.externalPartners.map((partner, index, array) => {
                     const showDivider = index !== array.length - 1
-                    const description = index > 1 ? partner.description.concat(partner.description) : partner.description
-                    const url = partner.url.replace('%{accountId}', props.accountID)
+                    // Note: `props.user` is only the Keybase username if
+                    // this is the primary account. Non-primary accounts
+                    // are not associated with usernames.
+                    const url = partner.url
+                      .replace('%{accountId}', props.accountID)
+                      .replace('%{username}', props.user)
                     return (
-                      <Kb.Box2 key={partner.url} direction="vertical" style={{width: '100%'}}>
+                      <Kb.Box2
+                        key={partner.url}
+                        direction="vertical"
+                        style={{width: Styles.isMobile ? undefined : '100%'}}
+                      >
                         <PartnerRow
-                          description={description}
+                          description={partner.description}
                           extra={partner.extra}
                           iconFilename={partner.iconFilename}
                           title={partner.title}

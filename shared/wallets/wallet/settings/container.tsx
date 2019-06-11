@@ -36,7 +36,7 @@ const mapStateToProps = state => {
     currencies,
     currency,
     currencyWaiting,
-    externalPartners: externalPartners.concat(externalPartners.concat(externalPartners)),
+    externalPartners,
     inflationDestination:
       inflationDest === Constants.noAccountInflationDestination
         ? ''
