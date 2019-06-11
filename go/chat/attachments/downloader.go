@@ -17,10 +17,11 @@ import (
 
 func getDownloadTempDir(g *globals.Context, basename string) (string, error) {
 	p := filepath.Join(g.GetEnv().GetCacheDir(), "dltemp")
-	if err := libkb.MakeParentDirs(g.Log, p); err != nil {
+	filename := filepath.Join(p, basename)
+	if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
 		return "", err
 	}
-	return filepath.Join(p, basename), nil
+	return filename, nil
 }
 
 func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,

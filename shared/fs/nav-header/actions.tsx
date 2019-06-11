@@ -39,6 +39,7 @@ const mapStateToProps = (state, props: Props) => ({
 })
 
 const mergeProps = (s, d, o) => ({
+  ...o,
   hasSoftError: !!Constants.getSoftError(s._softErrors, o.path),
 })
 

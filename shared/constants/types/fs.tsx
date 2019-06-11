@@ -105,7 +105,7 @@ export type _Tlf = {
   resetParticipants: I.List<string> // usernames
   // TODO: when we move this stuff into SimpleFS, this should no longer need
   //  to be nullable
-  syncConfig: TlfSyncConfig | null
+  syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
   /*
@@ -450,10 +450,11 @@ export enum SendAttachmentToChatState {
 }
 
 export type _SendAttachmentToChat = {
+  convID: ChatTypes.ConversationIDKey
   filter: string
   path: Path
-  convID: ChatTypes.ConversationIDKey
   state: SendAttachmentToChatState
+  title: string
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 

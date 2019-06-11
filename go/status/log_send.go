@@ -297,3 +297,21 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 	}
 	return MergeStatusJSON(extStatus, "extstatus", status)
 }
+
+// Clear removes any log data that we don't want to stick around until the
+// next time LogSend is called, in case sendLogs is false the next time.
+func (l *LogSendContext) Clear() {
+	l.svcLog = ""
+	l.ekLog = ""
+	l.kbfsLog = ""
+	l.desktopLog = ""
+	l.updaterLog = ""
+	l.startLog = ""
+	l.installLog = ""
+	l.systemLog = ""
+	l.gitLog = ""
+	l.watchdogLog = ""
+	l.traceBundle = []byte{}
+	l.cpuProfileBundle = []byte{}
+	l.processesLog = ""
+}

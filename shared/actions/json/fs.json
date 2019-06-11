@@ -34,11 +34,6 @@
       "tlfName": "string",
       "syncConfig": "Types.TlfSyncConfig"
     },
-    "tlfSyncConfigsForAllSyncEnabledTlfsLoaded": {
-      "private": "I.Map<string, Types.TlfSyncConfig>",
-      "public": "I.Map<string, Types.TlfSyncConfig>",
-      "team": "I.Map<string, Types.TlfSyncConfig>"
-    },
     "loadTlfSyncConfig": {
       "tlfPath": "Types.Path"
     },
@@ -230,6 +225,9 @@
     },
     "setSendAttachmentToChatFilter": {
       "filter": "string"
+    },
+    "setSendAttachmentToChatTitle":{
+      "title":"string"
     },
     "sentAttachmentToChat": {},
     "initSendLinkToChat": {

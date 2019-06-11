@@ -52,7 +52,7 @@ const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
   const teamname = team.fqName
   return {
     _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
-    _loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: false})),
+    _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
       dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),

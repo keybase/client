@@ -63,6 +63,12 @@ func ValidSecWord(w string) bool {
 	return secwordSet[w]
 }
 
+// SecWord returns the n'th word from the BIP-0039 list, mod the size
+// of the list.
+func SecWord(n int) string {
+	return secwords[n%len(secwords)]
+}
+
 // Wordlist from BIP0039:
 //  https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 //
