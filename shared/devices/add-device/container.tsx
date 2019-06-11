@@ -18,7 +18,6 @@ export default Container.namedConnect(
   (_, d, o: OwnProps) => ({
     ...d,
     highlight: Container.getRouteProps(o, 'highlight') || [],
-    // title: 'Add a device',
   }),
   'AddDevice'
 )(AddDevice)
