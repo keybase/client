@@ -139,6 +139,21 @@ func (u *Update) populate(link sig3.Generic) (err error) {
 	return nil
 }
 
+func (u *Update) LastChainGen() keybase1.PerTeamKeyGeneration {
+	if u == nil {
+		return keybase1.PerTeamKeyGeneration(0)
+	}
+	return u.maxRotate
+}
+
+func (u *Update) HasPerTeamKeyAtGeneration(g keybase1.PerTeamKeyGeneration) bool {
+	if u == nil {
+		return false
+	}
+	_, ret := u.rotates[g]
+	return ret
+}
+
 func PrepareUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.Seqno, update []sig3.ExportJSON) (ret *Update, err error) {
 	if len(update) == 0 {
 		return nil, nil

@@ -761,7 +761,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
 			if !ret.Chain.Public || (teamUpdate.Box != nil) {
-				err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+				err = l.addSecrets(mctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks, hiddenUpdate)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 	"github.com/keybase/go-codec/codec"
 )
 
@@ -711,31 +712,27 @@ func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamD
 // Checks that the off-chain data ends up exactly in sync with the chain, generation-wise.
 // Does _not_ check that keys match the sigchain.
 // Mutates `state`
-func (l *TeamLoader) addSecrets(ctx context.Context,
+func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
-	readerKeyMasks []keybase1.ReaderKeyMask) error {
+	readerKeyMasks []keybase1.ReaderKeyMask, hiddenUpdate *hidden.Update) error {
 
-	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(ctx, box, prevs)
+	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(mctx, box, prevs)
 	if err != nil {
 		return err
 	}
-	l.G().Log.CDebugf(ctx, "TeamLoader#addSecrets at %d", latestReceivedGen)
+	mctx.Debug("TeamLoader#addSecrets at %d", latestReceivedGen)
 
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 	// Latest generation from the sigchain
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+	// .. Or from the hidden chain
+	if hiddenUpdate.LastChainGen() > latestChainGen {
+		latestChainGen = hiddenUpdate.LastChainGen()
+	}
 
-	l.G().Log.CDebugf(ctx, "TeamLoader.addSecrets: received:%v->%v nseeds:%v nprevs:%v",
+	mctx.Debug("TeamLoader.addSecrets: received:%v->%v nseeds:%v nprevs:%v",
 		earliestReceivedGen, latestReceivedGen, len(seeds), len(prevs))
-
-	//
-	// TODO -- add this alert back later
-	//
-	// if latestReceivedGen != latestChainGen {
-	// 	return fmt.Errorf("wrong latest key generation: %v != %v",
-	// 		latestReceivedGen, latestChainGen)
-	// }
 
 	// Check that each key matches the chain.
 	for i, seed := range seeds {
@@ -744,16 +741,21 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 			return fmt.Errorf("gen < 1")
 		}
 
-		chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(keybase1.PerTeamKeyGeneration(gen))
-		if err != nil {
+		ptkGen := keybase1.PerTeamKeyGeneration(gen)
+
+		var seqno keybase1.Seqno
+		chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(ptkGen)
+		if err == nil {
+			seqno = chainKey.Seqno
+		} else if !hiddenUpdate.HasPerTeamKeyAtGeneration(ptkGen) {
 			return err
 		}
 
 		// Add it to the snapshot
-		state.PerTeamKeySeedsUnverified[chainKey.Gen] = keybase1.PerTeamKeySeedItem{
+		state.PerTeamKeySeedsUnverified[ptkGen] = keybase1.PerTeamKeySeedItem{
 			Seed:       seed,
-			Generation: chainKey.Gen,
-			Seqno:      chainKey.Seqno,
+			Generation: ptkGen,
+			Seqno:      seqno,
 		}
 	}
 
@@ -792,23 +794,23 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 				checkMaskGens[rkm.Generation-1] = true
 			}
 		}
-		l.G().Log.CDebugf(ctx, "TeamLoader.addSecrets: loop1")
+		mctx.Debug("TeamLoader.addSecrets: loop1")
 		// Check that we are all the way up to date
 		checkMaskGens[latestChainGen] = true
 		for gen := range checkMaskGens {
-			err = l.checkReaderKeyMaskCoverage(ctx, state, gen)
+			err = l.checkReaderKeyMaskCoverage(mctx, state, gen)
 			if err != nil {
 				return err
 			}
 		}
-		l.G().Log.CDebugf(ctx, "TeamLoader.addSecrets: loop2")
+		mctx.Debug("TeamLoader.addSecrets: loop2")
 	} else {
 		// Discard all cached reader key masks if we are not an explicit member of the team.
 		state.ReaderKeyMasks = make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)
 
 		// Also we shouldn't have gotten any from the server.
 		if len(readerKeyMasks) > 0 {
-			l.G().Log.CWarningf(ctx, "TeamLoader got %v reader-key-masks but not an explicit member",
+			mctx.Warning("TeamLoader got %v reader-key-masks but not an explicit member",
 				len(readerKeyMasks))
 		}
 	}
@@ -816,7 +818,7 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 }
 
 // Check that the RKMs for a generation are covered for all apps.
-func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
+func (l *TeamLoader) checkReaderKeyMaskCoverage(mctx libkb.MetaContext,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
 	for _, app := range keybase1.TeamApplicationMap {
@@ -841,10 +843,10 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 // TODO: return the signer and have the caller check it. Not critical because the public half is checked anyway.
 // Returns the generation of the box (the greatest generation),
 // and a list of the seeds in ascending generation order.
-func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
+func (l *TeamLoader) unboxPerTeamSecrets(mctx libkb.MetaContext,
 	box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
 
-	return unboxPerTeamSecrets(libkb.NewMetaContext(ctx, l.G()), l.world, box, prevs)
+	return unboxPerTeamSecrets(mctx, l.world, box, prevs)
 }
 
 func unboxPerTeamSecrets(m libkb.MetaContext, world LoaderContext, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
