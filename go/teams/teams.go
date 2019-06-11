@@ -37,11 +37,10 @@ type Team struct {
 }
 
 func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData, hidden *keybase1.HiddenTeamChain) *Team {
-	chain := TeamSigChainState{teamData.Chain}
 	return &Team{
 		Contextified: libkb.NewContextified(g),
 
-		ID:     chain.GetID(),
+		ID:     teamData.ID(),
 		Data:   teamData,
 		Hidden: hidden,
 	}
@@ -84,7 +83,7 @@ func (t *Team) CanSkipKeyRotation() bool {
 }
 
 func (t *Team) chain() *TeamSigChainState {
-	return &TeamSigChainState{inner: t.Data.Chain}
+	return &TeamSigChainState{inner: t.Data.Chain, hidden: t.Hidden}
 }
 
 func (t *Team) Name() keybase1.TeamName {

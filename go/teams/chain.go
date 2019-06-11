@@ -20,7 +20,8 @@ const TeamSigChainPlayerSupportedLinkVersion = 2
 
 // Accessor wrapper for keybase1.TeamSigChainState
 type TeamSigChainState struct {
-	inner keybase1.TeamSigChainState
+	inner  keybase1.TeamSigChainState
+	hidden *keybase1.HiddenTeamChain
 }
 
 func (t TeamSigChainState) DeepCopy() TeamSigChainState {

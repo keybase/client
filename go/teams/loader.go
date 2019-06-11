@@ -652,7 +652,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 	var prev libkb.LinkID
 	if ret != nil {
-		prev, err = TeamSigChainState{ret.Chain}.GetLatestLibkbLinkID()
+		prev, err = TeamSigChainState{inner: ret.Chain}.GetLatestLibkbLinkID()
 		if err != nil {
 			return nil, err
 		}
@@ -912,7 +912,7 @@ func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase
 }
 
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {
-	state := TeamSigChainState{chain.Chain}
+	state := TeamSigChainState{inner: chain.Chain}
 	mctx = mctx.WithLogTag("IAKO")
 	defer mctx.Trace(fmt.Sprintf("TeamLoader#isAllowedKeyerOf(%s, %s)", state.GetID(), them), func() error { return err })()
 

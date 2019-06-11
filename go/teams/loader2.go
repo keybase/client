@@ -316,7 +316,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInnerAndVerify(ctx context.Context, t
 // Verify that the user had the explicit on-chain role just before this `link`.
 func (l *TeamLoader) verifyExplicitPermission(ctx context.Context, state *keybase1.TeamData,
 	link *ChainLinkUnpacked, uv keybase1.UserVersion, atOrAbove keybase1.TeamRole) error {
-	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation().Sub1())
+	return (TeamSigChainState{inner: state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation().Sub1())
 }
 
 type parentChainCache map[keybase1.TeamID]*keybase1.TeamData

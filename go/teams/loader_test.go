@@ -373,7 +373,7 @@ func TestLoaderParentEasy(t *testing.T) {
 	require.False(t, TeamSigChainState{inner: team.Chain}.HasAnyStubbedLinks(), "team has stubbed links")
 	subteamName, err := TeamSigChainState{inner: team.Chain}.GetSubteamName(*subteamID)
 	if err != nil {
-		t.Logf("seqno: %v", TeamSigChainState{team.Chain}.GetLatestSeqno())
+		t.Logf("seqno: %v", TeamSigChainState{inner: team.Chain}.GetLatestSeqno())
 		t.Logf("subteam log: %v", spew.Sdump(team.Chain.SubteamLog))
 		require.NoError(t, err)
 	}
@@ -841,7 +841,7 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.NotNil(t, rootData, "root team should be cached")
 	require.False(t, frozen)
 	require.False(t, tombstoned)
-	require.True(t, (TeamSigChainState{rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
+	require.True(t, (TeamSigChainState{inner: rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
 
 	t.Logf("U0 adds U2 to lair")
 	_, err = AddMember(context.Background(), tcs[0].G, subteamLairName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
