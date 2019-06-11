@@ -120,7 +120,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: String}
+    inParam: {readonly username: String; readonly signedUp: Boolean}
     outParam: void
   }
   'keybase.1.NotifySession.loggedOut': {
