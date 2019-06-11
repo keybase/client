@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
-import {InlineDropdown} from '../../common-adapters/dropdown'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 import {Props} from '.'
@@ -12,19 +11,25 @@ export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 class ThresholdDropdown extends React.PureComponent<Props, {visible: boolean}> {
   state = {visible: false}
-  _show = () => this.setState({visible: true})
   _hide = () => this.setState({visible: false})
-  _select = selectedIdx => this.props.onChangedSyncNotifications(selectedIdx)
+  _select = selectedVal => this.props.onSetSyncNotificationThreshold(selectedVal)
+  _show = () => this.setState({visible: true})
+  _toggleShowingMenu = () => this.setState(s => ({visible: !s.visible}))
   render() {
     return (
       <>
-        <InlineDropdown
+        <Kb.DropdownButton
           onPress={this.state.visible ? this._show : this._hide}
-          type="Body"
-          label={Constants.humanizeBytes(
-            this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
-            0
-          )}
+          disabled={!this.props.spaceAvailableNotificationThreshold}
+          selected={
+            <Kb.Text type="Body">
+              {Constants.humanizeBytes(
+                this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
+                0
+              )}
+            </Kb.Text>
+          }
+          toggleOpen={this._toggleShowingMenu}
         />
         <Kb.FloatingPicker
           items={allowedNotificationThresholds.map(i => ({
@@ -50,7 +55,12 @@ class ThresholdDropdown extends React.PureComponent<Props, {visible: boolean}> {
 }
 
 const SyncNotificationSetting = (props: Props) => (
-  <Kb.Box2 direction="horizontal" alignItems="center">
+  <Kb.Box2
+    direction="horizontal"
+    alignItems="flex-start"
+    fullWidth={true}
+    style={{flex: 1, flexWrap: 'wrap'}}
+  >
     <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
     <ThresholdDropdown {...props} />
     <Kb.Text type="Body">of storage space remaining</Kb.Text>
