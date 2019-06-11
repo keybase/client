@@ -367,13 +367,10 @@ const routeToInitialScreen = state => {
     }
 
     // Just a saved tab
-    return [
-      RouteTreeGen.createSwitchRouteDef({
-        loggedIn: true,
-        path: [state.config.startupTab || Tabs.peopleTab],
-      }),
-      RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']}), // TEMP for testing
-    ]
+    return RouteTreeGen.createSwitchRouteDef({
+      loggedIn: true,
+      path: [state.config.startupTab || Tabs.peopleTab],
+    })
   } else {
     // Show a login screen
     return [
