@@ -3255,8 +3255,8 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 
 func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
 	lState *kbfssync.LockState, cache NodeCache, ptrs []data.BlockPointer,
-	newPtrs map[data.BlockPointer]bool, kmd libkey.KeyMetadata, rootPtr data.BlockPointer) (
-	map[data.BlockPointer]Node, NodeCache, error) {
+	newPtrs map[data.BlockPointer]bool, kmd libkey.KeyMetadata,
+	rootPtr data.BlockPointer) (map[data.BlockPointer]Node, NodeCache, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
 	// First try the passed-in cache.  If it doesn't work because the
@@ -3270,7 +3270,8 @@ func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
 			ctx, libkb.VLog1, "Root node %v doesn't exist in the node "+
 				"cache; using a throwaway node cache instead",
 			rootPtr)
-		cache = newNodeCacheStandard(fbo.folderBranch, nil)
+		cache = newNodeCacheStandard(fbo.folderBranch)
+		cache.SetObfuscatorMaker(fbo.nodeCache.ObfuscatorMaker())
 		nodeMap, err = fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
 			newPtrs, kmd, rootPtr)
 	}

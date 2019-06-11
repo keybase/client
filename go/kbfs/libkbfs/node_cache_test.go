@@ -17,7 +17,7 @@ import (
 func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) (
 	ncs *nodeCacheStandard, parentNode Node, childNode1 Node, childNode2 Node,
 	childPath1 []data.PathNode, childPath2 []data.PathNode) {
-	ncs = newNodeCacheStandard(data.FolderBranch{Tlf: id, Branch: branch}, nil)
+	ncs = newNodeCacheStandard(data.FolderBranch{Tlf: id, Branch: branch})
 
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentName := "parent"
@@ -165,7 +165,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	ncs := newNodeCacheStandard(data.FolderBranch{
 		Tlf:    tlf.FakeID(0, tlf.Private),
 		Branch: "",
-	}, nil)
+	})
 
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, data.Dir)
@@ -189,7 +189,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 	ncs := newNodeCacheStandard(data.FolderBranch{
 		Tlf:    tlf.FakeID(0, tlf.Private),
 		Branch: "",
-	}, nil)
+	})
 
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, data.Dir)
@@ -497,7 +497,7 @@ func TestNodeCacheWrapChild(t *testing.T) {
 		data.FolderBranch{
 			Tlf:    tlf.FakeID(0, tlf.Private),
 			Branch: data.MasterBranch,
-		}, nil)
+		})
 	var wtn1, wtn2 *wrappedTestNode
 	rw1 := func(root Node) Node {
 		wtn1 = &wrappedTestNode{root, false}
@@ -569,7 +569,10 @@ func TestNodeCacheObfuscator(t *testing.T) {
 		data.FolderBranch{
 			Tlf:    tlf.FakeID(0, tlf.Private),
 			Branch: data.MasterBranch,
-		}, func() data.Obfuscator { return data.NewNodeObfuscator(nil) })
+		})
+	ncs.SetObfuscatorMaker(func() data.Obfuscator {
+		return data.NewNodeObfuscator(nil)
+	})
 
 	t.Log("Root node should have an obfuscator")
 	rootPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}

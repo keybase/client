@@ -1197,7 +1197,8 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 		return mergedPaths, recreateOps, newUnmergedPaths, nil
 	}
 
-	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch, nil)
+	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
+	mergedNodeCache.SetObfuscatorMaker(cr.fbo.makeObfuscator)
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		mergedChains.mostRecentChainMDInfo,
@@ -1879,7 +1880,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		newPtrs[ptr] = true
 	}
 
-	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch, nil)
+	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
+	mergedNodeCache.SetObfuscatorMaker(cr.fbo.makeObfuscator)
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		mergedChains.mostRecentChainMDInfo,
@@ -3042,7 +3044,8 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 
 	// We need to get the complete set of updated merged paths, so
 	// that we can correctly order the chains from the root outward.
-	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch, nil)
+	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
+	mergedNodeCache.SetObfuscatorMaker(cr.fbo.makeObfuscator)
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		md, md.data.Dir.BlockPointer)
