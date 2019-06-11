@@ -475,6 +475,10 @@ func (mc modeConstrained) LocalHTTPServerEnabled() bool {
 	return true
 }
 
+func (mc modeConstrained) TLFEditHistoryEnabled() bool {
+	return false
+}
+
 // Memory limited mode
 
 type modeMemoryLimited struct {
