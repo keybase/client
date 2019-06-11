@@ -105,7 +105,7 @@ type SignupScreenProps = {
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
-const _SignupScreen = (props: SignupScreenProps) => (
+export const SignupScreen = (props: SignupScreenProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
     {!Styles.isMobile && (
       <Header
@@ -114,6 +114,16 @@ const _SignupScreen = (props: SignupScreenProps) => (
         titleComponent={props.titleComponent}
         style={props.headerStyle}
         negative={props.negativeHeader}
+      />
+    )}
+    {Styles.isMobile && !props.skipMobileHeader && (
+      <Kb.HeaderHocHeader
+        headerStyle={props.headerStyle}
+        title={props.title}
+        titleComponent={props.titleComponent}
+        leftAction={props.leftAction}
+        leftActionText={props.leftActionText}
+        onBack={props.onBack}
       />
     )}
     {Styles.isMobile && props.header}
@@ -136,10 +146,6 @@ const _SignupScreen = (props: SignupScreenProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-export const SignupScreen = (props: SignupScreenProps) => {
-  const Component = Styles.isMobile && !props.skipMobileHeader ? Kb.HeaderHoc(_SignupScreen) : _SignupScreen
-  return <Component {...props} />
-}
 SignupScreen.defaultProps = {
   leftAction: 'cancel',
   leftActionText: 'Back',
