@@ -20,22 +20,20 @@ type nodeCacheEntry struct {
 // the reference counts of nodeStandard Nodes, and using their member
 // fields to construct paths.
 type nodeCacheStandard struct {
-	folderBranch   data.FolderBranch
-	makeObfuscator func() data.Obfuscator
+	folderBranch data.FolderBranch
 
-	lock         sync.RWMutex
-	nodes        map[data.BlockRef]*nodeCacheEntry
-	rootWrappers []func(Node) Node
+	lock           sync.RWMutex
+	nodes          map[data.BlockRef]*nodeCacheEntry
+	rootWrappers   []func(Node) Node
+	makeObfuscator func() data.Obfuscator
 }
 
 var _ NodeCache = (*nodeCacheStandard)(nil)
 
-func newNodeCacheStandard(
-	fb data.FolderBranch, makeOb func() data.Obfuscator) *nodeCacheStandard {
+func newNodeCacheStandard(fb data.FolderBranch) *nodeCacheStandard {
 	return &nodeCacheStandard{
-		folderBranch:   fb,
-		makeObfuscator: makeOb,
-		nodes:          make(map[data.BlockRef]*nodeCacheEntry),
+		folderBranch: fb,
+		nodes:        make(map[data.BlockRef]*nodeCacheEntry),
 	}
 }
 
@@ -443,4 +441,17 @@ func (ncs *nodeCacheStandard) AddRootWrapper(f func(Node) Node) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
 	ncs.rootWrappers = append(ncs.rootWrappers, f)
+}
+
+func (ncs *nodeCacheStandard) SetObfuscatorMaker(
+	makeOb func() data.Obfuscator) {
+	ncs.lock.Lock()
+	defer ncs.lock.Unlock()
+	ncs.makeObfuscator = makeOb
+}
+
+func (ncs *nodeCacheStandard) ObfuscatorMaker() func() data.Obfuscator {
+	ncs.lock.RLock()
+	defer ncs.lock.RUnlock()
+	return ncs.makeObfuscator
 }

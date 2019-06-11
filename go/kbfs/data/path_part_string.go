@@ -29,7 +29,7 @@ const (
 type PathPartString struct {
 	plaintext  string
 	ext        string
-	obsfucator Obfuscator
+	obfuscator Obfuscator
 }
 
 var _ fmt.Stringer = PathPartString{}
@@ -42,7 +42,7 @@ func NewPathPartString(
 	_, ext := SplitFileExtension(plaintext)
 	// Treat the long tarball suffix specially, since it's already
 	// parsed specially by `SplitFileExtension`.  Otherwise, strictly
-	// filter for length,m so we don't accidentally expose suffixes
+	// filter for length, so we don't accidentally expose suffixes
 	// that aren't common file suffixes, but instead part of the
 	// actual privately-named file (e.g., "this.file.is.secret").
 	if len(ext) > extRestoreMaxLen && ext != tarGzSuffix {
@@ -56,12 +56,13 @@ func NewPathPartString(
 }
 
 func (pps PathPartString) String() string {
-	if strings.HasPrefix(pps.plaintext, prefixToSkipObfsucation) {
+	if strings.HasPrefix(pps.plaintext, prefixToSkipObfsucation) ||
+		pps.obfuscator == nil {
 		return pps.plaintext
 	}
 
-	obs := pps.obsfucator.Obfuscate(pps.plaintext)
-	return obs + pps.ext
+	ob := pps.obfuscator.Obfuscate(pps.plaintext)
+	return ob + pps.ext
 }
 
 // Plaintext returns the plaintext underlying this string part.
