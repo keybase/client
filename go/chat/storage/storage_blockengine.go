@@ -220,7 +220,7 @@ func (be *blockEngine) getBlock(ctx context.Context, bi blockIndex, id chat1.Mes
 func (be *blockEngine) readBlock(ctx context.Context, bi blockIndex, id int) (res block, err Error) {
 	be.Debug(ctx, "readBlock: reading block: %d", id)
 	// Manage in memory cache
-	if b, ok := blockEngineMemCache.getBlock(ctx, bi.UID, bi.ConvID, id); ok {
+	if b, ok := blockEngineMemCache.getBlock(ctx, be.G(), bi.UID, bi.ConvID, id); ok {
 		be.Debug(ctx, "readBlock: cache hit")
 		return b, nil
 	}
