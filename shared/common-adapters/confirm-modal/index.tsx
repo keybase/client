@@ -14,6 +14,7 @@ export type Props = {
   confirmText?: string
   content?: React.ReactNode
   description: string
+  error?: string
   header?: React.ReactNode
   icon?: IconType
   onCancel: () => void | null
@@ -28,37 +29,46 @@ class _ConfirmModal extends React.PureComponent<Props> {
     return (
       <Box style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
-          <ScrollView>
-            <Box2
-              alignItems="center"
-              direction="vertical"
-              fullWidth={true}
-              fullHeight={true}
-              style={styles.inner}
-            >
-              {this.props.icon && (
-                <Icon
-                  boxStyle={styles.icon}
-                  color={Styles.globalColors.black_50}
-                  fontSize={Styles.isMobile ? 64 : 48}
-                  style={styles.icon}
-                  type={iconType}
-                />
-              )}
-              {this.props.header && (
-                <Box2 alignItems="center" direction="vertical" style={styles.icon}>
-                  {this.props.header}
-                </Box2>
-              )}
-              <Text center={true} style={styles.text} type="HeaderBig">
-                {this.props.prompt}
+          {this.props.error && (
+            <Box2 alignItems="center" direction="vertical" style={styles.errorBanner}>
+              <Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
+                {this.props.error}
               </Text>
-              <Text center={true} style={styles.text} type="Body">
-                {this.props.description}
-              </Text>
-              {this.props.content}
             </Box2>
-          </ScrollView>
+          )}
+          <Box2 direction="vertical" style={styles.container2}>
+            <ScrollView>
+              <Box2
+                alignItems="center"
+                direction="vertical"
+                fullWidth={true}
+                fullHeight={true}
+                style={styles.inner}
+              >
+                {this.props.icon && (
+                  <Icon
+                    boxStyle={styles.icon}
+                    color={Styles.globalColors.black_50}
+                    fontSize={Styles.isMobile ? 64 : 48}
+                    style={styles.icon}
+                    type={iconType}
+                  />
+                )}
+                {this.props.header && (
+                  <Box2 alignItems="center" direction="vertical" style={styles.icon}>
+                    {this.props.header}
+                  </Box2>
+                )}
+                <Text center={true} style={styles.text} type="HeaderBig">
+                  {this.props.prompt}
+                </Text>
+                <Text center={true} style={styles.text} type="Body">
+                  {this.props.description}
+                </Text>
+                {this.props.content}
+              </Box2>
+            </ScrollView>
+          </Box2>
         </Box2>
         <Box2 direction="horizontal" style={styles.buttonBox}>
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
@@ -110,7 +120,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderRadius: 4,
       overflow: 'hidden',
-      padding: 64,
+      padding: 0,
       width: 560,
     },
     isMobile: {
@@ -120,6 +130,20 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
+  container2: Styles.platformStyles({
+    isElectron: {
+      padding: 64,
+    },
+  }),
+  errorBanner: {
+    backgroundColor: Styles.globalColors.red,
+    padding: Styles.globalMargins.small,
+    width: '100%',
+  },
+  errorBannerText: {
+    color: Styles.globalColors.white,
+    maxWidth: 512,
+  },
   icon: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
