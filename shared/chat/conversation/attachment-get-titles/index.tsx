@@ -25,7 +25,6 @@ type State = {
 
 class GetTitles extends React.Component<Props, State> {
   state: State
-  _input: Kb.Input | null
 
   constructor(props: Props) {
     super(props)
@@ -76,18 +75,6 @@ class GetTitles extends React.Component<Props, State> {
     })
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (prevState.index !== this.state.index) {
-      this._input && this._input.select()
-    }
-  }
-
-  componentDidMount() {
-    this._input && this._input.select()
-  }
-
-  _setRef = input => (this._input = input)
-
   render() {
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
@@ -96,49 +83,43 @@ class GetTitles extends React.Component<Props, State> {
     if (!info) return null
 
     return (
-      <Kb.ScrollView style={{height: '100%', width: '100%'}}>
-        <Kb.Box style={Styles.isMobile ? stylesMobile : stylesDesktop}>
-          <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, height: 150, width: 150}}>
+      <Kb.ScrollView style={styles.scrollView}>
+        <Kb.Box style={styles.container}>
+          <Kb.Box style={styles.imageContainer}>
             {info.type === 'image' ? (
               <Kb.OrientedImage
                 src={Styles.isAndroid ? `file://${path}` : path}
-                style={Styles.isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
+                style={styles.image}
               />
             ) : (
               <Kb.Icon type="icon-file-uploading-48" />
             )}
           </Kb.Box>
-          {paths.length > 0 && (
+          {paths.length > 0 && !Styles.isMobile && (
             <Kb.Box2
               direction="vertical"
-              style={{
-                alignItems: 'center',
-                marginTop: Styles.globalMargins.xtiny,
-                maxWidth: Styles.isMobile ? 300 : undefined,
-              }}
+              style={styles.filename}
             >
-              {!Styles.isMobile && <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>}
+              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
               <Kb.Text type="BodySmall">
-                {Styles.isMobile ? '' : `${info.filename} `}({this.state.index + 1} of {paths.length})
+                {info.filename} ({this.state.index + 1} of {paths.length})
               </Kb.Text>
             </Kb.Box2>
           )}
-          <Kb.Input
-            style={Styles.isMobile ? stylesInputMobile : stylesInputDesktop}
+          <Kb.PlainInput
+            style={styles.input}
             autoFocus={true}
-            floatingHintTextOverride={titleHint}
-            hideLabel={Styles.isMobile}
-            hintText={titleHint}
+            placeholder={titleHint}
+            multiline={true}
             value={info.title}
             onEnterKeyDown={this._onNext}
-            ref={this._setRef}
             onChangeText={this._updateTitle}
             selectTextOnFocus={true}
           />
           <Kb.ButtonBar style={{flexShrink: 0}}>
-            <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />
+            {!Styles.isMobile && <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />}
             {this._isLast() ? (
-              <Kb.WaitingButton waitingKey={null} onClick={this._onNext} label="Send" />
+              <Kb.WaitingButton fullWidth={Styles.isMobile} waitingKey={null} onClick={this._onNext} label="Send" />
             ) : (
               <Kb.Button onClick={this._onNext} label="Next" />
             )}
@@ -149,35 +130,86 @@ class GetTitles extends React.Component<Props, State> {
   }
 }
 
-const stylesDesktop = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
-  marginBottom: 80,
-  marginLeft: 80,
-  marginRight: 80,
-  marginTop: 90,
-}
-
-const stylesInputDesktop = {
-  flexShrink: 0,
-  marginTop: 40,
-  width: 460,
-}
-
-const stylesMobile = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'flex-start',
-  marginTop: 4,
-}
-
-const stylesInputMobile = {
-  minWidth: 320,
-  paddingLeft: 20,
-  paddingRight: 20,
-}
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      // marginBottom: 80,
+      // marginLeft: 80,
+      // marginRight: 80,
+      // marginTop: 90,
+    },
+    isMobile: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'flex-start',
+      marginTop: Styles.globalMargins.xtiny,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
+  }),
+  filename: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      maxWidth: 150,
+    },
+  }),
+  image: Styles.platformStyles({
+    isMobile: {
+      height: 150,
+      width: 150,
+    },
+    isElectron: {
+      maxHeight: '100%',
+      maxWidth: '100%',
+    },
+  }),
+  imageContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxCenter,
+    },
+    isElectron: {
+      maxHeight: 300,
+      maxWidth: 300,
+    },
+    isMobile: {
+      height: 150,
+      width: 150,
+    },
+  }),
+  input: Styles.platformStyles({
+    isElectron: {
+      flexShrink: 0,
+      marginTop: 40,
+      width: 460,
+    },
+    isMobile: {
+      borderColor: Styles.globalColors.blue,
+      borderRadius: Styles.borderRadius,
+      borderWidth: 1,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+  }),
+  scrollView: Styles.platformStyles({
+    common: {
+      height: '100%',
+      width: '100%',
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.blueGrey,
+    },
+  }),
+})
 
 export default Kb.HeaderOrPopup(GetTitles)
