@@ -173,9 +173,9 @@ describe('checkUsername', () => {
   })
 
   it('Locally checks simple problems', () => {
-    let state = Constants.makeState()
-    let action = SignupGen.createCheckUsername({username: 'a.bad.username'})
-    let nextState = makeTypedState(reducer(state, action))
+    const state = Constants.makeState()
+    const action = SignupGen.createCheckUsername({username: 'a.bad.username'})
+    const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.usernameError).toBeTruthy()
     expect(nextState.signup.username).toEqual(action.payload.username)
   })
