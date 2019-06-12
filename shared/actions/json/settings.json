@@ -139,6 +139,12 @@
     },
     "saveProxyData": {
       "proxyData": "RPCTypes.ProxyData"
+    },
+    "setCertificatePinning": {
+      "enabled": "boolean"
+    },
+    "certificatePinningToggled": {
+      "toggled": "boolean"
     }
   },
 }

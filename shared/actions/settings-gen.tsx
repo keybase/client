@@ -10,6 +10,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
@@ -53,6 +54,7 @@ export const processorProfile = 'settings:processorProfile'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const setCertificatePinning = 'settings:setCertificatePinning'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
@@ -62,6 +64,7 @@ export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _CertificatePinningToggledPayload = {readonly toggled: boolean}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
@@ -107,6 +110,7 @@ type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
+type _SetCertificatePinningPayload = {readonly enabled: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
 type _UnfurlSettingsErrorPayload = {readonly error: string}
@@ -153,6 +157,9 @@ export const createUnfurlSettingsRefreshed = (
 export const createUnfurlSettingsSaved = (
   payload: _UnfurlSettingsSavedPayload
 ): UnfurlSettingsSavedPayload => ({payload, type: unfurlSettingsSaved})
+export const createCertificatePinningToggled = (
+  payload: _CertificatePinningToggledPayload
+): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
   type: checkPassword,
@@ -308,6 +315,9 @@ export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackP
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
+export const createSetCertificatePinning = (
+  payload: _SetCertificatePinningPayload
+): SetCertificatePinningPayload => ({payload, type: setCertificatePinning})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
@@ -316,6 +326,10 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type CertificatePinningToggledPayload = {
+  readonly payload: _CertificatePinningToggledPayload
+  readonly type: typeof certificatePinningToggled
+}
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
@@ -480,6 +494,10 @@ export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
 }
+export type SetCertificatePinningPayload = {
+  readonly payload: _SetCertificatePinningPayload
+  readonly type: typeof setCertificatePinning
+}
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
 export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
 export type UnfurlSettingsErrorPayload = {
@@ -506,6 +524,7 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | CertificatePinningToggledPayload
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
@@ -551,6 +570,7 @@ export type Actions =
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SetAllowDeleteAccountPayload
+  | SetCertificatePinningPayload
   | StopPayload
   | TracePayload
   | UnfurlSettingsErrorPayload

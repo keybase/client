@@ -26,6 +26,7 @@ export const newRoutes = {
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
   settingsRoot: {getScreen: () => require('./').default},
   terms: {getScreen: () => require('./web-links.native').default},
+  disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},

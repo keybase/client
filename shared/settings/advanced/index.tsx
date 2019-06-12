@@ -14,6 +14,7 @@ type Props = {
   onChangeLockdownMode: (arg0: boolean) => void
   onSetOpenAtLogin: (open: boolean) => void
   onDBNuke: () => void
+  onDisableCertPinning: () => void
   onTrace: (durationSeconds: number) => void
   onProcessorProfile: (durationSeconds: number) => void
   onBack: () => void
@@ -26,6 +27,8 @@ type Props = {
   useNativeFrame: boolean
   onChangeUseNativeFrame: (arg0: boolean) => void
   saveProxyData: (proxyData: RPCTypes.ProxyData) => void
+  onEnableCertPinning: () => void
+  didToggleCertificatePinning: boolean
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -56,23 +59,9 @@ const UseNativeFrame = (props: Props) => {
   )
 }
 
-type AdvancedState = {
-  disableCertPinning: () => void | undefined
-  showCertPinningModal: boolean
-}
-
-class Advanced extends React.Component<Props, AdvancedState> {
+class Advanced extends React.Component<Props, {}> {
   constructor(props: Props) {
     super(props)
-
-    this.state = {
-      disableCertPinning: undefined,
-      showCertPinningModal: false,
-    }
-  }
-
-  confirmDisableCertPinning = (disableCertPinning: () => void) => {
-    this.setState({disableCertPinning, showCertPinningModal: true})
   }
 
   render() {
@@ -80,24 +69,6 @@ class Advanced extends React.Component<Props, AdvancedState> {
       this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
     return (
       <Kb.Box style={styles.advancedContainer}>
-        {this.state.showCertPinningModal && (
-          <Kb.Box style={{zIndex: 1}}>
-            {' '}
-            <Kb.ConfirmModal
-              confirmText="Yes, allow TLS MITM"
-              description="This means your proxy will be able to view all traffic between you and Keybase servers. It
-          is not recommended to use this option unless absolutely required."
-              header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Styles.globalColors.red} />}
-              onCancel={() => this.setState({showCertPinningModal: false})}
-              onConfirm={() => {
-                this.setState({showCertPinningModal: false})
-                this.state.disableCertPinning()
-              }}
-              prompt="Are you sure you want to allow TLS MITM?"
-            />
-          </Kb.Box>
-        )}
-
         <Kb.Box style={styles.progressContainer}>
           {this.props.settingLockdownMode && <Kb.ProgressIndicator />}
         </Kb.Box>
@@ -128,7 +99,7 @@ class Advanced extends React.Component<Props, AdvancedState> {
             />
           </Kb.Box>
         )}
-        <ProxySettings {...{...this.props, confirmDisableCertPinning: this.confirmDisableCertPinning}} />
+        <ProxySettings {...this.props} />
         <Developer {...this.props} />
       </Kb.Box>
     )
@@ -271,13 +242,11 @@ type ProxyState = {
   port: string
   proxyType: string
   certPinning: boolean
-  showCertPinningConfirmationModal: boolean
 }
 
-type ProxyProps = Props & {confirmDisableCertPinning: (disableCertPinning: () => void) => void}
 
-class ProxySettings extends React.Component<ProxyProps, ProxyState> {
-  constructor(props: ProxyProps) {
+class ProxySettings extends React.Component<Props, ProxyState> {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -285,11 +254,11 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
       certPinning: true,
       port: '',
       proxyType: ProxyTypeToDisplayName['noProxy'],
-      showCertPinningConfirmationModal: false,
     }
   }
 
-  componentWillReceiveProps(nextProps: ProxyProps) {
+  componentWillReceiveProps(nextProps: Props) {
+    alert("current=" + this.props.didToggleCertificatePinning + " next=" + nextProps.didToggleCertificatePinning)
     if (nextProps.proxyData !== this.props.proxyData) {
       const addressPort = nextProps.proxyData.addressWithPort.split(':')
       const address = addressPort[0]
@@ -303,6 +272,9 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
       const proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[nextProps.proxyData.proxyType]]
 
       this.setState({address, certPinning, port, proxyType})
+    }
+    if (nextProps.didToggleCertificatePinning && this.props.didToggleCertificatePinning === false) {
+      this.setState({certPinning: false})
     }
   }
 
@@ -320,9 +292,10 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
 
   toggleCertPinning = () => {
     if (this.state.certPinning) {
-      this.props.confirmDisableCertPinning(() => this.setState({certPinning: false}))
+      this.props.onDisableCertPinning()
     } else {
       this.setState({certPinning: !this.state.certPinning})
+      this.props.onEnableCertPinning()
     }
   }
 

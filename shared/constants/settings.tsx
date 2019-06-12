@@ -70,6 +70,7 @@ export const makeState = I.Record<Types._State>({
   notifications: makeNotifications(),
   password: makePassword(),
   proxyData: null,
+  didToggleCertificatePinning: false,
   useNativeFrame: true,
   waitingForResponse: false,
 })

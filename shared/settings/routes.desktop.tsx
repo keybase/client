@@ -18,6 +18,7 @@ const settingsSubRoutes = {
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
+  disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
 }
 
 class SettingsSubNav extends React.PureComponent<any> {

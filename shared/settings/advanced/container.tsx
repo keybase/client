@@ -7,7 +7,7 @@ import {
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
   createLoadProxyData,
-  createSaveProxyData,
+  createSaveProxyData, createCertificatePinningToggled,
 } from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
@@ -23,6 +23,7 @@ const mapStateToProps = state => {
   const settingLockdownMode = anyWaiting(state, Constants.setLockdownModeWaitingKey)
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
+    didToggleCertificatePinning: state.settings.didToggleCertificatePinning,
     hasRandomPW: !!state.settings.password.randomPW,
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
@@ -47,6 +48,8 @@ const mapDispatchToProps = dispatch => ({
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
+  onDisableCertPinning: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
+  onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false}))
 })
 
 export default compose(
