@@ -7,6 +7,8 @@ import flags from '../../util/feature-flags'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
+import * as Types from '../../constants/types/wallets'
+import {maxUsernameLength} from '../../constants/signup'
 
 type Props = {
   openAtLogin: boolean
@@ -279,58 +281,59 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     }
   }
 
+  renderProxySettings() {
+    if (this.state.proxyType === 'noProxy') {
+      return undefined
+    }
+    return (
+      <Kb.Box direction="vertical" alignItems="flex-start" style={{width: '40ch'}}>
+        <Kb.Box2
+          direction="vertical"
+          gap="tiny"
+          style={{marginBottom: Styles.globalMargins.small, marginTop: Styles.globalMargins.small}}
+        >
+          <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
+          <Kb.NewInput placeholder="127.0.0.1" onChangeText={address => this.setState({address})} />
+        </Kb.Box2>
+        <Kb.Box2
+          direction="vertical"
+          gap="tiny"
+          alignItems="left"
+          style={{marginBottom: Styles.globalMargins.small}}
+        >
+          <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
+          <Kb.NewInput placeholder="8080" onChangeText={port => this.setState({port})} />
+        </Kb.Box2>
+        <Kb.Switch
+          on={!this.certPinning()}
+          onClick={this.toggleCertPinning}
+          label="Allow TLS Interception"
+          style={{marginBottom: Styles.globalMargins.small}}
+        />
+        <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
+      </Kb.Box>
+    )
+  }
+
   render() {
     return (
       <Kb.Box style={styles.proxyContainer}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
-          Configure a HTTP(s) or SOCKS5 proxy
+        <Kb.Text type="BodyBig" style={styles.text}>
+          Proxy Settings
         </Kb.Text>
-        <Kb.Box>
+        <Kb.Box style={{display: 'flex', flexWrap: 'wrap'}}>
           {proxyTypeList.map(proxyType => (
-            <Kb.Button
-              style={{margin: Styles.globalMargins.tiny}}
-              onClick={() => this.setState({proxyType})}
-              type={this.state.proxyType === proxyType ? 'Default' : 'Dim'}
+            <Kb.RadioButton
+              onSelect={() => this.setState({proxyType})}
+              selected={this.state.proxyType === proxyType}
               key={proxyType}
               label={proxyTypeToDisplayName[proxyType]}
+              style={{marginRight: Styles.globalMargins.medium}}
             />
           ))}
         </Kb.Box>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          style={{margin: Styles.globalMargins.mediumLarge}}
-        >
-          <Kb.Input
-            hintText="Proxy Address"
-            value={this.state.address}
-            onChangeText={address => this.setState({address})}
-            style={{margin: Styles.globalMargins.medium, width: 400}}
-          />
-          <Kb.Input
-            hintText="Proxy Port"
-            value={this.state.port}
-            onChangeText={port => this.setState({port})}
-            style={{margin: Styles.globalMargins.medium, width: 200}}
-          />
-        </Kb.Box2>
-        <Kb.Box2
-          direction="vertical"
-          centerChildren={true}
-          style={{marginBottom: Styles.globalMargins.medium, marginTop: Styles.globalMargins.xlarge}}
-        >
-          <Kb.Switch
-            on={!this.certPinning()}
-            onClick={this.toggleCertPinning}
-            label="Allow TLS Interception"
-          />
-        </Kb.Box2>
-        <Kb.Button
-          style={{margin: Styles.globalMargins.xsmall}}
-          onClick={this.saveProxySettings}
-          label="Save Proxy Settings"
-        />
+        {this.renderProxySettings()}
       </Kb.Box>
     )
   }
@@ -384,7 +387,7 @@ const styles = Styles.styleSheetCreate({
   },
   proxyContainer: {
     ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flex: 1,
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.large,
