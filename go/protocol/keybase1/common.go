@@ -348,26 +348,32 @@ func (o Seqno) DeepCopy() Seqno {
 type SeqType int
 
 const (
-	SeqType_NONE        SeqType = 0
-	SeqType_PUBLIC      SeqType = 1
-	SeqType_PRIVATE     SeqType = 2
-	SeqType_SEMIPRIVATE SeqType = 3
+	SeqType_NONE                SeqType = 0
+	SeqType_PUBLIC              SeqType = 1
+	SeqType_PRIVATE             SeqType = 2
+	SeqType_SEMIPRIVATE         SeqType = 3
+	SeqType_USER_PRIVATE_HIDDEN SeqType = 16
+	SeqType_TEAM_PRIVATE_HIDDEN SeqType = 17
 )
 
 func (o SeqType) DeepCopy() SeqType { return o }
 
 var SeqTypeMap = map[string]SeqType{
-	"NONE":        0,
-	"PUBLIC":      1,
-	"PRIVATE":     2,
-	"SEMIPRIVATE": 3,
+	"NONE":                0,
+	"PUBLIC":              1,
+	"PRIVATE":             2,
+	"SEMIPRIVATE":         3,
+	"USER_PRIVATE_HIDDEN": 16,
+	"TEAM_PRIVATE_HIDDEN": 17,
 }
 
 var SeqTypeRevMap = map[SeqType]string{
-	0: "NONE",
-	1: "PUBLIC",
-	2: "PRIVATE",
-	3: "SEMIPRIVATE",
+	0:  "NONE",
+	1:  "PUBLIC",
+	2:  "PRIVATE",
+	3:  "SEMIPRIVATE",
+	16: "USER_PRIVATE_HIDDEN",
+	17: "TEAM_PRIVATE_HIDDEN",
 }
 
 func (e SeqType) String() string {

@@ -247,7 +247,9 @@
         "NONE_0",
         "PUBLIC_1",
         "PRIVATE_2",
-        "SEMIPRIVATE_3"
+        "SEMIPRIVATE_3",
+        "USER_PRIVATE_HIDDEN_16",
+        "TEAM_PRIVATE_HIDDEN_17"
       ]
     },
     {

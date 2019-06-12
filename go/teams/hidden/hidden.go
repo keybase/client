@@ -196,6 +196,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	if err != nil {
 		return nil, nil, err
 	}
+	outer = sig.Outer
 	outerHash, err := outer.Hash()
 	if err != nil {
 		return nil, nil, err
@@ -297,7 +298,8 @@ func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.Hi
 	q := ratchet.Triple.Seqno
 	link, ok := update.Outer[q]
 	if ok && !link.Eq(ratchet.Triple.LinkID) {
-		return fmt.Errorf("update data failed to match ratchet %+v", ratchet)
+		mctx.Debug("Dump %+v %+v", *l.data, *update)
+		return fmt.Errorf("update data failed to match ratchet %+v v %s", ratchet, link)
 	}
 	return nil
 }

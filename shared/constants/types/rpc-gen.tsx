@@ -1718,6 +1718,8 @@ export enum SeqType {
   public = 1,
   private = 2,
   semiprivate = 3,
+  userPrivateHidden = 16,
+  teamPrivateHidden = 17,
 }
 
 export enum SignMode {
