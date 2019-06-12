@@ -143,7 +143,7 @@ warn_if_weird_path() {
 }
 
 show_cryptosquirrel() {
-  if tput colors &> /dev/null; then
+  if n_colors="$(tput colors 2> /dev/null)" && [ "$n_colors" -gt 2 ]; then
       [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
   fi
 }
