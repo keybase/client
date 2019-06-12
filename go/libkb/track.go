@@ -144,7 +144,7 @@ func (l TrackLookup) GetEldestKID() keybase1.KID {
 func (l TrackLookup) GetTrackedLinkSeqno() keybase1.Seqno {
 	ret, err := l.link.GetTrackedLinkSeqno()
 	if err != nil {
-		l.G().Log.Warning("Error in lookup of eldest KID: %s", err)
+		l.G().Log.Warning("Error in lookup of tracked link's seqno: %s", err)
 	}
 	return ret
 }
@@ -374,6 +374,9 @@ func (t TrackDiffNewEldest) GetTrackDiffType() keybase1.TrackDiffType {
 func (t TrackDiffNewEldest) ToDisplayString() string {
 	if t.tracked.IsNil() {
 		return fmt.Sprintf("No key when followed; established new eldest key %s", t.observed)
+	}
+	if t.tracked.Equal(t.observed) {
+		return fmt.Sprintf("Account reset! Old key was %s; new key is the same", t.tracked)
 	}
 	return fmt.Sprintf("Account reset! Old key was %s; new key is %s", t.tracked, t.observed)
 }

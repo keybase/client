@@ -214,6 +214,12 @@ func (e *DeviceKeygen) setup(m libkb.MetaContext) {
 		return
 	}
 
+	if m.G().Env.GetRunMode() != libkb.DevelRunMode &&
+		(e.args.naclSigningKeyPair != nil || e.args.naclEncryptionKeyPair != nil) {
+		e.runErr = errors.New("trying to pass a key pair agument to device keygen")
+		return
+	}
+
 	e.naclSignGen = e.newNaclKeyGen(m, func() (libkb.NaclKeyPair, error) {
 		if e.args.naclSigningKeyPair != nil {
 			return e.args.naclSigningKeyPair, nil

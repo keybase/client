@@ -1256,6 +1256,7 @@ func TestTrackResetReuseKey(t *testing.T) {
 		})),
 	)
 	require.False(t, idUI.BrokenTracking)
+	require.Empty(t, idUI.DisplayKeyDiffs)
 
 	// Bob tracks Alice
 	trackUser(tcY, fuY, fuX.NormalizedUsername(), libkb.GetDefaultSigVersion(tcX.G))
@@ -1301,16 +1302,18 @@ func TestTrackResetReuseKey(t *testing.T) {
 	require.Equal(t, "1 followed proof failed", err.(libkb.IdentifySummaryError).Problems()[0])
 	require.Len(t, idUI.DisplayKeyDiffs, 1, "key diffs count")
 	require.Equal(t, keybase1.TrackDiffType_NEW_ELDEST, idUI.DisplayKeyDiffs[0].Type, "key diff new eldest")
+	require.False(t, idUI.BrokenTracking) // tracking is not "broken" for this user - it's a key change
 
 	// He should be able to retrack
 	trackUser(tcY, fuY, fuX.NormalizedUsername(), libkb.GetDefaultSigVersion(tcX.G))
 	assertTracking(tcY, fuX.Username)
 
 	// Which should fix the identification
+	idUI = &FakeIdentifyUI{}
 	require.NoError(t, RunEngine2(
 		NewMetaContextForTest(tcY).WithUIs(libkb.UIs{
 			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
+			IdentifyUI: idUI,
 		}),
 		NewResolveThenIdentify2(tcY.G, &keybase1.Identify2Arg{
 			UserAssertion:    fuX.Username,
@@ -1319,6 +1322,7 @@ func TestTrackResetReuseKey(t *testing.T) {
 		})),
 	)
 	require.False(t, idUI.BrokenTracking)
+	require.Empty(t, idUI.DisplayKeyDiffs)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
