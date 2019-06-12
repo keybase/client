@@ -72,10 +72,8 @@ class Advanced extends React.Component<Props, {}> {
           <Kb.Checkbox
             checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
             disabled={disabled}
-            label={
-              'Forbid account changes from the website' +
-              (this.props.hasRandomPW ? ' (you need to set a password first)' : '')
-            }
+            label={`Forbid account changes from the website 
+              ${this.props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
             onCheck={this.props.onChangeLockdownMode}
             style={styles.checkbox}
           />
@@ -218,19 +216,11 @@ class Developer extends React.Component<Props, State> {
 }
 
 // A list so the order of the elements is fixed
-const ProxyTypeToDisplayNameList = [
-  ['noProxy', 'No Proxy'],
-  ['httpConnect', 'HTTP Connect'],
-  ['socks', 'Socks5'],
-]
-const ProxyTypeToDisplayName = ProxyTypeToDisplayNameList.reduce((obj, item) => {
-  obj[item[0]] = item[1]
-  return obj
-}, {})
-const DisplayNameToProxyType = {
-  'HTTP Connect': 'httpConnect',
-  'No Proxy': 'noProxy',
-  Socks5: 'socks',
+const proxyTypeList = ['noProxy', 'httpConnect', 'socks']
+const proxyTypeToDisplayName = {
+  httpConnect: 'HTTP Connect',
+  noProxy: 'No Proxy',
+  socks: 'Socks5',
 }
 
 type ProxyState = {
@@ -240,14 +230,10 @@ type ProxyState = {
 }
 
 class ProxySettings extends React.Component<Props, ProxyState> {
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      address: '',
-      port: '',
-      proxyType: ProxyTypeToDisplayName['noProxy'],
-    }
+  state = {
+    address: '',
+    port: '',
+    proxyType: 'noProxy',
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -259,22 +245,9 @@ class ProxySettings extends React.Component<Props, ProxyState> {
         port = addressPort[1]
       }
 
-      const proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[nextProps.proxyData.proxyType]]
-
+      const proxyType = RPCTypes.ProxyType[nextProps.proxyData.proxyType]
       this.setState({address, port, proxyType})
     }
-  }
-
-  handleAddressChange = (address: string) => {
-    this.setState({address})
-  }
-
-  handlePortChange = (port: string) => {
-    this.setState({port})
-  }
-
-  setProxyType = (proxyType: string) => {
-    this.setState({proxyType})
   }
 
   toggleCertPinning = () => {
@@ -289,9 +262,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.certPinning(),
-      proxyType: (RPCTypes.ProxyType[
-        DisplayNameToProxyType[this.state.proxyType]
-      ] as unknown) as RPCTypes.ProxyType,
+      proxyType: (RPCTypes.ProxyType[this.state.proxyType] as unknown) as RPCTypes.ProxyType,
     }
     this.props.saveProxyData(proxyData)
   }
@@ -316,15 +287,14 @@ class ProxySettings extends React.Component<Props, ProxyState> {
           Configure a HTTP(s) or SOCKS5 proxy
         </Kb.Text>
         <Kb.Box>
-          {ProxyTypeToDisplayNameList.map(proxyTypeDisplayName => (
+          {proxyTypeList.map(proxyType => (
             <Kb.Button
               style={{margin: Styles.globalMargins.tiny}}
-              onClick={() => this.setProxyType(proxyTypeDisplayName[1])}
-              type={this.state.proxyType === proxyTypeDisplayName[1] ? 'Default' : 'Dim'}
-              key={proxyTypeDisplayName[1]}
-            >
-              {proxyTypeDisplayName[1]}
-            </Kb.Button>
+              onClick={() => this.setState({proxyType})}
+              type={this.state.proxyType === proxyType ? 'Default' : 'Dim'}
+              key={proxyType}
+              label={proxyTypeToDisplayName[proxyType]}
+            />
           ))}
         </Kb.Box>
         <Kb.Box2
@@ -335,13 +305,13 @@ class ProxySettings extends React.Component<Props, ProxyState> {
           <Kb.Input
             hintText="Proxy Address"
             value={this.state.address}
-            onChangeText={addr => this.handleAddressChange(addr)}
+            onChangeText={address => this.setState({address})}
             style={{margin: Styles.globalMargins.medium, width: 400}}
           />
           <Kb.Input
             hintText="Proxy Port"
             value={this.state.port}
-            onChangeText={port => this.handlePortChange(port)}
+            onChangeText={port => this.setState({port})}
             style={{margin: Styles.globalMargins.medium, width: 200}}
           />
         </Kb.Box2>
