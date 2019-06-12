@@ -85,45 +85,49 @@ class GetTitles extends React.Component<Props, State> {
     return (
       <Kb.ScrollView style={styles.scrollView}>
         <Kb.Box style={styles.container}>
-          <Kb.Box style={styles.imageContainer}>
-            {info.type === 'image' ? (
-              <Kb.OrientedImage
-                src={Styles.isAndroid ? `file://${path}` : path}
-                style={styles.image}
+          <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.upperContainer}>
+            <Kb.Box style={styles.imageContainer}>
+              {info.type === 'image' ? (
+                <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+              ) : (
+                <Kb.Icon type="icon-file-uploading-48" />
+              )}
+            </Kb.Box>
+            {paths.length > 0 && !Styles.isMobile && (
+              <Kb.Box2 direction="vertical" style={styles.filename}>
+                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  {info.filename} ({this.state.index + 1} of {paths.length})
+                </Kb.Text>
+              </Kb.Box2>
+            )}
+            <Kb.PlainInput
+              style={styles.input}
+              autoFocus={true}
+              placeholder={titleHint}
+              multiline={true}
+              value={info.title}
+              onEnterKeyDown={this._onNext}
+              onChangeText={this._updateTitle}
+              selectTextOnFocus={true}
+            />
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonContainer}>
+            {!Styles.isMobile && (
+              <Kb.Button
+                fullWidth={true}
+                type="Dim"
+                onClick={this.props.onCancel}
+                label="Cancel"
+                style={{marginRight: Styles.globalMargins.tiny}}
               />
-            ) : (
-              <Kb.Icon type="icon-file-uploading-48" />
             )}
-          </Kb.Box>
-          {paths.length > 0 && !Styles.isMobile && (
-            <Kb.Box2
-              direction="vertical"
-              style={styles.filename}
-            >
-              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-              <Kb.Text type="BodySmall">
-                {info.filename} ({this.state.index + 1} of {paths.length})
-              </Kb.Text>
-            </Kb.Box2>
-          )}
-          <Kb.PlainInput
-            style={styles.input}
-            autoFocus={true}
-            placeholder={titleHint}
-            multiline={true}
-            value={info.title}
-            onEnterKeyDown={this._onNext}
-            onChangeText={this._updateTitle}
-            selectTextOnFocus={true}
-          />
-          <Kb.ButtonBar style={{flexShrink: 0}}>
-            {!Styles.isMobile && <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />}
             {this._isLast() ? (
-              <Kb.WaitingButton fullWidth={Styles.isMobile} waitingKey={null} onClick={this._onNext} label="Send" />
+              <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
             ) : (
-              <Kb.Button onClick={this._onNext} label="Next" />
+              <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
             )}
-          </Kb.ButtonBar>
+          </Kb.Box2>
         </Kb.Box>
       </Kb.ScrollView>
     )
@@ -131,16 +135,26 @@ class GetTitles extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
+  buttonContainer: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      borderStyle: 'solid',
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      paddingBottom: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flex: 1,
-      justifyContent: 'center',
-      // marginBottom: 80,
-      // marginLeft: 80,
-      // marginRight: 80,
-      // marginTop: 90,
+      height: 560,
+      justifyContent: 'space-between',
+      width: 400,
     },
     isMobile: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -155,9 +169,13 @@ const styles = Styles.styleSheetCreate({
   filename: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.large,
+      marginTop: Styles.globalMargins.xsmall,
     },
     isMobile: {
+      marginTop: Styles.globalMargins.xtiny,
       maxWidth: 150,
     },
   }),
@@ -185,15 +203,11 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   input: Styles.platformStyles({
-    isElectron: {
-      flexShrink: 0,
-      marginTop: 40,
-      width: 460,
-    },
-    isMobile: {
+    common: {
       borderColor: Styles.globalColors.blue,
       borderRadius: Styles.borderRadius,
       borderWidth: 1,
+      // RN wasn't obeying `padding: Styles.globalMargins.tiny`.
       paddingBottom: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
@@ -203,11 +217,19 @@ const styles = Styles.styleSheetCreate({
   }),
   scrollView: Styles.platformStyles({
     common: {
+      backgroundColor: Styles.globalColors.blueGrey,
       height: '100%',
       width: '100%',
     },
-    isMobile: {
-      backgroundColor: Styles.globalColors.blueGrey,
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+    },
+  }),
+  upperContainer: Styles.platformStyles({
+    isElectron: {
+      marginTop: Styles.globalMargins.xlarge,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
 })
