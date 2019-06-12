@@ -5,6 +5,7 @@ export const newRoutes = {
   [Constants.aboutTab]: {getScreen: () => require('./about-container').default},
   [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
+  [Constants.fsTab]: {getScreen: () => require('./files/container').default},
   [Constants.walletsTab]: {
     getScreen: () =>
       isMobile
