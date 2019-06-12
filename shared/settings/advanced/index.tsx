@@ -291,16 +291,16 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
 
   componentWillReceiveProps(nextProps: ProxyProps) {
     if (nextProps.proxyData !== this.props.proxyData) {
-      var addressPort = nextProps.proxyData.addressWithPort.split(':')
-      var address = addressPort[0]
+      const addressPort = nextProps.proxyData.addressWithPort.split(':')
+      const address = addressPort[0]
       var port = '80'
       if (addressPort.length >= 2) {
         port = addressPort[1]
       }
 
-      var certPinning = nextProps.proxyData.certPinning
+      const certPinning = nextProps.proxyData.certPinning
 
-      var proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[nextProps.proxyData.proxyType]]
+      const proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[nextProps.proxyData.proxyType]]
 
       this.setState({address, certPinning, port, proxyType})
     }
@@ -327,16 +327,13 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
   }
 
   saveProxySettings = () => {
-    var proxyData = {
+    const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.state.certPinning,
       proxyType: (RPCTypes.ProxyType[
         DisplayNameToProxyType[this.state.proxyType]
       ] as unknown) as RPCTypes.ProxyType,
     }
-    // RPCTypes.configSetProxyDataRpcPromise({proxyData}).catch(error =>
-    //   console.warn('Error in saving proxy data:', error)
-    // )
     this.props.saveProxyData(proxyData)
   }
 
@@ -388,9 +385,11 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
             label="Allow TLS Interception"
           />
         </Kb.Box2>
-        <Kb.Button style={{margin: Styles.globalMargins.xsmall}} onClick={this.saveProxySettings}>
-          Save Proxy Settings
-        </Kb.Button>
+        <Kb.Button
+          style={{margin: Styles.globalMargins.xsmall}}
+          onClick={this.saveProxySettings}
+          label="Save Proxy Settings"
+        />
       </Kb.Box>
     )
   }
