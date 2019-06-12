@@ -86,7 +86,7 @@ func (s *SecretStoreUpgradeable) StoreSecret(mctx MetaContext, username Normaliz
 
 	fallbackBehavior := s.shouldStoreInFallback(s.options)
 	if fallbackBehavior == SecretStoreFallbackBehaviorAlways {
-		mctx.Debug("shouldStoreInFallback returned ALWAYS for options %v, storing in secondary store", s.options)
+		mctx.Debug("shouldStoreInFallback returned ALWAYS for options %+v, storing in secondary store", s.options)
 		return s.b.StoreSecret(mctx, username, secret)
 	}
 
