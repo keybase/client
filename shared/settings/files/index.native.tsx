@@ -26,7 +26,6 @@ class ThresholdDropdown extends React.PureComponent<
     return (
       <>
         <Kb.DropdownButton
-          onPress={this.state.visible ? this._show : this._hide}
           disabled={!this.props.spaceAvailableNotificationThreshold}
           selected={<Kb.Text type="Body">{this.props.humanizedNotificationThreshold}</Kb.Text>}
           toggleOpen={this._toggleShowingMenu}
