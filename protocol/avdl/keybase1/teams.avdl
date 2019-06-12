@@ -95,7 +95,7 @@ protocol teams {
   @lint("ignore")
   record PerTeamKey {
     PerTeamKeyGeneration gen;
-    Seqno seqno;
+    Seqno seqno; // 0 if in the hidden chain
     KID sigKID;
     KID encKID;
   }

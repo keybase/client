@@ -744,11 +744,8 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 
 		ptkGen := keybase1.PerTeamKeyGeneration(gen)
 
-		var seqno keybase1.Seqno
-		chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(ptkGen)
-		if err == nil {
-			seqno = chainKey.Seqno
-		} else if !hiddenPackage.HasReaderPerTeamKeyAtGeneration(ptkGen) {
+		chainKey, err := TeamSigChainState{inner: state.Chain, hidden: hiddenPackage.ChainData()}.GetPerTeamKeyAtGeneration(ptkGen)
+		if err != nil {
 			return err
 		}
 
@@ -756,7 +753,7 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 		state.PerTeamKeySeedsUnverified[ptkGen] = keybase1.PerTeamKeySeedItem{
 			Seed:       seed,
 			Generation: ptkGen,
-			Seqno:      seqno,
+			Seqno:      chainKey.Seqno,
 		}
 	}
 

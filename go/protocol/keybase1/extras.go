@@ -2939,6 +2939,25 @@ func (h HiddenTeamChain) LastReaderPerTeamKey() (ret LinkID) {
 	return tmp
 }
 
+func (h *HiddenTeamChain) GetReaderPerTeamKeyAtGeneration(g PerTeamKeyGeneration) (ret PerTeamKey, found bool) {
+	if h == nil {
+		return ret, false
+	}
+	q, ok := h.ReaderPerTeamKeys[g]
+	if !ok {
+		return ret, false
+	}
+	inner, ok := h.Inner[q]
+	if !ok {
+		return ret, false
+	}
+	key, ok := inner.Ptk[PTKType_READER]
+	if !ok {
+		return ret, false
+	}
+	return key.Ptk, true
+}
+
 func (h *HiddenTeamChain) MaxReaderPerTeamKeyGeneration() PerTeamKeyGeneration {
 	if h == nil {
 		return PerTeamKeyGeneration(0)
