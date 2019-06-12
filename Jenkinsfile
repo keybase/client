@@ -584,6 +584,11 @@ def testGo(prefix, packagesToTest) {
         'github.com/keybase/client/go/chat': [
           disable: true,
         ],
+        'github.com/keybase/client/go/kbfs/test': [
+          name: 'kbfs_test_dokan',
+          flags: '-tags dokan',
+          timeout: '15m',
+        ],
       ],
     ]
     def getOverallTimeout = { testSpec ->
