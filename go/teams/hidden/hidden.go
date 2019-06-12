@@ -352,6 +352,9 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	return &bun, ratchet, nil
 }
 
+// LoadPackage contains a snapshot of the hidden team chain, used during the process of loading a team.
+// It additionally can have new chain links loaded from the server, since it might need to be queried
+// in the process of loading the team as if the new links were already commited to the data store.
 type LoaderPackage struct {
 	id               keybase1.TeamID
 	encKID           keybase1.KID
