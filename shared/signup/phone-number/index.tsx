@@ -5,9 +5,11 @@ import {SignupScreen} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
-type Props = {
+export type Props = {
+  error: string
   onContinue: (phoneNumber: string, allowSearch: boolean) => void
   onSkip: () => void
+  waiting: boolean
 }
 
 const EnterPhoneNumber = (props: Props) => {
@@ -15,14 +17,27 @@ const EnterPhoneNumber = (props: Props) => {
   const [valid, onChangeValidity] = React.useState(false)
   const [allowSearch, onChangeAllowSearch] = React.useState(false)
   const disabled = !valid
-  const onContinue = () => (disabled ? {} : props.onContinue(phoneNumber, allowSearch))
+  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(phoneNumber, allowSearch))
   return (
     <SignupScreen
       buttons={[
-        {disabled, label: 'Continue', onClick: onContinue, type: 'Success' as ButtonType},
+        {
+          disabled,
+          label: 'Continue',
+          onClick: onContinue,
+          type: 'Success' as ButtonType,
+          waiting: props.waiting,
+        },
         ...(Styles.isMobile
           ? []
-          : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
+          : [
+              {
+                disabled: props.waiting,
+                label: 'Skip for now',
+                onClick: props.onSkip,
+                type: 'Dim' as ButtonType,
+              },
+            ]),
       ]}
       rightActionLabel="Skip"
       onRightAction={props.onSkip}

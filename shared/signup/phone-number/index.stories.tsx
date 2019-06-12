@@ -5,8 +5,10 @@ import EnterPhoneNumber from '.'
 import VerifyPhoneNumber from './verify'
 
 const props = {
+  error: '',
   onContinue: Sb.action('onFinish'),
   onSkip: Sb.action('onSkip'),
+  waiting: false,
 }
 
 const verifyProps = {
