@@ -78,7 +78,12 @@ func (s *SignupEngine) GetMe() *libkb.User {
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#Run", func() error { return err })()
 
-	// make sure we're starting with a clear login state:
+	// Make sure we're starting with a clear login state. But check
+	// if it's fine to logout current user.
+	if clRes := libkb.CanLogout(m); !clRes.CanLogout {
+		return fmt.Errorf("Cannot signup because of currently logged in user: %s", clRes.Reason)
+	}
+
 	if err = m.G().Logout(m.Ctx()); err != nil {
 		return err
 	}

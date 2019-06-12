@@ -23,6 +23,8 @@ type signupAPIMock struct {
 	failEverything       bool
 }
 
+var _ API = (*signupAPIMock)(nil)
+
 func (n *signupAPIMock) Post(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
 	fmt.Printf("Post: %s\n", args.Endpoint)
 	return n.realAPI.Post(m, args)
@@ -69,7 +71,7 @@ func (n *signupAPIMock) GetDecodeCtx(ctx context.Context, args libkb.APIArg, wra
 
 func TestSignupFailProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
-	//defer tc.Cleanup()
+	defer tc.Cleanup()
 
 	fakeAPI := &signupAPIMock{t: t, realAPI: tc.G.API}
 	tc.G.API = fakeAPI
@@ -102,6 +104,7 @@ func TestSignupFailProvision(t *testing.T) {
 	fu.EncryptionKey = s.encryptionKey
 
 	t.Logf("Signup failed with: %s", err)
+	require.True(t, fakeAPI.failEverything)
 
 	// Restore real API access.
 	tc.G.API = fakeAPI.realAPI

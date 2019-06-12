@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"errors"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -74,14 +75,20 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	apiArg.Endpoint = "key/multi"
 	apiArg.JSONPayload = payload
 
-	// TODO: For testing, delete me
-	// return errors.New("Erroring anyway in key/multi delegate key")
-	//
-
 	_, err = m.G().API.PostJSON(m, apiArg)
 	if err != nil {
 		return err
 	}
+
+	// TODO: REMOVE
+	realAPI := m.G().API
+	m.G().API = &offlineAPI{}
+	go func() {
+		time.Sleep(5000)
+		m.G().API = realAPI
+	}()
+	return errors.New("Erroring anyway in key/multi delegate key")
+	// TODO: ------
 
 	return MerkleCheckPostedUserSig(m, uid, lastSeqno, lastLinkID)
 }
