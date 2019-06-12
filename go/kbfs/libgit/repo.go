@@ -388,10 +388,10 @@ func createNewRepoAndID(
 
 func lookupOrCreateDir(ctx context.Context, config libkbfs.Config,
 	n libkbfs.Node, name string) (libkbfs.Node, error) {
-	newNode, _, err := config.KBFSOps().Lookup(ctx, n, name)
+	newNode, _, err := config.KBFSOps().Lookup(ctx, n, n.ChildName(name))
 	switch errors.Cause(err).(type) {
 	case idutil.NoSuchNameError:
-		newNode, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+		newNode, _, err = config.KBFSOps().CreateDir(ctx, n, n.ChildName(name))
 		if err != nil {
 			return nil, err
 		}
@@ -441,7 +441,8 @@ func getOrCreateRepoAndID(
 		return nil, NullID, err
 	}
 
-	_, repoEI, err := config.KBFSOps().Lookup(ctx, repoDir, normalizedRepoName)
+	repoNamePPS := repoDir.ChildName(normalizedRepoName)
+	_, repoEI, err := config.KBFSOps().Lookup(ctx, repoDir, repoNamePPS)
 	switch errors.Cause(err).(type) {
 	case idutil.NoSuchNameError:
 		if op == getOnly {
@@ -459,7 +460,7 @@ func getOrCreateRepoAndID(
 			config.MakeLogger("").CDebugf(
 				ctx, "Overwriting symlink for repo %s with a new repo",
 				normalizedRepoName)
-			err = config.KBFSOps().RemoveEntry(ctx, repoDir, normalizedRepoName)
+			err = config.KBFSOps().RemoveEntry(ctx, repoDir, repoNamePPS)
 			if err != nil {
 				return nil, NullID, err
 			}
@@ -608,12 +609,14 @@ func DeleteRepo(
 	}
 	normalizedRepoName := normalizeRepoName(repoName)
 
-	repoNode, _, err := kbfsOps.Lookup(ctx, rootNode, kbfsRepoDir)
+	repoNode, _, err := kbfsOps.Lookup(
+		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
 	if err != nil {
 		return castNoSuchNameError(err, repoName)
 	}
 
-	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedRepoName)
+	repoNamePPS := repoNode.ChildName(normalizedRepoName)
+	_, _, err = kbfsOps.Lookup(ctx, repoNode, repoNamePPS)
 	if err != nil {
 		return castNoSuchNameError(err, repoName)
 	}
@@ -631,8 +634,8 @@ func DeleteRepo(
 	dirSuffix := fmt.Sprintf(
 		"%s-%d", session.VerifyingKey.String(), config.Clock().Now().UnixNano())
 	return kbfsOps.Rename(
-		ctx, repoNode, normalizedRepoName, deletedReposNode,
-		normalizedRepoName+dirSuffix)
+		ctx, repoNode, repoNamePPS, deletedReposNode,
+		deletedReposNode.ChildName(normalizedRepoName+dirSuffix))
 }
 
 func renameRepoInConfigFile(
@@ -692,13 +695,15 @@ func RenameRepo(
 	normalizedOldRepoName := normalizeRepoName(oldRepoName)
 	normalizedNewRepoName := normalizeRepoName(newRepoName)
 
-	repoNode, _, err := kbfsOps.Lookup(ctx, rootNode, kbfsRepoDir)
+	repoNode, _, err := kbfsOps.Lookup(
+		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
 	if err != nil {
 		return err
 	}
 
 	// Does the old repo definitely exist?
-	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedOldRepoName)
+	_, _, err = kbfsOps.Lookup(
+		ctx, repoNode, repoNode.ChildName(normalizedOldRepoName))
 	if err != nil {
 		return err
 	}
@@ -748,7 +753,8 @@ func RenameRepo(
 	}
 
 	// Does the new repo not exist yet?
-	_, ei, err := kbfsOps.Lookup(ctx, repoNode, normalizedNewRepoName)
+	repoNamePPS := repoNode.ChildName(normalizedNewRepoName)
+	_, ei, err := kbfsOps.Lookup(ctx, repoNode, repoNamePPS)
 	switch errors.Cause(err).(type) {
 	case idutil.NoSuchNameError:
 		// The happy path.
@@ -757,8 +763,7 @@ func RenameRepo(
 			config.MakeLogger("").CDebugf(
 				ctx, "Overwriting symlink for repo %s with a new repo",
 				normalizedNewRepoName)
-			err = config.KBFSOps().RemoveEntry(
-				ctx, repoNode, normalizedNewRepoName)
+			err = config.KBFSOps().RemoveEntry(ctx, repoNode, repoNamePPS)
 			if err != nil {
 				return err
 			}

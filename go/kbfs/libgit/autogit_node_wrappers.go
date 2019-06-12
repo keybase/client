@@ -136,11 +136,12 @@ var _ libkbfs.Node = (*repoDirNode)(nil)
 // ShouldCreateMissedLookup implements the Node interface for
 // repoDirNode.
 func (rdn *repoDirNode) ShouldCreateMissedLookup(
-	ctx context.Context, name string) (
+	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	namePlain := name.Plaintext()
 	switch {
-	case strings.HasPrefix(name, AutogitBranchPrefix):
-		branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
+	case strings.HasPrefix(namePlain, AutogitBranchPrefix):
+		branchName := strings.TrimPrefix(namePlain, AutogitBranchPrefix)
 		if len(branchName) == 0 {
 			return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
@@ -148,8 +149,8 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 		// prefix for a branch name or not, so just accept everything.
 		// If it's not legit, trying to read the data will error out.
 		return true, ctx, data.FakeDir, nil, ""
-	case strings.HasPrefix(name, AutogitCommitPrefix):
-		commit := strings.TrimPrefix(name, AutogitCommitPrefix)
+	case strings.HasPrefix(namePlain, AutogitCommitPrefix):
+		commit := strings.TrimPrefix(namePlain, AutogitCommitPrefix)
 		if len(commit) == 0 {
 			return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
@@ -207,7 +208,7 @@ func (rdn *repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 
 func (rdn *repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rdn.Node.WrapChild(child)
-	name := child.GetBasename()
+	name := child.GetBasename().Plaintext()
 
 	if rdn.subdir == "" && strings.HasPrefix(name, AutogitBranchPrefix) &&
 		rdn.gitRootFS != nil {
@@ -287,7 +288,7 @@ func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
 // WrapChild implements the Node interface for autogitRootNode.
 func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = arn.Node.WrapChild(child)
-	repo := normalizeRepoName(child.GetBasename())
+	repo := normalizeRepoName(child.GetBasename().Plaintext())
 	return &repoDirNode{
 		Node:      child,
 		am:        arn.am,
@@ -312,9 +313,10 @@ var _ libkbfs.Node = (*rootNode)(nil)
 
 // ShouldCreateMissedLookup implements the Node interface for
 // rootNode.
-func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
+func (rn *rootNode) ShouldCreateMissedLookup(
+	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, string) {
-	if name != AutogitRoot {
+	if name.Plaintext() != AutogitRoot {
 		return rn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
 
@@ -348,7 +350,7 @@ func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 // WrapChild implements the Node interface for rootNode.
 func (rn *rootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rn.Node.WrapChild(child)
-	if child.GetBasename() != AutogitRoot {
+	if child.GetBasename().Plaintext() != AutogitRoot {
 		return child
 	}
 

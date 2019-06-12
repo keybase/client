@@ -22,7 +22,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// op represents a single file-system remote-sync operation
+// op represents a single file-system remote-sync operation. Note that
+// ops store and marshal any filenames in plaintext fields, so the
+// accessed fields must be handled carefully.  `String()` prints
+// obfuscated filenames, however.
 type op interface {
 	AddRefBlock(ptr data.BlockPointer)
 	DelRefBlock(ptr data.BlockPointer)
@@ -34,6 +37,7 @@ type op interface {
 	Refs() []data.BlockPointer
 	Unrefs() []data.BlockPointer
 	String() string
+	Plaintext() string
 	StringWithRefs(indent string) string
 	setWriterInfo(writerInfo)
 	getWriterInfo() writerInfo
@@ -267,6 +271,10 @@ func (oc *OpCommon) getFinalPath() data.Path {
 	return oc.finalPath
 }
 
+func (oc *OpCommon) obfuscatedName(name string) data.PathPartString {
+	return data.NewPathPartString(name, oc.finalPath.Obfuscator())
+}
+
 func (oc *OpCommon) setLocalTimestamp(t time.Time) {
 	oc.localTimestamp = t
 }
@@ -399,7 +407,19 @@ func (co *createOp) checkValid() error {
 	return co.checkUpdatesValid()
 }
 
+func (co *createOp) obfuscatedNewName() data.PathPartString {
+	return co.obfuscatedName(co.NewName)
+}
+
 func (co *createOp) String() string {
+	res := fmt.Sprintf("create %s (%s)", co.obfuscatedNewName(), co.Type)
+	if co.renamed {
+		res += " (renamed)"
+	}
+	return res
+}
+
+func (co *createOp) Plaintext() string {
 	res := fmt.Sprintf("create %s (%s)", co.NewName, co.Type)
 	if co.renamed {
 		res += " (renamed)"
@@ -434,8 +454,8 @@ func (co *createOp) checkConflict(
 					return nil, err
 				}
 				return &renameMergedAction{
-					fromName: co.NewName,
-					toName:   toName,
+					fromName: co.obfuscatedNewName(),
+					toName:   co.obfuscatedName(toName),
 					symPath:  co.crSymPath,
 				}, nil
 			}
@@ -446,8 +466,8 @@ func (co *createOp) checkConflict(
 				return nil, err
 			}
 			return &renameUnmergedAction{
-				fromName: co.NewName,
-				toName:   toName,
+				fromName: co.obfuscatedNewName(),
+				toName:   co.obfuscatedName(toName),
 				symPath:  co.crSymPath,
 			}, nil
 		}
@@ -467,8 +487,8 @@ func (co *createOp) checkConflict(
 				return nil, err
 			}
 			return &copyUnmergedEntryAction{
-				fromName: co.NewName,
-				toName:   toName,
+				fromName: co.obfuscatedNewName(),
+				toName:   co.obfuscatedName(toName),
 				symPath:  co.crSymPath,
 				unique:   true,
 			}, nil
@@ -480,16 +500,17 @@ func (co *createOp) checkConflict(
 }
 
 func (co *createOp) getDefaultAction(mergedPath data.Path) crAction {
+	newName := co.obfuscatedNewName()
 	if co.forceCopy {
 		return &renameUnmergedAction{
-			fromName: co.NewName,
-			toName:   co.NewName,
+			fromName: newName,
+			toName:   newName,
 			symPath:  co.crSymPath,
 		}
 	}
 	return &copyUnmergedEntryAction{
-		fromName: co.NewName,
-		toName:   co.NewName,
+		fromName: newName,
+		toName:   newName,
 		symPath:  co.crSymPath,
 	}
 }
@@ -522,8 +543,8 @@ func (co *createOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, co.Type)
-	n.Filename = co.getFinalPath().ChildPathNoPtr(co.NewName).
-		CanonicalPathString()
+	n.Filename = co.getFinalPath().ChildPathNoPtr(co.obfuscatedNewName(), nil).
+		CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationCreate
 	return &n
 }
@@ -594,7 +615,15 @@ func (ro *rmOp) checkValid() error {
 	return ro.checkUpdatesValid()
 }
 
+func (ro *rmOp) obfuscatedOldName() data.PathPartString {
+	return ro.obfuscatedName(ro.OldName)
+}
+
 func (ro *rmOp) String() string {
+	return fmt.Sprintf("rm %s", ro.obfuscatedOldName())
+}
+
+func (ro *rmOp) Plaintext() string {
 	return fmt.Sprintf("rm %s", ro.OldName)
 }
 
@@ -630,7 +659,7 @@ func (ro *rmOp) getDefaultAction(mergedPath data.Path) crAction {
 	if ro.dropThis {
 		return &dropUnmergedAction{op: ro}
 	}
-	return &rmMergedEntryAction{name: ro.OldName}
+	return &rmMergedEntryAction{name: ro.obfuscatedOldName()}
 }
 
 func (ro *rmOp) ToEditNotification(
@@ -638,8 +667,8 @@ func (ro *rmOp) ToEditNotification(
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RemovedType)
-	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.OldName).
-		CanonicalPathString()
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.obfuscatedOldName(), nil).
+		CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationDelete
 	return &n
 }
@@ -747,7 +776,20 @@ func (ro *renameOp) checkValid() error {
 	return ro.checkUpdatesValid()
 }
 
+func (ro *renameOp) obfuscatedOldName() data.PathPartString {
+	return ro.obfuscatedName(ro.OldName)
+}
+
+func (ro *renameOp) obfuscatedNewName() data.PathPartString {
+	return ro.obfuscatedName(ro.NewName)
+}
+
 func (ro *renameOp) String() string {
+	return fmt.Sprintf("rename %s -> %s (%s)",
+		ro.obfuscatedOldName(), ro.obfuscatedNewName(), ro.RenamedType)
+}
+
+func (ro *renameOp) Plaintext() string {
 	return fmt.Sprintf("rename %s -> %s (%s)",
 		ro.OldName, ro.NewName, ro.RenamedType)
 }
@@ -782,12 +824,12 @@ func (ro *renameOp) ToEditNotification(
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(
 		rev, revTime, device, uid, tlfID, ro.RenamedType)
-	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.NewName).
-		CanonicalPathString()
+	n.Filename = ro.getFinalPath().ChildPathNoPtr(ro.obfuscatedNewName(), nil).
+		CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationRename
 	n.Params = &kbfsedits.NotificationParams{
-		OldFilename: ro.oldFinalPath.ChildPathNoPtr(ro.OldName).
-			CanonicalPathString(),
+		OldFilename: ro.oldFinalPath.ChildPathNoPtr(
+			ro.obfuscatedOldName(), nil).CanonicalPathPlaintext(),
 	}
 	return &n
 }
@@ -928,6 +970,10 @@ func (so *syncOp) String() string {
 	return fmt.Sprintf("sync [%s]", strings.Join(writes, ", "))
 }
 
+func (so *syncOp) Plaintext() string {
+	return so.String()
+}
+
 func (so *syncOp) StringWithRefs(indent string) string {
 	res := so.String() + "\n"
 	res += indent + fmt.Sprintf("File: %v -> %v\n", so.File.Unref, so.File.Ref)
@@ -944,18 +990,18 @@ func (so *syncOp) checkConflict(
 		// type-specific intelligent conflict resolvers for file
 		// contents?)
 		toName, err := renamer.ConflictRename(
-			ctx, so, mergedOp.getFinalPath().TailName())
+			ctx, so, mergedOp.getFinalPath().TailName().Plaintext())
 		if err != nil {
 			return nil, err
 		}
 
 		if so.keepUnmergedTailName {
-			toName = so.getFinalPath().TailName()
+			toName = so.getFinalPath().TailName().Plaintext()
 		}
 
 		return &renameUnmergedAction{
 			fromName:                 so.getFinalPath().TailName(),
-			toName:                   toName,
+			toName:                   so.obfuscatedName(toName),
 			unmergedParentMostRecent: so.getFinalPath().ParentPath().TailPointer(),
 			mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
 				TailPointer(),
@@ -984,7 +1030,7 @@ func (so *syncOp) ToEditNotification(
 	rev kbfsmd.Revision, revTime time.Time, device kbfscrypto.VerifyingKey,
 	uid keybase1.UID, tlfID tlf.ID) *kbfsedits.NotificationMessage {
 	n := makeBaseEditNotification(rev, revTime, device, uid, tlfID, data.File)
-	n.Filename = so.getFinalPath().CanonicalPathString()
+	n.Filename = so.getFinalPath().CanonicalPathPlaintext()
 	n.Type = kbfsedits.NotificationModify
 	var mods []kbfsedits.ModifyRange
 	for _, w := range so.Writes {
@@ -1211,7 +1257,16 @@ func (sao *setAttrOp) checkValid() error {
 	return sao.checkUpdatesValid()
 }
 
+func (sao *setAttrOp) obfuscatedEntryName() data.PathPartString {
+	return data.NewPathPartString(
+		sao.Name, sao.finalPath.ParentPath().Obfuscator())
+}
+
 func (sao *setAttrOp) String() string {
+	return fmt.Sprintf("setAttr %s (%s)", sao.obfuscatedEntryName(), sao.Attr)
+}
+
+func (sao *setAttrOp) Plaintext() string {
 	return fmt.Sprintf("setAttr %s (%s)", sao.Name, sao.Attr)
 }
 
@@ -1235,25 +1290,28 @@ func (sao *setAttrOp) checkConflict(
 				// A directory has a conflict on an mtime attribute.
 				// Create a symlink entry with the unmerged mtime
 				// pointing to the merged entry.
-				symPath = mergedOp.getFinalPath().TailName()
+				symPath = mergedOp.getFinalPath().TailName().Plaintext()
 				causedByAttr = sao.Attr
 			}
 
 			// A set attr for the same attribute on the same file is a
 			// conflict.
 			fromName := sao.getFinalPath().TailName()
-			toName, err := renamer.ConflictRename(ctx, sao, fromName)
+			toName, err := renamer.ConflictRename(
+				ctx, sao, fromName.Plaintext())
 			if err != nil {
 				return nil, err
 			}
 
 			if sao.keepUnmergedTailName {
-				toName = sao.getFinalPath().TailName()
+				toName = sao.getFinalPath().TailName().Plaintext()
 			}
 
+			toNamePPS := data.NewPathPartString(
+				toName, sao.finalPath.ParentPath().Obfuscator())
 			return &renameUnmergedAction{
 				fromName:                 fromName,
-				toName:                   toName,
+				toName:                   toNamePPS,
 				symPath:                  symPath,
 				causedByAttr:             causedByAttr,
 				unmergedParentMostRecent: sao.getFinalPath().ParentPath().TailPointer(),
@@ -1324,6 +1382,10 @@ func (ro *resolutionOp) String() string {
 	return "resolution"
 }
 
+func (ro *resolutionOp) Plaintext() string {
+	return ro.String()
+}
+
 func (ro *resolutionOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
 	res += ro.stringWithRefs(indent)
@@ -1382,6 +1444,10 @@ func (ro *rekeyOp) checkValid() error {
 
 func (ro *rekeyOp) String() string {
 	return "rekey"
+}
+
+func (ro *rekeyOp) Plaintext() string {
+	return ro.String()
 }
 
 func (ro *rekeyOp) StringWithRefs(indent string) string {
@@ -1443,6 +1509,11 @@ func (gco *GCOp) checkValid() error {
 
 func (gco *GCOp) String() string {
 	return fmt.Sprintf("gc %d", gco.LatestRev)
+}
+
+// Plaintext implements op.
+func (gco *GCOp) Plaintext() string {
+	return gco.String()
 }
 
 // StringWithRefs implements the op interface for GCOp.
@@ -1518,7 +1589,7 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 	case *rekeyOp:
 		newOp = newRekeyOp()
 	}
-
+	newOp.setFinalPath(oldOp.getFinalPath())
 	// Now reverse all the block updates.  Don't bother with bare Refs
 	// and Unrefs since they don't matter for local notification
 	// purposes.

@@ -164,7 +164,7 @@ type Node interface {
 	GetFolderBranch() data.FolderBranch
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
-	GetBasename() string
+	GetBasename() data.PathPartString
 	// Readonly returns true if KBFS should outright reject any write
 	// attempts on data or directory structures of this node.  Though
 	// note that even if it returns false, KBFS can reject writes to
@@ -188,7 +188,7 @@ type Node interface {
 	// wraps another `Node` (`inner`) must return
 	// `inner.ShouldCreateMissedLookup()` if it decides not to return
 	// `true` on its own.
-	ShouldCreateMissedLookup(ctx context.Context, name string) (
+	ShouldCreateMissedLookup(ctx context.Context, name data.PathPartString) (
 		shouldCreate bool, newCtx context.Context, et data.EntryType,
 		fi os.FileInfo, sympath string)
 	// ShouldRetryOnDirRead is called for Nodes representing
@@ -201,7 +201,7 @@ type Node interface {
 	// `RemoveDir` flow, to give the Node a chance to handle it in a
 	// custom way.  If the `Node` handles it internally, it should
 	// return `true`.
-	RemoveDir(ctx context.Context, dirName string) (
+	RemoveDir(ctx context.Context, dirName data.PathPartString) (
 		removeHandled bool, err error)
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
@@ -236,6 +236,9 @@ type Node interface {
 	// entries of this Node in the case of directories; for other
 	// types, it returns nil.
 	Obfuscator() data.Obfuscator
+	// ChildName returns an obfuscatable version of the given name of
+	// a child entry of this node.
+	ChildName(name string) data.PathPartString
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -271,6 +274,11 @@ type Node interface {
 // Context derived from it), allowing the caller to determine whether
 // the notification is a result of their own action or an external
 // action.
+//
+// Each directory and file name is specified with a
+// `data.PathPartString`, to protect against accidentally logging
+// plaintext filenames.  These can be easily created from the parent
+// node's `Node` object with the `ChildName` function.
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation when the cache
@@ -333,12 +341,14 @@ type KBFSOps interface {
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
 	// operation.
-	GetDirChildren(ctx context.Context, dir Node) (map[string]data.EntryInfo, error)
+	GetDirChildren(ctx context.Context, dir Node) (
+		map[data.PathPartString]data.EntryInfo, error)
 	// Lookup returns the Node and entry info associated with a
 	// given name in a directory, if the logged-in user has read
 	// permissions to the top-level folder.  The returned Node is nil
 	// if the name is a symlink.  This is a remote-access operation.
-	Lookup(ctx context.Context, dir Node, name string) (Node, data.EntryInfo, error)
+	Lookup(ctx context.Context, dir Node, name data.PathPartString) (
+		Node, data.EntryInfo, error)
 	// Stat returns the entry info associated with a
 	// given Node, if the logged-in user has read permissions to the
 	// top-level folder.  This is a remote-access operation.
@@ -347,7 +357,7 @@ type KBFSOps interface {
 	// the logged-in user has write permission to the top-level
 	// folder.  Returns the new Node for the created subdirectory, and
 	// its new entry info.  This is a remote-sync operation.
-	CreateDir(ctx context.Context, dir Node, name string) (
+	CreateDir(ctx context.Context, dir Node, name data.PathPartString) (
 		Node, data.EntryInfo, error)
 	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
@@ -357,23 +367,25 @@ type KBFSOps interface {
 	// Unix open() call.
 	//
 	// This is a remote-sync operation.
-	CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
-		Node, data.EntryInfo, error)
+	CreateFile(
+		ctx context.Context, dir Node, name data.PathPartString, isExec bool,
+		excl Excl) (Node, data.EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new entry info for the created symlink.  This
 	// is a remote-sync operation.
-	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
-		data.EntryInfo, error)
+	CreateLink(
+		ctx context.Context, dir Node, fromName data.PathPartString,
+		toPath string) (data.EntryInfo, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is
 	// not empty.  This is a remote-sync operation.
-	RemoveDir(ctx context.Context, dir Node, dirName string) error
+	RemoveDir(ctx context.Context, dir Node, dirName data.PathPartString) error
 	// RemoveEntry removes the directory entry represented by the
 	// given node, if the logged-in user has write permission to the
 	// top-level folder.  This is a remote-sync operation.
-	RemoveEntry(ctx context.Context, dir Node, name string) error
+	RemoveEntry(ctx context.Context, dir Node, name data.PathPartString) error
 	// Rename performs an atomic rename operation with a given
 	// top-level folder if the logged-in user has write permission to
 	// that folder, and will return an error if nodes from different
@@ -381,8 +393,9 @@ type KBFSOps interface {
 	// already has an entry corresponding to an existing directory
 	// (only non-dir types may be renamed over).  This is a
 	// remote-sync operation.
-	Rename(ctx context.Context, oldParent Node, oldName string, newParent Node,
-		newName string) error
+	Rename(
+		ctx context.Context, oldParent Node, oldName data.PathPartString,
+		newParent Node, newName data.PathPartString) error
 	// Read fills in the given buffer with data from the file at the
 	// given node starting at the given offset, if the logged-in user
 	// has read permission to the top-level folder.  The read data
@@ -819,6 +832,10 @@ type mdDecryptionKeyGetter interface {
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
 		kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
+	// GetFirstTLFCryptKey gets the first valid crypt key for the
+	// TLF with the given metadata.
+	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
+		kbfscrypto.TLFCryptKey, error)
 }
 
 type blockDecryptionKeyGetter interface {
@@ -839,11 +856,6 @@ type blockKeyGetter interface {
 type KeyManager interface {
 	blockKeyGetter
 	mdDecryptionKeyGetter
-
-	// GetFirstTLFCryptKey gets the first valid crypt key for the
-	// TLF with the given metadata.
-	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
-		kbfscrypto.TLFCryptKey, error)
 
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
@@ -1756,7 +1768,7 @@ type blockServerLocal interface {
 type NodeChange struct {
 	Node Node
 	// Basenames of entries added/removed.
-	DirUpdated  []string
+	DirUpdated  []data.PathPartString
 	FileUpdated []WriteRange
 }
 
@@ -2128,7 +2140,8 @@ type NodeCache interface {
 	// "parent" parameters here.  name must not be empty. Returns
 	// an error if parent cannot be found.
 	GetOrCreate(
-		ptr data.BlockPointer, name string, parent Node, et data.EntryType) (Node, error)
+		ptr data.BlockPointer, name data.PathPartString, parent Node,
+		et data.EntryType) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.
 	Get(ref data.BlockRef) Node
@@ -2145,7 +2158,7 @@ type NodeCache interface {
 	// called to undo the effect of the move (or `nil` if nothing
 	// needs to be done); if newParent cannot be found, it returns an
 	// error and a `nil` undo function.
-	Move(ref data.BlockRef, newParent Node, newName string) (
+	Move(ref data.BlockRef, newParent Node, newName data.PathPartString) (
 		undoFn func(), err error)
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
@@ -2154,7 +2167,8 @@ type NodeCache interface {
 	// already that shouldn't be reflected in the cached path.  It
 	// returns a function that can be called to undo the effect of the
 	// unlink (or `nil` if nothing needs to be done).
-	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (undoFn func())
+	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (
+		undoFn func())
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
@@ -2189,7 +2203,8 @@ type NodeCache interface {
 // (duplicating pointer for any indirect blocks) and generates a new
 // random temporary block ID for it.  It returns the new BlockPointer,
 // and internally saves the block for future uses.
-type fileBlockDeepCopier func(context.Context, string, data.BlockPointer) (
+type fileBlockDeepCopier func(
+	context.Context, data.PathPartString, data.BlockPointer) (
 	data.BlockPointer, error)
 
 // crAction represents a specific action to take as part of the

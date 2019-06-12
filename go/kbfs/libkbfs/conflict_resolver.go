@@ -489,7 +489,7 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	// If there are no new merged changes, don't make any merged
 	// chains.
 	if len(merged) == 0 {
-		return unmergedChains, newCRChainsEmpty(), nil
+		return unmergedChains, newCRChainsEmpty(nil), nil
 	}
 
 	mergedChains, err = newCRChainsForIRMDs(
@@ -583,8 +583,9 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	mergedPath := data.Path{
 		FolderBranch: mergedCop.getFinalPath().FolderBranch,
 		Path: []data.PathNode{
-			{BlockPointer: mergedChain.mostRecent, Name: ""},
-			{BlockPointer: data.ZeroPtr, Name: mergedCop.NewName},
+			{BlockPointer: mergedChain.mostRecent,
+				Name: data.NewPathPartString("", nil)},
+			{BlockPointer: data.ZeroPtr, Name: mergedCop.obfuscatedNewName()},
 		},
 	}
 	kmd := mergedChains.mostRecentChainMDInfo
@@ -599,8 +600,9 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	unmergedPath := data.Path{
 		FolderBranch: mergedCop.getFinalPath().FolderBranch,
 		Path: []data.PathNode{
-			{BlockPointer: unmergedChain.mostRecent, Name: ""},
-			{BlockPointer: data.ZeroPtr, Name: mergedCop.NewName},
+			{BlockPointer: unmergedChain.mostRecent,
+				Name: data.NewPathPartString("", nil)},
+			{BlockPointer: data.ZeroPtr, Name: mergedCop.obfuscatedNewName()},
 		},
 	}
 	unmergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, unmergedPath)
@@ -714,7 +716,9 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 			return nil, fmt.Errorf("Change original (%v -> %v) didn't work",
 				unmergedOriginal, mergedOriginal)
 		}
-		newPath := unmergedPath.ChildPath(cop.NewName, unmergedChain.mostRecent)
+		newPath := unmergedPath.ChildPath(
+			cop.obfuscatedNewName(), unmergedChain.mostRecent,
+			unmergedChain.obfuscator)
 		if cop.Type == data.Dir {
 			// recurse for this chain
 			newPaths, err := cr.checkPathForMerge(ctx, unmergedChain, newPath,
@@ -926,7 +930,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		if err != nil {
 			return data.Path{}, data.BlockPointer{}, nil, err
 		}
-		co, err := newCreateOp(name, parentOriginal, de.Type)
+		co, err := newCreateOp(name.Plaintext(), parentOriginal, de.Type)
 		if err != nil {
 			return data.Path{}, data.BlockPointer{}, nil, err
 		}
@@ -1042,7 +1046,8 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			}
 			mostRecent = mostRecentParent
 			// update the name for this renamed node
-			mergedPath.Path[len(mergedPath.Path)-1].Name = newName
+			mergedPath.Path[len(mergedPath.Path)-1].Name =
+				data.NewPathPartString(newName, mergedPath.Obfuscator())
 			break
 		}
 	}
@@ -1543,7 +1548,7 @@ func (cr *ConflictResolver) getSingleUnmergedPath(
 	data.Path, error) {
 	// Reuse some code by creating a new chains object
 	// consisting of only this node.
-	newChains := newCRChainsEmpty()
+	newChains := newCRChainsEmpty(cr.fbo.makeObfuscator)
 	newChains.byOriginal[chain.original] = chain
 	newChains.byMostRecent[chain.mostRecent] = chain
 	// Fake out the rest of the chains to populate newPtrs.
@@ -1554,6 +1559,7 @@ func (cr *ConflictResolver) getSingleUnmergedPath(
 		newChain := &crChain{
 			original:   c.original,
 			mostRecent: c.mostRecent,
+			obfuscator: newChains.makeObfuscator(),
 		}
 		newChains.byOriginal[c.original] = newChain
 		newChains.byMostRecent[c.mostRecent] = newChain
@@ -1635,7 +1641,10 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		if crConflictCheckQuick(unmergedChain, mergedChain) {
 			cr.log.CDebugf(ctx, "File that was renamed on the unmerged "+
 				"branch from %s -> %s has conflicting edits, forking "+
-				"(original ptr %v)", info.oldName, info.newName, ptr)
+				"(original ptr %v)",
+				data.NewPathPartString(info.oldName, unmergedChain.obfuscator),
+				data.NewPathPartString(info.newName, unmergedChain.obfuscator),
+				ptr)
 			oldParent := unmergedChains.byOriginal[info.originalOldParent]
 			for _, op := range oldParent.ops {
 				ro, ok := op.(*rmOp)
@@ -1821,7 +1830,10 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		if crConflictCheckQuick(unmergedChain, mergedChain) {
 			cr.log.CDebugf(ctx, "File that was renamed on the merged "+
 				"branch from %s -> %s has conflicting edits, forking "+
-				"(original ptr %v)", info.oldName, info.newName, ptr)
+				"(original ptr %v)",
+				data.NewPathPartString(info.oldName, unmergedChain.obfuscator),
+				data.NewPathPartString(info.newName, unmergedChain.obfuscator),
+				ptr)
 			var unmergedParentPath data.Path
 			for _, op := range unmergedChain.ops {
 				switch realOp := op.(type) {
@@ -1846,11 +1858,13 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 					if err != nil {
 						return nil, err
 					}
+					oldPPS := data.NewPathPartString(
+						info.oldName, unmergedParentPath.Obfuscator())
 					forkedFromMergedRenames[mergedParent] =
 						append(forkedFromMergedRenames[mergedParent],
 							data.PathNode{
 								BlockPointer: unmergedChain.mostRecent,
-								Name:         info.oldName,
+								Name:         oldPPS,
 							})
 					newUnmergedPaths =
 						append(newUnmergedPaths, unmergedParentPath)
@@ -1961,7 +1975,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		// Move up directories starting from beyond the common parent,
 		// to right before the actual node.
 		for i := newParentStart + 1; i < len(mergedPathNewParent.Path)-1; i++ {
-			symPath += mergedPathNewParent.Path[i].Name + "/"
+			symPath += mergedPathNewParent.Path[i].Name.Plaintext() + "/"
 		}
 		symPath += mergedInfo.newName
 
@@ -1983,7 +1997,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		mergedPathNewParent := mergedNodeCache.PathFromNode(node)
 		for _, pNode := range pathNodes {
 			mergedPath := mergedPathNewParent.ChildPath(
-				pNode.Name, pNode.BlockPointer)
+				pNode.Name, pNode.BlockPointer, cr.fbo.makeObfuscator())
 			mergedPaths[pNode.BlockPointer] = mergedPath
 		}
 	}
@@ -2072,6 +2086,7 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 					}
 					co.AddRefBlock(c.mostRecent)
 					co.setWriterInfo(mostRecentMergedWriterInfo)
+					chain.ensurePath(co, chain.mostRecent)
 					chain.ops = append([]op{co}, chain.ops...)
 					cr.log.CDebugf(ctx, "Re-created rm'd merge-modified node "+
 						"%v with operation %s in parent %v", unrefOriginal, co,
@@ -2283,12 +2298,13 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 }
 
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
-	lState *kbfssync.LockState, chains *crChains, mergedMostRecent data.BlockPointer,
-	parentPath data.Path, name string, ptr data.BlockPointer, blocks fileBlockMap,
+	lState *kbfssync.LockState, chains *crChains,
+	mergedMostRecent data.BlockPointer, parentPath data.Path,
+	name data.PathPartString, ptr data.BlockPointer, blocks fileBlockMap,
 	dirtyBcache data.DirtyBlockCacheSimple) (data.BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo
 
-	file := parentPath.ChildPath(name, ptr)
+	file := parentPath.ChildPath(name, ptr, nil)
 	oldInfos, err := cr.fbo.blocks.getIndirectFileBlockInfosLocked(
 		ctx, lState, kmd, file)
 	if err != nil {
@@ -2328,7 +2344,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		}
 	}
 
-	err = blocks.putTopBlock(ctx, mergedMostRecent, name, fblock)
+	err = blocks.putTopBlock(ctx, mergedMostRecent, name.Plaintext(), fblock)
 	if err != nil {
 		return data.BlockPointer{}, err
 	}
@@ -2432,13 +2448,15 @@ func (cr *ConflictResolver) doOneAction(
 
 		// Any file block copies, keyed by their new temporary block
 		// IDs, and later we will ready them.
-		unmergedFetcher := func(ctx context.Context, name string,
+		unmergedFetcher := func(
+			ctx context.Context, name data.PathPartString,
 			ptr data.BlockPointer) (data.BlockPointer, error) {
 			return cr.makeFileBlockDeepCopy(ctx, lState, unmergedChains,
 				mergedPath.TailPointer(), unmergedPath, name, ptr,
 				newFileBlocks, dirtyBcache)
 		}
-		mergedFetcher := func(ctx context.Context, name string,
+		mergedFetcher := func(
+			ctx context.Context, name data.PathPartString,
 			ptr data.BlockPointer) (data.BlockPointer, error) {
 			return cr.makeFileBlockDeepCopy(ctx, lState, mergedChains,
 				mergedPath.TailPointer(), mergedPath, name,
@@ -2625,7 +2643,8 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 
 						err = cr.addChildBlocksIfIndirectFile(ctx, lState,
 							chains, cop.getFinalPath().ChildPath(
-								cop.NewName, renameMostRecent), op)
+								cop.obfuscatedNewName(), renameMostRecent,
+								cr.fbo.makeObfuscator()), op)
 						if err != nil {
 							return nil, err
 						}
@@ -2643,6 +2662,7 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 					if err != nil {
 						return nil, err
 					}
+					chain.ensurePath(rop, chain.mostRecent)
 					// Set the Dir.Ref fields to be the same as the Unref
 					// -- they will be fixed up later.
 					rop.AddSelfUpdate(ri.originalOldParent)
@@ -2812,7 +2832,7 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 	resolvedPath, ok := mergedPaths[unmergedMostRecent]
 	if !ok {
 		var ptrsToAppend []data.BlockPointer
-		var namesToAppend []string
+		var namesToAppend []data.PathPartString
 		next := unmergedMostRecent
 		for len(mergedPaths[next].Path) == 0 {
 			newPtrs := make(map[data.BlockPointer]bool)
@@ -2840,7 +2860,8 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 		}
 		resolvedPath = mergedPaths[next]
 		for i, ptr := range ptrsToAppend {
-			resolvedPath = resolvedPath.ChildPath(namesToAppend[i], ptr)
+			resolvedPath = resolvedPath.ChildPath(
+				namesToAppend[i], ptr, cr.fbo.makeObfuscator())
 		}
 	}
 
@@ -2882,7 +2903,9 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 		copy(newResolvedPath.Path[:len(parentPath.Path)], parentPath.Path)
 		copy(newResolvedPath.Path[len(parentPath.Path):], resolvedPath.Path[i:])
 		i = len(parentPath.Path) - 1
-		newResolvedPath.Path[i+1].Name = newName
+		newNamePPS := data.NewPathPartString(
+			newName, newResolvedPath.Obfuscator())
+		newResolvedPath.Path[i+1].Name = newNamePPS
 		resolvedPath = newResolvedPath
 	}
 

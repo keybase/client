@@ -328,7 +328,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			return NewFileInfoFile(d.folder.fs, d.node, name), 0, nil
 		}
 
-		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
+		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(
+			ctx, d.node, d.node.ChildName(path[0]))
 
 		// If we are in the final component, check if it is a creation.
 		if leaf {
@@ -466,7 +467,7 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 	isExec := false // Windows lacks executable modes.
 	excl := getExclFromOpenContext(oc)
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.node, name, isExec, excl)
+		ctx, d.node, d.node.ChildName(name), isExec, excl)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -482,7 +483,7 @@ func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
-		ctx, d.node, name)
+		ctx, d.node, d.node.ChildName(name))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -506,10 +507,10 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 	var ns dokan.NamedStat
 	for name, de := range children {
 		empty = false
-		ns.Name = name
+		ns.Name = name.Plaintext()
 		// TODO perhaps resolve symlinks here?
 		fillStat(&ns.Stat, &de)
-		if strings.HasPrefix(name, HiddenFilePrefix) {
+		if strings.HasPrefix(name.Plaintext(), HiddenFilePrefix) {
 			addFileAttribute(&ns.Stat, dokan.FileAttributeHidden)
 		}
 		err = callback(&ns)
@@ -560,7 +561,8 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		d.folder.fs.vlog.CLogf(
 			ctx, libkb.VLog1, "Removing (Delete) dir in cleanup %s", d.name)
 
-		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
+		err = d.folder.fs.config.KBFSOps().RemoveDir(
+			ctx, d.parent, d.parent.ChildName(d.name))
 	}
 
 	if d.refcount.Decrease() {

@@ -60,13 +60,13 @@ var perTlfWrappedNodeNames = map[string]bool{
 // ShouldCreateMissedLookup implements the Node interface for
 // specialFileNode.
 func (sfn *specialFileNode) ShouldCreateMissedLookup(
-	ctx context.Context, name string) (
+	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, string) {
-	if !perTlfWrappedNodeNames[name] {
+	if !perTlfWrappedNodeNames[name.Plaintext()] {
 		return sfn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
 
-	switch name {
+	switch name.Plaintext() {
 	case StatusFileName:
 		sfn := &statusFileNode{
 			Node:   nil,
@@ -85,7 +85,7 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 // WrapChild implements the Node interface for specialFileNode.
 func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = sfn.Node.WrapChild(child)
-	name := child.GetBasename()
+	name := child.GetBasename().Plaintext()
 	if !perTlfWrappedNodeNames[name] {
 		if child.EntryType() == data.Dir {
 			// Wrap this child too, so we can look up special files in

@@ -29,7 +29,7 @@ type nodeCore struct {
 }
 
 func newNodeCore(
-	ptr data.BlockPointer, name string, parent Node,
+	ptr data.BlockPointer, name data.PathPartString, parent Node,
 	cache *nodeCacheStandard, et data.EntryType) *nodeCore {
 	return &nodeCore{
 		pathNode: &data.PathNode{
@@ -43,7 +43,7 @@ func newNodeCore(
 }
 
 func newNodeCoreForDir(
-	ptr data.BlockPointer, name string, parent Node,
+	ptr data.BlockPointer, name data.PathPartString, parent Node,
 	cache *nodeCacheStandard, obfuscator data.Obfuscator) *nodeCore {
 	nc := newNodeCore(ptr, name, parent, cache, data.Dir)
 	nc.obfuscator = obfuscator
@@ -96,10 +96,10 @@ func (n *nodeStandard) GetFolderBranch() data.FolderBranch {
 	return n.core.cache.folderBranch
 }
 
-func (n *nodeStandard) GetBasename() string {
+func (n *nodeStandard) GetBasename() data.PathPartString {
 	if len(n.core.cachedPath.Path) > 0 {
 		// Must be unlinked.
-		return ""
+		return data.PathPartString{}
 	}
 	return n.core.pathNode.Name
 }
@@ -108,7 +108,8 @@ func (n *nodeStandard) Readonly(_ context.Context) bool {
 	return false
 }
 
-func (n *nodeStandard) ShouldCreateMissedLookup(ctx context.Context, _ string) (
+func (n *nodeStandard) ShouldCreateMissedLookup(
+	ctx context.Context, _ data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, string) {
 	return false, ctx, data.File, nil, ""
 }
@@ -117,7 +118,7 @@ func (n *nodeStandard) ShouldRetryOnDirRead(ctx context.Context) bool {
 	return false
 }
 
-func (n *nodeStandard) RemoveDir(_ context.Context, _ string) (
+func (n *nodeStandard) RemoveDir(_ context.Context, _ data.PathPartString) (
 	removeHandled bool, err error) {
 	return false, nil
 }
@@ -146,4 +147,11 @@ func (n *nodeStandard) FillCacheDuration(d *time.Duration) {}
 
 func (n *nodeStandard) Obfuscator() data.Obfuscator {
 	return n.core.obfuscator
+}
+
+func (n *nodeStandard) ChildName(name string) data.PathPartString {
+	if n.core.entryType != data.Dir {
+		panic("Only dirs can have child names")
+	}
+	return data.NewPathPartString(name, n.core.obfuscator)
 }

@@ -64,7 +64,8 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		f.folder.fs.vlog.CLogf(
 			ctx, libkb.VLog1, "Removing (Delete) file in cleanup %s", f.name)
 
-		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)
+		err = f.folder.fs.config.KBFSOps().RemoveEntry(
+			ctx, f.parent, f.parent.ChildName(f.name))
 	}
 
 	if f.refcount.Decrease() {

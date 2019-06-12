@@ -947,7 +947,7 @@ func (mr *MockKBFSOpsMockRecorder) ClearPrivateFolderMD(arg0 interface{}) *gomoc
 }
 
 // CreateDir mocks base method
-func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 string) (Node, data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 data.PathPartString) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateDir", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
@@ -963,7 +963,7 @@ func (mr *MockKBFSOpsMockRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // CreateFile mocks base method
-func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 string, arg3 bool, arg4 Excl) (Node, data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 bool, arg4 Excl) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFile", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(Node)
@@ -979,7 +979,7 @@ func (mr *MockKBFSOpsMockRecorder) CreateFile(arg0, arg1, arg2, arg3, arg4 inter
 }
 
 // CreateLink mocks base method
-func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 string) (data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 string) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLink", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(data.EntryInfo)
@@ -1079,10 +1079,10 @@ func (mr *MockKBFSOpsMockRecorder) ForceStuckConflictForTesting(arg0, arg1 inter
 }
 
 // GetDirChildren mocks base method
-func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[string]data.EntryInfo, error) {
+func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[data.PathPartString]data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDirChildren", arg0, arg1)
-	ret0, _ := ret[0].(map[string]data.EntryInfo)
+	ret0, _ := ret[0].(map[data.PathPartString]data.EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1306,7 +1306,7 @@ func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
 }
 
 // Lookup mocks base method
-func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 string) (Node, data.EntryInfo, error) {
+func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 data.PathPartString) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lookup", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
@@ -1411,7 +1411,7 @@ func (mr *MockKBFSOpsMockRecorder) RefreshEditHistory(arg0 interface{}) *gomock.
 }
 
 // RemoveDir mocks base method
-func (m *MockKBFSOps) RemoveDir(arg0 context.Context, arg1 Node, arg2 string) error {
+func (m *MockKBFSOps) RemoveDir(arg0 context.Context, arg1 Node, arg2 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDir", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -1425,7 +1425,7 @@ func (mr *MockKBFSOpsMockRecorder) RemoveDir(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // RemoveEntry mocks base method
-func (m *MockKBFSOps) RemoveEntry(arg0 context.Context, arg1 Node, arg2 string) error {
+func (m *MockKBFSOps) RemoveEntry(arg0 context.Context, arg1 Node, arg2 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveEntry", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -1439,7 +1439,7 @@ func (mr *MockKBFSOpsMockRecorder) RemoveEntry(arg0, arg1, arg2 interface{}) *go
 }
 
 // Rename mocks base method
-func (m *MockKBFSOps) Rename(arg0 context.Context, arg1 Node, arg2 string, arg3 Node, arg4 string) error {
+func (m *MockKBFSOps) Rename(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 Node, arg4 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Rename", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
@@ -3422,6 +3422,20 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 	return m.recorder
 }
 
+// ChildName mocks base method
+func (m *MockNode) ChildName(arg0 string) data.PathPartString {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChildName", arg0)
+	ret0, _ := ret[0].(data.PathPartString)
+	return ret0
+}
+
+// ChildName indicates an expected call of ChildName
+func (mr *MockNodeMockRecorder) ChildName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChildName", reflect.TypeOf((*MockNode)(nil).ChildName), arg0)
+}
+
 // EntryType mocks base method
 func (m *MockNode) EntryType() data.EntryType {
 	m.ctrl.T.Helper()
@@ -3449,10 +3463,10 @@ func (mr *MockNodeMockRecorder) FillCacheDuration(arg0 interface{}) *gomock.Call
 }
 
 // GetBasename mocks base method
-func (m *MockNode) GetBasename() string {
+func (m *MockNode) GetBasename() data.PathPartString {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBasename")
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(data.PathPartString)
 	return ret0
 }
 
@@ -3561,7 +3575,7 @@ func (mr *MockNodeMockRecorder) Readonly(arg0 interface{}) *gomock.Call {
 }
 
 // RemoveDir mocks base method
-func (m *MockNode) RemoveDir(arg0 context.Context, arg1 string) (bool, error) {
+func (m *MockNode) RemoveDir(arg0 context.Context, arg1 data.PathPartString) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDir", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -3576,7 +3590,7 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, os.FileInfo, string) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, string) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -3713,7 +3727,7 @@ func (mr *MockNodeCacheMockRecorder) Get(arg0 interface{}) *gomock.Call {
 }
 
 // GetOrCreate mocks base method
-func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 string, arg2 Node, arg3 data.EntryType) (Node, error) {
+func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 data.PathPartString, arg2 Node, arg3 data.EntryType) (Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreate", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(Node)
@@ -3742,7 +3756,7 @@ func (mr *MockNodeCacheMockRecorder) IsUnlinked(arg0 interface{}) *gomock.Call {
 }
 
 // Move mocks base method
-func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 string) (func(), error) {
+func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 data.PathPartString) (func(), error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", arg0, arg1, arg2)
 	ret0, _ := ret[0].(func())

@@ -64,8 +64,8 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 func (km *KeyManagerStandard) GetFirstTLFCryptKey(
 	ctx context.Context, kmd libkey.KeyMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
-	return km.getTLFCryptKeyUsingCurrentDevice(
-		ctx, kmd, kbfsmd.FirstValidKeyGen, false)
+	return km.getTLFCryptKey(
+		ctx, kmd, kbfsmd.FirstValidKeyGen, getTLFCryptKeyAnyDevice)
 }
 
 // GetTLFCryptKeyOfAllGenerations implements the KeyManager interface for
