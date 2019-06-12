@@ -954,12 +954,33 @@ func (fbo *folderBlockOps) wrapWithBlockLock(fn func()) dirCacheUndoFn {
 	}
 }
 
+func (fbo *folderBlockOps) obfuscatorFromPathLocked(
+	lState *kbfssync.LockState, dir data.Path) data.Obfuscator {
+	fbo.blockLock.AssertAnyLocked(lState)
+	node := fbo.nodeCache.Get(dir.TailPointer().Ref())
+	if node == nil {
+		// When there is no node corresponding to this path yet, we
+		// make a new obfuscator.  This means that entry names that
+		// are retrieved from the `DirData` derived from this
+		// `Obfuscator` can't be directly compared for equality with
+		// entry names retrieved from other `DirData`s, or input by
+		// outside applications, since the obfuscators won't match.
+		// This is ok as long as we always do critical comparisons and
+		// map lookups with the plaintext string (as in
+		// `DirData.Lookup()`).
+		return fbo.nodeCache.ObfuscatorMaker()()
+	}
+	return node.Obfuscator()
+}
+
 func (fbo *folderBlockOps) newDirDataLocked(lState *kbfssync.LockState,
-	dir data.Path, chargedTo keybase1.UserOrTeamID, kmd libkey.KeyMetadata) *data.DirData {
+	dir data.Path, chargedTo keybase1.UserOrTeamID,
+	kmd libkey.KeyMetadata) *data.DirData {
 	fbo.blockLock.AssertAnyLocked(lState)
 	return data.NewDirData(dir, chargedTo, fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd libkey.KeyMetadata, ptr data.BlockPointer,
-			dir data.Path, rtype data.BlockReqType) (*data.DirBlock, bool, error) {
+			dir data.Path, rtype data.BlockReqType) (
+			*data.DirBlock, bool, error) {
 			lState := lState
 			if rtype == data.BlockReadParallel {
 				lState = nil
@@ -967,10 +988,11 @@ func (fbo *folderBlockOps) newDirDataLocked(lState *kbfssync.LockState,
 			return fbo.getDirLocked(
 				ctx, lState, kmd, ptr, dir, rtype)
 		},
-		func(ctx context.Context, ptr data.BlockPointer, block data.Block) error {
+		func(ctx context.Context, ptr data.BlockPointer,
+			block data.Block) error {
 			return fbo.config.DirtyBlockCache().Put(
 				ctx, fbo.id(), ptr, dir.Branch, block)
-		}, fbo.log, fbo.vlog)
+		}, fbo.obfuscatorFromPathLocked(lState, dir), fbo.log, fbo.vlog)
 }
 
 // newDirDataWithDBMLocked creates a new `dirData` that reads from and
@@ -983,7 +1005,8 @@ func (fbo *folderBlockOps) newDirDataWithDBMLocked(lState *kbfssync.LockState,
 	fbo.blockLock.AssertRLocked(lState)
 	return data.NewDirData(dir, chargedTo, fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd libkey.KeyMetadata, ptr data.BlockPointer,
-			dir data.Path, rtype data.BlockReqType) (*data.DirBlock, bool, error) {
+			dir data.Path, rtype data.BlockReqType) (
+			*data.DirBlock, bool, error) {
 			hasBlock, err := dbm.hasBlock(ctx, ptr)
 			if err != nil {
 				return nil, false, err
@@ -1021,9 +1044,10 @@ func (fbo *folderBlockOps) newDirDataWithDBMLocked(lState *kbfssync.LockState,
 			}
 			return block, wasDirty, nil
 		},
-		func(ctx context.Context, ptr data.BlockPointer, block data.Block) error {
+		func(ctx context.Context, ptr data.BlockPointer,
+			block data.Block) error {
 			return dbm.putBlock(ctx, ptr, block.(*data.DirBlock))
-		}, fbo.log, fbo.vlog)
+		}, fbo.obfuscatorFromPathLocked(lState, dir), fbo.log, fbo.vlog)
 }
 
 // newDirDataWithDBM is like `newDirDataWithDBMLocked`, but it must be

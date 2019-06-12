@@ -26,17 +26,19 @@ type dirBlockGetter func(context.Context, libkey.KeyMetadata, BlockPointer,
 // within a directory.  It's meant for use within a single scope, not
 // for long-term storage.  The caller must ensure goroutine-safety.
 type DirData struct {
-	getter dirBlockGetter
-	tree   *blockTree
+	getter     dirBlockGetter
+	tree       *blockTree
+	obfuscator Obfuscator
 }
 
 // NewDirData creates a new DirData instance.
 func NewDirData(
 	dir Path, chargedTo keybase1.UserOrTeamID, bsplit BlockSplitter,
 	kmd libkey.KeyMetadata, getter dirBlockGetter, cacher dirtyBlockCacher,
-	log logger.Logger, vlog *libkb.VDebugLog) *DirData {
+	obfuscator Obfuscator, log logger.Logger, vlog *libkb.VDebugLog) *DirData {
 	dd := &DirData{
-		getter: getter,
+		getter:     getter,
+		obfuscator: obfuscator,
 	}
 	dd.tree = &blockTree{
 		file:      dir,
