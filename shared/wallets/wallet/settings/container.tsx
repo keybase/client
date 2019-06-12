@@ -52,11 +52,7 @@ const mapStateToProps = state => {
   const canSubmitTx = account.canSubmitTx
   const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
-  const externalPartners = prepareExternalPartners(
-    Constants.getExternalPartners(state, accountID),
-    accountID,
-    user
-  )
+  const externalPartners = Constants.getExternalPartners(state, accountID)
   return {
     accountID,
     canSubmitTx,
@@ -110,6 +106,11 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
+  externalPartners: prepareExternalPartners(
+    stateProps.externalPartners,
+    stateProps.accountID,
+    stateProps.user
+  ),
   onBack: () => dispatchProps._onBack(stateProps.accountID),
   onCurrencyChange: (code: Types.CurrencyCode) =>
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
