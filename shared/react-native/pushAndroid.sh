@@ -13,7 +13,7 @@ if [ -n "${ADB_DEVICE_ID-}" ]; then
 fi
 
 ADB_ABI="$(adb shell getprop ro.product.cpu.abi)"
-APK_FILENAME="app-$ADB_ABI-debug.apk"
+APK_FILENAME="app-${ADB_ABI//[^a-zA-Z0-9\-_]/}-debug.apk"
 
 # The exact location of the .apk varies.
 echo "Looking for $APK_FILENAME in $APK_DIR..."
