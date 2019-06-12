@@ -6,16 +6,16 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import EnterPhoneNumber, {Props} from '.'
 
-const mapStateToProps = (state: Container.TypedState) => ({
+const mapStateToProps = (state: Container.TypedState, ownProps: {}) => ({
   error: state.settings.phoneNumbers.error,
   pendingVerification: state.settings.phoneNumbers.pendingVerification,
   waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onContinue: (phoneNumber: string, allowSearch: boolean) =>
     dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-  onGoToVerify: () => console.log('DANNYDEBUG yep'), // TODO
+  onGoToVerify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']})),
   onSkip: () => dispatch(RouteTreeGen.createClearModals()), // TODO route to add-email
 })
 
@@ -46,6 +46,11 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
   }
 }
 
-const ConnectedEnterPhoneNumber = Container.connect(mapStateToProps, mapDispatchToProps)(WatchForGoToVerify)
+const ConnectedEnterPhoneNumber = Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedEnterPhoneNumber'
+)(WatchForGoToVerify)
 
 export default ConnectedEnterPhoneNumber

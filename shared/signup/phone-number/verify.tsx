@@ -6,95 +6,85 @@ import {SignupScreen} from '../common'
 type Props = {
   error: string
   onBack: () => void
-  onChangeCode: (code: string) => void
-  onContinue: () => void
+  onContinue: (code: string) => void
   onResend: () => void
   phoneNumber: string
   resendWaiting: boolean
 }
 
-class VerifyPhoneNumber extends React.Component<
-  Props,
-  {
-    value: string
-  }
-> {
-  state = {value: ''}
-  _onChangeText = value => {
-    this.props.onChangeCode(value)
-    this.setState({value})
-  }
-  render() {
-    return (
-      <SignupScreen
-        onBack={this.props.onBack}
-        banners={this.props.error ? [<Kb.Banner key="error" color="red" text={this.props.error} />] : []}
-        buttons={[{label: 'Continue', onClick: this.props.onContinue, type: 'Success'}]}
-        titleComponent={
-          <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
-            {this.props.phoneNumber}
+const VerifyPhoneNumber = (props: Props) => {
+  const [code, onChangeCode] = React.useState('')
+  const disabled = !code
+  const onContinue = () => (disabled ? {} : props.onContinue(code))
+  return (
+    <SignupScreen
+      onBack={props.onBack}
+      banners={props.error ? [<Kb.Banner key="error" color="red" text={props.error} />] : []}
+      buttons={[{label: 'Continue', onClick: onContinue, type: 'Success'}]}
+      titleComponent={
+        <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
+          {props.phoneNumber}
+        </Kb.Text>
+      }
+      containerStyle={styles.container}
+      headerStyle={styles.container}
+      header={
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
+          <Kb.Text type="BodyBigLink" style={styles.backButton}>
+            Back
           </Kb.Text>
-        }
-        containerStyle={styles.container}
-        headerStyle={styles.container}
-        header={
-          <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
-            <Kb.Text type="BodyBigLink" style={styles.backButton}>
-              Back
-            </Kb.Text>
-            <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
-              {this.props.phoneNumber}
+          <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
+            {props.phoneNumber}
+          </Kb.Text>
+        </Kb.Box2>
+      }
+      negativeHeader={true}
+      skipMobileHeader={true}
+    >
+      <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
+        <Kb.Text type="Body" negative={true} center={true}>
+          Enter the code in the SMS you received:
+        </Kb.Text>
+        <Kb.PlainInput
+          autoFocus={true}
+          style={styles.input}
+          flexable={true}
+          keyboardType="numeric"
+          onChangeText={onChangeCode}
+          maxLength={5}
+          textType="Header"
+          textContentType="oneTimeCode"
+        >
+          <Kb.Text type="Header" style={styles.inputText}>
+            {/* We put this child in Input because some text styles don't work on input itself - the one we need here is letterSpacing */}
+            {this.state.value}
+          </Kb.Text>
+        </Kb.PlainInput>
+        <Kb.ClickableBox onClick={props.onResend} style={styles.positionRelative}>
+          <Kb.Box2
+            alignItems="center"
+            direction="horizontal"
+            gap="tiny"
+            style={Styles.collapseStyles([styles.resend, props.resendWaiting && styles.opacity30])}
+          >
+            <Kb.Icon
+              type="iconfont-reload"
+              color={Styles.globalColors.white}
+              style={styles.iconVerticalAlign}
+            />
+            <Kb.Text type="BodySemibold" negative={true}>
+              Resend SMS
             </Kb.Text>
           </Kb.Box2>
-        }
-        negativeHeader={true}
-        skipMobileHeader={true}
-      >
-        <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
-          <Kb.Text type="Body" negative={true} center={true}>
-            Enter the code in the SMS you received:
-          </Kb.Text>
-          <Kb.PlainInput
-            autoFocus={true}
-            style={styles.input}
-            flexable={true}
-            keyboardType="numeric"
-            onChangeText={this._onChangeText}
-            maxLength={5}
-            textType="Header"
-            textContentType="oneTimeCode"
-          >
-            <Kb.Text type="Header" style={styles.inputText}>
-              {/* We put this child in Input because some text styles don't work on input itself - the one we need here is letterSpacing */}
-              {this.state.value}
-            </Kb.Text>
-          </Kb.PlainInput>
-          <Kb.ClickableBox onClick={this.props.onResend} style={styles.positionRelative}>
-            <Kb.Box2
-              alignItems="center"
-              direction="horizontal"
-              gap="tiny"
-              style={Styles.collapseStyles([styles.resend, this.props.resendWaiting && styles.opacity30])}
-            >
-              <Kb.Icon
-                type="iconfont-reload"
-                color={Styles.globalColors.white}
-                style={styles.iconVerticalAlign}
-              />
-              <Kb.Text type="BodySemibold" negative={true}>
-                Resend SMS
-              </Kb.Text>
+          {props.resendWaiting && (
+            <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
+              <Kb.ProgressIndicator type="Small" white={true} />
             </Kb.Box2>
-            {this.props.resendWaiting && (
-              <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
-                <Kb.ProgressIndicator type="Small" white={true} />
-              </Kb.Box2>
-            )}
-          </Kb.ClickableBox>
-        </Kb.Box2>
-      </SignupScreen>
-    )
-  }
+          )}
+        </Kb.ClickableBox>
+      </Kb.Box2>
+    </SignupScreen>
+  )
 }
 
 const styles = Styles.styleSheetCreate({
