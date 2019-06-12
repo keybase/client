@@ -24,6 +24,10 @@ type TeamSigChainState struct {
 	hidden *keybase1.HiddenTeamChain
 }
 
+func newTeamSigChainState(t Teamer) TeamSigChainState {
+	return TeamSigChainState{inner: t.MainChain().Chain, hidden: t.HiddenChain()}
+}
+
 func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	return TeamSigChainState{
 		inner: t.inner.DeepCopy(),

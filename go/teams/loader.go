@@ -521,8 +521,17 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		cachedName = &ret.Name
 	}
 
+	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret)
+	if err != nil {
+		return nil, err
+	}
+
+	teamShim := func() *TeamShim {
+		return &TeamShim{Data: ret, Hidden: hiddenPackage.ChainData()}
+	}
+
 	// Determine whether to repoll merkle.
-	discardCache, repoll := l.load2DecideRepoll(ctx, arg, ret)
+	discardCache, repoll := l.load2DecideRepoll(mctx, arg, teamShim())
 	if discardCache {
 		ret = nil
 		repoll = true
@@ -543,11 +552,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("merkle")
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
-
-	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret)
-	if err != nil {
-		return nil, err
-	}
 
 	if (ret == nil) || repoll {
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
@@ -612,11 +616,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Admins should always have up-to-date secrets. But not necessarily RKMs.
 			fetchLinksAndOrSecrets = true
 		}
-		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
+		if err := l.satisfiesNeedKeyGeneration(mctx, arg.needKeyGeneration, teamShim()); err != nil {
 			mctx.Debug("TeamLoader fetching: NeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
-		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, ret); err != nil {
+		if err := l.satisfiesNeedsKBFSKeyGeneration(mctx, arg.needKBFSKeyGeneration, teamShim()); err != nil {
 			mctx.Debug("TeamLoader fetching: KBFSNeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
@@ -628,12 +632,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 	// hasSyncedSecrets does not account for RKMs. So check RKM refreshers separeately.
-	if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, ret); err != nil {
+
+	if err := l.satisfiesNeedApplicationsAtGenerations(mctx, arg.needApplicationsAtGenerations, teamShim()); err != nil {
 		mctx.Debug("TeamLoader fetching: NeedApplicationsAtGenerations: %v", err)
 		fetchLinksAndOrSecrets = true
 	}
-	if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
-		arg.needApplicationsAtGenerationsWithKBFS, ret); err != nil {
+	if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx,
+		arg.needApplicationsAtGenerationsWithKBFS, teamShim()); err != nil {
 		mctx.Debug("TeamLoader fetching: NeedApplicationsAtGenerationsWithKBFS: %v", err)
 		fetchLinksAndOrSecrets = true
 	}
@@ -698,9 +703,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
-	err = hiddenPackage.Update(mctx, teamUpdate.HiddenChain)
-	if err != nil {
-		return nil, err
+	if teamUpdate != nil {
+		err = hiddenPackage.Update(mctx, teamUpdate.HiddenChain)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	preloadCancel()
@@ -775,7 +782,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 				}
 
 				if teamUpdate.LegacyTLFUpgrade != nil {
-					err = l.addKBFSCryptKeys(ctx, ret, teamUpdate.LegacyTLFUpgrade)
+					err = l.addKBFSCryptKeys(mctx, teamShim(), teamUpdate.LegacyTLFUpgrade)
 					if err != nil {
 						return nil, fmt.Errorf("loading KBFS crypt keys: %v", err)
 					}
@@ -876,7 +883,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Check request constraints
 	tracer.Stage("postcheck")
-	err = l.load2CheckReturn(ctx, arg, ret)
+	err = l.load2CheckReturn(mctx, arg, teamShim())
 	if err != nil {
 		return nil, err
 	}
@@ -1103,17 +1110,17 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - JustUpdated
 // - If this user is in global "force repoll" mode, where it would be too spammy to
 //   push out individual team changed notifications, so all team loads need a repoll.
-func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (discardCache bool, repoll bool) {
+func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fromCache Teamer) (discardCache bool, repoll bool) {
 	var reason string
 	defer func() {
 		if discardCache || repoll || reason != "" {
-			l.G().Log.CDebugf(ctx, "load2DecideRepoll -> (discardCache:%v, repoll:%v) %v", discardCache, repoll, reason)
+			mctx.Debug("load2DecideRepoll -> (discardCache:%v, repoll:%v) %v", discardCache, repoll, reason)
 		}
 	}()
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
 	if arg.needAdmin {
-		if !l.satisfiesNeedAdmin(ctx, arg.me, fromCache) {
+		if !l.satisfiesNeedAdmin(mctx, arg.me, fromCache.MainChain()) {
 			// Start from scratch if we are newly admin
 			reason = "!satisfiesNeedAdmin"
 			return true, true
@@ -1126,34 +1133,34 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	}
 
 	// Repoll if the server has previously hinted that the team has new links.
-	if fromCache != nil && fromCache.Chain.LastSeqno < fromCache.LatestSeqnoHint {
+	if fromCache != nil && fromCache.MainChain() != nil && fromCache.MainChain().Chain.LastSeqno < fromCache.MainChain().LatestSeqnoHint {
 		reason = "behind seqno hint"
 		return false, true
 	}
 
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
-		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, fromCache); err != nil {
+		if err := l.satisfiesNeedKeyGeneration(mctx, arg.needKeyGeneration, fromCache); err != nil {
 			reason = fmt.Sprintf("satisfiesNeedKeyGeneration -> %v", err)
 			return false, true
 		}
 	}
 	// Repoll to get new applications at generations
 	if len(arg.needApplicationsAtGenerations) > 0 {
-		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, fromCache); err != nil {
+		if err := l.satisfiesNeedApplicationsAtGenerations(mctx, arg.needApplicationsAtGenerations, fromCache); err != nil {
 			reason = fmt.Sprintf("satisfiesNeedApplicationsAtGenerations -> %v", err)
 			return false, true
 		}
 	}
 	if arg.needKBFSKeyGeneration.Generation > 0 {
-		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, fromCache); err != nil {
+		if err := l.satisfiesNeedsKBFSKeyGeneration(mctx, arg.needKBFSKeyGeneration, fromCache); err != nil {
 			reason = fmt.Sprintf("satisfiesNeedsKBFSKeyGeneration -> %v", err)
 			return false, true
 		}
 	}
 
 	if len(arg.needApplicationsAtGenerationsWithKBFS) > 0 {
-		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
+		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx,
 			arg.needApplicationsAtGenerationsWithKBFS, fromCache); err != nil {
 			reason = fmt.Sprintf("satisfiesNeedApplicationsAtGenerationsWithKBFS -> %v", err)
 			return false, true
@@ -1162,7 +1169,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 
 	// Repoll because it might help get the wanted members
 	if len(arg.wantMembers) > 0 {
-		if err := l.satisfiesWantMembers(ctx, arg.wantMembers, arg.wantMembersRole, fromCache); err != nil {
+		if err := l.satisfiesWantMembers(mctx, arg.wantMembers, arg.wantMembersRole, fromCache); err != nil {
 			reason = fmt.Sprintf("satisfiesWantMembers -> %v", err)
 			return false, true
 		}
@@ -1171,23 +1178,23 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	// Repoll if we need a seqno not in the cache.
 	// Does not force a repoll if we just need to fill in previous links
 	if len(arg.needSeqnos) > 0 {
-		if fromCache == nil {
+		if fromCache == nil || fromCache.MainChain() == nil {
 			reason = "need seqnos and no cache"
 			return false, true
 		}
-		if fromCache.Chain.LastSeqno < l.seqnosMax(arg.needSeqnos) {
+		if fromCache.MainChain().Chain.LastSeqno < l.seqnosMax(arg.needSeqnos) {
 			reason = "need seqnos"
 			return false, true
 		}
 	}
 
-	if fromCache == nil {
+	if fromCache == nil || fromCache.MainChain() == nil {
 		reason = "no cache"
 		// We need a merkle leaf when starting from scratch.
 		return false, true
 	}
 
-	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
+	cacheIsOld := !l.isFresh(mctx, fromCache.MainChain().CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
 		reason = "cacheIsOld"
@@ -1195,7 +1202,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	}
 
 	// InForceRepoll needs to a acquire a lock, so avoid it by checking it last.
-	if l.InForceRepollMode(ctx) {
+	if l.InForceRepollMode(mctx) {
 		reason = "InForceRepollMode"
 		return false, true
 	}
@@ -1210,39 +1217,38 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 // - NeedAdmin
 // - NeedKeyGeneration
 // - NeedSeqnos
-func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *keybase1.TeamData) error {
+func (l *TeamLoader) load2CheckReturn(mctx libkb.MetaContext, arg load2ArgT, shim Teamer) error {
 	if arg.needAdmin {
-		if !l.satisfiesNeedAdmin(ctx, arg.me, res) {
-			l.G().Log.CDebugf(ctx, "user %v is not an admin of team %v at seqno:%v",
-				arg.me, arg.teamID, res.Chain.LastSeqno)
+		if !l.satisfiesNeedAdmin(mctx, arg.me, shim.MainChain()) {
+			mctx.Debug("user %v is not an admin of team %v at seqno:%v", arg.me, arg.teamID, shim.MainChain().Chain.LastSeqno)
 			return fmt.Errorf("user %v is not an admin of the team", arg.me)
 		}
 	}
 
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
-		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res); err != nil {
+		if err := l.satisfiesNeedKeyGeneration(mctx, arg.needKeyGeneration, shim); err != nil {
 			return err
 		}
 	}
 	if len(arg.needApplicationsAtGenerations) > 0 {
-		if err := l.satisfiesNeedApplicationsAtGenerations(ctx, arg.needApplicationsAtGenerations, res); err != nil {
+		if err := l.satisfiesNeedApplicationsAtGenerations(mctx, arg.needApplicationsAtGenerations, shim); err != nil {
 			return err
 		}
 	}
 	if arg.needKBFSKeyGeneration.Generation > 0 {
-		if err := l.satisfiesNeedsKBFSKeyGeneration(ctx, arg.needKBFSKeyGeneration, res); err != nil {
+		if err := l.satisfiesNeedsKBFSKeyGeneration(mctx, arg.needKBFSKeyGeneration, shim); err != nil {
 			return err
 		}
 	}
 	if len(arg.needApplicationsAtGenerationsWithKBFS) > 0 {
-		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx, arg.needApplicationsAtGenerationsWithKBFS, res); err != nil {
+		if err := l.satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx, arg.needApplicationsAtGenerationsWithKBFS, shim); err != nil {
 			return err
 		}
 	}
 
 	if len(arg.needSeqnos) > 0 {
-		if err := l.checkNeededSeqnos(ctx, res, arg.needSeqnos); err != nil {
+		if err := l.checkNeededSeqnos(mctx.Ctx(), shim.MainChain(), arg.needSeqnos); err != nil {
 			return err
 		}
 	}
@@ -1251,8 +1257,7 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 }
 
 // Whether the user is an admin at the snapshot, and there are no stubbed links, and keys are up to date.
-func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVersion, teamData *keybase1.TeamData) bool {
-	mctx := libkb.NewMetaContext(ctx, l.G())
+func (l *TeamLoader) satisfiesNeedAdmin(mctx libkb.MetaContext, me keybase1.UserVersion, teamData *keybase1.TeamData) bool {
 	if teamData == nil {
 		return false
 	}
@@ -1272,7 +1277,7 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 		if !state.IsSubteam() {
 			return false
 		}
-		yes, err := l.isImplicitAdminOf(ctx, state.GetID(), state.GetParentID(), me, me)
+		yes, err := l.isImplicitAdminOf(mctx.Ctx(), state.GetID(), state.GetParentID(), me, me)
 		if err != nil {
 			mctx.Debug("TeamLoader error getting checking implicit admin: %s", err)
 			return false
@@ -1361,8 +1366,8 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 	return false, nil
 }
 
-func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
-	kbfs keybase1.TeamKBFSKeyRefresher, state *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(mctx libkb.MetaContext,
+	kbfs keybase1.TeamKBFSKeyRefresher, state Teamer) error {
 	if kbfs.Generation == 0 {
 		return nil
 	}
@@ -1370,7 +1375,7 @@ func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
 		return fmt.Errorf("nil team does not contain KBFS key generation: %#v", kbfs)
 	}
 
-	gen, err := TeamSigChainState{inner: state.Chain}.GetLatestKBFSGeneration(kbfs.AppType)
+	gen, err := newTeamSigChainState(state).GetLatestKBFSGeneration(kbfs.AppType)
 	if err != nil {
 		return err
 	}
@@ -1381,21 +1386,21 @@ func (l *TeamLoader) satisfiesNeedsKBFSKeyGeneration(ctx context.Context,
 }
 
 // Whether the snapshot has loaded at least up to the key generation and has the secret.
-func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, state *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedKeyGeneration(mctx libkb.MetaContext, needKeyGeneration keybase1.PerTeamKeyGeneration, state Teamer) error {
 	if needKeyGeneration == 0 {
 		return nil
 	}
 	if state == nil {
 		return fmt.Errorf("nil team does not contain key generation: %v", needKeyGeneration)
 	}
-	key, err := TeamSigChainState{inner: state.Chain}.GetLatestPerTeamKey()
+	key, err := newTeamSigChainState(state).GetLatestPerTeamKey()
 	if err != nil {
 		return err
 	}
 	if needKeyGeneration > key.Gen {
 		return fmt.Errorf("team key generation too low: %v < %v", key.Gen, needKeyGeneration)
 	}
-	_, ok := state.PerTeamKeySeedsUnverified[needKeyGeneration]
+	_, ok := state.MainChain().PerTeamKeySeedsUnverified[needKeyGeneration]
 	if !ok {
 		return fmt.Errorf("team key secret missing for generation: %v", needKeyGeneration)
 	}
@@ -1404,17 +1409,17 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 
 // Whether the snapshot has loaded the reader key masks and key generations we
 // need.
-func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
-	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication, state *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(mctx libkb.MetaContext,
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication, team Teamer) error {
 	if len(needApplicationsAtGenerations) == 0 {
 		return nil
 	}
-	if state == nil {
+	if team == nil || team.MainChain() == nil {
 		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
 	}
 	for ptkGen, apps := range needApplicationsAtGenerations {
 		for _, app := range apps {
-			if _, err := ApplicationKeyAtGeneration(libkb.NewMetaContext(ctx, l.G()), state, app, ptkGen); err != nil {
+			if _, err := ApplicationKeyAtGeneration(mctx, team, app, ptkGen); err != nil {
 				return err
 			}
 		}
@@ -1422,9 +1427,9 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
 	return nil
 }
 
-func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx context.Context,
+func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(mctx libkb.MetaContext,
 	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication,
-	state *keybase1.TeamData) error {
+	state Teamer) error {
 	if len(needApplicationsAtGenerations) == 0 {
 		return nil
 	}
@@ -1433,8 +1438,7 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx context.
 	}
 	for ptkGen, apps := range needApplicationsAtGenerations {
 		for _, app := range apps {
-			if _, err := ApplicationKeyAtGenerationWithKBFS(libkb.NewMetaContext(ctx, l.G()), state, app,
-				ptkGen); err != nil {
+			if _, err := ApplicationKeyAtGenerationWithKBFS(mctx, state, app, ptkGen); err != nil {
 				return err
 			}
 		}
@@ -1443,8 +1447,8 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx context.
 }
 
 // Whether the snapshot has each of `wantMembers` as a member.
-func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
-	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesWantMembers(mctx libkb.MetaContext,
+	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state Teamer) error {
 
 	if wantMembersRole == keybase1.TeamRole_NONE {
 		// Default to writer.
@@ -1457,7 +1461,7 @@ func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 		return fmt.Errorf("nil team does not have wanted members")
 	}
 	for _, uv := range wantMembers {
-		role, err := TeamSigChainState{inner: state.Chain}.GetUserRole(uv)
+		role, err := newTeamSigChainState(state).GetUserRole(uv)
 		if err != nil {
 			return fmt.Errorf("could not get wanted user role: %v", err)
 		}
@@ -1506,16 +1510,16 @@ func (l *TeamLoader) seqnosMax(seqnos []keybase1.Seqno) (ret keybase1.Seqno) {
 }
 
 // Whether a TeamData from the cache is fresh.
-func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
+func (l *TeamLoader) isFresh(mctx libkb.MetaContext, cachedAt keybase1.Time) bool {
 	if cachedAt.IsZero() {
 		// This should never happen.
-		l.G().Log.CWarningf(ctx, "TeamLoader encountered zero cached time")
+		mctx.Warning("TeamLoader encountered zero cached time")
 		return false
 	}
-	diff := l.G().Clock().Now().Sub(cachedAt.Time())
+	diff := mctx.G().Clock().Now().Sub(cachedAt.Time())
 	fresh := (diff <= freshnessLimit)
 	if !fresh {
-		l.G().Log.CDebugf(ctx, "TeamLoader cached snapshot is old: %v", diff)
+		mctx.Debug("TeamLoader cached snapshot is old: %v", diff)
 	}
 	return fresh
 }
@@ -1840,14 +1844,14 @@ func (l *TeamLoader) ForceRepollUntil(ctx context.Context, dtime gregor.TimeOrOf
 	return nil
 }
 
-func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
+func (l *TeamLoader) InForceRepollMode(mctx libkb.MetaContext) bool {
 	l.forceRepollMutex.Lock()
 	defer l.forceRepollMutex.Unlock()
 	if l.forceRepollUntil == nil {
 		return false
 	}
-	if !l.forceRepollUntil.Before(l.G().Clock().Now()) {
-		l.G().Log.CDebugf(ctx, "TeamLoader#InForceRepollMode: returning true")
+	if !l.forceRepollUntil.Before(mctx.G().Clock().Now()) {
+		mctx.Debug("TeamLoader#InForceRepollMode: returning true")
 		return true
 	}
 	l.forceRepollUntil = nil

@@ -21,6 +21,11 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+type Teamer interface {
+	MainChain() *keybase1.TeamData
+	HiddenChain() *keybase1.HiddenTeamChain
+}
+
 // A snapshot of a team's state.
 // Not threadsafe.
 type Team struct {
@@ -35,6 +40,11 @@ type Team struct {
 	// rotated is set by rotateBoxes after rotating team key.
 	rotated bool
 }
+
+func (t *Team) MainChain() *keybase1.TeamData          { return t.Data }
+func (t *Team) HiddenChain() *keybase1.HiddenTeamChain { return t.Hidden }
+
+var _ Teamer = (*Team)(nil)
 
 func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData, hidden *keybase1.HiddenTeamChain) *Team {
 	return &Team{
@@ -133,7 +143,7 @@ func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplicati
 func (t *Team) getKeyManager(ctx context.Context) (km *TeamKeyManager, err error) {
 	if t.keyManager == nil {
 		gen := t.chain().GetLatestGeneration()
-		item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t.Data, gen)
+		item, err := GetAndVerifyPerTeamKey(t.MetaContext(ctx), t, gen)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +209,7 @@ func (t *Team) EncryptionKey(ctx context.Context) (key libkb.NaclDHKeyPair, err 
 }
 
 func (t *Team) encryptionKeyAtGen(ctx context.Context, gen keybase1.PerTeamKeyGeneration) (key libkb.NaclDHKeyPair, err error) {
-	item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t.Data, gen)
+	item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t, gen)
 	if err != nil {
 		return key, err
 	}
@@ -427,11 +437,11 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	return AllApplicationKeys(t.MetaContext(ctx), t.Data, application, t.chain().GetLatestGeneration())
+	return AllApplicationKeys(t.MetaContext(ctx), t, application, t.chain().GetLatestGeneration())
 }
 
 func (t *Team) AllApplicationKeysWithKBFS(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t.Data, application,
+	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t, application,
 		t.chain().GetLatestGeneration())
 }
 
@@ -443,12 +453,12 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 
 func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
+	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t, application, generation)
 }
 
 func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
+	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t, application, generation)
 }
 
 func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) error {
@@ -2258,3 +2268,13 @@ func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	}
 	return libkb.CombineErrors(err1, err2)
 }
+
+type TeamShim struct {
+	Data   *keybase1.TeamData
+	Hidden *keybase1.HiddenTeamChain
+}
+
+func (t *TeamShim) MainChain() *keybase1.TeamData          { return t.Data }
+func (t *TeamShim) HiddenChain() *keybase1.HiddenTeamChain { return t.Hidden }
+
+var _ Teamer = (*TeamShim)(nil)
