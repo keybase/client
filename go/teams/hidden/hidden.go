@@ -76,6 +76,10 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 		return err
 	}
 	ret.Inner[q] = *rkex
+	readerKey := rotateKey.ReaderKey()
+	if readerKey != nil && readerKey.Generation > ret.MaxReaderPerTeamKeyGen {
+		ret.MaxReaderPerTeamKeyGen = readerKey.Generation
+	}
 	return nil
 }
 

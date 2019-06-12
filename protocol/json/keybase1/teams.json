@@ -673,6 +673,10 @@
           "name": "last"
         },
         {
+          "type": "PerTeamKeyGeneration",
+          "name": "maxReaderPerTeamKeyGen"
+        },
+        {
           "type": {
             "type": "map",
             "values": "LinkID",

@@ -308,6 +308,7 @@ protocol teams {
     boolean tombstoned;
 
     Seqno last;
+    PerTeamKeyGeneration maxReaderPerTeamKeyGen;
 
     // Chain links based on outer objects.
     map<Seqno, LinkID> outer;
