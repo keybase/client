@@ -1042,7 +1042,7 @@ export type ExportSecretKeyPayload = {
 }
 export type ExternalPartnersReceivedPayload = {
   readonly payload: _ExternalPartnersReceivedPayload
-  readonly type: 'wallets:externalPartnersReceived'
+  readonly type: typeof externalPartnersReceived
 }
 export type HideAirdropBannerPayload = {
   readonly payload: _HideAirdropBannerPayload
@@ -1082,7 +1082,7 @@ export type LoadDisplayCurrencyPayload = {
 }
 export type LoadExternalPartnersPayload = {
   readonly payload: _LoadExternalPartnersPayload
-  readonly type: 'wallets:loadExternalPartners'
+  readonly type: typeof loadExternalPartners
 }
 export type LoadInflationDestinationPayload = {
   readonly payload: _LoadInflationDestinationPayload
