@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
+import * as Flow from '../util/flow'
 import {actionHasError} from '../util/container'
 
 const initialState: Types.State = Constants.makeState()
@@ -129,6 +130,14 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
     case SettingsGen.onChangeUseNativeFrame:
       return state.merge({useNativeFrame: action.payload.enabled})
+    case SettingsGen.addedPhoneNumber:
+      return state.update('phoneNumbers', pn =>
+        pn.merge(
+          action.payload.error
+            ? {error: action.payload.error, pendingVerification: ''}
+            : {error: '', pendingVerification: action.payload.phoneNumber}
+        )
+      )
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -150,8 +159,11 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:
     case SettingsGen.loadHasRandomPw:
+    case SettingsGen.addPhoneNumber:
+    case SettingsGen.verifyPhoneNumber:
       return state
     default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

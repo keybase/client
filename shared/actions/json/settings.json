@@ -10,6 +10,11 @@
       "allowSearch": "boolean",
       "phoneNumber": "string"
     },
+    "addedPhoneNumber": {
+      "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
+      "error": "string",
+      "phoneNumber": "string"
+    },
     "verifyPhoneNumber": {
       "_description": "Submit a verification code for a phone number",
       "phoneNumber": "string",

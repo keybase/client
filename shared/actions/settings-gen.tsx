@@ -11,6 +11,7 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
 export const addPhoneNumber = 'settings:addPhoneNumber'
+export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
@@ -62,6 +63,7 @@ export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
 type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
+type _AddedPhoneNumberPayload = {readonly error: string; readonly phoneNumber: string}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
@@ -165,6 +167,13 @@ export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload): Ver
 export const createUnfurlSettingsSaved = (
   payload: _UnfurlSettingsSavedPayload
 ): UnfurlSettingsSavedPayload => ({payload, type: unfurlSettingsSaved})
+/**
+ * We just attempted to add a phone number and either got an error or the number is pending verification.
+ */
+export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): AddedPhoneNumberPayload => ({
+  payload,
+  type: addedPhoneNumber,
+})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
   type: checkPassword,
@@ -319,6 +328,10 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 export type AddPhoneNumberPayload = {
   readonly payload: _AddPhoneNumberPayload
   readonly type: 'settings:addPhoneNumber'
+}
+export type AddedPhoneNumberPayload = {
+  readonly payload: _AddedPhoneNumberPayload
+  readonly type: 'settings:addedPhoneNumber'
 }
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
@@ -503,6 +516,7 @@ export type WaitingForResponsePayload = {
 // prettier-ignore
 export type Actions =
   | AddPhoneNumberPayload
+  | AddedPhoneNumberPayload
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload

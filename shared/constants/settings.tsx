@@ -59,6 +59,11 @@ export const makePassword = I.Record<Types._PasswordState>({
   rememberPassword: true,
 })
 
+export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
+  error: '',
+  pendingVerification: '',
+})
+
 export const makeState = I.Record<Types._State>({
   allowDeleteAccount: false,
   chat: makeChat(),
@@ -69,6 +74,7 @@ export const makeState = I.Record<Types._State>({
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
+  phoneNumbers: makePhoneNumbers(),
   useNativeFrame: true,
   waitingForResponse: false,
 })

@@ -519,7 +519,12 @@ const addPhoneNumber = (_, action: SettingsGen.AddPhoneNumberPayload, logger) =>
   logger.info('adding phone number')
   const {phoneNumber, allowSearch} = action.payload
   const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
-  RPCTypes.phoneNumbersAddPhoneNumberRpcPromise({phoneNumber, visibility}, Constants.addPhoneNumberWaitingKey)
+  return RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
+    {phoneNumber, visibility},
+    Constants.addPhoneNumberWaitingKey
+  )
+    .then(() => SettingsGen.createAddedPhoneNumber({error: '', phoneNumber}))
+    .catch(err => SettingsGen.createAddedPhoneNumber({error: err.message, phoneNumber}))
 }
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
