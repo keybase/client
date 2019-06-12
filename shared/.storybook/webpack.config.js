@@ -55,7 +55,7 @@ module.exports = ({config, mode}) => {
       use: ['null-loader'],
     },
     {
-      exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
+      exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|react-gateway))|\/dist\/)/,
       test: /\.jsx?$/,
       use: [babelRule],
     },
