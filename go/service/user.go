@@ -134,7 +134,7 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 
 	if err == nil {
 		// ret.Status might indicate an error we should return
-		// (like libkb.DeletedError, for example)
+		// (like libkb.UserDeletedError, for example)
 		err = libkb.UserErrorFromStatus(ret.Status)
 		if err != nil {
 			h.G().Log.CDebugf(netCtx, "using error from StatusCode: %v => %s", ret.Status, err)
