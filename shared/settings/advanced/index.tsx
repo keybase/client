@@ -25,6 +25,7 @@ type Props = {
   hasRandomPW: boolean
   useNativeFrame: boolean
   onChangeUseNativeFrame: (arg0: boolean) => void
+  saveProxyData: (proxyData: RPCTypes.ProxyData) => void
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -333,9 +334,10 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
         DisplayNameToProxyType[this.state.proxyType]
       ] as unknown) as RPCTypes.ProxyType,
     }
-    RPCTypes.configSetProxyDataRpcPromise({proxyData}).catch(error =>
-      console.warn('Error in saving proxy data:', error)
-    )
+    // RPCTypes.configSetProxyDataRpcPromise({proxyData}).catch(error =>
+    //   console.warn('Error in saving proxy data:', error)
+    // )
+    this.props.saveProxyData(proxyData)
   }
 
   render() {

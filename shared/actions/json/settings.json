@@ -136,6 +136,9 @@
     "loadProxyData": {},
     "loadedProxyData": {
       "proxyData": "RPCTypes.ProxyData"
+    },
+    "saveProxyData": {
+      "proxyData": "RPCTypes.ProxyData"
     }
   },
 }

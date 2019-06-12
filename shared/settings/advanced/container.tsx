@@ -7,6 +7,7 @@ import {
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
   createLoadProxyData,
+  createSaveProxyData,
 } from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
@@ -15,6 +16,7 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from './index'
 import {connect, lifecycle} from '../../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 type OwnProps = {}
 const mapStateToProps = state => {
@@ -44,6 +46,7 @@ const mapDispatchToProps = dispatch => ({
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
+  saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
 })
 
 export default compose(
