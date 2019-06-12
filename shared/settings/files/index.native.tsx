@@ -11,9 +11,12 @@ export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 class ThresholdDropdown extends React.PureComponent<
   Props,
-  {visible: boolean; notificationThreshold: number}
+  {notificationThreshold: number; visible: boolean}
 > {
-  state = {visible: false, notificationThreshold: this.props.spaceAvailableNotificationThreshold}
+  state = {
+    notificationThreshold: this.props.spaceAvailableNotificationThreshold,
+    visible: false,
+  }
   _hide = () => this.setState({visible: false})
   _done = () => {
     this.props.onSetSyncNotificationThreshold(this.state.notificationThreshold)
