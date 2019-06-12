@@ -1,7 +1,7 @@
-• New toy: Cryptographic coin flips. Try /flip in chat
-• Giphy support! Try /giphy in chat
-• New font!
-• Easily add members to a channel
-• Faster profile loads
-• Better errors when uploading a profile photo
-• Improved device adding screens
+• Updated Files tab
+• See all your attachments in the chat info panel
+• Finally search across all chat conversations
+• New navigation experience and design. Much improved!
+• Better context when doing a chat "reply"
+• Team mentions: try '@team#channel' or just a '@team' in chat.
+• Quickly filter your files list
