@@ -305,6 +305,9 @@
         "keybase1NotifyEmailAddressEmailAddressVerified": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['outParam']) => void}"
         },
+        "keybase1NotifyEmailAddressEmailsChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['outParam']) => void}"
+        },
         "keybase1NotifyEphemeralNewTeamEk": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {sessionID: number}"
         },
@@ -344,14 +347,8 @@
         "keybase1NotifyPGPPgpKeyInSecretStoreFile": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}"
         },
-        "keybase1NotifyPhoneNumberPhoneNumberAdded": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['outParam']) => void}"
-        },
-        "keybase1NotifyPhoneNumberPhoneNumberVerified": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['outParam']) => void}"
-        },
-        "keybase1NotifyPhoneNumberPhoneNumberSuperseded": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['outParam']) => void}"
+        "keybase1NotifyPhoneNumberPhoneNumbersChanged": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']) => void}"
         },
         "keybase1NotifyServiceShutdown": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}"

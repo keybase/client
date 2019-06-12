@@ -145,6 +145,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
   },
+  'icon-email-add-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-add-96.png'),
+  },
   'icon-email-delete-48': {
     extension: 'png',
     isFont: false,
