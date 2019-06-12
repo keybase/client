@@ -35,8 +35,9 @@ const MenuItem = props => (
 type Props = {
   defaultCountry?: string
   error: string
-  onChangeNumber: (number: string) => void
-  onChangeValidity: (arg0: boolean) => void
+  onChangeNumber: (phoneNumber: string) => void
+  onChangeValidity: (valid: boolean) => void
+  onEnterKeyDown?: () => void
   style?: Styles.StylesCrossPlatform
 }
 
@@ -119,6 +120,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             keyboardType={isIOS ? 'number-pad' : 'numeric'}
             placeholder={getPlaceholder(this.state.country)}
             onChangeText={this._reformat}
+            onEnterKeyDown={this.props.onEnterKeyDown}
             value={this.state.formatted}
           />
         </Kb.Box2>
