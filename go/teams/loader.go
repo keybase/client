@@ -549,7 +549,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	var hiddenIsFresh bool
 	if (ret == nil) || repoll {
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Request also, without an additional RTT, freshness information about the hidden chain;
@@ -559,16 +558,17 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
+		var hif bool // hidden is fresh
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, hiddenIsFresh, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
+		lastSeqno, lastLinkID, hif, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
 		if err != nil {
 			return nil, err
 		}
+		hiddenPackage.SetIsFresh(hif)
 		didRepoll = true
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
 		lastLinkID = ret.Chain.LastLinkID
-		hiddenIsFresh = true
 	}
 
 	// For child calls to load2, the subteam reader ID is carried up
@@ -601,7 +601,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		mctx.Debug("TeamLoader fetching: chain update")
 		// The cache is definitely behind
 		fetchLinksAndOrSecrets = true
-	} else if !hiddenIsFresh {
+	} else if !hiddenPackage.IsFresh() {
 		mctx.Debug("TeamLoader fetching: hidden chain wasn't fresh")
 		fetchLinksAndOrSecrets = true
 	} else if !l.hasSyncedSecrets(mctx, ret) {
@@ -642,7 +642,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("fetch")
 	var teamUpdate *rawTeam
 	if fetchLinksAndOrSecrets {
-		lows := l.lows(ctx, ret)
+		lows := l.lows(mctx, ret, hiddenPackage)
 		mctx.Debug("TeamLoader getting links from server (%+v)", lows)
 		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
@@ -676,6 +676,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 	if fullVerifyCutoff > 0 {
 		mctx.Debug("fullVerifyCutoff: %v", fullVerifyCutoff)
+	}
+
+	err = hiddenPackage.Update(mctx, teamUpdate.HiddenChain)
+	if err != nil {
+		return nil, err
 	}
 
 	tracer.Stage("userPreload enable:%v parallel:%v wait:%v",
@@ -752,7 +757,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("hidden")
 	if teamUpdate != nil {
-		hiddenUpdate, err = hidden.PrepareUpdate(mctx, ret.ID(), teamUpdate.HiddenChainRatchet, teamUpdate.HiddenChain)
+		hiddenUpdate, err = hidden.PrepareUpdate(mctx, ret.ID(), keybase1.Seqno(0), teamUpdate.HiddenChain)
 		if err != nil {
 			return nil, err
 		}
@@ -1563,7 +1568,7 @@ func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.T
 	}
 }
 
-func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLinksLows {
+func (l *TeamLoader) lows(mctx libkb.MetaContext, state *keybase1.TeamData, hp *hidden.LoaderPackage) getLinksLows {
 	var lows getLinksLows
 	if state != nil {
 		chain := TeamSigChainState{inner: state.Chain}
@@ -1576,12 +1581,9 @@ func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLink
 		if ok {
 			lows.ReaderKeyMask = keybase1.PerTeamKeyGeneration(len(rkms))
 		}
-		mctx := libkb.NewMetaContext(ctx, l.G())
-		var err error
-		lows.HiddenChainSeqno, lows.HiddenChainRatchet, err = mctx.G().GetHiddenTeamChainManager().LastSeqno(mctx, state.Chain.Id)
-		if err != nil {
-			mctx.Warning("Bad hidden chain tail fetch: %s", err.Error())
-		}
+	}
+	if hp != nil {
+		lows.HiddenChainSeqno = hp.LastSeqno()
 	}
 	return lows
 }

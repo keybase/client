@@ -352,7 +352,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	return &bun, ratchet, nil
 }
 
-// LoadPackage contains a snapshot of the hidden team chain, used during the process of loading a team.
+// LoaderPackage contains a snapshot of the hidden team chain, used during the process of loading a team.
 // It additionally can have new chain links loaded from the server, since it might need to be queried
 // in the process of loading the team as if the new links were already commited to the data store.
 type LoaderPackage struct {
@@ -360,10 +360,12 @@ type LoaderPackage struct {
 	encKID           keybase1.KID
 	lastMainChainGen keybase1.PerTeamKeyGeneration
 	data             *keybase1.HiddenTeamChain
+	links            []sig3.Generic
+	isFresh          bool
 }
 
 func NewLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyGeneration) *LoaderPackage {
-	return &LoaderPackage{id: id, encKID: e, lastMainChainGen: g}
+	return &LoaderPackage{id: id, encKID: e, lastMainChainGen: g, isFresh: true}
 }
 
 func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
@@ -383,4 +385,96 @@ func (l *LoaderPackage) MerkleLoadArg(mctx libkb.MetaContext) (ret *libkb.Lookup
 		return &libkb.LookupTeamHiddenArg{PTKEncryptionKID: l.encKID, PTKGeneration: l.lastMainChainGen}, nil
 	}
 	return nil, nil
+}
+
+func (l *LoaderPackage) SetIsFresh(b bool) {
+	l.isFresh = b
+}
+
+func (l *LoaderPackage) IsFresh() bool {
+	return l.isFresh
+}
+
+func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (err error) {
+	q := first.Seqno()
+	prev := first.Prev()
+	if q == keybase1.Seqno(1) && prev != nil {
+		return fmt.Errorf("bad link that had seqno=1 and non=nil prev")
+	}
+	if prev == nil {
+		return nil
+	}
+	if l.data == nil {
+		return fmt.Errorf("didn't get prior data and update was for a chain middle")
+	}
+	link, ok := l.data.Outer[q-1]
+	if !ok {
+		return fmt.Errorf("previous link wasn't found")
+	}
+	if !link.Eq(prev.Export()) {
+		return fmt.Errorf("prev mismatch at %d", q)
+	}
+	return nil
+}
+
+func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []sig3.Generic) (err error) {
+	last := l.LastSeqno()
+	max := l.MaxRatchet()
+	if max <= last {
+		return nil
+	}
+	if len(links) > 0 && links[len(links)-1].Seqno() >= max {
+		return nil
+	}
+	return fmt.Errorf("Server promised a hidden chain up to %d, but never recevied; is it withholding?", max)
+}
+
+func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
+	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
+
+	var links []sig3.Generic
+	links, err = importChain(mctx, update)
+	if err != nil {
+		return err
+	}
+
+	err = sig3.CheckLinkSequence(links)
+	if err != nil {
+		return err
+	}
+
+	err = l.checkExpectedHighSeqno(mctx, links)
+	if err != nil {
+		return err
+	}
+
+	if len(links) == 0 {
+		mctx.Debug("short-circuting since no update")
+		return nil
+	}
+
+	err = l.checkPrev(mctx, links[0])
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (l *LoaderPackage) CheckAgainstSeeds(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (err error) {
+	return nil
+}
+
+func (l *LoaderPackage) LastSeqno() keybase1.Seqno {
+	if l.data == nil {
+		return keybase1.Seqno(0)
+	}
+	return l.data.Last
+}
+
+func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
+	if l.data == nil {
+		return keybase1.Seqno(0)
+	}
+	return l.data.Ratchet.Max()
 }

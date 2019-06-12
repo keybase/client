@@ -726,11 +726,6 @@ type HiddenTeamChainManager interface {
 	PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error)
 	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.
 	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
-	// LastSeqno returns the last loaded seqno for refresh operations; it also returns the
-	// highest known ratchet, to assert that we're getting all the data down (and that the server isn't
-	// withholding). We have to pass ratchet through, since otherwise there could be a race that
-	// unfairly accuses the server of cheating.
-	LastSeqno(MetaContext, keybase1.TeamID) (loaded keybase1.Seqno, ratcheted keybase1.Seqno, err error)
 	// Load the latest data for the given team ID, and just return it wholesale.
 	Load(MetaContext, keybase1.TeamID) (dat *keybase1.HiddenTeamChain, err error)
 }

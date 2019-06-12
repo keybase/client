@@ -24,18 +24,6 @@ type loadArg struct {
 	mutate func(libkb.MetaContext, *keybase1.HiddenTeamChain) (bool, error)
 }
 
-func (m *ChainManager) LastSeqno(mctx libkb.MetaContext, id keybase1.TeamID) (keybase1.Seqno, keybase1.Seqno, error) {
-	mctx = withLogTag(mctx)
-	state, err := m.loadAndMutate(mctx, loadArg{id: id})
-	if err != nil {
-		return keybase1.Seqno(0), keybase1.Seqno(0), err
-	}
-	if state == nil {
-		return keybase1.Seqno(0), keybase1.Seqno(0), nil
-	}
-	return state.Last, state.Ratchet.Max(), nil
-}
-
 func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybase1.LinkTriple, error) {
 	mctx = withLogTag(mctx)
 	state, err := m.loadAndMutate(mctx, loadArg{id: id})

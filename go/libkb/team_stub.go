@@ -173,10 +173,6 @@ func (n nullHiddenTeamChainManager) PerTeamKeyAtGeneration(MetaContext, keybase1
 	return nil, fmt.Errorf("null hidden team chain manager")
 }
 
-func (n nullHiddenTeamChainManager) LastSeqno(MetaContext, keybase1.TeamID) (keybase1.Seqno, keybase1.Seqno, error) {
-	return keybase1.Seqno(0), keybase1.Seqno(0), nil
-}
-
 func (n nullHiddenTeamChainManager) Load(MetaContext, keybase1.TeamID) (*keybase1.HiddenTeamChain, error) {
 	return nil, fmt.Errorf("null hidden team chain manager")
 }
