@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
@@ -22,6 +23,11 @@ func StretchPassphrase(g *GlobalContext, passphrase string, salt []byte) (tsec T
 	var tmp []byte
 	var fn func(pw []byte, salt []byte) (Triplesec, error)
 
+	// free memory on mobile before we do this to reduce chance that we get killed because of the
+	// large scrypt allocation coming
+	if g.IsMobileAppType() {
+		debug.FreeOSMemory()
+	}
 	if g == nil {
 		fn = NewSecureTriplesec
 	} else {
