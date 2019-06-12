@@ -2323,3 +2323,7 @@ func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, source stel
 	}
 	return remoter.FindPaymentPath(mctx, query)
 }
+
+func FuzzyAssetSearch(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	return remoter.FuzzyAssetSearch(mctx, arg)
+}

@@ -1439,6 +1439,11 @@ type AirdropRegisterLocalArg struct {
 	Register  bool `codec:"register" json:"register"`
 }
 
+type FuzzyAssetSearchLocalArg struct {
+	SessionID    int    `codec:"sessionID" json:"sessionID"`
+	SearchString string `codec:"searchString" json:"searchString"`
+}
+
 type AddTrustlineLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	AccountID AccountID `codec:"accountID" json:"accountID"`
@@ -1647,6 +1652,7 @@ type LocalInterface interface {
 	AirdropDetailsLocal(context.Context, int) (string, error)
 	AirdropStatusLocal(context.Context, int) (AirdropStatus, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
+	FuzzyAssetSearchLocal(context.Context, FuzzyAssetSearchLocalArg) ([]Asset, error)
 	AddTrustlineLocal(context.Context, AddTrustlineLocalArg) error
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
@@ -2343,6 +2349,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"fuzzyAssetSearchLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]FuzzyAssetSearchLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FuzzyAssetSearchLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FuzzyAssetSearchLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.FuzzyAssetSearchLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"addTrustlineLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]AddTrustlineLocalArg
@@ -3006,6 +3027,11 @@ func (c LocalClient) AirdropStatusLocal(ctx context.Context, sessionID int) (res
 
 func (c LocalClient) AirdropRegisterLocal(ctx context.Context, __arg AirdropRegisterLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) FuzzyAssetSearchLocal(ctx context.Context, __arg FuzzyAssetSearchLocalArg) (res []Asset, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.fuzzyAssetSearchLocal", []interface{}{__arg}, &res)
 	return
 }
 
