@@ -159,44 +159,15 @@ func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratch
 	return nil
 }
 
-func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, prev keybase1.LinkTriple) (err error) {
-	if prev.Seqno == keybase1.Seqno(0) {
-		if !prev.LinkID.IsNil() {
-			return fmt.Errorf("first link in chain didn't have a nil priv")
-		}
-		return nil
-	}
-	link, ok := state.Outer[prev.Seqno]
-	if !ok {
-		return fmt.Errorf("cannot advance change since prev %+v wasn't found", prev)
-	}
-	if !link.Eq(prev.LinkID) {
-		return fmt.Errorf("prev mismatch at %+v", prev)
-	}
-	return nil
-}
-
-func (m *ChainManager) checkExpectedHighSeqno(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedHighSeqno keybase1.Seqno) error {
-	if state.HasSeqno(expectedHighSeqno) || newData.HasSeqno(expectedHighSeqno) || expectedHighSeqno == keybase1.Seqno(0) {
-		return nil
-	}
-	return fmt.Errorf("we expected a chain up to %d but it wasn't returned from the server", expectedHighSeqno)
-}
-
-func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, prev keybase1.LinkTriple, newData keybase1.HiddenTeamChain, expectedHighSeqno keybase1.Seqno) (update bool, err error) {
-	err = m.checkPrev(mctx, state, prev)
-	if err != nil {
-		return false, err
-	}
+func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain) (update bool, err error) {
 	err = m.checkRatchetsOnAdvance(mctx, state.Ratchet, newData)
 	if err != nil {
 		return false, err
 	}
-	err = m.checkExpectedHighSeqno(mctx, state, newData, expectedHighSeqno)
+	update, err = state.Merge(newData)
 	if err != nil {
 		return false, err
 	}
-	update = state.Merge(newData)
 	return update, nil
 }
 
@@ -219,13 +190,13 @@ func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet ke
 	return nil
 }
 
-func (m *ChainManager) Advance(mctx libkb.MetaContext, prev keybase1.LinkTriple, dat keybase1.HiddenTeamChain, ratchet keybase1.Seqno) (err error) {
+func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamChain) (err error) {
 	mctx = withLogTag(mctx)
 	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID()), func() error { return err })()
 	arg := loadArg{
 		id: dat.ID(),
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
-			return m.advance(mctx, state, prev, dat, ratchet)
+			return m.advance(mctx, state, dat)
 		},
 	}
 	_, err = m.loadAndMutate(mctx, arg)

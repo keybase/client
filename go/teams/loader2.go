@@ -714,7 +714,7 @@ func (l *TeamLoader) addKBFSCryptKeys(ctx context.Context, state *keybase1.TeamD
 // Mutates `state`
 func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
-	readerKeyMasks []keybase1.ReaderKeyMask, hiddenUpdate *hidden.Update) error {
+	readerKeyMasks []keybase1.ReaderKeyMask, hiddenPackage *hidden.LoaderPackage) error {
 
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(mctx, box, prevs)
 	if err != nil {
@@ -727,8 +727,9 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 	// Latest generation from the sigchain
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	// .. Or from the hidden chain
-	if hiddenUpdate.LastChainGen() > latestChainGen {
-		latestChainGen = hiddenUpdate.LastChainGen()
+	h := hiddenPackage.MaxReaderPerTeamKeyGeneration()
+	if h > latestChainGen {
+		latestChainGen = h
 	}
 
 	mctx.Debug("TeamLoader.addSecrets: received:%v->%v nseeds:%v nprevs:%v",
@@ -747,7 +748,7 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 		chainKey, err := TeamSigChainState{inner: state.Chain}.GetPerTeamKeyAtGeneration(ptkGen)
 		if err == nil {
 			seqno = chainKey.Seqno
-		} else if !hiddenUpdate.HasPerTeamKeyAtGeneration(ptkGen) {
+		} else if !hiddenPackage.HasReaderPerTeamKeyAtGeneration(ptkGen) {
 			return err
 		}
 

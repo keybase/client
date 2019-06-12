@@ -2870,12 +2870,21 @@ func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
 	return (l1.Seqno == l2.Seqno && l1.SeqType == l2.SeqType && !l1.LinkID.Eq(l2.LinkID))
 }
 
-func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool) {
+func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
 
-	for i := d.Last + 1; i <= newData.Last; i++ {
-		d.Outer[i] = newData.Outer[i]
-		d.Last = i
+	for seqno, link := range newData.Outer {
+		existing, ok := d.Outer[seqno]
+		if ok && !existing.Eq(link) {
+			return false, fmt.Errorf("bad merge since at seqno %d, link clash: %s != %s", seqno, existing, link)
+		}
+		if ok {
+			continue
+		}
+		d.Outer[seqno] = link
 		updated = true
+		if seqno > d.Last {
+			d.Last = seqno
+		}
 	}
 
 	for q, i := range newData.Inner {
@@ -2900,7 +2909,7 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool) {
 		}
 	}
 
-	return updated
+	return updated, nil
 }
 
 func (h HiddenTeamChain) HasSeqno(s Seqno) bool {

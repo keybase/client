@@ -678,11 +678,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		mctx.Debug("fullVerifyCutoff: %v", fullVerifyCutoff)
 	}
 
-	err = hiddenPackage.Update(mctx, teamUpdate.HiddenChain)
-	if err != nil {
-		return nil, err
-	}
-
 	tracer.Stage("userPreload enable:%v parallel:%v wait:%v",
 		teamEnv.UserPreloadEnable, teamEnv.UserPreloadParallel, teamEnv.UserPreloadWait)
 	preloadCancel := l.userPreload(ctx, links, fullVerifyCutoff)
@@ -700,6 +695,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
+	err = hiddenPackage.Update(mctx, teamUpdate.HiddenChain)
+	if err != nil {
+		return nil, err
 	}
 
 	preloadCancel()
@@ -751,18 +752,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	var needHiddenRotate bool
-	var hiddenUpdate *hidden.Update
-	var hiddenData *keybase1.HiddenTeamChain
-
-	tracer.Stage("hidden")
-	if teamUpdate != nil {
-		hiddenUpdate, err = hidden.PrepareUpdate(mctx, ret.ID(), keybase1.Seqno(0), teamUpdate.HiddenChain)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	tracer.Stage("secrets")
 	if teamUpdate != nil {
 
@@ -775,7 +764,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
 			if !ret.Chain.Public || (teamUpdate.Box != nil) {
-				err = l.addSecrets(mctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks, hiddenUpdate)
+				err = l.addSecrets(mctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks, hiddenPackage)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}
@@ -799,6 +788,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// KBFS crypt keys. But it's cheap to run this method twice in a row.
 	tracer.Stage("computeSeedChecks")
 	err = l.computeSeedChecks(ctx, ret)
+	if err != nil {
+		return nil, err
+	}
+
+	err = hiddenPackage.CheckUpdatesAgainstSeeds(mctx, ret.PerTeamKeySeedsUnverified)
 	if err != nil {
 		return nil, err
 	}
@@ -831,11 +825,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		ret.Name = newName
 	}
 
-	if hiddenUpdate != nil {
-		hiddenData, needHiddenRotate, err = l.commitHiddenChainUpdate(ctx, ret, hiddenUpdate, arg.me, arg.rotatingHiddenChain)
-		if err != nil {
-			return nil, err
-		}
+	err = hiddenPackage.Commit(mctx)
+	if err != nil {
+		return nil, err
 	}
 
 	l.logIfUnsyncedSecrets(ctx, ret)
@@ -859,9 +851,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("put")
 	l.storage.Put(libkb.NewMetaContext(ctx, l.G()), ret)
 
-	if needHiddenRotate {
-		return nil, NeedHiddenChainRotationError{}
-	}
+	// if needHiddenRotate {
+	// 	return nil, NeedHiddenChainRotationError{}
+	// }
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
@@ -888,8 +880,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		didRepoll: didRepoll,
 	}
 
-	if hiddenData != nil {
-		load2res.hidden = *hiddenData
+	if hd := hiddenPackage.ChainData(); hd != nil {
+		load2res.hidden = *hd
 	}
 
 	return &load2res, nil
@@ -912,33 +904,6 @@ func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, t
 		return nil, err
 	}
 	return ret, nil
-}
-
-func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase1.TeamData, update *hidden.Update, me keybase1.UserVersion, isRotating bool) (hiddenData *keybase1.HiddenTeamChain, needRotate bool, err error) {
-	mctx := libkb.NewMetaContext(ctx, l.G())
-	defer mctx.Trace("commitHiddenChainUpdate", func() error { return err })()
-
-	var signer *keybase1.Signer
-	hiddenData, signer, err = update.Commit(mctx, chain.PerTeamKeySeedsUnverified)
-	if err != nil {
-		return nil, false, err
-	}
-	if hiddenData == nil {
-		return nil, false, err
-	}
-
-	if signer == nil {
-		// No known links in the hidden chain, that's fine.
-		mctx.Debug("hidden chain: no signer (no new links or no chain)")
-		return hiddenData, false, nil
-	}
-
-	needRotate, err = l.checkNeedRotate(mctx, chain, me, *signer)
-	if err != nil {
-		return nil, false, err
-	}
-
-	return hiddenData, needRotate, err
 }
 
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {

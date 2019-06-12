@@ -166,7 +166,7 @@ func (n nullHiddenTeamChainManager) Tail(mctx MetaContext, id keybase1.TeamID) (
 func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error {
 	return nil
 }
-func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.LinkTriple, keybase1.HiddenTeamChain, keybase1.Seqno) error {
+func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.HiddenTeamChain) error {
 	return nil
 }
 func (n nullHiddenTeamChainManager) PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error) {

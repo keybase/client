@@ -19,41 +19,6 @@ func importChain(mctx libkb.MetaContext, raw []sig3.ExportJSON) (ret []sig3.Gene
 	return ret, nil
 }
 
-func checkSeed(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem, rotateKey *sig3.RotateKey) (err error) {
-
-	readerKey := rotateKey.ReaderKey()
-	if readerKey == nil {
-		// No reader key found in link, so no need to check it.
-		return nil
-	}
-	gen := readerKey.Generation
-	seed, ok := seeds[gen]
-	if !ok {
-		return fmt.Errorf("seed at generation %d wasn't found", gen)
-	}
-	if seed.Check == nil {
-		return fmt.Errorf("seed check at generation %d was nil", gen)
-	}
-	hash, err := seed.Check.Hash()
-	if err != nil {
-		return err
-	}
-	if !hash.Eq(readerKey.SeedCheck) {
-		return fmt.Errorf("wrong seed check at generation %d", gen)
-	}
-	return nil
-}
-
-func (u *Update) checkSeedSequence(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (err error) {
-	for _, rotate := range u.rotates {
-		err := checkSeed(mctx, seeds, rotate)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link sig3.Generic) (err error) {
 	hsh, err := sig3.Hash(link)
 	if err != nil {
@@ -84,116 +49,12 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 		if !ok || max < q {
 			ret.LastPerTeamKeys[ptk.PTKType] = q
 		}
+		if ptk.PTKType == keybase1.PTKType_READER {
+			ret.ReaderPerTeamKeys[ptk.Generation] = q
+		}
 	}
 
 	return nil
-}
-
-func (u *Update) toHiddenTeamChain(mctx libkb.MetaContext) (ret *keybase1.HiddenTeamChain, err error) {
-	ret = keybase1.NewHiddenTeamChain(u.id)
-	ret.Public = u.id.IsPublic()
-	for _, link := range u.links {
-		err = populateLink(mctx, ret, link)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return ret, nil
-}
-
-type Update struct {
-	id        keybase1.TeamID
-	links     []sig3.Generic
-	maxRotate keybase1.PerTeamKeyGeneration
-	rotates   map[keybase1.PerTeamKeyGeneration](*sig3.RotateKey)
-	ratchet   keybase1.Seqno
-}
-
-func newUpdate(id keybase1.TeamID, links []sig3.Generic, ratchet keybase1.Seqno) (ret *Update, err error) {
-	ret = &Update{
-		id:      id,
-		links:   links,
-		rotates: make(map[keybase1.PerTeamKeyGeneration](*sig3.RotateKey)),
-		ratchet: ratchet,
-	}
-	for _, link := range links {
-		err := ret.populate(link)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return ret, nil
-}
-
-func (u *Update) populate(link sig3.Generic) (err error) {
-	if sig3.IsStubbed(link) {
-		return nil
-	}
-	rotateKey, ok := link.(*sig3.RotateKey)
-	if !ok {
-		return nil
-	}
-	readerKey := rotateKey.ReaderKey()
-	if readerKey == nil {
-		return nil
-	}
-	u.rotates[readerKey.Generation] = rotateKey
-	if u.maxRotate < readerKey.Generation {
-		u.maxRotate = readerKey.Generation
-	}
-	return nil
-}
-
-func (u *Update) LastChainGen() keybase1.PerTeamKeyGeneration {
-	if u == nil {
-		return keybase1.PerTeamKeyGeneration(0)
-	}
-	return u.maxRotate
-}
-
-func (u *Update) HasPerTeamKeyAtGeneration(g keybase1.PerTeamKeyGeneration) bool {
-	if u == nil {
-		return false
-	}
-	_, ret := u.rotates[g]
-	return ret
-}
-
-func PrepareUpdate(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.Seqno, update []sig3.ExportJSON) (ret *Update, err error) {
-	if len(update) == 0 {
-		return nil, nil
-	}
-	links, err := importChain(mctx, update)
-	if err != nil {
-		return nil, err
-	}
-	err = sig3.CheckLinkSequence(links)
-	if err != nil {
-		return nil, err
-	}
-	ret, err = newUpdate(id, links, ratchet)
-	return ret, err
-}
-
-func (u *Update) Commit(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (data *keybase1.HiddenTeamChain, signer *keybase1.Signer, err error) {
-
-	err = u.checkSeedSequence(mctx, seeds)
-	if err != nil {
-		return nil, nil, err
-	}
-	var update *keybase1.HiddenTeamChain
-	update, err = u.toHiddenTeamChain(mctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	err = mctx.G().GetHiddenTeamChainManager().Advance(mctx, sig3.ExportToPrevLinkTriple(u.links[0]), *update, u.ratchet)
-	if err != nil {
-		return nil, nil, err
-	}
-	if tail := update.Tail(); tail != nil {
-		signer = &tail.Signer
-	}
-	return update, signer, nil
 }
 
 type GenerateKeyRotationParams struct {
@@ -360,6 +221,8 @@ type LoaderPackage struct {
 	encKID           keybase1.KID
 	lastMainChainGen keybase1.PerTeamKeyGeneration
 	data             *keybase1.HiddenTeamChain
+	newData          *keybase1.HiddenTeamChain
+	merged           *keybase1.HiddenTeamChain
 	links            []sig3.Generic
 	isFresh          bool
 }
@@ -429,6 +292,28 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 	return fmt.Errorf("Server promised a hidden chain up to %d, but never recevied; is it withholding?", max)
 }
 
+func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
+	q := ratchet.Triple.Seqno
+	link, ok := update.Outer[q]
+	if ok && !link.Eq(ratchet.Triple.LinkID) {
+		return fmt.Errorf("update data failed to match ratchet %+v", ratchet)
+	}
+	return nil
+}
+
+func (l *LoaderPackage) checkRatchets(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) (err error) {
+	if l.data == nil {
+		return nil
+	}
+	for _, r := range l.data.Ratchet.Flat() {
+		err = l.checkRatchet(mctx, update, r)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
 	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
 
@@ -458,10 +343,90 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 		return err
 	}
 
+	data, err := l.toHiddenTeamChain(mctx, links)
+	if err != nil {
+		return err
+	}
+
+	err = l.checkRatchets(mctx, data)
+	if err != nil {
+		return err
+	}
+
+	err = l.storeData(data)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (l *LoaderPackage) CheckAgainstSeeds(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (err error) {
+func (l *LoaderPackage) storeData(newData *keybase1.HiddenTeamChain) (err error) {
+	l.newData = newData
+	if l.data == nil {
+		l.merged = newData
+		return nil
+	}
+	tmp := l.data.DeepCopy()
+	if newData != nil {
+		_, err = tmp.Merge(*newData)
+		if err != nil {
+			return err
+		}
+	}
+	l.merged = &tmp
+	return nil
+}
+
+func (l *LoaderPackage) toHiddenTeamChain(mctx libkb.MetaContext, links []sig3.Generic) (ret *keybase1.HiddenTeamChain, err error) {
+	ret = keybase1.NewHiddenTeamChain(l.id)
+	ret.Public = l.id.IsPublic()
+	for _, link := range links {
+		err = populateLink(mctx, ret, link)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ret, nil
+}
+
+func checkUpdateAgainstSeed(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem, update keybase1.HiddenTeamChainLink) (err error) {
+	readerKey, ok := update.Ptk[keybase1.PTKType_READER]
+	if !ok {
+		// No reader key found in link, so no need to check it.
+		return nil
+	}
+	gen := readerKey.Ptk.Gen
+	seed, ok := seeds[gen]
+	if !ok {
+		return fmt.Errorf("seed at generation %d wasn't found", gen)
+	}
+	if seed.Check == nil {
+		return fmt.Errorf("seed check at generation %d was nil", gen)
+	}
+	hash, err := seed.Check.Hash()
+	if err != nil {
+		return err
+	}
+	if readerKey.Check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
+		return fmt.Errorf("can only handle seed check version 1; got %s", readerKey.Check.Version)
+	}
+	if !hash.Eq(readerKey.Check) {
+		return fmt.Errorf("wrong seed check at generation %d", gen)
+	}
+	return nil
+}
+
+func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (err error) {
+	if l.newData == nil {
+		return nil
+	}
+	for _, update := range l.newData.Inner {
+		err = checkUpdateAgainstSeed(mctx, seeds, update)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -477,4 +442,31 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 		return keybase1.Seqno(0)
 	}
 	return l.data.Ratchet.Max()
+}
+
+func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
+	if l.merged == nil {
+		return false
+	}
+	_, ok := l.merged.ReaderPerTeamKeys[gen]
+	return ok
+}
+
+func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
+	if l.newData == nil {
+		return nil
+	}
+	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData)
+	return err
+}
+
+func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
+	return l.merged
+}
+
+func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
+	if l.data == nil {
+		return keybase1.PerTeamKeyGeneration(0)
+	}
+	return l.data.MaxReaderPerTeamKeyGeneration()
 }
