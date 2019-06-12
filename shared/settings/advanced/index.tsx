@@ -7,7 +7,6 @@ import flags from '../../util/feature-flags'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import AppState from '../../app/app-state'
-import * as Types from '../../constants/types/fs'
 
 type Props = {
   openAtLogin: boolean
@@ -22,6 +21,7 @@ type Props = {
   settingLockdownMode: boolean
   traceInProgress: boolean
   processorProfileInProgress: boolean
+  proxyData: RPCTypes.ProxyData
   hasRandomPW: boolean
   useNativeFrame: boolean
   onChangeUseNativeFrame: (arg0: boolean) => void
@@ -286,25 +286,23 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
       proxyType: ProxyTypeToDisplayName['noProxy'],
       showCertPinningConfirmationModal: false,
     }
-
-    RPCTypes.configGetProxyDataRpcPromise()
-      .then(this.handleProxyData)
-      .catch(error => console.warn('Error in retrieving proxy data, using default data:', error))
   }
 
-  handleProxyData = (data: RPCTypes.ProxyData) => {
-    var addressPort = data.addressWithPort.split(':')
-    var address = addressPort[0]
-    var port = '80'
-    if (addressPort.length >= 2) {
-      port = addressPort[1]
+  componentWillReceiveProps(nextProps: ProxyProps) {
+    if (nextProps.proxyData !== this.props.proxyData) {
+      var addressPort = nextProps.proxyData.addressWithPort.split(':')
+      var address = addressPort[0]
+      var port = '80'
+      if (addressPort.length >= 2) {
+        port = addressPort[1]
+      }
+
+      var certPinning = nextProps.proxyData.certPinning
+
+      var proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[nextProps.proxyData.proxyType]]
+
+      this.setState({address, certPinning, port, proxyType})
     }
-
-    var certPinning = data.certPinning
-
-    var proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[data.proxyType]]
-
-    this.setState({address, certPinning, port, proxyType})
   }
 
   handleAddressChange = (address: string) => {
@@ -351,11 +349,11 @@ class ProxySettings extends React.Component<ProxyProps, ProxyState> {
           {ProxyTypeToDisplayNameList.map(proxyTypeDisplayName => (
             <Kb.Button
               style={{margin: Styles.globalMargins.tiny}}
-              onClick={() => this.setProxyType(proxyTypeDisplayName[0])}
-              type={this.state.proxyType === proxyTypeDisplayName[0] ? 'Default' : 'Dim'}
-              key={proxyTypeDisplayName[0]}
+              onClick={() => this.setProxyType(proxyTypeDisplayName[1])}
+              type={this.state.proxyType === proxyTypeDisplayName[1] ? 'Default' : 'Dim'}
+              key={proxyTypeDisplayName[1]}
             >
-              {proxyTypeDisplayName[0]}
+              {proxyTypeDisplayName[1]}
             </Kb.Button>
           ))}
         </Kb.Box>

@@ -23,11 +23,13 @@ export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
+export const loadProxyData = 'settings:loadProxyData'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedCheckPassword = 'settings:loadedCheckPassword'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
+export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -74,11 +76,13 @@ type _InvitesSentPayload = void
 type _InvitesSentPayloadError = {readonly error: Error}
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
+type _LoadProxyDataPayload = void
 type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
 type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect: boolean | null}
 type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
 type _LoadedLockdownModePayload = {readonly status: boolean | null}
+type _LoadedProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _LoadedRememberPasswordPayload = {readonly remember: boolean}
 type _LoadedSettingsPayload = {readonly emails: I.List<Types.EmailRow> | null}
 type _NotificationsRefreshPayload = void
@@ -199,6 +203,10 @@ export const createLoadLockdownMode = (payload: _LoadLockdownModePayload): LoadL
   payload,
   type: loadLockdownMode,
 })
+export const createLoadProxyData = (payload: _LoadProxyDataPayload): LoadProxyDataPayload => ({
+  payload,
+  type: loadProxyData,
+})
 export const createLoadRememberPassword = (
   payload: _LoadRememberPasswordPayload
 ): LoadRememberPasswordPayload => ({payload, type: loadRememberPassword})
@@ -216,6 +224,10 @@ export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): Loa
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload): LoadedLockdownModePayload => ({
   payload,
   type: loadedLockdownMode,
+})
+export const createLoadedProxyData = (payload: _LoadedProxyDataPayload): LoadedProxyDataPayload => ({
+  payload,
+  type: loadedProxyData,
 })
 export const createLoadedRememberPassword = (
   payload: _LoadedRememberPasswordPayload
@@ -348,6 +360,10 @@ export type LoadLockdownModePayload = {
   readonly payload: _LoadLockdownModePayload
   readonly type: typeof loadLockdownMode
 }
+export type LoadProxyDataPayload = {
+  readonly payload: _LoadProxyDataPayload
+  readonly type: 'settings:loadProxyData'
+}
 export type LoadRememberPasswordPayload = {
   readonly payload: _LoadRememberPasswordPayload
   readonly type: typeof loadRememberPassword
@@ -364,6 +380,10 @@ export type LoadedHasRandomPwPayload = {
 export type LoadedLockdownModePayload = {
   readonly payload: _LoadedLockdownModePayload
   readonly type: typeof loadedLockdownMode
+}
+export type LoadedProxyDataPayload = {
+  readonly payload: _LoadedProxyDataPayload
+  readonly type: 'settings:loadedProxyData'
 }
 export type LoadedRememberPasswordPayload = {
   readonly payload: _LoadedRememberPasswordPayload
@@ -491,11 +511,13 @@ export type Actions =
   | InvitesSentPayloadError
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
+  | LoadProxyDataPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
   | LoadedCheckPasswordPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
+  | LoadedProxyDataPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | NotificationsRefreshPayload

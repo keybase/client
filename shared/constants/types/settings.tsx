@@ -113,6 +113,7 @@ export type _State = {
   useNativeFrame: boolean
   chat: ChatState
   checkPasswordIsCorrect: boolean | null
+  proxyData: RPCTypes.ProxyData | null
 }
 export type State = I.RecordOf<_State>
 

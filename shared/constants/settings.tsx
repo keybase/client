@@ -69,6 +69,7 @@ export const makeState = I.Record<Types._State>({
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
+  proxyData: null,
   useNativeFrame: true,
   waitingForResponse: false,
 })

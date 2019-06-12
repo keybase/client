@@ -433,6 +433,11 @@ const loadLockdownMode = state =>
     )
     .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
+const loadProxyData = state =>
+  RPCTypes.configGetProxyDataRpcPromise()
+    .then((result: RPCTypes.ProxyData) => SettingsGen.createLoadedProxyData({proxyData: result}))
+    .catch(err => logger.warn('Error in loading proxy data', err))
+
 const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise(
@@ -581,6 +586,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.StopPayload>(SettingsGen.stop, stop)
 
   yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
+
+  yield* Saga.chainAction<SettingsGen.LoadProxyDataPayload>(SettingsGen.loadProxyData, loadProxyData)
 }
 
 export default settingsSaga

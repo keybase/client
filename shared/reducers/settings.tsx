@@ -88,6 +88,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       )
     case SettingsGen.loadedLockdownMode:
       return state.merge({lockdownModeEnabled: action.payload.status})
+    case SettingsGen.loadedProxyData:
+      return state.merge({proxyData: action.payload.proxyData})
     case SettingsGen.onChangeNewPasswordConfirm:
       return state.update('password', password =>
         password.merge({error: null, newPasswordConfirm: action.payload.password})

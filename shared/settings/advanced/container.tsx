@@ -6,6 +6,7 @@ import {
   createLoadHasRandomPw,
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
+  createLoadProxyData,
 } from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
@@ -24,6 +25,7 @@ const mapStateToProps = state => {
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
     processorProfileInProgress: Constants.processorProfileInProgress(state),
+    proxyData: state.settings.proxyData,
     setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
@@ -34,6 +36,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
+  _loadProxyData: () => dispatch(createLoadProxyData()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
   onChangeUseNativeFrame: (checked: boolean) => dispatch(createOnChangeUseNativeFrame({enabled: checked})),
@@ -53,6 +56,7 @@ export default compose(
     componentDidMount() {
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
+      this.props._loadProxyData()
     },
   } as any),
   HeaderHoc
