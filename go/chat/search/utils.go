@@ -165,7 +165,7 @@ var dateRangeRegex = regexp.MustCompile(fmt.Sprintf(
 	`(%s|%s)(\d{1,4}[-/\.]+\d{1,2}[-/\.]+\d{1,4})`, beforeFilter, afterFilter))
 
 func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username string) (string, chat1.SearchOpts) {
-	query = strings.Trim(query, " ")
+	query = strings.ToLower(strings.Trim(query, " "))
 	var hasQueryOpts bool
 
 	// To/From
