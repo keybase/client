@@ -20,7 +20,7 @@ class FileAttachment extends React.PureComponent<Props> {
     return (
       <Kb.ClickableBox onClick={this.props.onDownload} style={styles.fullWidth}>
         <Kb.Box style={styles.containerStyle}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
             <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
               <Kb.Text type="BodySemibold">{this.props.title}</Kb.Text>

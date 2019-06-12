@@ -4,34 +4,9 @@ import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Props} from './index.types'
 
-const errorHeader = (errorText: string) => {
-  if (!errorText) {
-    return null
-  }
-
-  return (
-    <Kb.Box
-      style={{
-        alignItems: 'center',
-        backgroundColor: globalColors.red,
-        justifyContent: 'center',
-      }}
-    >
-      <Kb.Text
-        center={true}
-        style={{margin: globalMargins.tiny, width: '100%'}}
-        type="BodySemibold"
-        negative={true}
-      >
-        {errorText}
-      </Kb.Text>
-    </Kb.Box>
-  )
-}
-
 const CreateChannel = (props: Props) => (
   <Kb.Box>
-    {errorHeader(props.errorText)}
+    {!!props.errorText && <Kb.Banner color="red" text={props.errorText} />}
     <Kb.Box style={_boxStyle}>
       <Kb.Box style={_inputStyle}>
         <Kb.Input

@@ -11,7 +11,7 @@ import {isArray} from 'lodash-es'
 
 export type SagaGenerator<Yield, Actions> = IterableIterator<Yield | Actions>
 
-class SagaLogger {
+export class SagaLogger {
   error: LogFn
   warn: LogFn
   info: LogFn

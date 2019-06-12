@@ -811,17 +811,24 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 }
 
 func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []stellar1.PartnerUrl, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:        "GetPartnerUrlsLocal",
+		Err:            &err,
+		AllowLoggedOut: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
 	// Pull back all of the external_urls, but only look at the partner_urls.
 	// To ensure we have flexibility in the future, only type check the objects
 	// under the key we care about here.
-	mctx := libkb.NewMetaContext(ctx, s.G())
 	entry, err := s.G().GetExternalURLStore().GetLatestEntry(mctx)
 	if err != nil {
 		return nil, err
 	}
-	b := []byte(entry.Entry)
 	var externalURLs map[string]map[string][]interface{}
-	if err := json.Unmarshal(b, &externalURLs); err != nil {
+	if err := json.Unmarshal([]byte(entry.Entry), &externalURLs); err != nil {
 		return nil, err
 	}
 	externalURLGroups, ok := externalURLs[libkb.ExternalURLsBaseKey]

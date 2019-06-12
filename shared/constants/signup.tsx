@@ -27,6 +27,7 @@ export const makeState = I.Record<Types._State>({
   signupError: new HiddenString(''),
   username: '',
   usernameError: '',
+  usernameTaken: '',
 })
 
 export const waitingKey = 'signup:waiting'
