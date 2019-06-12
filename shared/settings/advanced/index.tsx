@@ -236,16 +236,16 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     proxyType: 'noProxy',
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.proxyData !== this.props.proxyData) {
-      const addressPort = nextProps.proxyData.addressWithPort.split(':')
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.proxyData !== this.props.proxyData) {
+      const addressPort = this.props.proxyData.addressWithPort.split(':')
       const address = addressPort[0]
       var port = '80'
       if (addressPort.length >= 2) {
         port = addressPort[1]
       }
 
-      const proxyType = RPCTypes.ProxyType[nextProps.proxyData.proxyType]
+      const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType]
       this.setState({address, port, proxyType})
     }
   }
