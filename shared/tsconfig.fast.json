@@ -8,11 +8,8 @@
       "rn-fetch-blob": ["override-d.ts/rn-fetch-blob/index.d.ts"],
       "redux": ["override-d.ts/redux/index.d.ts"],
       "react-redux": ["override-d.ts/react-redux/index.d.ts"],
-      "immutable": ["custom-d.ts/immutable/index.d.ts"]
+      "immutable": ["override-d.ts/immutable/index.d.ts"]
     },
-    "typeRoots": [
-      "./node_modules/@types/",
-      "./custom-d.ts/"
-    ]
+    "typeRoots": ["./node_modules/@types/", "./custom-d.ts/"]
   }
 }
