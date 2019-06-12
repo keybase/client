@@ -230,9 +230,9 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
   : [
-      // just to help you debug what's going on
+      "just to help you debug what's going on",
       Exclude<keyof GetProps<C>, keyof TMergedProps>,
-      Exclude<keyof GetProps<C>, keyof GetProps<C>>,
+      Exclude<keyof TMergedProps, keyof GetProps<C>>,
       GetProps<C>,
       TMergedProps
     ]
