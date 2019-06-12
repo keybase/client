@@ -27,7 +27,7 @@ const (
 	wellBrace    = `\{[` + midChar + `]*(\{[` + midChar + `]*\}[` + midChar + `]*)*\}`
 	wellAll      = wellParen + `|` + wellBrack + `|` + wellBrace
 	pathCont     = `([` + midChar + `]*(` + wellAll + `|[` + endChar + `])+)+`
-	iri          = `[` + iriChar + `]([` + iriChar + `\-]*[` + iriChar + `])?`
+	iri          = `[` + iriChar + `@]([` + iriChar + `\-]*[` + iriChar + `])?`
 	domain       = `(` + iri + `\.)+`
 	octet        = `(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])`
 	ipv4Addr     = `\b` + octet + `\.` + octet + `\.` + octet + `\.` + octet + `\b`

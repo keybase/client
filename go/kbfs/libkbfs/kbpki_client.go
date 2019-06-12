@@ -386,12 +386,12 @@ func (k *KBPKIClient) CreateTeamTLF(
 }
 
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)
 }
 
 // FavoriteDelete implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
+func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.serviceOwner.KeybaseService().FavoriteDelete(ctx, folder)
 }
 
@@ -415,7 +415,7 @@ func (k *KBPKIClient) NotifyPathUpdated(
 
 // PutGitMetadata implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) PutGitMetadata(
-	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) error {
 	return k.serviceOwner.KeybaseService().PutGitMetadata(
 		ctx, folder, repoID, metadata)

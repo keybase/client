@@ -9,21 +9,9 @@ import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-mana
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
 import flags from '../../util/feature-flags'
-
-type Props = {
-  areSettingsLoading: boolean
-  driverStatus: Types.DriverStatus
-  onDisable: () => void
-  onEnable: () => void
-  onEnableSyncNotifications: () => void
-  onShowKextPermissionPopup: () => void
-  onChangedSyncNotifications: (number) => void
-  onDisableSyncNotifications: () => void
-  spaceAvailableNotificationThreshold: number
-}
+import {Props} from '.'
 
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
-
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
 const EnableSystemFileManagerIntegration = (props: Props) => (
@@ -35,46 +23,7 @@ const EnableSystemFileManagerIntegration = (props: Props) => (
   </Kb.Box>
 )
 
-class ThresholdDropdownMobile extends React.PureComponent<Props, {visible: boolean}> {
-  state = {visible: false}
-  _show = () => this.setState({visible: true})
-  _hide = () => this.setState({visible: false})
-  _select = selectedIdx => this.props.onChangedSyncNotifications(selectedIdx)
-  render() {
-    return (
-      <>
-        <InlineDropdown
-          onPress={this.state.visible ? this._show : this._hide}
-          type="Body"
-          label={Constants.humanizeBytes(
-            this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
-            0
-          )}
-        />
-        <Kb.FloatingPicker
-          items={allowedNotificationThresholds.map(i => ({
-            label: Constants.humanizeBytes(i, 0),
-            value: i,
-          }))}
-          visible={this.state.visible}
-          selectedValue={this.props.spaceAvailableNotificationThreshold || defaultNotificationThreshold}
-          promptString="Pick a threshold"
-          prompt={
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
-              <Kb.Text type="BodySmallSemibold">Pick a threshold</Kb.Text>
-            </Kb.Box2>
-          }
-          onCancel={this._hide}
-          onHidden={this._hide}
-          onDone={this._hide}
-          onSelect={this._select}
-        />
-      </>
-    )
-  }
-}
-
-const ThresholdDropdownDesktop = (props: Props) => (
+const ThresholdDropdown = (props: Props) => (
   <Kb.Dropdown
     items={allowedNotificationThresholds.map(i => (
       <Kb.Text type="Body" key={i}>
@@ -101,8 +50,6 @@ const ThresholdDropdownDesktop = (props: Props) => (
     disabled={props.areSettingsLoading || props.spaceAvailableNotificationThreshold === 0}
   />
 )
-
-const ThresholdDropdown = Platform.isMobile ? ThresholdDropdownMobile : ThresholdDropdownDesktop
 
 const SyncNotificationSetting = (props: Props) => (
   <Kb.Box2 direction="horizontal" alignItems="center">

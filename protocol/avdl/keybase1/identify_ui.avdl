@@ -122,6 +122,7 @@ protocol identifyUi {
     boolean theyFollowYou;
     array<UserTeamShowcase> teamShowcase;
     boolean registeredForAirdrop;
+    boolean blocked;
   }
 
   record ConfirmResult {

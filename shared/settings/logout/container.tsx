@@ -1,5 +1,5 @@
 import * as Kb from '../../common-adapters'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -41,8 +41,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...dispatchProps,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.safeSubmitPerMount(['onLogout'])
 )(Kb.HeaderOrPopup(LogOut))

@@ -8,6 +8,7 @@ import {parseUserId} from '../util/platforms'
 import {searchResultSelector} from './selectors'
 
 export const makeInitialState = I.Record<Types._State>({
+  blockUserModal: null,
   errorCode: null,
   errorText: '',
   pgpEmail1: '',
@@ -56,6 +57,7 @@ export const toProveGenericParams = (p: RPCGen.ProveParameters) =>
 
 export const waitingKey = 'profile:waiting'
 export const uploadAvatarWaitingKey = 'profile:uploadAvatar'
+export const blockUserWaitingKey = 'profile:blockUser'
 export const maxProfileBioChars = 255
 export const AVATAR_SIZE = 128
 export const BACK_ZINDEX = 12

@@ -5,6 +5,7 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   profileAddToTeam: {getScreen: () => require('./add-to-team/container').default, upgraded: true},
+  profileBlockUser: {getScreen: () => require('./block/container').default, upgraded: true},
   profileConfirmOrPending: {
     getScreen: () => require('./confirm-or-pending/container').default,
     upgraded: true,

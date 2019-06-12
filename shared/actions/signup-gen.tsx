@@ -9,12 +9,13 @@ import HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
+export const checkEmail = 'signup:checkEmail'
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassword = 'signup:checkPassword'
-export const checkUsernameEmail = 'signup:checkUsernameEmail'
+export const checkUsername = 'signup:checkUsername'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
-export const checkedUsernameEmail = 'signup:checkedUsernameEmail'
+export const checkedUsername = 'signup:checkedUsername'
 export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
@@ -25,19 +26,18 @@ export const signedup = 'signup:signedup'
 
 // Payload Types
 type _CheckDevicenamePayload = {readonly devicename: string}
+type _CheckEmailPayload = {readonly email: string}
 type _CheckInviteCodePayload = {readonly inviteCode: string}
 type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
-type _CheckUsernameEmailPayload = {readonly username: string; readonly email: string}
+type _CheckUsernamePayload = {readonly username: string}
 type _CheckedDevicenamePayload = {readonly devicename: string}
 type _CheckedDevicenamePayloadError = {readonly devicename: string; readonly error: string}
 type _CheckedInviteCodePayload = {readonly inviteCode: string}
 type _CheckedInviteCodePayloadError = {readonly inviteCode: string; readonly error: string}
-type _CheckedUsernameEmailPayload = {readonly username: string; readonly email: string}
-type _CheckedUsernameEmailPayloadError = {
-  readonly emailError: string
-  readonly usernameError: string
-  readonly email: string
+type _CheckedUsernamePayload = {
   readonly username: string
+  readonly usernameTaken?: string
+  readonly error: string
 }
 type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
@@ -60,6 +60,10 @@ export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDe
   payload,
   type: checkDevicename,
 })
+export const createCheckEmail = (payload: _CheckEmailPayload): CheckEmailPayload => ({
+  payload,
+  type: checkEmail,
+})
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload): CheckInviteCodePayload => ({
   payload,
   type: checkInviteCode,
@@ -68,9 +72,9 @@ export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswo
   payload,
   type: checkPassword,
 })
-export const createCheckUsernameEmail = (payload: _CheckUsernameEmailPayload): CheckUsernameEmailPayload => ({
+export const createCheckUsername = (payload: _CheckUsernamePayload): CheckUsernamePayload => ({
   payload,
-  type: checkUsernameEmail,
+  type: checkUsername,
 })
 export const createCheckedDevicename = (payload: _CheckedDevicenamePayload): CheckedDevicenamePayload => ({
   payload,
@@ -86,12 +90,10 @@ export const createCheckedInviteCode = (payload: _CheckedInviteCodePayload): Che
 export const createCheckedInviteCodeError = (
   payload: _CheckedInviteCodePayloadError
 ): CheckedInviteCodePayloadError => ({error: true, payload, type: checkedInviteCode})
-export const createCheckedUsernameEmail = (
-  payload: _CheckedUsernameEmailPayload
-): CheckedUsernameEmailPayload => ({payload, type: checkedUsernameEmail})
-export const createCheckedUsernameEmailError = (
-  payload: _CheckedUsernameEmailPayloadError
-): CheckedUsernameEmailPayloadError => ({error: true, payload, type: checkedUsernameEmail})
+export const createCheckedUsername = (payload: _CheckedUsernamePayload): CheckedUsernamePayload => ({
+  payload,
+  type: checkedUsername,
+})
 export const createGoBackAndClearErrors = (
   payload: _GoBackAndClearErrorsPayload
 ): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
@@ -132,6 +134,7 @@ export type CheckDevicenamePayload = {
   readonly payload: _CheckDevicenamePayload
   readonly type: 'signup:checkDevicename'
 }
+export type CheckEmailPayload = {readonly payload: _CheckEmailPayload; readonly type: 'signup:checkEmail'}
 export type CheckInviteCodePayload = {
   readonly payload: _CheckInviteCodePayload
   readonly type: 'signup:checkInviteCode'
@@ -140,9 +143,9 @@ export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: 'signup:checkPassword'
 }
-export type CheckUsernameEmailPayload = {
-  readonly payload: _CheckUsernameEmailPayload
-  readonly type: 'signup:checkUsernameEmail'
+export type CheckUsernamePayload = {
+  readonly payload: _CheckUsernamePayload
+  readonly type: 'signup:checkUsername'
 }
 export type CheckedDevicenamePayload = {
   readonly payload: _CheckedDevicenamePayload
@@ -162,14 +165,9 @@ export type CheckedInviteCodePayloadError = {
   readonly payload: _CheckedInviteCodePayloadError
   readonly type: 'signup:checkedInviteCode'
 }
-export type CheckedUsernameEmailPayload = {
-  readonly payload: _CheckedUsernameEmailPayload
-  readonly type: 'signup:checkedUsernameEmail'
-}
-export type CheckedUsernameEmailPayloadError = {
-  readonly error: true
-  readonly payload: _CheckedUsernameEmailPayloadError
-  readonly type: 'signup:checkedUsernameEmail'
+export type CheckedUsernamePayload = {
+  readonly payload: _CheckedUsernamePayload
+  readonly type: 'signup:checkedUsername'
 }
 export type GoBackAndClearErrorsPayload = {
   readonly payload: _GoBackAndClearErrorsPayload
@@ -216,15 +214,15 @@ export type SignedupPayloadError = {
 // prettier-ignore
 export type Actions =
   | CheckDevicenamePayload
+  | CheckEmailPayload
   | CheckInviteCodePayload
   | CheckPasswordPayload
-  | CheckUsernameEmailPayload
+  | CheckUsernamePayload
   | CheckedDevicenamePayload
   | CheckedDevicenamePayloadError
   | CheckedInviteCodePayload
   | CheckedInviteCodePayloadError
-  | CheckedUsernameEmailPayload
-  | CheckedUsernameEmailPayloadError
+  | CheckedUsernamePayload
   | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload
   | RequestInvitePayload

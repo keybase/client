@@ -67,7 +67,14 @@ protocol favorite {
     union { null, ConflictState } conflictState;
 
     union { null, FolderSyncConfig } syncConfig; // only set in some simplefs RPC responses
-}
+  }
+
+  // FolderHandle identifies a Folder/Tlf.
+  record FolderHandle {
+    string name;
+    FolderType folderType;
+    boolean created;          // this folder was just created by this user
+  }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either
   // you've favorited it, or you've ignored it, or you haven't done either of
@@ -83,12 +90,12 @@ protocol favorite {
   /**
     Adds a folder to a user's list of favorite folders.
     */
-  void favoriteAdd(int sessionID, Folder folder);
+  void favoriteAdd(int sessionID, FolderHandle folder);
 
   /**
     Removes a folder from a user's list of favorite folders.
     */
-  void favoriteIgnore(int sessionID, Folder folder);
+  void favoriteIgnore(int sessionID, FolderHandle folder);
 
   /**
     Returns all of a user's favorite folders.

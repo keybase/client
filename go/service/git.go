@@ -55,7 +55,7 @@ func (h *GitHandler) DeleteGitMetadata(ctx context.Context, arg keybase1.DeleteG
 	return git.DeleteMetadata(ctx, h.G(), arg.Folder, arg.RepoName)
 }
 
-func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.Folder) (res []keybase1.GitRepoResult, err error) {
+func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.FolderHandle) (res []keybase1.GitRepoResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "GIT")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
 		"git:GetGitMetadata(%v, %v)", folder.Name, folder.FolderType),
@@ -97,7 +97,7 @@ func isRoleAtLeast(ctx context.Context, g *libkb.GlobalContext, teamName string,
 	return role.IsOrAbove(minimumRole), nil
 }
 
-func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, repoName keybase1.GitRepoName, notifyTeam bool) (repoID keybase1.RepoID, err error) {
+func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.FolderHandle, repoName keybase1.GitRepoName, notifyTeam bool) (repoID keybase1.RepoID, err error) {
 	ctx = libkb.WithLogTag(ctx, "GIT")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
 		"git:createRepo(%v, %v)", folder.Name, folder.FolderType),
@@ -141,10 +141,9 @@ func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.G
 	ctx = libkb.WithLogTag(ctx, "GIT")
 	defer h.G().CTraceTimed(ctx, "git:CreatePersonalRepo", func() error { return err })()
 
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       h.G().Env.GetUsername().String(),
 		FolderType: keybase1.FolderType_PRIVATE,
-		Private:    true,
 	}
 	return h.createRepo(ctx, folder, repoName, false /* notifyTeam */)
 }
@@ -167,10 +166,9 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 		return "", fmt.Errorf("Only team writers may create git repos.")
 	}
 
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		Private:    !public,
 	}
 	return h.createRepo(ctx, folder, arg.RepoName, arg.NotifyTeam)
 }
@@ -184,10 +182,9 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 	if err != nil {
 		return err
 	}
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       h.G().Env.GetUsername().String(),
 		FolderType: keybase1.FolderType_PRIVATE,
-		Private:    true,
 	}
 	darg := keybase1.DeleteRepoArg{
 		Folder: folder,
@@ -233,10 +230,9 @@ func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeam
 	if err != nil {
 		return err
 	}
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		Private:    !public,
 	}
 	darg := keybase1.DeleteRepoArg{
 		Folder: folder,
@@ -266,10 +262,9 @@ func (h *GitHandler) GcPersonalRepo(ctx context.Context, arg keybase1.GcPersonal
 	if err != nil {
 		return err
 	}
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       h.G().Env.GetUsername().String(),
 		FolderType: keybase1.FolderType_PRIVATE,
-		Private:    true,
 	}
 	options := keybase1.GcOptions{}
 	if !arg.Force {
@@ -310,10 +305,9 @@ func (h *GitHandler) GcTeamRepo(ctx context.Context, arg keybase1.GcTeamRepoArg)
 	if err != nil {
 		return err
 	}
-	folder := keybase1.Folder{
+	folder := keybase1.FolderHandle{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		Private:    !public,
 	}
 	options := keybase1.GcOptions{
 		PruneExpireTime: keybase1.ToTime(

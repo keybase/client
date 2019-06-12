@@ -59,6 +59,7 @@ type _UpdatedDetailsPayload = {
   readonly registeredForAirdrop: boolean
   readonly username: string
   readonly teamShowcase: Array<Types._TeamShowcase>
+  readonly blocked: boolean
 }
 
 // Action Creators

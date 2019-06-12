@@ -18,6 +18,7 @@ export const cleanupUsername = 'profile:cleanupUsername'
 export const clearPlatformGeneric = 'profile:clearPlatformGeneric'
 export const editAvatar = 'profile:editAvatar'
 export const editProfile = 'profile:editProfile'
+export const finishBlockUser = 'profile:finishBlockUser'
 export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
 export const generatePgp = 'profile:generatePgp'
@@ -27,7 +28,9 @@ export const recheckProof = 'profile:recheckProof'
 export const revokeFinish = 'profile:revokeFinish'
 export const showUserProfile = 'profile:showUserProfile'
 export const submitBTCAddress = 'profile:submitBTCAddress'
+export const submitBlockUser = 'profile:submitBlockUser'
 export const submitRevokeProof = 'profile:submitRevokeProof'
+export const submitUnblockUser = 'profile:submitUnblockUser'
 export const submitUsername = 'profile:submitUsername'
 export const submitZcashAddress = 'profile:submitZcashAddress'
 export const updateErrorText = 'profile:updateErrorText'
@@ -53,6 +56,8 @@ type _CleanupUsernamePayload = void
 type _ClearPlatformGenericPayload = void
 type _EditAvatarPayload = void
 type _EditProfilePayload = {readonly bio: string; readonly fullname: string; readonly location: string}
+type _FinishBlockUserPayload = void
+type _FinishBlockUserPayloadError = {readonly error: string}
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = {readonly shouldStoreKeyOnServer: boolean}
 type _GeneratePgpPayload = void
@@ -63,7 +68,9 @@ type _RevokeFinishPayload = void
 type _RevokeFinishPayloadError = {readonly error: string}
 type _ShowUserProfilePayload = {readonly username: string}
 type _SubmitBTCAddressPayload = void
+type _SubmitBlockUserPayload = {readonly username: string}
 type _SubmitRevokeProofPayload = {readonly proofId: string}
+type _SubmitUnblockUserPayload = {readonly username: string; readonly guiID: string}
 type _SubmitUsernamePayload = void
 type _SubmitZcashAddressPayload = void
 type _UpdateErrorTextPayload = {readonly errorText: string; readonly errorCode: number | null}
@@ -124,6 +131,13 @@ export const createEditProfile = (payload: _EditProfilePayload): EditProfilePayl
   payload,
   type: editProfile,
 })
+export const createFinishBlockUser = (payload: _FinishBlockUserPayload): FinishBlockUserPayload => ({
+  payload,
+  type: finishBlockUser,
+})
+export const createFinishBlockUserError = (
+  payload: _FinishBlockUserPayloadError
+): FinishBlockUserPayloadError => ({error: true, payload, type: finishBlockUser})
 export const createFinishRevoking = (payload: _FinishRevokingPayload): FinishRevokingPayload => ({
   payload,
   type: finishRevoking,
@@ -164,9 +178,17 @@ export const createSubmitBTCAddress = (payload: _SubmitBTCAddressPayload): Submi
   payload,
   type: submitBTCAddress,
 })
+export const createSubmitBlockUser = (payload: _SubmitBlockUserPayload): SubmitBlockUserPayload => ({
+  payload,
+  type: submitBlockUser,
+})
 export const createSubmitRevokeProof = (payload: _SubmitRevokeProofPayload): SubmitRevokeProofPayload => ({
   payload,
   type: submitRevokeProof,
+})
+export const createSubmitUnblockUser = (payload: _SubmitUnblockUserPayload): SubmitUnblockUserPayload => ({
+  payload,
+  type: submitUnblockUser,
 })
 export const createSubmitUsername = (payload: _SubmitUsernamePayload): SubmitUsernamePayload => ({
   payload,
@@ -243,6 +265,15 @@ export type ClearPlatformGenericPayload = {
 }
 export type EditAvatarPayload = {readonly payload: _EditAvatarPayload; readonly type: 'profile:editAvatar'}
 export type EditProfilePayload = {readonly payload: _EditProfilePayload; readonly type: 'profile:editProfile'}
+export type FinishBlockUserPayload = {
+  readonly payload: _FinishBlockUserPayload
+  readonly type: 'profile:finishBlockUser'
+}
+export type FinishBlockUserPayloadError = {
+  readonly error: true
+  readonly payload: _FinishBlockUserPayloadError
+  readonly type: 'profile:finishBlockUser'
+}
 export type FinishRevokingPayload = {
   readonly payload: _FinishRevokingPayload
   readonly type: 'profile:finishRevoking'
@@ -281,9 +312,17 @@ export type SubmitBTCAddressPayload = {
   readonly payload: _SubmitBTCAddressPayload
   readonly type: 'profile:submitBTCAddress'
 }
+export type SubmitBlockUserPayload = {
+  readonly payload: _SubmitBlockUserPayload
+  readonly type: 'profile:submitBlockUser'
+}
 export type SubmitRevokeProofPayload = {
   readonly payload: _SubmitRevokeProofPayload
   readonly type: 'profile:submitRevokeProof'
+}
+export type SubmitUnblockUserPayload = {
+  readonly payload: _SubmitUnblockUserPayload
+  readonly type: 'profile:submitUnblockUser'
 }
 export type SubmitUsernamePayload = {
   readonly payload: _SubmitUsernamePayload
@@ -351,6 +390,8 @@ export type Actions =
   | ClearPlatformGenericPayload
   | EditAvatarPayload
   | EditProfilePayload
+  | FinishBlockUserPayload
+  | FinishBlockUserPayloadError
   | FinishRevokingPayload
   | FinishedWithKeyGenPayload
   | GeneratePgpPayload
@@ -361,7 +402,9 @@ export type Actions =
   | RevokeFinishPayloadError
   | ShowUserProfilePayload
   | SubmitBTCAddressPayload
+  | SubmitBlockUserPayload
   | SubmitRevokeProofPayload
+  | SubmitUnblockUserPayload
   | SubmitUsernamePayload
   | SubmitZcashAddressPayload
   | UpdateErrorTextPayload

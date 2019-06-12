@@ -1135,12 +1135,12 @@ func (k *KeybaseServiceBase) CurrentSession(
 }
 
 // FavoriteAdd implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseServiceBase) FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.favoriteClient.FavoriteAdd(ctx, keybase1.FavoriteAddArg{Folder: folder})
 }
 
 // FavoriteDelete implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.favoriteClient.FavoriteIgnore(ctx,
 		keybase1.FavoriteIgnoreArg{Folder: folder})
 }
@@ -1532,7 +1532,7 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 // PutGitMetadata implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) PutGitMetadata(
-	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) error {
 	return k.gitClient.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
 		Folder:   folder,

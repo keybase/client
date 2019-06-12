@@ -17,6 +17,7 @@ export type _State = {
   signupError: HiddenString
   username: string
   usernameError: string
+  usernameTaken: string
 }
 
 export type State = I.RecordOf<_State>

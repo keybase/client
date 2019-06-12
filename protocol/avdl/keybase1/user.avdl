@@ -187,4 +187,7 @@ protocol user {
   CanLogoutRes canLogout(int sessionID);
 
   union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
+
+  void blockUser(string username);
+  void unblockUser(string username);
 }

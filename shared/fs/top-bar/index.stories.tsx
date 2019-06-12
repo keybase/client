@@ -14,7 +14,7 @@ export const topBarProvider = {
     waiting: false,
   }),
   TopBarLoading: () => ({
-    loading: true,
+    show: true,
   }),
   TopBarSort: ({path}: {path: Types.Path}) => ({
     sortByNameAsc: path === Constants.defaultPath ? undefined : Sb.action('sortByNameAsc'),
