@@ -14,6 +14,7 @@ const props = {
 const verifyProps = {
   error: '',
   onBack: Sb.action('onBack'),
+  onCancel: Sb.action('onCancel'),
   onContinue: Sb.action('onContinue'),
   onResend: Sb.action('onResend'),
   phoneNumber: '+33 6 76 38 86 97',

@@ -13,6 +13,7 @@ export const typePrefix = 'settings:'
 export const addPhoneNumber = 'settings:addPhoneNumber'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const checkPassword = 'settings:checkPassword'
+export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const feedbackSent = 'settings:feedbackSent'
@@ -65,6 +66,7 @@ export const waitingForResponse = 'settings:waitingForResponse'
 type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
 type _AddedPhoneNumberPayload = {readonly error: string; readonly phoneNumber: string}
 type _CheckPasswordPayload = {readonly password: HiddenString}
+type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _FeedbackSentPayload = {readonly error: Error | null}
@@ -142,6 +144,12 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
   payload,
   type: feedbackSent,
 })
+/**
+ * Cancel a running phone number verification.
+ */
+export const createClearPhoneNumberVerification = (
+  payload: _ClearPhoneNumberVerificationPayload
+): ClearPhoneNumberVerificationPayload => ({payload, type: clearPhoneNumberVerification})
 /**
  * Refresh unfurl settings
  */
@@ -327,15 +335,19 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 // Action Payloads
 export type AddPhoneNumberPayload = {
   readonly payload: _AddPhoneNumberPayload
-  readonly type: 'settings:addPhoneNumber'
+  readonly type: typeof addPhoneNumber
 }
 export type AddedPhoneNumberPayload = {
   readonly payload: _AddedPhoneNumberPayload
-  readonly type: 'settings:addedPhoneNumber'
+  readonly type: typeof addedPhoneNumber
 }
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
+}
+export type ClearPhoneNumberVerificationPayload = {
+  readonly payload: _ClearPhoneNumberVerificationPayload
+  readonly type: typeof clearPhoneNumberVerification
 }
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
@@ -505,7 +517,7 @@ export type UnfurlSettingsSavedPayload = {
 }
 export type VerifyPhoneNumberPayload = {
   readonly payload: _VerifyPhoneNumberPayload
-  readonly type: 'settings:verifyPhoneNumber'
+  readonly type: typeof verifyPhoneNumber
 }
 export type WaitingForResponsePayload = {
   readonly payload: _WaitingForResponsePayload
@@ -518,6 +530,7 @@ export type Actions =
   | AddPhoneNumberPayload
   | AddedPhoneNumberPayload
   | CheckPasswordPayload
+  | ClearPhoneNumberVerificationPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | FeedbackSentPayload

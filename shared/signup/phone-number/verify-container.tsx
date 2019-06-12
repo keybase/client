@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 import VerifyPhoneNumber from './verify'
 
 const mapStateToProps = (state: Container.TypedState) => ({
@@ -7,7 +8,8 @@ const mapStateToProps = (state: Container.TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()), // TODO: do we need to clear some data?
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCancel: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
 })
 
 const ConnectedVerifyPhoneNumber = Container.namedConnect(

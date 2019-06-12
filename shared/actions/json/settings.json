@@ -20,6 +20,9 @@
       "phoneNumber": "string",
       "code": "string"
     },
+    "clearPhoneNumberVerification": {
+      "_description": "Cancel a running phone number verification."
+    },
     "dbNuke": {},
     "deleteAccountForever": {},
     "invitesClearError": {},

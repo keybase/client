@@ -138,6 +138,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
             : {error: '', pendingVerification: action.payload.phoneNumber}
         )
       )
+    case SettingsGen.clearPhoneNumberVerification:
+      return state.update('phoneNumbers', pn => pn.merge({error: '', pendingVerification: ''}))
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

@@ -6,6 +6,7 @@ import {SignupScreen} from '../common'
 type Props = {
   error: string
   onBack: () => void
+  onCancel: () => void
   onContinue: (code: string) => void
   onResend: () => void
   phoneNumber: string
@@ -13,6 +14,10 @@ type Props = {
 }
 
 const VerifyPhoneNumber = (props: Props) => {
+  // Clear data on unmount
+  React.useEffect(() => {
+    return props.onCancel
+  })
   const [code, onChangeCode] = React.useState('')
   const disabled = !code
   const onContinue = () => (disabled ? {} : props.onContinue(code))
@@ -57,7 +62,7 @@ const VerifyPhoneNumber = (props: Props) => {
         >
           <Kb.Text type="Header" style={styles.inputText}>
             {/* We put this child in Input because some text styles don't work on input itself - the one we need here is letterSpacing */}
-            {this.state.value}
+            {code}
           </Kb.Text>
         </Kb.PlainInput>
         <Kb.ClickableBox onClick={props.onResend} style={styles.positionRelative}>
