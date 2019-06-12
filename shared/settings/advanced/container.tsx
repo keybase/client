@@ -7,7 +7,8 @@ import {
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
   createLoadProxyData,
-  createSaveProxyData, createCertificatePinningToggled,
+  createSaveProxyData,
+  createCertificatePinningToggled,
 } from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
@@ -23,7 +24,7 @@ const mapStateToProps = state => {
   const settingLockdownMode = anyWaiting(state, Constants.setLockdownModeWaitingKey)
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
-    didToggleCertificatePinning: state.settings.didToggleCertificatePinning,
+    allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
     hasRandomPW: !!state.settings.password.randomPW,
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
@@ -40,16 +41,18 @@ const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   _loadProxyData: () => dispatch(createLoadProxyData()),
+  _resetCertPinningToggle: () => dispatch(createCertificatePinningToggled({toggled: null})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
   onChangeUseNativeFrame: (checked: boolean) => dispatch(createOnChangeUseNativeFrame({enabled: checked})),
   onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
+  onDisableCertPinning: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
+  onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
-  onDisableCertPinning: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
-  onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false}))
 })
 
 export default compose(
@@ -63,6 +66,9 @@ export default compose(
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
       this.props._loadProxyData()
+    },
+    componentWillUnmount() {
+      this.props._resetCertPinningToggle()
     },
   } as any),
   HeaderHoc

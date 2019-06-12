@@ -28,7 +28,7 @@ type Props = {
   onChangeUseNativeFrame: (arg0: boolean) => void
   saveProxyData: (proxyData: RPCTypes.ProxyData) => void
   onEnableCertPinning: () => void
-  didToggleCertificatePinning: boolean
+  allowTlsMitmToggle: boolean
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -60,10 +60,6 @@ const UseNativeFrame = (props: Props) => {
 }
 
 class Advanced extends React.Component<Props, {}> {
-  constructor(props: Props) {
-    super(props)
-  }
-
   render() {
     const disabled =
       this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
@@ -241,9 +237,7 @@ type ProxyState = {
   address: string
   port: string
   proxyType: string
-  certPinning: boolean
 }
-
 
 class ProxySettings extends React.Component<Props, ProxyState> {
   constructor(props: Props) {
@@ -251,14 +245,12 @@ class ProxySettings extends React.Component<Props, ProxyState> {
 
     this.state = {
       address: '',
-      certPinning: true,
       port: '',
       proxyType: ProxyTypeToDisplayName['noProxy'],
     }
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    alert("current=" + this.props.didToggleCertificatePinning + " next=" + nextProps.didToggleCertificatePinning)
     if (nextProps.proxyData !== this.props.proxyData) {
       const addressPort = nextProps.proxyData.addressWithPort.split(':')
       const address = addressPort[0]
@@ -267,14 +259,9 @@ class ProxySettings extends React.Component<Props, ProxyState> {
         port = addressPort[1]
       }
 
-      const certPinning = nextProps.proxyData.certPinning
-
       const proxyType = ProxyTypeToDisplayName[RPCTypes.ProxyType[nextProps.proxyData.proxyType]]
 
-      this.setState({address, certPinning, port, proxyType})
-    }
-    if (nextProps.didToggleCertificatePinning && this.props.didToggleCertificatePinning === false) {
-      this.setState({certPinning: false})
+      this.setState({address, port, proxyType})
     }
   }
 
@@ -291,10 +278,9 @@ class ProxySettings extends React.Component<Props, ProxyState> {
   }
 
   toggleCertPinning = () => {
-    if (this.state.certPinning) {
+    if (this.certPinning()) {
       this.props.onDisableCertPinning()
     } else {
-      this.setState({certPinning: !this.state.certPinning})
       this.props.onEnableCertPinning()
     }
   }
@@ -302,12 +288,24 @@ class ProxySettings extends React.Component<Props, ProxyState> {
   saveProxySettings = () => {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
-      certPinning: this.state.certPinning,
+      certPinning: this.certPinning(),
       proxyType: (RPCTypes.ProxyType[
         DisplayNameToProxyType[this.state.proxyType]
       ] as unknown) as RPCTypes.ProxyType,
     }
     this.props.saveProxyData(proxyData)
+  }
+
+  certPinning = (): boolean => {
+    if (this.props.allowTlsMitmToggle === null) {
+      if (this.props.proxyData) {
+        return this.props.proxyData.certPinning
+      } else {
+        return true // Default value
+      }
+    } else {
+      return !this.props.allowTlsMitmToggle
+    }
   }
 
   render() {
@@ -353,7 +351,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
           style={{marginBottom: Styles.globalMargins.medium, marginTop: Styles.globalMargins.xlarge}}
         >
           <Kb.Switch
-            on={!this.state.certPinning}
+            on={!this.certPinning()}
             onClick={this.toggleCertPinning}
             label="Allow TLS Interception"
           />

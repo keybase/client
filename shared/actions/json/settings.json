@@ -144,7 +144,7 @@
       "enabled": "boolean"
     },
     "certificatePinningToggled": {
-      "toggled": "boolean"
+      "toggled": "boolean | null"
     }
   },
 }

@@ -64,7 +64,7 @@ export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
-type _CertificatePinningToggledPayload = {readonly toggled: boolean}
+type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void

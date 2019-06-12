@@ -91,7 +91,6 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.loadedProxyData:
       return state.merge({proxyData: action.payload.proxyData})
     case SettingsGen.certificatePinningToggled:
-      alert("aqui: " + JSON.stringify(action.payload))
       return state.merge({didToggleCertificatePinning: action.payload.toggled})
     case SettingsGen.onChangeNewPasswordConfirm:
       return state.update('password', password =>
