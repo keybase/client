@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -205,11 +206,11 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 
 func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
 	log = limitToTrace(log, "bug3964Repairman#Run")
-	if len(log) == 0 {
-		t.Fatal("Didn't find a repairman run")
-	}
+	require.NotZero(t, len(log))
 	log = findLine(t, log, "| Repairman wasn't short-circuited")
+	require.NotZero(t, len(log))
 	log = findLine(t, log, "+ bug3964Repairman#saveRepairmanVisit")
+	require.NotZero(t, len(log))
 }
 
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {

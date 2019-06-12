@@ -779,9 +779,11 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 
 	t.Logf("U0 adds a link to A")
 	_, err = AddMember(context.TODO(), tcs[0].G, rootName.String(), "foobar@rooter", keybase1.TeamRole_READER)
+	require.NoError(t, err)
 
 	t.Logf("U0 does an admin action to A.B")
 	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B")
 	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{

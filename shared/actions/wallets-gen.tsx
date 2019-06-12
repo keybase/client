@@ -44,6 +44,7 @@ export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
 export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
+export const externalPartnersReceived = 'wallets:externalPartnersReceived'
 export const hideAirdropBanner = 'wallets:hideAirdropBanner'
 export const inflationDestinationReceived = 'wallets:inflationDestinationReceived'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
@@ -52,6 +53,7 @@ export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
+export const loadExternalPartners = 'wallets:loadExternalPartners'
 export const loadInflationDestination = 'wallets:loadInflationDestination'
 export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
@@ -155,6 +157,7 @@ type _DisplayCurrencyReceivedPayload = {
 }
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = {readonly accountID: Types.AccountID}
+type _ExternalPartnersReceivedPayload = {readonly externalPartners: I.List<Types.PartnerUrl>}
 type _HideAirdropBannerPayload = void
 type _InflationDestinationReceivedPayload = {
   readonly accountID: Types.AccountID
@@ -185,6 +188,7 @@ type _LoadDisplayCurrencyPayload = {
   readonly accountID: Types.AccountID | null
   readonly setBuildingCurrency?: boolean
 }
+type _LoadExternalPartnersPayload = void
 type _LoadInflationDestinationPayload = {readonly accountID: Types.AccountID}
 type _LoadMobileOnlyModePayload = {readonly accountID: Types.AccountID}
 type _LoadMorePaymentsPayload = {readonly accountID: Types.AccountID}
@@ -587,6 +591,12 @@ export const createLoadAssets = (payload: _LoadAssetsPayload): LoadAssetsPayload
   type: loadAssets,
 })
 /**
+ * Refresh our list of external tools and partner links
+ */
+export const createLoadExternalPartners = (
+  payload: _LoadExternalPartnersPayload
+): LoadExternalPartnersPayload => ({payload, type: loadExternalPartners})
+/**
  * Refresh our list of payments for a given account
  */
 export const createLoadPayments = (payload: _LoadPaymentsPayload): LoadPaymentsPayload => ({
@@ -796,6 +806,12 @@ export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdat
 export const createDisplayCurrencyReceived = (
   payload: _DisplayCurrencyReceivedPayload
 ): DisplayCurrencyReceivedPayload => ({payload, type: displayCurrencyReceived})
+/**
+ * Update our list of external tools and partners
+ */
+export const createExternalPartnersReceived = (
+  payload: _ExternalPartnersReceivedPayload
+): ExternalPartnersReceivedPayload => ({payload, type: externalPartnersReceived})
 /**
  * Update our store of account data
  */
@@ -1024,6 +1040,10 @@ export type ExportSecretKeyPayload = {
   readonly payload: _ExportSecretKeyPayload
   readonly type: typeof exportSecretKey
 }
+export type ExternalPartnersReceivedPayload = {
+  readonly payload: _ExternalPartnersReceivedPayload
+  readonly type: 'wallets:externalPartnersReceived'
+}
 export type HideAirdropBannerPayload = {
   readonly payload: _HideAirdropBannerPayload
   readonly type: typeof hideAirdropBanner
@@ -1059,6 +1079,10 @@ export type LoadDisplayCurrenciesPayload = {
 export type LoadDisplayCurrencyPayload = {
   readonly payload: _LoadDisplayCurrencyPayload
   readonly type: typeof loadDisplayCurrency
+}
+export type LoadExternalPartnersPayload = {
+  readonly payload: _LoadExternalPartnersPayload
+  readonly type: 'wallets:loadExternalPartners'
 }
 export type LoadInflationDestinationPayload = {
   readonly payload: _LoadInflationDestinationPayload
@@ -1297,6 +1321,7 @@ export type Actions =
   | DisplayCurrencyReceivedPayload
   | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
+  | ExternalPartnersReceivedPayload
   | HideAirdropBannerPayload
   | InflationDestinationReceivedPayload
   | InflationDestinationReceivedPayloadError
@@ -1307,6 +1332,7 @@ export type Actions =
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
+  | LoadExternalPartnersPayload
   | LoadInflationDestinationPayload
   | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload

@@ -39,11 +39,23 @@ const testCurrencies = I.List([
   },
 ]).map(c => Constants.currencyResultToCurrency(c))
 
+const externalPartner = {
+  adminOnly: false,
+  description: 'Example description.',
+  extra: 'Example extra.',
+  iconFilename: '',
+  showDivider: false,
+  title: 'Example title.',
+  url: 'https://example.com/%{accountId}',
+}
+const externalPartners = [externalPartner, {...externalPartner, showDivider: true}]
+
 const sharedSettingsProps = {
   accountID: Types.noAccountID,
   canSubmitTx: true,
   currencies: testCurrencies,
   currencyWaiting: false,
+  externalPartners,
   inflationDestination: '',
   mobileOnlyEditable: false,
   mobileOnlyMode: false,
@@ -57,6 +69,7 @@ const sharedSettingsProps = {
   onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
+  showExternalPartners: true,
   thisDeviceIsLockedOut: false,
   user: 'testuser',
 }
