@@ -1302,6 +1302,18 @@
         "items": "Asset"
       }
     },
+    "listPopularAssets": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
     "changeTrustline": {
       "request": [
         {

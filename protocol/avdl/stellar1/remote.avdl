@@ -325,6 +325,7 @@ protocol remote {
   array<Asset> assetSearch(string assetCode, string issuerAccountID);
   // search by user search string
   array<Asset> fuzzyAssetSearch(keybase1.UserVersion caller, string searchString);
+  array<Asset> listPopularAssets(keybase1.UserVersion caller);
 
   void changeTrustline(keybase1.UserVersion caller, string signedTransaction);
 

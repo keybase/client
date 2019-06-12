@@ -1133,3 +1133,21 @@ func FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) 
 	}
 	return apiRes.Assets, nil
 }
+
+type popularAssetsResult struct {
+	libkb.AppStatusEmbed
+	Assets []stellar1.Asset `json:"assets"`
+}
+
+func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/list_popular_assets",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{},
+	}
+	var apiRes popularAssetsResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return []stellar1.Asset{}, err
+	}
+	return apiRes.Assets, nil
+}
