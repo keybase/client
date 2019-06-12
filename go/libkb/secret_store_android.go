@@ -20,10 +20,10 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 
 	secAndroid := &secretStoreAndroid{}
 
-	m.Debug("NewSecretStoreAll on Android (ver=%s): creating upgradeable secret store", m.G().MobileOsVersion)
+	mctx.Debug("NewSecretStoreAll on Android (ver=%s): creating upgradeable secret store", mctx.G().MobileOsVersion)
 
 	var androidOsVersion int64
-	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion, 10, 32); err != nil {
+	if v, err := strconv.ParseInt(mctx.G().MobileOsVersion, 10, 32); err == nil {
 		androidOsVersion = v
 	} else {
 		mctx.Debug("Unable to figure out Android version. MobileOsVersion is: %s, errors was: %s",
