@@ -360,7 +360,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.config.logSend': {
-    inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean}
+    inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean; readonly sendMaxBytes: Boolean}
     outParam: LogSendID
   }
   'keybase.1.config.setRememberPassphrase': {

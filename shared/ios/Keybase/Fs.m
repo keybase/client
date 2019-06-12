@@ -128,12 +128,12 @@
   // Setup app level directories
   NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString* logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString* logPath = [@"~/Library/Caches/Keybase/logs" stringByExpandingTildeInPath];
   NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
+  [self createBackgroundReadableDirectory:logPath setAllFiles:YES];
 
   return @{@"home": home,
            @"sharedHome": sharedHome,

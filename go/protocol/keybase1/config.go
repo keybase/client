@@ -784,10 +784,11 @@ type GetFullStatusArg struct {
 }
 
 type LogSendArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	StatusJSON string `codec:"statusJSON" json:"statusJSON"`
-	Feedback   string `codec:"feedback" json:"feedback"`
-	SendLogs   bool   `codec:"sendLogs" json:"sendLogs"`
+	SessionID    int    `codec:"sessionID" json:"sessionID"`
+	StatusJSON   string `codec:"statusJSON" json:"statusJSON"`
+	Feedback     string `codec:"feedback" json:"feedback"`
+	SendLogs     bool   `codec:"sendLogs" json:"sendLogs"`
+	SendMaxBytes bool   `codec:"sendMaxBytes" json:"sendMaxBytes"`
 }
 
 type GetAllProvisionedUsernamesArg struct {
