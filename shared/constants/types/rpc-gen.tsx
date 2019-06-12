@@ -444,11 +444,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.favorite.favoriteAdd': {
-    inParam: {readonly folder: Folder}
+    inParam: {readonly folder: FolderHandle}
     outParam: void
   }
   'keybase.1.favorite.favoriteIgnore': {
-    inParam: {readonly folder: Folder}
+    inParam: {readonly folder: FolderHandle}
     outParam: void
   }
   'keybase.1.git.createPersonalRepo': {
@@ -472,11 +472,11 @@ export type MessageTypes = {
     outParam: Array<GitRepoResult> | null
   }
   'keybase.1.git.getGitMetadata': {
-    inParam: {readonly folder: Folder}
+    inParam: {readonly folder: FolderHandle}
     outParam: Array<GitRepoResult> | null
   }
   'keybase.1.git.setTeamRepoSettings': {
-    inParam: {readonly folder: Folder; readonly repoID: RepoID; readonly channelName?: String | null; readonly chatDisabled: Boolean}
+    inParam: {readonly folder: FolderHandle; readonly repoID: RepoID; readonly channelName?: String | null; readonly chatDisabled: Boolean}
     outParam: void
   }
   'keybase.1.gpgUi.confirmDuplicateKeyChosen': {
@@ -1119,6 +1119,10 @@ export type MessageTypes = {
     inParam: {readonly text: Text; readonly promptDefault: PromptDefault}
     outParam: Boolean
   }
+  'keybase.1.user.blockUser': {
+    inParam: {readonly username: String}
+    outParam: void
+  }
   'keybase.1.user.canLogout': {
     inParam: void
     outParam: CanLogoutRes
@@ -1146,6 +1150,10 @@ export type MessageTypes = {
   'keybase.1.user.proofSuggestions': {
     inParam: void
     outParam: ProofSuggestionsRes
+  }
+  'keybase.1.user.unblockUser': {
+    inParam: {readonly username: String}
+    outParam: void
   }
   'keybase.1.user.uploadUserAvatar': {
     inParam: {readonly filename: String; readonly crop?: ImageCropRect | null}
@@ -2162,6 +2170,7 @@ export type FileDescriptor = {readonly name: String; readonly type: FileType}
 export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
 export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
+export type FolderHandle = {readonly name: String; readonly folderType: FolderType; readonly created: Boolean}
 export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
@@ -2186,7 +2195,7 @@ export type GitLocalMetadata = {readonly repoName: GitRepoName; readonly refs?: 
 export type GitLocalMetadataV1 = {readonly repoName: GitRepoName}
 export type GitLocalMetadataVersioned = {version: GitLocalMetadataVersion.v1; v1: GitLocalMetadataV1 | null}
 export type GitRefMetadata = {readonly refName: String; readonly commits?: Array<GitCommit> | null; readonly moreCommitsAvailable: Boolean; readonly isDelete: Boolean}
-export type GitRepoInfo = {readonly folder: Folder; readonly repoID: RepoID; readonly localMetadata: GitLocalMetadata; readonly serverMetadata: GitServerMetadata; readonly repoUrl: String; readonly globalUniqueID: String; readonly canDelete: Boolean; readonly teamRepoSettings?: GitTeamRepoSettings | null}
+export type GitRepoInfo = {readonly folder: FolderHandle; readonly repoID: RepoID; readonly localMetadata: GitLocalMetadata; readonly serverMetadata: GitServerMetadata; readonly repoUrl: String; readonly globalUniqueID: String; readonly canDelete: Boolean; readonly teamRepoSettings?: GitTeamRepoSettings | null}
 export type GitRepoName = String
 export type GitRepoResult = {state: GitRepoResultState.err; err: String | null} | {state: GitRepoResultState.ok; ok: GitRepoInfo | null}
 export type GitServerMetadata = {readonly ctime: Time; readonly mtime: Time; readonly lastModifyingUsername: String; readonly lastModifyingDeviceID: DeviceID; readonly lastModifyingDeviceName: String}
@@ -2504,7 +2513,7 @@ export type UpdateInfo = {readonly status: UpdateInfoStatus; readonly message: S
 export type UpdateInfo2 = {status: UpdateInfoStatus2.ok} | {status: UpdateInfoStatus2.suggested; suggested: UpdateDetails | null} | {status: UpdateInfoStatus2.critical; critical: UpdateDetails | null}
 export type UpdaterStatus = {readonly log: String}
 export type User = {readonly uid: UID; readonly username: String}
-export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean}
+export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly blocked: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
 export type UserEkBoxed = {readonly box: String; readonly deviceEkGeneration: EkGeneration; readonly metadata: UserEkMetadata}
@@ -2920,6 +2929,7 @@ export const trackCheckTrackingRpcPromise = (params: MessageTypes['keybase.1.tra
 export const trackDismissWithTokenRpcPromise = (params: MessageTypes['keybase.1.track.dismissWithToken']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.track.dismissWithToken']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.dismissWithToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackTrackWithTokenRpcPromise = (params: MessageTypes['keybase.1.track.trackWithToken']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.track.trackWithToken']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.trackWithToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackUntrackRpcPromise = (params: MessageTypes['keybase.1.track.untrack']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.track.untrack']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.untrack', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userBlockUserRpcPromise = (params: MessageTypes['keybase.1.user.blockUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.blockUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.blockUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userCanLogoutRpcPromise = (params: MessageTypes['keybase.1.user.canLogout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.canLogout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.canLogout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userInterestingPeopleRpcPromise = (params: MessageTypes['keybase.1.user.interestingPeople']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.interestingPeople']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.interestingPeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userListTrackers2RpcPromise = (params: MessageTypes['keybase.1.user.listTrackers2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.listTrackers2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTrackers2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -2927,6 +2937,7 @@ export const userLoadHasRandomPwRpcPromise = (params: MessageTypes['keybase.1.us
 export const userLoadMySettingsRpcPromise = (params: MessageTypes['keybase.1.user.loadMySettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.loadMySettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadMySettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProfileEditRpcPromise = (params: MessageTypes['keybase.1.user.profileEdit']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.profileEdit']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.profileEdit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProofSuggestionsRpcPromise = (params: MessageTypes['keybase.1.user.proofSuggestions']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.proofSuggestions']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.proofSuggestions', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userUnblockUserRpcPromise = (params: MessageTypes['keybase.1.user.unblockUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.unblockUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.unblockUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.user.uploadUserAvatar']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.uploadUserAvatar']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.uploadUserAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'

@@ -335,7 +335,7 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 }
 
 type GitRepoInfo struct {
-	Folder           Folder               `codec:"folder" json:"folder"`
+	Folder           FolderHandle         `codec:"folder" json:"folder"`
 	RepoID           RepoID               `codec:"repoID" json:"repoID"`
 	LocalMetadata    GitLocalMetadata     `codec:"localMetadata" json:"localMetadata"`
 	ServerMetadata   GitServerMetadata    `codec:"serverMetadata" json:"serverMetadata"`
@@ -383,19 +383,19 @@ func (o GitTeamRepoSettings) DeepCopy() GitTeamRepoSettings {
 }
 
 type PutGitMetadataArg struct {
-	Folder     Folder           `codec:"folder" json:"folder"`
+	Folder     FolderHandle     `codec:"folder" json:"folder"`
 	RepoID     RepoID           `codec:"repoID" json:"repoID"`
 	Metadata   GitLocalMetadata `codec:"metadata" json:"metadata"`
 	NotifyTeam bool             `codec:"notifyTeam" json:"notifyTeam"`
 }
 
 type DeleteGitMetadataArg struct {
-	Folder   Folder      `codec:"folder" json:"folder"`
-	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+	Folder   FolderHandle `codec:"folder" json:"folder"`
+	RepoName GitRepoName  `codec:"repoName" json:"repoName"`
 }
 
 type GetGitMetadataArg struct {
-	Folder Folder `codec:"folder" json:"folder"`
+	Folder FolderHandle `codec:"folder" json:"folder"`
 }
 
 type GetAllGitMetadataArg struct {
@@ -433,21 +433,21 @@ type GcTeamRepoArg struct {
 }
 
 type GetTeamRepoSettingsArg struct {
-	Folder Folder `codec:"folder" json:"folder"`
-	RepoID RepoID `codec:"repoID" json:"repoID"`
+	Folder FolderHandle `codec:"folder" json:"folder"`
+	RepoID RepoID       `codec:"repoID" json:"repoID"`
 }
 
 type SetTeamRepoSettingsArg struct {
-	Folder       Folder  `codec:"folder" json:"folder"`
-	RepoID       RepoID  `codec:"repoID" json:"repoID"`
-	ChannelName  *string `codec:"channelName,omitempty" json:"channelName,omitempty"`
-	ChatDisabled bool    `codec:"chatDisabled" json:"chatDisabled"`
+	Folder       FolderHandle `codec:"folder" json:"folder"`
+	RepoID       RepoID       `codec:"repoID" json:"repoID"`
+	ChannelName  *string      `codec:"channelName,omitempty" json:"channelName,omitempty"`
+	ChatDisabled bool         `codec:"chatDisabled" json:"chatDisabled"`
 }
 
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
 	DeleteGitMetadata(context.Context, DeleteGitMetadataArg) error
-	GetGitMetadata(context.Context, Folder) ([]GitRepoResult, error)
+	GetGitMetadata(context.Context, FolderHandle) ([]GitRepoResult, error)
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
 	CreatePersonalRepo(context.Context, GitRepoName) (RepoID, error)
 	CreateTeamRepo(context.Context, CreateTeamRepoArg) (RepoID, error)
@@ -656,7 +656,7 @@ func (c GitClient) DeleteGitMetadata(ctx context.Context, __arg DeleteGitMetadat
 	return
 }
 
-func (c GitClient) GetGitMetadata(ctx context.Context, folder Folder) (res []GitRepoResult, err error) {
+func (c GitClient) GetGitMetadata(ctx context.Context, folder FolderHandle) (res []GitRepoResult, err error) {
 	__arg := GetGitMetadataArg{Folder: folder}
 	err = c.Cli.Call(ctx, "keybase.1.git.getGitMetadata", []interface{}{__arg}, &res)
 	return

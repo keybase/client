@@ -9,9 +9,11 @@ import ChooseConversation from '../../../chat/conversation-list/choose-conversat
 
 type Props = {
   onCancel: () => void
+  onSetTitle: (title: string) => void
   send?: () => void | null
   path: Types.Path
   sendAttachmentToChatState: Types.SendAttachmentToChatState
+  title: string
 }
 
 const MobileWithHeader = Kb.HeaderHoc(ChooseConversationHOC(ConversationList))
@@ -54,8 +56,9 @@ const DesktopSendAttachmentToChat = (props: Props) => (
         <DesktopConversationDropdown dropdownButtonStyle={desktopStyles.dropdown} />
         <Kb.Input
           floatingHintTextOverride="Title"
-          value={Types.getPathName(props.path)}
+          value={props.title}
           inputStyle={desktopStyles.input}
+          onChangeText={props.onSetTitle}
           style={desktopStyles.input}
         />
       </Kb.Box2>

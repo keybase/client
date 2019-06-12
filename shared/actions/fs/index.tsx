@@ -25,11 +25,11 @@ import {NotifyPopup} from '../../native/notifications'
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
     case RPCTypes.FolderType.private:
-      return 'private'
+      return Types.TlfType.Private
     case RPCTypes.FolderType.public:
-      return 'public'
+      return Types.TlfType.Public
     case RPCTypes.FolderType.team:
-      return 'team'
+      return Types.TlfType.Team
     default:
       return null
   }
@@ -52,7 +52,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
         folders.reduce((mutablePayload, folder) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
-            tlfType === 'private' || tlfType === 'public'
+            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
               ? tlfToPreferredOrder(folder.name, state.config.username)
               : folder.name
           return !tlfType
@@ -67,6 +67,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
                     isNew,
                     name: tlfName,
                     resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig),
                     teamId: folder.team_id || '',
                     tlfMtime: folder.mtime || 0,
                   })
@@ -89,7 +90,14 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
     })
   })
 
-const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
+const getSyncConfigFromRPC = (
+  tlfName: string,
+  tlfType: Types.TlfType,
+  config: RPCTypes.FolderSyncConfig | null
+): Types.TlfSyncConfig => {
+  if (!config) {
+    return Constants.tlfSyncDisabled
+  }
   switch (config.mode) {
     case RPCTypes.FolderSyncMode.disabled:
       return Constants.tlfSyncDisabled
@@ -106,40 +114,6 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
       return Constants.tlfSyncDisabled
   }
 }
-
-// TODO: perhaps favoritesLoad's response should just include these from the Go
-// side -- when we move it to a SimpleFS RPC.
-const loadSyncConfigForAllTlfs = (state, action: FsGen.FavoritesLoadedPayload) =>
-  RPCTypes.SimpleFSSimpleFSSyncConfigAndStatusRpcPromise().then(({folders}) => {
-    if (!folders) {
-      return null
-    }
-    const payloadMutable = folders.reduce(
-      (payloadMutable, {folder, config}) => {
-        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-        const tlfName = tlfToPreferredOrder(folder.name, state.config.username)
-        return tlfType
-          ? {
-              ...payloadMutable,
-              [tlfType]: payloadMutable[tlfType].set(tlfName, getSyncConfigFromRPC(tlfName, tlfType, config)),
-            }
-          : payloadMutable
-      },
-      {
-        private: I.Map().asMutable(),
-        public: I.Map().asMutable(),
-        team: I.Map().asMutable(),
-      }
-    )
-    return FsGen.createTlfSyncConfigsForAllSyncEnabledTlfsLoaded({
-      // @ts-ignore asImmutable returns a weak type
-      private: payloadMutable.private.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      public: payloadMutable.public.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      team: payloadMutable.team.asImmutable(),
-    })
-  })
 
 const loadTlfSyncConfig = (state, action: FsGen.LoadTlfSyncConfigPayload) => {
   // @ts-ignore probably a real issue
@@ -259,7 +233,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     action.type === FsGen.editSuccess
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
-  const loadingPathID = Constants.makeUUID()
 
   if (refreshTag) {
     if (folderListRefreshTags.get(refreshTag) === rootPath) {
@@ -271,8 +244,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
   }
 
   try {
-    yield Saga.put(FsGen.createLoadingPath({done: false, id: loadingPathID, path: rootPath}))
-
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
@@ -355,8 +326,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     }
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
-  } finally {
-    yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
 }
 
@@ -968,12 +937,7 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
 const startManualCR = (state, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
-  }).then(() =>
-    FsGen.createTlfCrStatusChanged({
-      status: Types.ConflictState.InManualResolution,
-      tlfPath: action.payload.tlfPath,
-    })
-  ) // TODO: deal with errors
+  }).then(() => FsGen.createFavoritesLoad())
 
 const updateKbfsDaemonOnlineStatus = (
   state,
@@ -1089,7 +1053,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     waitForKbfsDaemon
   )
   if (flags.kbfsOfflineMode) {
-    yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
     yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
       [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],

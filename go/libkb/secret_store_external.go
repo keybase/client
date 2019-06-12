@@ -120,6 +120,7 @@ func NewSecretStoreAll(m MetaContext) SecretStoreAll {
 		// Termux (https://termux.com/).
 		return NewSecretStoreFile(m.G().Env.GetDataDir())
 	}
+	m.Debug("NewSecretStoreAll on Android (ver=%s): creating external secret store", m.G().MobileOsVersion)
 	return &secretStoreAndroid{}
 }
 

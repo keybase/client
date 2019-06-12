@@ -11,6 +11,7 @@ export const makeState = I.Record<Types._State>({
 export const makeDetails = I.Record<Types._Details>({
   assertions: I.Map(),
   bio: null,
+  blocked: false,
   followers: null,
   followersCount: null,
   following: null,

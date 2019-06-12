@@ -428,7 +428,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		if !fav.Created && present {
 			continue
 		}
-		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
+		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolderHandle())
 		if err != nil {
 			f.log.CDebugf(req.ctx,
 				"Failure adding favorite %v: %v", fav, err)
@@ -441,7 +441,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	for _, fav := range req.toDel {
 		// Since our cache isn't necessarily up-to-date, always delete
 		// the favorite.
-		folder := fav.ToKBFolder(false)
+		folder := fav.ToKBFolderHandle(false)
 		err := kbpki.FavoriteDelete(req.ctx, folder)
 		if err != nil {
 			return err

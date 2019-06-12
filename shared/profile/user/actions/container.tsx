@@ -7,6 +7,7 @@ import * as Constants from '../../../constants/tracker2'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as WalletsType from '../../../constants/types/wallets'
 import Actions from '.'
 
@@ -23,6 +24,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     _guiID: d.guiID,
     _you: state.config.username,
+    blocked: d.blocked,
     followThem,
     followsYou,
     state: d.state,
@@ -32,6 +34,8 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onAddToTeam: (username: string) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})),
+  _onBlock: (username: string) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileBlockUser'}]})),
   _onBrowsePublicFolder: (username: string) =>
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
@@ -58,12 +62,15 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
     )
   },
+  _onUnblock: (username: string, guiID: string) => dispatch(ProfileGen.createSubmitUnblockUser({guiID, username})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  blocked: stateProps.blocked,
   followThem: stateProps.followThem,
   followsYou: stateProps.followsYou,
   onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
   onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
+  onBlock: () => dispatchProps._onBlock(stateProps.username),
   onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),
   onChat: () => dispatchProps._onChat(stateProps.username),
   onEditProfile: stateProps._you === stateProps.username ? dispatchProps._onEditProfile : null,
@@ -73,6 +80,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onReload: () => dispatchProps._onReload(stateProps.username),
   onRequestLumens: () => dispatchProps._onSendOrRequestLumens(stateProps.username, true, 'keybaseUser'),
   onSendLumens: () => dispatchProps._onSendOrRequestLumens(stateProps.username, false, 'keybaseUser'),
+  onUnblock: () => dispatchProps._onUnblock(stateProps.username, stateProps._guiID),
   onUnfollow: () => dispatchProps._onFollow(stateProps._guiID, false),
   state: stateProps.state,
 })
