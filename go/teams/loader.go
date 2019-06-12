@@ -825,6 +825,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		ret.Name = newName
 	}
 
+	var needHiddenRotate bool
+	needHiddenRotate, err = l.checkNeedRotate(mctx, ret, arg.me, hiddenPackage)
+	if err != nil {
+		return nil, err
+	}
+
 	err = hiddenPackage.Commit(mctx)
 	if err != nil {
 		return nil, err
@@ -849,11 +855,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Cache the validated result
 	tracer.Stage("put")
-	l.storage.Put(libkb.NewMetaContext(ctx, l.G()), ret)
+	l.storage.Put(mctx, ret)
 
-	// if needHiddenRotate {
-	// 	return nil, NeedHiddenChainRotationError{}
-	// }
+	if needHiddenRotate {
+		return nil, NeedHiddenChainRotationError{}
+	}
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
@@ -937,7 +943,16 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 
 }
 
-func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, signer keybase1.Signer) (ret bool, err error) {
+func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, hiddenPackage *hidden.LoaderPackage) (ret bool, err error) {
+	signer := hiddenPackage.LastRotator(mctx)
+	if signer == nil {
+		mctx.Debug("not checking need rotate, since last signer of hidden chain was nil")
+		return false, nil
+	}
+	return l.checkNeedRotateWithSigner(mctx, chain, me, *signer)
+}
+
+func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, signer keybase1.Signer) (ret bool, err error) {
 
 	uv := signer.UserVersion()
 

@@ -223,6 +223,7 @@ type LoaderPackage struct {
 	data             *keybase1.HiddenTeamChain
 	newData          *keybase1.HiddenTeamChain
 	merged           *keybase1.HiddenTeamChain
+	lastRotator      *sig3.Signer
 	links            []sig3.Generic
 	isFresh          bool
 }
@@ -358,6 +359,26 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 		return err
 	}
 
+	l.lastRotator = l.findLastRotator(mctx, links)
+	return nil
+}
+
+func (l *LoaderPackage) findLastRotator(mctx libkb.MetaContext, links []sig3.Generic) *sig3.Signer {
+	for i := len(links) - 1; i >= 0; i-- {
+		link := links[i]
+		if sig3.IsStubbed(link) {
+			continue
+		}
+		rk, ok := link.(*sig3.RotateKey)
+		if !ok {
+			continue
+		}
+		inner := rk.Inner()
+		if inner == nil {
+			continue
+		}
+		return &inner.Signer
+	}
 	return nil
 }
 
@@ -469,4 +490,12 @@ func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGener
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()
+}
+
+func (l *LoaderPackage) LastRotator(mctx libkb.MetaContext) (ret *keybase1.Signer) {
+	if l.lastRotator == nil {
+		return nil
+	}
+	tmp := l.lastRotator.Export()
+	return &tmp
 }
