@@ -1043,7 +1043,7 @@ func (fs *KBFSOpsStandard) GetRootNode(
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetDirChildren(ctx context.Context, dir Node) (
-	map[string]data.EntryInfo, error) {
+	map[data.PathPartString]data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1052,7 +1052,8 @@ func (fs *KBFSOpsStandard) GetDirChildren(ctx context.Context, dir Node) (
 }
 
 // Lookup implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Lookup(ctx context.Context, dir Node, name string) (
+func (fs *KBFSOpsStandard) Lookup(
+	ctx context.Context, dir Node, name data.PathPartString) (
 	Node, data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
@@ -1073,7 +1074,8 @@ func (fs *KBFSOpsStandard) Stat(ctx context.Context, node Node) (
 
 // CreateDir implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateDir(
-	ctx context.Context, dir Node, name string) (Node, data.EntryInfo, error) {
+	ctx context.Context, dir Node, name data.PathPartString) (
+	Node, data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1083,8 +1085,8 @@ func (fs *KBFSOpsStandard) CreateDir(
 
 // CreateFile implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateFile(
-	ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
-	Node, data.EntryInfo, error) {
+	ctx context.Context, dir Node, name data.PathPartString, isExec bool,
+	excl Excl) (Node, data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1094,8 +1096,8 @@ func (fs *KBFSOpsStandard) CreateFile(
 
 // CreateLink implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateLink(
-	ctx context.Context, dir Node, fromName string, toPath string) (
-	data.EntryInfo, error) {
+	ctx context.Context, dir Node, fromName data.PathPartString,
+	toPath string) (data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1105,7 +1107,7 @@ func (fs *KBFSOpsStandard) CreateLink(
 
 // RemoveDir implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RemoveDir(
-	ctx context.Context, dir Node, name string) error {
+	ctx context.Context, dir Node, name data.PathPartString) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1115,7 +1117,7 @@ func (fs *KBFSOpsStandard) RemoveDir(
 
 // RemoveEntry implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RemoveEntry(
-	ctx context.Context, dir Node, name string) error {
+	ctx context.Context, dir Node, name data.PathPartString) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1125,8 +1127,8 @@ func (fs *KBFSOpsStandard) RemoveEntry(
 
 // Rename implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Rename(
-	ctx context.Context, oldParent Node, oldName string, newParent Node,
-	newName string) error {
+	ctx context.Context, oldParent Node, oldName data.PathPartString,
+	newParent Node, newName data.PathPartString) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 

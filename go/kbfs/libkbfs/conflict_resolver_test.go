@@ -263,9 +263,9 @@ func testCRSharedFolderForUsers(
 	rootNode := GetRootNodeOrBust(ctx, t, configs[createAs], name, tlf.Private)
 	dir := rootNode
 	for _, d := range dirs {
-		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, d)
+		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, dir.ChildName(d))
 		if _, ok := err.(data.NameExistsError); ok {
-			dirNext, _, err = kbfsOps.Lookup(ctx, dir, d)
+			dirNext, _, err = kbfsOps.Lookup(ctx, dir, dir.ChildName(d))
 			if err != nil {
 				t.Fatalf("Couldn't lookup dir: %v", err)
 			}
@@ -291,7 +291,7 @@ func testCRSharedFolderForUsers(
 		dir := rootNode
 		for _, d := range dirs {
 			var err error
-			dir, _, err = kbfsOps.Lookup(ctx, dir, d)
+			dir, _, err = kbfsOps.Lookup(ctx, dir, dir.ChildName(d))
 			if err != nil {
 				t.Fatalf("Couldn't lookup dir: %v", err)
 			}
@@ -437,7 +437,8 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	}
 
 	// user1 makes a file
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dir1, dir1.ChildName("file1"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -451,7 +452,8 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	cr2.Shutdown()
 
 	// user2 makes a file (causes a conflict, and goes unstaged)
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dir2, dir2.ChildName("file2"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -467,7 +469,8 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	mergedPaths[expectedUnmergedPath.TailPointer()] = mergedPath
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPath.TailPointer(): {&copyUnmergedEntryAction{
-			"file2", "file2", "", false, false, data.DirEntry{}, nil}},
+			dir2.ChildName("file2"), dir2.ChildName("file2"), "", false, false,
+			data.DirEntry{}, nil}},
 	}
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -508,7 +511,8 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	}
 
 	// user1 makes a file in dir A
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirA1, "file1", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dirA1, dirA1.ChildName("file1"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -522,7 +526,8 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	cr2.Shutdown()
 
 	// user2 makes a file in dir B
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirB2, "file2", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirB2, dirB2.ChildName("file2"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -538,7 +543,8 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	mergedPaths[expectedUnmergedPath.TailPointer()] = mergedPath
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPath.TailPointer(): {&copyUnmergedEntryAction{
-			"file2", "file2", "", false, false, data.DirEntry{}, nil}},
+			dirB2.ChildName("file2"), dirB2.ChildName("file2"), "", false,
+			false, data.DirEntry{}, nil}},
 	}
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -590,11 +596,11 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	}
 
 	// user1 deletes dirB and dirC
-	err = config1.KBFSOps().RemoveDir(ctx, dirB1, "dirC")
+	err = config1.KBFSOps().RemoveDir(ctx, dirB1, dirB1.ChildName("dirC"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
-	err = config1.KBFSOps().RemoveDir(ctx, dirA1, "dirB")
+	err = config1.KBFSOps().RemoveDir(ctx, dirA1, dirA1.ChildName("dirB"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
@@ -604,7 +610,8 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	}
 
 	// user2 makes a file in dir C
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirC2, dirC2.ChildName("file2"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -623,11 +630,11 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	mergedPath := cr1.fbo.nodeCache.PathFromNode(dirA1)
 	mergedPath.Path = append(mergedPath.Path, data.PathNode{
 		BlockPointer: dirBPtr,
-		Name:         "dirB",
+		Name:         dirA1.ChildName("dirB"),
 	})
 	mergedPath.Path = append(mergedPath.Path, data.PathNode{
 		BlockPointer: dirCPtr,
-		Name:         "dirC",
+		Name:         dirB1.ChildName("dirC"),
 	})
 	mergedPaths[expectedUnmergedPath.TailPointer()] = mergedPath
 
@@ -638,11 +645,14 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 
 	dirAPtr1 := cr1.fbo.nodeCache.PathFromNode(dirA1).TailPointer()
 	expectedActions := map[data.BlockPointer]crActionList{
-		dirCPtr: {&copyUnmergedEntryAction{"file2", "file2", "",
+		dirCPtr: {&copyUnmergedEntryAction{
+			dirC2.ChildName("file2"), dirC2.ChildName("file2"), "",
 			false, false, data.DirEntry{}, nil}},
-		dirBPtr: {&copyUnmergedEntryAction{"dirC", "dirC", "", false, false,
+		dirBPtr: {&copyUnmergedEntryAction{
+			dirB1.ChildName("dirC"), dirB1.ChildName("dirC"), "", false, false,
 			data.DirEntry{}, nil}},
-		dirAPtr1: {&copyUnmergedEntryAction{"dirB", "dirB", "", false, false,
+		dirAPtr1: {&copyUnmergedEntryAction{
+			dirA1.ChildName("dirB"), dirA1.ChildName("dirB"), "", false, false,
 			data.DirEntry{}, nil}},
 	}
 
@@ -695,11 +705,13 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	}
 
 	// user1 makes /dirA/dirD and renames dirC into it
-	dirD1, _, err := config1.KBFSOps().CreateDir(ctx, dirA1, "dirD")
+	dirD1, _, err := config1.KBFSOps().CreateDir(
+		ctx, dirA1, dirA1.ChildName("dirD"))
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
-	err = config1.KBFSOps().Rename(ctx, dirB1, "dirC", dirD1, "dirC")
+	err = config1.KBFSOps().Rename(
+		ctx, dirB1, dirB1.ChildName("dirC"), dirD1, dirD1.ChildName("dirC"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
@@ -709,7 +721,8 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	}
 
 	// user2 makes a file in dir C
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirC2, dirC2.ChildName("file2"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -726,13 +739,14 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	mergedPath := cr1.fbo.nodeCache.PathFromNode(dirD1)
 	mergedPath.Path = append(mergedPath.Path, data.PathNode{
 		BlockPointer: dirCPtr,
-		Name:         "dirC",
+		Name:         dirB1.ChildName("dirC"),
 	})
 	mergedPaths[expectedUnmergedPath.TailPointer()] = mergedPath
 
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPath.TailPointer(): {&copyUnmergedEntryAction{
-			"file2", "file2", "", false, false, data.DirEntry{}, nil}},
+			dirC2.ChildName("file2"), dirC2.ChildName("file2"), "", false,
+			false, data.DirEntry{}, nil}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
@@ -801,7 +815,8 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	dirH2 := nodesH[uid2]
 	dirHPtr := cr1.fbo.nodeCache.PathFromNode(dirH1).TailPointer()
 
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirD1, "file5", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dirD1, dirD1.ChildName("file5"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -833,15 +848,18 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	// rm -rf /dirA/dirB/dirD
 
 	// user 1:
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirA1, "file1", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dirA1, dirA1.ChildName("file1"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	err = config1.KBFSOps().RemoveDir(ctx, dirE1, "dirF")
+	err = config1.KBFSOps().RemoveDir(
+		ctx, dirE1, dirE1.ChildName("dirF"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
-	err = config1.KBFSOps().Rename(ctx, dirG1, "dirH", dirA1, "dirI")
+	err = config1.KBFSOps().Rename(
+		ctx, dirG1, dirG1.ChildName("dirH"), dirA1, dirA1.ChildName("dirI"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
@@ -851,31 +869,36 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	}
 
 	// user2
-	dirJ2, _, err := config2.KBFSOps().CreateDir(ctx, dirA2, "dirJ")
+	dirJ2, _, err := config2.KBFSOps().CreateDir(
+		ctx, dirA2, dirA2.ChildName("dirJ"))
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirJ2, "file2", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirJ2, dirJ2.ChildName("file2"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirF2, "file3", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirF2, dirF2.ChildName("file3"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file4", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dirC2, dirC2.ChildName("file4"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	err = config2.KBFSOps().Rename(ctx, dirC2, "file4", dirH2, "file4")
+	err = config2.KBFSOps().Rename(
+		ctx, dirC2, dirC2.ChildName("file4"), dirH2, dirH2.ChildName("file4"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
-	err = config2.KBFSOps().RemoveEntry(ctx, dirD2, "file5")
+	err = config2.KBFSOps().RemoveEntry(ctx, dirD2, dirD2.ChildName("file5"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
-	err = config2.KBFSOps().RemoveDir(ctx, dirB2, "dirD")
+	err = config2.KBFSOps().RemoveDir(ctx, dirB2, dirB2.ChildName("dirD"))
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %v", err)
 	}
@@ -901,14 +924,14 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	mergedPathF := cr1.fbo.nodeCache.PathFromNode(dirE1)
 	mergedPathF.Path = append(mergedPathF.Path, data.PathNode{
 		BlockPointer: dirFPtr,
-		Name:         "dirF",
+		Name:         dirE1.ChildName("dirF"),
 	})
 	mergedPaths[uPathF2.TailPointer()] = mergedPathF
 	// dirH from user 2 is /dirA/dirI for user 1
 	mergedPathH := cr1.fbo.nodeCache.PathFromNode(dirA1)
 	mergedPathH.Path = append(mergedPathH.Path, data.PathNode{
 		BlockPointer: dirHPtr,
-		Name:         "dirI",
+		Name:         dirA1.ChildName("dirI"),
 	})
 	mergedPaths[uPathH2.TailPointer()] = mergedPathH
 	// dirB wasn't touched by user 1
@@ -921,14 +944,19 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	mergedPathE := cr1.fbo.nodeCache.PathFromNode(dirE1)
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPathA.TailPointer(): {&copyUnmergedEntryAction{
-			"dirJ", "dirJ", "", false, false, data.DirEntry{}, nil}},
+			dirA2.ChildName("dirJ"), dirA2.ChildName("dirJ"), "", false,
+			false, data.DirEntry{}, nil}},
 		mergedPathE.TailPointer(): {&copyUnmergedEntryAction{
-			"dirF", "dirF", "", false, false, data.DirEntry{}, nil}},
+			dirE1.ChildName("dirF"), dirE1.ChildName("dirF"), "", false,
+			false, data.DirEntry{}, nil}},
 		mergedPathF.TailPointer(): {&copyUnmergedEntryAction{
-			"file3", "file3", "", false, false, data.DirEntry{}, nil}},
+			dirF2.ChildName("file3"), dirF2.ChildName("file3"), "", false,
+			false, data.DirEntry{}, nil}},
 		mergedPathH.TailPointer(): {&copyUnmergedEntryAction{
-			"file4", "file4", "", false, false, data.DirEntry{}, nil}},
-		mergedPathB.TailPointer(): {&rmMergedEntryAction{"dirD"}},
+			dirH2.ChildName("file4"), dirH2.ChildName("file4"), "", false,
+			false, data.DirEntry{}, nil}},
+		mergedPathB.TailPointer(): {&rmMergedEntryAction{
+			dirB2.ChildName("dirD")}},
 	}
 	// `rm file5` doesn't get an action because the parent directory
 	// was deleted in the unmerged branch.
@@ -984,7 +1012,9 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	}
 
 	// user1 moves dirB into dirA
-	err = config1.KBFSOps().Rename(ctx, dirRoot1, "dirB", dirA1, "dirB")
+	err = config1.KBFSOps().Rename(
+		ctx, dirRoot1, dirRoot1.ChildName("dirB"), dirA1,
+		dirA1.ChildName("dirB"))
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
@@ -994,7 +1024,9 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	}
 
 	// user2 moves dirA into dirB
-	err = config2.KBFSOps().Rename(ctx, dirRoot2, "dirA", dirB2, "dirA")
+	err = config2.KBFSOps().Rename(
+		ctx, dirRoot2, dirRoot2.ChildName("dirA"), dirB2,
+		dirB2.ChildName("dirA"))
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
@@ -1026,7 +1058,8 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPathRoot.TailPointer(): {&dropUnmergedAction{ro}},
 		mergedPathB.TailPointer(): {&copyUnmergedEntryAction{
-			"dirA", "dirA", "./../", false, false, data.DirEntry{}, nil}},
+			dirB2.ChildName("dirA"), dirB2.ChildName("dirA"), "./../", false,
+			false, data.DirEntry{}, nil}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{unmergedPathRoot, unmergedPathB},
@@ -1072,7 +1105,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 
 	// user1 creates file1
 	_, _, err = config1.KBFSOps().CreateFile(
-		ctx, dirRoot1, "file1", false, NoExcl)
+		ctx, dirRoot1, dirRoot1.ChildName("file1"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't make file: %v", err)
 	}
@@ -1083,7 +1116,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 
 	// user2 also create file1, but makes it executable
 	_, _, err = config2.KBFSOps().CreateFile(
-		ctx, dirRoot2, "file1", true, NoExcl)
+		ctx, dirRoot2, dirRoot2.ChildName("file1"), true, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
@@ -1103,8 +1136,9 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	cre := WriterDeviceDateConflictRenamer{}
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPathRoot.TailPointer(): {&renameUnmergedAction{
-			"file1",
-			cre.ConflictRenameHelper(now, "u2", "dev1", "file1"),
+			dirRoot1.ChildName("file1"),
+			dirRoot1.ChildName(cre.ConflictRenameHelper(
+				now, "u2", "dev1", "file1")),
 			"", 0, false, data.ZeroPtr, data.ZeroPtr}},
 	}
 
@@ -1145,7 +1179,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 
 	// user1 creates file
 	_, _, err = config1.KBFSOps().CreateFile(
-		ctx, dirRoot1, "file", false, NoExcl)
+		ctx, dirRoot1, dirRoot1.ChildName("file"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't make file: %v", err)
 	}
@@ -1159,7 +1193,8 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync user 2")
 	}
-	file2, _, err := config2.KBFSOps().Lookup(ctx, dirRoot2, "file")
+	file2, _, err := config2.KBFSOps().Lookup(
+		ctx, dirRoot2, dirRoot2.ChildName("file"))
 	if err != nil {
 		t.Fatalf("Couldn't lookup file: %v", err)
 	}
@@ -1174,12 +1209,13 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	}
 
 	// user1 deletes the file and creates another
-	err = config1.KBFSOps().RemoveEntry(ctx, dirRoot1, "file")
+	err = config1.KBFSOps().RemoveEntry(
+		ctx, dirRoot1, dirRoot1.ChildName("file"))
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
 	_, _, err = config1.KBFSOps().CreateFile(
-		ctx, dirRoot1, "file", false, NoExcl)
+		ctx, dirRoot1, dirRoot1.ChildName("file"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't re-make file: %v", err)
 	}
@@ -1210,7 +1246,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	mergedPathFile := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
 	mergedPathFile.Path = append(mergedPathFile.Path, data.PathNode{
 		BlockPointer: filePtr,
-		Name:         "file",
+		Name:         dirRoot1.ChildName("file"),
 	})
 	mergedPaths[unmergedPathFile.TailPointer()] = mergedPathFile
 
@@ -1222,8 +1258,9 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	// Both unmerged actions should collapse into just one rename operation
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPathRoot.TailPointer(): {&renameUnmergedAction{
-			"file",
-			cre.ConflictRenameHelper(now, "u2", "dev1", "file"),
+			dirRoot1.ChildName("file"),
+			dirRoot2.ChildName(cre.ConflictRenameHelper(
+				now, "u2", "dev1", "file")),
 			"", 0, false, data.ZeroPtr, data.ZeroPtr}},
 	}
 
@@ -1263,7 +1300,8 @@ func TestCRDoActionsSimple(t *testing.T) {
 	}
 
 	// user1 makes a file
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false, NoExcl)
+	_, _, err = config1.KBFSOps().CreateFile(
+		ctx, dir1, dir1.ChildName("file1"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1277,7 +1315,8 @@ func TestCRDoActionsSimple(t *testing.T) {
 	cr2.Shutdown()
 
 	// user2 makes a file (causes a conflict, and goes unstaged)
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false, NoExcl)
+	_, _, err = config2.KBFSOps().CreateFile(
+		ctx, dir2, dir2.ChildName("file2"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1359,7 +1398,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	// user1 makes a file
 	file1, _, err := config1.KBFSOps().CreateFile(
-		ctx, dir1, "file", false, NoExcl)
+		ctx, dir1, dir1.ChildName("file"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1373,7 +1412,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync user 2")
 	}
-	file2, _, err := config2.KBFSOps().Lookup(ctx, dir2, "file")
+	file2, _, err := config2.KBFSOps().Lookup(ctx, dir2, dir2.ChildName("file"))
 	if err != nil {
 		t.Fatalf("Couldn't lookup file: %v", err)
 	}

@@ -790,7 +790,7 @@ func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 	dirBlock.Children[".kbfs_git"] = data.DirEntry{EntryInfo: data.EntryInfo{Type: data.Dir}}
 	blockPtr := makeBP(rootID, rmd, config, u)
 	rmd.data.Dir.BlockPointer = blockPtr
-	node := data.PathNode{BlockPointer: blockPtr, Name: "p"}
+	node := data.PathNode{BlockPointer: blockPtr, Name: testPPS("p")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node},
@@ -806,7 +806,7 @@ func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
 		t.Errorf("Got bad children back: %v", children)
 	}
 	for c, ei := range children {
-		if de, ok := dirBlock.Children[c]; !ok {
+		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
 			t.Errorf("No such child: %s", c)
 		} else if !de.EntryInfo.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
@@ -826,7 +826,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	dirBlock.Children["b"] = data.DirEntry{EntryInfo: data.EntryInfo{Type: data.Dir}}
 	blockPtr := makeBP(rootID, rmd, config, u)
 	rmd.data.Dir.BlockPointer = blockPtr
-	node := data.PathNode{BlockPointer: blockPtr, Name: "p"}
+	node := data.PathNode{BlockPointer: blockPtr, Name: testPPS("p")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node},
@@ -842,7 +842,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 		t.Errorf("Got bad children back: %v", children)
 	}
 	for c, ei := range children {
-		if de, ok := dirBlock.Children[c]; !ok {
+		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
 			t.Errorf("No such child: %s", c)
 		} else if !de.EntryInfo.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
@@ -860,7 +860,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	dirBlock := data.NewDirBlock().(*data.DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
 	rmd.data.Dir.BlockPointer = blockPtr
-	node := data.PathNode{BlockPointer: blockPtr, Name: "p"}
+	node := data.PathNode{BlockPointer: blockPtr, Name: testPPS("p")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node},
@@ -898,7 +898,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	rootID := kbfsblock.FakeID(42)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, session.UID.AsUserOrTeam()),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -931,7 +931,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	dirBlock := data.NewDirBlock().(*data.DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
 	rmd.data.Dir.BlockPointer = blockPtr
-	node := data.PathNode{BlockPointer: blockPtr, Name: "p"}
+	node := data.PathNode{BlockPointer: blockPtr, Name: testPPS("p")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node},
@@ -971,9 +971,11 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	dirBlock.Children["b"] = data.DirEntry{EntryInfo: data.EntryInfo{Type: data.Sym}}
 	blockPtr := makeBP(rootID, rmd, config, u)
 	rmd.data.Dir.BlockPointer = blockPtr
-	node := data.PathNode{BlockPointer: blockPtr, Name: "p"}
-	aNode := data.PathNode{BlockPointer: makeBP(aID, rmd, config, u), Name: "a"}
-	bNode := data.PathNode{BlockPointer: makeBP(bID, rmd, config, u), Name: "b"}
+	node := data.PathNode{BlockPointer: blockPtr, Name: testPPS("p")}
+	aNode := data.PathNode{
+		BlockPointer: makeBP(aID, rmd, config, u), Name: testPPS("a")}
+	bNode := data.PathNode{
+		BlockPointer: makeBP(bID, rmd, config, u), Name: testPPS("b")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node, aNode, bNode},
@@ -990,7 +992,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	}
 
 	for c, ei := range children {
-		if de, ok := dirBlock.Children[c]; !ok {
+		if de, ok := dirBlock.Children[c.Plaintext()]; !ok {
 			t.Errorf("No such child: %s", c)
 		} else if !de.EntryInfo.Eq(ei) {
 			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
@@ -1023,9 +1025,10 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
-	aNode := data.PathNode{BlockPointer: makeBP(aID, rmd, config, u), Name: "a"}
+	aNode := data.PathNode{
+		BlockPointer: makeBP(aID, rmd, config, u), Name: testPPS("a")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node, aNode},
@@ -1034,14 +1037,14 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
-	bn, ei, err := config.KBFSOps().Lookup(ctx, n, "b")
+	bn, ei, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
 	if err != nil {
 		t.Errorf("Error on Lookup: %+v", err)
 	}
 	bPath := ops.nodeCache.PathFromNode(bn)
 	expectedBNode := data.PathNode{
 		BlockPointer: makeBP(bID, rmd, config, u),
-		Name:         "b",
+		Name:         testPPS("b"),
 	}
 	expectedBNode.KeyGen = kbfsmd.FirstValidKeyGen
 	if !ei.Eq(dirBlock.Children["b"].EntryInfo) {
@@ -1076,11 +1079,11 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1090,7 +1093,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
-	bn, ei, err := config.KBFSOps().Lookup(ctx, n, "b")
+	bn, ei, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
 	if err != nil {
 		t.Errorf("Error on Lookup: %+v", err)
 	}
@@ -1126,11 +1129,11 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1141,7 +1144,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	testPutBlockInCache(t, config, aNode.BlockPointer, id, dirBlock)
 
 	expectedErr := idutil.NoSuchNameError{Name: "c"}
-	_, _, err := config.KBFSOps().Lookup(ctx, n, "c")
+	_, _, err := config.KBFSOps().Lookup(ctx, n, testPPS("c"))
 	if err == nil {
 		t.Error("No error as expected on Lookup")
 	} else if err != expectedErr {
@@ -1174,15 +1177,15 @@ func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	bNode := data.PathNode{
 		BlockPointer: makeBP(bID, rmd, config, u),
-		Name:         "b",
+		Name:         testPPS("b"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1199,7 +1202,7 @@ func TestKBFSOpsReadNewDataVersionFail(t *testing.T) {
 		bInfo.DataVer,
 	}
 
-	n, _, err := config.KBFSOps().Lookup(ctx, n, "b")
+	n, _, err := config.KBFSOps().Lookup(ctx, n, testPPS("b"))
 	if err != nil {
 		t.Error("Unexpected error found on lookup")
 	}
@@ -1237,15 +1240,15 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	bNode := data.PathNode{
 		BlockPointer: dirBlock.Children["b"].BlockPointer,
-		Name:         "b",
+		Name:         testPPS("b"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1320,7 +1323,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1336,9 +1339,9 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	var err error
 	// dir and link have different checks for dup name
 	if isDir {
-		_, _, err = config.KBFSOps().CreateDir(ctx, n, "a")
+		_, _, err = config.KBFSOps().CreateDir(ctx, n, testPPS("a"))
 	} else {
-		_, err = config.KBFSOps().CreateLink(ctx, n, "a", "b")
+		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS("a"), "b")
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
@@ -1367,7 +1370,7 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	rootBlock := data.NewDirBlock().(*data.DirBlock)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1385,9 +1388,9 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	var err error
 	// dir and link have different checks for dup name
 	if isDir {
-		_, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+		_, _, err = config.KBFSOps().CreateDir(ctx, n, testPPS(name))
 	} else {
-		_, err = config.KBFSOps().CreateLink(ctx, n, name, "b")
+		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS(name), "b")
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
@@ -1421,7 +1424,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1437,13 +1440,15 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	// dir and link have different checks for dup name
 	switch et {
 	case data.Dir:
-		_, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+		_, _, err = config.KBFSOps().CreateDir(ctx, n, testPPS(name))
 	case data.Sym:
-		_, err = config.KBFSOps().CreateLink(ctx, n, name, "a")
+		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS(name), "a")
 	case data.Exec:
-		_, _, err = config.KBFSOps().CreateFile(ctx, n, name, true, NoExcl)
+		_, _, err = config.KBFSOps().CreateFile(
+			ctx, n, testPPS(name), true, NoExcl)
 	case data.File:
-		_, _, err = config.KBFSOps().CreateFile(ctx, n, name, false, NoExcl)
+		_, _, err = config.KBFSOps().CreateFile(
+			ctx, n, testPPS(name), false, NoExcl)
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
@@ -1495,7 +1500,8 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 			Type: data.Dir,
 		},
 	}
-	nodes := []data.PathNode{{BlockPointer: bi.BlockPointer, Name: "{root}"}}
+	nodes := []data.PathNode{{
+		BlockPointer: bi.BlockPointer, Name: testPPS("{root}")}}
 	rootBlock := data.NewDirBlock().(*data.DirBlock)
 	rootBlock.SetEncodedSize(bi.EncodedSize)
 	blocks := []*data.DirBlock{rootBlock}
@@ -1514,7 +1520,7 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 		}
 		nodes = append(nodes, data.PathNode{
 			BlockPointer: bi.BlockPointer,
-			Name:         component,
+			Name:         testPPS(component),
 		})
 		dirBlock := data.NewDirBlock().(*data.DirBlock)
 		dirBlock.SetEncodedSize(bi.EncodedSize)
@@ -1547,7 +1553,7 @@ func makeFile(
 		},
 	}
 
-	p := dir.ChildPath(name, bi.BlockPointer)
+	p := dir.ChildPath(testPPS(name), bi.BlockPointer, nil)
 	return p, data.NewFileBlock().(*data.FileBlock)
 }
 
@@ -1563,7 +1569,7 @@ func makeDir(dir data.Path, parentDirBlock *data.DirBlock, name string) (
 		},
 	}
 
-	p := dir.ChildPath(name, bi.BlockPointer)
+	p := dir.ChildPath(testPPS(name), bi.BlockPointer, nil)
 	return p, data.NewDirBlock().(*data.DirBlock)
 }
 
@@ -1595,7 +1601,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	n := nodeFromPath(t, ops, *p.ParentPath().ParentPath())
 
 	expectedErr := DirNotEmptyError{p.ParentPath().TailName()}
-	err := config.KBFSOps().RemoveDir(ctx, n, "d")
+	err := config.KBFSOps().RemoveDir(ctx, n, testPPS("d"))
 	require.Equal(t, expectedErr, err)
 }
 
@@ -1613,7 +1619,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
 	var nodeA Node
 	var err error
 	if et == data.Dir {
-		nodeA, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+		nodeA, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err)
 		err = kbfsOps.SyncAll(ctx, nodeA.GetFolderBranch())
 		require.NoError(t, err)
@@ -1623,7 +1629,8 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
 			exec = true
 		}
 
-		nodeA, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", exec, NoExcl)
+		nodeA, _, err = kbfsOps.CreateFile(
+			ctx, rootNode, testPPS("a"), exec, NoExcl)
 		require.NoError(t, err)
 
 		data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -1639,7 +1646,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et data.EntryType) {
 		[]data.BlockPointer{ops.nodeCache.PathFromNode(nodeA).TailPointer()})
 	config.ResetCaches()
 
-	err = config.KBFSOps().RemoveEntry(ctx, rootNode, "a")
+	err = config.KBFSOps().RemoveEntry(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -1681,7 +1688,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	expectedErr := idutil.NoSuchNameError{Name: "nonexistent"}
-	err := config.KBFSOps().RemoveDir(ctx, n, "nonexistent")
+	err := config.KBFSOps().RemoveDir(ctx, n, testPPS("nonexistent"))
 	require.Equal(t, expectedErr, err)
 }
 
@@ -1706,11 +1713,11 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	aID1 := kbfsblock.FakeID(42)
 	node1 := data.PathNode{
 		BlockPointer: makeBP(rootID1, rmd1, config, uid1),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode1 := data.PathNode{
 		BlockPointer: makeBP(aID1, rmd1, config, uid1),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p1 := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id1},
@@ -1723,11 +1730,11 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	aID2 := kbfsblock.FakeID(39)
 	node2 := data.PathNode{
 		BlockPointer: makeBP(rootID2, rmd2, config, uid2),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode2 := data.PathNode{
 		BlockPointer: makeBP(aID2, rmd2, config, uid2),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p2 := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id2},
@@ -1738,7 +1745,8 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 
 	expectedErr := RenameAcrossDirsError{}
 
-	if err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c"); err == nil {
+	if err := config.KBFSOps().Rename(
+		ctx, n1, testPPS("b"), n2, testPPS("c")); err == nil {
 		t.Errorf("Got no expected error on rename")
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on rename: %+v", err)
@@ -1757,11 +1765,11 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, u),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1795,11 +1803,11 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, u),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1850,11 +1858,11 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1914,11 +1922,11 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	block4.Contents = []byte{20, 19, 18, 17, 16}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1957,11 +1965,11 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, u),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -1992,10 +2000,10 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileBlockPtr := makeBP(fileID, rmd, config, u)
-	fileNode := data.PathNode{BlockPointer: fileBlockPtr, Name: "f"}
+	fileNode := data.PathNode{BlockPointer: fileBlockPtr, Name: testPPS("f")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node, fileNode},
@@ -2029,10 +2037,10 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileBlockPtr := makeBP(fileID, rmd, config, u)
-	fileNode := data.PathNode{BlockPointer: fileBlockPtr, Name: "f"}
+	fileNode := data.PathNode{BlockPointer: fileBlockPtr, Name: testPPS("f")}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
 		Path:         []data.PathNode{node, fileNode},
@@ -2108,11 +2116,11 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	fileBlock := data.NewFileBlock().(*data.FileBlock)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2188,11 +2196,11 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2260,11 +2268,11 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2332,11 +2340,11 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	fileBlock.Contents = []byte{}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2465,11 +2473,11 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	block2.Contents = []byte{10, 9, 8, 7, 6}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2567,11 +2575,11 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2638,11 +2646,11 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, u),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2688,11 +2696,11 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2762,11 +2770,11 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	block2.Contents = []byte{10, 9, 8, 7, 6}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2859,11 +2867,11 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	block2.Contents = []byte{10, 9, 8, 7, 6}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -2944,11 +2952,11 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, uid),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	fileNode := data.PathNode{
 		BlockPointer: makeBP(fileID, rmd, config, uid),
-		Name:         "f",
+		Name:         testPPS("f"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3007,11 +3015,11 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	rootBlock := data.NewDirBlock().(*data.DirBlock)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3021,7 +3029,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
-	expectedErr := idutil.NoSuchNameError{Name: p.TailName()}
+	expectedErr := idutil.NoSuchNameError{Name: p.TailName().Plaintext()}
 
 	// chmod a+x a
 	if err := config.KBFSOps().SetEx(ctx, n, true); err == nil {
@@ -3052,11 +3060,11 @@ func TestSetMtimeNull(t *testing.T) {
 	}
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3089,11 +3097,11 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	rootBlock := data.NewDirBlock().(*data.DirBlock)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3103,7 +3111,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
-	expectedErr := idutil.NoSuchNameError{Name: p.TailName()}
+	expectedErr := idutil.NoSuchNameError{Name: p.TailName().Plaintext()}
 
 	newMtime := time.Now()
 	if err := config.KBFSOps().SetMtime(ctx, n, &newMtime); err == nil {
@@ -3144,11 +3152,11 @@ func TestSyncCleanSuccess(t *testing.T) {
 	aID := kbfsblock.FakeID(43)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	aNode := data.PathNode{
 		BlockPointer: makeBP(aID, rmd, config, u),
-		Name:         "a",
+		Name:         testPPS("a"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3189,7 +3197,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	rootID := kbfsblock.FakeID(42)
 	node := data.PathNode{
 		BlockPointer: makeBP(rootID, rmd, config, u),
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3218,7 +3226,7 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	rmd.data.Dir.BlockPointer = makeBP(rootID, rmd, config, u)
 	node := data.PathNode{
 		BlockPointer: rmd.data.Dir.BlockPointer,
-		Name:         "p",
+		Name:         testPPS("p"),
 	}
 	p := data.Path{
 		FolderBranch: data.FolderBranch{Tlf: id},
@@ -3272,7 +3280,8 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "alice,bob", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	nodeA, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	nodeA, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -3313,7 +3322,8 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -3335,7 +3345,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	}
 
 	// Rename it.
-	err = kbfsOps.Rename(ctx, rootNode, "a", rootNode, "b")
+	err = kbfsOps.Rename(ctx, rootNode, testPPS("a"), rootNode, testPPS("b"))
 	if err != nil {
 		t.Fatalf("Couldn't rename; %+v", err)
 	}
@@ -3361,7 +3371,8 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -3383,7 +3394,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	}
 
 	// Rename it.
-	err = kbfsOps.Rename(ctx, rootNode, "a", rootNode, "b")
+	err = kbfsOps.Rename(ctx, rootNode, testPPS("a"), rootNode, testPPS("b"))
 	if err != nil {
 		t.Fatalf("Couldn't rename; %+v", err)
 	}
@@ -3394,10 +3405,10 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 		t.Fatalf("Couldn't stat file: %+v", err)
 	}
 	// CTime is allowed to change after a rename, but nothing else.
-	if newEi := eis["b"]; ei.Type != newEi.Type || ei.Size != newEi.Size ||
-		ei.Mtime != newEi.Mtime {
+	if newEi := eis[rootNode.ChildName("b")]; ei.Type != newEi.Type ||
+		ei.Size != newEi.Size || ei.Mtime != newEi.Mtime {
 		t.Errorf("Entry info unexpectedly changed from %+v to %+v",
-			ei, eis["b"])
+			ei, eis[rootNode.ChildName("b")])
 	}
 }
 
@@ -3409,13 +3420,13 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// Remove the file, which will archive the block
-	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	err = kbfsOps.RemoveEntry(ctx, rootNode, testPPS("a"))
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %+v", err)
 	}
@@ -3429,7 +3440,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	// Create a second file, which will use the same initial block ID
 	// from the cache, even though it's been archived, and will be
 	// forced to try again.
-	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, testPPS("b"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create second file: %+v", err)
 	}
@@ -3451,7 +3462,8 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -3526,7 +3538,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
@@ -3588,7 +3600,8 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 
 	kbfsOps1 := config1.KBFSOps()
 
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "dummy.txt", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("dummy.txt"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -3613,11 +3626,11 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// Add some operations to get mallory's TLF to have a higher
 	// MetadataVersion.
 	_, _, err = kbfsOps2.CreateFile(
-		ctx, rootNode2, "dummy.txt", false, NoExcl)
+		ctx, rootNode2, testPPS("dummy.txt"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.RemoveEntry(ctx, rootNode2, "dummy.txt")
+	err = kbfsOps2.RemoveEntry(ctx, rootNode2, testPPS("dummy.txt"))
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -3713,15 +3726,15 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	config.BlockOps().Prefetcher().Shutdown()
 
 	// Create a/b/c.
-	nodeA, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	nodeA, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	nodeB, _, err := kbfsOps.CreateDir(ctx, nodeA, "b")
+	nodeB, _, err := kbfsOps.CreateDir(ctx, nodeA, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	nodeC, _, err := kbfsOps.CreateFile(ctx, nodeB, "c", false, NoExcl)
+	nodeC, _, err := kbfsOps.CreateFile(ctx, nodeB, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -3735,7 +3748,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	require.NoError(t, err)
 
 	// Remove c.
-	err = kbfsOps.RemoveEntry(ctx, nodeB, "c")
+	err = kbfsOps.RemoveEntry(ctx, nodeB, testPPS("c"))
 	require.NoError(t, err)
 
 	// Now a/b should be dirty.
@@ -3745,7 +3758,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	require.Equal(t, "test_user/a/b", status.DirtyPaths[0])
 
 	// Now remove b, and make sure a/b is no longer dirty.
-	err = kbfsOps.RemoveDir(ctx, nodeA, "b")
+	err = kbfsOps.RemoveDir(ctx, nodeA, testPPS("b"))
 	require.NoError(t, err)
 	status, _, err = kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -3754,7 +3767,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 
 	// Also make sure we can no longer create anything in the removed
 	// directory.
-	_, _, err = kbfsOps.CreateDir(ctx, nodeB, "d")
+	_, _, err = kbfsOps.CreateDir(ctx, nodeB, testPPS("d"))
 	require.IsType(t, UnsupportedOpInUnlinkedDirError{}, errors.Cause(err))
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
@@ -3819,7 +3832,8 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Create a small file.")
-	nodeA1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	nodeA1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	buf := []byte{1}
 	err = kbfsOps1.Write(ctx, nodeA1, buf, 0)
@@ -3832,14 +3846,14 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	nodeA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	nodeA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	gotData2 := make([]byte, len(buf))
 	_, err = kbfsOps2.Read(ctx, nodeA2, gotData2, 0)
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(buf, gotData2))
 	t.Log("And also should be able to write.")
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -3849,13 +3863,13 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	rootNode3, _, err := kbfsOps3.GetOrCreateRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	nodeA3, _, err := kbfsOps3.Lookup(ctx, rootNode3, "a")
+	nodeA3, _, err := kbfsOps3.Lookup(ctx, rootNode3, testPPS("a"))
 	require.NoError(t, err)
 	gotData3 := make([]byte, len(buf))
 	_, err = kbfsOps3.Read(ctx, nodeA3, gotData3, 0)
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(buf, gotData3))
-	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, "c", false, NoExcl)
+	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, testPPS("c"), false, NoExcl)
 	require.IsType(t, tlfhandle.WriteAccessError{}, errors.Cause(err))
 
 	// Verify that "a" has the correct writer.
@@ -3891,12 +3905,12 @@ func TestKBFSOpsReadonlyNodes(t *testing.T) {
 	// Not read-only, should work.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 
 	// Read-only, shouldn't work.
 	readonlyCtx := context.WithValue(ctx, wrappedReadonlyTestID, 1)
-	_, _, err = kbfsOps.CreateDir(readonlyCtx, rootNode, "b")
+	_, _, err = kbfsOps.CreateDir(readonlyCtx, rootNode, testPPS("b"))
 	require.IsType(t, WriteToReadonlyNodeError{}, errors.Cause(err))
 }
 
@@ -3940,7 +3954,7 @@ type wrappedAutocreateNode struct {
 }
 
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
-	ctx context.Context, _ string) (
+	ctx context.Context, _ data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, string) {
 	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath
 }
@@ -3955,7 +3969,7 @@ func testKBFSOpsAutocreateNodes(t *testing.T, et data.EntryType, sympath string)
 
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	kbfsOps := config.KBFSOps()
-	n, ei, err := kbfsOps.Lookup(ctx, rootNode, "a")
+	n, ei, err := kbfsOps.Lookup(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	if et != data.Sym {
 		require.NotNil(t, n)
@@ -4001,7 +4015,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -4014,7 +4028,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 	eis, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
 	require.Len(t, eis, 1)
-	_, ok := eis["a"]
+	_, ok := eis[rootNode2.ChildName("a")]
 	require.True(t, ok)
 
 	// These are deterministic, and should add the same
@@ -4035,7 +4049,7 @@ func testKBFSOpsMigrateToImplicitTeam(
 	t.Log("Starting migration to implicit team")
 	err = kbfsOps1.MigrateToImplicitTeam(ctx, h.TlfID())
 	require.NoError(t, err)
-	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -4046,9 +4060,9 @@ func testKBFSOpsMigrateToImplicitTeam(
 	eis, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
 	require.Len(t, eis, 2)
-	_, ok = eis["a"]
+	_, ok = eis[rootNode2.ChildName("a")]
 	require.True(t, ok)
-	_, ok = eis["b"]
+	_, ok = eis[rootNode2.ChildName("b")]
 	require.True(t, ok)
 
 	t.Log("Make sure the new MD really is keyed for the implicit team")
@@ -4107,7 +4121,7 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	fb := rootNode.GetFolderBranch()
 
 	t.Log("Make a new revision")
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4159,12 +4173,12 @@ func (n testKBFSOpsMemFSNode) GetFS(_ context.Context) billy.Filesystem {
 func (n testKBFSOpsMemFSNode) WrapChild(child Node) Node {
 	child = n.Node.WrapChild(child)
 	name := child.GetBasename()
-	fi, err := n.fs.Lstat(name)
+	fi, err := n.fs.Lstat(name.Plaintext())
 	if err != nil {
 		return child
 	}
 	if fi.IsDir() {
-		childFS, err := n.fs.Chroot(name)
+		childFS, err := n.fs.Chroot(name.Plaintext())
 		if err != nil {
 			return child
 		}
@@ -4176,7 +4190,7 @@ func (n testKBFSOpsMemFSNode) WrapChild(child Node) Node {
 	return &testKBFSOpsMemFileNode{
 		Node: child,
 		fs:   n.fs,
-		name: name,
+		name: name.Plaintext(),
 	}
 }
 
@@ -4186,9 +4200,9 @@ type testKBFSOpsRootNode struct {
 }
 
 func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
-	ctx context.Context, name string) (
+	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, string) {
-	if name == "memfs" {
+	if name.Plaintext() == "memfs" {
 		return true, ctx, data.FakeDir, nil, ""
 	}
 	return n.Node.ShouldCreateMissedLookup(ctx, name)
@@ -4196,7 +4210,7 @@ func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
 
 func (n testKBFSOpsRootNode) WrapChild(child Node) Node {
 	child = n.Node.WrapChild(child)
-	if child.GetBasename() == "memfs" {
+	if child.GetBasename().Plaintext() == "memfs" {
 		return &testKBFSOpsMemFSNode{
 			Node: &ReadonlyNode{Node: child},
 			fs:   n.fs,
@@ -4246,25 +4260,25 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
-	fsNode, _, err := kbfsOps.Lookup(ctx, rootNode, "memfs")
+	fsNode, _, err := kbfsOps.Lookup(ctx, rootNode, testPPS("memfs"))
 	require.NoError(t, err)
 	children, err := kbfsOps.GetDirChildren(ctx, fsNode)
 	require.NoError(t, err)
 	require.Len(t, children, 2)
 
-	aNode, _, err := kbfsOps.Lookup(ctx, fsNode, "a")
+	aNode, _, err := kbfsOps.Lookup(ctx, fsNode, testPPS("a"))
 	require.NoError(t, err)
 	children, err = kbfsOps.GetDirChildren(ctx, aNode)
 	require.NoError(t, err)
 	require.Len(t, children, 1)
 
-	bNode, _, err := kbfsOps.Lookup(ctx, aNode, "b")
+	bNode, _, err := kbfsOps.Lookup(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
 	children, err = kbfsOps.GetDirChildren(ctx, bNode)
 	require.NoError(t, err)
 	require.Len(t, children, 1)
 
-	cNode, _, err := kbfsOps.Lookup(ctx, bNode, "c")
+	cNode, _, err := kbfsOps.Lookup(ctx, bNode, testPPS("c"))
 	require.NoError(t, err)
 	data := make([]byte, 5)
 	n, err := kbfsOps.Read(ctx, cNode, data, 0)
@@ -4272,7 +4286,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	require.Equal(t, int64(5), n)
 	require.Equal(t, "cdata", string(data))
 
-	dNode, _, err := kbfsOps.Lookup(ctx, fsNode, "d")
+	dNode, _, err := kbfsOps.Lookup(ctx, fsNode, testPPS("d"))
 	require.NoError(t, err)
 	data = make([]byte, 5)
 	n, err = kbfsOps.Read(ctx, dNode, data, 0)
@@ -4314,7 +4328,7 @@ func TestKBFSOpsReset(t *testing.T) {
 
 	oldID := h.TlfID()
 	t.Logf("Make a new revision for TLF ID %s", oldID)
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4334,7 +4348,7 @@ func TestKBFSOpsReset(t *testing.T) {
 	children, err := kbfsOps.GetDirChildren(ctx, rootNode)
 	require.NoError(t, err)
 	require.Len(t, children, 0)
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4402,7 +4416,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4419,7 +4433,7 @@ func TestKBFSOpsUnsyncedMDCommit(t *testing.T) {
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "b")
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -4521,7 +4535,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 		ctx, rootNode.GetFolderBranch().Tlf, FolderSyncConfig{
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4547,7 +4561,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "b")
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -4578,7 +4592,7 @@ func TestKBFSOpsSyncedMDCommit(t *testing.T) {
 	}()
 
 	t.Log("Write again, and this time read the MD to force a commit")
-	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "c")
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, testPPS("c"))
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -4642,7 +4656,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	t.Log("Initialize the TLF")
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 
 	t.Log("Set a partial sync config")
@@ -4772,7 +4786,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	t.Log("Initialize the TLF")
 	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	aNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "a")
+	aNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -4816,15 +4830,15 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkSyncCache(2, rootNode, aNode)
 
 	t.Log("First device completes synced path, along with others")
-	bNode, _, err := kbfsOps2.CreateDir(ctx, aNode, "b")
+	bNode, _, err := kbfsOps2.CreateDir(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
-	b2Node, _, err := kbfsOps2.CreateDir(ctx, aNode, "b2")
+	b2Node, _, err := kbfsOps2.CreateDir(ctx, aNode, testPPS("b2"))
 	require.NoError(t, err)
-	cNode, _, err := kbfsOps2.CreateDir(ctx, bNode, "c")
+	cNode, _, err := kbfsOps2.CreateDir(ctx, bNode, testPPS("c"))
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateDir(ctx, b2Node, "c2")
+	_, _, err = kbfsOps2.CreateDir(ctx, b2Node, testPPS("c2"))
 	require.NoError(t, err)
-	dNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "d")
+	dNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, testPPS("d"))
 	require.NoError(t, err)
 	c, err := DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4866,9 +4880,10 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus(cNode, FinishedPrefetch)
 
 	t.Log("Add more data under prefetched path")
-	eNode, _, err := kbfsOps2.CreateDir(ctx, cNode, "e")
+	eNode, _, err := kbfsOps2.CreateDir(ctx, cNode, testPPS("e"))
 	require.NoError(t, err)
-	fNode, _, err := kbfsOps2.CreateFile(ctx, eNode, "f", false, NoExcl)
+	fNode, _, err := kbfsOps2.CreateFile(
+		ctx, eNode, testPPS("f"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.Write(ctx, fNode, []byte("fdata"), 0)
 	require.NoError(t, err)
@@ -4890,7 +4905,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus(fNode, FinishedPrefetch)
 
 	t.Log("Add something that's not synced")
-	gNode, _, err := kbfsOps2.CreateDir(ctx, dNode, "g")
+	gNode, _, err := kbfsOps2.CreateDir(ctx, dNode, testPPS("g"))
 	require.NoError(t, err)
 	c, err = DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4938,7 +4953,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus(gNode, NoPrefetch)
 
 	t.Log("Move a synced subdirectory somewhere else")
-	err = kbfsOps2.Rename(ctx, cNode, "e", dNode, "e")
+	err = kbfsOps2.Rename(ctx, cNode, testPPS("e"), dNode, testPPS("e"))
 	require.NoError(t, err)
 	c, err = DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -4991,7 +5006,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	t.Log("Initialize the TLF")
 	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	aNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "a")
+	aNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -5023,7 +5038,8 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	checkStatus(aNode, FinishedPrefetch)
 
 	t.Log("Writer adds a file, which gets prefetched")
-	bNode, _, err := kbfsOps2.CreateFile(ctx, aNode, "b", false, NoExcl)
+	bNode, _, err := kbfsOps2.CreateFile(
+		ctx, aNode, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.Write(ctx, bNode, []byte("bdata"), 0)
 	require.NoError(t, err)

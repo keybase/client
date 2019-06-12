@@ -1989,7 +1989,7 @@ func TestSetattrFileMtimeAfterWrite(t *testing.T) {
 		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Private)
 
 		ops := config.KBFSOps()
-		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		myfile, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName("myfile"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2711,7 +2711,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 
 		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Private)
 		ops := config.KBFSOps()
-		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		myfile, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName("myfile"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2999,7 +2999,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", tlf.Private)
 
 		ops := config1.KBFSOps()
-		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		myfile, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName("myfile"))
 		if err != nil {
 			t.Fatal(err)
 		}

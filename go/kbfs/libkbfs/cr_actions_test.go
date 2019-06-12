@@ -11,15 +11,24 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 )
 
+func testPPS(s string) data.PathPartString {
+	return data.NewPathPartString(s, nil)
+}
+
 func TestCRActionsCollapseNoChange(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedEntryAction{"old1", "new1", "", false, false,
+		&copyUnmergedEntryAction{
+			testPPS("old1"), testPPS("new1"), "", false, false,
 			data.DirEntry{}, nil},
-		&copyUnmergedEntryAction{"old2", "new2", "", false, false,
+		&copyUnmergedEntryAction{
+			testPPS("old2"), testPPS("new2"), "", false, false,
 			data.DirEntry{}, nil},
-		&renameUnmergedAction{"old3", "new3", "", 0, false, data.ZeroPtr, data.ZeroPtr},
-		&renameMergedAction{"old4", "new4", ""},
-		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}, false},
+		&renameUnmergedAction{
+			testPPS("old3"), testPPS("new3"), "", 0, false, data.ZeroPtr,
+			data.ZeroPtr},
+		&renameMergedAction{testPPS("old4"), testPPS("new4"), ""},
+		&copyUnmergedAttrAction{
+			testPPS("old5"), testPPS("new5"), []attrChange{mtimeAttr}, false},
 	}
 
 	newList := al.collapse()
@@ -30,10 +39,14 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 
 func TestCRActionsCollapseEntry(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}, false},
-		&copyUnmergedEntryAction{"old", "new", "", false, false,
+		&copyUnmergedAttrAction{
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
+		&copyUnmergedEntryAction{
+			testPPS("old"), testPPS("new"), "", false, false,
 			data.DirEntry{}, nil},
-		&renameUnmergedAction{"old", "new", "", 0, false, data.ZeroPtr, data.ZeroPtr},
+		&renameUnmergedAction{
+			testPPS("old"), testPPS("new"), "", 0, false, data.ZeroPtr,
+			data.ZeroPtr},
 	}
 
 	expected := crActionList{
@@ -67,13 +80,17 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 }
 func TestCRActionsCollapseAttr(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}, false},
-		&copyUnmergedAttrAction{"old", "new", []attrChange{exAttr}, false},
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}, false},
+		&copyUnmergedAttrAction{
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
+		&copyUnmergedAttrAction{
+			testPPS("old"), testPPS("new"), []attrChange{exAttr}, false},
+		&copyUnmergedAttrAction{
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
 	}
 
 	expected := crActionList{
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr, exAttr},
+		&copyUnmergedAttrAction{
+			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr, exAttr},
 			false},
 	}
 

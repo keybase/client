@@ -285,7 +285,7 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 			}
 			for _, name := range v.DirUpdated {
 				// invalidate the dentry cache
-				if err := f.fs.fuse.InvalidateEntry(n, name); err != nil && err != fuse.ErrNotCached {
+				if err := f.fs.fuse.InvalidateEntry(n, name.Plaintext()); err != nil && err != fuse.ErrNotCached {
 					// TODO we have no mechanism to do anything about this
 					f.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
 				}
@@ -480,7 +480,7 @@ var _ DirInterface = (*Dir)(nil)
 // File.Access for more details.
 func (d *Dir) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 	ctx = d.folder.fs.config.MaybeStartTrace(
-		ctx, "Dir.Access", d.node.GetBasename())
+		ctx, "Dir.Access", d.node.GetBasename().String())
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	return d.folder.access(ctx, r)
@@ -489,7 +489,7 @@ func (d *Dir) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 // Attr implements the fs.Node interface for Dir.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	ctx = d.folder.fs.config.MaybeStartTrace(
-		ctx, "Dir.Attr", d.node.GetBasename())
+		ctx, "Dir.Attr", d.node.GetBasename().String())
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Attr")
@@ -566,7 +566,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return NewFileInfoFile(d.folder.fs, d.node, name, &resp.EntryValid), nil
 	}
 
-	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
+	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(
+		ctx, d.node, d.node.ChildName(req.Name))
 	if err != nil {
 		if _, ok := err.(idutil.NoSuchNameError); ok {
 			return nil, fuse.ENOENT
@@ -634,7 +635,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 	isExec := (req.Mode.Perm() & 0100) != 0
 	excl := getEXCLFromCreateRequest(req)
 	newNode, ei, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.node, req.Name, isExec, excl)
+		ctx, d.node, d.node.ChildName(req.Name), isExec, excl)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -675,7 +676,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	}
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
-		ctx, d.node, req.Name)
+		ctx, d.node, d.node.ChildName(req.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -707,7 +708,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	}
 
 	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
-		ctx, d.node, req.NewName, req.Target); err != nil {
+		ctx, d.node, d.node.ChildName(req.NewName), req.Target); err != nil {
 		return nil, err
 	}
 
@@ -754,7 +755,8 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	}
 
 	err = d.folder.fs.config.KBFSOps().Rename(ctx,
-		d.node, req.OldName, realNewDir.node, req.NewName)
+		d.node, d.node.ChildName(req.OldName), realNewDir.node,
+		realNewDir.node.ChildName(req.NewName))
 
 	switch e := err.(type) {
 	case nil:
@@ -791,11 +793,11 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 
 	// node will be removed from Folder.nodes, if it is there in the
 	// first place, by its Forget
-
+	namePPS := d.node.ChildName(req.Name)
 	if req.Dir {
-		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.node, req.Name)
+		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.node, namePPS)
 	} else {
-		err = d.folder.fs.config.KBFSOps().RemoveEntry(ctx, d.node, req.Name)
+		err = d.folder.fs.config.KBFSOps().RemoveEntry(ctx, d.node, namePPS)
 	}
 	if err != nil {
 		return err
@@ -807,7 +809,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 // ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
 func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	ctx = d.folder.fs.config.MaybeStartTrace(
-		ctx, "Dir.ReadDirAll", d.node.GetBasename())
+		ctx, "Dir.ReadDirAll", d.node.GetBasename().String())
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir ReadDirAll")
@@ -820,7 +822,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 
 	for name, ei := range children {
 		fde := fuse.Dirent{
-			Name: name,
+			Name: name.Plaintext(),
 			// Technically we should be setting the inode here, but
 			// since we don't have a proper node for each of these
 			// entries yet we can't generate one, because we don't
@@ -910,7 +912,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 // Fsync implements the fs.NodeFsyncer interface for Dir.
 func (d *Dir) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	ctx = d.folder.fs.config.MaybeStartTrace(
-		ctx, "Dir.Fsync", d.node.GetBasename())
+		ctx, "Dir.Fsync", d.node.GetBasename().String())
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Fsync")

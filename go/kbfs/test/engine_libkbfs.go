@@ -350,7 +350,8 @@ func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err 
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	dir, _, err = kbfsOps.CreateDir(ctx, parentDir.(libkbfs.Node), name)
+	n := parentDir.(libkbfs.Node)
+	dir, _, err = kbfsOps.CreateDir(ctx, n, n.ChildName(name))
 	if err != nil {
 		return dir, err
 	}
@@ -364,8 +365,9 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	file, _, err = kbfsOps.CreateFile(ctx, parentDir.(libkbfs.Node), name,
-		false, libkbfs.NoExcl)
+	n := parentDir.(libkbfs.Node)
+	file, _, err = kbfsOps.CreateFile(
+		ctx, n, n.ChildName(name), false, libkbfs.NoExcl)
 	if err != nil {
 		return file, err
 	}
@@ -379,7 +381,9 @@ func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	file, _, err = kbfsOps.CreateFile(ctx, parentDir.(libkbfs.Node), name, false, libkbfs.WithExcl)
+	n := parentDir.(libkbfs.Node)
+	file, _, err = kbfsOps.CreateFile(
+		ctx, n, n.ChildName(name), false, libkbfs.WithExcl)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +397,8 @@ func (k *LibKBFS) CreateLink(u User, parentDir Node, fromName, toPath string) (e
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	_, err = kbfsOps.CreateLink(ctx, parentDir.(libkbfs.Node), fromName, toPath)
+	n := parentDir.(libkbfs.Node)
+	_, err = kbfsOps.CreateLink(ctx, n, n.ChildName(fromName), toPath)
 	return err
 }
 
@@ -402,7 +407,8 @@ func (k *LibKBFS) RemoveDir(u User, dir Node, name string) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	return kbfsOps.RemoveDir(ctx, dir.(libkbfs.Node), name)
+	n := dir.(libkbfs.Node)
+	return kbfsOps.RemoveDir(ctx, n, n.ChildName(name))
 }
 
 // RemoveEntry implements the Engine interface.
@@ -410,7 +416,8 @@ func (k *LibKBFS) RemoveEntry(u User, dir Node, name string) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	return kbfsOps.RemoveEntry(ctx, dir.(libkbfs.Node), name)
+	n := dir.(libkbfs.Node)
+	return kbfsOps.RemoveEntry(ctx, n, n.ChildName(name))
 }
 
 // Rename implements the Engine interface.
@@ -419,7 +426,10 @@ func (k *LibKBFS) Rename(u User, srcDir Node, srcName string,
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	return kbfsOps.Rename(ctx, srcDir.(libkbfs.Node), srcName, dstDir.(libkbfs.Node), dstName)
+	srcN := srcDir.(libkbfs.Node)
+	dstN := dstDir.(libkbfs.Node)
+	return kbfsOps.Rename(
+		ctx, srcN, srcN.ChildName(srcName), dstN, dstN.ChildName(dstName))
 }
 
 // WriteFile implements the Engine interface.
@@ -480,7 +490,8 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	file, ei, err := kbfsOps.Lookup(ctx, parentDir.(libkbfs.Node), name)
+	n := parentDir.(libkbfs.Node)
+	file, ei, err := kbfsOps.Lookup(ctx, n, n.ChildName(name))
 	if err != nil {
 		return file, symPath, err
 	}
@@ -501,16 +512,15 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 // GetDirChildrenTypes implements the Engine interface.
 func (k *LibKBFS) GetDirChildrenTypes(u User, parentDir Node) (childrenTypes map[string]string, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	var entries map[string]data.EntryInfo
 	ctx, cancel := k.newContext(u)
 	defer cancel()
-	entries, err = kbfsOps.GetDirChildren(ctx, parentDir.(libkbfs.Node))
+	entries, err := kbfsOps.GetDirChildren(ctx, parentDir.(libkbfs.Node))
 	if err != nil {
 		return childrenTypes, err
 	}
 	childrenTypes = make(map[string]string)
 	for name, entryInfo := range entries {
-		childrenTypes[name] = entryInfo.Type.String()
+		childrenTypes[name.Plaintext()] = entryInfo.Type.String()
 	}
 	return childrenTypes, nil
 }
@@ -559,8 +569,8 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 		info, err = kbfsOps.Stat(ctx, node)
 	} else if node, ok := file.(libkbfsSymNode); ok {
 		// Stat doesn't work for symlinks, so use lookup
-		_, info, err = kbfsOps.Lookup(ctx, node.parentDir.(libkbfs.Node),
-			node.name)
+		n := node.parentDir.(libkbfs.Node)
+		_, info, err = kbfsOps.Lookup(ctx, n, n.ChildName(node.name))
 	}
 	if err != nil {
 		return time.Time{}, err
@@ -580,8 +590,8 @@ func (k *LibKBFS) GetPrevRevisions(u User, file Node) (
 		info, err = kbfsOps.Stat(ctx, node)
 	} else if node, ok := file.(libkbfsSymNode); ok {
 		// Stat doesn't work for symlinks, so use lookup
-		_, info, err = kbfsOps.Lookup(ctx, node.parentDir.(libkbfs.Node),
-			node.name)
+		n := node.parentDir.(libkbfs.Node)
+		_, info, err = kbfsOps.Lookup(ctx, n, n.ChildName(node.name))
 	}
 	if err != nil {
 		return nil, err

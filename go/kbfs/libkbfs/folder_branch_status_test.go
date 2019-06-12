@@ -61,7 +61,8 @@ func TestFBStatusSignal(t *testing.T) {
 	}
 
 	n := newMockNode(mockCtrl)
-	p1 := data.Path{Path: []data.PathNode{{Name: "a1"}, {Name: "b1"}}}
+	p1 := data.Path{
+		Path: []data.PathNode{{Name: testPPS("a1")}, {Name: testPPS("b1")}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n}).AnyTimes().Return(p1)
 
 	fbsk.addDirtyNode(n)
@@ -129,10 +130,12 @@ func TestFBStatusAllFields(t *testing.T) {
 
 	// make two nodes with expected PathFromNode calls
 	n1 := newMockNode(mockCtrl)
-	p1 := data.Path{Path: []data.PathNode{{Name: "a1"}, {Name: "b1"}}}
+	p1 := data.Path{
+		Path: []data.PathNode{{Name: testPPS("a1")}, {Name: testPPS("b1")}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n1}).AnyTimes().Return(p1)
 	n2 := newMockNode(mockCtrl)
-	p2 := data.Path{Path: []data.PathNode{{Name: "a2"}, {Name: "b2"}}}
+	p2 := data.Path{
+		Path: []data.PathNode{{Name: testPPS("a2")}, {Name: testPPS("b2")}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n2}).AnyTimes().Return(p2)
 
 	fbsk.setRootMetadata(

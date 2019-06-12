@@ -68,7 +68,7 @@ func (e InvalidParentPathError) Error() string {
 // DirNotEmptyError indicates that the user tried to unlink a
 // subdirectory that was not empty.
 type DirNotEmptyError struct {
-	Name string
+	Name data.PathPartString
 }
 
 // Error implements the error interface for DirNotEmptyError
