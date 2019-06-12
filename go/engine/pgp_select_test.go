@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSelectEngine(t *testing.T) {
@@ -53,6 +54,7 @@ func TestSelectEngine(t *testing.T) {
 	}
 	gpg := NewGPGImportKeyEngine(tc.G, &garg)
 	err = RunEngine2(m, gpg)
+	require.NoError(t, err)
 
 	// The GPGImportKeyEngine converts a multi select on the same key into
 	// an update, so our test checks that the update code ran, by counting

@@ -235,6 +235,9 @@ func (s *blockDiskStore) addRefsExclusive(
 	id kbfsblock.ID, contexts []kbfsblock.Context, status blockRefStatus,
 	tag string) error {
 	info, err := s.getInfo(id)
+	if err != nil {
+		return err
+	}
 
 	if len(info.Refs) > 0 {
 		// Check existing contexts, if any.
