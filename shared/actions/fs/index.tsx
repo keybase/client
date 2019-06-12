@@ -911,7 +911,10 @@ const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload) => {
+const waitForKbfsDaemon = (
+  state,
+  action: ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+) => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
@@ -1048,10 +1051,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.kbfsDaemonRpcStatusChanged,
     clearRefreshTags
   )
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
-    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
-    waitForKbfsDaemon
-  )
+  yield* Saga.chainAction<
+    ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+  >([ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon], waitForKbfsDaemon)
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
     yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
