@@ -21,16 +21,14 @@ const mapStateToProps = (state: TypedState) => ({
 
 type StateProps = ReturnType<typeof mapStateToProps>
 
-const getIndex = memoize((ownProps: OwnPropsWithSafeNavigation) => ownProps.getParam('index') || 0)
-const getDestinationParentPath = memoize(
-  (stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation): Types.Path =>
-    stateProps._destinationPicker.destinationParentPath.get(
-      getIndex(ownProps),
-      stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
-        ? Types.getPathParent(stateProps._destinationPicker.source.path)
-        : Types.stringToPath('/keybase')
-    )
-)
+const getIndex = (ownProps: OwnPropsWithSafeNavigation) => ownProps.getParam('index') || 0
+const getDestinationParentPath = (stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation): Types.Path =>
+  stateProps._destinationPicker.destinationParentPath.get(
+    getIndex(ownProps),
+    stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+      ? Types.getPathParent(stateProps._destinationPicker.source.path)
+      : Types.stringToPath('/keybase')
+  )
 
 const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => ({
   _onBackUp: (currentPath: Types.Path) =>
