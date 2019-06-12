@@ -2889,6 +2889,16 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool) {
 		}
 		updated = true
 	}
+	if newData.Last > d.Last {
+		d.Last = newData.Last
+	}
+
+	for k, v := range newData.LastPerTeamKeys {
+		existing, ok := d.LastPerTeamKeys[k]
+		if !ok && existing < v {
+			d.LastPerTeamKeys[k] = v
+		}
+	}
 
 	return updated
 }
@@ -2901,8 +2911,40 @@ func (h HiddenTeamChain) HasSeqno(s Seqno) bool {
 func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 	return &HiddenTeamChain{
 		Id:                id,
+		LastPerTeamKeys:   make(map[PTKType]Seqno),
 		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
 		Outer:             make(map[Seqno]LinkID),
 		Inner:             make(map[Seqno]HiddenTeamChainLink),
 	}
+}
+
+func (h HiddenTeamChain) LastReaderPerTeamKey() (ret LinkID) {
+	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
+	if !ok {
+		return ret
+	}
+	tmp, ok := h.Outer[seqno]
+	if !ok {
+		return ret
+	}
+	return tmp
+}
+
+func (h *HiddenTeamChain) MaxReaderPerTeamKeyGeneration() PerTeamKeyGeneration {
+	if h == nil {
+		return PerTeamKeyGeneration(0)
+	}
+	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
+	if !ok {
+		return PerTeamKeyGeneration(0)
+	}
+	inner, ok := h.Inner[seqno]
+	if !ok {
+		return PerTeamKeyGeneration(0)
+	}
+	ptk, ok := inner.Ptk[PTKType_READER]
+	if !ok {
+		return PerTeamKeyGeneration(0)
+	}
+	return ptk.Ptk.Gen
 }

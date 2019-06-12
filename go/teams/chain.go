@@ -102,8 +102,8 @@ func (t TeamSigChainState) GetLibkbLinkIDBySeqno(seqno keybase1.Seqno) (l2 libkb
 
 func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
 	ret := keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
-	if t.hidden != nil && t.hidden.MaxReaderPerTeamKeyGen > ret {
-		ret = t.hidden.MaxReaderPerTeamKeyGen
+	if h := t.hidden.MaxReaderPerTeamKeyGeneration(); h > ret {
+		ret = h
 	}
 	return ret
 }

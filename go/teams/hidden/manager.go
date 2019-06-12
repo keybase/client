@@ -63,6 +63,11 @@ func withLogTag(mctx libkb.MetaContext) libkb.MetaContext {
 	return mctx.WithLogTag("HTCM")
 }
 
+func (m *ChainManager) Load(mctx libkb.MetaContext, id keybase1.TeamID) (ret *keybase1.HiddenTeamChain, err error) {
+	mctx = withLogTag(mctx)
+	return m.loadAndMutate(mctx, loadArg{id: id})
+}
+
 func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state *keybase1.HiddenTeamChain, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("ChainManager#load(%+v)", arg), func() error { return err })()
 	lock := m.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), arg.id.String())

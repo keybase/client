@@ -673,8 +673,12 @@
           "name": "last"
         },
         {
-          "type": "PerTeamKeyGeneration",
-          "name": "maxReaderPerTeamKeyGen"
+          "type": {
+            "type": "map",
+            "values": "Seqno",
+            "keys": "PTKType"
+          },
+          "name": "lastPerTeamKeys"
         },
         {
           "type": {

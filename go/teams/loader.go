@@ -543,13 +543,19 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("merkle")
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
+
+	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret)
+	if err != nil {
+		return nil, err
+	}
+
 	var hiddenIsFresh bool
 	if (ret == nil) || repoll {
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Request also, without an additional RTT, freshness information about the hidden chain;
 		// we're going to send up information we know about the visible and hidden chains to both prove
 		// membership and show what we know about.
-		harg, err := makeHiddenMerkleLoadArg(mctx, arg.teamID, ret)
+		harg, err := hiddenPackage.MerkleLoadArg(mctx)
 		if err != nil {
 			return nil, err
 		}
@@ -882,6 +888,25 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	return &load2res, nil
+}
+
+func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData) (ret *hidden.LoaderPackage, err error) {
+	var encKID keybase1.KID
+	var gen keybase1.PerTeamKeyGeneration
+	if team != nil {
+		ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey()
+		if err != nil {
+			return nil, err
+		}
+		encKID = ptk.EncKID
+		gen = ptk.Gen
+	}
+	ret = hidden.NewLoaderPackage(id, encKID, gen)
+	err = ret.Load(mctx)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (l *TeamLoader) commitHiddenChainUpdate(ctx context.Context, chain *keybase1.TeamData, update *hidden.Update, me keybase1.UserVersion, isRotating bool) (hiddenData *keybase1.HiddenTeamChain, needRotate bool, err error) {
@@ -1845,23 +1870,4 @@ func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
 	}
 	l.forceRepollUntil = nil
 	return false
-}
-
-func makeHiddenMerkleLoadArg(mctx libkb.MetaContext, teamID keybase1.TeamID, team *keybase1.TeamData) (ret *libkb.LookupTeamHiddenArg, err error) {
-	if team == nil {
-		return nil, nil
-	}
-
-	tail, err := mctx.G().GetHiddenTeamChainManager().Tail(mctx, teamID)
-	if err != nil {
-		return nil, err
-	}
-	if tail != nil && tail.Seqno > keybase1.Seqno(0) {
-		return &libkb.LookupTeamHiddenArg{LastKnownHidden: tail.LinkID}, nil
-	}
-	ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey()
-	if err != nil {
-		return nil, err
-	}
-	return &libkb.LookupTeamHiddenArg{PTKEncryptionKID: ptk.EncKID, PTKGeneration: ptk.Gen}, nil
 }

@@ -731,6 +731,8 @@ type HiddenTeamChainManager interface {
 	// withholding). We have to pass ratchet through, since otherwise there could be a race that
 	// unfairly accuses the server of cheating.
 	LastSeqno(MetaContext, keybase1.TeamID) (loaded keybase1.Seqno, ratcheted keybase1.Seqno, err error)
+	// Load the latest data for the given team ID, and just return it wholesale.
+	Load(MetaContext, keybase1.TeamID) (dat *keybase1.HiddenTeamChain, err error)
 }
 
 type TeamAuditor interface {

@@ -68,6 +68,10 @@ func (r *RotateKey) rkb() *RotateKeyBody {
 	return ret
 }
 
+func (r *RotateKey) PTKs() []PerTeamKey {
+	return r.rkb().PTKs
+}
+
 func (r *RotateKey) ReaderKey() *PerTeamKey {
 	for _, k := range r.rkb().PTKs {
 		if k.PTKType == keybase1.PTKType_READER {

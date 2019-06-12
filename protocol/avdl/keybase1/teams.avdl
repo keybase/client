@@ -308,7 +308,10 @@ protocol teams {
     boolean tombstoned;
 
     Seqno last;
-    PerTeamKeyGeneration maxReaderPerTeamKeyGen;
+
+    // For each PTK type (right now only 'reader'), say where the last seqno of
+    // the type is in the chain.
+    map<PTKType, Seqno> lastPerTeamKeys;
 
     // Chain links based on outer objects.
     map<Seqno, LinkID> outer;
