@@ -572,7 +572,7 @@ export function shallowEqual(left: any, right: any): boolean
  */
 // NOTE: the first overload below and note above can be removed if redux-thunk typings add an overload for
 // the Dispatch function (see also this PR: https://github.com/reduxjs/redux-thunk/pull/247)
-export function useDispatch<TDispatch = Dispatch<any>>(): TDispatch
+// export function useDispatch<TDispatch = Dispatch<any>>(): TDispatch
 export function useDispatch<A extends Action = AnyAction>(): Dispatch<A>
 
 /**
@@ -603,9 +603,9 @@ export function useDispatch<A extends Action = AnyAction>(): Dispatch<A>
  *   return <div>{counter}</div>
  * }
  */
-export function useSelector<TState, TSelected>(
-  selector: (state: TState) => TSelected,
-  equalityFn?: (left: TSelected, right: TSelected) => boolean
+export function useSelector<TSelected>(
+  selector: (state: TypedState) => TSelected,
+  equalityFn?: (left: TypedState, right: TSelected) => boolean
 ): TSelected
 
 /**
@@ -621,10 +621,10 @@ export function useSelector<TState, TSelected>(
  * const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
  *
  */
-export interface TypedUseSelectorHook<TState> {
+export interface TypedUseSelectorHook {
   <TSelected>(
-    selector: (state: TState) => TSelected,
-    equalityFn?: (left: TSelected, right: TSelected) => boolean
+    selector: (state: TypedState) => TSelected,
+    equalityFn?: (left: TypedState, right: TSelected) => boolean
   ): TSelected
 }
 
@@ -643,6 +643,6 @@ export interface TypedUseSelectorHook<TState> {
  *   return <div>{store.getState()}</div>
  * }
  */
-export function useStore<S = any, A extends Action = AnyAction>(): Store<S, A>
+export function useStore<S = TypedState, A extends Action = AnyAction>(): Store<S, A>
 
 // tslint:enable:no-unnecessary-generics
