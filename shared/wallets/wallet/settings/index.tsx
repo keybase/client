@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
+import openUrl from '../../../util/open-url'
 
 export type SettingsProps = {
   accountID: Types.AccountID
@@ -16,6 +17,10 @@ export type SettingsProps = {
   currency: Types.Currency
   currencies: I.List<Types.Currency>
   canSubmitTx: boolean
+  externalPartners: Array<Types.PartnerUrl & {showDivider: boolean}>
+  mobileOnlyMode: boolean
+  mobileOnlyEditable: boolean
+  mobileOnlyWaiting: boolean
   onBack: () => void
   onDelete: () => void
   onSetDefault: () => void
@@ -25,9 +30,7 @@ export type SettingsProps = {
   onMobileOnlyModeChange: (enabled: boolean) => void
   refresh: () => void
   saveCurrencyWaiting: boolean
-  mobileOnlyMode: boolean
-  mobileOnlyWaiting: boolean
-  mobileOnlyEditable: boolean
+  showExternalPartners: boolean
   thisDeviceIsLockedOut: boolean
 }
 
@@ -38,6 +41,32 @@ const HoverText = Styles.isMobile
     })
 
 const Divider = () => <Kb.Divider style={styles.divider} />
+
+type PartnerRowProps = {
+  extra: string
+  description: string
+  iconFilename: string
+  title: string
+  url: string
+}
+const PartnerRow = (props: PartnerRowProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+    <Kb.Icon type="icon-stellar-logo-grey-32" style={styles.partnerIcon} />
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
+      <Kb.Text onClickURL={props.url} style={styles.partnerLink} type="BodyPrimaryLink">
+        {props.title}
+      </Kb.Text>
+      <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.noShrink}>
+      <Kb.Icon
+        onClick={() => openUrl(props.url)}
+        fontSize={Styles.isMobile ? 16 : 12}
+        type="iconfont-open-browser"
+      />
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
 class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
@@ -168,6 +197,37 @@ class AccountSettings extends React.Component<SettingsProps> {
               )}
             </Kb.Box2>
             <Divider />
+            {!!props.showExternalPartners && props.externalPartners.length > 0 && (
+              <Kb.Box>
+                <Kb.Box2
+                  direction="vertical"
+                  style={styles.section}
+                  fullWidth={true}
+                  gap="tiny"
+                  gapEnd={true}
+                >
+                  <Kb.Text type="BodySmallSemibold">External tools and partners</Kb.Text>
+                  {props.externalPartners.map(partner => (
+                    <Kb.Box2
+                      key={partner.url}
+                      direction="vertical"
+                      style={{width: Styles.isMobile ? undefined : '100%'}}
+                    >
+                      {partner.showDivider && <Kb.Divider style={styles.partnerDivider} />}
+                      <PartnerRow
+                        description={partner.description}
+                        extra={partner.extra}
+                        iconFilename={partner.iconFilename}
+                        title={partner.title}
+                        url={partner.url}
+                      />
+                    </Kb.Box2>
+                  ))}
+                </Kb.Box2>
+                <Divider />
+              </Kb.Box>
+            )}
+
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny" fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>
@@ -270,6 +330,13 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white_90,
   },
   noShrink: {flexShrink: 0},
+  partnerDivider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginLeft: 40,
+    marginTop: Styles.globalMargins.tiny,
+  },
+  partnerIcon: {flexShrink: 0, height: 32, width: 32},
+  partnerLink: {color: Styles.globalColors.black},
   red: {color: Styles.globalColors.red},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
@@ -312,6 +379,7 @@ const styles = Styles.styleSheetCreate({
   setupInflation: {
     alignSelf: 'flex-start',
   },
+  yesShrink: {flexShrink: 1},
 })
 
 export default AccountSettings

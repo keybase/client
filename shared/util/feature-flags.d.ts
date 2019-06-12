@@ -11,6 +11,7 @@ export type FeatureFlags = {
   outOfDateBanner: boolean
   plansEnabled: boolean
   proofProviders: boolean
+  stellarExternalPartners: boolean
 }
 
 declare const ff: FeatureFlags
