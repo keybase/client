@@ -132,82 +132,82 @@ export const createSignedupError = (payload: _SignedupPayloadError): SignedupPay
 // Action Payloads
 export type CheckDevicenamePayload = {
   readonly payload: _CheckDevicenamePayload
-  readonly type: 'signup:checkDevicename'
+  readonly type: typeof checkDevicename
 }
-export type CheckEmailPayload = {readonly payload: _CheckEmailPayload; readonly type: 'signup:checkEmail'}
+export type CheckEmailPayload = {readonly payload: _CheckEmailPayload; readonly type: typeof checkEmail}
 export type CheckInviteCodePayload = {
   readonly payload: _CheckInviteCodePayload
-  readonly type: 'signup:checkInviteCode'
+  readonly type: typeof checkInviteCode
 }
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
-  readonly type: 'signup:checkPassword'
+  readonly type: typeof checkPassword
 }
 export type CheckUsernamePayload = {
   readonly payload: _CheckUsernamePayload
-  readonly type: 'signup:checkUsername'
+  readonly type: typeof checkUsername
 }
 export type CheckedDevicenamePayload = {
   readonly payload: _CheckedDevicenamePayload
-  readonly type: 'signup:checkedDevicename'
+  readonly type: typeof checkedDevicename
 }
 export type CheckedDevicenamePayloadError = {
   readonly error: true
   readonly payload: _CheckedDevicenamePayloadError
-  readonly type: 'signup:checkedDevicename'
+  readonly type: typeof checkedDevicename
 }
 export type CheckedInviteCodePayload = {
   readonly payload: _CheckedInviteCodePayload
-  readonly type: 'signup:checkedInviteCode'
+  readonly type: typeof checkedInviteCode
 }
 export type CheckedInviteCodePayloadError = {
   readonly error: true
   readonly payload: _CheckedInviteCodePayloadError
-  readonly type: 'signup:checkedInviteCode'
+  readonly type: typeof checkedInviteCode
 }
 export type CheckedUsernamePayload = {
   readonly payload: _CheckedUsernamePayload
-  readonly type: 'signup:checkedUsername'
+  readonly type: typeof checkedUsername
 }
 export type GoBackAndClearErrorsPayload = {
   readonly payload: _GoBackAndClearErrorsPayload
-  readonly type: 'signup:goBackAndClearErrors'
+  readonly type: typeof goBackAndClearErrors
 }
 export type RequestAutoInvitePayload = {
   readonly payload: _RequestAutoInvitePayload
-  readonly type: 'signup:requestAutoInvite'
+  readonly type: typeof requestAutoInvite
 }
 export type RequestInvitePayload = {
   readonly payload: _RequestInvitePayload
-  readonly type: 'signup:requestInvite'
+  readonly type: typeof requestInvite
 }
 export type RequestedAutoInvitePayload = {
   readonly payload: _RequestedAutoInvitePayload
-  readonly type: 'signup:requestedAutoInvite'
+  readonly type: typeof requestedAutoInvite
 }
 export type RequestedAutoInvitePayloadError = {
   readonly error: true
   readonly payload: _RequestedAutoInvitePayloadError
-  readonly type: 'signup:requestedAutoInvite'
+  readonly type: typeof requestedAutoInvite
 }
 export type RequestedInvitePayload = {
   readonly payload: _RequestedInvitePayload
-  readonly type: 'signup:requestedInvite'
+  readonly type: typeof requestedInvite
 }
 export type RequestedInvitePayloadError = {
   readonly error: true
   readonly payload: _RequestedInvitePayloadError
-  readonly type: 'signup:requestedInvite'
+  readonly type: typeof requestedInvite
 }
 export type RestartSignupPayload = {
   readonly payload: _RestartSignupPayload
-  readonly type: 'signup:restartSignup'
+  readonly type: typeof restartSignup
 }
-export type SignedupPayload = {readonly payload: _SignedupPayload; readonly type: 'signup:signedup'}
+export type SignedupPayload = {readonly payload: _SignedupPayload; readonly type: typeof signedup}
 export type SignedupPayloadError = {
   readonly error: true
   readonly payload: _SignedupPayloadError
-  readonly type: 'signup:signedup'
+  readonly type: typeof signedup
 }
 
 // All Actions

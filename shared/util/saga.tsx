@@ -47,7 +47,7 @@ function* chainAction<
     readonly type: string
   }
 >(
-  pattern: RS.Pattern,
+  pattern: RS.Pattern, // TODO constrain to our actions
   f: (
     state: TypedState,
     action: Actions,
@@ -56,7 +56,8 @@ function* chainAction<
   // tag for logger
   fcnTag?: string
 ): Iterable<any> {
-  return yield Effects.takeEvery<Actions>(pattern, function* chainActionHelper(action: Actions) {
+    // @ts-ignore TODO fix
+    return yield Effects.takeEvery<Actions>(pattern as RS.Pattern, function* chainActionHelper(action: Actions) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {
       const state = yield* selectState()
@@ -98,6 +99,7 @@ function* chainGenerator<
   // tag for logger
   fcnTag?: string
 ): Iterable<any> {
+    // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {

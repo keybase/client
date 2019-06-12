@@ -7,7 +7,7 @@ import openURL from '../util/open-url'
 import * as Styles from '../styles'
 
 type InfoIconProps = {
-  invisible: boolean
+  invisible?: boolean
   onDocumentation: () => void
   onFeedback: () => void
   style?: Styles.StylesCrossPlatform
@@ -42,7 +42,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
 
 export const InfoIcon = Container.namedConnect(
   () => ({}),
-  dispatch => ({
+  () => ({
     onDocumentation: () => openURL('https://keybase.io/docs'),
     onFeedback: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})), // TODO Y2K-108 un-jankify this
   }),

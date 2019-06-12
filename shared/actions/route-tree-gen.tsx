@@ -92,31 +92,28 @@ export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload): Put
 export const createSwitchTo = (payload: _SwitchToPayload): SwitchToPayload => ({payload, type: switchTo})
 
 // Action Payloads
-export type ClearModalsPayload = {
-  readonly payload: _ClearModalsPayload
-  readonly type: 'route-tree:clearModals'
-}
+export type ClearModalsPayload = {readonly payload: _ClearModalsPayload; readonly type: typeof clearModals}
 export type NavUpToScreenPayload = {
   readonly payload: _NavUpToScreenPayload
-  readonly type: 'route-tree:navUpToScreen'
+  readonly type: typeof navUpToScreen
 }
 export type NavigateAppendPayload = {
   readonly payload: _NavigateAppendPayload
-  readonly type: 'route-tree:navigateAppend'
+  readonly type: typeof navigateAppend
 }
-export type NavigateToPayload = {readonly payload: _NavigateToPayload; readonly type: 'route-tree:navigateTo'}
-export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: 'route-tree:navigateUp'}
+export type NavigateToPayload = {readonly payload: _NavigateToPayload; readonly type: typeof navigateTo}
+export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
 export type PutActionIfOnPathPayload = {
   readonly payload: _PutActionIfOnPathPayload
-  readonly type: 'route-tree:putActionIfOnPath'
+  readonly type: typeof putActionIfOnPath
 }
-export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: 'route-tree:resetStack'}
+export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
 export type SwitchRouteDefPayload = {
   readonly payload: _SwitchRouteDefPayload
-  readonly type: 'route-tree:switchRouteDef'
+  readonly type: typeof switchRouteDef
 }
-export type SwitchTabPayload = {readonly payload: _SwitchTabPayload; readonly type: 'route-tree:switchTab'}
-export type SwitchToPayload = {readonly payload: _SwitchToPayload; readonly type: 'route-tree:switchTo'}
+export type SwitchTabPayload = {readonly payload: _SwitchTabPayload; readonly type: typeof switchTab}
+export type SwitchToPayload = {readonly payload: _SwitchToPayload; readonly type: typeof switchTo}
 
 // All Actions
 // prettier-ignore

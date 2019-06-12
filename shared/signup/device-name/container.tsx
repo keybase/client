@@ -8,18 +8,28 @@ import {anyWaiting} from '../../constants/waiting'
 import {InfoIcon} from '../common'
 import EnterDevicename from '.'
 
-const mapStateToProps = state => ({
+type OwnProps = {}
+
+const mapStateToProps = (state: Container.TypedState) => ({
   error: state.signup.devicenameError,
   initialDevicename: state.signup.devicename,
   waiting: anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onContinue: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })
 
-const ConnectedEnterDevicename = Container.connect(mapStateToProps, mapDispatchToProps)(EnterDevicename)
+const ConnectedEnterDevicename = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (d, s, o: OwnProps) => ({
+    ...s,
+    ...d,
+    ...o,
+  })
+)(EnterDevicename)
 
 // @ts-ignore fix this
 ConnectedEnterDevicename.navigationOptions = {

@@ -15,7 +15,7 @@ import LoadFilesWhenNeeded from './load-files-when-needed'
 import {normalRowHeight} from './common'
 import {memoize} from '../../../util/memoize'
 
-type Props = {
+export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
   destinationPickerIndex?: number
   items: I.List<RowTypes.RowItem>

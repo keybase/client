@@ -12,14 +12,14 @@ import {InfoIcon} from '../common'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   error: state.signup.usernameError,
   initialUsername: state.signup.username,
   usernameTaken: state.signup.usernameTaken,
   waiting: anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => {
     dispatch(SignupGen.createRestartSignup())
     dispatch(RouteTreeGen.createNavigateUp())
@@ -31,7 +31,11 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const ConnectedEnterUsername = Container.connect(mapStateToProps, mapDispatchToProps)(EnterUsername)
+const ConnectedEnterUsername = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o: OwnProps) => ({...s, ...d, ...o})
+)(EnterUsername)
 
 // @ts-ignore fix this
 ConnectedEnterUsername.navigationOptions = {

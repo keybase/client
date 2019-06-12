@@ -55,7 +55,7 @@ const ShhIcon = props => (
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : 12} />
+      <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : (12 as any)} />
       <Text
         type={
           isMobile

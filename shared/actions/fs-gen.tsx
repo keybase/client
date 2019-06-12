@@ -527,314 +527,314 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): Wai
 // Action Payloads
 export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
-  readonly type: 'fs:cancelDownload'
+  readonly type: typeof cancelDownload
 }
 export type ClearRefreshTagPayload = {
   readonly payload: _ClearRefreshTagPayload
-  readonly type: 'fs:clearRefreshTag'
+  readonly type: typeof clearRefreshTag
 }
 export type CloseDestinationPickerPayload = {
   readonly payload: _CloseDestinationPickerPayload
-  readonly type: 'fs:closeDestinationPicker'
+  readonly type: typeof closeDestinationPicker
 }
-export type CommitEditPayload = {readonly payload: _CommitEditPayload; readonly type: 'fs:commitEdit'}
-export type CopyPayload = {readonly payload: _CopyPayload; readonly type: 'fs:copy'}
-export type DeleteFilePayload = {readonly payload: _DeleteFilePayload; readonly type: 'fs:deleteFile'}
-export type DiscardEditPayload = {readonly payload: _DiscardEditPayload; readonly type: 'fs:discardEdit'}
+export type CommitEditPayload = {readonly payload: _CommitEditPayload; readonly type: typeof commitEdit}
+export type CopyPayload = {readonly payload: _CopyPayload; readonly type: typeof copy}
+export type DeleteFilePayload = {readonly payload: _DeleteFilePayload; readonly type: typeof deleteFile}
+export type DiscardEditPayload = {readonly payload: _DiscardEditPayload; readonly type: typeof discardEdit}
 export type DismissDownloadPayload = {
   readonly payload: _DismissDownloadPayload
-  readonly type: 'fs:dismissDownload'
+  readonly type: typeof dismissDownload
 }
 export type DismissFsErrorPayload = {
   readonly payload: _DismissFsErrorPayload
-  readonly type: 'fs:dismissFsError'
+  readonly type: typeof dismissFsError
 }
-export type DownloadPayload = {readonly payload: _DownloadPayload; readonly type: 'fs:download'}
+export type DownloadPayload = {readonly payload: _DownloadPayload; readonly type: typeof download}
 export type DownloadProgressPayload = {
   readonly payload: _DownloadProgressPayload
-  readonly type: 'fs:downloadProgress'
+  readonly type: typeof downloadProgress
 }
 export type DownloadStartedPayload = {
   readonly payload: _DownloadStartedPayload
-  readonly type: 'fs:downloadStarted'
+  readonly type: typeof downloadStarted
 }
 export type DownloadSuccessPayload = {
   readonly payload: _DownloadSuccessPayload
-  readonly type: 'fs:downloadSuccess'
+  readonly type: typeof downloadSuccess
 }
 export type DriverDisablePayload = {
   readonly payload: _DriverDisablePayload
-  readonly type: 'fs:driverDisable'
+  readonly type: typeof driverDisable
 }
 export type DriverDisablingPayload = {
   readonly payload: _DriverDisablingPayload
-  readonly type: 'fs:driverDisabling'
+  readonly type: typeof driverDisabling
 }
-export type DriverEnablePayload = {readonly payload: _DriverEnablePayload; readonly type: 'fs:driverEnable'}
+export type DriverEnablePayload = {readonly payload: _DriverEnablePayload; readonly type: typeof driverEnable}
 export type DriverKextPermissionErrorPayload = {
   readonly payload: _DriverKextPermissionErrorPayload
-  readonly type: 'fs:driverKextPermissionError'
+  readonly type: typeof driverKextPermissionError
 }
-export type EditSuccessPayload = {readonly payload: _EditSuccessPayload; readonly type: 'fs:editSuccess'}
+export type EditSuccessPayload = {readonly payload: _EditSuccessPayload; readonly type: typeof editSuccess}
 export type FavoriteIgnoreErrorPayload = {
   readonly payload: _FavoriteIgnoreErrorPayload
-  readonly type: 'fs:favoriteIgnoreError'
+  readonly type: typeof favoriteIgnoreError
 }
 export type FavoriteIgnorePayload = {
   readonly payload: _FavoriteIgnorePayload
-  readonly type: 'fs:favoriteIgnore'
+  readonly type: typeof favoriteIgnore
 }
 export type FavoritesLoadPayload = {
   readonly payload: _FavoritesLoadPayload
-  readonly type: 'fs:favoritesLoad'
+  readonly type: typeof favoritesLoad
 }
 export type FavoritesLoadedPayload = {
   readonly payload: _FavoritesLoadedPayload
-  readonly type: 'fs:favoritesLoaded'
+  readonly type: typeof favoritesLoaded
 }
 export type FolderListLoadPayload = {
   readonly payload: _FolderListLoadPayload
-  readonly type: 'fs:folderListLoad'
+  readonly type: typeof folderListLoad
 }
 export type FolderListLoadedPayload = {
   readonly payload: _FolderListLoadedPayload
-  readonly type: 'fs:folderListLoaded'
+  readonly type: typeof folderListLoaded
 }
-export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: 'fs:fsError'}
+export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
 export type HideDiskSpaceBannerPayload = {
   readonly payload: _HideDiskSpaceBannerPayload
-  readonly type: 'fs:hideDiskSpaceBanner'
+  readonly type: typeof hideDiskSpaceBanner
 }
 export type HideSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _HideSystemFileManagerIntegrationBannerPayload
-  readonly type: 'fs:hideSystemFileManagerIntegrationBanner'
+  readonly type: typeof hideSystemFileManagerIntegrationBanner
 }
 export type InitSendAttachmentToChatPayload = {
   readonly payload: _InitSendAttachmentToChatPayload
-  readonly type: 'fs:initSendAttachmentToChat'
+  readonly type: typeof initSendAttachmentToChat
 }
 export type InitSendLinkToChatPayload = {
   readonly payload: _InitSendLinkToChatPayload
-  readonly type: 'fs:initSendLinkToChat'
+  readonly type: typeof initSendLinkToChat
 }
 export type JournalUpdatePayload = {
   readonly payload: _JournalUpdatePayload
-  readonly type: 'fs:journalUpdate'
+  readonly type: typeof journalUpdate
 }
 export type KbfsDaemonOnlineStatusChangedPayload = {
   readonly payload: _KbfsDaemonOnlineStatusChangedPayload
-  readonly type: 'fs:kbfsDaemonOnlineStatusChanged'
+  readonly type: typeof kbfsDaemonOnlineStatusChanged
 }
 export type KbfsDaemonRpcStatusChangedPayload = {
   readonly payload: _KbfsDaemonRpcStatusChangedPayload
-  readonly type: 'fs:kbfsDaemonRpcStatusChanged'
+  readonly type: typeof kbfsDaemonRpcStatusChanged
 }
 export type LetResetUserBackInPayload = {
   readonly payload: _LetResetUserBackInPayload
-  readonly type: 'fs:letResetUserBackIn'
+  readonly type: typeof letResetUserBackIn
 }
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
-  readonly type: 'fs:loadPathMetadata'
+  readonly type: typeof loadPathMetadata
 }
-export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; readonly type: 'fs:loadSettings'}
+export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; readonly type: typeof loadSettings}
 export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
-  readonly type: 'fs:loadTlfSyncConfig'
+  readonly type: typeof loadTlfSyncConfig
 }
 export type LocalHTTPServerInfoPayload = {
   readonly payload: _LocalHTTPServerInfoPayload
-  readonly type: 'fs:localHTTPServerInfo'
+  readonly type: typeof localHTTPServerInfo
 }
-export type MovePayload = {readonly payload: _MovePayload; readonly type: 'fs:move'}
+export type MovePayload = {readonly payload: _MovePayload; readonly type: typeof move}
 export type NewFolderNamePayload = {
   readonly payload: _NewFolderNamePayload
-  readonly type: 'fs:newFolderName'
+  readonly type: typeof newFolderName
 }
-export type NewFolderRowPayload = {readonly payload: _NewFolderRowPayload; readonly type: 'fs:newFolderRow'}
+export type NewFolderRowPayload = {readonly payload: _NewFolderRowPayload; readonly type: typeof newFolderRow}
 export type NotifyTlfUpdatePayload = {
   readonly payload: _NotifyTlfUpdatePayload
-  readonly type: 'fs:notifyTlfUpdate'
+  readonly type: typeof notifyTlfUpdate
 }
 export type OpenAndUploadPayload = {
   readonly payload: _OpenAndUploadPayload
-  readonly type: 'fs:openAndUpload'
+  readonly type: typeof openAndUpload
 }
 export type OpenFilesFromWidgetPayload = {
   readonly payload: _OpenFilesFromWidgetPayload
-  readonly type: 'fs:openFilesFromWidget'
+  readonly type: typeof openFilesFromWidget
 }
 export type OpenLocalPathInSystemFileManagerPayload = {
   readonly payload: _OpenLocalPathInSystemFileManagerPayload
-  readonly type: 'fs:openLocalPathInSystemFileManager'
+  readonly type: typeof openLocalPathInSystemFileManager
 }
 export type OpenPathInSystemFileManagerPayload = {
   readonly payload: _OpenPathInSystemFileManagerPayload
-  readonly type: 'fs:openPathInSystemFileManager'
+  readonly type: typeof openPathInSystemFileManager
 }
 export type OpenSecurityPreferencesPayload = {
   readonly payload: _OpenSecurityPreferencesPayload
-  readonly type: 'fs:openSecurityPreferences'
+  readonly type: typeof openSecurityPreferences
 }
 export type OverallSyncStatusChangedPayload = {
   readonly payload: _OverallSyncStatusChangedPayload
-  readonly type: 'fs:overallSyncStatusChanged'
+  readonly type: typeof overallSyncStatusChanged
 }
 export type PathItemLoadedPayload = {
   readonly payload: _PathItemLoadedPayload
-  readonly type: 'fs:pathItemLoaded'
+  readonly type: typeof pathItemLoaded
 }
 export type PickAndUploadPayload = {
   readonly payload: _PickAndUploadPayload
-  readonly type: 'fs:pickAndUpload'
+  readonly type: typeof pickAndUpload
 }
 export type PlaceholderActionPayload = {
   readonly payload: _PlaceholderActionPayload
-  readonly type: 'fs:placeholderAction'
+  readonly type: typeof placeholderAction
 }
 export type RefreshDriverStatusPayload = {
   readonly payload: _RefreshDriverStatusPayload
-  readonly type: 'fs:refreshDriverStatus'
+  readonly type: typeof refreshDriverStatus
 }
 export type RefreshLocalHTTPServerInfoPayload = {
   readonly payload: _RefreshLocalHTTPServerInfoPayload
-  readonly type: 'fs:refreshLocalHTTPServerInfo'
+  readonly type: typeof refreshLocalHTTPServerInfo
 }
-export type SaveMediaPayload = {readonly payload: _SaveMediaPayload; readonly type: 'fs:saveMedia'}
+export type SaveMediaPayload = {readonly payload: _SaveMediaPayload; readonly type: typeof saveMedia}
 export type SentAttachmentToChatPayload = {
   readonly payload: _SentAttachmentToChatPayload
-  readonly type: 'fs:sentAttachmentToChat'
+  readonly type: typeof sentAttachmentToChat
 }
 export type SentLinkToChatPayload = {
   readonly payload: _SentLinkToChatPayload
-  readonly type: 'fs:sentLinkToChat'
+  readonly type: typeof sentLinkToChat
 }
 export type SetDestinationPickerParentPathPayload = {
   readonly payload: _SetDestinationPickerParentPathPayload
-  readonly type: 'fs:setDestinationPickerParentPath'
+  readonly type: typeof setDestinationPickerParentPath
 }
 export type SetDriverStatusPayload = {
   readonly payload: _SetDriverStatusPayload
-  readonly type: 'fs:setDriverStatus'
+  readonly type: typeof setDriverStatus
 }
 export type SetFolderViewFilterPayload = {
   readonly payload: _SetFolderViewFilterPayload
-  readonly type: 'fs:setFolderViewFilter'
+  readonly type: typeof setFolderViewFilter
 }
 export type SetIncomingShareLocalPathPayload = {
   readonly payload: _SetIncomingShareLocalPathPayload
-  readonly type: 'fs:setIncomingShareLocalPath'
+  readonly type: typeof setIncomingShareLocalPath
 }
 export type SetLastPublicBannerClosedTlfPayload = {
   readonly payload: _SetLastPublicBannerClosedTlfPayload
-  readonly type: 'fs:setLastPublicBannerClosedTlf'
+  readonly type: typeof setLastPublicBannerClosedTlf
 }
 export type SetMoveOrCopySourcePayload = {
   readonly payload: _SetMoveOrCopySourcePayload
-  readonly type: 'fs:setMoveOrCopySource'
+  readonly type: typeof setMoveOrCopySource
 }
 export type SetPathItemActionMenuDownloadKeyPayload = {
   readonly payload: _SetPathItemActionMenuDownloadKeyPayload
-  readonly type: 'fs:setPathItemActionMenuDownloadKey'
+  readonly type: typeof setPathItemActionMenuDownloadKey
 }
 export type SetPathItemActionMenuViewPayload = {
   readonly payload: _SetPathItemActionMenuViewPayload
-  readonly type: 'fs:setPathItemActionMenuView'
+  readonly type: typeof setPathItemActionMenuView
 }
 export type SetPathSoftErrorPayload = {
   readonly payload: _SetPathSoftErrorPayload
-  readonly type: 'fs:setPathSoftError'
+  readonly type: typeof setPathSoftError
 }
 export type SetSendAttachmentToChatConvIDPayload = {
   readonly payload: _SetSendAttachmentToChatConvIDPayload
-  readonly type: 'fs:setSendAttachmentToChatConvID'
+  readonly type: typeof setSendAttachmentToChatConvID
 }
 export type SetSendAttachmentToChatFilterPayload = {
   readonly payload: _SetSendAttachmentToChatFilterPayload
-  readonly type: 'fs:setSendAttachmentToChatFilter'
+  readonly type: typeof setSendAttachmentToChatFilter
 }
 export type SetSendAttachmentToChatTitlePayload = {
   readonly payload: _SetSendAttachmentToChatTitlePayload
-  readonly type: 'fs:setSendAttachmentToChatTitle'
+  readonly type: typeof setSendAttachmentToChatTitle
 }
 export type SetSendLinkToChatChannelsPayload = {
   readonly payload: _SetSendLinkToChatChannelsPayload
-  readonly type: 'fs:setSendLinkToChatChannels'
+  readonly type: typeof setSendLinkToChatChannels
 }
 export type SetSendLinkToChatConvIDPayload = {
   readonly payload: _SetSendLinkToChatConvIDPayload
-  readonly type: 'fs:setSendLinkToChatConvID'
+  readonly type: typeof setSendLinkToChatConvID
 }
 export type SetSpaceAvailableNotificationThresholdPayload = {
   readonly payload: _SetSpaceAvailableNotificationThresholdPayload
-  readonly type: 'fs:setSpaceAvailableNotificationThreshold'
+  readonly type: typeof setSpaceAvailableNotificationThreshold
 }
 export type SetTlfSoftErrorPayload = {
   readonly payload: _SetTlfSoftErrorPayload
-  readonly type: 'fs:setTlfSoftError'
+  readonly type: typeof setTlfSoftError
 }
 export type SetTlfSyncConfigPayload = {
   readonly payload: _SetTlfSyncConfigPayload
-  readonly type: 'fs:setTlfSyncConfig'
+  readonly type: typeof setTlfSyncConfig
 }
 export type SettingsLoadedPayload = {
   readonly payload: _SettingsLoadedPayload
-  readonly type: 'fs:settingsLoaded'
+  readonly type: typeof settingsLoaded
 }
-export type ShareNativePayload = {readonly payload: _ShareNativePayload; readonly type: 'fs:shareNative'}
+export type ShareNativePayload = {readonly payload: _ShareNativePayload; readonly type: typeof shareNative}
 export type ShowIncomingSharePayload = {
   readonly payload: _ShowIncomingSharePayload
-  readonly type: 'fs:showIncomingShare'
+  readonly type: typeof showIncomingShare
 }
 export type ShowMoveOrCopyPayload = {
   readonly payload: _ShowMoveOrCopyPayload
-  readonly type: 'fs:showMoveOrCopy'
+  readonly type: typeof showMoveOrCopy
 }
 export type ShowSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _ShowSystemFileManagerIntegrationBannerPayload
-  readonly type: 'fs:showSystemFileManagerIntegrationBanner'
+  readonly type: typeof showSystemFileManagerIntegrationBanner
 }
-export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: 'fs:sortSetting'}
+export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: typeof sortSetting}
 export type StartManualConflictResolutionPayload = {
   readonly payload: _StartManualConflictResolutionPayload
-  readonly type: 'fs:startManualConflictResolution'
+  readonly type: typeof startManualConflictResolution
 }
 export type TlfCrStatusChangedPayload = {
   readonly payload: _TlfCrStatusChangedPayload
-  readonly type: 'fs:tlfCrStatusChanged'
+  readonly type: typeof tlfCrStatusChanged
 }
 export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
-  readonly type: 'fs:tlfSyncConfigLoaded'
+  readonly type: typeof tlfSyncConfigLoaded
 }
 export type TriggerSendLinkToChatPayload = {
   readonly payload: _TriggerSendLinkToChatPayload
-  readonly type: 'fs:triggerSendLinkToChat'
+  readonly type: typeof triggerSendLinkToChat
 }
 export type UninstallKBFSConfirmPayload = {
   readonly payload: _UninstallKBFSConfirmPayload
-  readonly type: 'fs:uninstallKBFSConfirm'
+  readonly type: typeof uninstallKBFSConfirm
 }
-export type UploadPayload = {readonly payload: _UploadPayload; readonly type: 'fs:upload'}
+export type UploadPayload = {readonly payload: _UploadPayload; readonly type: typeof upload}
 export type UploadStartedPayload = {
   readonly payload: _UploadStartedPayload
-  readonly type: 'fs:uploadStarted'
+  readonly type: typeof uploadStarted
 }
 export type UploadWritingSuccessPayload = {
   readonly payload: _UploadWritingSuccessPayload
-  readonly type: 'fs:uploadWritingSuccess'
+  readonly type: typeof uploadWritingSuccess
 }
 export type UserFileEditsLoadPayload = {
   readonly payload: _UserFileEditsLoadPayload
-  readonly type: 'fs:userFileEditsLoad'
+  readonly type: typeof userFileEditsLoad
 }
 export type UserFileEditsLoadedPayload = {
   readonly payload: _UserFileEditsLoadedPayload
-  readonly type: 'fs:userFileEditsLoaded'
+  readonly type: typeof userFileEditsLoaded
 }
 export type WaitForKbfsDaemonPayload = {
   readonly payload: _WaitForKbfsDaemonPayload
-  readonly type: 'fs:waitForKbfsDaemon'
+  readonly type: typeof waitForKbfsDaemon
 }
 
 // All Actions

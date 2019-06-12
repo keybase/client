@@ -1249,492 +1249,477 @@ export const createUpdateNotificationSettings = (
 // Action Payloads
 export type AddAttachmentViewMessagePayload = {
   readonly payload: _AddAttachmentViewMessagePayload
-  readonly type: 'chat2:addAttachmentViewMessage'
+  readonly type: typeof addAttachmentViewMessage
 }
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
-  readonly type: 'chat2:addUsersToChannel'
+  readonly type: typeof addUsersToChannel
 }
 export type AttachmentDownloadPayload = {
   readonly payload: _AttachmentDownloadPayload
-  readonly type: 'chat2:attachmentDownload'
+  readonly type: typeof attachmentDownload
 }
 export type AttachmentDownloadedPayload = {
   readonly payload: _AttachmentDownloadedPayload
-  readonly type: 'chat2:attachmentDownloaded'
+  readonly type: typeof attachmentDownloaded
 }
 export type AttachmentDownloadedPayloadError = {
   readonly error: true
   readonly payload: _AttachmentDownloadedPayloadError
-  readonly type: 'chat2:attachmentDownloaded'
+  readonly type: typeof attachmentDownloaded
 }
 export type AttachmentFullscreenNextPayload = {
   readonly payload: _AttachmentFullscreenNextPayload
-  readonly type: 'chat2:attachmentFullscreenNext'
+  readonly type: typeof attachmentFullscreenNext
 }
 export type AttachmentFullscreenSelectionPayload = {
   readonly payload: _AttachmentFullscreenSelectionPayload
-  readonly type: 'chat2:attachmentFullscreenSelection'
+  readonly type: typeof attachmentFullscreenSelection
 }
 export type AttachmentLoadingPayload = {
   readonly payload: _AttachmentLoadingPayload
-  readonly type: 'chat2:attachmentLoading'
+  readonly type: typeof attachmentLoading
 }
 export type AttachmentMobileSavePayload = {
   readonly payload: _AttachmentMobileSavePayload
-  readonly type: 'chat2:attachmentMobileSave'
+  readonly type: typeof attachmentMobileSave
 }
 export type AttachmentMobileSavedPayload = {
   readonly payload: _AttachmentMobileSavedPayload
-  readonly type: 'chat2:attachmentMobileSaved'
+  readonly type: typeof attachmentMobileSaved
 }
 export type AttachmentPastedPayload = {
   readonly payload: _AttachmentPastedPayload
-  readonly type: 'chat2:attachmentPasted'
+  readonly type: typeof attachmentPasted
 }
 export type AttachmentPreviewSelectPayload = {
   readonly payload: _AttachmentPreviewSelectPayload
-  readonly type: 'chat2:attachmentPreviewSelect'
+  readonly type: typeof attachmentPreviewSelect
 }
 export type AttachmentUploadedPayload = {
   readonly payload: _AttachmentUploadedPayload
-  readonly type: 'chat2:attachmentUploaded'
+  readonly type: typeof attachmentUploaded
 }
 export type AttachmentUploadingPayload = {
   readonly payload: _AttachmentUploadingPayload
-  readonly type: 'chat2:attachmentUploading'
+  readonly type: typeof attachmentUploading
 }
 export type AttachmentsUploadPayload = {
   readonly payload: _AttachmentsUploadPayload
-  readonly type: 'chat2:attachmentsUpload'
+  readonly type: typeof attachmentsUpload
 }
 export type BadgesUpdatedPayload = {
   readonly payload: _BadgesUpdatedPayload
-  readonly type: 'chat2:badgesUpdated'
+  readonly type: typeof badgesUpdated
 }
 export type BlockConversationPayload = {
   readonly payload: _BlockConversationPayload
-  readonly type: 'chat2:blockConversation'
+  readonly type: typeof blockConversation
 }
-export type ChangeFocusPayload = {readonly payload: _ChangeFocusPayload; readonly type: 'chat2:changeFocus'}
+export type ChangeFocusPayload = {readonly payload: _ChangeFocusPayload; readonly type: typeof changeFocus}
 export type ClearAttachmentViewPayload = {
   readonly payload: _ClearAttachmentViewPayload
-  readonly type: 'chat2:clearAttachmentView'
+  readonly type: typeof clearAttachmentView
 }
 export type ClearPaymentConfirmInfoPayload = {
   readonly payload: _ClearPaymentConfirmInfoPayload
-  readonly type: 'chat2:clearPaymentConfirmInfo'
+  readonly type: typeof clearPaymentConfirmInfo
 }
 export type ConfirmScreenResponsePayload = {
   readonly payload: _ConfirmScreenResponsePayload
-  readonly type: 'chat2:confirmScreenResponse'
+  readonly type: typeof confirmScreenResponse
 }
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
-  readonly type: 'chat2:createConversation'
+  readonly type: typeof createConversation
 }
 export type DeselectConversationPayload = {
   readonly payload: _DeselectConversationPayload
-  readonly type: 'chat2:deselectConversation'
+  readonly type: typeof deselectConversation
 }
 export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
-  readonly type: 'chat2:desktopNotification'
+  readonly type: typeof desktopNotification
 }
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
-  readonly type: 'chat2:giphyGotSearchResult'
+  readonly type: typeof giphyGotSearchResult
 }
-export type GiphySendPayload = {readonly payload: _GiphySendPayload; readonly type: 'chat2:giphySend'}
+export type GiphySendPayload = {readonly payload: _GiphySendPayload; readonly type: typeof giphySend}
 export type GiphyToggleWindowPayload = {
   readonly payload: _GiphyToggleWindowPayload
-  readonly type: 'chat2:giphyToggleWindow'
+  readonly type: typeof giphyToggleWindow
 }
 export type HandleSeeingWalletsPayload = {
   readonly payload: _HandleSeeingWalletsPayload
-  readonly type: 'chat2:handleSeeingWallets'
+  readonly type: typeof handleSeeingWallets
 }
 export type HideConversationPayload = {
   readonly payload: _HideConversationPayload
-  readonly type: 'chat2:hideConversation'
+  readonly type: typeof hideConversation
 }
-export type InboxRefreshPayload = {
-  readonly payload: _InboxRefreshPayload
-  readonly type: 'chat2:inboxRefresh'
-}
+export type InboxRefreshPayload = {readonly payload: _InboxRefreshPayload; readonly type: typeof inboxRefresh}
 export type InboxSearchMoveSelectedIndexPayload = {
   readonly payload: _InboxSearchMoveSelectedIndexPayload
-  readonly type: 'chat2:inboxSearchMoveSelectedIndex'
+  readonly type: typeof inboxSearchMoveSelectedIndex
 }
 export type InboxSearchNameResultsPayload = {
   readonly payload: _InboxSearchNameResultsPayload
-  readonly type: 'chat2:inboxSearchNameResults'
+  readonly type: typeof inboxSearchNameResults
 }
-export type InboxSearchPayload = {readonly payload: _InboxSearchPayload; readonly type: 'chat2:inboxSearch'}
+export type InboxSearchPayload = {readonly payload: _InboxSearchPayload; readonly type: typeof inboxSearch}
 export type InboxSearchSelectPayload = {
   readonly payload: _InboxSearchSelectPayload
-  readonly type: 'chat2:inboxSearchSelect'
+  readonly type: typeof inboxSearchSelect
 }
 export type InboxSearchSetIndexPercentPayload = {
   readonly payload: _InboxSearchSetIndexPercentPayload
-  readonly type: 'chat2:inboxSearchSetIndexPercent'
+  readonly type: typeof inboxSearchSetIndexPercent
 }
 export type InboxSearchSetTextStatusPayload = {
   readonly payload: _InboxSearchSetTextStatusPayload
-  readonly type: 'chat2:inboxSearchSetTextStatus'
+  readonly type: typeof inboxSearchSetTextStatus
 }
 export type InboxSearchStartedPayload = {
   readonly payload: _InboxSearchStartedPayload
-  readonly type: 'chat2:inboxSearchStarted'
+  readonly type: typeof inboxSearchStarted
 }
 export type InboxSearchTextResultPayload = {
   readonly payload: _InboxSearchTextResultPayload
-  readonly type: 'chat2:inboxSearchTextResult'
+  readonly type: typeof inboxSearchTextResult
 }
 export type JoinConversationPayload = {
   readonly payload: _JoinConversationPayload
-  readonly type: 'chat2:joinConversation'
+  readonly type: typeof joinConversation
 }
-export type JumpToRecentPayload = {
-  readonly payload: _JumpToRecentPayload
-  readonly type: 'chat2:jumpToRecent'
-}
+export type JumpToRecentPayload = {readonly payload: _JumpToRecentPayload; readonly type: typeof jumpToRecent}
 export type LeaveConversationPayload = {
   readonly payload: _LeaveConversationPayload
-  readonly type: 'chat2:leaveConversation'
+  readonly type: typeof leaveConversation
 }
 export type LoadAttachmentViewPayload = {
   readonly payload: _LoadAttachmentViewPayload
-  readonly type: 'chat2:loadAttachmentView'
+  readonly type: typeof loadAttachmentView
 }
 export type LoadMessagesCenteredPayload = {
   readonly payload: _LoadMessagesCenteredPayload
-  readonly type: 'chat2:loadMessagesCentered'
+  readonly type: typeof loadMessagesCentered
 }
 export type LoadNewerMessagesDueToScrollPayload = {
   readonly payload: _LoadNewerMessagesDueToScrollPayload
-  readonly type: 'chat2:loadNewerMessagesDueToScroll'
+  readonly type: typeof loadNewerMessagesDueToScroll
 }
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
-  readonly type: 'chat2:loadOlderMessagesDueToScroll'
+  readonly type: typeof loadOlderMessagesDueToScroll
 }
 export type MarkConversationsStalePayload = {
   readonly payload: _MarkConversationsStalePayload
-  readonly type: 'chat2:markConversationsStale'
+  readonly type: typeof markConversationsStale
 }
 export type MarkInitiallyLoadedThreadAsReadPayload = {
   readonly payload: _MarkInitiallyLoadedThreadAsReadPayload
-  readonly type: 'chat2:markInitiallyLoadedThreadAsRead'
+  readonly type: typeof markInitiallyLoadedThreadAsRead
 }
 export type MessageAttachmentNativeSavePayload = {
   readonly payload: _MessageAttachmentNativeSavePayload
-  readonly type: 'chat2:messageAttachmentNativeSave'
+  readonly type: typeof messageAttachmentNativeSave
 }
 export type MessageAttachmentNativeSharePayload = {
   readonly payload: _MessageAttachmentNativeSharePayload
-  readonly type: 'chat2:messageAttachmentNativeShare'
+  readonly type: typeof messageAttachmentNativeShare
 }
 export type MessageAttachmentUploadedPayload = {
   readonly payload: _MessageAttachmentUploadedPayload
-  readonly type: 'chat2:messageAttachmentUploaded'
+  readonly type: typeof messageAttachmentUploaded
 }
 export type MessageDeleteHistoryPayload = {
   readonly payload: _MessageDeleteHistoryPayload
-  readonly type: 'chat2:messageDeleteHistory'
+  readonly type: typeof messageDeleteHistory
 }
 export type MessageDeletePayload = {
   readonly payload: _MessageDeletePayload
-  readonly type: 'chat2:messageDelete'
+  readonly type: typeof messageDelete
 }
-export type MessageEditPayload = {readonly payload: _MessageEditPayload; readonly type: 'chat2:messageEdit'}
+export type MessageEditPayload = {readonly payload: _MessageEditPayload; readonly type: typeof messageEdit}
 export type MessageErroredPayload = {
   readonly payload: _MessageErroredPayload
-  readonly type: 'chat2:messageErrored'
+  readonly type: typeof messageErrored
 }
 export type MessageReplyPrivatelyPayload = {
   readonly payload: _MessageReplyPrivatelyPayload
-  readonly type: 'chat2:messageReplyPrivately'
+  readonly type: typeof messageReplyPrivately
 }
-export type MessageRetryPayload = {
-  readonly payload: _MessageRetryPayload
-  readonly type: 'chat2:messageRetry'
-}
-export type MessageSendPayload = {readonly payload: _MessageSendPayload; readonly type: 'chat2:messageSend'}
+export type MessageRetryPayload = {readonly payload: _MessageRetryPayload; readonly type: typeof messageRetry}
+export type MessageSendPayload = {readonly payload: _MessageSendPayload; readonly type: typeof messageSend}
 export type MessageSetEditingPayload = {
   readonly payload: _MessageSetEditingPayload
-  readonly type: 'chat2:messageSetEditing'
+  readonly type: typeof messageSetEditing
 }
 export type MessageSetQuotingPayload = {
   readonly payload: _MessageSetQuotingPayload
-  readonly type: 'chat2:messageSetQuoting'
+  readonly type: typeof messageSetQuoting
 }
 export type MessageWasEditedPayload = {
   readonly payload: _MessageWasEditedPayload
-  readonly type: 'chat2:messageWasEdited'
+  readonly type: typeof messageWasEdited
 }
-export type MessagesAddPayload = {readonly payload: _MessagesAddPayload; readonly type: 'chat2:messagesAdd'}
+export type MessagesAddPayload = {readonly payload: _MessagesAddPayload; readonly type: typeof messagesAdd}
 export type MessagesExplodedPayload = {
   readonly payload: _MessagesExplodedPayload
-  readonly type: 'chat2:messagesExploded'
+  readonly type: typeof messagesExploded
 }
 export type MessagesWereDeletedPayload = {
   readonly payload: _MessagesWereDeletedPayload
-  readonly type: 'chat2:messagesWereDeleted'
+  readonly type: typeof messagesWereDeleted
 }
-export type MetaDeletePayload = {readonly payload: _MetaDeletePayload; readonly type: 'chat2:metaDelete'}
+export type MetaDeletePayload = {readonly payload: _MetaDeletePayload; readonly type: typeof metaDelete}
 export type MetaHandleQueuePayload = {
   readonly payload: _MetaHandleQueuePayload
-  readonly type: 'chat2:metaHandleQueue'
+  readonly type: typeof metaHandleQueue
 }
 export type MetaNeedsUpdatingPayload = {
   readonly payload: _MetaNeedsUpdatingPayload
-  readonly type: 'chat2:metaNeedsUpdating'
+  readonly type: typeof metaNeedsUpdating
 }
 export type MetaReceivedErrorPayload = {
   readonly payload: _MetaReceivedErrorPayload
-  readonly type: 'chat2:metaReceivedError'
+  readonly type: typeof metaReceivedError
 }
 export type MetaRequestTrustedPayload = {
   readonly payload: _MetaRequestTrustedPayload
-  readonly type: 'chat2:metaRequestTrusted'
+  readonly type: typeof metaRequestTrusted
 }
 export type MetaRequestingTrustedPayload = {
   readonly payload: _MetaRequestingTrustedPayload
-  readonly type: 'chat2:metaRequestingTrusted'
+  readonly type: typeof metaRequestingTrusted
 }
 export type MetasReceivedPayload = {
   readonly payload: _MetasReceivedPayload
-  readonly type: 'chat2:metasReceived'
+  readonly type: typeof metasReceived
 }
 export type MuteConversationPayload = {
   readonly payload: _MuteConversationPayload
-  readonly type: 'chat2:muteConversation'
+  readonly type: typeof muteConversation
 }
 export type NavigateToInboxPayload = {
   readonly payload: _NavigateToInboxPayload
-  readonly type: 'chat2:navigateToInbox'
+  readonly type: typeof navigateToInbox
 }
 export type NavigateToThreadPayload = {
   readonly payload: _NavigateToThreadPayload
-  readonly type: 'chat2:navigateToThread'
+  readonly type: typeof navigateToThread
 }
 export type NotificationSettingsUpdatedPayload = {
   readonly payload: _NotificationSettingsUpdatedPayload
-  readonly type: 'chat2:notificationSettingsUpdated'
+  readonly type: typeof notificationSettingsUpdated
 }
 export type OpenChatFromWidgetPayload = {
   readonly payload: _OpenChatFromWidgetPayload
-  readonly type: 'chat2:openChatFromWidget'
+  readonly type: typeof openChatFromWidget
 }
-export type OpenFolderPayload = {readonly payload: _OpenFolderPayload; readonly type: 'chat2:openFolder'}
+export type OpenFolderPayload = {readonly payload: _OpenFolderPayload; readonly type: typeof openFolder}
 export type PaymentInfoReceivedPayload = {
   readonly payload: _PaymentInfoReceivedPayload
-  readonly type: 'chat2:paymentInfoReceived'
+  readonly type: typeof paymentInfoReceived
 }
 export type PendingMessageWasEditedPayload = {
   readonly payload: _PendingMessageWasEditedPayload
-  readonly type: 'chat2:pendingMessageWasEdited'
+  readonly type: typeof pendingMessageWasEdited
 }
 export type PrepareFulfillRequestFormPayload = {
   readonly payload: _PrepareFulfillRequestFormPayload
-  readonly type: 'chat2:prepareFulfillRequestForm'
+  readonly type: typeof prepareFulfillRequestForm
 }
 export type PreviewConversationPayload = {
   readonly payload: _PreviewConversationPayload
-  readonly type: 'chat2:previewConversation'
+  readonly type: typeof previewConversation
 }
-export type ReplyJumpPayload = {readonly payload: _ReplyJumpPayload; readonly type: 'chat2:replyJump'}
+export type ReplyJumpPayload = {readonly payload: _ReplyJumpPayload; readonly type: typeof replyJump}
 export type RequestInfoReceivedPayload = {
   readonly payload: _RequestInfoReceivedPayload
-  readonly type: 'chat2:requestInfoReceived'
+  readonly type: typeof requestInfoReceived
 }
 export type ResetChatWithoutThemPayload = {
   readonly payload: _ResetChatWithoutThemPayload
-  readonly type: 'chat2:resetChatWithoutThem'
+  readonly type: typeof resetChatWithoutThem
 }
 export type ResetLetThemInPayload = {
   readonly payload: _ResetLetThemInPayload
-  readonly type: 'chat2:resetLetThemIn'
+  readonly type: typeof resetLetThemIn
 }
 export type ResolveMaybeMentionPayload = {
   readonly payload: _ResolveMaybeMentionPayload
-  readonly type: 'chat2:resolveMaybeMention'
+  readonly type: typeof resolveMaybeMention
 }
 export type SaveMinWriterRolePayload = {
   readonly payload: _SaveMinWriterRolePayload
-  readonly type: 'chat2:saveMinWriterRole'
+  readonly type: typeof saveMinWriterRole
 }
 export type SelectConversationPayload = {
   readonly payload: _SelectConversationPayload
-  readonly type: 'chat2:selectConversation'
+  readonly type: typeof selectConversation
 }
-export type SendTypingPayload = {readonly payload: _SendTypingPayload; readonly type: 'chat2:sendTyping'}
+export type SendTypingPayload = {readonly payload: _SendTypingPayload; readonly type: typeof sendTyping}
 export type SetAttachmentViewStatusPayload = {
   readonly payload: _SetAttachmentViewStatusPayload
-  readonly type: 'chat2:setAttachmentViewStatus'
+  readonly type: typeof setAttachmentViewStatus
 }
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
-  readonly type: 'chat2:setCommandMarkdown'
+  readonly type: typeof setCommandMarkdown
 }
 export type SetContainsLastMessagePayload = {
   readonly payload: _SetContainsLastMessagePayload
-  readonly type: 'chat2:setContainsLastMessage'
+  readonly type: typeof setContainsLastMessage
 }
 export type SetConvExplodingModePayload = {
   readonly payload: _SetConvExplodingModePayload
-  readonly type: 'chat2:setConvExplodingMode'
+  readonly type: typeof setConvExplodingMode
 }
 export type SetConvRetentionPolicyPayload = {
   readonly payload: _SetConvRetentionPolicyPayload
-  readonly type: 'chat2:setConvRetentionPolicy'
+  readonly type: typeof setConvRetentionPolicy
 }
 export type SetConversationOfflinePayload = {
   readonly payload: _SetConversationOfflinePayload
-  readonly type: 'chat2:setConversationOffline'
+  readonly type: typeof setConversationOffline
 }
 export type SetExplodingModeLockPayload = {
   readonly payload: _SetExplodingModeLockPayload
-  readonly type: 'chat2:setExplodingModeLock'
+  readonly type: typeof setExplodingModeLock
 }
 export type SetInboxShowIsNewPayload = {
   readonly payload: _SetInboxShowIsNewPayload
-  readonly type: 'chat2:setInboxShowIsNew'
+  readonly type: typeof setInboxShowIsNew
 }
 export type SetMaybeMentionInfoPayload = {
   readonly payload: _SetMaybeMentionInfoPayload
-  readonly type: 'chat2:setMaybeMentionInfo'
+  readonly type: typeof setMaybeMentionInfo
 }
 export type SetMinWriterRolePayload = {
   readonly payload: _SetMinWriterRolePayload
-  readonly type: 'chat2:setMinWriterRole'
+  readonly type: typeof setMinWriterRole
 }
 export type SetPaymentConfirmInfoPayload = {
   readonly payload: _SetPaymentConfirmInfoPayload
-  readonly type: 'chat2:setPaymentConfirmInfo'
+  readonly type: typeof setPaymentConfirmInfo
 }
 export type SetPaymentConfirmInfoPayloadError = {
   readonly error: true
   readonly payload: _SetPaymentConfirmInfoPayloadError
-  readonly type: 'chat2:setPaymentConfirmInfo'
+  readonly type: typeof setPaymentConfirmInfo
 }
 export type SetThreadSearchQueryPayload = {
   readonly payload: _SetThreadSearchQueryPayload
-  readonly type: 'chat2:setThreadSearchQuery'
+  readonly type: typeof setThreadSearchQuery
 }
 export type SetThreadSearchStatusPayload = {
   readonly payload: _SetThreadSearchStatusPayload
-  readonly type: 'chat2:setThreadSearchStatus'
+  readonly type: typeof setThreadSearchStatus
 }
 export type SetUnsentTextPayload = {
   readonly payload: _SetUnsentTextPayload
-  readonly type: 'chat2:setUnsentText'
+  readonly type: typeof setUnsentText
 }
 export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
-  readonly type: 'chat2:setWalletsOld'
+  readonly type: typeof setWalletsOld
 }
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
-  readonly type: 'chat2:staticConfigLoaded'
+  readonly type: typeof staticConfigLoaded
 }
-export type TabSelectedPayload = {readonly payload: _TabSelectedPayload; readonly type: 'chat2:tabSelected'}
-export type ThreadSearchPayload = {
-  readonly payload: _ThreadSearchPayload
-  readonly type: 'chat2:threadSearch'
-}
+export type TabSelectedPayload = {readonly payload: _TabSelectedPayload; readonly type: typeof tabSelected}
+export type ThreadSearchPayload = {readonly payload: _ThreadSearchPayload; readonly type: typeof threadSearch}
 export type ThreadSearchResultsPayload = {
   readonly payload: _ThreadSearchResultsPayload
-  readonly type: 'chat2:threadSearchResults'
+  readonly type: typeof threadSearchResults
 }
 export type ToggleInboxSearchPayload = {
   readonly payload: _ToggleInboxSearchPayload
-  readonly type: 'chat2:toggleInboxSearch'
+  readonly type: typeof toggleInboxSearch
 }
 export type ToggleInfoPanelPayload = {
   readonly payload: _ToggleInfoPanelPayload
-  readonly type: 'chat2:toggleInfoPanel'
+  readonly type: typeof toggleInfoPanel
 }
 export type ToggleLocalReactionPayload = {
   readonly payload: _ToggleLocalReactionPayload
-  readonly type: 'chat2:toggleLocalReaction'
+  readonly type: typeof toggleLocalReaction
 }
 export type ToggleMessageCollapsePayload = {
   readonly payload: _ToggleMessageCollapsePayload
-  readonly type: 'chat2:toggleMessageCollapse'
+  readonly type: typeof toggleMessageCollapse
 }
 export type ToggleMessageReactionPayload = {
   readonly payload: _ToggleMessageReactionPayload
-  readonly type: 'chat2:toggleMessageReaction'
+  readonly type: typeof toggleMessageReaction
 }
 export type ToggleReplyToMessagePayload = {
   readonly payload: _ToggleReplyToMessagePayload
-  readonly type: 'chat2:toggleReplyToMessage'
+  readonly type: typeof toggleReplyToMessage
 }
 export type ToggleSmallTeamsExpandedPayload = {
   readonly payload: _ToggleSmallTeamsExpandedPayload
-  readonly type: 'chat2:toggleSmallTeamsExpanded'
+  readonly type: typeof toggleSmallTeamsExpanded
 }
 export type ToggleThreadSearchPayload = {
   readonly payload: _ToggleThreadSearchPayload
-  readonly type: 'chat2:toggleThreadSearch'
+  readonly type: typeof toggleThreadSearch
 }
-export type UnfurlRemovePayload = {
-  readonly payload: _UnfurlRemovePayload
-  readonly type: 'chat2:unfurlRemove'
-}
+export type UnfurlRemovePayload = {readonly payload: _UnfurlRemovePayload; readonly type: typeof unfurlRemove}
 export type UnfurlResolvePromptPayload = {
   readonly payload: _UnfurlResolvePromptPayload
-  readonly type: 'chat2:unfurlResolvePrompt'
+  readonly type: typeof unfurlResolvePrompt
 }
 export type UnfurlTogglePromptPayload = {
   readonly payload: _UnfurlTogglePromptPayload
-  readonly type: 'chat2:unfurlTogglePrompt'
+  readonly type: typeof unfurlTogglePrompt
 }
 export type UnhideConversationPayload = {
   readonly payload: _UnhideConversationPayload
-  readonly type: 'chat2:unhideConversation'
+  readonly type: typeof unhideConversation
 }
 export type UnsentTextChangedPayload = {
   readonly payload: _UnsentTextChangedPayload
-  readonly type: 'chat2:unsentTextChanged'
+  readonly type: typeof unsentTextChanged
 }
 export type UpdateCoinFlipStatusPayload = {
   readonly payload: _UpdateCoinFlipStatusPayload
-  readonly type: 'chat2:updateCoinFlipStatus'
+  readonly type: typeof updateCoinFlipStatus
 }
 export type UpdateConvExplodingModesPayload = {
   readonly payload: _UpdateConvExplodingModesPayload
-  readonly type: 'chat2:updateConvExplodingModes'
+  readonly type: typeof updateConvExplodingModes
 }
 export type UpdateConvRetentionPolicyPayload = {
   readonly payload: _UpdateConvRetentionPolicyPayload
-  readonly type: 'chat2:updateConvRetentionPolicy'
+  readonly type: typeof updateConvRetentionPolicy
 }
 export type UpdateMessagesPayload = {
   readonly payload: _UpdateMessagesPayload
-  readonly type: 'chat2:updateMessages'
+  readonly type: typeof updateMessages
 }
 export type UpdateMoreToLoadPayload = {
   readonly payload: _UpdateMoreToLoadPayload
-  readonly type: 'chat2:updateMoreToLoad'
+  readonly type: typeof updateMoreToLoad
 }
 export type UpdateNotificationSettingsPayload = {
   readonly payload: _UpdateNotificationSettingsPayload
-  readonly type: 'chat2:updateNotificationSettings'
+  readonly type: typeof updateNotificationSettings
 }
 export type UpdateReactionsPayload = {
   readonly payload: _UpdateReactionsPayload
-  readonly type: 'chat2:updateReactions'
+  readonly type: typeof updateReactions
 }
 export type UpdateTeamRetentionPolicyPayload = {
   readonly payload: _UpdateTeamRetentionPolicyPayload
-  readonly type: 'chat2:updateTeamRetentionPolicy'
+  readonly type: typeof updateTeamRetentionPolicy
 }
 export type UpdateUnreadlinePayload = {
   readonly payload: _UpdateUnreadlinePayload
-  readonly type: 'chat2:updateUnreadline'
+  readonly type: typeof updateUnreadline
 }
 
 // All Actions

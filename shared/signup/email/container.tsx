@@ -6,18 +6,24 @@ import * as Styles from '../../styles'
 import {InfoIcon} from '../common'
 import EnterEmail from '.'
 
-const mapStateToProps = state => ({
+type OwnProps = {}
+
+const mapStateToProps = (state: Container.TypedState) => ({
   allowSearch: false,
   error: state.signup.emailError,
   initialEmail: state.signup.email,
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
   onFinish: (email: string) => dispatch(SignupGen.createCheckEmail({email})),
 })
 
-const ConnectedEnterEmail = Container.connect(mapStateToProps, mapDispatchToProps)(EnterEmail)
+const ConnectedEnterEmail = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+  ...s,
+  ...d,
+  ...o,
+}))(EnterEmail)
 
 // @ts-ignore fix this
 ConnectedEnterEmail.navigationOptions = {

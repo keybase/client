@@ -40,7 +40,7 @@ type HeaderProps = {
   balanceChange: string
   balanceChangeColor: string
   bottomLine: string
-  errorDetails?: string
+  errorDetails: string
   icon: 'sending' | 'receiving'
   loading: boolean
   sender: string

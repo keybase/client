@@ -8,21 +8,6 @@ type OwnProps = {
   refreshTag?: Types.RefreshTag | null
 }
 
-const mapStateToProps = state => ({
-  syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
-})
-
-const mapDispatchToProps = (dispatch, {path, refreshTag}) => ({
-  loadPathMetadataWithRefreshTag: () => dispatch(FsGen.createLoadPathMetadata({path, refreshTag})),
-  loadPathMetadataWithoutRefreshTag: () => dispatch(FsGen.createLoadPathMetadata({path})),
-})
-
-const mergeProps = (s, d, o) => ({
-  ...s,
-  ...d,
-  path: o.path,
-})
-
 type Props = {
   loadPathMetadataWithRefreshTag: () => void
   loadPathMetadataWithoutRefreshTag: () => void
@@ -54,6 +39,18 @@ class LoadPathMetadataWhenNeeded extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'LoadPathMetadataWhenNeeded')(
-  LoadPathMetadataWhenNeeded
-)
+export default namedConnect(
+  state => ({
+    syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
+  }),
+  (dispatch, {path, refreshTag}: OwnProps) => ({
+    loadPathMetadataWithRefreshTag: () => dispatch(FsGen.createLoadPathMetadata({path, refreshTag})),
+    loadPathMetadataWithoutRefreshTag: () => dispatch(FsGen.createLoadPathMetadata({path})),
+  }),
+  (s, d, o: OwnProps) => ({
+    ...s,
+    ...d,
+    path: o.path,
+  }),
+  'LoadPathMetadataWhenNeeded'
+)(LoadPathMetadataWhenNeeded)

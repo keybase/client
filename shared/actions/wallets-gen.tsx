@@ -906,390 +906,381 @@ export const createUpdatedAirdropState = (
 // Action Payloads
 export type AbandonPaymentPayload = {
   readonly payload: _AbandonPaymentPayload
-  readonly type: 'wallets:abandonPayment'
+  readonly type: typeof abandonPayment
 }
 export type AcceptDisclaimerPayload = {
   readonly payload: _AcceptDisclaimerPayload
-  readonly type: 'wallets:acceptDisclaimer'
+  readonly type: typeof acceptDisclaimer
 }
 export type AccountUpdateReceivedPayload = {
   readonly payload: _AccountUpdateReceivedPayload
-  readonly type: 'wallets:accountUpdateReceived'
+  readonly type: typeof accountUpdateReceived
 }
 export type AccountsReceivedPayload = {
   readonly payload: _AccountsReceivedPayload
-  readonly type: 'wallets:accountsReceived'
+  readonly type: typeof accountsReceived
 }
 export type AddNewPaymentPayload = {
   readonly payload: _AddNewPaymentPayload
-  readonly type: 'wallets:addNewPayment'
+  readonly type: typeof addNewPayment
 }
 export type AssetsReceivedPayload = {
   readonly payload: _AssetsReceivedPayload
-  readonly type: 'wallets:assetsReceived'
+  readonly type: typeof assetsReceived
 }
 export type BadgesUpdatedPayload = {
   readonly payload: _BadgesUpdatedPayload
-  readonly type: 'wallets:badgesUpdated'
+  readonly type: typeof badgesUpdated
 }
-export type BuildPaymentPayload = {
-  readonly payload: _BuildPaymentPayload
-  readonly type: 'wallets:buildPayment'
-}
+export type BuildPaymentPayload = {readonly payload: _BuildPaymentPayload; readonly type: typeof buildPayment}
 export type BuildingPaymentIDReceivedPayload = {
   readonly payload: _BuildingPaymentIDReceivedPayload
-  readonly type: 'wallets:buildingPaymentIDReceived'
+  readonly type: typeof buildingPaymentIDReceived
 }
 export type BuiltPaymentReceivedPayload = {
   readonly payload: _BuiltPaymentReceivedPayload
-  readonly type: 'wallets:builtPaymentReceived'
+  readonly type: typeof builtPaymentReceived
 }
 export type BuiltRequestReceivedPayload = {
   readonly payload: _BuiltRequestReceivedPayload
-  readonly type: 'wallets:builtRequestReceived'
+  readonly type: typeof builtRequestReceived
 }
 export type CancelPaymentPayload = {
   readonly payload: _CancelPaymentPayload
-  readonly type: 'wallets:cancelPayment'
+  readonly type: typeof cancelPayment
 }
 export type CancelRequestPayload = {
   readonly payload: _CancelRequestPayload
-  readonly type: 'wallets:cancelRequest'
+  readonly type: typeof cancelRequest
 }
 export type ChangeAccountNamePayload = {
   readonly payload: _ChangeAccountNamePayload
-  readonly type: 'wallets:changeAccountName'
+  readonly type: typeof changeAccountName
 }
 export type ChangeAirdropPayload = {
   readonly payload: _ChangeAirdropPayload
-  readonly type: 'wallets:changeAirdrop'
+  readonly type: typeof changeAirdrop
 }
 export type ChangeDisplayCurrencyPayload = {
   readonly payload: _ChangeDisplayCurrencyPayload
-  readonly type: 'wallets:changeDisplayCurrency'
+  readonly type: typeof changeDisplayCurrency
 }
 export type ChangeMobileOnlyModePayload = {
   readonly payload: _ChangeMobileOnlyModePayload
-  readonly type: 'wallets:changeMobileOnlyMode'
+  readonly type: typeof changeMobileOnlyMode
 }
 export type ChangedAccountNamePayload = {
   readonly payload: _ChangedAccountNamePayload
-  readonly type: 'wallets:changedAccountName'
+  readonly type: typeof changedAccountName
 }
 export type ChangedAccountNamePayloadError = {
   readonly error: true
   readonly payload: _ChangedAccountNamePayloadError
-  readonly type: 'wallets:changedAccountName'
+  readonly type: typeof changedAccountName
 }
 export type CheckDisclaimerPayload = {
   readonly payload: _CheckDisclaimerPayload
-  readonly type: 'wallets:checkDisclaimer'
+  readonly type: typeof checkDisclaimer
 }
 export type ClearBuildingPayload = {
   readonly payload: _ClearBuildingPayload
-  readonly type: 'wallets:clearBuilding'
+  readonly type: typeof clearBuilding
 }
 export type ClearBuiltPaymentPayload = {
   readonly payload: _ClearBuiltPaymentPayload
-  readonly type: 'wallets:clearBuiltPayment'
+  readonly type: typeof clearBuiltPayment
 }
 export type ClearBuiltRequestPayload = {
   readonly payload: _ClearBuiltRequestPayload
-  readonly type: 'wallets:clearBuiltRequest'
+  readonly type: typeof clearBuiltRequest
 }
-export type ClearErrorsPayload = {readonly payload: _ClearErrorsPayload; readonly type: 'wallets:clearErrors'}
+export type ClearErrorsPayload = {readonly payload: _ClearErrorsPayload; readonly type: typeof clearErrors}
 export type ClearNewPaymentsPayload = {
   readonly payload: _ClearNewPaymentsPayload
-  readonly type: 'wallets:clearNewPayments'
+  readonly type: typeof clearNewPayments
 }
 export type CreateNewAccountPayload = {
   readonly payload: _CreateNewAccountPayload
-  readonly type: 'wallets:createNewAccount'
+  readonly type: typeof createNewAccount
 }
 export type CreatedNewAccountPayload = {
   readonly payload: _CreatedNewAccountPayload
-  readonly type: 'wallets:createdNewAccount'
+  readonly type: typeof createdNewAccount
 }
 export type CreatedNewAccountPayloadError = {
   readonly error: true
   readonly payload: _CreatedNewAccountPayloadError
-  readonly type: 'wallets:createdNewAccount'
+  readonly type: typeof createdNewAccount
 }
 export type DeleteAccountPayload = {
   readonly payload: _DeleteAccountPayload
-  readonly type: 'wallets:deleteAccount'
+  readonly type: typeof deleteAccount
 }
 export type DeletedAccountPayload = {
   readonly payload: _DeletedAccountPayload
-  readonly type: 'wallets:deletedAccount'
+  readonly type: typeof deletedAccount
 }
 export type DidSetAccountAsDefaultPayload = {
   readonly payload: _DidSetAccountAsDefaultPayload
-  readonly type: 'wallets:didSetAccountAsDefault'
+  readonly type: typeof didSetAccountAsDefault
 }
 export type DisplayCurrenciesReceivedPayload = {
   readonly payload: _DisplayCurrenciesReceivedPayload
-  readonly type: 'wallets:displayCurrenciesReceived'
+  readonly type: typeof displayCurrenciesReceived
 }
 export type DisplayCurrencyReceivedPayload = {
   readonly payload: _DisplayCurrencyReceivedPayload
-  readonly type: 'wallets:displayCurrencyReceived'
+  readonly type: typeof displayCurrencyReceived
 }
 export type ExitFailedPaymentPayload = {
   readonly payload: _ExitFailedPaymentPayload
-  readonly type: 'wallets:exitFailedPayment'
+  readonly type: typeof exitFailedPayment
 }
 export type ExportSecretKeyPayload = {
   readonly payload: _ExportSecretKeyPayload
-  readonly type: 'wallets:exportSecretKey'
+  readonly type: typeof exportSecretKey
 }
 export type ExternalPartnersReceivedPayload = {
   readonly payload: _ExternalPartnersReceivedPayload
-  readonly type: 'wallets:externalPartnersReceived'
+  readonly type: typeof externalPartnersReceived
 }
 export type HideAirdropBannerPayload = {
   readonly payload: _HideAirdropBannerPayload
-  readonly type: 'wallets:hideAirdropBanner'
+  readonly type: typeof hideAirdropBanner
 }
 export type InflationDestinationReceivedPayload = {
   readonly payload: _InflationDestinationReceivedPayload
-  readonly type: 'wallets:inflationDestinationReceived'
+  readonly type: typeof inflationDestinationReceived
 }
 export type InflationDestinationReceivedPayloadError = {
   readonly error: true
   readonly payload: _InflationDestinationReceivedPayloadError
-  readonly type: 'wallets:inflationDestinationReceived'
+  readonly type: typeof inflationDestinationReceived
 }
 export type LinkExistingAccountPayload = {
   readonly payload: _LinkExistingAccountPayload
-  readonly type: 'wallets:linkExistingAccount'
+  readonly type: typeof linkExistingAccount
 }
 export type LinkedExistingAccountPayload = {
   readonly payload: _LinkedExistingAccountPayload
-  readonly type: 'wallets:linkedExistingAccount'
+  readonly type: typeof linkedExistingAccount
 }
 export type LinkedExistingAccountPayloadError = {
   readonly error: true
   readonly payload: _LinkedExistingAccountPayloadError
-  readonly type: 'wallets:linkedExistingAccount'
+  readonly type: typeof linkedExistingAccount
 }
-export type LoadAccountsPayload = {
-  readonly payload: _LoadAccountsPayload
-  readonly type: 'wallets:loadAccounts'
-}
-export type LoadAssetsPayload = {readonly payload: _LoadAssetsPayload; readonly type: 'wallets:loadAssets'}
+export type LoadAccountsPayload = {readonly payload: _LoadAccountsPayload; readonly type: typeof loadAccounts}
+export type LoadAssetsPayload = {readonly payload: _LoadAssetsPayload; readonly type: typeof loadAssets}
 export type LoadDisplayCurrenciesPayload = {
   readonly payload: _LoadDisplayCurrenciesPayload
-  readonly type: 'wallets:loadDisplayCurrencies'
+  readonly type: typeof loadDisplayCurrencies
 }
 export type LoadDisplayCurrencyPayload = {
   readonly payload: _LoadDisplayCurrencyPayload
-  readonly type: 'wallets:loadDisplayCurrency'
+  readonly type: typeof loadDisplayCurrency
 }
 export type LoadExternalPartnersPayload = {
   readonly payload: _LoadExternalPartnersPayload
-  readonly type: 'wallets:loadExternalPartners'
+  readonly type: typeof loadExternalPartners
 }
 export type LoadInflationDestinationPayload = {
   readonly payload: _LoadInflationDestinationPayload
-  readonly type: 'wallets:loadInflationDestination'
+  readonly type: typeof loadInflationDestination
 }
 export type LoadMobileOnlyModePayload = {
   readonly payload: _LoadMobileOnlyModePayload
-  readonly type: 'wallets:loadMobileOnlyMode'
+  readonly type: typeof loadMobileOnlyMode
 }
 export type LoadMorePaymentsPayload = {
   readonly payload: _LoadMorePaymentsPayload
-  readonly type: 'wallets:loadMorePayments'
+  readonly type: typeof loadMorePayments
 }
 export type LoadPaymentDetailPayload = {
   readonly payload: _LoadPaymentDetailPayload
-  readonly type: 'wallets:loadPaymentDetail'
+  readonly type: typeof loadPaymentDetail
 }
-export type LoadPaymentsPayload = {
-  readonly payload: _LoadPaymentsPayload
-  readonly type: 'wallets:loadPayments'
-}
+export type LoadPaymentsPayload = {readonly payload: _LoadPaymentsPayload; readonly type: typeof loadPayments}
 export type LoadSendAssetChoicesPayload = {
   readonly payload: _LoadSendAssetChoicesPayload
-  readonly type: 'wallets:loadSendAssetChoices'
+  readonly type: typeof loadSendAssetChoices
 }
 export type LoadWalletDisclaimerPayload = {
   readonly payload: _LoadWalletDisclaimerPayload
-  readonly type: 'wallets:loadWalletDisclaimer'
+  readonly type: typeof loadWalletDisclaimer
 }
 export type LoadedMobileOnlyModePayload = {
   readonly payload: _LoadedMobileOnlyModePayload
-  readonly type: 'wallets:loadedMobileOnlyMode'
+  readonly type: typeof loadedMobileOnlyMode
 }
-export type MarkAsReadPayload = {readonly payload: _MarkAsReadPayload; readonly type: 'wallets:markAsRead'}
+export type MarkAsReadPayload = {readonly payload: _MarkAsReadPayload; readonly type: typeof markAsRead}
 export type OpenSendRequestFormPayload = {
   readonly payload: _OpenSendRequestFormPayload
-  readonly type: 'wallets:openSendRequestForm'
+  readonly type: typeof openSendRequestForm
 }
 export type PaymentDetailReceivedPayload = {
   readonly payload: _PaymentDetailReceivedPayload
-  readonly type: 'wallets:paymentDetailReceived'
+  readonly type: typeof paymentDetailReceived
 }
 export type PaymentsReceivedPayload = {
   readonly payload: _PaymentsReceivedPayload
-  readonly type: 'wallets:paymentsReceived'
+  readonly type: typeof paymentsReceived
 }
 export type PendingPaymentsReceivedPayload = {
   readonly payload: _PendingPaymentsReceivedPayload
-  readonly type: 'wallets:pendingPaymentsReceived'
+  readonly type: typeof pendingPaymentsReceived
 }
 export type RecentPaymentsReceivedPayload = {
   readonly payload: _RecentPaymentsReceivedPayload
-  readonly type: 'wallets:recentPaymentsReceived'
+  readonly type: typeof recentPaymentsReceived
 }
 export type RejectDisclaimerPayload = {
   readonly payload: _RejectDisclaimerPayload
-  readonly type: 'wallets:rejectDisclaimer'
+  readonly type: typeof rejectDisclaimer
 }
 export type RequestPaymentPayload = {
   readonly payload: _RequestPaymentPayload
-  readonly type: 'wallets:requestPayment'
+  readonly type: typeof requestPayment
 }
 export type RequestedPaymentPayload = {
   readonly payload: _RequestedPaymentPayload
-  readonly type: 'wallets:requestedPayment'
+  readonly type: typeof requestedPayment
 }
 export type ResetAcceptingDisclaimerPayload = {
   readonly payload: _ResetAcceptingDisclaimerPayload
-  readonly type: 'wallets:resetAcceptingDisclaimer'
+  readonly type: typeof resetAcceptingDisclaimer
 }
 export type ReviewPaymentPayload = {
   readonly payload: _ReviewPaymentPayload
-  readonly type: 'wallets:reviewPayment'
+  readonly type: typeof reviewPayment
 }
 export type ReviewedPaymentReceivedPayload = {
   readonly payload: _ReviewedPaymentReceivedPayload
-  readonly type: 'wallets:reviewedPaymentReceived'
+  readonly type: typeof reviewedPaymentReceived
 }
 export type SecretKeyReceivedPayload = {
   readonly payload: _SecretKeyReceivedPayload
-  readonly type: 'wallets:secretKeyReceived'
+  readonly type: typeof secretKeyReceived
 }
 export type SecretKeySeenPayload = {
   readonly payload: _SecretKeySeenPayload
-  readonly type: 'wallets:secretKeySeen'
+  readonly type: typeof secretKeySeen
 }
 export type SelectAccountPayload = {
   readonly payload: _SelectAccountPayload
-  readonly type: 'wallets:selectAccount'
+  readonly type: typeof selectAccount
 }
 export type SendAssetChoicesReceivedPayload = {
   readonly payload: _SendAssetChoicesReceivedPayload
-  readonly type: 'wallets:sendAssetChoicesReceived'
+  readonly type: typeof sendAssetChoicesReceived
 }
-export type SendPaymentPayload = {readonly payload: _SendPaymentPayload; readonly type: 'wallets:sendPayment'}
+export type SendPaymentPayload = {readonly payload: _SendPaymentPayload; readonly type: typeof sendPayment}
 export type SentPaymentErrorPayload = {
   readonly payload: _SentPaymentErrorPayload
-  readonly type: 'wallets:sentPaymentError'
+  readonly type: typeof sentPaymentError
 }
-export type SentPaymentPayload = {readonly payload: _SentPaymentPayload; readonly type: 'wallets:sentPayment'}
+export type SentPaymentPayload = {readonly payload: _SentPaymentPayload; readonly type: typeof sentPayment}
 export type SetAccountAsDefaultPayload = {
   readonly payload: _SetAccountAsDefaultPayload
-  readonly type: 'wallets:setAccountAsDefault'
+  readonly type: typeof setAccountAsDefault
 }
 export type SetBuildingAmountPayload = {
   readonly payload: _SetBuildingAmountPayload
-  readonly type: 'wallets:setBuildingAmount'
+  readonly type: typeof setBuildingAmount
 }
 export type SetBuildingCurrencyPayload = {
   readonly payload: _SetBuildingCurrencyPayload
-  readonly type: 'wallets:setBuildingCurrency'
+  readonly type: typeof setBuildingCurrency
 }
 export type SetBuildingFromPayload = {
   readonly payload: _SetBuildingFromPayload
-  readonly type: 'wallets:setBuildingFrom'
+  readonly type: typeof setBuildingFrom
 }
 export type SetBuildingIsRequestPayload = {
   readonly payload: _SetBuildingIsRequestPayload
-  readonly type: 'wallets:setBuildingIsRequest'
+  readonly type: typeof setBuildingIsRequest
 }
 export type SetBuildingPublicMemoPayload = {
   readonly payload: _SetBuildingPublicMemoPayload
-  readonly type: 'wallets:setBuildingPublicMemo'
+  readonly type: typeof setBuildingPublicMemo
 }
 export type SetBuildingRecipientTypePayload = {
   readonly payload: _SetBuildingRecipientTypePayload
-  readonly type: 'wallets:setBuildingRecipientType'
+  readonly type: typeof setBuildingRecipientType
 }
 export type SetBuildingSecretNotePayload = {
   readonly payload: _SetBuildingSecretNotePayload
-  readonly type: 'wallets:setBuildingSecretNote'
+  readonly type: typeof setBuildingSecretNote
 }
 export type SetBuildingToPayload = {
   readonly payload: _SetBuildingToPayload
-  readonly type: 'wallets:setBuildingTo'
+  readonly type: typeof setBuildingTo
 }
 export type SetInflationDestinationPayload = {
   readonly payload: _SetInflationDestinationPayload
-  readonly type: 'wallets:setInflationDestination'
+  readonly type: typeof setInflationDestination
 }
 export type SetLastSentXLMPayload = {
   readonly payload: _SetLastSentXLMPayload
-  readonly type: 'wallets:setLastSentXLM'
+  readonly type: typeof setLastSentXLM
 }
 export type SetReadyToReviewPayload = {
   readonly payload: _SetReadyToReviewPayload
-  readonly type: 'wallets:setReadyToReview'
+  readonly type: typeof setReadyToReview
 }
 export type ShowTransactionPayload = {
   readonly payload: _ShowTransactionPayload
-  readonly type: 'wallets:showTransaction'
+  readonly type: typeof showTransaction
 }
 export type UpdateAirdropBannerStatePayload = {
   readonly payload: _UpdateAirdropBannerStatePayload
-  readonly type: 'wallets:updateAirdropBannerState'
+  readonly type: typeof updateAirdropBannerState
 }
 export type UpdateAirdropDetailsPayload = {
   readonly payload: _UpdateAirdropDetailsPayload
-  readonly type: 'wallets:updateAirdropDetails'
+  readonly type: typeof updateAirdropDetails
 }
 export type UpdateAirdropStatePayload = {
   readonly payload: _UpdateAirdropStatePayload
-  readonly type: 'wallets:updateAirdropState'
+  readonly type: typeof updateAirdropState
 }
 export type UpdatedAirdropDetailsPayload = {
   readonly payload: _UpdatedAirdropDetailsPayload
-  readonly type: 'wallets:updatedAirdropDetails'
+  readonly type: typeof updatedAirdropDetails
 }
 export type UpdatedAirdropStatePayload = {
   readonly payload: _UpdatedAirdropStatePayload
-  readonly type: 'wallets:updatedAirdropState'
+  readonly type: typeof updatedAirdropState
 }
 export type ValidateAccountNamePayload = {
   readonly payload: _ValidateAccountNamePayload
-  readonly type: 'wallets:validateAccountName'
+  readonly type: typeof validateAccountName
 }
 export type ValidateSecretKeyPayload = {
   readonly payload: _ValidateSecretKeyPayload
-  readonly type: 'wallets:validateSecretKey'
+  readonly type: typeof validateSecretKey
 }
 export type ValidatedAccountNamePayload = {
   readonly payload: _ValidatedAccountNamePayload
-  readonly type: 'wallets:validatedAccountName'
+  readonly type: typeof validatedAccountName
 }
 export type ValidatedAccountNamePayloadError = {
   readonly error: true
   readonly payload: _ValidatedAccountNamePayloadError
-  readonly type: 'wallets:validatedAccountName'
+  readonly type: typeof validatedAccountName
 }
 export type ValidatedSecretKeyPayload = {
   readonly payload: _ValidatedSecretKeyPayload
-  readonly type: 'wallets:validatedSecretKey'
+  readonly type: typeof validatedSecretKey
 }
 export type ValidatedSecretKeyPayloadError = {
   readonly error: true
   readonly payload: _ValidatedSecretKeyPayloadError
-  readonly type: 'wallets:validatedSecretKey'
+  readonly type: typeof validatedSecretKey
 }
 export type WalletDisclaimerReceivedPayload = {
   readonly payload: _WalletDisclaimerReceivedPayload
-  readonly type: 'wallets:walletDisclaimerReceived'
+  readonly type: typeof walletDisclaimerReceived
 }
 
 // All Actions

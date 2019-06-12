@@ -42,19 +42,16 @@ export const createIncrementWaiting = (payload: _IncrementWaitingPayload): Incre
 // Action Payloads
 export type BatchChangeWaitingPayload = {
   readonly payload: _BatchChangeWaitingPayload
-  readonly type: 'waiting:batchChangeWaiting'
+  readonly type: typeof batchChangeWaiting
 }
-export type ClearWaitingPayload = {
-  readonly payload: _ClearWaitingPayload
-  readonly type: 'waiting:clearWaiting'
-}
+export type ClearWaitingPayload = {readonly payload: _ClearWaitingPayload; readonly type: typeof clearWaiting}
 export type DecrementWaitingPayload = {
   readonly payload: _DecrementWaitingPayload
-  readonly type: 'waiting:decrementWaiting'
+  readonly type: typeof decrementWaiting
 }
 export type IncrementWaitingPayload = {
   readonly payload: _IncrementWaitingPayload
-  readonly type: 'waiting:incrementWaiting'
+  readonly type: typeof incrementWaiting
 }
 
 // All Actions

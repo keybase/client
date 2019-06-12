@@ -30,10 +30,10 @@ export const createUpdateDebugConfig = (payload: _UpdateDebugConfigPayload): Upd
 })
 
 // Action Payloads
-export type DebugCountPayload = {readonly payload: _DebugCountPayload; readonly type: 'dev:debugCount'}
+export type DebugCountPayload = {readonly payload: _DebugCountPayload; readonly type: typeof debugCount}
 export type UpdateDebugConfigPayload = {
   readonly payload: _UpdateDebugConfigPayload
-  readonly type: 'dev:updateDebugConfig'
+  readonly type: typeof updateDebugConfig
 }
 
 // All Actions
