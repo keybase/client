@@ -128,9 +128,32 @@
   // Setup app level directories
   NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString* logPath = [@"~/Library/Caches/Keybase/logs" stringByExpandingTildeInPath];
+  NSString* oldLogPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  // Put logs in a subdir that is entirely background readable
+  NSString* logPath = [oldLogPath stringByAppendingString:@"/logs"];
   NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-  // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
+
+  if (!skipLogFile) {
+      // migrate old log files to the new location
+      NSFileManager* fm = [NSFileManager defaultManager];
+      NSError* error = nil;
+      NSArray<NSString*>* logs = @[@"/ios.log", @"/ios.log.ek"];
+      for (NSString* file in logs) {
+          NSString* oldPath = [oldLogPath stringByAppendingString:file];
+          NSString* newPath = [logPath stringByAppendingString:file];
+          NSLog(@"[LogFileMigration] Moving: %@ to %@", oldPath, newPath);
+          if (![fm moveItemAtPath:oldPath toPath:newPath error:&error]) {
+            if ([error code] == NSFileWriteFileExistsError) {
+                NSLog(@"[LogFileMigration] File exists, removing oldPath: %@", oldPath);
+                [fm removeItemAtPath:oldPath error:NULL];
+            }
+            NSLog(@"[LogFileMigration] Error moving file: %@ error: %@", oldPath, error);
+          }
+      }
+  }
+
+  // Create LevelDB and log directories with a slightly lower data protection
+  // mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:YES];
