@@ -125,7 +125,7 @@ class GetTitles extends React.Component<Props, State> {
                 type="Dim"
                 onClick={this.props.onCancel}
                 label="Cancel"
-                style={{marginRight: Styles.globalMargins.tiny}}
+                style={styles.cancelButton}
               />
             )}
             {this._isLast() ? (
@@ -153,6 +153,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.small,
     },
   }),
+  cancelButton: {
+    marginRight: Styles.globalMargins.tiny,
+  },
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
