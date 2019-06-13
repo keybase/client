@@ -60,6 +60,10 @@ const Row = (
             #{props.name}
           </Kb.Text>
           <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+          <Kb.Text type="BodySmall">
+            {props.numParticipants} {props.numParticipants !== 1 ? 'members' : 'member'}{' '}
+            {props.hasAllMembers ? '(entire team)' : ''} &bull; Last activity {props.mtimeHuman}{' '}
+          </Kb.Text>
         </Kb.Box>
         {props.showEdit && props.canEditChannels && (
           <Edit
@@ -126,7 +130,10 @@ const ManageChannels = (props: Props) => {
               key={c.convID}
               canEditChannels={props.canEditChannels}
               description={c.description}
+              hasAllMembers={c.hasAllMembers}
               name={c.name}
+              numParticipants={c.numParticipants}
+              mtimeHuman={c.mtimeHuman}
               selected={props.nextChannelState[c.convID]}
               onToggle={() => props.onToggle(c.convID)}
               showEdit={!props.unsavedSubscriptions}

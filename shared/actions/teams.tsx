@@ -740,7 +740,10 @@ const getChannelInfo = (_, action: TeamsGen.GetChannelInfoPayload, logger) => {
     const channelInfo = Constants.makeChannelInfo({
       channelname: meta.channelname,
       description: meta.description,
+      hasAllMembers: null,
       memberStatus: convs[0].memberStatus,
+      mtime: meta.timestamp,
+      numParticipants: meta.participants.size,
     })
 
     return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
@@ -764,7 +767,10 @@ const getChannels = (_, action: TeamsGen.GetChannelsPayload) => {
       channelInfos[convID] = Constants.makeChannelInfo({
         channelname: conv.channel,
         description: conv.headline,
+        hasAllMembers: null,
         memberStatus: conv.memberStatus,
+        mtime: conv.time,
+        numParticipants: (conv.participants || []).length,
       })
     })
 

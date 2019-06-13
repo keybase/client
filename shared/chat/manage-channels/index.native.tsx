@@ -1,24 +1,13 @@
 import * as React from 'react'
-import {
-  Avatar,
-  Text,
-  Box,
-  ClickableBox,
-  ProgressIndicator,
-  ScrollView,
-  Checkbox,
-  Icon,
-  HeaderHoc,
-  WaitingButton,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Props, RowProps} from './index.types'
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
-  <ClickableBox style={style} onClick={onClick}>
-    <Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
-    <Text type="BodySmallPrimaryLink">Edit</Text>
-  </ClickableBox>
+  <Kb.ClickableBox style={style} onClick={onClick}>
+    <Kb.Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
+    <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
+  </Kb.ClickableBox>
 )
 
 const Row = (
@@ -31,29 +20,34 @@ const Row = (
     onClickChannel: () => void
   }
 ) => (
-  <Box style={_rowBox}>
-    <Checkbox
+  <Kb.Box style={_rowBox}>
+    <Kb.Checkbox
       disabled={props.name.toLowerCase() === 'general'}
-      style={{alignSelf: 'flex-end'}}
+      style={{alignSelf: 'center'}}
       checked={props.selected}
       label=""
       onCheck={props.onToggle}
     />
-    <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, paddingLeft: globalMargins.tiny, position: 'relative'}}
-    >
-      <Text
+    <Kb.Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+      <Kb.Text
         type="BodySemiboldLink"
         onClick={props.onClickChannel}
         style={{color: globalColors.blue, maxWidth: '100%'}}
         lineClamp={1}
       >
         #{props.name}
-      </Text>
-      <Text type="BodySmall" lineClamp={1}>
-        {props.description}
-      </Text>
-    </Box>
+      </Kb.Text>
+      {!!props.description && (
+        <Kb.Text type="BodySmall" lineClamp={1}>
+          {props.description}
+        </Kb.Text>
+      )}
+      <Kb.Text type="BodySmall">
+        {props.numParticipants} {props.numParticipants !== 1 ? 'members' : 'member'}{' '}
+        {props.hasAllMembers ? '(entire team)' : ''}
+      </Kb.Text>
+      <Kb.Text type="BodySmall">Last activity {props.mtimeHuman} </Kb.Text>
+    </Kb.Box>
     {props.showEdit && props.canEditChannels && (
       <Edit
         style={{
@@ -64,35 +58,44 @@ const Row = (
         onClick={props.onEdit}
       />
     )}
-  </Box>
+  </Kb.Box>
 )
 
 const _rowBox = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
-  height: 56,
-  padding: globalMargins.small,
+  paddingBottom: globalMargins.small,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   width: '100%',
 }
 
 const ManageChannels = (props: Props) => (
-  <Box style={_boxStyle}>
-    <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
+  <Kb.Box style={_boxStyle}>
+    <Kb.ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       {props.canCreateChannels && (
-        <Box style={_createStyle}>
-          <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} color={globalColors.blue} />
-          <Text type="BodyBigLink" onClick={props.onCreate}>
+        <Kb.Box style={_createStyle}>
+          <Kb.Icon
+            style={_createIcon}
+            type="iconfont-new"
+            onClick={props.onCreate}
+            color={globalColors.blue}
+          />
+          <Kb.Text type="BodyBigLink" onClick={props.onCreate}>
             New chat channel
-          </Text>
-        </Box>
+          </Kb.Text>
+        </Kb.Box>
       )}
       {props.channels.map(c => (
         <Row
           key={c.convID}
           canEditChannels={props.canEditChannels}
           description={c.description}
+          hasAllMembers={c.hasAllMembers}
           name={c.name}
+          numParticipants={c.numParticipants}
+          mtimeHuman={c.mtimeHuman}
           selected={props.nextChannelState[c.convID]}
           onToggle={() => props.onToggle(c.convID)}
           showEdit={!props.unsavedSubscriptions}
@@ -100,8 +103,8 @@ const ManageChannels = (props: Props) => (
           onClickChannel={() => props.onClickChannel(c.name)}
         />
       ))}
-    </ScrollView>
-    <Box
+    </Kb.ScrollView>
+    <Kb.Box
       style={{
         borderStyle: 'solid',
         borderTopColor: globalColors.black_10,
@@ -111,44 +114,44 @@ const ManageChannels = (props: Props) => (
         padding: globalMargins.small,
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-        <WaitingButton
+      <Kb.Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+        <Kb.WaitingButton
           fullWidth={true}
           label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
           waitingKey={props.waitingKey}
           disabled={!props.unsavedSubscriptions}
           onClick={props.onSaveSubscriptions}
         />
-      </Box>
-    </Box>
-  </Box>
+      </Kb.Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const Header = (props: Props) => {
   let channelDisplay
   if (props.channels.length === 0 || props.waitingForGet) {
-    channelDisplay = <ProgressIndicator style={{width: 48}} />
+    channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
   } else {
     channelDisplay = (
-      <Text type="BodyBig">
+      <Kb.Text type="BodyBig">
         {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
-      </Text>
+      </Kb.Text>
     )
   }
   return (
-    <Box style={_headerStyle}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
-        <Avatar isTeam={true} teamname={props.teamname} size={16} />
-        <Text
+    <Kb.Box style={_headerStyle}>
+      <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
+        <Kb.Avatar isTeam={true} teamname={props.teamname} size={16} />
+        <Kb.Text
           type="BodySmallSemibold"
           style={platformStyles({isMobile: {fontSize: 11, lineHeight: 16, marginLeft: globalMargins.xtiny}})}
           lineClamp={1}
         >
           {props.teamname}
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
       {channelDisplay}
-    </Box>
+    </Kb.Box>
   )
 }
 
@@ -179,4 +182,4 @@ const _createIcon = {
 
 const Wrapper = (p: Props) => <ManageChannels {...p} onClose={undefined} />
 
-export default HeaderHoc(Wrapper)
+export default Kb.HeaderHoc(Wrapper)
