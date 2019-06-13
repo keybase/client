@@ -493,7 +493,7 @@ export const uiMessageEditToMessage = (
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
-  reactions
+  reactions: I.Map<string, I.Set<MessageTypes.Reaction>>
 ): Types.Message | null => {
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
@@ -516,7 +516,7 @@ const uiMessageToSystemMessage = (
       const inviter = inviteaddedtoteam.inviter || 'someone'
       const team = inviteaddedtoteam.team || '???'
       const iType = inviteaddedtoteam.inviteType || RPCTypes.TeamInviteCategory.unknown
-      let inviteType
+      let inviteType: MessageTypes.MessageSystemInviteAccepted['inviteType']
       switch (iType) {
         case RPCTypes.TeamInviteCategory.unknown:
           inviteType = 'unknown'
@@ -571,7 +571,7 @@ const uiMessageToSystemMessage = (
         pushType,
         pusher,
         reactions,
-        refs: refs,
+        refs: refs || [],
         repo,
         repoID,
         team,
@@ -647,20 +647,16 @@ export const previewSpecs = (
 }
 
 const successfulInlinePaymentStatuses = ['completed', 'claimable']
-export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message) => {
+export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message): boolean => {
   if (message.type !== 'text' || !message.inlinePaymentIDs) {
     return false
   }
   return (
     message.inlinePaymentSuccessful ||
-    message.inlinePaymentIDs.some(id =>
-      successfulInlinePaymentStatuses.includes(
-        // Auto generated from flowToTs. Please clean me!
-        state.chat2.paymentStatusMap.get(id) === null || state.chat2.paymentStatusMap.get(id) === undefined
-          ? undefined
-          : state.chat2.paymentStatusMap.get(id).status
-      )
-    )
+    message.inlinePaymentIDs.some(id => {
+      const s = state.chat2.paymentStatusMap.get(id)
+      return !!s && successfulInlinePaymentStatuses.includes(s.status)
+    })
   )
 }
 
