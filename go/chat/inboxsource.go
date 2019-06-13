@@ -821,6 +821,8 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	if err != nil {
 		return res, err
 	}
+	// normalize the search query to lowercase
+	query = strings.ToLower(query)
 	var queryToks []string
 	for _, t := range strings.FieldsFunc(query, func(r rune) bool {
 		return r == ',' || r == ' '

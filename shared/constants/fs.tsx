@@ -949,13 +949,13 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  routePath?: I.List<string> | null
+  navigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
     path,
   }),
-  RouteTreeGen.createNavigateAppend({
+  navigateAppend({
     path: [{props: {index}, selected: 'destinationPicker'}],
   }),
 ]

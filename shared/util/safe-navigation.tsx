@@ -12,22 +12,24 @@ type Path = Array<
 >
 
 type NavProps = {
+  getParam: (key: string) => any
   navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload | void
   navigateUp: () => RouteTreeGen.NavigateUpPayload | void
 }
 
 export type PropsWithSafeNavigation<P> = {
+  getParam: (key: string) => any
   navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
   navigateUp: () => RouteTreeGen.NavigateUpPayload
 } & P
 
 function withSafeNavigation<P extends {}>(
-  Component: React.ComponentType<P>
-): React.Component<Exclude<P, NavProps>> {
+  Component: React.ComponentType<PropsWithSafeNavigation<P>>
+): React.ComponentType<P> {
   type WithSafeNavigationProps = {
     forwardedRef: React.Ref<React.ComponentType<P>>
     navigation: any
-  } & Exclude<P, NavProps>
+  } & P
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
@@ -40,9 +42,11 @@ function withSafeNavigation<P extends {}>(
     render() {
       const {navigation, forwardedRef, ...rest} = this.props
       return (
+        // @ts-ignore
         <Component
           ref={forwardedRef}
-          {...rest as P}
+          {...rest}
+          getParam={navigation.getParam}
           navigateAppend={this._navigateAppend}
           navigateUp={this._navigateUp}
         />
@@ -56,4 +60,13 @@ function withSafeNavigation<P extends {}>(
   return withNavigation(WithForwardRef)
 }
 
-export default withSafeNavigation
+function withSafeNavigationStorybook<P extends {}>(
+  Component: React.ComponentType<PropsWithSafeNavigation<P>>
+): React.ComponentType<P> {
+  return props => (
+    // @ts-ignore
+    <Component getParam={(key: string) => ''} navigateAppend={() => {}} navigateUp={() => {}} {...props} />
+  )
+}
+
+export default (__STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation)

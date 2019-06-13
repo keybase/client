@@ -110,6 +110,7 @@ class GetTitles extends React.Component<Props, State> {
             <Kb.PlainInput
               style={styles.input}
               autoFocus={true}
+              autoCorrect={true}
               placeholder={titleHint}
               multiline={true}
               value={info.title}
