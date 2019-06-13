@@ -64,7 +64,11 @@ export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
 type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
-type _AddedPhoneNumberPayload = {readonly error: string; readonly phoneNumber: string}
+type _AddedPhoneNumberPayload = {
+  readonly allowSearch: boolean
+  readonly error: string
+  readonly phoneNumber: string
+}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void

@@ -104,6 +104,7 @@ export type ChatState = I.RecordOf<_ChatState>
 export type _PhoneNumbersState = {
   error: string
   pendingVerification: string
+  pendingVerificationAllowSearch: boolean | null // stash this so we can use it when resending the verification code
 }
 export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 

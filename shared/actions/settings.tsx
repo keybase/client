@@ -523,8 +523,8 @@ const addPhoneNumber = (_, action: SettingsGen.AddPhoneNumberPayload, logger) =>
     {phoneNumber, visibility},
     Constants.addPhoneNumberWaitingKey
   )
-    .then(() => SettingsGen.createAddedPhoneNumber({error: '', phoneNumber}))
-    .catch(err => SettingsGen.createAddedPhoneNumber({error: err.message, phoneNumber}))
+    .then(() => SettingsGen.createAddedPhoneNumber({allowSearch, error: '', phoneNumber}))
+    .catch(err => SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber}))
 }
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
