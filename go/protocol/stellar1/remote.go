@@ -1000,8 +1000,9 @@ type NetworkOptionsArg struct {
 }
 
 type DetailsPlusPaymentsArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type AssetSearchArg struct {
