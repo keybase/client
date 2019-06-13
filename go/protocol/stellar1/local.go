@@ -1444,6 +1444,10 @@ type FuzzyAssetSearchLocalArg struct {
 	SearchString string `codec:"searchString" json:"searchString"`
 }
 
+type ListPopularAssetsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AddTrustlineLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	AccountID AccountID `codec:"accountID" json:"accountID"`
@@ -1653,6 +1657,7 @@ type LocalInterface interface {
 	AirdropStatusLocal(context.Context, int) (AirdropStatus, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
 	FuzzyAssetSearchLocal(context.Context, FuzzyAssetSearchLocalArg) ([]Asset, error)
+	ListPopularAssetsLocal(context.Context, int) ([]Asset, error)
 	AddTrustlineLocal(context.Context, AddTrustlineLocalArg) error
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
@@ -2364,6 +2369,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"listPopularAssetsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ListPopularAssetsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListPopularAssetsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListPopularAssetsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ListPopularAssetsLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"addTrustlineLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]AddTrustlineLocalArg
@@ -3032,6 +3052,12 @@ func (c LocalClient) AirdropRegisterLocal(ctx context.Context, __arg AirdropRegi
 
 func (c LocalClient) FuzzyAssetSearchLocal(ctx context.Context, __arg FuzzyAssetSearchLocalArg) (res []Asset, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.fuzzyAssetSearchLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []Asset, err error) {
+	__arg := ListPopularAssetsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []interface{}{__arg}, &res)
 	return
 }
 

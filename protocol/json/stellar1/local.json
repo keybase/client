@@ -2205,6 +2205,18 @@
         "items": "Asset"
       }
     },
+    "listPopularAssetsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
     "addTrustlineLocal": {
       "request": [
         {
