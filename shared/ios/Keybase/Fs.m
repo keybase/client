@@ -134,21 +134,12 @@
   NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
 
   if (!skipLogFile) {
-      // migrate old log files to the new location
+      // cleanup old log files
       NSFileManager* fm = [NSFileManager defaultManager];
-      NSError* error = nil;
       NSArray<NSString*>* logs = @[@"/ios.log", @"/ios.log.ek"];
       for (NSString* file in logs) {
           NSString* oldPath = [oldLogPath stringByAppendingString:file];
-          NSString* newPath = [logPath stringByAppendingString:file];
-          NSLog(@"[LogFileMigration] Moving: %@ to %@", oldPath, newPath);
-          if (![fm moveItemAtPath:oldPath toPath:newPath error:&error]) {
-            if ([error code] == NSFileWriteFileExistsError) {
-                NSLog(@"[LogFileMigration] File exists, removing oldPath: %@", oldPath);
-                [fm removeItemAtPath:oldPath error:NULL];
-            }
-            NSLog(@"[LogFileMigration] Error moving file: %@ error: %@", oldPath, error);
-          }
+          [fm removeItemAtPath:oldPath error:NULL];
       }
   }
 
