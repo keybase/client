@@ -722,7 +722,9 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
+
 	// Latest generation from the sigchain
+	// XXX THIS IS WRONG XXX ...
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	// .. Or from the hidden chain
 	h := hiddenPackage.MaxReaderPerTeamKeyGeneration()

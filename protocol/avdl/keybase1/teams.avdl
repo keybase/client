@@ -589,6 +589,7 @@ protocol teams {
 
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
+    PerTeamKeyGeneration maxPerTeamKeyGeneration;
 
     // Creation time of latest PerTeamKey, based on CTime from the
     // link key appeared in.

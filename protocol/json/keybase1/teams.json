@@ -1313,6 +1313,10 @@
           "name": "perTeamKeys"
         },
         {
+          "type": "PerTeamKeyGeneration",
+          "name": "maxPerTeamKeyGeneration"
+        },
+        {
           "type": "UnixTime",
           "name": "perTeamKeyCTime"
         },

@@ -114,7 +114,7 @@ func (t TeamSigChainState) GetLibkbLinkIDBySeqno(seqno keybase1.Seqno) (l2 libkb
 }
 
 func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
-	ret := keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
+	ret := t.inner.MaxPerTeamKeyGeneration
 	if h := t.hidden.MaxReaderPerTeamKeyGeneration(); h > ret {
 		ret = h
 	}
@@ -1030,19 +1030,20 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:        1,
-				LastLinkID:       link.LinkID().Export(),
-				ParentID:         nil,
-				UserLog:          make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:       make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:      perTeamKeys,
-				PerTeamKeyCTime:  keybase1.UnixTime(payload.Ctime),
-				LinkIDs:          make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks:     make(map[keybase1.Seqno]bool),
-				ActiveInvites:    make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				ObsoleteInvites:  make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
-				TlfLegacyUpgrade: make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
-				MerkleRoots:      make(map[keybase1.Seqno]keybase1.MerkleRootV2),
+				LastSeqno:               1,
+				LastLinkID:              link.LinkID().Export(),
+				ParentID:                nil,
+				UserLog:                 make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:              make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:             perTeamKeys,
+				MaxPerTeamKeyGeneration: keybase1.PerTeamKeyGeneration(1),
+				PerTeamKeyCTime:         keybase1.UnixTime(payload.Ctime),
+				LinkIDs:                 make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:            make(map[keybase1.Seqno]bool),
+				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
+				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1233,6 +1234,9 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				return res, err
 			}
 			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
+			if newKey.Gen > res.newState.inner.MaxPerTeamKeyGeneration {
+				res.newState.inner.MaxPerTeamKeyGeneration = newKey.Gen
+			}
 			res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 		}
 	case libkb.LinkTypeRotateKey:
@@ -1272,6 +1276,9 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		moveState()
 		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 		res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
+		if newKey.Gen > res.newState.inner.MaxPerTeamKeyGeneration {
+			res.newState.inner.MaxPerTeamKeyGeneration = newKey.Gen
+		}
 	case libkb.LinkTypeLeave:
 		err = enforce(LinkRules{ /* Just about everything is restricted. */ })
 		if err != nil {

@@ -1493,32 +1493,33 @@ func (o TeamLegacyTLFUpgradeChainInfo) DeepCopy() TeamLegacyTLFUpgradeChainInfo 
 }
 
 type TeamSigChainState struct {
-	Reader           UserVersion                                       `codec:"reader" json:"reader"`
-	Id               TeamID                                            `codec:"id" json:"id"`
-	Implicit         bool                                              `codec:"implicit" json:"implicit"`
-	Public           bool                                              `codec:"public" json:"public"`
-	RootAncestor     TeamName                                          `codec:"rootAncestor" json:"rootAncestor"`
-	NameDepth        int                                               `codec:"nameDepth" json:"nameDepth"`
-	NameLog          []TeamNameLogPoint                                `codec:"nameLog" json:"nameLog"`
-	LastSeqno        Seqno                                             `codec:"lastSeqno" json:"lastSeqno"`
-	LastLinkID       LinkID                                            `codec:"lastLinkID" json:"lastLinkID"`
-	LastHighSeqno    Seqno                                             `codec:"lastHighSeqno" json:"lastHighSeqno"`
-	LastHighLinkID   LinkID                                            `codec:"lastHighLinkID" json:"lastHighLinkID"`
-	ParentID         *TeamID                                           `codec:"parentID,omitempty" json:"parentID,omitempty"`
-	UserLog          map[UserVersion][]UserLogPoint                    `codec:"userLog" json:"userLog"`
-	SubteamLog       map[TeamID][]SubteamLogPoint                      `codec:"subteamLog" json:"subteamLog"`
-	PerTeamKeys      map[PerTeamKeyGeneration]PerTeamKey               `codec:"perTeamKeys" json:"perTeamKeys"`
-	PerTeamKeyCTime  UnixTime                                          `codec:"perTeamKeyCTime" json:"perTeamKeyCTime"`
-	LinkIDs          map[Seqno]LinkID                                  `codec:"linkIDs" json:"linkIDs"`
-	StubbedLinks     map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
-	ActiveInvites    map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
-	ObsoleteInvites  map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
-	Open             bool                                              `codec:"open" json:"open"`
-	OpenTeamJoinAs   TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
-	TlfIDs           []TLFID                                           `codec:"tlfIDs" json:"tlfIDs"`
-	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
-	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
-	MerkleRoots      map[Seqno]MerkleRootV2                            `codec:"merkleRoots" json:"merkleRoots"`
+	Reader                  UserVersion                                       `codec:"reader" json:"reader"`
+	Id                      TeamID                                            `codec:"id" json:"id"`
+	Implicit                bool                                              `codec:"implicit" json:"implicit"`
+	Public                  bool                                              `codec:"public" json:"public"`
+	RootAncestor            TeamName                                          `codec:"rootAncestor" json:"rootAncestor"`
+	NameDepth               int                                               `codec:"nameDepth" json:"nameDepth"`
+	NameLog                 []TeamNameLogPoint                                `codec:"nameLog" json:"nameLog"`
+	LastSeqno               Seqno                                             `codec:"lastSeqno" json:"lastSeqno"`
+	LastLinkID              LinkID                                            `codec:"lastLinkID" json:"lastLinkID"`
+	LastHighSeqno           Seqno                                             `codec:"lastHighSeqno" json:"lastHighSeqno"`
+	LastHighLinkID          LinkID                                            `codec:"lastHighLinkID" json:"lastHighLinkID"`
+	ParentID                *TeamID                                           `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	UserLog                 map[UserVersion][]UserLogPoint                    `codec:"userLog" json:"userLog"`
+	SubteamLog              map[TeamID][]SubteamLogPoint                      `codec:"subteamLog" json:"subteamLog"`
+	PerTeamKeys             map[PerTeamKeyGeneration]PerTeamKey               `codec:"perTeamKeys" json:"perTeamKeys"`
+	MaxPerTeamKeyGeneration PerTeamKeyGeneration                              `codec:"maxPerTeamKeyGeneration" json:"maxPerTeamKeyGeneration"`
+	PerTeamKeyCTime         UnixTime                                          `codec:"perTeamKeyCTime" json:"perTeamKeyCTime"`
+	LinkIDs                 map[Seqno]LinkID                                  `codec:"linkIDs" json:"linkIDs"`
+	StubbedLinks            map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
+	ActiveInvites           map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
+	ObsoleteInvites         map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
+	Open                    bool                                              `codec:"open" json:"open"`
+	OpenTeamJoinAs          TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
+	TlfIDs                  []TLFID                                           `codec:"tlfIDs" json:"tlfIDs"`
+	TlfLegacyUpgrade        map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
+	HeadMerkle              *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
+	MerkleRoots             map[Seqno]MerkleRootV2                            `codec:"merkleRoots" json:"merkleRoots"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -1607,7 +1608,8 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.PerTeamKeys),
-		PerTeamKeyCTime: o.PerTeamKeyCTime.DeepCopy(),
+		MaxPerTeamKeyGeneration: o.MaxPerTeamKeyGeneration.DeepCopy(),
+		PerTeamKeyCTime:         o.PerTeamKeyCTime.DeepCopy(),
 		LinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
 			if x == nil {
 				return nil
