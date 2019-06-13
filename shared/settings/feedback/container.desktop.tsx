@@ -15,7 +15,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSendFeedback: (feedback, sendLogs) => dispatch(SettingsGen.createSendFeedback({feedback, sendLogs})),
+  onSendFeedback: (feedback, sendLogs, sendMaxBytes) =>
+    dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
 })
 
 const mergeProps = (s, d, o: OwnProps) => ({
