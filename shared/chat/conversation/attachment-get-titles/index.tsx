@@ -191,14 +191,14 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   image: Styles.platformStyles({
+    isElectron: {
+      maxHeight: '100%',
+      maxWidth: '100%',
+    },
     isMobile: {
       height: 150,
       marginBottom: Styles.globalMargins.tiny,
       width: 150,
-    },
-    isElectron: {
-      maxHeight: '100%',
-      maxWidth: '100%',
     },
   }),
   imageContainer: Styles.platformStyles({
