@@ -6,7 +6,6 @@ import * as Styles from '../../../../styles'
 type ReplyProps = {
   deleted: boolean
   edited: boolean
-  imageURL?: string
   onClick: () => void
   text: string
   username: string
@@ -23,25 +22,20 @@ const Reply = (props: ReplyProps) => {
         className={Styles.classNames('ReplyBox')}
       >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-        <Kb.Box2 direction="vertical" gap="xtiny">
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-              <Kb.Avatar username={props.username} size={32} />
-              <Kb.Text type="BodySemibold" style={styles.replyUsername}>
-                {props.username}
-              </Kb.Text>
-            </Kb.Box2>
+        <Kb.Box2 direction="vertical">
+          <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+            <Kb.Avatar username={props.username} size={32} />
+            <Kb.Text type="BodySemibold" style={styles.replyUsername}>
+              {props.username}
+            </Kb.Text>
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            {!!props.imageURL && <Kb.Image src={props.imageURL} style={styles.replyPreview} />}
-            {!props.deleted ? (
-              <Kb.Text type="BodySmall">{props.text}</Kb.Text>
-            ) : (
-              <Kb.Text type="BodyTiny" style={styles.replyEdited}>
-                Original message deleted
-              </Kb.Text>
-            )}
-          </Kb.Box2>
+          {!props.deleted ? (
+            <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              Original message deleted
+            </Kb.Text>
+          )}
           {props.edited && (
             <Kb.Text type="BodyTiny" style={styles.replyEdited}>
               EDITED
@@ -142,10 +136,6 @@ const styles = Styles.styleSheetCreate({
   },
   replyEdited: {
     color: Styles.globalColors.black_20,
-  },
-  replyPreview: {
-    height: 80,
-    width: 80,
   },
   replyUsername: {
     alignSelf: 'center',
