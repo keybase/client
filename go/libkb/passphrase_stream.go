@@ -25,7 +25,7 @@ func StretchPassphrase(g *GlobalContext, passphrase string, salt []byte) (tsec T
 
 	// free memory on mobile before we do this to reduce chance that we get killed because of the
 	// large scrypt allocation coming
-	if g.IsMobileAppType() {
+	if g != nil && g.IsMobileAppType() {
 		debug.FreeOSMemory()
 	}
 	if g == nil {
