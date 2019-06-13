@@ -10,6 +10,8 @@ const mapStateToProps = (state: Container.TypedState) => ({
   error: state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : '',
   phoneNumber: state.settings.phoneNumbers.pendingVerification,
   resendWaiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
+  verificationStatus: state.settings.phoneNumbers.verificationState,
+  verifyWaiting: anyWaiting(state, SettingsConstants.verifyPhoneNumberWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -19,7 +21,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCancel: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
   onResend: () =>
     dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
-  onSuccess: () => RouteTreeGen.createClearModals(),
+  onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
 type WatcherProps = Props & {
@@ -43,6 +45,7 @@ class WatchForSuccess extends React.Component<WatcherProps> {
         onResend={this.props.onResend}
         phoneNumber={this.props.phoneNumber}
         resendWaiting={this.props.resendWaiting}
+        verifyWaiting={this.props.verifyWaiting}
       />
     )
   }
@@ -58,6 +61,7 @@ const ConnectedVerifyPhoneNumber = Container.namedConnect(
     onCancel: d.onCancel,
     onContinue: (code: string) => d._onContinue(s.phoneNumber, code),
     onResend: d.onResend,
+    onSuccess: d.onSuccess,
   }),
   'ConnectedVerifyPhoneNumber'
 )(WatchForSuccess)

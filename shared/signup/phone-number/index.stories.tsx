@@ -19,6 +19,7 @@ const verifyProps = {
   onResend: Sb.action('onResend'),
   phoneNumber: '+33 6 76 38 86 97',
   resendWaiting: false,
+  verifyWaiting: false,
 }
 
 const load = () => {

@@ -538,11 +538,11 @@ const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPay
   )
     .then(() => {
       logger.info('success')
-      SettingsGen.createAddedPhoneNumber({allowSearch, error: '', phoneNumber})
+      return SettingsGen.createAddedPhoneNumber({allowSearch, error: '', phoneNumber})
     })
     .catch(err => {
       logger.warn('error ', err.message)
-      SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
+      return SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
     })
 }
 
@@ -559,7 +559,7 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
     .catch(err => {
       logger.warn('error ', err.message)
-      SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
+      return SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
     })
 }
 

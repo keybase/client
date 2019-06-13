@@ -11,6 +11,7 @@ export type Props = {
   onResend: () => void
   phoneNumber: string
   resendWaiting: boolean
+  verifyWaiting: boolean
 }
 
 const VerifyPhoneNumber = (props: Props) => {
@@ -25,7 +26,7 @@ const VerifyPhoneNumber = (props: Props) => {
     <SignupScreen
       onBack={props.onBack}
       banners={props.error ? [<Kb.Banner key="error" color="red" text={props.error} />] : []}
-      buttons={[{label: 'Continue', onClick: onContinue, type: 'Success'}]}
+      buttons={[{label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.verifyWaiting}]}
       titleComponent={
         <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
           {props.phoneNumber}
