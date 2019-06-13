@@ -228,7 +228,7 @@ func (l *MockLoaderContext) perUserEncryptionKey(ctx context.Context, userSeqno 
 
 func (l *MockLoaderContext) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, isFresh bool, err error) {
 	r1, r2, err = l.merkleLookup(ctx, teamID, public)
-	return r1, r2, false, err
+	return r1, r2, true, err
 }
 
 func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
