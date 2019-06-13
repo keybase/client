@@ -131,7 +131,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {flex: 1},
   }),
   text: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,
   },
 })

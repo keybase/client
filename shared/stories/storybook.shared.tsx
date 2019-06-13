@@ -120,7 +120,7 @@ class StorybookErrorBoundary extends React.Component<
           <Kb.Box
             style={{
               ...Styles.globalStyles.flexBoxColumn,
-              backgroundColor: Styles.globalColors.darkBlue3,
+              backgroundColor: Styles.globalColors.blueDarker2,
               borderRadius: Styles.borderRadius,
               padding: 10,
               whiteSpace: 'pre-line',

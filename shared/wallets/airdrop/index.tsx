@@ -292,7 +292,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {alignItems: 'flex-start'},
   }),
   yourIn: {
-    color: Styles.globalColors.green2,
+    color: Styles.globalColors.greenDark,
     flexShrink: 1,
   },
 })
