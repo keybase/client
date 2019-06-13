@@ -430,26 +430,25 @@ export const uiPaymentInfoToChatPaymentInfo = (
   })
 }
 
-export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions => {
-  if (!r.reactions) {
-    return I.Map()
-  }
-  return I.Map(
-    Object.keys(r.reactions).reduce((res, emoji) => {
+export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions =>
+  I.Map(
+    Object.keys(r.reactions || {}).reduce((arr: Array<[string, I.Set<MessageTypes.Reaction>]>, emoji) => {
       if (r.reactions[emoji]) {
-        res[emoji] = I.Set(
-          Object.keys(r.reactions[emoji]).map(username =>
-            makeReaction({
-              timestamp: r.reactions[emoji][username].ctime,
-              username,
-            })
-          )
-        )
+        arr.push([
+          emoji,
+          I.Set(
+            Object.keys(r.reactions[emoji]).map(username =>
+              makeReaction({
+                timestamp: r.reactions[emoji][username].ctime,
+                username,
+              })
+            )
+          ),
+        ])
       }
-      return res
-    }, {})
+      return arr
+    }, [])
   )
-}
 
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
@@ -1122,9 +1121,9 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = state.chat2.messageOrdinals.get(conversationIDKey, I.OrderedSet()).findLast(o =>
-      mm.getIn([o, 'id'])
-    )
+    const goodOrdinal = state.chat2.messageOrdinals
+      .get(conversationIDKey, I.OrderedSet())
+      .findLast(o => mm.getIn([o, 'id']))
 
     if (goodOrdinal) {
       clientPrev = mm.getIn([goodOrdinal, 'id'])
