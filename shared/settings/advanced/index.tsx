@@ -62,40 +62,39 @@ const UseNativeFrame = (props: Props) => {
 }
 
 const Advanced = (props: Props) => {
-  const disabled =
-    this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
+  const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
     <Kb.Box style={styles.advancedContainer}>
       <Kb.Box style={styles.progressContainer}>
-        {this.props.settingLockdownMode && <Kb.ProgressIndicator />}
+        {props.settingLockdownMode && <Kb.ProgressIndicator />}
       </Kb.Box>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
-          checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
+          checked={props.hasRandomPW || !!props.lockdownModeEnabled}
           disabled={disabled}
           label={`Forbid account changes from the website 
-            ${this.props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
-          onCheck={this.props.onChangeLockdownMode}
+            ${props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
+          onCheck={props.onChangeLockdownMode}
           style={styles.checkbox}
         />
       </Kb.Box>
-      {!!this.props.setLockdownModeError && (
+      {!!props.setLockdownModeError && (
         <Kb.Text type="BodySmall" style={styles.error}>
-          {this.props.setLockdownModeError}
+          {props.setLockdownModeError}
         </Kb.Text>
       )}
-      {isLinux && <UseNativeFrame {...this.props} />}
+      {isLinux && <UseNativeFrame {...props} />}
       {!Styles.isMobile && !isLinux && (
         <Kb.Box style={styles.openAtLoginCheckboxContainer}>
           <Kb.Checkbox
             label="Open Keybase on startup"
-            checked={this.props.openAtLogin}
-            onCheck={this.props.onSetOpenAtLogin}
+            checked={props.openAtLogin}
+            onCheck={props.onSetOpenAtLogin}
           />
         </Kb.Box>
       )}
-      <ProxySettings {...this.props} />
-      <Developer {...this.props} />
+      <ProxySettings {...props} />
+      <Developer {...props} />
     </Kb.Box>
   )
 }
