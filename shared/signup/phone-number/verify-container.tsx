@@ -5,6 +5,7 @@ import VerifyPhoneNumber from './verify'
 
 const mapStateToProps = (state: Container.TypedState) => ({
   error: '',
+  phoneNumber: state.settings.phoneNumbers.pendingVerification,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({

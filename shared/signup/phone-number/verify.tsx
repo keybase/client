@@ -17,7 +17,7 @@ const VerifyPhoneNumber = (props: Props) => {
   // Clear data on unmount
   React.useEffect(() => {
     return props.onCancel
-  })
+  }, [props.onCancel])
   const [code, onChangeCode] = React.useState('')
   const disabled = !code
   const onContinue = () => (disabled ? {} : props.onContinue(code))
@@ -35,16 +35,18 @@ const VerifyPhoneNumber = (props: Props) => {
       headerStyle={styles.container}
       header={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
-          <Kb.Text type="BodyBigLink" style={styles.backButton}>
+          <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={props.onBack}>
             Back
           </Kb.Text>
           <Kb.Text type="BodyTinySemibold" style={styles.headerText} center={true}>
             {props.phoneNumber}
           </Kb.Text>
+          <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne} />
         </Kb.Box2>
       }
       negativeHeader={true}
       skipMobileHeader={true}
+      showHeaderInfoicon={true}
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
         <Kb.Text type="Body" negative={true} center={true}>
@@ -95,8 +97,7 @@ const VerifyPhoneNumber = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   backButton: {
     color: Styles.globalColors.white,
-    padding: Styles.globalMargins.xsmall,
-    paddingLeft: Styles.globalMargins.small,
+    flex: 1,
   },
   body: Styles.platformStyles({
     isMobile: {
@@ -105,19 +106,11 @@ const styles = Styles.styleSheetCreate({
   }),
   container: {backgroundColor: Styles.globalColors.blue},
   headerContainer: {
+    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
     backgroundColor: Styles.globalColors.blue,
     position: 'relative',
   },
-  headerText: Styles.platformStyles({
-    common: {color: Styles.globalColors.darkBlue},
-    isMobile: {
-      left: 0,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      position: 'absolute',
-      right: 0,
-    },
-  }),
+  headerText: {color: Styles.globalColors.darkBlue},
   iconVerticalAlign: Styles.platformStyles({
     isElectron: {
       position: 'relative',
@@ -134,6 +127,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.xsmall),
+      fontVariantLigatures: 'none', // ligatures interfere with letterSpacing
       height: 38,
       width: 368,
     },
