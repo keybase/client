@@ -16,7 +16,7 @@ const Kb = {
 
 type Props = {
   type: 'Small' | 'Large'
-  icon: React.ReactNode
+  icon?: React.ReactNode
   statusIcon?: React.ReactNode
   body: React.ReactNode
   firstItem: boolean
@@ -26,6 +26,7 @@ type Props = {
   // it's too large, the animation would also seem much faster.
   onlyShowActionOnHover?: 'fade' | 'grow' | null
   onClick?: () => void
+  height?: number // optional, for non-standard heights
 }
 
 const HoverBox = Styles.isMobile
@@ -58,22 +59,15 @@ const HoverBox = Styles.isMobile
       },
     })
 
-const containerStyle = (props: Props) =>
-  props.type === 'Small'
-    ? props.statusIcon
-      ? styles.contentContainerSmallWithStatusIcon
-      : styles.contentContainerSmall
-    : props.statusIcon
-    ? styles.contentContainerLargeWithStatusIcon
-    : styles.contentContainerLarge
-const iconStyle = (props: Props) =>
-  props.type === 'Small'
-    ? props.statusIcon
-      ? styles.iconSmallWithStatusIcon
-      : styles.iconSmall
-    : props.statusIcon
-    ? styles.iconLargeWithStatusIcon
-    : styles.iconLarge
+// Using margin and keeping the icon on the let using absolute is to work around an issue in RN where
+// the nested views won't grow and still retain their widths correctly
+const iconLeftStyle = (props: Props) => (props.statusIcon ? {left: statusIconWidth} : null)
+const containerLeftStyle = (props: Props) => {
+  const left =
+    (props.statusIcon ? statusIconWidth : 0) +
+    (props.icon ? (props.type === 'Small' ? smallIconWidth : largeIconWidth) : 0)
+  return left ? {marginLeft: left} : styles.tinyMarginLeft
+}
 
 const ListItem = (props: Props) => (
   <Kb.ClickableBox
@@ -86,20 +80,47 @@ const ListItem = (props: Props) => (
       fullWidth={true}
     >
       {props.statusIcon && (
-        <Kb.Box2 direction="vertical" style={styles.statusIcon} alignItems="flex-end">
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([
+            styles.statusIcon,
+            props.type === 'Small' && styles.heightSmall,
+            props.type === 'Large' && styles.heightLarge,
+          ])}
+          alignSelf="flex-start"
+          alignItems="flex-end"
+        >
           {props.statusIcon}
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="vertical" style={iconStyle(props)} centerChildren={true}>
-        {props.icon}
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" style={containerStyle(props)}>
+      {props.icon && (
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([
+            styles.icon,
+            props.type === 'Small' && styles.iconSmall,
+            props.type === 'Large' && styles.iconLarge,
+            iconLeftStyle(props),
+          ])}
+          centerChildren={true}
+          alignSelf="flex-start"
+        >
+          {props.icon}
+        </Kb.Box2>
+      )}
+      <Kb.Box2
+        direction="horizontal"
+        style={Styles.collapseStyles([
+          styles.contentContainer,
+          props.type === 'Small' && styles.heightSmall,
+          props.type === 'Large' && styles.heightLarge,
+          containerLeftStyle(props),
+          !!props.height && {minHeight: props.height},
+        ])}
+      >
         {!props.firstItem && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
-          <Kb.Box2
-            direction="horizontal"
-            style={props.type === 'Small' ? styles.bodySmallContainer : styles.bodyLargeContainer}
-          >
+          <Kb.Box2 fullHeight={true} direction="horizontal" style={styles.bodyContainer}>
             {props.body}
           </Kb.Box2>
         </Kb.BoxGrow>
@@ -112,7 +133,10 @@ const ListItem = (props: Props) => (
           style={Styles.collapseStyles([
             props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
             props.onlyShowActionOnHover === 'grow' && styles.actionFlexEnd,
+            props.type === 'Small' && styles.heightSmall,
+            props.type === 'Large' && styles.heightLarge,
           ])}
+          alignSelf="flex-start"
         >
           {props.action}
         </Kb.Box2>
@@ -148,22 +172,12 @@ const styles = Styles.styleSheetCreate({
     marginRight: 8,
     position: 'relative',
   },
-  bodyLargeContainer: {
+  bodyContainer: {
     alignItems: 'center',
     flexGrow: 1,
     flexShrink: 1,
     justifyContent: 'flex-start',
     maxWidth: '100%',
-    minHeight: largeHeight,
-    position: 'relative',
-  },
-  bodySmallContainer: {
-    alignItems: 'center',
-    flexGrow: 1,
-    flexShrink: 1,
-    justifyContent: 'flex-start',
-    maxWidth: '100%',
-    minHeight: smallHeight,
     position: 'relative',
   },
   clickableBoxLarge: {
@@ -176,30 +190,8 @@ const styles = Styles.styleSheetCreate({
     minHeight: smallHeight,
     width: '100%',
   },
-  // Using margin and keeping the icon on the let using absolute is to work around an issue in RN where
-  // the nested views won't grow and still retain their widths correctly
-  contentContainerLarge: {
+  contentContainer: {
     flexGrow: 1,
-    marginLeft: largeIconWidth,
-    minHeight: largeHeight,
-    position: 'relative',
-  },
-  contentContainerLargeWithStatusIcon: {
-    flexGrow: 1,
-    marginLeft: largeIconWidth + statusIconWidth,
-    minHeight: largeHeight,
-    position: 'relative',
-  },
-  contentContainerSmall: {
-    flexGrow: 1,
-    marginLeft: smallIconWidth,
-    minHeight: smallHeight,
-    position: 'relative',
-  },
-  contentContainerSmallWithStatusIcon: {
-    flexGrow: 1,
-    marginLeft: smallIconWidth + statusIconWidth,
-    minHeight: smallHeight,
     position: 'relative',
   },
   divider: {
@@ -208,22 +200,17 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: 0,
   },
-  iconLarge: {
+  heightLarge: {minHeight: largeHeight},
+  heightSmall: {minHeight: smallHeight},
+  icon: {
     position: 'absolute',
-    width: Styles.isMobile ? 75 : 72,
   },
-  iconLargeWithStatusIcon: {
-    left: statusIconWidth,
-    position: 'absolute',
+  iconLarge: {
+    minHeight: largeHeight,
     width: Styles.isMobile ? 75 : 72,
   },
   iconSmall: {
-    position: 'absolute',
-    width: Styles.isMobile ? 60 : 56,
-  },
-  iconSmallWithStatusIcon: {
-    left: statusIconWidth,
-    position: 'absolute',
+    minHeight: smallHeight,
     width: Styles.isMobile ? 60 : 56,
   },
   rowLarge: {
@@ -237,9 +224,11 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   statusIcon: {
+    justifyContent: 'center',
     position: 'absolute',
     width: statusIconWidth,
   },
+  tinyMarginLeft: {marginLeft: Styles.globalMargins.tiny},
 })
 
 export default ListItem
