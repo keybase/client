@@ -82,7 +82,7 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
     case ProfileGen.addProof: {
       const platform = action.payload.platform
-      const maybeNotGeneric = More.isPlatformsExpandedType(platform)
+      const maybeNotGeneric = More.asPlatformsExpandedType(platform)
       return updateUsername(
         state.merge({
           errorCode: null,
