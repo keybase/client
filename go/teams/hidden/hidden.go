@@ -239,17 +239,20 @@ func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 }
 
 func (l *LoaderPackage) MerkleLoadArg(mctx libkb.MetaContext) (ret *libkb.LookupTeamHiddenArg, err error) {
-	if l.data == nil {
-		return nil, nil
-	}
-	tail := l.data.LastReaderPerTeamKey()
-	if !tail.IsNil() {
+	if tail := l.LastReaderPerTeamKeyLinkID(); !tail.IsNil() {
 		return &libkb.LookupTeamHiddenArg{LastKnownHidden: tail}, nil
 	}
 	if !l.encKID.IsNil() && l.lastMainChainGen > keybase1.PerTeamKeyGeneration(0) {
 		return &libkb.LookupTeamHiddenArg{PTKEncryptionKID: l.encKID, PTKGeneration: l.lastMainChainGen}, nil
 	}
 	return nil, nil
+}
+
+func (l *LoaderPackage) LastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
+	if l.data == nil {
+		return ret
+	}
+	return l.data.LastReaderPerTeamKeyLinkID()
 }
 
 func (l *LoaderPackage) SetIsFresh(b bool) {

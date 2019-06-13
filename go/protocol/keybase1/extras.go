@@ -2927,7 +2927,7 @@ func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 	}
 }
 
-func (h HiddenTeamChain) LastReaderPerTeamKey() (ret LinkID) {
+func (h HiddenTeamChain) LastReaderPerTeamKeyLinkID() (ret LinkID) {
 	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
 	if !ok {
 		return ret
