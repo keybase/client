@@ -1,11 +1,8 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as chat1Types from '../constants/types/rpc-chat-gen'
 import * as keybase1Types from '../constants/types/rpc-gen'
-import * as gregor1Types from '../constants/types/rpc-gregor-gen'
 import * as stellar1Types from '../constants/types/rpc-stellar-gen'
 
 // Constants

@@ -1,10 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/dev'
-
 // Constants
 export const resetStore = 'common:resetStore' // not a part of dev but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'dev:'

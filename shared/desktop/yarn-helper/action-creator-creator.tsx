@@ -26,12 +26,30 @@ type CompileActionFn = (ns: ActionNS, actionName: ActionName, desc: ActionDesc) 
 
 const reservedPayloadKeys = ['_description']
 
+const payloadHasType = (payload, toFind) => {
+  return Object.keys(payload).some(param => {
+    const ps = payload[param]
+    if (Array.isArray(ps)) {
+      return ps.some(p => toFind.exec(p))
+    } else {
+      return param === 'canError' ? payloadHasType(ps, toFind) : toFind.exec(ps)
+    }
+  })
+}
+const actionHasType = (actions, toFind) =>
+  Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
+
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
+  const immutableImport = actionHasType(actions, /(^|\W)I\./) ? "import * as I from 'immutable'" : ''
+  const rpcGenImport = actionHasType(actions, /(^|\W)RPCTypes\./)
+    ? "import * as RPCTypes from '../constants/types/rpc-gen'"
+    : ''
+
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
+${immutableImport}
+${rpcGenImport}
 ${prelude.join('\n')}
 
 // Constants
@@ -186,7 +204,10 @@ function main() {
   console.log(`Generating typed-actions-gen`)
   const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
   const typedActions = makeTypedActions(created)
-  const generated = prettier.format(typedActions, prettier.resolveConfig.sync(outPath))
+  const generated = prettier.format(typedActions, {
+    ...prettier.resolveConfig.sync(outPath),
+    parser: 'typescript',
+  })
   fs.writeFileSync(outPath, generated)
 }
 

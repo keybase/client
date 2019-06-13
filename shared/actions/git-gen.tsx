@@ -2,8 +2,7 @@
 /* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
+
 import * as Types from '../constants/types/git'
 
 // Constants

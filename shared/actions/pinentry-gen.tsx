@@ -3,7 +3,6 @@
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Constants from '../constants/pinentry'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of pinentry but is handled by every reducer. NEVER dispatch this
