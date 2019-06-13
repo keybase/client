@@ -341,7 +341,7 @@ func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	if t.hidden != nil {
 		hk = t.hidden.MaxReaderPerTeamKey()
 	}
-	res, ok := t.inner.PerTeamKeys[keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))]
+	res, ok := t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
 
 	if hk == nil && ok {
 		return res, nil

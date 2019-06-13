@@ -5,7 +5,8 @@
 - [ ] precheck that a link will be accepted by the server (as does chain3)
 - [ ] feature-flag this for almost everything except for blessed prod teams (by team ID) (server + client)
 - [ ] alert in laoder2.go / addSecrets -- add back later
-- [ ] try to figure out refreshing and cache-bust store for chain17
+- [ ] fix addSecrets to take a Teamer
+- [x] try to figure out refreshing and cache-bust store for chain17
   - idea: merkle/path.json:
     - you're allowed to know if there's something bigger than a given linkID, without explicitly checking membership:
     - select 1 from sig3_team where (team_id,seqno)=(select team_id,seqno+1 from sig3_team where link_id='1YRrMgK+VkhvG/owg+iwYoGLmHGuBlQkObn9Yz0Xvlo');
