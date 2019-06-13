@@ -589,7 +589,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("backfill")
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
+			ctx, arg.me, arg.teamID, ret, hiddenPackage.ChainData(), arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -696,7 +696,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	suppressLoggingUpto := len(links) - 5
 	for i, link := range links {
 		var err error
-		ret, prev, err = l.doOneLink(ctx, arg, ret, link, i, suppressLoggingStart, suppressLoggingUpto, lastSeqno, &parentChildOperations, prev, fullVerifyCutoff, readSubteamID, proofSet, lkc, &parentsCache)
+		ret, prev, err = l.doOneLink(ctx, arg, ret, hiddenPackage.ChainData(), link, i, suppressLoggingStart, suppressLoggingUpto, lastSeqno, &parentChildOperations, prev, fullVerifyCutoff, readSubteamID, proofSet, lkc, &parentsCache)
 		if err != nil {
 			return nil, err
 		}
@@ -994,7 +994,7 @@ func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *ke
 	return false, nil
 }
 
-func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1.TeamData, link *ChainLinkUnpacked, i int, suppressLoggingStart int, suppressLoggingUpto int, lastSeqno keybase1.Seqno, parentChildOperations *[](*parentChildOperation), prev libkb.LinkID, fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache, parentsCache *parentChainCache) (*keybase1.TeamData, libkb.LinkID, error) {
+func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1.TeamData, hidden *keybase1.HiddenTeamChain, link *ChainLinkUnpacked, i int, suppressLoggingStart int, suppressLoggingUpto int, lastSeqno keybase1.Seqno, parentChildOperations *[](*parentChildOperation), prev libkb.LinkID, fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache, parentsCache *parentChainCache) (*keybase1.TeamData, libkb.LinkID, error) {
 
 	var nilPrev libkb.LinkID
 
@@ -1028,7 +1028,7 @@ func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1
 
 	var signer *SignerX
 	var err error
-	signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff,
+	signer, err = l.verifyLink(ctx, arg.teamID, ret, hidden, arg.me, link, fullVerifyCutoff,
 		readSubteamID, proofSet, lkc, *parentsCache)
 	if err != nil {
 		return nil, nilPrev, err
@@ -1042,7 +1042,7 @@ func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1
 		*parentChildOperations = append(*parentChildOperations, pco)
 	}
 
-	ret, err = l.applyNewLink(ctx, ret, link, signer, arg.me)
+	ret, err = l.applyNewLink(ctx, ret, hidden, link, signer, arg.me)
 	if err != nil {
 		return nil, nilPrev, err
 	}
