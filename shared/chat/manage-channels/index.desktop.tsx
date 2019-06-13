@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {Props, RowProps} from './index.types'
+import {pluralize} from '../../util/string'
 
 const HoverBox = Styles.styled(Kb.Box)({
   '.channel-row:hover &': {opacity: 1},
@@ -61,7 +62,7 @@ const Row = (
           </Kb.Text>
           <Kb.Text type="BodySmall">{props.description}</Kb.Text>
           <Kb.Text type="BodySmall">
-            {props.numParticipants} {props.numParticipants !== 1 ? 'members' : 'member'}{' '}
+            {props.numParticipants} {pluralize('member', props.numParticipants)}{' '}
             {props.hasAllMembers ? '(entire team)' : ''} &bull; Last activity {props.mtimeHuman}{' '}
           </Kb.Text>
         </Kb.Box>
@@ -98,7 +99,7 @@ const ManageChannels = (props: Props) => {
         type="Header"
         style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
       >
-        {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
+        {props.channels.length} {pluralize('chat channel', props.channels.length)}
       </Kb.Text>
     )
   }

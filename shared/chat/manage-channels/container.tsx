@@ -9,7 +9,7 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import moment from 'moment'
+import {formatTimeForMessages} from '../../util/timestamp'
 
 type OwnProps = Container.RouteProps<
   {
@@ -40,7 +40,7 @@ const mapStateToProps = (state, ownProps) => {
       convID,
       description: info.description,
       hasAllMembers: info.numParticipants === teamSize,
-      mtimeHuman: moment(info.mtime).fromNow(),
+      mtimeHuman: formatTimeForMessages(info.mtime),
       name: info.channelname,
       numParticipants: info.numParticipants,
       selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,

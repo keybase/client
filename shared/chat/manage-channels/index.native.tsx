@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Props, RowProps} from './index.types'
+import {pluralize} from '../../util/string'
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <Kb.ClickableBox style={style} onClick={onClick}>
@@ -43,7 +44,7 @@ const Row = (
         </Kb.Text>
       )}
       <Kb.Text type="BodySmall">
-        {props.numParticipants} {props.numParticipants !== 1 ? 'members' : 'member'}{' '}
+        {props.numParticipants} {pluralize('member', props.numParticipants)}{' '}
         {props.hasAllMembers ? '(entire team)' : ''}
       </Kb.Text>
       <Kb.Text type="BodySmall">Last activity {props.mtimeHuman} </Kb.Text>
@@ -134,7 +135,7 @@ const Header = (props: Props) => {
   } else {
     channelDisplay = (
       <Kb.Text type="BodyBig">
-        {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
+        {props.channels.length} {pluralize('chat channel', props.channels.length)}
       </Kb.Text>
     )
   }

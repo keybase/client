@@ -6,10 +6,10 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 import EditChannel from './edit-channel'
-import moment from 'moment'
+import {formatTimeForMessages} from '../../util/timestamp'
 
-const origin = {day: 0, month: 0, year: 2018}
-const mtimeHuman = moment(origin).fromNow()
+const origin = new Date().getTime()
+const mtimeHuman = formatTimeForMessages(origin)
 
 const channels = [
   {
