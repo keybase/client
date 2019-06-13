@@ -166,7 +166,7 @@
     "react-spring": "7.2.0",
     "react-transition-group": "2.5.1",
     "react-virtualized-auto-sizer": "1.0.2",
-    "react-waypoint": "8.1.0",
+    "react-waypoint": "9.0.2",
     "react-window": "1.5.0",
     "recompose": "0.30.0",
     "redux": "4.0.1",
