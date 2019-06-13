@@ -43,7 +43,7 @@ func TestPackager(t *testing.T) {
 	tc := libkb.SetupTest(t, "packager", 1)
 
 	log := logger.NewTestLogger(t)
-	store := attachments.NewStoreTesting(log, nil)
+	store := attachments.NewStoreTesting(log, nil, tc.G)
 	s3Signer := &ptsigner{}
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	packager := NewPackager(tc.G, log, store, s3Signer, ri)

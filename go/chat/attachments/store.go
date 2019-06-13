@@ -117,13 +117,14 @@ func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte)) *S3Store {
+func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte), g *libkb.GlobalContext) *S3Store {
 	return &S3Store{
 		DebugLabeler: utils.NewDebugLabeler(log, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
 		testing:      true,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 

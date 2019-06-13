@@ -73,7 +73,7 @@ func TestUnfurler(t *testing.T) {
 	defer tc.Cleanup()
 
 	log := logger.NewTestLogger(t)
-	store := attachments.NewStoreTesting(log, nil)
+	store := attachments.NewStoreTesting(log, nil, tc.G)
 	s3signer := &ptsigner{}
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	notifier := makeDummyActivityNotifier()
