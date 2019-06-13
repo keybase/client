@@ -54,7 +54,6 @@ export const processorProfile = 'settings:processorProfile'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
-export const setCertificatePinning = 'settings:setCertificatePinning'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
@@ -110,7 +109,6 @@ type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
-type _SetCertificatePinningPayload = {readonly enabled: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
 type _UnfurlSettingsErrorPayload = {readonly error: string}
@@ -315,9 +313,6 @@ export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackP
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
-export const createSetCertificatePinning = (
-  payload: _SetCertificatePinningPayload
-): SetCertificatePinningPayload => ({payload, type: setCertificatePinning})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
@@ -494,10 +489,6 @@ export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
 }
-export type SetCertificatePinningPayload = {
-  readonly payload: _SetCertificatePinningPayload
-  readonly type: typeof setCertificatePinning
-}
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
 export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
 export type UnfurlSettingsErrorPayload = {
@@ -570,7 +561,6 @@ export type Actions =
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SetAllowDeleteAccountPayload
-  | SetCertificatePinningPayload
   | StopPayload
   | TracePayload
   | UnfurlSettingsErrorPayload

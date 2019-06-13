@@ -15,7 +15,6 @@ import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
-import {createCertificatePinningToggled} from "../actions/settings-gen";
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
@@ -444,17 +443,6 @@ const saveProxyData = (_, proxyDataPayload: SettingsGen.SaveProxyDataPayload) =>
     logger.warn('Error in saving proxy data', err)
   )
 
-const setCertificatePinning = (_, certPinningPayload: SettingsGen.SetCertificatePinningPayload) =>
-  RPCTypes.configGetProxyDataRpcPromise(undefined)
-      .then((result: RPCTypes.ProxyData) => {
-        const cloned = JSON.parse(JSON.stringify(result))
-        cloned.certPinning = certPinningPayload.payload.enabled
-        return RPCTypes.configSetProxyDataRpcPromise({proxyData: cloned})
-            .then(() => SettingsGen.createCertificatePinningToggled({toggled: true}))
-            .catch(err => logger.warn('Error in setting certificate pinning. Failed to save', err))
-      })
-      .catch(err => logger.warn('Error in setting certificate pinning. Failed to load', err))
-
 const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise(
@@ -606,7 +594,6 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<SettingsGen.LoadProxyDataPayload>(SettingsGen.loadProxyData, loadProxyData)
   yield* Saga.chainAction<SettingsGen.SaveProxyDataPayload>(SettingsGen.saveProxyData, saveProxyData)
-  yield* Saga.chainAction<SettingsGen.SetCertificatePinningPayload>(SettingsGen.setCertificatePinning, setCertificatePinning)
 }
 
 export default settingsSaga
