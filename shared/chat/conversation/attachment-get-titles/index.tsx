@@ -85,7 +85,13 @@ class GetTitles extends React.Component<Props, State> {
     return (
       <Kb.ScrollView style={styles.scrollView}>
         <Kb.Box style={styles.container}>
-          <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} style={styles.upperContainer}>
+          <Kb.Box2
+            alignItems="center"
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={Styles.isMobile}
+            style={styles.upperContainer}
+          >
             <Kb.Box style={styles.imageContainer}>
               {info.type === 'image' ? (
                 <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
@@ -161,9 +167,10 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       flex: 1,
       justifyContent: 'flex-start',
-      marginTop: Styles.globalMargins.xtiny,
+      marginBottom: Styles.globalMargins.tiny,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.tiny,
     },
   }),
   filename: Styles.platformStyles({
@@ -182,6 +189,7 @@ const styles = Styles.styleSheetCreate({
   image: Styles.platformStyles({
     isMobile: {
       height: 150,
+      marginBottom: Styles.globalMargins.tiny,
       width: 150,
     },
     isElectron: {
@@ -234,6 +242,9 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xlarge,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.tiny,
     },
   }),
 })
