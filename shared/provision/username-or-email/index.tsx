@@ -7,6 +7,7 @@ import * as Constants from '../../constants/provision'
 
 type Props = {
   error: string
+  initialUsername: string
   inlineError: string
   inlineSignUpLink: boolean
   onBack: () => void
@@ -34,7 +35,7 @@ type State = {
 }
 
 class Username extends React.Component<Props, State> {
-  state = {username: ''}
+  state = {username: this.props.initialUsername}
 
   _submit = () => {
     this.props.onSubmit(this.state.username)

@@ -25,6 +25,7 @@ export type _State = {
   forgotUsernameResult: string
   inlineError: RPCError | null
   username: string
+  initialUsername: string
   deviceName: string
   devices: I.List<Device>
   gpgImportError: string | null

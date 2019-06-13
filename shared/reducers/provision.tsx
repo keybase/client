@@ -10,7 +10,9 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
   switch (action.type) {
     case ProvisionGen.resetStore:
     case ProvisionGen.startProvision:
-      return initialState
+      return action.payload.initUsername
+        ? initialState.merge({initialUsername: action.payload.initUsername})
+        : initialState
     case ProvisionGen.provisionError:
     case ProvisionGen.showPasswordPage: // fallthrough
     case ProvisionGen.showPaperkeyPage: // fallthrough
