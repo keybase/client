@@ -24,8 +24,9 @@ if (isAndroid) {
 
       // @ts-ignore no RN types
       props.style = [this.props.style]
-      props.autoCapitalize =
-        UIManager.AndroidTextInput.Constants.AutoCapitalizationType[props.autoCapitalize || 'sentences']
+      props.autoCapitalize = UIManager.getViewManagerConfig(
+        'AndroidTextInput'
+      ).Constants.AutoCapitalizationType[props.autoCapitalize || 'sentences']
       /* $FlowFixMe(>=0.53.0 site=react_native_fb,react_native_oss) This comment
        * suppresses an error when upgrading Flow's support for React. To see the
        * error delete this comment and run Flow. */
@@ -62,7 +63,7 @@ if (isAndroid) {
           // @ts-ignore no RN types
           onTextInput={this._onTextInput}
           // @ts-ignore no RN types
-          text={this.props.text || this.props.defaultValue || ''}
+          text={this.props.value || this.props.defaultValue || ''}
           children={children}
           // @ts-ignore no RN types
           disableFullscreenUI={this.props.disableFullscreenUI}

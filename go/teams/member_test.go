@@ -885,6 +885,7 @@ func TestLeaveAsReader(t *testing.T) {
 		ID:          teamID,
 		ForceRepoll: true,
 	})
+	require.NoError(t, err)
 
 	t.Logf("U0 loads the team from scratch")
 	_, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{

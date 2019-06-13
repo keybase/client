@@ -1,13 +1,22 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Props as ButtonProps} from '../common-adapters/button'
+import openURL from '../util/open-url'
 import * as Styles from '../styles'
 
 type InfoIconProps = {
-  invisible: boolean
+  invisible?: boolean
   onDocumentation: () => void
   onFeedback: () => void
+  style?: Styles.StylesCrossPlatform
+}
+
+type InfoIconOwnProps = {
+  invisible?: boolean
+  onDocumentation?: () => void
+  onFeedback?: () => void
 }
 
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
@@ -16,7 +25,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
       type="iconfont-question-mark"
       onClick={props.invisible ? undefined : props.toggleShowingMenu}
       ref={props.setAttachmentRef}
-      style={props.invisible ? styles.opacityNone : undefined}
+      style={Styles.collapseStyles([props.invisible && styles.opacityNone, props.style])}
     />
     <Kb.FloatingMenu
       items={[
@@ -30,22 +39,20 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
     />
   </>
 )
-export const InfoIcon: any = Container.compose(
-  Container.namedConnect(
-    () => ({}),
-    () => ({onDocumentation: () => {}, onFeedback: () => {}}),
-    (s, d, o: InfoIconProps) => ({...o, ...s, ...d}),
-    'SignupInfoIcon'
-  ),
-  Kb.OverlayParentHOC
-)(_InfoIcon)
+
+export const InfoIcon = Container.namedConnect(
+  () => ({}),
+  () => ({
+    onDocumentation: () => openURL('https://keybase.io/docs'),
+    onFeedback: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})), // TODO Y2K-108 un-jankify this
+  }),
+  (s, d, o: InfoIconOwnProps) => ({...s, ...d, ...o}),
+  'SignupInfoIcon'
+)(Kb.OverlayParentHOC(_InfoIcon))
 
 // Only used on desktop
 const Header = props => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-      <InfoIcon invisible={props.negative} />
-    </Kb.Box2>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
@@ -76,6 +83,7 @@ type ButtonMeta = {
   label: string
   onClick: () => void
   type: ButtonProps['type']
+  waiting?: boolean
 }
 
 type SignupScreenProps = {
@@ -97,7 +105,7 @@ type SignupScreenProps = {
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
-const _SignupScreen = (props: SignupScreenProps) => (
+export const SignupScreen = (props: SignupScreenProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
     {!Styles.isMobile && (
       <Header
@@ -106,6 +114,16 @@ const _SignupScreen = (props: SignupScreenProps) => (
         titleComponent={props.titleComponent}
         style={props.headerStyle}
         negative={props.negativeHeader}
+      />
+    )}
+    {Styles.isMobile && !props.skipMobileHeader && (
+      <Kb.HeaderHocHeader
+        headerStyle={props.headerStyle}
+        title={props.title}
+        titleComponent={props.titleComponent}
+        leftAction={props.leftAction}
+        leftActionText={props.leftActionText}
+        onBack={props.onBack}
       />
     )}
     {Styles.isMobile && props.header}
@@ -128,14 +146,13 @@ const _SignupScreen = (props: SignupScreenProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
-export const SignupScreen = (props: SignupScreenProps) => {
-  const Component = Styles.isMobile && !props.skipMobileHeader ? Kb.HeaderHoc(_SignupScreen) : _SignupScreen
-  return <Component {...props} />
-}
 SignupScreen.defaultProps = {
   leftAction: 'cancel',
   leftActionText: 'Back',
 }
+
+export const errorBanner = (error: string) =>
+  error.trim() ? [<Kb.Banner key="generalError" color="red" text={error} />] : []
 
 const styles = Styles.styleSheetCreate({
   backButton: {
@@ -183,10 +200,6 @@ const styles = Styles.styleSheetCreate({
   fixIconAlignment: {
     position: 'relative',
     top: 2,
-  },
-  infoIconContainer: {
-    justifyContent: 'flex-end',
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
   },
   opacityNone: {
     opacity: 0,

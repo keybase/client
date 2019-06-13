@@ -148,17 +148,18 @@ export type OwnProps = {
 // TODO mocked for now
 const mapStateToProps = (state, ownProps) => ({})
 const mapDispatchToProps = dispatch => ({})
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  address: '',
-  onDelete: () => {},
-  onMakePrimary: () => {},
-  onToggleSearchable: () => {},
-  onVerify: () => {},
-  primary: false,
-  searchable: false,
-  type: 'phone',
-  verified: false,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) =>
+  ({
+    address: '',
+    onDelete: () => {},
+    onMakePrimary: () => {},
+    onToggleSearchable: () => {},
+    onVerify: () => {},
+    primary: false,
+    searchable: false,
+    type: 'phone',
+    verified: false,
+  } as const)
 
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,

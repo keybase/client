@@ -80,7 +80,7 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 }
 
 func testCreateFile(
-	t *testing.T, ctx context.Context, fs *FS, file string,
+	ctx context.Context, t *testing.T, fs *FS, file string,
 	parent libkbfs.Node) {
 	f, err := fs.Create(file)
 	require.NoError(t, err)
@@ -127,8 +127,8 @@ func TestCreateFileInRoot(t *testing.T) {
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
-	testCreateFile(t, ctx, fs, "foo", rootNode)
-	testCreateFile(t, ctx, fs, "/bar", rootNode)
+	testCreateFile(ctx, t, fs, "foo", rootNode)
+	testCreateFile(ctx, t, fs, "/bar", rootNode)
 }
 
 func TestCreateFileInSubdir(t *testing.T) {
@@ -143,7 +143,7 @@ func TestCreateFileInSubdir(t *testing.T) {
 	bNode, _, err := fs.config.KBFSOps().CreateDir(ctx, aNode, "b")
 	require.NoError(t, err)
 
-	testCreateFile(t, ctx, fs, "a/b/foo", bNode)
+	testCreateFile(ctx, t, fs, "a/b/foo", bNode)
 }
 
 func TestCreateFileInMissingSubdir(t *testing.T) {
@@ -168,7 +168,7 @@ func TestAppendFile(t *testing.T) {
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
-	testCreateFile(t, ctx, fs, "foo", rootNode)
+	testCreateFile(ctx, t, fs, "foo", rootNode)
 	f, err := fs.OpenFile("foo", os.O_APPEND, 0600)
 	require.NoError(t, err)
 
@@ -204,7 +204,7 @@ func TestRecreateAndExcl(t *testing.T) {
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
-	testCreateFile(t, ctx, fs, "foo", rootNode)
+	testCreateFile(ctx, t, fs, "foo", rootNode)
 
 	// Re-create the same file.
 	f, err := fs.Create("foo")
@@ -238,7 +238,7 @@ func TestStat(t *testing.T) {
 	require.NoError(t, err)
 	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
-	testCreateFile(t, ctx, fs, "a/foo", aNode)
+	testCreateFile(ctx, t, fs, "a/foo", aNode)
 
 	// Check the dir
 	fi, err := fs.Stat("a")
@@ -290,7 +290,7 @@ func TestStat(t *testing.T) {
 	require.NoError(t, err)
 	aNode2, _, err := fs2U2.config.KBFSOps().CreateDir(ctx, rootNode2, "a")
 	require.NoError(t, err)
-	testCreateFile(t, ctx, fs2U2, "a/foo", aNode2)
+	testCreateFile(ctx, t, fs2U2, "a/foo", aNode2)
 
 	// Read as the reader.
 	fs2U1, err := NewFS(
@@ -314,7 +314,7 @@ func TestRename(t *testing.T) {
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	testCreateFile(t, ctx, fs, "foo", rootNode)
+	testCreateFile(ctx, t, fs, "foo", rootNode)
 	err = fs.MkdirAll("a/b", os.FileMode(0600))
 	require.NoError(t, err)
 
@@ -352,7 +352,7 @@ func TestRemove(t *testing.T) {
 	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	testCreateFile(t, ctx, fs, "foo", rootNode)
+	testCreateFile(ctx, t, fs, "foo", rootNode)
 	err = fs.MkdirAll("a/b", os.FileMode(0600))
 	require.NoError(t, err)
 
@@ -385,8 +385,8 @@ func TestReadDir(t *testing.T) {
 	require.NoError(t, err)
 	aNode, _, err := fs.config.KBFSOps().CreateDir(ctx, rootNode, "a")
 	require.NoError(t, err)
-	testCreateFile(t, ctx, fs, "a/foo", aNode)
-	testCreateFile(t, ctx, fs, "a/bar", aNode)
+	testCreateFile(ctx, t, fs, "a/foo", aNode)
+	testCreateFile(ctx, t, fs, "a/bar", aNode)
 	expectedNames := map[string]bool{
 		"foo": true,
 		"bar": true,
@@ -694,7 +694,7 @@ func TestArchivedByRevision(t *testing.T) {
 		ctx, h, data.MasterBranch)
 	require.NoError(t, err)
 
-	testCreateFile(t, ctx, fs, "foo", rootNode)
+	testCreateFile(ctx, t, fs, "foo", rootNode)
 	fis, err := fs.ReadDir("")
 	require.NoError(t, err)
 	require.Len(t, fis, 1)

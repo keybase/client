@@ -27,7 +27,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default compose(
-  // @ts-ignore codemode issue
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'QRScan'),
   safeSubmit(['onSubmitTextCode'], ['error']),
   withStateHandlers(

@@ -63,9 +63,9 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.Len(t, fis, 0)
 
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
+		ctx, t, config, h, repo, worktreeFS, "foo", "hello")
 	addFileToWorktreeAndCommit(
-		t, ctx, config, h, repo, worktreeFS, "dir/foo", "olleh")
+		ctx, t, config, h, repo, worktreeFS, "dir/foo", "olleh")
 
 	t.Log("Browse the repo and verify the data.")
 	b, err = NewBrowser(dotgitFS, config.Clock(), "", sharedCache)

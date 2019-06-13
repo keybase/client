@@ -516,6 +516,10 @@
             "string"
           ],
           "name": "inflationSource"
+        },
+        {
+          "type": "string",
+          "name": "feeChargedDescription"
         }
       ]
     },
@@ -1052,6 +1056,18 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "string",
+          "name": "publicNote"
+        },
+        {
+          "type": "string",
+          "name": "publicNoteType"
+        },
+        {
+          "type": "string",
+          "name": "feeChargedDescription"
         }
       ]
     },
@@ -2172,6 +2188,22 @@
         }
       ],
       "response": null
+    },
+    "fuzzyAssetSearchLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchString",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
     },
     "addTrustlineLocal": {
       "request": [

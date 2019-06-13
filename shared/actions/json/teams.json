@@ -2,7 +2,6 @@
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
-    "// @ts-ignore until constants is converted",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
@@ -49,9 +48,7 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {
-      "clearNavBadges?": "boolean"
-    },
+    "getTeams": {},
     "getDetails": {
       "teamname": "string"
     },

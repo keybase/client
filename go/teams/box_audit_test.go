@@ -724,3 +724,33 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	require.Nil(t, attempt.Error)
 	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
 }
+
+func TestBoxAuditVersionBump(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	aTc := tcs[0]
+	aM := libkb.NewMetaContextForTest(*aTc)
+
+	teamID := keybase1.TeamID("YELLOW_SUBMARINE")
+
+	a1 := newBoxAuditorWithVersion(aM.G(), 5)
+
+	a1.jail(aM, teamID)
+
+	jailed, err := a1.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.True(t, jailed)
+
+	jailed, err = a1.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.True(t, jailed)
+
+	a2 := newBoxAuditorWithVersion(aM.G(), 6)
+	jailed, err = a2.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.False(t, jailed)
+
+	jailed, err = a1.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.True(t, jailed)
+}

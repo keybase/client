@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
-// @ts-ignore not converted
 import {TextType} from './text'
 
 export type KeyboardType =

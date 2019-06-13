@@ -1,7 +1,5 @@
 import React from 'react'
-// @ts-ignore
 import Text from '../../../common-adapters/text'
-// @ts-ignore
 import {Box2} from '../../../common-adapters/box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'

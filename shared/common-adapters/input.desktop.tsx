@@ -1,5 +1,4 @@
 import * as React from 'react'
-// @ts-ignore not converted
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'

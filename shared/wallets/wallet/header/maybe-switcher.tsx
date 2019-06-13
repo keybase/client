@@ -3,13 +3,12 @@ import * as Kb from '../../../common-adapters'
 import {isMobile} from '../../../util/container'
 import WalletSwitcher from './wallet-switcher/container'
 
-type Props = {
-  children: React.ReactNode
-}
+type Props = React.PropsWithChildren<{}>
 
-const NoSwitcher = (props: Props) => props.children
+// @ts-ignore to fix wrap in fragment
+const NoSwitcher: React.FunctionComponent<Props> = props => props.children
 
-const _Switcher = (props: Props & Kb.OverlayParentProps) => (
+const _Switcher: React.FunctionComponent<Props & Kb.OverlayParentProps> = props => (
   <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
     {props.children}
     <WalletSwitcher

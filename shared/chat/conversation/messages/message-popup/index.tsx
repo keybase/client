@@ -4,7 +4,6 @@ import AttachmentMessage from './attachment/container'
 import TextMessage from './text/container'
 import ExplodingMessage from './exploding/container'
 import PaymentMessage from './payment/container'
-// @ts-ignore
 import {Position} from '../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../styles/css'
 

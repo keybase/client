@@ -126,6 +126,7 @@ class GetTitles extends React.Component<Props, State> {
           <Kb.Input
             style={Styles.isMobile ? stylesInputMobile : stylesInputDesktop}
             autoFocus={true}
+            autoCorrect={true}
             floatingHintTextOverride={titleHint}
             hideLabel={Styles.isMobile}
             hintText={titleHint}

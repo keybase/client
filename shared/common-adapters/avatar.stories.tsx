@@ -1,4 +1,4 @@
-import Avatar from './avatar'
+import Avatar, {AvatarSize} from './avatar'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Text from './text'
@@ -15,7 +15,7 @@ const load = () => {
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
     .add('Avatar', () =>
-      sizes.map(size => {
+      sizes.map((size: AvatarSize) => {
         const commonProps = {
           onClick: Sb.action('Avatar clicked'),
           showFollowingStatus: true,

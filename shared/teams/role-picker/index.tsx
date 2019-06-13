@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {map, capitalize} from 'lodash-es'
-// @ts-ignore not typed yet
 import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType as Role} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
@@ -229,7 +228,7 @@ const RolePicker = (props: Props) => {
               ? undefined
               : () => props.onSelectRole(disabledRole)
           return (
-            <Kb.ClickableBox key={role} onClick={onSelect}>
+            <Kb.ClickableBox key={role as string} onClick={onSelect}>
               <RoleRow
                 selected={selectedRole === role}
                 title={nodeMap.title}
@@ -419,8 +418,8 @@ export const sendNotificationFooter = (
 export const roleIconMap = {
   admin: 'iconfont-crown-admin',
   owner: 'iconfont-crown-owner',
-  reader: '',
-  writer: '',
-}
+  reader: undefined,
+  writer: undefined,
+} as const
 
 export default RolePicker

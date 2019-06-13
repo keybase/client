@@ -145,3 +145,7 @@ func (r *RemoteNet) FindPaymentPath(mctx libkb.MetaContext, query stellar1.Payme
 func (r *RemoteNet) PostAnyTransaction(mctx libkb.MetaContext, signedTx string) error {
 	return PostAnyTransaction(mctx, signedTx)
 }
+
+func (r *RemoteNet) FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	return FuzzyAssetSearch(mctx, arg)
+}

@@ -26,7 +26,7 @@ class AddToChannel extends React.Component<Props, State> {
   _itemHeight = {
     height: 48,
     type: 'fixed',
-  }
+  } as const
 
   _toggleSelected = username =>
     this.setState(s => ({

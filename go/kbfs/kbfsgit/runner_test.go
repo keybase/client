@@ -186,7 +186,7 @@ func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
 		t, gitDir, filename, contents, "foo")
 }
 
-func testPushWithTemplate(t *testing.T, ctx context.Context,
+func testPushWithTemplate(ctx context.Context, t *testing.T,
 	config libkbfs.Config, gitDir string, refspecs []string,
 	outputTemplate, tlfName string) {
 	// Use the runner to push the local data into the KBFS repo.
@@ -229,13 +229,13 @@ func testPushWithTemplate(t *testing.T, ctx context.Context,
 	require.Equal(t, expectedOutputMap, outputMap)
 }
 
-func testPush(t *testing.T, ctx context.Context, config libkbfs.Config,
+func testPush(ctx context.Context, t *testing.T, config libkbfs.Config,
 	gitDir, refspec string) {
-	testPushWithTemplate(t, ctx, config, gitDir, []string{refspec},
+	testPushWithTemplate(ctx, t, config, gitDir, []string{refspec},
 		"ok %s\n\n", "user1")
 }
 
-func testListAndGetHeadsWithName(t *testing.T, ctx context.Context,
+func testListAndGetHeadsWithName(ctx context.Context, t *testing.T,
 	config libkbfs.Config, gitDir string, expectedRefs []string,
 	tlfName string) (heads []string) {
 	inputReader, inputWriter := io.Pipe()
@@ -272,11 +272,11 @@ func testListAndGetHeadsWithName(t *testing.T, ctx context.Context,
 	return heads
 }
 
-func testListAndGetHeads(t *testing.T, ctx context.Context,
+func testListAndGetHeads(ctx context.Context, t *testing.T,
 	config libkbfs.Config, gitDir string, expectedRefs []string) (
 	heads []string) {
 	return testListAndGetHeadsWithName(
-		t, ctx, config, gitDir, expectedRefs, "user1")
+		ctx, t, config, gitDir, expectedRefs, "user1")
 }
 
 // This tests pushing code to a bare repo stored in KBFS, and pulling
@@ -306,7 +306,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
 
-	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git1, "refs/heads/master:refs/heads/master")
 
 	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -317,7 +317,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	gitExec(t, dotgit2, git2, "init")
 
 	// Find out the head hash.
-	heads := testListAndGetHeads(t, ctx, config, git2,
+	heads := testListAndGetHeads(ctx, t, config, git2,
 		[]string{"refs/heads/master", "HEAD"})
 
 	cloningStr := ""
@@ -387,16 +387,16 @@ func TestRunnerDeleteBranch(t *testing.T) {
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
 
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/test")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/test")
 
 	// Make sure there are 2 remote branches.
-	testListAndGetHeads(t, ctx, config, git,
+	testListAndGetHeads(ctx, t, config, git,
 		[]string{"refs/heads/master", "refs/heads/test", "HEAD"})
 
 	// Delete the test branch and make sure it goes away.
-	testPush(t, ctx, config, git, ":refs/heads/test")
-	testListAndGetHeads(t, ctx, config, git,
+	testPush(ctx, t, config, git, ":refs/heads/test")
+	testListAndGetHeads(ctx, t, config, git,
 		[]string{"refs/heads/master", "HEAD"})
 }
 
@@ -456,11 +456,11 @@ func TestForcePush(t *testing.T) {
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
 
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 
 	// Push a second file.
 	addOneFileToRepo(t, git, "foo2", "hello2")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 
 	// Now revert to the old commit and add a different file.
 	dotgit := filepath.Join(git, ".git")
@@ -469,10 +469,10 @@ func TestForcePush(t *testing.T) {
 	addOneFileToRepo(t, git, "foo3", "hello3")
 	// A non-force push should fail.
 	testPushWithTemplate(
-		t, ctx, config, git, []string{"refs/heads/master:refs/heads/master"},
+		ctx, t, config, git, []string{"refs/heads/master:refs/heads/master"},
 		"error %s some refs were not updated\n\n", "user1")
 	// But a force push should work
-	testPush(t, ctx, config, git, "+refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "+refs/heads/master:refs/heads/master")
 }
 
 func TestPushAllWithPackedRefs(t *testing.T) {
@@ -495,12 +495,12 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
 
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 
 	// Should be able to update the branch in a non-force way, even
 	// though it's a packed-ref.
 	addOneFileToRepo(t, git, "foo2", "hello2")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 }
 
 func TestPushSomeWithPackedRefs(t *testing.T) {
@@ -535,13 +535,13 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	// Simulate a `git push --all`, and make sure `refs/test/ref`
 	// isn't pushed.
 	testPushWithTemplate(
-		t, ctx, config, git, []string{
+		ctx, t, config, git, []string{
 			"refs/heads/master:refs/heads/master",
 			"refs/heads/test:refs/heads/test",
 			"refs/tags/v0:refs/tags/v0",
 		},
 		"ok %s\nok %s\nok %s\n\n", "user1")
-	testListAndGetHeads(t, ctx, config, git,
+	testListAndGetHeads(ctx, t, config, git,
 		[]string{
 			"refs/heads/master",
 			"refs/heads/test",
@@ -551,11 +551,11 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 
 	// Make sure we can push over a packed-refs ref.
 	addOneFileToRepo(t, git, "foo4", "hello4")
-	testPush(t, ctx, config, git, "refs/heads/test:refs/heads/test")
+	testPush(ctx, t, config, git, "refs/heads/test:refs/heads/test")
 }
 
 func testCloneIntoNewLocalRepo(
-	t *testing.T, ctx context.Context, config libkbfs.Config,
+	ctx context.Context, t *testing.T, config libkbfs.Config,
 	tlfName string) string {
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
@@ -569,7 +569,7 @@ func testCloneIntoNewLocalRepo(
 	dotgit := filepath.Join(git, ".git")
 	gitExec(t, dotgit, git, "init")
 
-	heads := testListAndGetHeadsWithName(t, ctx, config, git,
+	heads := testListAndGetHeadsWithName(ctx, t, config, git,
 		[]string{"refs/heads/master", "HEAD"}, tlfName)
 
 	inputReader, inputWriter := io.Pipe()
@@ -609,7 +609,7 @@ func TestRunnerReaderClone(t *testing.T) {
 	defer os.RemoveAll(git1)
 
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
-	testPushWithTemplate(t, ctx, config, git1,
+	testPushWithTemplate(ctx, t, config, git1,
 		[]string{"refs/heads/master:refs/heads/master"},
 		"ok %s\n\n", "user1#user2")
 
@@ -625,7 +625,7 @@ func TestRunnerReaderClone(t *testing.T) {
 		ctx, tempdir2, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
 	require.NoError(t, err)
 
-	git2 := testCloneIntoNewLocalRepo(t, ctx, config2, "user1#user2")
+	git2 := testCloneIntoNewLocalRepo(ctx, t, config2, "user1#user2")
 	defer os.RemoveAll(git2)
 
 	data, err := ioutil.ReadFile(filepath.Join(git2, "foo"))
@@ -658,23 +658,23 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 	require.NoError(t, err)
 
 	testPushWithTemplate(
-		t, ctx, config, git1, []string{
+		ctx, t, config, git1, []string{
 			"refs/heads/master:refs/heads/master",
 			"refs/heads/b:refs/heads/b",
 		},
 		"ok %s\nok %s\n\n", "user1")
 
-	testListAndGetHeadsWithName(t, ctx, config, git1,
+	testListAndGetHeadsWithName(ctx, t, config, git1,
 		[]string{"refs/heads/master", "refs/heads/b", "HEAD"}, "user1")
 
 	// Add a new file to the branch and push, to create a loose ref.
 	gitExec(t, dotgit1, git1, "checkout", "b")
 	addOneFileToRepo(t, git1, "foo3", "hello3")
-	testPush(t, ctx, config, git1, "refs/heads/b:refs/heads/b")
+	testPush(ctx, t, config, git1, "refs/heads/b:refs/heads/b")
 
 	// Now delete.
-	testPush(t, ctx, config, git1, ":refs/heads/b")
-	testListAndGetHeadsWithName(t, ctx, config, git1,
+	testPush(ctx, t, config, git1, ":refs/heads/b")
+	testListAndGetHeadsWithName(ctx, t, config, git1,
 		[]string{"refs/heads/master", "HEAD"}, "user1")
 }
 
@@ -723,10 +723,10 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 
 	// Make shared repo with 2 branches.
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
-	testPushWithTemplate(t, ctx, config, git1,
+	testPushWithTemplate(ctx, t, config, git1,
 		[]string{"refs/heads/master:refs/heads/master"},
 		"ok %s\n\n", "user1,user2")
-	testPushWithTemplate(t, ctx, config, git1,
+	testPushWithTemplate(ctx, t, config, git1,
 		[]string{"refs/heads/master:refs/heads/test"},
 		"ok %s\n\n", "user1,user2")
 
@@ -746,7 +746,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git2)
 
-	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
+	heads := testListAndGetHeadsWithName(ctx, t, config2, git2,
 		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
 	require.Equal(t, heads[0], heads[1])
 
@@ -774,7 +774,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	// While the second user is stalled, have the first user update
 	// one of the refs.
 	addOneFileToRepo(t, git1, "foo2", "hello2")
-	testPushWithTemplate(t, ctx, config, git1,
+	testPushWithTemplate(ctx, t, config, git1,
 		[]string{"refs/heads/master:refs/heads/test"},
 		"ok %s\n\n", "user1,user2")
 
@@ -792,7 +792,7 @@ func TestPackRefsAndOverwritePackedRef(t *testing.T) {
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	heads = testListAndGetHeadsWithName(t, ctx, config2, git2,
+	heads = testListAndGetHeadsWithName(ctx, t, config2, git2,
 		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
 	require.NotEqual(t, heads[0], heads[1])
 }
@@ -811,10 +811,10 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	// pack-refs file.
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
 	gitExec(t, dotgit1, git1, "pack-refs", "--all")
-	testPushWithTemplate(t, ctx, config, git1,
+	testPushWithTemplate(ctx, t, config, git1,
 		[]string{"refs/heads/master:refs/heads/master"},
 		"ok %s\n\n", "user1,user2")
-	testPushWithTemplate(t, ctx, config, git1,
+	testPushWithTemplate(ctx, t, config, git1,
 		[]string{"refs/heads/master:refs/heads/test"},
 		"ok %s\n\n", "user1,user2")
 
@@ -834,7 +834,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(git2)
 
-	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
+	heads := testListAndGetHeadsWithName(ctx, t, config2, git2,
 		[]string{"refs/heads/master", "refs/heads/test", "HEAD"}, "user1,user2")
 	require.Equal(t, heads[0], heads[1])
 
@@ -911,7 +911,7 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	testListAndGetHeadsWithName(t, ctx, config2, git2,
+	testListAndGetHeadsWithName(ctx, t, config2, git2,
 		[]string{"refs/heads/master", "HEAD"}, "user1,user2")
 }
 
@@ -932,13 +932,13 @@ func TestRepackObjects(t *testing.T) {
 
 	// Make a few pushes to make a few object pack files.
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 	addOneFileToRepo(t, git, "foo2", "hello2")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 	addOneFileToRepo(t, git, "foo3", "hello3")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 	addOneFileToRepo(t, git, "foo4", "hello4")
-	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git, "refs/heads/master:refs/heads/master")
 
 	fs, _, err := libgit.GetRepoAndID(ctx, config, h, "test", "")
 	require.NoError(t, err)
@@ -964,7 +964,7 @@ func TestRepackObjects(t *testing.T) {
 	require.Equal(t, 1, numObjectPacks)
 
 	// Check that a second clone looks correct.
-	git2 := testCloneIntoNewLocalRepo(t, ctx, config, "user1")
+	git2 := testCloneIntoNewLocalRepo(ctx, t, config, "user1")
 	defer os.RemoveAll(git2)
 
 	checkFile := func(name, expectedData string) {
@@ -978,7 +978,7 @@ func TestRepackObjects(t *testing.T) {
 	checkFile("foo4", "hello4")
 }
 
-func testHandlePushBatch(t *testing.T, ctx context.Context,
+func testHandlePushBatch(ctx context.Context, t *testing.T,
 	config libkbfs.Config, git, refspec, tlfName string) libgit.RefDataByName {
 	var input bytes.Buffer
 	var output bytes.Buffer
@@ -1014,7 +1014,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 		"We expect this to return no commits, since it should push the " +
 		"whole repository.")
 	makeLocalRepoWithOneFileCustomCommitMsg(t, git, "foo", "hello", "", "one")
-	refDataByName := testHandlePushBatch(t, ctx, config, git,
+	refDataByName := testHandlePushBatch(ctx, t, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
 	master := refDataByName["refs/heads/master"]
@@ -1026,7 +1026,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	t.Log("Add a commit and push it. We expect the push batch to return " +
 		"one reference with one commit.")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo2", "hello2", "two")
-	refDataByName = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(ctx, t, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
 	master = refDataByName["refs/heads/master"]
@@ -1041,7 +1041,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	addOneFileToRepoCustomCommitMsg(t, git, "foo3", "hello3", "three")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo4", "hello4", "four")
 	addOneFileToRepoCustomCommitMsg(t, git, "foo5", "hello5", "five")
-	refDataByName = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(ctx, t, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
 	master = refDataByName["refs/heads/master"]
@@ -1060,7 +1060,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 		msg := fmt.Sprintf("commit message %d", i+6)
 		addOneFileToRepoCustomCommitMsg(t, git, filename, content, msg)
 	}
-	refDataByName = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(ctx, t, config, git,
 		"refs/heads/master:refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
 	master = refDataByName["refs/heads/master"]
@@ -1070,7 +1070,7 @@ func TestRunnerHandlePushBatch(t *testing.T) {
 	require.Equal(t, libgit.CommitSentinelValue, commits[maxCommitsToVisitPerRef-1])
 
 	t.Log("Push a deletion.")
-	refDataByName = testHandlePushBatch(t, ctx, config, git,
+	refDataByName = testHandlePushBatch(ctx, t, config, git,
 		":refs/heads/master", "user1")
 	require.Len(t, refDataByName, 1)
 	master = refDataByName["refs/heads/master"]
@@ -1118,7 +1118,7 @@ func TestRunnerSubmodule(t *testing.T) {
 	require.NoError(t, err)
 	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
-	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
+	testPush(ctx, t, config, git1, "refs/heads/master:refs/heads/master")
 
 	t.Log("Use autogit to browse it")
 	rootFS, err := libfs.NewFS(

@@ -2,8 +2,8 @@ import * as Container from '../../../../../util/container'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import RetentionWarning from '.'
 import {RetentionEntityType} from '..'
-// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../../../constants/types/retention-policy'
+import {TypedState} from '../../../../../constants/reducer'
 
 type OwnProps = Container.RouteProps<
   {
@@ -15,7 +15,7 @@ type OwnProps = Container.RouteProps<
   {}
 >
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const policy = Container.getRouteProps(ownProps, 'policy')
   return {
     entityType: Container.getRouteProps(ownProps, 'entityType'),
@@ -24,7 +24,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   return {
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
@@ -39,7 +39,12 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  Container.withStateHandlers({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
-)(RetentionWarning)
+const connected = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))
+// eslint-disable-next-line func-call-spacing
+const withState = Container.withStateHandlers<
+  {enabled: boolean},
+  {setEnabled: (enabled: boolean) => {enabled: boolean} | undefined},
+  {}
+>({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
+
+export default connected(withState(RetentionWarning))

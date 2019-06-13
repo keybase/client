@@ -56,11 +56,11 @@ const ActionButtons = ({onCancel, onSubmit}) => (
 )
 
 const DeviceRevoke = (props: Props) => {
-  const icon: Kb.IconType = {
+  const icon: Kb.IconType = ({
     backup: Styles.isMobile ? 'icon-paper-key-revoke-64' : 'icon-paper-key-revoke-48',
     desktop: Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48',
     mobile: Styles.isMobile ? 'icon-phone-revoke-64' : 'icon-phone-revoke-48',
-  }[props.device.type]
+  } as const)[props.device.type]
 
   return (
     <Kb.Box2

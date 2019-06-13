@@ -1,20 +1,17 @@
 {
   "compilerOptions": {
+    "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
+    "checkJs": false,
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "module": "commonjs",
-    "noImplicitAny": false,
-    "paths": {
-      "rn-fetch-blob": ["custom-d.ts/rn-fetch-blob.d.ts"],
-      "popper": ["custom-d.ts/popper.d.ts"],
-      "framed-msgpack-rpc": ["custom-d.ts/framed-msgpack-rpc.d.ts"]
-    },
+    "noFallthroughCasesInSwitch": true,
+    "outDir": "./.tsOuts/.tsOut/emit",
     "sourceMap": true,
     "target": "es2017",
-    "outDir": "./.tsOuts/.tsOut/emit",
     "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
   },
   "include": ["globals.d.ts"],

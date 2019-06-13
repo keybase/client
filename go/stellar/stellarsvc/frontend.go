@@ -372,43 +372,52 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
+	var fee string
+	if details.FeeCharged != "" {
+		fee, err = stellar.FormatAmountDescriptionXLM(mctx, details.FeeCharged)
+		if err != nil {
+			return payment, err
+		}
+	}
+
 	payment = stellar1.PaymentDetailsLocal{
-		Id:                  summary.Id,
-		TxID:                stellar1.TransactionIDFromPaymentID(summary.Id),
-		Time:                summary.Time,
-		StatusSimplified:    summary.StatusSimplified,
-		StatusDescription:   summary.StatusDescription,
-		StatusDetail:        summary.StatusDetail,
-		ShowCancel:          summary.ShowCancel,
-		AmountDescription:   summary.AmountDescription,
-		Delta:               summary.Delta,
-		Worth:               summary.Worth,
-		WorthAtSendTime:     summary.WorthAtSendTime,
-		FromType:            summary.FromType,
-		ToType:              summary.ToType,
-		FromAccountID:       summary.FromAccountID,
-		FromAccountName:     summary.FromAccountName,
-		FromUsername:        summary.FromUsername,
-		ToAccountID:         summary.ToAccountID,
-		ToAccountName:       summary.ToAccountName,
-		ToUsername:          summary.ToUsername,
-		ToAssertion:         summary.ToAssertion,
-		OriginalToAssertion: summary.OriginalToAssertion,
-		Note:                summary.Note,
-		NoteErr:             summary.NoteErr,
-		PublicNote:          details.Memo,
-		PublicNoteType:      details.MemoType,
-		IssuerDescription:   summary.IssuerDescription,
-		IssuerAccountID:     summary.IssuerAccountID,
-		ExternalTxURL:       details.ExternalTxURL,
-		IsInflation:         summary.IsInflation,
-		InflationSource:     summary.InflationSource,
-		SourceAsset:         summary.SourceAsset,
-		SourceAmountMax:     summary.SourceAmountMax,
-		SourceAmountActual:  summary.SourceAmountActual,
-		IsAdvanced:          summary.IsAdvanced,
-		SummaryAdvanced:     summary.SummaryAdvanced,
-		Operations:          summary.Operations,
+		Id:                    summary.Id,
+		TxID:                  stellar1.TransactionIDFromPaymentID(summary.Id),
+		Time:                  summary.Time,
+		StatusSimplified:      summary.StatusSimplified,
+		StatusDescription:     summary.StatusDescription,
+		StatusDetail:          summary.StatusDetail,
+		ShowCancel:            summary.ShowCancel,
+		AmountDescription:     summary.AmountDescription,
+		Delta:                 summary.Delta,
+		Worth:                 summary.Worth,
+		WorthAtSendTime:       summary.WorthAtSendTime,
+		FromType:              summary.FromType,
+		ToType:                summary.ToType,
+		FromAccountID:         summary.FromAccountID,
+		FromAccountName:       summary.FromAccountName,
+		FromUsername:          summary.FromUsername,
+		ToAccountID:           summary.ToAccountID,
+		ToAccountName:         summary.ToAccountName,
+		ToUsername:            summary.ToUsername,
+		ToAssertion:           summary.ToAssertion,
+		OriginalToAssertion:   summary.OriginalToAssertion,
+		Note:                  summary.Note,
+		NoteErr:               summary.NoteErr,
+		PublicNote:            details.Memo,
+		PublicNoteType:        details.MemoType,
+		IssuerDescription:     summary.IssuerDescription,
+		IssuerAccountID:       summary.IssuerAccountID,
+		ExternalTxURL:         details.ExternalTxURL,
+		IsInflation:           summary.IsInflation,
+		InflationSource:       summary.InflationSource,
+		SourceAsset:           summary.SourceAsset,
+		SourceAmountMax:       summary.SourceAmountMax,
+		SourceAmountActual:    summary.SourceAmountActual,
+		IsAdvanced:            summary.IsAdvanced,
+		SummaryAdvanced:       summary.SummaryAdvanced,
+		Operations:            summary.Operations,
+		FeeChargedDescription: fee,
 	}
 
 	return payment, nil
@@ -1209,4 +1218,21 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 	// TODO: need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
 
 	return res, nil
+}
+
+func (s *Server) FuzzyAssetSearchLocal(ctx context.Context, arg stellar1.FuzzyAssetSearchLocalArg) (res []stellar1.Asset, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "FuzzyAssetSearchLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	remoteArg := stellar1.FuzzyAssetSearchArg{
+		SearchString: arg.SearchString,
+	}
+	return stellar.FuzzyAssetSearch(mctx, s.remoter, remoteArg)
 }

@@ -1,5 +1,4 @@
 import {publicAdminsLimit} from '../constants/teams'
-// @ts-ignore codemod-issue
 import {RetentionPolicy} from '../constants/types/retention-policy'
 
 type SortedAdmins = {

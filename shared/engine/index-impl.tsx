@@ -1,5 +1,4 @@
 // Handles sending requests to the daemon
-// @ts-ignore codemode issue
 import logger from '../logger'
 import Session, {CancelHandlerType} from './session'
 import {initEngine, initEngineSaga} from './require'
@@ -50,7 +49,6 @@ class Engine {
   _throttledDispatchWaitingAction = throttle(() => {
     const changes = this._queuedChanges
     this._queuedChanges = []
-    // @ts-ignore codemod-issue
     Engine._dispatch(createBatchChangeWaiting({changes}))
   }, 500)
 
@@ -161,9 +159,7 @@ class Engine {
 
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
-    // @ts-ignore codemode issue
     const {method, param: incomingParam, response} = payload
-    // @ts-ignore codemode issue
     const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
     // @ts-ignore codemode issue
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}

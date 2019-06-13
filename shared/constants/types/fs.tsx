@@ -6,7 +6,6 @@ import * as TeamsTypes from '../../constants/types/teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import {IconType} from '../../common-adapters/icon.constants'
-// @ts-ignore TODO: remove this ignore when common-adapters are TSed
 import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
@@ -86,7 +85,7 @@ export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 export enum ConflictState {
   None = 'none',
   InConflictStuck = 'in-conflict-stuck',
-  InCondlictNotStuck = 'in-conflict-not-stuck',
+  InConflictNotStuck = 'in-conflict-not-stuck',
   InManualResolution = 'in-manual-resolution',
   Finishing = 'finishing',
 }
@@ -106,7 +105,7 @@ export type _Tlf = {
   resetParticipants: I.List<string> // usernames
   // TODO: when we move this stuff into SimpleFS, this should no longer need
   //  to be nullable
-  syncConfig: TlfSyncConfig | null
+  syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
   /*
@@ -451,10 +450,11 @@ export enum SendAttachmentToChatState {
 }
 
 export type _SendAttachmentToChat = {
+  convID: ChatTypes.ConversationIDKey
   filter: string
   path: Path
-  convID: ChatTypes.ConversationIDKey
   state: SendAttachmentToChatState
+  title: string
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
@@ -591,7 +591,7 @@ export type _State = {
   errors: I.Map<string, FsError>
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
-  loadingPaths: I.Map<Path, I.Set<string>>
+  lastPublicBannerClosedTlf: string
   localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu

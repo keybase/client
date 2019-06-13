@@ -34,6 +34,17 @@
           "jsonkey": "email"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "EmailAddressChangedMsg",
+      "fields": [
+        {
+          "type": "EmailAddress",
+          "name": "email",
+          "jsonkey": "email"
+        }
+      ]
     }
   ],
   "messages": {

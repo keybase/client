@@ -59,6 +59,7 @@ type _UpdatedDetailsPayload = {
   readonly registeredForAirdrop: boolean
   readonly username: string
   readonly teamShowcase: Array<Types._TeamShowcase>
+  readonly blocked: boolean
 }
 
 // Action Creators
@@ -100,40 +101,31 @@ export const createUpdatedDetails = (payload: _UpdatedDetailsPayload): UpdatedDe
 })
 
 // Action Payloads
-export type ChangeFollowPayload = {
-  readonly payload: _ChangeFollowPayload
-  readonly type: 'tracker2:changeFollow'
-}
-export type CloseTrackerPayload = {
-  readonly payload: _CloseTrackerPayload
-  readonly type: 'tracker2:closeTracker'
-}
+export type ChangeFollowPayload = {readonly payload: _ChangeFollowPayload; readonly type: typeof changeFollow}
+export type CloseTrackerPayload = {readonly payload: _CloseTrackerPayload; readonly type: typeof closeTracker}
 export type GetProofSuggestionsPayload = {
   readonly payload: _GetProofSuggestionsPayload
-  readonly type: 'tracker2:getProofSuggestions'
+  readonly type: typeof getProofSuggestions
 }
-export type IgnorePayload = {readonly payload: _IgnorePayload; readonly type: 'tracker2:ignore'}
-export type LoadPayload = {readonly payload: _LoadPayload; readonly type: 'tracker2:load'}
+export type IgnorePayload = {readonly payload: _IgnorePayload; readonly type: typeof ignore}
+export type LoadPayload = {readonly payload: _LoadPayload; readonly type: typeof load}
 export type ProofSuggestionsUpdatedPayload = {
   readonly payload: _ProofSuggestionsUpdatedPayload
-  readonly type: 'tracker2:proofSuggestionsUpdated'
+  readonly type: typeof proofSuggestionsUpdated
 }
-export type ShowUserPayload = {readonly payload: _ShowUserPayload; readonly type: 'tracker2:showUser'}
+export type ShowUserPayload = {readonly payload: _ShowUserPayload; readonly type: typeof showUser}
 export type UpdateAssertionPayload = {
   readonly payload: _UpdateAssertionPayload
-  readonly type: 'tracker2:updateAssertion'
+  readonly type: typeof updateAssertion
 }
 export type UpdateFollowersPayload = {
   readonly payload: _UpdateFollowersPayload
-  readonly type: 'tracker2:updateFollowers'
+  readonly type: typeof updateFollowers
 }
-export type UpdateResultPayload = {
-  readonly payload: _UpdateResultPayload
-  readonly type: 'tracker2:updateResult'
-}
+export type UpdateResultPayload = {readonly payload: _UpdateResultPayload; readonly type: typeof updateResult}
 export type UpdatedDetailsPayload = {
   readonly payload: _UpdatedDetailsPayload
-  readonly type: 'tracker2:updatedDetails'
+  readonly type: typeof updatedDetails
 }
 
 // All Actions

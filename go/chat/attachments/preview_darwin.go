@@ -105,3 +105,5 @@ func previewVideo(ctx context.Context, log utils.DebugLabeler, src io.Reader,
 		PreviewWidth:   imagePreview.PreviewWidth,
 	}, nil
 }
+
+func LinkNoop() {}

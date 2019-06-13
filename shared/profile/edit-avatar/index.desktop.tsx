@@ -87,7 +87,6 @@ class EditAvatar extends React.Component<_Props, State> {
       ? Array.prototype.map
           .call(fileList, (f: File) => {
             // We rely on path being here, even though it's not part of the File spec.
-            // @ts-ignore
             const path: string = f.path
             return path
           })
@@ -471,5 +470,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-// @ts-ignore HOCTimers typing is wrong
 export default HOCTimers(EditAvatar)

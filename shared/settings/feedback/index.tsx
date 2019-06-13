@@ -17,6 +17,7 @@ export const getOtherErrorInfo = (err: Error) => {
 }
 
 type Props = {
+  feedback?: string | null
   loggedOut: boolean
   onSendFeedback: (feedback: string, sendLogs: boolean) => void
   sending: boolean
@@ -31,16 +32,14 @@ type State = {
 }
 
 class Feedback extends React.Component<Props, State> {
-  state = {
-    email: null,
-    feedback: '',
-    sendLogs: true,
-    showSuccessBanner: false,
-  }
+  state = {email: null, feedback: this.props.feedback, sendLogs: true, showSuccessBanner: false}
+
   componentDidUpdate(prevProps: Props) {
     if (prevProps.sending !== this.props.sending || this.props.sendError !== prevProps.sendError) {
+      const success = !this.props.sending && !this.props.sendError
       this.setState({
-        showSuccessBanner: !this.props.sending && !this.props.sendError,
+        feedback: success ? '' : this.state.feedback,
+        showSuccessBanner: success,
       })
     }
   }

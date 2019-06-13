@@ -1,9 +1,7 @@
 // Known issues:
 // When input gets focus it shifts down 1 pixel when the cursor appears. This happens with a naked TextInput on RN...
 import React, {Component} from 'react'
-// @ts-ignore not converted
 import Box from './box'
-// @ts-ignore not converted
 import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'

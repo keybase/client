@@ -201,7 +201,7 @@ const headerOverride = {
     ...Styles.globalStyles.fontSemibold,
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 20 : 16,
-    textAlign: Styles.isMobile ? 'center' : 'left',
+    textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: {...Styles.globalStyles.fontExtrabold},
 }
@@ -209,7 +209,7 @@ const bodyOverride = {
   paragraph: {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
-    textAlign: Styles.isMobile ? 'center' : 'left',
+    textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: {...Styles.globalStyles.fontExtrabold},
 }
@@ -226,7 +226,7 @@ const sectionBodyOverride = {
 
 const styles = Styles.styleSheetCreate({
   bannerButton: {
-    alignSelf: Styles.isMobile ? 'center' : 'flex-start',
+    alignSelf: Styles.isMobile ? ('center' as const) : ('flex-start' as const),
   },
   body: {
     paddingLeft: Styles.globalMargins.medium,

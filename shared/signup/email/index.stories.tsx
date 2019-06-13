@@ -5,8 +5,8 @@ import EnterEmail from '.'
 
 const props = {
   allowSearch: false,
+  error: '',
   onChangeAllowSearch: Sb.action('onChangeAllowSearch'),
-  onChangeEmail: Sb.action('onChangeEmail'),
   onFinish: Sb.action('onFinish'),
   onSkip: Sb.action('onSkip'),
 }

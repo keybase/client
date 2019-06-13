@@ -38,6 +38,7 @@ func (t *testBlockMetadataStoreConfig) StorageRoot() string {
 func makeBlockMetadataStoreForTest(t *testing.T) (
 	blockMetadataStore BlockMetadataStore, tempdir string) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "xattr_test")
+	require.NoError(t, err)
 	config := testBlockMetadataStoreConfig{
 		codec:       kbfscodec.NewMsgpack(),
 		log:         logger.NewTestLogger(t),

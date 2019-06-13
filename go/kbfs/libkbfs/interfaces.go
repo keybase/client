@@ -232,6 +232,10 @@ type Node interface {
 	// FillCacheDuration sets `d` to the suggested cache time for this
 	// node, if desired.
 	FillCacheDuration(d *time.Duration)
+	// Obfuscator returns something that can obfuscate the child
+	// entries of this Node in the case of directories; for other
+	// types, it returns nil.
+	Obfuscator() data.Obfuscator
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -561,7 +565,7 @@ type KBFSOps interface {
 }
 
 type gitMetadataPutter interface {
-	PutGitMetadata(ctx context.Context, folder keybase1.Folder,
+	PutGitMetadata(ctx context.Context, folder keybase1.FolderHandle,
 		repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error
 }
 
@@ -572,11 +576,11 @@ type KeybaseService interface {
 	gitMetadataPutter
 
 	// FavoriteAdd adds the given folder to the list of favorites.
-	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteAdd removes the given folder from the list of
 	// favorites.
-	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+	FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteList returns the current list of favorites.
 	FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult,
@@ -765,11 +769,11 @@ type KBPKI interface {
 
 	// FavoriteAdd adds folder to the list of the logged in user's
 	// favorite folders.  It is idempotent.
-	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteDelete deletes folder from the list of the logged in user's
 	// favorite folders.  It is idempotent.
-	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+	FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
@@ -835,6 +839,11 @@ type blockKeyGetter interface {
 type KeyManager interface {
 	blockKeyGetter
 	mdDecryptionKeyGetter
+
+	// GetFirstTLFCryptKey gets the first valid crypt key for the
+	// TLF with the given metadata.
+	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
+		kbfscrypto.TLFCryptKey, error)
 
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
@@ -1903,6 +1912,12 @@ type InitMode interface {
 	// OldStorageRootCleaningEnabled indicates whether we should clean
 	// old temporary storage root directories.
 	OldStorageRootCleaningEnabled() bool
+	// DoRefreshFavoritesOnInit indicates whether we should refresh
+	// our cached versions of the favorites immediately upon a login.
+	DoRefreshFavoritesOnInit() bool
+	// DoLogObfuscation indicates whether senstive data like filenames
+	// should be obfuscated in log messages.
+	DoLogObfuscation() bool
 }
 
 type initModeGetter interface {
@@ -2164,6 +2179,10 @@ type NodeCache interface {
 	// AddRootWrapper adds a new wrapper function that will be applied
 	// whenever a root Node is created.
 	AddRootWrapper(func(Node) Node)
+	// SetObfuscatorMaker sets the obfuscator-making function for this cache.
+	SetObfuscatorMaker(func() data.Obfuscator)
+	// ObfuscatorMaker sets the obfuscator-making function for this cache.
+	ObfuscatorMaker() func() data.Obfuscator
 }
 
 // fileBlockDeepCopier fetches a file block, makes a deep copy of it

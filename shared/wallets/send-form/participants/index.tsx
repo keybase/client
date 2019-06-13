@@ -18,7 +18,7 @@ const ParticipantsKeybaseUser = (props: ToKeybaseUserProps) => (
 
 const ParticipantsStellarPublicKey = (props: ToStellarPublicKeyProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    <ToStellarPublicKey key={props.keyCounter} {...props} />
+    <ToStellarPublicKey {...props} />
   </Kb.Box2>
 )
 

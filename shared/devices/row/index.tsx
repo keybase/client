@@ -3,14 +3,14 @@ import * as Kb from '../../common-adapters'
 import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 
-type Props = {
-  isCurrentDevice: boolean
-  name: string
-  isRevoked: boolean
-  isNew: boolean
-  type: 'desktop' | 'backup' | 'mobile'
-  showExistingDevicePage: () => void
+export type Props = {
   firstItem: boolean
+  isCurrentDevice: boolean
+  isNew: boolean
+  isRevoked: boolean
+  name: string
+  showExistingDevicePage: () => void
+  type: 'desktop' | 'backup' | 'mobile'
 }
 
 const DeviceRow = (props: Props) => {
@@ -62,6 +62,6 @@ const styles = Styles.styleSheetCreate({
 
 const _metaStyle = {
   alignSelf: 'flex-start',
-}
+} as const
 
 export default DeviceRow

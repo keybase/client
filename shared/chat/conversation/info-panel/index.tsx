@@ -42,6 +42,7 @@ type Doc = {
   author: string
   ctime: number
   downloading: boolean
+  fileName: string
   name: string
   progress: number
   onDownload: null | (() => void)
@@ -70,7 +71,7 @@ type LinkProps = {
 
 export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
-  participants: Array<ParticipantTyp>
+  participants: ReadonlyArray<ParticipantTyp>
   isPreview: boolean
   teamname: string | null
   channelname: string | null

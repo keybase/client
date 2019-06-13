@@ -9,7 +9,6 @@ import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
-// @ts-ignore codemod issue
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 import {Loading} from '../fs/simple-screens'
@@ -226,7 +225,7 @@ class MenubarRender extends React.Component<Props, State> {
     const sectionTabs =
       startingUp || loggedOut
         ? []
-        : [
+        : ([
             {
               onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
@@ -248,7 +247,7 @@ class MenubarRender extends React.Component<Props, State> {
               view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap[Tabs.settingsTab]),
             },
             'Divider',
-          ]
+          ] as const)
 
     const openApp = startingUp
       ? []
@@ -366,7 +365,7 @@ const iconMap = {
   [Tabs.devicesTab]: 'iconfont-nav-2-devices',
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
-}
+} as const
 const BadgeIcon = ({tab, countMap, openApp}) => {
   const count = countMap[tab]
   const iconType = iconMap[tab]

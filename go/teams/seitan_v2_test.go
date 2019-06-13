@@ -105,6 +105,7 @@ func TestSeitanBadSignatures(t *testing.T) {
 	defer tc.Cleanup()
 
 	user, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	ikey1, err := GenerateIKeyV2()
 	require.NoError(t, err)

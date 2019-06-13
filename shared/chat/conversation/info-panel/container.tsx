@@ -83,7 +83,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttachmentView}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch,
+  {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
+) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onEditChannel: (teamname: string) =>
@@ -110,6 +113,18 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack, onSelectAttach
     dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
     onSelectAttachmentView(viewType)
   },
+  onBack: onBack
+    ? () => {
+        onBack()
+        dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+      }
+    : null,
+  onCancel: onCancel
+    ? () => {
+        onCancel()
+        dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+      }
+    : null,
   onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
@@ -160,6 +175,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
               author: m.author,
               ctime: m.timestamp,
               downloading: m.transferState === 'downloading',
+              fileName: m.fileName,
               message: m,
               name: m.title || m.fileName,
               onDownload: !isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : () => null,
@@ -226,8 +242,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
         }
       : {onLoadMore: () => {}, status: 'loading', thumbs: []},
   onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
-  onBack: ownProps.onBack,
-  onCancel: ownProps.onCancel,
+  onBack: dispatchProps.onBack,
+  onCancel: dispatchProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onHideConv: dispatchProps.onHideConv,
   onJoinChannel: dispatchProps.onJoinChannel,

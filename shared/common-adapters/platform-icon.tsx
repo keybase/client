@@ -1,8 +1,6 @@
 import * as React from 'react'
 import {PlatformsExpandedType} from '../constants/types/more'
-// @ts-ignore not converted
 import Box from './box'
-// @ts-ignore not converted
 import Icon, {IconType} from './icon'
 import {isMobile} from '../constants/platform'
 

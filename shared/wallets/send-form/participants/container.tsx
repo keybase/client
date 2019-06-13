@@ -55,27 +55,12 @@ const ConnectedParticipantsKeybaseUser = namedConnect(
   'ParticipantsKeybaseUser'
 )(ParticipantsKeybaseUser)
 
-// This thing has internal state to handle typing, but under some circumstances we want it to blow away all that data
-// and just take in the props again (aka remount) so, in order to achieve this in the least invasive way we'll watch the
-// route and we'll increment out key if we become topmost again
-let keyCounter = 1
-// let lastPath = ''
-
 const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
-  // const curPath = RouteTree.getPath(state.routeTree.routeState, [Constants.rootWalletTab]).last()
-  // // looking at the form now, but wasn't before
-  // if (curPath === Constants.sendRequestFormRouteKey && curPath !== lastPath) {
-  // keyCounter++
-  // }
-
-  // lastPath = curPath
-
   return {
     errorMessage: built.toErrMsg,
-    keyCounter,
     recipientPublicKey: build.to,
   }
 }

@@ -91,6 +91,8 @@ const (
 	fastForwardRevThresh = 50
 	// Period between mark-and-sweep attempts.
 	markAndSweepPeriod = 1 * time.Hour
+	// A hard-coded reason used to derive the log obfuscator secret.
+	obfuscatorDerivationString = "Keybase-Derived-KBFS-Log-Obfuscator-1"
 )
 
 // ErrStillStagedAfterCR indicates that conflict resolution failed to take
@@ -391,6 +393,9 @@ type folderBranchOps struct {
 
 	convLock sync.Mutex
 	convID   chat1.ConversationID
+
+	obLock   sync.RWMutex
+	obSecret data.NodeObfuscatorSecret
 }
 
 var _ fbmHelper = (*folderBranchOps)(nil)
@@ -504,6 +509,9 @@ func newFolderBranchOps(
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() && bType == standard {
 		fbo.goTracked(fbo.backgroundFlusher)
+	}
+	if config.Mode().NodeCacheEnabled() {
+		nodeCache.SetObfuscatorMaker(fbo.makeObfuscator)
 	}
 
 	return fbo
@@ -1312,7 +1320,8 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 		// If we're not syncing the TLF at all, start a partial "sync"
 		// using the recently-edited files list, storing the blocks in
 		// the working set cache.
-		if !fbo.config.Mode().TLFEditHistoryEnabled() {
+		if !fbo.config.Mode().TLFEditHistoryEnabled() ||
+			fbo.config.Mode().DefaultBlockRequestAction() == BlockRequestSolo {
 			return
 		}
 		err := fbo.editActivity.Wait(ctx)
@@ -1773,6 +1782,50 @@ func (fbo *folderBranchOps) commitFlushedMD(
 	}
 }
 
+func (fbo *folderBranchOps) setObfuscatorSecretLocked(
+	ctx context.Context, lState *kbfssync.LockState) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+
+	if !fbo.config.Mode().DoLogObfuscation() {
+		return nil
+	}
+
+	fbo.obLock.Lock()
+	defer fbo.obLock.Unlock()
+
+	if fbo.obSecret != nil {
+		panic("Obfuscator secret is being set more than once")
+	}
+
+	fbo.log.CDebugf(ctx, "Making the log obfuscator secret")
+	key, err := fbo.config.KeyManager().GetFirstTLFCryptKey(
+		ctx, fbo.head.ReadOnly())
+	if err != nil {
+		return err
+	}
+	secret, err := key.DeriveSecret(obfuscatorDerivationString)
+	if err != nil {
+		return err
+	}
+	fbo.obSecret = data.NodeObfuscatorSecret(secret)
+	return nil
+}
+
+func (fbo *folderBranchOps) makeObfuscator() data.Obfuscator {
+	if !fbo.config.Mode().DoLogObfuscation() {
+		return nil
+	}
+
+	fbo.obLock.RLock()
+	defer fbo.obLock.RUnlock()
+
+	if fbo.obSecret != nil {
+		return nil
+	}
+	return data.NewNodeObfuscator(fbo.obSecret)
+}
+
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *kbfssync.LockState,
 	md ImmutableRootMetadata, headStatus headTrustStatus,
@@ -1921,6 +1974,11 @@ func (fbo *folderBranchOps) setHeadLocked(
 	}
 	fbo.status.setRootMetadata(md)
 	if isFirstHead {
+		err := fbo.setObfuscatorSecretLocked(ctx, lState)
+		if err != nil {
+			return err
+		}
+
 		// Start registering for updates right away, using this MD
 		// as a starting point. Only standard FBOs get updates.
 		if fbo.bType == standard {
@@ -8489,7 +8547,7 @@ func (fbo *folderBranchOps) PushStatusChange() {
 // folderBranchOps.
 func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	func() {
-		// Cancel the edits goroutine and forget the old history, evem
+		// Cancel the edits goroutine and forget the old history, even
 		// for public folders, since some of the state in the history
 		// is dependent on your login state.
 		fbo.editsLock.Lock()
@@ -8547,6 +8605,12 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	fbo.headStatus = headUntrusted
 	fbo.latestMergedRevision = kbfsmd.RevisionUninitialized
 	fbo.hasBeenCleared = true
+
+	// Clear the log obfuscation secret as well, so it can be re-set
+	// when the head is re-established.
+	fbo.obLock.Lock()
+	defer fbo.obLock.Unlock()
+	fbo.obSecret = nil
 }
 
 // ForceFastForward implements the KBFSOps interface for

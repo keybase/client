@@ -4,6 +4,7 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -23,19 +24,13 @@ func NewTeamer(g *libkb.GlobalContext) Teamer {
 	}
 }
 
-func (t *TeamerImpl) LookupOrCreate(ctx context.Context, folder keybase1.Folder) (res keybase1.TeamIDWithVisibility, err error) {
+func (t *TeamerImpl) LookupOrCreate(ctx context.Context, folder keybase1.FolderHandle) (res keybase1.TeamIDWithVisibility, err error) {
 	defer t.G().CTrace(ctx, fmt.Sprintf("git.Teamer#LookupOrCreate(%s, ftyp:%v)", folder.Name, folder.FolderType), func() error { return err })()
 
 	switch folder.FolderType {
 	case keybase1.FolderType_PRIVATE:
-		if !folder.Private {
-			return res, fmt.Errorf("folder type PRIVATE but private bit is false")
-		}
 		return t.lookupOrCreateImplicitTeam(ctx, folder)
 	case keybase1.FolderType_PUBLIC:
-		if folder.Private {
-			return res, fmt.Errorf("folder type PUBLIC but private bit is true")
-		}
 		return t.lookupOrCreateImplicitTeam(ctx, folder)
 	case keybase1.FolderType_TEAM:
 		return t.lookupTeam(ctx, folder)
@@ -44,8 +39,8 @@ func (t *TeamerImpl) LookupOrCreate(ctx context.Context, folder keybase1.Folder)
 	}
 }
 
-func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.Folder) (res keybase1.TeamIDWithVisibility, err error) {
-	if !folder.Private {
+func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.FolderHandle) (res keybase1.TeamIDWithVisibility, err error) {
+	if folder.FolderType == keybase1.FolderType_PUBLIC {
 		return res, fmt.Errorf("public team git repos not supported")
 	}
 	if err != nil {
@@ -53,17 +48,17 @@ func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.Folder) (re
 	}
 	team, err := teams.Load(ctx, t.G(), keybase1.LoadTeamArg{
 		Name:        folder.Name,
-		Public:      !folder.Private,
+		Public:      folder.FolderType == keybase1.FolderType_PUBLIC,
 		ForceRepoll: false, // if subteams get renamed in a racy way, just let this fail
 	})
 	if err != nil {
 		return res, err
 	}
-	if folder.Private == team.IsPublic() {
-		return res, fmt.Errorf("team publicity mismatch folder:%v != team:%v", !folder.Private, team.IsPublic())
+	if (folder.FolderType == keybase1.FolderType_PUBLIC) != team.IsPublic() {
+		return res, fmt.Errorf("team publicity mismatch folder:%v != team:%v", folder.FolderType, team.IsPublic())
 	}
 	visibility := keybase1.TLFVisibility_PRIVATE
-	if !folder.Private {
+	if folder.FolderType == keybase1.FolderType_PUBLIC {
 		visibility = keybase1.TLFVisibility_PUBLIC
 	}
 	return keybase1.TeamIDWithVisibility{
@@ -72,10 +67,12 @@ func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.Folder) (re
 	}, nil
 }
 
-func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keybase1.Folder) (res keybase1.TeamIDWithVisibility, err error) {
+func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keybase1.FolderHandle) (res keybase1.TeamIDWithVisibility, err error) {
 	visibility := keybase1.TLFVisibility_PRIVATE
-	if !folder.Private {
+	if folder.FolderType == keybase1.FolderType_PUBLIC {
 		visibility = keybase1.TLFVisibility_PUBLIC
+	} else if folder.FolderType != keybase1.FolderType_PRIVATE {
+		return res, errors.New("bad folder")
 	}
 
 	impName, err := libkb.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(t.MetaContext(ctx)), "/keybase/"+folder.ToString())
@@ -87,7 +84,7 @@ func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keyb
 		return res, err
 	}
 
-	isPublic := !folder.Private
+	isPublic := folder.FolderType == keybase1.FolderType_PUBLIC
 
 	team, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, t.G(), lookupName, isPublic)
 	if err != nil {

@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
-import {LoadPathMetadataWhenNeeded, TlfInfo} from '../../common'
+import {LoadPathMetadataWhenNeeded, TlfInfo, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean
@@ -14,8 +14,32 @@ type TlfProps = StillCommonProps & {
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean
   routePath: I.List<string>
+  usernames: I.List<string>
 }
 
+const Content = (props: TlfProps) => (
+  <Kb.BoxGrow>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.leftBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.minWidth}>
+        <Filename
+          type={Constants.pathTypeToTextType(Types.PathType.Folder)}
+          style={Styles.collapseStyles([rowStyles.rowText, styles.kerning])}
+          path={props.path}
+        />
+      </Kb.Box2>
+      <TlfInfo path={props.path} mode="row" />
+    </Kb.Box2>
+  </Kb.BoxGrow>
+)
+const Avatars = (props: TlfProps) => (
+  <Kb.Box style={styles.avatarBox}>
+    {Constants.isTeamPath(props.path) ? (
+      <Kb.Avatar size={32} isTeam={true} teamname={props.usernames.get(0)} />
+    ) : (
+      <Kb.AvatarLine maxShown={4} size={32} layout="horizontal" usernames={props.usernames.toArray()} />
+    )}
+  </Kb.Box>
+)
 const Tlf = (props: TlfProps) => (
   <StillCommon
     name={props.name}
@@ -24,29 +48,27 @@ const Tlf = (props: TlfProps) => (
     inDestinationPicker={props.inDestinationPicker}
     badge={props.isNew ? Types.PathItemBadgeType.New : null}
     routePath={props.routePath}
+    showActionsWithGrow={true}
   >
     {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
     <Kb.Box style={rowStyles.itemBox}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Text
-          type={Constants.pathTypeToTextType(Types.PathType.Folder)}
-          style={Styles.collapseStyles([
-            rowStyles.rowText,
-            {color: Constants.getPathTextColor(props.path)},
-            styles.kerning,
-          ])}
-          lineClamp={Styles.isMobile ? 1 : undefined}
-        >
-          {props.name}
-        </Kb.Text>
-      </Kb.Box2>
-      <TlfInfo path={props.path} mode="row" />
+      {Styles.isMobile ? (
+        <Content {...props} />
+      ) : (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Content {...props} />
+          <Avatars {...props} />
+        </Kb.Box2>
+      )}
     </Kb.Box>
   </StillCommon>
 )
 
 const styles = Styles.styleSheetCreate({
+  avatarBox: {marginRight: Styles.globalMargins.xsmall},
   kerning: {letterSpacing: 0.2},
+  leftBox: {flex: 1, justifyContent: 'center', minWidth: 0},
+  minWidth: {minWidth: 0},
 })
 
 export default Tlf

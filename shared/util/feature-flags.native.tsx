@@ -9,6 +9,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   airdrop: false,
   chatIndexProfilingEnabled: false,
+  conflictResolution: false,
   dbCleanEnabled: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
@@ -17,6 +18,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
+  stellarExternalPartners: true,
 }
 
 // load overrides

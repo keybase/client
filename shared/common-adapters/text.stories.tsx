@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
-// @ts-ignore
 import Box from './box'
-// @ts-ignore
 import Icon from './icon'
 import Text, {allTextTypes, TextType} from './text'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../styles'

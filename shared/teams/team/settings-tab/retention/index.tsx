@@ -1,9 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-// @ts-ignore not typed yet
 import {MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
-// @ts-ignore not typed yet
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
@@ -266,7 +264,7 @@ const displayHeadingStyle = {
 const labelStyle = {
   justifyContent: 'center',
   minHeight: Styles.isMobile ? 40 : 32,
-}
+} as const
 
 const progressIndicatorStyle = {
   height: 30,

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {connect, isMobile} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
 import openURL from '../../../../util/open-url'
 import {WalletSwitcher} from '.'
@@ -11,15 +11,15 @@ type OwnProps = {
   hideMenu: () => void
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   accounts: getAccountIDs(state),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onAddNew: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {backButton: isMobile, showOnCreation: true}, selected: 'createNewAccount'}],
+        path: [{props: {backButton: Container.isMobile, showOnCreation: true}, selected: 'createNewAccount'}],
       })
     )
   },
@@ -34,17 +34,15 @@ const mapDispatchToProps = dispatch => ({
   onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  accountIDs: stateProps.accounts.toArray(),
-  onAddNew: dispatchProps.onAddNew,
-  onJoinAirdrop: dispatchProps.onJoinAirdrop,
-  onLinkExisting: dispatchProps.onLinkExisting,
-  onWhatIsStellar: dispatchProps.onWhatIsStellar,
-  ...ownProps,
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    accountIDs: stateProps.accounts.toArray(),
+    onAddNew: dispatchProps.onAddNew,
+    onJoinAirdrop: dispatchProps.onJoinAirdrop,
+    onLinkExisting: dispatchProps.onLinkExisting,
+    onWhatIsStellar: dispatchProps.onWhatIsStellar,
+    ...ownProps,
+  })
 )(WalletSwitcher)

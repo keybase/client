@@ -128,7 +128,7 @@ func setupBlockJournalTest(t *testing.T) (
 	return ctx, cancel, tempdir, log, j
 }
 
-func teardownBlockJournalTest(t *testing.T, ctx context.Context,
+func teardownBlockJournalTest(ctx context.Context, t *testing.T,
 	cancel context.CancelFunc, tempdir string, j *blockJournal) {
 	cancel()
 
@@ -195,7 +195,7 @@ func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
 
 func TestBlockJournalBasic(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
@@ -226,7 +226,7 @@ func TestBlockJournalBasic(t *testing.T) {
 
 func TestBlockJournalDuplicatePut(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	data := []byte{1, 2, 3, 4}
 
@@ -269,7 +269,7 @@ func TestBlockJournalDuplicatePut(t *testing.T) {
 
 func TestBlockJournalAddReference(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(
@@ -286,7 +286,7 @@ func TestBlockJournalAddReference(t *testing.T) {
 
 func TestBlockJournalArchiveReferences(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
@@ -307,7 +307,7 @@ func TestBlockJournalArchiveReferences(t *testing.T) {
 
 func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	uid1 := keybase1.MakeTestUID(1)
 
@@ -327,7 +327,7 @@ func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 
 func TestBlockJournalRemoveReferences(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
@@ -356,7 +356,7 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 
 func TestBlockJournalDuplicateRemove(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put the block.
 	data := []byte{1, 2, 3, 4}
@@ -410,7 +410,7 @@ func testBlockJournalGCd(t *testing.T, j *blockJournal) {
 	require.Equal(t, blockAggregateInfo{}, j.aggregateInfo)
 }
 
-func goGCForTest(t *testing.T, ctx context.Context, j *blockJournal) (
+func goGCForTest(ctx context.Context, t *testing.T, j *blockJournal) (
 	int64, int64) {
 	length, earliest, latest, err := j.getDeferredGCRange()
 	require.NoError(t, err)
@@ -427,7 +427,7 @@ func goGCForTest(t *testing.T, ctx context.Context, j *blockJournal) (
 
 func TestBlockJournalFlush(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put a block.
 
@@ -487,7 +487,7 @@ func TestBlockJournalFlush(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, b, flushedBytes)
 
-		removedBytes, removedFiles = goGCForTest(t, ctx, j)
+		removedBytes, removedFiles = goGCForTest(ctx, t, j)
 		return flushedBytes, removedBytes, removedFiles
 	}
 
@@ -563,7 +563,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	require.NoError(t, err)
 	require.Equal(t, b, flushedBytes)
 
-	removedBytes, removedFiles = goGCForTest(t, ctx, j)
+	removedBytes, removedFiles = goGCForTest(ctx, t, j)
 	require.NoError(t, err)
 
 	err = j.checkInSyncForTest()
@@ -573,7 +573,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 
 func TestBlockJournalFlushInterleaved(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put a block.
 
@@ -709,7 +709,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put a block.
 
@@ -744,7 +744,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data)), flushedBytes)
 	require.Equal(t, b, flushedBytes)
-	removedBytes, removedFiles := goGCForTest(t, ctx, j)
+	removedBytes, removedFiles := goGCForTest(ctx, t, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data)), removedBytes)
 	require.Equal(t, int64(filesPerBlockMax), removedFiles)
@@ -754,7 +754,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 
 func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put some blocks.
 
@@ -812,7 +812,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data4)), flushedBytes)
 	require.Equal(t, b, flushedBytes)
-	removedBytes, removedFiles := goGCForTest(t, ctx, j)
+	removedBytes, removedFiles := goGCForTest(ctx, t, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
 		removedBytes)
@@ -824,7 +824,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 
 func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put a few blocks
 	data1 := []byte{1, 2, 3}
@@ -893,7 +893,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.Equal(t, b, flushedBytes)
 
 	// Flush everything.
-	removedBytes, removedFiles := goGCForTest(t, ctx, j)
+	removedBytes, removedFiles := goGCForTest(ctx, t, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
 		removedBytes)
@@ -905,7 +905,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 
 func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// Put a few blocks
 	data1 := []byte{1, 2, 3, 4}
@@ -1002,7 +1002,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	expectedBytes += 4
 	expectedFiles += filesPerBlockMax
 
-	removedBytes, removedFiles := goGCForTest(t, ctx, j)
+	removedBytes, removedFiles := goGCForTest(ctx, t, j)
 	require.NoError(t, err)
 	require.Equal(t, expectedBytes, removedBytes)
 	require.Equal(t, expectedFiles, removedFiles)
@@ -1025,7 +1025,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 func TestBlockJournalByteCounters(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	// In this test, stored bytes and unflushed bytes should
 	// change identically.
@@ -1153,7 +1153,7 @@ func TestBlockJournalByteCounters(t *testing.T) {
 
 func TestBlockJournalUnflushedBytesIgnore(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+	defer teardownBlockJournalTest(ctx, t, cancel, tempdir, j)
 
 	requireCounts := func(expectedStoredBytes, expectedUnflushedBytes,
 		expectedStoredFiles int) {

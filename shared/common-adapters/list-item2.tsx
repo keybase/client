@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-// @ts-ignore not converted
 import ClickableBox from './clickable-box'
-// @ts-ignore not converted
 import {Box2} from './box'
 import BoxGrow from './box-grow'
 import Divider from './divider'
@@ -23,21 +21,40 @@ type Props = {
   body: React.ReactNode
   firstItem: boolean
   action?: React.ReactNode
-  onlyShowActionOnHover?: boolean | null
+  // If 'grow' is used, the width of action cannot exceed 64. If larger width
+  // is needed, bump the `maxWidth: 64` below to a larger value. Note that if
+  // it's too large, the animation would also seem much faster.
+  onlyShowActionOnHover?: 'fade' | 'grow' | null
   onClick?: () => void
 }
 
 const HoverBox = Styles.isMobile
   ? Box2
   : Styles.styled(Box2)({
-      '.hidden-no-hover': {
+      // @ts-ignore
+      '.fade': {
         opacity: 0,
+        ...Styles.transition('opacity'),
+      },
+      '.grow': {
+        maxWidth: 0,
+        overflow: 'hidden',
+        ...Styles.transition('max-width'),
       },
       ':hover': {
         backgroundColor: Styles.globalColors.blueLighter2,
       },
-      ':hover .hidden-no-hover': {
+      ':hover .avatar-border': {
+        // TODO: it'd be nice to move this out of this file since list-item2
+        // has nothing todo with avatars. We'd need Kb.AvatarLine to know
+        // about different background and set that on hover though.
+        boxShadow: `0px 0px 0px 2px ${Styles.globalColors.blueLighter2} !important`,
+      },
+      ':hover .fade': {
         opacity: 1,
+      },
+      ':hover .grow': {
+        maxWidth: 64,
       },
     })
 
@@ -88,8 +105,14 @@ const ListItem = (props: Props) => (
         </Kb.BoxGrow>
         <Kb.Box2
           direction="horizontal"
-          className={props.onlyShowActionOnHover ? 'hidden-no-hover' : null}
-          style={props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer}
+          className={Styles.classNames({
+            fade: props.onlyShowActionOnHover === 'fade',
+            grow: props.onlyShowActionOnHover === 'grow',
+          })}
+          style={Styles.collapseStyles([
+            props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer,
+            props.onlyShowActionOnHover === 'grow' && styles.actionFlexEnd,
+          ])}
         >
           {props.action}
         </Kb.Box2>
@@ -104,6 +127,11 @@ const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 const statusIconWidth = Styles.isMobile ? 32 : 32
 const styles = Styles.styleSheetCreate({
+  actionFlexEnd: {
+    // This provides the correct behavior for grow where the actions show up
+    // and the content slides left from on top of the actions.
+    justifyContent: 'flex-end',
+  },
   actionLargeContainer: {
     alignItems: 'center',
     flexGrow: 0,

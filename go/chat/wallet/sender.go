@@ -115,8 +115,11 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 		return nil
 	}
 
-	// FIXME error is ignored.
 	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
+	if err != nil {
+		s.Debug(ctx, "ParsePayments: failed to getConvParseInfo %v", err)
+		return nil
+	}
 	for _, p := range parsed {
 		var username string
 		// The currency might be legit but `KnownCurrencyCodeInstant` may not have data yet.

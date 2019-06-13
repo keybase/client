@@ -6,8 +6,8 @@ import {namedConnect, isMobile} from '../../util/container'
 import {teamsTab} from '../../constants/tabs'
 
 export type ConnectedNameWithIconProps = {
-  onClick?: 'tracker' | 'profile'
-} & NameWithIconProps
+  onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
+} & Omit<NameWithIconProps, 'onClick'>
 
 type OwnProps = ConnectedNameWithIconProps
 
@@ -24,7 +24,11 @@ const mapDispatchToProps = dispatch => ({
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconProps) => {
+const mergeProps = (
+  _stateProps,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: ConnectedNameWithIconProps
+) => {
   const {onClick, username, teamname, ...props} = ownProps
 
   let functionOnClick

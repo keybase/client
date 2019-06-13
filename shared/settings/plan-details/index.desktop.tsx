@@ -66,6 +66,6 @@ function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: 
 
 const buttonStyle = {
   alignSelf: 'center',
-}
+} as const
 
 export default PlanDetails

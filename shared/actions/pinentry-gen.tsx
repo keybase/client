@@ -62,27 +62,18 @@ export const createSubtractEntity = (payload: _SubtractEntityPayload): SubtractE
 })
 
 // Action Payloads
-export type DeleteEntityPayload = {
-  readonly payload: _DeleteEntityPayload
-  readonly type: 'pinentry:deleteEntity'
-}
-export type MergeEntityPayload = {
-  readonly payload: _MergeEntityPayload
-  readonly type: 'pinentry:mergeEntity'
-}
-export type NewPinentryPayload = {
-  readonly payload: _NewPinentryPayload
-  readonly type: 'pinentry:newPinentry'
-}
-export type OnCancelPayload = {readonly payload: _OnCancelPayload; readonly type: 'pinentry:onCancel'}
-export type OnSubmitPayload = {readonly payload: _OnSubmitPayload; readonly type: 'pinentry:onSubmit'}
+export type DeleteEntityPayload = {readonly payload: _DeleteEntityPayload; readonly type: typeof deleteEntity}
+export type MergeEntityPayload = {readonly payload: _MergeEntityPayload; readonly type: typeof mergeEntity}
+export type NewPinentryPayload = {readonly payload: _NewPinentryPayload; readonly type: typeof newPinentry}
+export type OnCancelPayload = {readonly payload: _OnCancelPayload; readonly type: typeof onCancel}
+export type OnSubmitPayload = {readonly payload: _OnSubmitPayload; readonly type: typeof onSubmit}
 export type ReplaceEntityPayload = {
   readonly payload: _ReplaceEntityPayload
-  readonly type: 'pinentry:replaceEntity'
+  readonly type: typeof replaceEntity
 }
 export type SubtractEntityPayload = {
   readonly payload: _SubtractEntityPayload
-  readonly type: 'pinentry:subtractEntity'
+  readonly type: typeof subtractEntity
 }
 
 // All Actions

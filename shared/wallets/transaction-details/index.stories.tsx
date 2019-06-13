@@ -22,6 +22,7 @@ const props = {
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
+  feeChargedDescription: '',
   issuerAccountID: null,
   issuerDescription: '',
   loading: false as false,
@@ -118,6 +119,7 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="receiverOnly"
         publicMemo="Foo bar"
+        feeChargedDescription="0.0000100 XLM"
       />
     ))
     .add('Received from Keybase user (pending)', () => (
@@ -174,6 +176,7 @@ const load = () => {
         amountUser="$100"
         amountXLM="545.2562704 XLM"
         publicMemo="compliance trigger warning"
+        feeChargedDescription="0.0000100 XLM"
         yourAccountName="First account"
         yourRole="receiverOnly"
       />

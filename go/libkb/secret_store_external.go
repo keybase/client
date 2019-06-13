@@ -114,15 +114,6 @@ type secretStoreAndroid struct{}
 
 var _ SecretStoreAll = &secretStoreAndroid{}
 
-func NewSecretStoreAll(m MetaContext) SecretStoreAll {
-	if m.G().Env.ForceSecretStoreFile() {
-		// Allow use of file secret store on Android, for debugging or use with
-		// Termux (https://termux.com/).
-		return NewSecretStoreFile(m.G().Env.GetDataDir())
-	}
-	return &secretStoreAndroid{}
-}
-
 func (s *secretStoreAndroid) serviceName(m MetaContext) string {
 	return m.G().GetStoredSecretServiceName()
 }

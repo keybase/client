@@ -17,6 +17,27 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "emailsChanged": {
+      "request": [
+        {
+          "name": "list",
+          "type": {
+            "type": "array",
+            "items": "Email"
+          }
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "EmailAddress"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

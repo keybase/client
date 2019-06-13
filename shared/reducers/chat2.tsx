@@ -87,7 +87,7 @@ const metaMapReducer = (metaMap, action) => {
               snippet: error.message,
               snippetDecoration: '',
               trustedState: 'error',
-            })
+            } as const)
             return metaMap.set(conversationIDKey, newMeta)
           }
           default:

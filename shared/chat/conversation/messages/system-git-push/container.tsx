@@ -3,7 +3,7 @@ import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import Git from '.'
-import {connect, isMobile} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as FsConstants from '../../../../constants/fs'
 
@@ -21,11 +21,11 @@ const getAutogitPath = (commitHash: string, ownProps: OwnProps): FsTypes.Path =>
       commitHash
   )
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   onClickCommit: (commitHash: string) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(getAutogitPath(commitHash, ownProps))),
   onClickUserAvatar: (username: string) =>
-    isMobile
+    Container.isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onViewGitRepo: (repoID: string, teamname: string) => {
@@ -33,8 +33,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-export default connect(
-  () => ({}),
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
-)(Git)
+export default Container.connect(() => ({}), mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d}))(
+  Git
+)

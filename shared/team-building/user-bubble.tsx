@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-// @ts-ignore codemode issue
 import DesktopStyle from '../common-adapters/desktop-style'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
@@ -67,12 +66,13 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void; prettyName:
   </Kb.WithTooltip>
 )
 
-type SwapOnClickProps = Kb.PropsWithTimer<{
-  children: React.ElementType
-  clickedLayerComponent: React.AbstractComponent<{}>
-  clickedLayerTimeout: number
-  containerStyle?: Styles.StylesCrossPlatform
-}>
+type SwapOnClickProps = Kb.PropsWithTimer<
+  React.PropsWithChildren<{
+    clickedLayerComponent: React.ComponentType<{}>
+    clickedLayerTimeout: number
+    containerStyle?: Styles.StylesCrossPlatform
+  }>
+>
 
 class _SwapOnClick extends React.PureComponent<
   SwapOnClickProps,
@@ -101,13 +101,10 @@ class _SwapOnClick extends React.PureComponent<
 }
 const SwapOnClick = Kb.HOCTimers(_SwapOnClick)
 
-function SwapOnClickHoc<A>(
-  // @ts-ignore codemode issue
-  Component: React.AbstractComponent<{}, A>,
-  // @ts-ignore codemode issue
-  OtherComponent: React.AbstractComponent<{}, A>
-  // @ts-ignore codemode issue
-): React.AbstractComponent<{
+function SwapOnClickHoc(
+  Component: React.ComponentType<{}>,
+  OtherComponent: React.ComponentType<{}>
+): React.ComponentType<{
   containerStyle?: Styles.StylesCrossPlatform
 }> {
   return ({containerStyle}) => (

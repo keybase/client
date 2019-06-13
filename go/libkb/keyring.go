@@ -287,7 +287,7 @@ func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB
 		return ret, nil
 	}
 
-	var pub GenericKey
+	// Try to get server synced key.
 
 	if ska.KeyType != PGPKeyType {
 		m.Debug("| Skipped Synced PGP key (via options)")
@@ -295,25 +295,15 @@ func (k *Keyrings) GetSecretKeyLocked(m MetaContext, ska SecretKeyArg) (ret *SKB
 		return nil, err
 	}
 
-	if ret, err = ska.Me.SyncedSecretKey(m); err != nil {
-		m.Warning("Error fetching synced PGP secret key: %s", err)
-		return nil, err
-	}
-	if ret == nil {
-		err = NoSecretKeyError{}
-		return nil, err
-	}
-
-	if pub, err = ret.GetPubKey(); err != nil {
+	if ret, err = ska.Me.SyncedSecretKeyWithSka(m, ska); err != nil {
+		if _, ok := err.(NoSecretKeyError); !ok {
+			m.Warning("Error fetching synced PGP secret key: %s", err)
+		} else {
+			m.Debug("| Can't find synced PGP key matching query %s", ska.KeyQuery)
+		}
 		return nil, err
 	}
 
-	if !KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
-		m.Debug("| Can't use Synced PGP key; doesn't match query %s", ska.KeyQuery)
-		err = NoSecretKeyError{}
-		return nil, err
-
-	}
 	return ret, nil
 }
 

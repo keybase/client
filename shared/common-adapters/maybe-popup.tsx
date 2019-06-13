@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-// @ts-ignore not converted
 import Box from './box'
-// @ts-ignore not converted
 import PopupDialog from './popup-dialog'
 import {connect} from '../util/container'
 import {collapseStyles, globalColors, isMobile} from '../styles'

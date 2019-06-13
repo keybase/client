@@ -2,7 +2,6 @@ import {isMobile} from '../constants/platform'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
-// @ts-ignore not typed yet
 import * as Shim from '../router-v2/shim'
 
 const sharedRoutes = {

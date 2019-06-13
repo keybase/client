@@ -63,7 +63,7 @@ class Login extends React.Component<Props, State> {
       ref: this._inputRef,
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       uncontrolled: true,
-    }
+    } as const
 
     const checkboxProps = [
       {
@@ -72,7 +72,7 @@ class Login extends React.Component<Props, State> {
         onCheck: check => {
           this.props.showTypingChange(check)
         },
-      },
+      } as const,
     ]
 
     const userRows = this.props.users.concat(other).map(u => <UserRow user={u} key={u} />)

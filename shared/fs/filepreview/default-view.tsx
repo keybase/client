@@ -5,7 +5,6 @@ import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {PathItemAction, PathItemInfo, PathItemIcon} from '../common'
-import {memoize} from 'lodash-es'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
 
@@ -28,7 +27,7 @@ const DefaultView = (props: DefaultViewProps) => (
       style={styles.innerContainer}
     >
       <PathItemIcon path={props.path} size={96} />
-      <Kb.Text type="BodyBig" style={stylesFilename(Constants.getPathTextColor(props.path))}>
+      <Kb.Text type="BodyBig" style={styles.filename}>
         {props.pathItem.name}
       </Kb.Text>
       <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
@@ -92,6 +91,10 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.mediumLarge,
     },
   }),
+  filename: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.small,
+  },
   innerContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -107,12 +110,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 })
-
-const stylesFilename = memoize(color => ({
-  color: color,
-  marginBottom: Styles.globalMargins.tiny,
-  marginTop: Styles.globalMargins.small,
-}))
 
 const stylesSymlink = {marginTop: Styles.globalMargins.medium}
 

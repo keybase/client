@@ -164,6 +164,24 @@
     },
     {
       "type": "record",
+      "name": "FolderHandle",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "FolderType",
+          "name": "folderType"
+        },
+        {
+          "type": "boolean",
+          "name": "created"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FavoritesResult",
       "fields": [
         {
@@ -199,7 +217,7 @@
         },
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         }
       ],
       "response": null,
@@ -213,7 +231,7 @@
         },
         {
           "name": "folder",
-          "type": "Folder"
+          "type": "FolderHandle"
         }
       ],
       "response": null,

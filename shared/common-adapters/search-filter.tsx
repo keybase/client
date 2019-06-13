@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
-// @ts-ignore
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
 import PlainInput from './plain-input'

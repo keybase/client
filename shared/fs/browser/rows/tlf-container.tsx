@@ -26,6 +26,7 @@ const mergeProps = (
 ) => {
   const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
+  const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== stateProps._username)
   return {
     destinationPickerIndex,
     isIgnored: stateProps._tlf.isIgnored,
@@ -37,6 +38,8 @@ const mergeProps = (
     name,
     path,
     routePath,
+    // Only include the user if they're the only one
+    usernames: usernames.isEmpty() ? I.List([stateProps._username]) : usernames,
   }
 }
 

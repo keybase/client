@@ -26,5 +26,5 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   () => ({}),
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(RouterSwitcheroo)

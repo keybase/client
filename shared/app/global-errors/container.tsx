@@ -21,6 +21,7 @@ const mapDispatchToProps = dispatch => ({
   onFeedback: (loggedIn: boolean) => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
     if (loggedIn) {
+      dispatch(RouteTreeGen.createClearModals())
       dispatch(RouteTreeGen.createSwitchTo({path: [settingsTab]}))
       dispatch(
         RouteTreeGen.createNavigateTo({

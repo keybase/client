@@ -275,14 +275,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
 }
 
 // @ts-ignore this type is wrong
-const StyledTextArea = styled.textarea(props => ({
+const StyledTextArea = styled.textarea<'textarea', {placeholderColor: any}>(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
   '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
 // @ts-ignore this type is wrong
-const StyledInput = styled.input(props => ({
+const StyledInput = styled.input<'input', {placeholderColor: any}>(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
   '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
