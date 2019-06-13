@@ -194,8 +194,8 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxCenter,
     },
     isElectron: {
-      maxHeight: 300,
-      maxWidth: 300,
+      height: 275,
+      width: 275,
     },
     isMobile: {
       height: 150,
@@ -214,6 +214,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
       width: '100%',
     },
+    isElectron: {
+      maxHeight: 80,
+    },
   }),
   scrollView: Styles.platformStyles({
     common: {
@@ -227,6 +230,7 @@ const styles = Styles.styleSheetCreate({
   }),
   upperContainer: Styles.platformStyles({
     isElectron: {
+      marginBottom: Styles.globalMargins.small,
       marginTop: Styles.globalMargins.xlarge,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
