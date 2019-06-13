@@ -5,7 +5,7 @@ import TextMessage, {Props} from '.'
 import * as Container from '../../../../util/container'
 
 type OwnProps = {
-  message: Types.MessageText | Types.MessageAttachment
+  message: Types.MessageText
 }
 
 const replyNoop = () => {}
@@ -24,15 +24,15 @@ const getReplyProps = (replyTo, onReplyClick) => {
   switch (replyTo.type) {
     case 'attachment':
     case 'text':
+      const hasImage = replyTo.type === 'attachment' && replyTo.attachmentType === 'image'
       return replyTo.exploded
         ? deletedProps
         : {
             deleted: false,
             edited: replyTo.hasBeenEdited,
-            imageURL:
-              replyTo.type === 'attachment' && replyTo.attachmentType === 'image'
-                ? replyTo.previewURL
-                : undefined,
+            imageHeight: hasImage ? replyTo.previewHeight : undefined,
+            imageURL: hasImage ? replyTo.previewURL : undefined,
+            imageWidth: hasImage ? replyTo.previewWidth : undefined,
             onClick: () => onReplyClick(replyTo.id),
             text:
               replyTo.type === 'attachment' ? replyTo.title || replyTo.fileName : replyTo.text.stringValue(),

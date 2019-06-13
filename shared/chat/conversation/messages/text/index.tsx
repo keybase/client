@@ -1,18 +1,22 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 type ReplyProps = {
   deleted: boolean
   edited: boolean
+  imageHeight?: number
   imageURL?: string
+  imageWidth?: number
   onClick: () => void
   text: string
   username: string
 }
 
 const Reply = (props: ReplyProps) => {
+  const sizing = props.imageHeight ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80) : null
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
@@ -32,8 +36,14 @@ const Reply = (props: ReplyProps) => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            {!!props.imageURL && <Kb.Image src={props.imageURL} style={styles.replyPreview} />}
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+            {!!props.imageURL && (
+              <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
+                <Kb.Box style={{...sizing.margins}}>
+                  <Kb.Image src={props.imageURL} style={{...sizing.dims}} />
+                </Kb.Box>
+              </Kb.Box2>
+            )}
             {!props.deleted ? (
               <Kb.Text type="BodySmall">{props.text}</Kb.Text>
             ) : (
@@ -143,9 +153,9 @@ const styles = Styles.styleSheetCreate({
   replyEdited: {
     color: Styles.globalColors.black_20,
   },
-  replyPreview: {
-    height: 80,
-    width: 80,
+  replyImageContainer: {
+    overflow: 'hidden',
+    position: 'relative',
   },
   replyUsername: {
     alignSelf: 'center',
