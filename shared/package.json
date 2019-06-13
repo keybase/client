@@ -144,7 +144,7 @@
     "react-dom": "16.8.3",
     "react-gateway": "git://github.com/keybase/react-gateway#nojima/keybase-fixes-off-300",
     "react-is": "16.8.6",
-    "react-list": "0.8.11",
+    "react-list": "git://github.com/keybase/react-list#nojima/keybase-fixes-off-0811",
     "react-measure": "2.2.2",
     "react-native": "0.59.8",
     "react-native-camera": "2.0.0",

@@ -13282,10 +13282,9 @@ react-lifecycles-compat@^3.0.0, react-lifecycles-compat@^3.0.2, react-lifecycles
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
-react-list@0.8.11:
+"react-list@git://github.com/keybase/react-list#nojima/keybase-fixes-off-0811":
   version "0.8.11"
-  resolved "https://registry.yarnpkg.com/react-list/-/react-list-0.8.11.tgz#2eb508e28e97c1f0387311b94e16362b213fb661"
-  integrity sha512-iD55dpe4rbdK4GMO+1nZUa801//qPFt8A1m6qjSasWs56jgS31L1XAmpSVug2mre4e9DZdJhnszxOCNfxD8VFg==
+  resolved "git://github.com/keybase/react-list#e46714a85be1d5c9ec5d74b86dd7009acafba25c"
   dependencies:
     prop-types "15"
 
