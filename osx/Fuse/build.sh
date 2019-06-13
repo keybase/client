@@ -19,7 +19,7 @@ rm -rf /tmp/kbfuse*
 cd osxfuse
 # If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
 # build for 10.11, and have osxfuse builder symlink other versions.
-./build.sh -v 5 -t fsbundle -- -s 10.11 -d 10.11 --kext=10.11 --kext="10.12->10.11" --kext="10.13->10.11" --kext="10.14->10.11"
+./build.sh -v 5 -t fsbundle -- -s 10.11 -d 10.11 --kext=10.11 --kext="10.12->10.11" --kext="10.13->10.11" --kext="10.14->10.11" --kext="10.15->10.11"
 
 cd $dir
 rm -rf kbfuse.bundle
