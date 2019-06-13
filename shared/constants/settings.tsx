@@ -63,6 +63,7 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
   error: '',
   pendingVerification: '',
   pendingVerificationAllowSearch: null,
+  verificationState: null,
 })
 
 export const makeState = I.Record<Types._State>({
@@ -167,3 +168,4 @@ export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
+export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'

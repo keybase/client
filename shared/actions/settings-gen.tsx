@@ -59,6 +59,7 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
@@ -128,6 +129,7 @@ type _UnfurlSettingsSavedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: I.List<string>
 }
+type _VerifiedPhoneNumberPayload = {readonly error: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 type _WaitingForResponsePayload = {readonly waiting: boolean}
 
@@ -153,7 +155,7 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
   type: feedbackSent,
 })
 /**
- * Cancel a running phone number verification.
+ * Cancel a phone number verification-in-progress.
  */
 export const createClearPhoneNumberVerification = (
   payload: _ClearPhoneNumberVerificationPayload
@@ -190,6 +192,12 @@ export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): Added
   payload,
   type: addedPhoneNumber,
 })
+/**
+ * We verified a phone number or hit an error.
+ */
+export const createVerifiedPhoneNumber = (
+  payload: _VerifiedPhoneNumberPayload
+): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
   type: checkPassword,
@@ -523,6 +531,10 @@ export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
   readonly type: typeof unfurlSettingsSaved
 }
+export type VerifiedPhoneNumberPayload = {
+  readonly payload: _VerifiedPhoneNumberPayload
+  readonly type: typeof verifiedPhoneNumber
+}
 export type VerifyPhoneNumberPayload = {
   readonly payload: _VerifyPhoneNumberPayload
   readonly type: typeof verifyPhoneNumber
@@ -586,6 +598,7 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: null}

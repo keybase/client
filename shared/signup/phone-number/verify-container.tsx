@@ -1,12 +1,13 @@
+import * as React from 'react'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import {anyWaiting} from '../../constants/waiting'
-import VerifyPhoneNumber from './verify'
+import VerifyPhoneNumber, {Props} from './verify'
 
 const mapStateToProps = (state: Container.TypedState) => ({
-  error: '',
+  error: state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : '',
   phoneNumber: state.settings.phoneNumbers.pendingVerification,
   resendWaiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
 })
@@ -18,7 +19,34 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCancel: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
   onResend: () =>
     dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
+  onSuccess: () => RouteTreeGen.createClearModals(),
 })
+
+type WatcherProps = Props & {
+  onSuccess: () => void
+  verificationStatus: 'success' | 'error' | null
+}
+// Watches for verification to succeed and exits
+class WatchForSuccess extends React.Component<WatcherProps> {
+  componentDidUpdate(prevProps: WatcherProps) {
+    if (this.props.verificationStatus === 'success') {
+      this.props.onSuccess()
+    }
+  }
+  render() {
+    return (
+      <VerifyPhoneNumber
+        error={this.props.error}
+        onBack={this.props.onBack}
+        onCancel={this.props.onCancel}
+        onContinue={this.props.onContinue}
+        onResend={this.props.onResend}
+        phoneNumber={this.props.phoneNumber}
+        resendWaiting={this.props.resendWaiting}
+      />
+    )
+  }
+}
 
 const ConnectedVerifyPhoneNumber = Container.namedConnect(
   mapStateToProps,
@@ -32,6 +60,6 @@ const ConnectedVerifyPhoneNumber = Container.namedConnect(
     onResend: d.onResend,
   }),
   'ConnectedVerifyPhoneNumber'
-)(VerifyPhoneNumber)
+)(WatchForSuccess)
 
 export default ConnectedVerifyPhoneNumber

@@ -22,8 +22,13 @@
       "phoneNumber": "string",
       "code": "string"
     },
+    "verifiedPhoneNumber": {
+      "_description": "We verified a phone number or hit an error.",
+      "error": "string",
+      "phoneNumber": "string"
+    },
     "clearPhoneNumberVerification": {
-      "_description": "Cancel a running phone number verification."
+      "_description": "Cancel a phone number verification-in-progress."
     },
     "dbNuke": {},
     "deleteAccountForever": {},

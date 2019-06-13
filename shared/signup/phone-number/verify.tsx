@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../common'
 
-type Props = {
+export type Props = {
   error: string
   onBack: () => void
   onCancel: () => void
@@ -58,7 +58,6 @@ const VerifyPhoneNumber = (props: Props) => {
           flexable={true}
           keyboardType="numeric"
           onChangeText={onChangeCode}
-          maxLength={5}
           textType="Header"
           textContentType="oneTimeCode"
         >

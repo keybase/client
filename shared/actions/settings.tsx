@@ -536,11 +536,32 @@ const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPay
     {phoneNumber, visibility},
     Constants.addPhoneNumberWaitingKey
   )
-    .then(() => SettingsGen.createAddedPhoneNumber({allowSearch, error: '', phoneNumber}))
-    .catch(err => SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber}))
+    .then(() => {
+      logger.info('success')
+      SettingsGen.createAddedPhoneNumber({allowSearch, error: '', phoneNumber})
+    })
+    .catch(err => {
+      logger.warn('error ', err.message)
+      SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
+    })
 }
 
-const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logger) => {}
+const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logger) => {
+  logger.info('verifying phone number')
+  const {code, phoneNumber} = action.payload
+  return RPCTypes.phoneNumbersVerifyPhoneNumberRpcPromise(
+    {code, phoneNumber},
+    Constants.verifyPhoneNumberWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createVerifiedPhoneNumber({error: '', phoneNumber})
+    })
+    .catch(err => {
+      logger.warn('error ', err.message)
+      SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
+    })
+}
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)

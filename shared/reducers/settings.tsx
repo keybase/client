@@ -134,17 +134,36 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       return state.update('phoneNumbers', pn =>
         pn.merge(
           action.payload.error
-            ? {error: action.payload.error, pendingVerification: '', pendingVerificationAllowSearch: null}
+            ? {
+                error: action.payload.error,
+                pendingVerification: '',
+                pendingVerificationAllowSearch: null,
+                verificationState: null,
+              }
             : {
                 error: '',
                 pendingVerification: action.payload.phoneNumber,
                 pendingVerificationAllowSearch: action.payload.allowSearch,
+                verificationState: null,
               }
         )
       )
     case SettingsGen.clearPhoneNumberVerification:
       return state.update('phoneNumbers', pn =>
-        pn.merge({error: '', pendingVerification: '', pendingVerificationAllowSearch: null})
+        pn.merge({
+          error: '',
+          pendingVerification: '',
+          pendingVerificationAllowSearch: null,
+          verificationState: null,
+        })
+      )
+    case SettingsGen.verifiedPhoneNumber:
+      if (action.payload.phoneNumber !== state.phoneNumbers.pendingVerification) {
+        logger.warn("Got verifiedPhoneNumber but number doesn't match")
+        return state
+      }
+      return state.update('phoneNumbers', pn =>
+        pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
       )
     // Saga only actions
     case SettingsGen.dbNuke:
