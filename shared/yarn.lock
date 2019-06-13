@@ -13224,7 +13224,7 @@ react-fuzzy@^0.5.2:
 
 "react-gateway@git://github.com/keybase/react-gateway#nojima/keybase-fixes-off-300":
   version "3.0.0"
-  resolved "git://github.com/keybase/react-gateway#9b92ae2cd91e0c94f7370c1071e201c2487561ef"
+  resolved "git://github.com/keybase/react-gateway#cfadc466c484356e6c011da21696d8291fe635e0"
 
 react-helmet-async@^0.2.0:
   version "0.2.0"

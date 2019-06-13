@@ -61,7 +61,7 @@
       "<rootDir>/.tsOut"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
+      "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
