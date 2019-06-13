@@ -10,7 +10,7 @@ type OwnProps = {
 
 const replyNoop = () => {}
 
-const getReplyProps = (replyTo, onReplyClick) => {
+const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID) => void) => {
   if (!replyTo) {
     return undefined
   }
@@ -24,15 +24,16 @@ const getReplyProps = (replyTo, onReplyClick) => {
   switch (replyTo.type) {
     case 'attachment':
     case 'text':
-      const hasImage = replyTo.type === 'attachment' && replyTo.attachmentType === 'image'
+      const attachment: Types.MessageAttachment =
+        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : null
       return replyTo.exploded
         ? deletedProps
         : {
             deleted: false,
             edited: replyTo.hasBeenEdited,
-            imageHeight: hasImage ? replyTo.previewHeight : undefined,
-            imageURL: hasImage ? replyTo.previewURL : undefined,
-            imageWidth: hasImage ? replyTo.previewWidth : undefined,
+            imageHeight: attachment ? attachment.previewHeight : undefined,
+            imageURL: attachment ? attachment.previewURL : undefined,
+            imageWidth: attachment ? attachment.previewWidth : undefined,
             onClick: () => onReplyClick(replyTo.id),
             text:
               replyTo.type === 'attachment' ? replyTo.title || replyTo.fileName : replyTo.text.stringValue(),

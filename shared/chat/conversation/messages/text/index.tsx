@@ -36,7 +36,7 @@ const Reply = (props: ReplyProps) => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.replyTextContainer}>
             {!!props.imageURL && (
               <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
                 <Kb.Box style={{...sizing.margins}}>
@@ -156,6 +156,9 @@ const styles = Styles.styleSheetCreate({
   replyImageContainer: {
     overflow: 'hidden',
     position: 'relative',
+  },
+  replyTextContainer: {
+    flex: 1,
   },
   replyUsername: {
     alignSelf: 'center',

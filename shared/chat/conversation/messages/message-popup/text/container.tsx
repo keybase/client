@@ -79,24 +79,20 @@ const mapDispatchToProps = dispatch => ({
     )
   },
   _onReply: (message: Types.Message) => {
-    if (message.type === 'text') {
-      dispatch(
-        Chat2Gen.createToggleReplyToMessage({
-          conversationIDKey: message.conversationIDKey,
-          ordinal: message.ordinal,
-        })
-      )
-    }
+    dispatch(
+      Chat2Gen.createToggleReplyToMessage({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
   },
   _onReplyPrivately: (message: Types.Message) => {
-    if (message.type === 'text' && message.author && message.text) {
-      dispatch(
-        Chat2Gen.createMessageReplyPrivately({
-          ordinal: message.ordinal,
-          sourceConversationIDKey: message.conversationIDKey,
-        })
-      )
-    }
+    dispatch(
+      Chat2Gen.createMessageReplyPrivately({
+        ordinal: message.ordinal,
+        sourceConversationIDKey: message.conversationIDKey,
+      })
+    )
   },
   _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
