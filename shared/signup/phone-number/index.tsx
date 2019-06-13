@@ -44,13 +44,12 @@ const EnterPhoneNumber = (props: Props) => {
       title="Your phone number"
       showHeaderInfoicon={true}
     >
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile}>
+      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
         <PhoneInput
           style={styles.input}
           onChangeNumber={onChangePhoneNumber}
           onChangeValidity={onChangeValidity}
           onEnterKeyDown={onContinue}
-          error={props.error}
         />
         <Kb.Checkbox
           label="Allow friends to find you by this phone number"
@@ -58,6 +57,7 @@ const EnterPhoneNumber = (props: Props) => {
           onCheck={onChangeAllowSearch}
           style={styles.checkbox}
         />
+        {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
       </Kb.Box2>
     </SignupScreen>
   )
@@ -73,6 +73,12 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       height: 48,
       width: '100%',
+    },
+  }),
+  inputBox: Styles.platformStyles({
+    isElectron: {
+      // need to set width so subtext will wrap
+      width: 368,
     },
   }),
 })

@@ -34,7 +34,6 @@ const MenuItem = props => (
 
 type Props = {
   defaultCountry?: string
-  error: string
   onChangeNumber: (phoneNumber: string) => void
   onChangeValidity: (valid: boolean) => void
   onEnterKeyDown?: () => void
