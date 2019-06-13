@@ -2,7 +2,6 @@
     "prelude": [
         "import * as chat1Types from '../constants/types/rpc-chat-gen'",
         "import * as keybase1Types from '../constants/types/rpc-gen'",
-        "import * as gregor1Types from '../constants/types/rpc-gregor-gen'",
         "import * as stellar1Types from '../constants/types/rpc-stellar-gen'"
     ],
     "actions": {

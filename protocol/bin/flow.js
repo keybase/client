@@ -386,33 +386,41 @@ function writeActions() {
     disconnected: {},
     connected: {},
   }
+
+  const seenProjects = {}
+
+  const data = {
+    actions: Object.keys(projects).reduce((map, p) => {
+      const callMap = projects[p].incomingMaps
+      callMap &&
+        Object.keys(callMap).reduce((map, method) => {
+          const name = method
+            .replace(/'/g, '')
+            .split('.')
+            .map((p, idx) => (idx ? capitalize(p) : p))
+            .join('')
+
+          seenProjects[p] = true
+          let response = ''
+          if (projects[p].customResponseIncomingMaps[method]) {
+            response = `, response: {error: ${p}Types.IncomingErrorCallback, result: (param: ${p}Types.MessageTypes[${method}]['outParam']) => void}`
+          }
+
+          map[name] = {
+            params: `${p}Types.MessageTypes[${method}]['inParam'] & {sessionID: number}${response}`,
+          }
+          return map
+        }, map)
+      return map
+    }, staticActions),
+  }
+
   const toWrite = JSON.stringify(
     {
-      prelude: Object.keys(projects).map(
+      prelude: Object.keys(seenProjects).map(
         p => `import * as ${p}Types from '../constants/types/${projects[p].out}'`
       ),
-      actions: Object.keys(projects).reduce((map, p) => {
-        const callMap = projects[p].incomingMaps
-        callMap &&
-          Object.keys(callMap).reduce((map, method) => {
-            const name = method
-              .replace(/'/g, '')
-              .split('.')
-              .map((p, idx) => (idx ? capitalize(p) : p))
-              .join('')
-
-            let response = ''
-            if (projects[p].customResponseIncomingMaps[method]) {
-              response = `, response: {error: ${p}Types.IncomingErrorCallback, result: (param: ${p}Types.MessageTypes[${method}]['outParam']) => void}`
-            }
-
-            map[name] = {
-              params: `${p}Types.MessageTypes[${method}]['inParam'] & {sessionID: number}${response}`,
-            }
-            return map
-          }, map)
-        return map
-      }, staticActions),
+      ...data,
     },
     null,
     4
