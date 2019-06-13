@@ -13,7 +13,7 @@ const Tlf = (props: TlfProps) => (
   <Kb.ClickableBox onClick={props.openInFilesTab} style={styles.itemContainer}>
     <Kb.Icon
       type={props.isSelf ? 'iconfont-folder-public' /* has the little head */ : 'iconfont-folder-private'}
-      color={props.isPublic ? Styles.globalColors.yellowGreen : Styles.globalColors.darkBlue}
+      color={props.isPublic ? Styles.globalColors.blue}
     />
     <Kb.Text type="BodyPrimaryLink" style={styles.itemText}>
       {props.text}

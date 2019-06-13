@@ -114,7 +114,7 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   headerText: Styles.platformStyles({
-    common: {color: Styles.globalColors.darkBlue},
+    common: {color: Styles.globalColors.blueDarker},
     isMobile: {
       left: 0,
       marginLeft: 'auto',

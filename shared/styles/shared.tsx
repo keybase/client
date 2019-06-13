@@ -19,12 +19,12 @@ export const globalMargins = {
 
 export const backgroundModeToColor = {
   Announcements: globalColors.blue,
-  Documentation: globalColors.darkBlue,
+  Documentation: globalColors.blueDarker,
   HighRisk: globalColors.red,
   Information: globalColors.yellow,
   Normal: globalColors.white,
   Success: globalColors.green,
-  Terminal: globalColors.darkBlue3,
+  Terminal: globalColors.blueDarker2,
 }
 
 export const backgroundModeToTextColor = (

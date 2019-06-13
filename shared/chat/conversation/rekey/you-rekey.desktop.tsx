@@ -25,7 +25,7 @@ const YouRekey = ({onRekey}: Props) => {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: globalColors.darkBlue3,
+  backgroundColor: globalColors.blueDarker2,
   flex: 1,
   justifyContent: 'flex-start',
 }
