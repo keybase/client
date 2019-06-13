@@ -319,7 +319,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     return (
       <Kb.Box style={styles.proxyContainer}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Text type="BodyBig" style={styles.text}>
+        <Kb.Text type="BodyBig" style={{...styles.text, marginTop: Styles.globalMargins.medium}}>
           Proxy Settings
         </Kb.Text>
         <Kb.Box style={{display: 'flex', flexWrap: 'wrap'}}>
