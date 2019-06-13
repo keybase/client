@@ -3,4 +3,5 @@ protocol NotifyEmailAddress {
   import idl "common.avdl";
 
   void emailAddressVerified(EmailAddress emailAddress) oneway;
+  void emailsChanged(array<Email> list, string category, EmailAddress email) oneway;
 }

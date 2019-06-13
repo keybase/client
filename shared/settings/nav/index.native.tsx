@@ -56,6 +56,10 @@ function SettingsNav(props: Props) {
               text: 'Chat',
             },
             {
+              onClick: () => props.onTabChange(Constants.fsTab),
+              text: 'Files',
+            },
+            {
               badgeNumber: props.badgeNotifications ? 1 : 0,
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',

@@ -11,15 +11,16 @@ export type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-const mapStateToProps = (state, {path}) => ({
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  username: state.config.username,
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  type: stateProps._pathItem.type,
-  username: stateProps.username,
-})
-
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'PathItemIcon')(PathItemIcon)
+export default namedConnect(
+  (state, {path}: OwnProps) => ({
+    _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+    username: state.config.username,
+  }),
+  () => ({}),
+  (stateProps, _, ownProps: OwnProps) => ({
+    ...ownProps,
+    type: stateProps._pathItem.type,
+    username: stateProps.username,
+  }),
+  'PathItemIcon'
+)(PathItemIcon)

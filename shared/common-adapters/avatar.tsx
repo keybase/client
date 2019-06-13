@@ -3,7 +3,7 @@ import * as React from 'react'
 import Avatar from './avatar.render'
 import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
-import {namedConnect} from '../util/container'
+import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
@@ -158,7 +158,7 @@ class SharedAskForUserData {
 }
 const _sharedAskForUserData = new SharedAskForUserData()
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
   _sharedAskForUserData._checkLoggedIn(state.config.username)
   return {
@@ -168,7 +168,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
   _sharedAskForUserData.injectDispatch(dispatch)
   return {
     _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
@@ -179,61 +179,64 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const isTeam = ownProps.isTeam || !!ownProps.teamname
+const ConnectedAvatar = Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const isTeam = ownProps.isTeam || !!ownProps.teamname
 
-  let onClick = dispatchProps.onClick
-  if (!onClick && ownProps.clickToProfile && ownProps.username) {
-    const u = ownProps.username
-    const desktopDest = ownProps.clickToProfile
-    onClick = () => dispatchProps._goToProfile(u, desktopDest)
-  }
+    let onClick = dispatchProps.onClick
+    if (!onClick && ownProps.clickToProfile && ownProps.username) {
+      const u = ownProps.username
+      const desktopDest = ownProps.clickToProfile
+      onClick = () => dispatchProps._goToProfile(u, desktopDest)
+    }
 
-  const style = Styles.isMobile
-    ? ownProps.style
-    : Styles.collapseStyles([
-        ownProps.style,
-        onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
-      ])
+    const style = Styles.isMobile
+      ? ownProps.style
+      : Styles.collapseStyles([
+          ownProps.style,
+          onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
+        ])
 
-  let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
-  let load
-  if (!url) {
-    url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-    load = isTeam
-      ? () => {
-          ownProps.teamname && _sharedAskForUserData.getTeam(ownProps.teamname)
-        }
-      : () => {
-          ownProps.username && _sharedAskForUserData.getUser(ownProps.username)
-        }
-  }
+    let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
+    let load
+    if (!url) {
+      url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
+      load = isTeam
+        ? () => {
+            ownProps.teamname && _sharedAskForUserData.getTeam(ownProps.teamname)
+          }
+        : () => {
+            ownProps.username && _sharedAskForUserData.getUser(ownProps.username)
+          }
+    }
 
-  const name = isTeam ? ownProps.teamname : ownProps.username
-  const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
+    const name = isTeam ? ownProps.teamname : ownProps.username
+    const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
 
-  return {
-    borderColor: ownProps.borderColor,
-    children: ownProps.children,
-    editable: ownProps.editable,
-    followIconSize: iconInfo.iconSize,
-    followIconStyle: iconInfo.iconStyle,
-    followIconType: iconInfo.iconType,
-    isTeam,
-    load,
-    loadingColor: ownProps.loadingColor,
-    name: name || '',
-    onClick,
-    opacity: ownProps.opacity,
-    size: ownProps.size,
-    skipBackground: ownProps.skipBackground,
-    skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
-    style,
-    url,
-  }
-}
-
-const ConnectedAvatar = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(Avatar)
+    return {
+      borderColor: ownProps.borderColor,
+      children: ownProps.children,
+      editable: ownProps.editable,
+      followIconSize: iconInfo.iconSize,
+      followIconStyle: iconInfo.iconStyle,
+      followIconType: iconInfo.iconType,
+      isTeam,
+      load,
+      loadingColor: ownProps.loadingColor,
+      name: name || '',
+      onClick,
+      opacity: ownProps.opacity,
+      size: ownProps.size,
+      skipBackground: ownProps.skipBackground,
+      skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
+      style,
+      url,
+    }
+  },
+  'Avatar'
+)(Avatar)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

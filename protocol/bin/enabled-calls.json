@@ -236,6 +236,7 @@
   "stellar.1.local.getDisplayCurrenciesLocal": {"promise": true},
   "stellar.1.local.getDisplayCurrencyLocal": {"promise": true},
   "stellar.1.local.getInflationDestinationLocal": {"promise": true},
+  "stellar.1.local.getPartnerUrlsLocal": {"promise": true},
   "stellar.1.local.getPaymentDetailsLocal": {"promise": true},
   "stellar.1.local.getPaymentsLocal": {"promise": true},
   "stellar.1.local.getPendingPaymentsLocal": {"promise": true},

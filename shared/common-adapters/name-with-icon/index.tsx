@@ -66,7 +66,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         <Avatar
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
-          size={this.props.avatarSize || (this.props.horizontal ? commonHeight : adapterProps.iconSize)}
+          size={
+            this.props.avatarSize || (this.props.horizontal ? commonHeight : (adapterProps.iconSize as any))
+          }
           showFollowingStatus={this.props.horizontal ? undefined : !this.props.hideFollowingOverlay}
           username={this.props.username}
           teamname={this.props.teamname}

@@ -241,142 +241,130 @@ export const createUploadAvatar = (payload: _UploadAvatarPayload): UploadAvatarP
 })
 
 // Action Payloads
-export type AddProofPayload = {readonly payload: _AddProofPayload; readonly type: 'profile:addProof'}
+export type AddProofPayload = {readonly payload: _AddProofPayload; readonly type: typeof addProof}
 export type BackToProfilePayload = {
   readonly payload: _BackToProfilePayload
-  readonly type: 'profile:backToProfile'
+  readonly type: typeof backToProfile
 }
 export type CancelAddProofPayload = {
   readonly payload: _CancelAddProofPayload
-  readonly type: 'profile:cancelAddProof'
+  readonly type: typeof cancelAddProof
 }
-export type CancelPgpGenPayload = {
-  readonly payload: _CancelPgpGenPayload
-  readonly type: 'profile:cancelPgpGen'
-}
-export type CheckProofPayload = {readonly payload: _CheckProofPayload; readonly type: 'profile:checkProof'}
+export type CancelPgpGenPayload = {readonly payload: _CancelPgpGenPayload; readonly type: typeof cancelPgpGen}
+export type CheckProofPayload = {readonly payload: _CheckProofPayload; readonly type: typeof checkProof}
 export type CleanupUsernamePayload = {
   readonly payload: _CleanupUsernamePayload
-  readonly type: 'profile:cleanupUsername'
+  readonly type: typeof cleanupUsername
 }
 export type ClearPlatformGenericPayload = {
   readonly payload: _ClearPlatformGenericPayload
-  readonly type: 'profile:clearPlatformGeneric'
+  readonly type: typeof clearPlatformGeneric
 }
-export type EditAvatarPayload = {readonly payload: _EditAvatarPayload; readonly type: 'profile:editAvatar'}
-export type EditProfilePayload = {readonly payload: _EditProfilePayload; readonly type: 'profile:editProfile'}
+export type EditAvatarPayload = {readonly payload: _EditAvatarPayload; readonly type: typeof editAvatar}
+export type EditProfilePayload = {readonly payload: _EditProfilePayload; readonly type: typeof editProfile}
 export type FinishBlockUserPayload = {
   readonly payload: _FinishBlockUserPayload
-  readonly type: 'profile:finishBlockUser'
+  readonly type: typeof finishBlockUser
 }
 export type FinishBlockUserPayloadError = {
   readonly error: true
   readonly payload: _FinishBlockUserPayloadError
-  readonly type: 'profile:finishBlockUser'
+  readonly type: typeof finishBlockUser
 }
 export type FinishRevokingPayload = {
   readonly payload: _FinishRevokingPayload
-  readonly type: 'profile:finishRevoking'
+  readonly type: typeof finishRevoking
 }
 export type FinishedWithKeyGenPayload = {
   readonly payload: _FinishedWithKeyGenPayload
-  readonly type: 'profile:finishedWithKeyGen'
+  readonly type: typeof finishedWithKeyGen
 }
-export type GeneratePgpPayload = {readonly payload: _GeneratePgpPayload; readonly type: 'profile:generatePgp'}
+export type GeneratePgpPayload = {readonly payload: _GeneratePgpPayload; readonly type: typeof generatePgp}
 export type OnClickAvatarPayload = {
   readonly payload: _OnClickAvatarPayload
-  readonly type: 'profile:onClickAvatar'
+  readonly type: typeof onClickAvatar
 }
 export type ProofParamsReceivedPayload = {
   readonly payload: _ProofParamsReceivedPayload
-  readonly type: 'profile:proofParamsReceived'
+  readonly type: typeof proofParamsReceived
 }
-export type RecheckProofPayload = {
-  readonly payload: _RecheckProofPayload
-  readonly type: 'profile:recheckProof'
-}
-export type RevokeFinishPayload = {
-  readonly payload: _RevokeFinishPayload
-  readonly type: 'profile:revokeFinish'
-}
+export type RecheckProofPayload = {readonly payload: _RecheckProofPayload; readonly type: typeof recheckProof}
+export type RevokeFinishPayload = {readonly payload: _RevokeFinishPayload; readonly type: typeof revokeFinish}
 export type RevokeFinishPayloadError = {
   readonly error: true
   readonly payload: _RevokeFinishPayloadError
-  readonly type: 'profile:revokeFinish'
+  readonly type: typeof revokeFinish
 }
 export type ShowUserProfilePayload = {
   readonly payload: _ShowUserProfilePayload
-  readonly type: 'profile:showUserProfile'
+  readonly type: typeof showUserProfile
 }
 export type SubmitBTCAddressPayload = {
   readonly payload: _SubmitBTCAddressPayload
-  readonly type: 'profile:submitBTCAddress'
+  readonly type: typeof submitBTCAddress
 }
 export type SubmitBlockUserPayload = {
   readonly payload: _SubmitBlockUserPayload
-  readonly type: 'profile:submitBlockUser'
+  readonly type: typeof submitBlockUser
 }
 export type SubmitRevokeProofPayload = {
   readonly payload: _SubmitRevokeProofPayload
-  readonly type: 'profile:submitRevokeProof'
+  readonly type: typeof submitRevokeProof
 }
 export type SubmitUnblockUserPayload = {
   readonly payload: _SubmitUnblockUserPayload
-  readonly type: 'profile:submitUnblockUser'
+  readonly type: typeof submitUnblockUser
 }
 export type SubmitUsernamePayload = {
   readonly payload: _SubmitUsernamePayload
-  readonly type: 'profile:submitUsername'
+  readonly type: typeof submitUsername
 }
 export type SubmitZcashAddressPayload = {
   readonly payload: _SubmitZcashAddressPayload
-  readonly type: 'profile:submitZcashAddress'
+  readonly type: typeof submitZcashAddress
 }
 export type UpdateErrorTextPayload = {
   readonly payload: _UpdateErrorTextPayload
-  readonly type: 'profile:updateErrorText'
+  readonly type: typeof updateErrorText
 }
 export type UpdatePgpInfoPayload = {
   readonly payload: _UpdatePgpInfoPayload
-  readonly type: 'profile:updatePgpInfo'
+  readonly type: typeof updatePgpInfo
 }
 export type UpdatePgpPublicKeyPayload = {
   readonly payload: _UpdatePgpPublicKeyPayload
-  readonly type: 'profile:updatePgpPublicKey'
+  readonly type: typeof updatePgpPublicKey
 }
 export type UpdatePlatformGenericCheckingPayload = {
   readonly payload: _UpdatePlatformGenericCheckingPayload
-  readonly type: 'profile:updatePlatformGenericChecking'
+  readonly type: typeof updatePlatformGenericChecking
 }
 export type UpdatePlatformGenericURLPayload = {
   readonly payload: _UpdatePlatformGenericURLPayload
-  readonly type: 'profile:updatePlatformGenericURL'
+  readonly type: typeof updatePlatformGenericURL
 }
 export type UpdatePlatformPayload = {
   readonly payload: _UpdatePlatformPayload
-  readonly type: 'profile:updatePlatform'
+  readonly type: typeof updatePlatform
 }
 export type UpdatePromptShouldStoreKeyOnServerPayload = {
   readonly payload: _UpdatePromptShouldStoreKeyOnServerPayload
-  readonly type: 'profile:updatePromptShouldStoreKeyOnServer'
+  readonly type: typeof updatePromptShouldStoreKeyOnServer
 }
 export type UpdateProofStatusPayload = {
   readonly payload: _UpdateProofStatusPayload
-  readonly type: 'profile:updateProofStatus'
+  readonly type: typeof updateProofStatus
 }
 export type UpdateProofTextPayload = {
   readonly payload: _UpdateProofTextPayload
-  readonly type: 'profile:updateProofText'
+  readonly type: typeof updateProofText
 }
-export type UpdateSigIDPayload = {readonly payload: _UpdateSigIDPayload; readonly type: 'profile:updateSigID'}
+export type UpdateSigIDPayload = {readonly payload: _UpdateSigIDPayload; readonly type: typeof updateSigID}
 export type UpdateUsernamePayload = {
   readonly payload: _UpdateUsernamePayload
-  readonly type: 'profile:updateUsername'
+  readonly type: typeof updateUsername
 }
-export type UploadAvatarPayload = {
-  readonly payload: _UploadAvatarPayload
-  readonly type: 'profile:uploadAvatar'
-}
+export type UploadAvatarPayload = {readonly payload: _UploadAvatarPayload; readonly type: typeof uploadAvatar}
 
 // All Actions
 // prettier-ignore

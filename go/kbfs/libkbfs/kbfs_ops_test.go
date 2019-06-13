@@ -4236,6 +4236,7 @@ func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
 	_, err = d.Write([]byte("ddata"))
 	require.NoError(t, err)
 	err = d.Close()
+	require.NoError(t, err)
 
 	name := "u1"
 	h, err := tlfhandle.ParseHandle(
@@ -4659,6 +4660,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	t.Log("Read it back out unencrypted")
 	config.ResetCaches()
 	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.TlfID())
+	require.NoError(t, err)
 	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
 	require.Len(t, syncConfig.Paths, len(pathsMap))
 	for _, p := range syncConfig.Paths {
@@ -4689,6 +4691,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 	_, err = kbfsOps.SetSyncConfig(ctx, h.TlfID(), syncConfig)
 	require.NoError(t, err)
 	syncConfig, err = kbfsOps.GetSyncConfig(ctx, h.TlfID())
+	require.NoError(t, err)
 	require.Equal(t, keybase1.FolderSyncMode_PARTIAL, syncConfig.Mode)
 	require.Len(t, syncConfig.Paths, len(pathsMap))
 	for _, p := range syncConfig.Paths {
@@ -4936,6 +4939,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	t.Log("Move a synced subdirectory somewhere else")
 	err = kbfsOps2.Rename(ctx, cNode, "e", dNode, "e")
+	require.NoError(t, err)
 	c, err = DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())

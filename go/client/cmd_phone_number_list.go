@@ -68,8 +68,8 @@ func (c *CmdListPhoneNumbers) Run() error {
 
 	for _, p := range resp {
 		visibilityName := keybase1.IdentityVisibilityRevMap[p.Visibility]
-		ui.Printf("%s (visibility: %s, verified: %t, added on: %s)\n", p.PhoneNumber,
-			visibilityName, p.Verified, p.Ctime.Time().Format("2006-01-02"))
+		ui.Printf("%s (visibility: %s, verified: %t, added on: %s, superseded: %t)\n", p.PhoneNumber,
+			visibilityName, p.Verified, p.Ctime.Time().Format("2006-01-02"), p.Superseded)
 	}
 	return nil
 }

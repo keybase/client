@@ -22,9 +22,6 @@ import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
 import {combineReducers} from 'redux'
-import {reducerTimer} from '../util/user-timings'
-
-import {TypedState} from '../constants/reducer'
 
 const reducers = {
   chat2,
@@ -52,9 +49,9 @@ const reducers = {
   wallets,
 }
 
-const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)
+const rootReducer = combineReducers(reducers)
+export type TypedState = ReturnType<typeof rootReducer>
 
-export default function(state: TypedState | void, action: any): TypedState {
-  // @ts-ignore codemod issue
-  return reducer(state, action)
+export default function(state: TypedState, action: any): TypedState {
+  return rootReducer(state, action)
 }

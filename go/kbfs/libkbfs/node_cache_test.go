@@ -563,3 +563,36 @@ func TestNodeCacheAllNodeChildren(t *testing.T) {
 	child1Children = ncs.AllNodeChildren(childNode1)
 	require.Len(t, child1Children, 1)
 }
+
+func TestNodeCacheObfuscator(t *testing.T) {
+	ncs := newNodeCacheStandard(
+		data.FolderBranch{
+			Tlf:    tlf.FakeID(0, tlf.Private),
+			Branch: data.MasterBranch,
+		})
+	ncs.SetObfuscatorMaker(func() data.Obfuscator {
+		return data.NewNodeObfuscator(nil)
+	})
+
+	t.Log("Root node should have an obfuscator")
+	rootPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
+	rootName := "root"
+	rootNode, err := ncs.GetOrCreate(rootPtr, rootName, nil, data.Dir)
+	require.NoError(t, err)
+	rootOb := rootNode.Obfuscator()
+	require.NotNil(t, rootOb)
+
+	t.Log("A new root node should have the same obfuscator")
+	rootNode2 := ncs.Get(rootPtr.Ref())
+	rootOb2 := rootNode2.Obfuscator()
+	require.NotNil(t, rootOb2)
+	require.True(t, rootOb == rootOb2)
+
+	t.Log("Child file should not have an obfuscator")
+	childPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}
+	childName := "child1"
+	childNode, err := ncs.GetOrCreate(childPtr, childName, rootNode, data.File)
+	require.NoError(t, err)
+	childOb := childNode.Obfuscator()
+	require.Nil(t, childOb)
+}

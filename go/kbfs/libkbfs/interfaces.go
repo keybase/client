@@ -232,6 +232,10 @@ type Node interface {
 	// FillCacheDuration sets `d` to the suggested cache time for this
 	// node, if desired.
 	FillCacheDuration(d *time.Duration)
+	// Obfuscator returns something that can obfuscate the child
+	// entries of this Node in the case of directories; for other
+	// types, it returns nil.
+	Obfuscator() data.Obfuscator
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -835,6 +839,11 @@ type blockKeyGetter interface {
 type KeyManager interface {
 	blockKeyGetter
 	mdDecryptionKeyGetter
+
+	// GetFirstTLFCryptKey gets the first valid crypt key for the
+	// TLF with the given metadata.
+	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
+		kbfscrypto.TLFCryptKey, error)
 
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
@@ -1906,6 +1915,9 @@ type InitMode interface {
 	// DoRefreshFavoritesOnInit indicates whether we should refresh
 	// our cached versions of the favorites immediately upon a login.
 	DoRefreshFavoritesOnInit() bool
+	// DoLogObfuscation indicates whether senstive data like filenames
+	// should be obfuscated in log messages.
+	DoLogObfuscation() bool
 }
 
 type initModeGetter interface {
@@ -2167,6 +2179,10 @@ type NodeCache interface {
 	// AddRootWrapper adds a new wrapper function that will be applied
 	// whenever a root Node is created.
 	AddRootWrapper(func(Node) Node)
+	// SetObfuscatorMaker sets the obfuscator-making function for this cache.
+	SetObfuscatorMaker(func() data.Obfuscator)
+	// ObfuscatorMaker sets the obfuscator-making function for this cache.
+	ObfuscatorMaker() func() data.Obfuscator
 }
 
 // fileBlockDeepCopier fetches a file block, makes a deep copy of it

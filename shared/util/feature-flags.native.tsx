@@ -18,6 +18,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
+  stellarExternalPartners: true,
 }
 
 // load overrides

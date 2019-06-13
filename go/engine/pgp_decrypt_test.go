@@ -412,6 +412,7 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
 	defer tcSigner.Cleanup()
 	keyA, err := tcSigner.MakePGPKey("keya@keybase.io")
+	require.NoError(t, err)
 
 	// find recipient key
 	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcSigner.G, recipient.Username))

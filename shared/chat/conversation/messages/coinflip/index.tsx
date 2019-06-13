@@ -15,7 +15,7 @@ export type Props = {
   resultText: string
   errorInfo?: RPCChatTypes.UICoinFlipError | null
   participants: Array<RPCChatTypes.UICoinFlipParticipant>
-  phase: 'commitments' | 'secrets' | 'complete' | 'loading'
+  phase: 'commitments' | 'secrets' | 'complete' | 'loading' | null
   progressText: string
   resultInfo?: RPCChatTypes.UICoinFlipResult | null
   showParticipants: boolean

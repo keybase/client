@@ -34,18 +34,15 @@ const FsNavHeaderRightActions = (props: Props) =>
     </Kb.Box2>
   )
 
-const mapStateToProps = (state, props: Props) => ({
-  _softErrors: state.fs.softErrors,
-})
-
-const mergeProps = (s, d, o) => ({
-  ...o,
-  hasSoftError: !!Constants.getSoftError(s._softErrors, o.path),
-})
-
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'FsNavHeaderRightActions')(
-  FsNavHeaderRightActions
-)
+export default namedConnect(
+  (state, _: OwnProps) => ({_softErrors: state.fs.softErrors}),
+  () => ({}),
+  (s, d, o: OwnProps) => ({
+    ...o,
+    hasSoftError: !!Constants.getSoftError(s._softErrors, o.path),
+  }),
+  'FsNavHeaderRightActions'
+)(FsNavHeaderRightActions)
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({

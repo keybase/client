@@ -5,12 +5,8 @@ import HiddenString from '../../../util/hidden-string'
 
 type OwnProps = {}
 
-const secretNoteConnector = {
-  mapDispatchToProps: (dispatch, ownProps) => ({
-    onChangeSecretNote: (secretNote: string) =>
-      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
-  }),
-  mapStateToProps: state => {
+export const SecretNote = namedConnect(
+  state => {
     const recipientType = state.wallets.building.recipientType
     const building = state.wallets.building
     const built = building.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
@@ -20,18 +16,16 @@ const secretNoteConnector = {
       toSelf: recipientType === 'otherAccount',
     }
   },
-}
-
-const publicMemoConnector = {
-  mapDispatchToProps: (dispatch, ownProps) => ({
-    onChangePublicMemo: (publicMemo: string) =>
-      dispatch(
-        WalletsGen.createSetBuildingPublicMemo({
-          publicMemo: new HiddenString(publicMemo),
-        })
-      ),
+  dispatch => ({
+    onChangeSecretNote: (secretNote: string) =>
+      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
   }),
-  mapStateToProps: state => {
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  'ConnectedSecretNote'
+)(SecretNoteComponent)
+
+export const PublicMemo = namedConnect(
+  state => {
     const building = state.wallets.building
     const built = state.wallets.builtPayment
     return {
@@ -39,18 +33,14 @@ const publicMemoConnector = {
       publicMemoError: built.publicMemoErrMsg.stringValue(),
     }
   },
-}
-
-export const SecretNote = namedConnect(
-  secretNoteConnector.mapStateToProps,
-  secretNoteConnector.mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
-  'ConnectedSecretNote'
-)(SecretNoteComponent)
-
-export const PublicMemo = namedConnect(
-  publicMemoConnector.mapStateToProps,
-  publicMemoConnector.mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  dispatch => ({
+    onChangePublicMemo: (publicMemo: string) =>
+      dispatch(
+        WalletsGen.createSetBuildingPublicMemo({
+          publicMemo: new HiddenString(publicMemo),
+        })
+      ),
+  }),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'ConnectedPublicMemo'
 )(PublicMemoComponent)

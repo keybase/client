@@ -106,13 +106,13 @@ function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: Actio
   return (
     `export type ${capitalize(actionName)}Payload = {readonly payload: _${capitalize(
       actionName
-    )}Payload, readonly type: "${ns}:${actionName}"}` +
+    )}Payload, readonly type: typeof ${actionName}}` +
     (canError(desc)
       ? `\n export type ${capitalize(
           actionName
         )}PayloadError = {readonly error: true, readonly payload: _${capitalize(
           actionName
-        )}PayloadError, readonly type: "${ns}:${actionName}"}`
+        )}PayloadError, readonly type: typeof ${actionName}}`
       : '')
   )
 }

@@ -1,6 +1,6 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Title from './title'
 
@@ -11,9 +11,7 @@ type OwnProps = {
   inDestinationPicker?: boolean | null
 }
 
-const mapStateToProps = state => ({})
-
-const mapDispatchToProps = (dispatch, {inDestinationPicker}) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {inDestinationPicker}: OwnProps) => ({
   onOpenPath: inDestinationPicker
     ? (path: Types.Path) =>
         Constants.makeActionsForDestinationPickerOpen(0, path).forEach(action => dispatch(action))
@@ -25,9 +23,12 @@ const mapDispatchToProps = (dispatch, {inDestinationPicker}) => ({
         ),
 })
 
-const mergeProps = (s, d, o) => ({
-  path: o.path || Constants.defaultPath,
-  ...d,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'NavHeaderTitle')(Title)
+export default Container.namedConnect(
+  () => ({}),
+  mapDispatchToProps,
+  (_, d, o: OwnProps) => ({
+    path: o.path || Constants.defaultPath,
+    ...d,
+  }),
+  'NavHeaderTitle'
+)(Title)
