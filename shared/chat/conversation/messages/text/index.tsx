@@ -44,13 +44,15 @@ const Reply = (props: ReplyProps) => {
                 </Kb.Box>
               </Kb.Box2>
             )}
-            {!props.deleted ? (
-              <Kb.Text type="BodySmall">{props.text}</Kb.Text>
-            ) : (
-              <Kb.Text type="BodyTiny" style={styles.replyEdited}>
-                Original message deleted
-              </Kb.Text>
-            )}
+            <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
+              {!props.deleted ? (
+                <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+              ) : (
+                <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+                  Original message deleted
+                </Kb.Text>
+              )}
+            </Kb.Box2>
           </Kb.Box2>
           {props.edited && (
             <Kb.Text type="BodyTiny" style={styles.replyEdited}>
