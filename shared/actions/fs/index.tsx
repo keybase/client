@@ -972,7 +972,7 @@ const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
       })
       break
     case Types.DiskSpaceStatus.Warning:
-      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
+      NotifyPopup('Disk Space Low', {body: `You have less than 1 GB of storage space left.`})
       break
     case Types.DiskSpaceStatus.Ok:
       break
@@ -989,21 +989,28 @@ const onFSOverallSyncSyncStatusChanged = (
     outOfSpace: action.payload.params.status.outOfSyncSpace,
     progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
   })
-  if (outOfSpace !== state.fs.overallSyncStatus.diskSpaceStatus) {
-    prevOutOfSpace = outOfSpace
-    // TODO once go side sends info: low on space warning
-    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
-    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
+  if (action.payload.params.status.outOfSyncSpace !== state.fs.overallSyncStatus.diskSpaceStatus) {
+    switch (diskSpaceStatus) {
+      case Types.DiskSpaceStatus.Error:
+        NotifyPopup('Sync Error', {
+          body: 'You are out of disk space. Some folders could not be synced.',
+          sound: true,
+        })
+        break
+      case Types.DiskSpaceStatus.Warning:
+        const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
+        NotifyPopup('Disk Space Low', {
+          body: `You have less than ${threshold} of storage space left.`,
+        })
+        break
+      case Types.DiskSpaceStatus.Ok:
+        break
+      default:
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+    }
+    return promise.then(() => NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace}))
   }
-}
-
-const updateMenubarIconOnStuckSync = (state, action) => {
-  if (outOfSpace !== state.fs.overallSyncStatus.diskSpaceStatus) {
-    prevOutOfSpace = outOfSpace
-    // TODO once go side sends info: low on space warning
-    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
-    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
-  }
+  return promise
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -1079,10 +1086,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
       onFSOverallSyncSyncStatusChanged
-    )
-    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
-      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      updateMenubarIconOnStuckSync
     )
   }
   yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
