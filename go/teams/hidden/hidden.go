@@ -223,8 +223,6 @@ type LoaderPackage struct {
 	lastMainChainGen keybase1.PerTeamKeyGeneration
 	data             *keybase1.HiddenTeamChain
 	newData          *keybase1.HiddenTeamChain
-	merged           *keybase1.HiddenTeamChain
-	lastRotator      *sig3.Signer
 	links            []sig3.Generic
 	isFresh          bool
 }
@@ -235,6 +233,9 @@ func NewLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyG
 
 func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 	l.data, err = mctx.G().GetHiddenTeamChainManager().Load(mctx, l.id)
+	if err != nil {
+		return err
+	}
 	return err
 }
 
@@ -323,74 +324,81 @@ func (l *LoaderPackage) checkRatchets(mctx libkb.MetaContext, update *keybase1.H
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
 	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
 
+	var data *keybase1.HiddenTeamChain
+	data, err = l.updatePrecheck(mctx, update)
+	if err != nil {
+		return err
+	}
+	err = l.storeData(mctx, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.ExportJSON) (ret *keybase1.HiddenTeamChain, err error) {
 	var links []sig3.Generic
 	links, err = importChain(mctx, update)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = sig3.CheckLinkSequence(links)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = l.checkExpectedHighSeqno(mctx, links)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(links) == 0 {
 		mctx.Debug("short-circuting since no update")
-		return nil
+		return nil, nil
 	}
 
 	err = l.checkPrev(mctx, links[0])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	data, err := l.toHiddenTeamChain(mctx, links)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = l.checkRatchets(mctx, data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = l.storeData(data)
-	if err != nil {
-		return err
-	}
-
-	l.lastRotator = l.findLastRotator(mctx, links)
-	return nil
+	return data, nil
 }
 
-func (l *LoaderPackage) findLastRotator(mctx libkb.MetaContext, links []sig3.Generic) *sig3.Signer {
-	for i := len(links) - 1; i >= 0; i-- {
-		link := links[i]
-		if sig3.IsStubbed(link) {
-			continue
-		}
-		rk, ok := link.(*sig3.RotateKey)
-		if !ok {
-			continue
-		}
-		inner := rk.Inner()
-		if inner == nil {
-			continue
-		}
-		return &inner.Signer
+func (l *LoaderPackage) LastRotator(mctx libkb.MetaContext, typ keybase1.PTKType) *keybase1.Signer {
+	if l.data == nil {
+		return nil
 	}
-	return nil
+	last, ok := l.data.LastPerTeamKeys[typ]
+	if !ok {
+		return nil
+	}
+	inner, ok := l.data.Inner[last]
+	if !ok {
+		return nil
+	}
+	return &inner.Signer
 }
 
-func (l *LoaderPackage) storeData(newData *keybase1.HiddenTeamChain) (err error) {
+func (l *LoaderPackage) LastReaderKeyRotator(mctx libkb.MetaContext) *keybase1.Signer {
+	return l.LastRotator(mctx, keybase1.PTKType_READER)
+}
+
+func (l *LoaderPackage) storeData(mctx libkb.MetaContext, newData *keybase1.HiddenTeamChain) (err error) {
 	l.newData = newData
 	if l.data == nil {
-		l.merged = newData
+		l.data = newData
 		return nil
 	}
 	tmp := l.data.DeepCopy()
@@ -400,7 +408,7 @@ func (l *LoaderPackage) storeData(newData *keybase1.HiddenTeamChain) (err error)
 			return err
 		}
 	}
-	l.merged = &tmp
+	l.data = &tmp
 	return nil
 }
 
@@ -471,10 +479,10 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 }
 
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
-	if l.merged == nil {
+	if l.data == nil {
 		return false
 	}
-	_, ok := l.merged.ReaderPerTeamKeys[gen]
+	_, ok := l.data.ReaderPerTeamKeys[gen]
 	return ok
 }
 
@@ -487,7 +495,7 @@ func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 }
 
 func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
-	return l.merged
+	return l.data
 }
 
 func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
@@ -495,12 +503,4 @@ func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGener
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()
-}
-
-func (l *LoaderPackage) LastRotator(mctx libkb.MetaContext) (ret *keybase1.Signer) {
-	if l.lastRotator == nil {
-		return nil
-	}
-	tmp := l.lastRotator.Export()
-	return &tmp
 }

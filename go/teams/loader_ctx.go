@@ -74,6 +74,13 @@ func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
+func (r *rawTeam) GetHiddenChain() []sig3.ExportJSON {
+	if r == nil {
+		return nil
+	}
+	return r.HiddenChain
+}
+
 func (r *rawTeam) unpackLinks(ctx context.Context) ([]*ChainLinkUnpacked, error) {
 	if r == nil {
 		return nil, nil

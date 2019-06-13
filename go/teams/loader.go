@@ -334,7 +334,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 
 	// Only public teams are allowed to be behind on secrets.
 	// This is allowed because you can load a public team you're not in.
-	if !l.hasSyncedSecrets(mctx, &ret.team) && !ret.team.Chain.Public {
+	if !l.hasSyncedSecrets(mctx, ret.teamShim()) && !ret.team.Chain.Public {
 		// this should not happen
 		return nil, nil, fmt.Errorf("missing secrets for team")
 	}
@@ -418,6 +418,10 @@ type load2ResT struct {
 	team      keybase1.TeamData
 	hidden    keybase1.HiddenTeamChain
 	didRepoll bool
+}
+
+func (l load2ResT) teamShim() *TeamShim {
+	return &TeamShim{Data: &l.team, Hidden: &l.hidden}
 }
 
 // Load2 does the rest of the work loading a team.
@@ -608,7 +612,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	} else if !hiddenPackage.IsFresh() {
 		mctx.Debug("TeamLoader fetching: hidden chain wasn't fresh")
 		fetchLinksAndOrSecrets = true
-	} else if !l.hasSyncedSecrets(mctx, ret) {
+	} else if !l.hasSyncedSecrets(mctx, teamShim()) {
 		// The cached secrets are behind the cached chain.
 		// We may need to hit the server for secrets, even though there are no new links.
 		if arg.needAdmin {
@@ -703,11 +707,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
-	if teamUpdate != nil {
-		err = hiddenPackage.Update(mctx, teamUpdate.HiddenChain)
-		if err != nil {
-			return nil, err
-		}
+	err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
+	if err != nil {
+		return nil, err
 	}
 
 	preloadCancel()
@@ -951,7 +953,7 @@ func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.Te
 }
 
 func (l *TeamLoader) checkNeedRotate(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, hiddenPackage *hidden.LoaderPackage) (ret bool, err error) {
-	signer := hiddenPackage.LastRotator(mctx)
+	signer := hiddenPackage.LastReaderKeyRotator(mctx)
 	if signer == nil {
 		mctx.Debug("not checking need rotate, since last signer of hidden chain was nil")
 		return false, nil
@@ -1120,7 +1122,7 @@ func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fr
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
 	if arg.needAdmin {
-		if !l.satisfiesNeedAdmin(mctx, arg.me, fromCache.MainChain()) {
+		if !l.satisfiesNeedAdmin(mctx, arg.me, fromCache) {
 			// Start from scratch if we are newly admin
 			reason = "!satisfiesNeedAdmin"
 			return true, true
@@ -1219,7 +1221,7 @@ func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fr
 // - NeedSeqnos
 func (l *TeamLoader) load2CheckReturn(mctx libkb.MetaContext, arg load2ArgT, shim Teamer) error {
 	if arg.needAdmin {
-		if !l.satisfiesNeedAdmin(mctx, arg.me, shim.MainChain()) {
+		if !l.satisfiesNeedAdmin(mctx, arg.me, shim) {
 			mctx.Debug("user %v is not an admin of team %v at seqno:%v", arg.me, arg.teamID, shim.MainChain().Chain.LastSeqno)
 			return fmt.Errorf("user %v is not an admin of the team", arg.me)
 		}
@@ -1257,17 +1259,17 @@ func (l *TeamLoader) load2CheckReturn(mctx libkb.MetaContext, arg load2ArgT, shi
 }
 
 // Whether the user is an admin at the snapshot, and there are no stubbed links, and keys are up to date.
-func (l *TeamLoader) satisfiesNeedAdmin(mctx libkb.MetaContext, me keybase1.UserVersion, teamData *keybase1.TeamData) bool {
-	if teamData == nil {
+func (l *TeamLoader) satisfiesNeedAdmin(mctx libkb.MetaContext, me keybase1.UserVersion, team Teamer) bool {
+	if team == nil || team.MainChain() == nil {
 		return false
 	}
-	if (TeamSigChainState{inner: teamData.Chain}.HasAnyStubbedLinks()) {
+	state := newTeamSigChainState(team)
+	if state.HasAnyStubbedLinks() {
 		return false
 	}
-	if !l.hasSyncedSecrets(mctx, teamData) {
+	if !l.hasSyncedSecrets(mctx, team) {
 		return false
 	}
-	state := TeamSigChainState{inner: teamData.Chain}
 	role, err := state.GetUserRole(me)
 	if err != nil {
 		mctx.Debug("TeamLoader error getting my role: %v", err)
@@ -1526,22 +1528,17 @@ func (l *TeamLoader) isFresh(mctx libkb.MetaContext, cachedAt keybase1.Time) boo
 
 // Whether the teams secrets are synced to the same point as its sigchain
 // Does not check RKMs.
-func (l *TeamLoader) hasSyncedSecrets(mctx libkb.MetaContext, state *keybase1.TeamData) bool {
-	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
-	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-	if onChainGen == offChainGen {
-		return true
+func (l *TeamLoader) hasSyncedSecrets(mctx libkb.MetaContext, team Teamer) bool {
+	state := team.MainChain()
+	n := len(team.MainChain().Chain.PerTeamKeys)
+	offChainGen := len(state.PerTeamKeySeedsUnverified)
+	mctx.Debug("TeamLoader#hasSyncedSecrets: found %d PTKs on the main chain (versus %d seeds)", n, offChainGen)
+	if team.HiddenChain() != nil {
+		m := len(team.HiddenChain().ReaderPerTeamKeys)
+		mctx.Debug("TeamLoader#hasSyncedSecrets: found another %d PTKs on the hidden chain", m)
+		n += m
 	}
-	ptk, err := mctx.G().GetHiddenTeamChainManager().PerTeamKeyAtGeneration(mctx, state.ID(), keybase1.PerTeamKeyGeneration(offChainGen))
-	if err != nil {
-		mctx.Debug("TeamLoader#hasSyncedSecrets: %s", err.Error())
-		return false
-	}
-	if ptk == nil {
-		mctx.Debug("TeamLoader#hasSyncedSecrets: failed to find a hidden chainlink for %d", offChainGen)
-		return false
-	}
-	return true
+	return (n == offChainGen)
 }
 
 func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.TeamData) {

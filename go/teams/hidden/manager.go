@@ -53,7 +53,8 @@ func withLogTag(mctx libkb.MetaContext) libkb.MetaContext {
 
 func (m *ChainManager) Load(mctx libkb.MetaContext, id keybase1.TeamID) (ret *keybase1.HiddenTeamChain, err error) {
 	mctx = withLogTag(mctx)
-	return m.loadAndMutate(mctx, loadArg{id: id})
+	ret, err = m.loadAndMutate(mctx, loadArg{id: id})
+	return ret, err
 }
 
 func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state *keybase1.HiddenTeamChain, err error) {
