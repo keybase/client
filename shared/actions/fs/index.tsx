@@ -963,15 +963,6 @@ const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkS
 const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
-const onFSOverallSyncSyncStatusChanged = (
-  state,
-  action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) =>
-  FsGen.createOverallSyncStatusChanged({
-    outOfSpace: action.payload.params.status.outOfSyncSpace,
-    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
-  })
-
 const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
   switch (diskSpaceStatus) {
     case Types.DiskSpaceStatus.Error:
@@ -990,10 +981,24 @@ const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
   }
 }
 
-let prevOutOfSpace = false
+const onFSOverallSyncSyncStatusChanged = (
+  state,
+  action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+) => {
+  let promise = FsGen.createOverallSyncStatusChanged({
+    outOfSpace: action.payload.params.status.outOfSyncSpace,
+    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+  })
+  if (outOfSpace !== state.fs.overallSyncStatus.diskSpaceStatus) {
+    prevOutOfSpace = outOfSpace
+    // TODO once go side sends info: low on space warning
+    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
+    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
+  }
+}
+
 const updateMenubarIconOnStuckSync = (state, action) => {
-  const outOfSpace = action.payload.params.status.outOfSyncSpace
-  if (outOfSpace !== prevOutOfSpace) {
+  if (outOfSpace !== state.fs.overallSyncStatus.diskSpaceStatus) {
     prevOutOfSpace = outOfSpace
     // TODO once go side sends info: low on space warning
     notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
