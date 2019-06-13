@@ -278,13 +278,14 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 
 func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("Stellar.handleReconnect", func() error { return nil })()
-	if s.walletState.Primed() {
-		mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
+	mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
+	time.Sleep(4 * time.Second)
+	if libkb.IsMobilePlatform() {
+		// sleep some more on mobile
 		time.Sleep(4 * time.Second)
-		mctx.Debug("stellar reconnect msg delay complete, refreshing wallet state")
-	} else {
-		mctx.Debug("stellar received reconnect msg, doing wallet refresh on unprimed wallet")
 	}
+	mctx.Debug("stellar reconnect msg delay complete, refreshing wallet state")
+
 	if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
 		mctx.Debug("Stellar.handleReconnect RefreshAll error: %s", err)
 	}
