@@ -61,45 +61,43 @@ const UseNativeFrame = (props: Props) => {
   )
 }
 
-class Advanced extends React.Component<Props, {}> {
-  render() {
-    const disabled =
-      this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
-    return (
-      <Kb.Box style={styles.advancedContainer}>
-        <Kb.Box style={styles.progressContainer}>
-          {this.props.settingLockdownMode && <Kb.ProgressIndicator />}
-        </Kb.Box>
-        <Kb.Box style={styles.checkboxContainer}>
+const Advanced = (props: Props) => {
+  const disabled =
+    this.props.lockdownModeEnabled == null || this.props.hasRandomPW || this.props.settingLockdownMode
+  return (
+    <Kb.Box style={styles.advancedContainer}>
+      <Kb.Box style={styles.progressContainer}>
+        {this.props.settingLockdownMode && <Kb.ProgressIndicator />}
+      </Kb.Box>
+      <Kb.Box style={styles.checkboxContainer}>
+        <Kb.Checkbox
+          checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
+          disabled={disabled}
+          label={`Forbid account changes from the website 
+            ${this.props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
+          onCheck={this.props.onChangeLockdownMode}
+          style={styles.checkbox}
+        />
+      </Kb.Box>
+      {!!this.props.setLockdownModeError && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {this.props.setLockdownModeError}
+        </Kb.Text>
+      )}
+      {isLinux && <UseNativeFrame {...this.props} />}
+      {!Styles.isMobile && !isLinux && (
+        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
           <Kb.Checkbox
-            checked={this.props.hasRandomPW || !!this.props.lockdownModeEnabled}
-            disabled={disabled}
-            label={`Forbid account changes from the website 
-              ${this.props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
-            onCheck={this.props.onChangeLockdownMode}
-            style={styles.checkbox}
+            label="Open Keybase on startup"
+            checked={this.props.openAtLogin}
+            onCheck={this.props.onSetOpenAtLogin}
           />
         </Kb.Box>
-        {!!this.props.setLockdownModeError && (
-          <Kb.Text type="BodySmall" style={styles.error}>
-            {this.props.setLockdownModeError}
-          </Kb.Text>
-        )}
-        {isLinux && <UseNativeFrame {...this.props} />}
-        {!Styles.isMobile && !isLinux && (
-          <Kb.Box style={styles.openAtLoginCheckboxContainer}>
-            <Kb.Checkbox
-              label="Open Keybase on startup"
-              checked={this.props.openAtLogin}
-              onCheck={this.props.onSetOpenAtLogin}
-            />
-          </Kb.Box>
-        )}
-        <ProxySettings {...this.props} />
-        <Developer {...this.props} />
-      </Kb.Box>
-    )
-  }
+      )}
+      <ProxySettings {...this.props} />
+      <Developer {...this.props} />
+    </Kb.Box>
+  )
 }
 
 type StartButtonProps = {
@@ -283,24 +281,15 @@ class ProxySettings extends React.Component<Props, ProxyState> {
 
   renderProxySettings() {
     if (this.state.proxyType === 'noProxy') {
-      return undefined
+      return null
     }
     return (
-      <Kb.Box direction="vertical" alignItems="flex-start" style={{width: '40ch'}}>
-        <Kb.Box2
-          direction="vertical"
-          gap="tiny"
-          style={{marginBottom: Styles.globalMargins.small, marginTop: Styles.globalMargins.small}}
-        >
+      <Kb.Box direction="vertical" alignItems="flex-start" style={styles.expandedProxyContainer}>
+        <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
           <Kb.NewInput placeholder="127.0.0.1" onChangeText={address => this.setState({address})} />
         </Kb.Box2>
-        <Kb.Box2
-          direction="vertical"
-          gap="tiny"
-          alignItems="left"
-          style={{marginBottom: Styles.globalMargins.small}}
-        >
+        <Kb.Box2 direction="vertical" gap="tiny" alignItems="left" style={styles.proxySetting}>
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
           <Kb.NewInput placeholder="8080" onChangeText={port => this.setState({port})} />
         </Kb.Box2>
@@ -308,7 +297,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
           on={!this.certPinning()}
           onClick={this.toggleCertPinning}
           label="Allow TLS Interception"
-          style={{marginBottom: Styles.globalMargins.small}}
+          style={styles.proxySetting}
         />
         <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
       </Kb.Box>
@@ -319,17 +308,17 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     return (
       <Kb.Box style={styles.proxyContainer}>
         <Kb.Divider style={styles.divider} />
-        <Kb.Text type="BodyBig" style={{...styles.text, marginTop: Styles.globalMargins.medium}}>
+        <Kb.Text type="BodyBig" style={styles.text}>
           Proxy Settings
         </Kb.Text>
-        <Kb.Box style={{display: 'flex', flexWrap: 'wrap'}}>
+        <Kb.Box style={styles.flexButtons}>
           {proxyTypeList.map(proxyType => (
             <Kb.RadioButton
               onSelect={() => this.setState({proxyType})}
               selected={this.state.proxyType === proxyType}
               key={proxyType}
               label={proxyTypeToDisplayName[proxyType]}
-              style={{marginRight: Styles.globalMargins.medium}}
+              style={styles.radioButton}
             />
           ))}
         </Kb.Box>
@@ -371,8 +360,16 @@ const styles = Styles.styleSheetCreate({
   error: {
     color: Styles.globalColors.red,
   },
+  expandedProxyContainer: {
+    marginTop: Styles.globalMargins.small,
+    width: '40ch',
+  },
   filler: {
     flex: 1,
+  },
+  flexButtons: {
+    display: 'flex',
+    flexWrap: 'wrap',
   },
   openAtLoginCheckboxContainer: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -391,6 +388,12 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.large,
+  },
+  proxySetting: {
+    marginBottom: Styles.globalMargins.small,
+  },
+  radioButton: {
+    marginRight: Styles.globalMargins.medium,
   },
   text: Styles.platformStyles({
     isElectron: {

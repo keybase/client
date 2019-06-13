@@ -16,7 +16,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
 })
