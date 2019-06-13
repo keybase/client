@@ -2958,21 +2958,29 @@ func (h *HiddenTeamChain) GetReaderPerTeamKeyAtGeneration(g PerTeamKeyGeneration
 	return key.Ptk, true
 }
 
-func (h *HiddenTeamChain) MaxReaderPerTeamKeyGeneration() PerTeamKeyGeneration {
+func (h *HiddenTeamChain) MaxReaderPerTeamKey() *PerTeamKey {
 	if h == nil {
-		return PerTeamKeyGeneration(0)
+		return nil
 	}
 	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
 	if !ok {
-		return PerTeamKeyGeneration(0)
+		return nil
 	}
 	inner, ok := h.Inner[seqno]
 	if !ok {
-		return PerTeamKeyGeneration(0)
+		return nil
 	}
 	ptk, ok := inner.Ptk[PTKType_READER]
 	if !ok {
+		return nil
+	}
+	return &ptk.Ptk
+}
+
+func (h *HiddenTeamChain) MaxReaderPerTeamKeyGeneration() PerTeamKeyGeneration {
+	k := h.MaxReaderPerTeamKey()
+	if k == nil {
 		return PerTeamKeyGeneration(0)
 	}
-	return ptk.Ptk.Gen
+	return k.Gen
 }

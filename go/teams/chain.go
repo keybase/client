@@ -332,10 +332,24 @@ func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
 }
 
 func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
+	var hk *keybase1.PerTeamKey
+	if t.hidden != nil {
+		hk = t.hidden.MaxReaderPerTeamKey()
+	}
 	res, ok := t.inner.PerTeamKeys[keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))]
-	if !ok {
+
+	if hk == nil && ok {
+		return res, nil
+	}
+	if !ok && hk != nil {
+		return *hk, nil
+	}
+	if !ok && hk == nil {
 		// if this happens it's a programming error
 		return res, errors.New("per-team-key not found")
+	}
+	if hk.Gen > res.Gen {
+		return *hk, nil
 	}
 	return res, nil
 }
