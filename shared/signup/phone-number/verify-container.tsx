@@ -16,6 +16,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCancel: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
+  onResend: () =>
+    dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
 })
 
 const ConnectedVerifyPhoneNumber = Container.namedConnect(
@@ -27,6 +29,7 @@ const ConnectedVerifyPhoneNumber = Container.namedConnect(
     onBack: d.onBack,
     onCancel: d.onCancel,
     onContinue: (code: string) => d._onContinue(s.phoneNumber, code),
+    onResend: d.onResend,
   }),
   'ConnectedVerifyPhoneNumber'
 )(VerifyPhoneNumber)

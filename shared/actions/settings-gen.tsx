@@ -63,7 +63,11 @@ export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
-type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
+type _AddPhoneNumberPayload = {
+  readonly allowSearch: boolean
+  readonly phoneNumber: string
+  readonly resend?: boolean
+}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly error: string
@@ -129,7 +133,7 @@ type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
 /**
- * Add a phone number and kick off a text message with a verification code. If the phone number is already added, just kicks off the verification message.
+ * Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.
  */
 export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
   payload,
