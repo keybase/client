@@ -41,6 +41,7 @@ type Signer interface {
 // The S3 type encapsulates operations with an S3 region.
 type S3 struct {
 	Region
+	libkb.Contextified
 
 	// This is needed for payload construction.  It's
 	// ok for clients to know it.
@@ -85,8 +86,6 @@ type S3 struct {
 
 	// client used for requests
 	client *http.Client
-
-	g *libkb.GlobalContext
 }
 
 // The Bucket type encapsulates operations with an S3 bucket.
@@ -149,7 +148,7 @@ func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.C
 		Region:          region,
 		AttemptStrategy: DefaultAttemptStrategy,
 		client:          httpclient,
-		g:               g,
+		Contextified:    libkb.NewContextified(g),
 	}
 }
 
@@ -978,7 +977,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
-				Proxy: libkb.MakeProxy(s3.g.Env.GetProxyType(), s3.g.Env.GetProxy()),
+				Proxy: libkb.MakeProxy(s3.G().Env.GetProxyType(), s3.G().Env.GetProxy()),
 			},
 		}
 	}

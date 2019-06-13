@@ -86,8 +86,8 @@ type streamCache struct {
 
 type S3Store struct {
 	utils.DebugLabeler
+	libkb.Contextified
 
-	g        *libkb.GlobalContext
 	s3signer s3.Signer
 	s3c      s3.Root
 	stash    AttachmentStash
@@ -106,10 +106,10 @@ type S3Store struct {
 // S3 connection.
 func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 	return &S3Store{
-		g:            g,
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -428,7 +428,7 @@ func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 }
 
 func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
-	conn := a.s3c.New(a.g, signer, region)
+	conn := a.s3c.New(a.G(), signer, region)
 	conn.SetAccessKey(accessKey)
 	return conn
 }
