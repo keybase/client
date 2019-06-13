@@ -33,9 +33,14 @@ func newTeamSigChainState(t Teamer) TeamSigChainState {
 }
 
 func (t TeamSigChainState) DeepCopy() TeamSigChainState {
-	return TeamSigChainState{
+	ret := TeamSigChainState{
 		inner: t.inner.DeepCopy(),
 	}
+	if t.hidden != nil {
+		tmp := t.hidden.DeepCopy()
+		ret.hidden = &tmp
+	}
+	return ret
 }
 
 func (t TeamSigChainState) DeepCopyToPtr() *TeamSigChainState {
