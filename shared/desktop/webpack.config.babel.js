@@ -116,6 +116,11 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
+        ...(isHot
+          ? {
+              alias: {'react-dom': '@hot-loader/react-dom'},
+            }
+          : {}),
         extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
       },
       stats: {
