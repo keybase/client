@@ -273,7 +273,11 @@ func (t *GenericSocialProofServiceType) GetPrompt() string {
 }
 
 func (t *GenericSocialProofServiceType) ToServiceJSON(username string) *jsonw.Wrapper {
-	return t.BaseToServiceJSON(t, username)
+	ret := t.BaseToServiceJSON(t, username)
+	if strings.HasPrefix(strings.ToLower(t.DisplayGroup()), "mastodon") {
+		ret.SetKey("form", jsonw.NewString("mastodon"))
+	}
+	return ret
 }
 
 func (t *GenericSocialProofServiceType) PostInstructions(username string) *libkb.Markup {

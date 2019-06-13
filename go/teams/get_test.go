@@ -130,6 +130,7 @@ func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
 
 	t.Logf("loads the subteam")
 	team, err := Details(context.Background(), tcs[0].G, teamName.String()+".bbb")
+	require.NoError(t, err)
 	require.Len(t, team.Members.Owners, 0, "should be no team members in subteam")
 	require.Len(t, team.Members.Admins, 0, "should be no team members in subteam")
 	require.Len(t, team.Members.Writers, 0, "should be no team members in subteam")

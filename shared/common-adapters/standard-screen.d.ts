@@ -15,7 +15,9 @@ export type Props = {
   scrollEnabled?: boolean
   styleBanner?: Object | null
   onClose?: Function
+  onCancel?: Function
   onBack?: Function
+  title?: string
 }
 
 export default class StandardScreen extends React.Component<Props> {}

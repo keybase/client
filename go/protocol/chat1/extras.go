@@ -83,7 +83,11 @@ const DbShortFormLen = 10
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() ConvIDShort {
-	return cid[:DbShortFormLen]
+	end := DbShortFormLen
+	if end > len(cid) {
+		end = len(cid)
+	}
+	return cid[:end]
 }
 
 func (cid ConversationID) DbShortFormString() string {

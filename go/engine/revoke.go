@@ -297,6 +297,13 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 		JSONPayload: payload,
 	})
 	if err != nil {
+		// Revoke failed, let's clear downgrade lease so it will not prevent us
+		// from trying again for given kids.
+		err2 := libkb.CancelDowngradeLease(m.Ctx(), m.G(), lease.LeaseID)
+		if err2 != nil {
+			m.Warning("Failed to cancel downgrade leases after a failed revoke: %s", err2)
+			return libkb.CombineErrors(err, err2)
+		}
 		return err
 	}
 	if err = libkb.MerkleCheckPostedUserSig(m, me.GetUID(), lastSeqno, lastLinkID); err != nil {

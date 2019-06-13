@@ -1455,6 +1455,14 @@ func TestSignTransactionXdr(t *testing.T) {
 
 	var emptyResult stellar1.SignXdrResult
 
+	// Try with invalid envelope.
+	envelope := "AAAAAJHtRFG9qD+hsTVmp0/1ZPWkxQj/F4217ia3nVY+dPHjAAAAZAAAAAACd"
+	res, err = tcs[0].Srv.SignTransactionXdrLocal(context.Background(), stellar1.SignTransactionXdrLocalArg{
+		EnvelopeXdr: envelope,
+	})
+	require.Error(t, err)
+	require.Equal(t, emptyResult, res)
+
 	// Try with account id user doesn't own.
 	invalidAccID, _ := randomStellarKeypair()
 	res, err = tcs[0].Srv.SignTransactionXdrLocal(context.Background(), stellar1.SignTransactionXdrLocalArg{
@@ -1480,21 +1488,6 @@ func TestSignTransactionXdr(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, res.AccountID, accID2)
 	require.NotEmpty(t, res.SingedTx)
-}
-
-func TestSignTransactionXdrBadEnvelope(t *testing.T) {
-	t.Skip("fails in CI, logs after test finishes")
-	tcs, cleanup := setupNTests(t, 1)
-	defer cleanup()
-
-	acceptDisclaimer(tcs[0])
-
-	envelope := "AAAAAJHtRFG9qD+hsTVmp0/1ZPWkxQj/F4217ia3nVY+dPHjAAAAZAAAAAACd"
-	res, err := tcs[0].Srv.SignTransactionXdrLocal(context.Background(), stellar1.SignTransactionXdrLocalArg{
-		EnvelopeXdr: envelope,
-	})
-	require.Error(t, err)
-	require.Equal(t, stellar1.SignXdrResult{}, res)
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {

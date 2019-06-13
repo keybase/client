@@ -22,7 +22,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
   state = {
     showingToast: false,
   }
-  _attachmentRef = React.createRef()
+
+  _attachmentRef: React.RefObject<Kb.Button> = React.createRef()
 
   componentDidMount() {
     this.props.onLoadSecretKey()

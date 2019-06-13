@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
+import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {withProps} from 'recompose'
 import Rows from '../rows/rows-container'
 import * as FsCommon from '../../common'
@@ -51,7 +52,10 @@ const DesktopHeaders = (props: Props) => (
 
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    <FsCommon.LoadPathMetadataWhenNeeded path={props.parentPath} refreshTag="destination-picker" />
+    <FsCommon.LoadPathMetadataWhenNeeded
+      path={props.parentPath}
+      refreshTag={Types.RefreshTag.DestinationPicker}
+    />
     {!Styles.isMobile && <DesktopHeaders {...props} />}
     <Kb.Divider key="dheader" />
     {!!props.onBackUp && (
@@ -104,26 +108,28 @@ const DestinationPicker = (props: Props) => (
 )
 
 const HighOrderDestinationPickerDesktop = Kb.HeaderOrPopup(DestinationPicker)
-const HighOrderDestinationPickerMobile = withProps((props: any) => ({
-  customComponent: (
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
-        <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
-      </Kb.ClickableBox>
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
-        <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-          <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
-          <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
+const HighOrderDestinationPickerMobile = withProps(
+  (props: Props & HeaderHocProps): Partial<HeaderHocProps> => ({
+    customComponent: (
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
+          <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
+          <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
+            <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
+            <FsCommon.Filename type="BodySmallSemibold" filename={props.targetName} />
+          </Kb.Box2>
+          <Kb.Text type="Header" lineClamp={1}>
+            {Types.getPathName(props.parentPath)}
+          </Kb.Text>
         </Kb.Box2>
-        <Kb.Text type="Header" lineClamp={1}>
-          {Types.getPathName(props.parentPath)}
-        </Kb.Text>
       </Kb.Box2>
-    </Kb.Box2>
-  ),
-  headerStyle: {paddingRight: 0},
-  onCancel: null, // unset this to avoid onCancel button from HeaderHoc
-}))(Kb.HeaderHoc(DestinationPicker))
+    ) as React.ReactNode,
+    headerStyle: {paddingRight: 0} as Styles.StylesCrossPlatform,
+    onCancel: null, // unset this to avoid onCancel button from HeaderHoc
+  })
+)(Kb.HeaderHoc(DestinationPicker))
 
 export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
 

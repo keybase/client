@@ -35,7 +35,7 @@ class Providers extends React.Component<ProvidersProps> {
   static _itemHeight = {
     height: Styles.isMobile ? 56 : 48,
     type: 'fixed',
-  }
+  } as const
   _renderItem = (_, provider) => (
     <React.Fragment key={provider.name}>
       <Kb.Divider />

@@ -15,11 +15,6 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
-    "loadingPath": {
-      "path": "Types.Path",
-      "id": "string",
-      "done": "boolean"
-    },
     "favoritesLoad": {},
     "favoritesLoaded": {
       "private": "I.Map<string, Types.Tlf>",
@@ -33,11 +28,6 @@
       "tlfType": "Types.TlfType",
       "tlfName": "string",
       "syncConfig": "Types.TlfSyncConfig"
-    },
-    "tlfSyncConfigsForAllSyncEnabledTlfsLoaded": {
-      "private": "I.Map<string, Types.TlfSyncConfig>",
-      "public": "I.Map<string, Types.TlfSyncConfig>",
-      "team": "I.Map<string, Types.TlfSyncConfig>"
     },
     "loadTlfSyncConfig": {
       "tlfPath": "Types.Path"
@@ -131,6 +121,14 @@
     "driverDisabling": {},
     "driverKextPermissionError": {},
 
+    "startManualConflictResolution": {
+      "tlfPath": "Types.Path"
+    },
+    "tlfCrStatusChanged": {
+      "status": "Types.ConflictState",
+      "tlfPath": "Types.Path"
+    },
+
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
@@ -170,6 +168,9 @@
     },
     "dismissFsError": {
       "key": "string"
+    },
+    "setLastPublicBannerClosedTlf": {
+      "tlf": "string"
     },
 
     "openFilesFromWidget": {
@@ -219,6 +220,9 @@
     },
     "setSendAttachmentToChatFilter": {
       "filter": "string"
+    },
+    "setSendAttachmentToChatTitle":{
+      "title":"string"
     },
     "sentAttachmentToChat": {},
     "initSendLinkToChat": {

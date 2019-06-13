@@ -94,8 +94,6 @@ export declare const windowStyle: {
 }
 
 // TODO: this typing is incomplete
-export declare function styled<T>(Component: T): (...styles: Array<any>) => T
-
 export declare function padding(
   top: number,
   right?: number,
@@ -126,3 +124,4 @@ export {
   StylesCrossPlatformWithSomeDisallowed,
 } from './css'
 export {default as classNames} from 'classnames'
+export {default as styled} from '@emotion/styled'

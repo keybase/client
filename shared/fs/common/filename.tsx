@@ -28,7 +28,7 @@ const Filename = (props: Props) => {
     props.path ? Types.getPathName(props.path) : props.filename || ''
   )
   return (
-    <Kb.Box2 direction="horizontal">
+    <Kb.Box2 direction="horizontal" style={props.style}>
       <Kb.Text
         type={props.type}
         style={Styles.collapseStyles([props.style, styles.breakAll])}
@@ -38,7 +38,12 @@ const Filename = (props: Props) => {
         {fileNameWithoutExtension}
       </Kb.Text>
       {!!fileExtension && (
-        <Kb.Text type={props.type} style={props.style} selectable={props.selectable} lineClamp={0}>
+        <Kb.Text
+          type={props.type}
+          style={Styles.collapseStyles([props.style, styles.noShrink])}
+          selectable={props.selectable}
+          lineClamp={0}
+        >
           {fileExtension}
         </Kb.Text>
       )}
@@ -54,4 +59,7 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
+  noShrink: {
+    flexShrink: 0,
+  },
 })

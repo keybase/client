@@ -1,8 +1,9 @@
 import * as React from 'react'
-import Git from '.'
+import Git, {Props as GitProps} from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
+import {TypedState} from '../constants/reducer'
 import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
 import {compose, connect, isMobile, RouteProps} from '../util/container'
@@ -29,7 +30,7 @@ const getRepos = memoize(git => {
   }
 })
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: TypedState) => {
   const {personals, teams} = getRepos(Constants.getIdToGit(state))
   return {
     loading: anyWaiting(state, Constants.loadingWaitingKey),
@@ -38,7 +39,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: (action: any) => void, {navigateAppend, navigateUp}: OwnProps) => ({
   _loadGit: () => dispatch(GitGen.createLoadGit()),
   clearBadges: () => dispatch(GitGen.createClearBadges()),
   onBack: () => dispatch(navigateUp()),
@@ -56,7 +57,11 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  _ownProps
+) => ({
   _loadGit: dispatchProps._loadGit,
   clearBadges: dispatchProps.clearBadges,
   loading: stateProps.loading,
@@ -81,7 +86,14 @@ let _expandedSet = I.Set()
         onToggleExpand: ((arg0: string) => void)
       }
     > */
-class GitReloadable extends React.PureComponent<any, {expandedSet: I.Set<string>}> {
+
+type ExtraProps = {
+  _loadGit: () => void
+  clearBadges: () => void
+  onBack: () => void
+}
+
+class GitReloadable extends React.PureComponent<GitProps & ExtraProps, {expandedSet: I.Set<string>}> {
   state = {expandedSet: _expandedSet}
   _toggleExpand = id => {
     _expandedSet = _expandedSet.has(id) ? _expandedSet.delete(id) : _expandedSet.add(id)
@@ -93,7 +105,7 @@ class GitReloadable extends React.PureComponent<any, {expandedSet: I.Set<string>
   }
 
   render() {
-    const {_loadGit, clearBadges, ...rest} = this.props
+    const {_loadGit, ...rest} = this.props
     return (
       <Kb.Reloadable
         waitingKeys={Constants.loadingWaitingKey}

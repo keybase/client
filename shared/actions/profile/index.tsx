@@ -99,6 +99,42 @@ const submitRevokeProof = (state, action: ProfileGen.SubmitRevokeProofPayload) =
   }
 }
 
+const submitBlockUser = (state, action: ProfileGen.SubmitBlockUserPayload) => {
+  return RPCTypes.userBlockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
+    .then(() => [
+      ProfileGen.createFinishBlockUser(),
+      Tracker2Gen.createLoad({
+        assertion: action.payload.username,
+        guiID: TrackerConstants.generateGUIID(),
+        inTracker: false,
+        reason: '',
+    })])
+    .catch((error: RPCError) => {
+      logger.warn(`Error blocking user ${action.payload.username}`, error)
+      return ProfileGen.createFinishBlockUserError({
+        error: error.desc || `There was an error blocking ${action.payload.username}.`,
+      })
+    })
+}
+
+const submitUnblockUser = (state, action: ProfileGen.SubmitUnblockUserPayload) => {
+  return RPCTypes.userUnblockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
+    .then(() => Tracker2Gen.createLoad({
+      assertion: action.payload.username,
+      guiID: TrackerConstants.generateGUIID(),
+      inTracker: false,
+      reason: '',
+    }))
+    .catch((error: RPCError) => {
+      logger.warn(`Error unblocking user ${action.payload.username}`, error)
+      return Tracker2Gen.createUpdateResult({
+        guiID: action.payload.guiID,
+        reason: `Failed to unblock ${action.payload.username}: ${error.desc}`,
+        result: 'error',
+      })
+    })
+}
+
 const editAvatar = () =>
   isMobile
     ? undefined // handled in platform specific
@@ -114,6 +150,8 @@ function* _profileSaga() {
     ProfileGen.submitRevokeProof,
     submitRevokeProof
   )
+  yield* Saga.chainAction<ProfileGen.SubmitBlockUserPayload>(ProfileGen.submitBlockUser, submitBlockUser)
+  yield* Saga.chainAction<ProfileGen.SubmitUnblockUserPayload>(ProfileGen.submitUnblockUser, submitUnblockUser)
   yield* Saga.chainAction<ProfileGen.BackToProfilePayload>(ProfileGen.backToProfile, backToProfile)
   yield* Saga.chainAction<ProfileGen.EditProfilePayload>(ProfileGen.editProfile, editProfile)
   yield* Saga.chainAction<ProfileGen.UploadAvatarPayload>(ProfileGen.uploadAvatar, uploadAvatar)

@@ -4,11 +4,8 @@ import * as Types from '../../../constants/types/chat2'
 import * as WalletTypes from '../../../constants/types/wallets'
 import {SendPaymentPopup} from '../../conversation/messages/message-popup/payment/container'
 import PaymentStatusError from './error'
-// @ts-ignore
 import Text from '../../../common-adapters/text'
-// @ts-ignore
 import {Box2} from '../../../common-adapters/box'
-// @ts-ignore
 import Icon from '../../../common-adapters/icon'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
@@ -24,7 +21,7 @@ type State = {
   showPopup: boolean
 }
 
-type Props = {
+export type Props = {
   allowFontScaling?: boolean | null
   allowPopup: boolean
   errorDetail?: string

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Text from '../text'
-// @ts-ignore
 import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'

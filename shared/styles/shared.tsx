@@ -1,7 +1,6 @@
 import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
 import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
-// @ts-ignore
 import {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */

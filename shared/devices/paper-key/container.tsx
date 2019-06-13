@@ -6,19 +6,17 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
-  paperkey: state.devices.newPaperkey.stringValue(),
-  waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
-})
-
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createClearModals()),
-})
-
-const mergeProps = (stateProps, dispatchProps) => ({
-  onBack: dispatchProps.onBack,
-  paperkey: stateProps.paperkey,
-  waiting: stateProps.waiting,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(PaperKey)
+export default Container.connect(
+  state => ({
+    paperkey: state.devices.newPaperkey.stringValue(),
+    waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createClearModals()),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    onBack: dispatchProps.onBack,
+    paperkey: stateProps.paperkey,
+    waiting: stateProps.waiting,
+  })
+)(PaperKey)

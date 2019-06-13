@@ -95,7 +95,7 @@ const containerStyle = {
 const styleCenter = {
   justifyContent: 'center',
   textAlign: 'center',
-}
+} as const
 
 const styleLeft = {
   marginLeft: globalMargins.tiny,

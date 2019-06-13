@@ -1113,3 +1113,41 @@ func PostAnyTransaction(mctx libkb.MetaContext, signedTx string) (err error) {
 	_, err = mctx.G().API.Post(mctx, apiArg)
 	return err
 }
+
+type fuzzyAssetSearchResult struct {
+	libkb.AppStatusEmbed
+	Assets []stellar1.Asset `json:"matches"`
+}
+
+func FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/fuzzy_asset_search",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"search_string": libkb.S{Val: arg.SearchString},
+		},
+	}
+	var apiRes fuzzyAssetSearchResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return []stellar1.Asset{}, err
+	}
+	return apiRes.Assets, nil
+}
+
+type popularAssetsResult struct {
+	libkb.AppStatusEmbed
+	Assets []stellar1.Asset `json:"assets"`
+}
+
+func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/list_popular_assets",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{},
+	}
+	var apiRes popularAssetsResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return []stellar1.Asset{}, err
+	}
+	return apiRes.Assets, nil
+}

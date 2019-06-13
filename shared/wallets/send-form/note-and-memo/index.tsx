@@ -39,7 +39,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
     secretNote: this.props.secretNote,
   }
   _emojiIcon = React.createRef<Kb.Icon>()
-  _note = React.createRef<Kb.Input>()
+  _note = React.createRef<Kb.PlainInput>()
 
   _onChangeSecretNote = (secretNote: string) => {
     this.props.onChangeSecretNote(secretNote)

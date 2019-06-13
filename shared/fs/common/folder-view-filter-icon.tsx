@@ -23,23 +23,16 @@ export const FolderViewFilterIcon = (props: Props) =>
     />
   )
 
-type OwnProps = Exclude<
-  Props,
-  {
-    pathItem: Types.PathItem
-  }
->
+type OwnProps = Omit<Props, 'pathItem'>
 
-const mapStateToProps = (state, {path}) => ({
-  pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-})
-const mapDispatchToProps = dispatch => ({})
-
-const mergeProps = (s, d, o) => ({
-  ...o,
-  pathItem: s.pathItem,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FolderViewFilterIcon')(
-  FolderViewFilterIcon
-)
+export default namedConnect(
+  (state, {path}: OwnProps) => ({
+    pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  }),
+  () => ({}),
+  (s, _, o: OwnProps) => ({
+    ...o,
+    pathItem: s.pathItem,
+  }),
+  'FolderViewFilterIcon'
+)(FolderViewFilterIcon)

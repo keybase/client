@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/fs'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 import flags from '../../../util/feature-flags'
@@ -22,16 +22,16 @@ type OwnProps = {
   routePath: I.List<string>
 }
 
-const mapStateToProps = (state, {path}) => ({
+const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _downloadKey: state.fs.pathItemActionMenu.downloadKey,
   _downloads: state.fs.downloads,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  _sfmiEnabled: state.fs.sfmi.driverStatus === Types.DriverStatusType.Enabled,
+  _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
   _username: state.config.username,
   _view: state.fs.pathItemActionMenu.view,
 })
 
-const mapDispatchToProps = (dispatch, {mode, path, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, routePath}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
   _confirmSaveMedia: (toCancel: string | null) =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia})),
@@ -111,17 +111,7 @@ const getDownloadingStateUnmemoized = (downloads: Types.Downloads, downloadKey: 
   }
 }
 
-const getDownloadingState = memoize<
-  Types.Downloads,
-  null | string,
-  void,
-  void,
-  {
-    done: boolean
-    saving: boolean
-    sharing: boolean
-  }
->(getDownloadingStateUnmemoized)
+const getDownloadingState = memoize(getDownloadingStateUnmemoized)
 
 const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, toCancel: string | null) =>
   toCancel
@@ -158,7 +148,11 @@ const getSaveMedia = (stateProps, dispatchProps, c) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => {
   const getLayout = stateProps._view === 'share' ? getShareLayout : getRootLayout
   const {mode, ...rest} = ownProps
   const layout = getLayout(mode, ownProps.path, stateProps._pathItem, stateProps._username)
@@ -193,4 +187,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemActionMenu')(Menu)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemActionMenu')(
+  Menu
+)

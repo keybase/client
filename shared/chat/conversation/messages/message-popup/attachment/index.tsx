@@ -3,7 +3,6 @@ import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
-// @ts-ignore
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
@@ -31,7 +30,7 @@ type Props = {
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
     ...(props.isDeleteable
-      ? [
+      ? ([
           'Divider',
           {
             danger: true,
@@ -40,7 +39,7 @@ const AttachmentPopupMenu = (props: Props) => {
             subTitle: 'Deletes this attachment for everyone',
             title: 'Delete',
           },
-        ]
+        ] as const)
       : []),
 
     'Divider',
@@ -53,7 +52,7 @@ const AttachmentPopupMenu = (props: Props) => {
       : []),
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-  ]
+  ] as const
 
   const header = {
     title: 'header',

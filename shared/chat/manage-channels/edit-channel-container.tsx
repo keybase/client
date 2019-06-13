@@ -4,15 +4,15 @@ import * as Types from '../../constants/types/chat2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EditChannel, {Props} from './edit-channel'
 import {connect, getRouteProps, RouteProps} from '../../util/container'
+import {upperFirst} from 'lodash-es'
+import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = RouteProps<
   {
     conversationIDKey: Types.ConversationIDKey
     teamname: string
   },
-  {
-    waitingForSave: number
-  }
+  {}
 >
 
 const mapStateToProps = (state, ownProps) => {
@@ -46,13 +46,17 @@ const mapStateToProps = (state, ownProps) => {
   const topic = channelInfo ? channelInfo.description : ''
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
+  const errorText = state.teams.channelCreationError
+  const waitingOnSave = anyWaiting(state, Constants.teamWaitingKey(teamname))
   return {
     canDelete,
     channelName,
     conversationIDKey,
+    errorText,
     teamname,
     topic,
     waitingForGetInfo: !channelInfo,
+    waitingOnSave,
   }
 }
 
@@ -63,6 +67,7 @@ const mapDispatchToProps = dispatch => {
     _navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
     _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
       dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamname})),
+    _onSetChannelCreationError: error => dispatch(TeamsGen.createSetChannelCreationError({error})),
     _updateChannelName: (
       teamname: string,
       conversationIDKey: Types.ConversationIDKey,
@@ -74,11 +79,12 @@ const mapDispatchToProps = dispatch => {
 }
 
 const mergeProps = (stateProps, dispatchProps): Props => {
-  const {teamname, conversationIDKey, channelName, topic} = stateProps
+  const {teamname, conversationIDKey, channelName, topic, errorText, waitingOnSave} = stateProps
   const deleteRenameDisabled = channelName === 'general'
   return {
     channelName,
     deleteRenameDisabled,
+    errorText: upperFirst(stateProps.errorText),
     loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
     onCancel: dispatchProps._navigateUp,
     onConfirmedDelete: () => {
@@ -87,20 +93,22 @@ const mergeProps = (stateProps, dispatchProps): Props => {
     },
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled && newChannelName !== channelName) {
+        dispatchProps._onSetChannelCreationError('')
         dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)
       }
 
       if (newTopic !== topic) {
         dispatchProps._updateTopic(teamname, conversationIDKey, newTopic)
       }
-
-      dispatchProps._navigateUp()
     },
+    onSaveSuccess: dispatchProps._navigateUp,
+    onSetChannelCreationError: dispatchProps._onSetChannelCreationError,
     showDelete: stateProps.canDelete,
     teamname,
     title: `Edit #${channelName}`,
     topic,
     waitingForGetInfo: stateProps.waitingForGetInfo,
+    waitingOnSave,
   }
 }
 

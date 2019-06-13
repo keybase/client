@@ -145,6 +145,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dns-48.png'),
   },
+  'icon-email-add-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-add-96.png'),
+  },
   'icon-email-delete-48': {
     extension: 'png',
     isFont: false,
@@ -1665,6 +1670,46 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
   },
+  'icon-stellar-logo-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-16.png'),
+  },
+  'icon-stellar-logo-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-32.png'),
+  },
+  'icon-stellar-logo-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-48.png'),
+  },
+  'icon-stellar-logo-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-64.png'),
+  },
+  'icon-stellar-logo-grey-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-grey-16.png'),
+  },
+  'icon-stellar-logo-grey-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-grey-32.png'),
+  },
+  'icon-stellar-logo-grey-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-grey-48.png'),
+  },
+  'icon-stellar-logo-grey-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-logo-grey-64.png'),
+  },
   'icon-team-delete-28': {
     extension: 'png',
     isFont: false,
@@ -1922,6 +1967,11 @@ const iconMeta_ = {
   },
   'iconfont-app-minimize': {
     charCode: 0xe989,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-app-un-maximize': {
+    charCode: 0xe98d,
     gridSize: 16,
     isFont: true,
   },
@@ -2572,6 +2622,11 @@ const iconMeta_ = {
   },
   'iconfont-tweet': {
     charCode: 0xe965,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-unhide': {
+    charCode: 0xe98c,
     gridSize: 16,
     isFont: true,
   },

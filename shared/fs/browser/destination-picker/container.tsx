@@ -1,40 +1,41 @@
 import * as I from 'immutable'
-import {getRouteProps, namedConnect, RouteProps} from '../../../util/container'
+import * as Container from '../../../util/container'
 import {memoize} from '../../../util/memoize'
 import DestinationPicker from '.'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
+import {TypedState} from '../../../constants/reducer'
 import * as FsGen from '../../../actions/fs-gen'
 import {isMobile} from '../../../constants/platform'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
-type OwnProps = RouteProps<
-  {
-    index: number
-  },
-  {}
->
+type OwnProps = {
+  index: number
+}
+type OwnPropsWithSafeNavigation = Container.PropsWithSafeNavigation<OwnProps>
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: TypedState) => ({
   _destinationPicker: state.fs.destinationPicker,
   _pathItems: state.fs.pathItems,
 })
 
-const getDestinationParentPath = memoize((stateProps, ownProps: OwnProps) =>
+type StateProps = ReturnType<typeof mapStateToProps>
+
+const getIndex = (ownProps: OwnPropsWithSafeNavigation) => ownProps.getParam('index') || 0
+const getDestinationParentPath = (stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation): Types.Path =>
   stateProps._destinationPicker.destinationParentPath.get(
-    getRouteProps(ownProps, 'index') || 0,
+    getIndex(ownProps),
     stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
       ? Types.getPathParent(stateProps._destinationPicker.source.path)
       : Types.stringToPath('/keybase')
   )
-)
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => ({
   _onBackUp: (currentPath: Types.Path) =>
     Constants.makeActionsForDestinationPickerOpen(
       getIndex(ownProps) + 1,
       Types.getPathParent(currentPath),
-      I.List() // ownProps.routePath
+      ownProps.navigateAppend
     ).forEach(action => dispatch(action)),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
@@ -45,9 +46,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     dispatch(FsGen.createMove({destinationParentPath}))
     dispatch(FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}))
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]})
-    )
+    dispatch(ownProps.navigateAppend({path: [{props: {path: destinationParentPath}, selected: 'main'}]}))
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
@@ -57,14 +56,16 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
 })
 
+type DispatchProps = ReturnType<typeof mapDispatchToProps>
+
 const canWrite = memoize(
-  (stateProps, ownProps: OwnProps) =>
+  (stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation) =>
     Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 2 &&
     stateProps._pathItems.get(getDestinationParentPath(stateProps, ownProps), Constants.unknownPathItem)
       .writable
 )
 
-const canCopy = memoize((stateProps, ownProps: OwnProps) => {
+const canCopy = memoize((stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation) => {
   if (!canWrite(stateProps, ownProps)) {
     return false
   }
@@ -78,7 +79,7 @@ const canCopy = memoize((stateProps, ownProps: OwnProps) => {
 })
 
 const canMove = memoize(
-  (stateProps, ownProps: OwnProps) =>
+  (stateProps: StateProps, ownProps: OwnPropsWithSafeNavigation) =>
     canCopy(stateProps, ownProps) &&
     stateProps._destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy &&
     Constants.pathsInSameTlf(
@@ -87,15 +88,18 @@ const canMove = memoize(
     )
 )
 
-const getIndex = memoize((ownProps: OwnProps) => getRouteProps(ownProps, 'index') || 0)
 const canBackUp = isMobile
   ? memoize(
-      (stateProps, ownProps: OwnProps) =>
+      (stateProps, ownProps: OwnPropsWithSafeNavigation) =>
         Types.getPathLevel(getDestinationParentPath(stateProps, ownProps)) > 1
     )
   : (s, o) => false
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (
+  stateProps: StateProps,
+  dispatchProps: DispatchProps,
+  ownProps: OwnPropsWithSafeNavigation
+) => {
   const targetName = Constants.getDestinationPickerPathName(stateProps._destinationPicker)
   return {
     index: getIndex(ownProps),
@@ -118,8 +122,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDestinationPicker')(
-  DestinationPicker
+const Connected = Container.withSafeNavigation(
+  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedDestinationPicker')(
+    DestinationPicker
+  )
 )
 
 export default Connected

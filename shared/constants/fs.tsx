@@ -9,7 +9,6 @@ import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
-import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
@@ -249,6 +248,7 @@ export const makeSendAttachmentToChat: I.Record.Factory<Types._SendAttachmentToC
   filter: '',
   path: Types.stringToPath('/keybase'),
   state: Types.SendAttachmentToChatState.None,
+  title: '',
 } as Types._SendAttachmentToChat)
 
 export const makeSendLinkToChat: I.Record.Factory<Types._SendLinkToChat> = I.Record({
@@ -314,7 +314,7 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   errors: I.Map(),
   folderViewFilter: '',
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
-  loadingPaths: I.Map(),
+  lastPublicBannerClosedTlf: '',
   localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
   pathItemActionMenu: makePathItemActionMenu(),
@@ -330,17 +330,13 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   uploads: makeUploads(),
 } as Types._State)
 
-export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+// RPC expects a string that's interpreted as [16]byte on Go side.
+export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
 export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
   PathType: RPCTypes.PathType.kbfs,
   kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
 })
-
-export const getPathTextColor = (path: Types.Path) => {
-  const elems = Types.getPathElements(path)
-  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black
-}
 
 export const pathTypeToTextType = (type: Types.PathType) =>
   type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
@@ -515,13 +511,12 @@ export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.Loc
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
-export const folderRPCFromPath = (path: Types.Path): RPCTypes.Folder | null => {
+export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
   const pathElems = Types.getPathElements(path)
   if (pathElems.length === 0) return null
 
   const visibility = Types.getVisibilityFromElems(pathElems)
   if (visibility === null) return null
-  const isPrivate = visibility === Types.TlfType.Private || visibility === Types.TlfType.Team
 
   const name = Types.getPathNameFromElems(pathElems)
   if (name === '') return null
@@ -530,7 +525,6 @@ export const folderRPCFromPath = (path: Types.Path): RPCTypes.Folder | null => {
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
-    private: isPrivate,
   }
 }
 
@@ -644,6 +638,11 @@ export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
 export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
   return elems.length >= 3 && elems[2].split(',').includes(username)
+}
+
+export const getUsernamesFromTlfName = (tlfName: string): I.List<string> => {
+  const split = splitTlfIntoReadersAndWriters(tlfName)
+  return split.writers.concat(split.readers || I.List([]))
 }
 
 export const isOfflineUnsynced = (
@@ -950,13 +949,13 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  routePath?: I.List<string> | null
+  navigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
     path,
   }),
-  RouteTreeGen.createNavigateAppend({
+  navigateAppend({
     path: [{props: {index}, selected: 'destinationPicker'}],
   }),
 ]
@@ -969,6 +968,9 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
+
+// TODO(KBFS-4155): implement this
+export const isUnmergedView = (path: Types.Path): boolean => false
 
 export const makeActionsForShowSendLinkToChat = (
   path: Types.Path,
@@ -1044,6 +1046,12 @@ export const humanizeBytesOfTotal = (n: number, d: number): string => {
 export const getTlfPath = (path: Types.Path): Types.Path | null => {
   const elems = Types.getPathElements(path)
   return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+}
+
+export const hasPublicTag = (path: Types.Path): boolean => {
+  const publicPrefix = '/keybase/public/'
+  // The slash after public in `publicPrefix` prevents /keybase/public from counting.
+  return Types.pathToString(path).startsWith(publicPrefix)
 }
 
 export const getPathUserSetting = (

@@ -21,6 +21,7 @@ export const provider = Sb.createPropProviderWithCommon({
 
 const common = {
   onCancel: Sb.action('onCancel'),
+  onSetTitle: Sb.action('onSetTitle'),
   send: Sb.action('send'),
   sendAttachmentToChatState: Types.SendAttachmentToChatState.ReadyToSend,
 }
@@ -32,6 +33,7 @@ const load = () =>
       <SendAttachmentToChat
         {...common}
         path={Types.stringToPath('/keybase/team/kbkbfstest/banana-bread-has-a-super-long-name.txt')}
+        title="banana-bread-has-a-super-long-name.txt"
       />
     ))
 

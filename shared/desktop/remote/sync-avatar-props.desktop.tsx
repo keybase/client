@@ -4,7 +4,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
@@ -103,7 +103,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
   }
 
-  const mapStateToProps = (state, ownProps) =>
+  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) =>
     immutableCached(
       getRemoteAvatars(state.config.avatars, ownProps.usernames),
       getRemoteFollowers(state.config.followers, ownProps.usernames),
@@ -121,10 +121,10 @@ function SyncAvatarProps(ComposedComponent: any) {
       newAvatars.equals(oldAvatars) && newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
   )
 
-  const Connected = connect(
+  const Connected = Container.connect(
     mapStateToProps,
     () => ({}),
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
@@ -142,6 +142,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     state = {usernames: I.Set()}
     setUsernames = (usernames: I.Set<string>) => this.setState({usernames})
     render() {
+      // @ts-ignore TODO fix
       return <Connected {...this.props} usernames={this.state.usernames} setUsernames={this.setUsernames} />
     }
   }

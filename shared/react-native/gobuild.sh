@@ -104,7 +104,7 @@ gomobileinit ()
 }
 
 if [ "$arg" = "ios" ]; then
-  ios_dir=${DEST_DIR:-"$dir/ios"}
+  ios_dir=${DEST_DIR:-"$dir/../ios"}
   ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
@@ -118,7 +118,7 @@ if [ "$arg" = "ios" ]; then
     echo $OUTPUT
   fi
 elif [ "$arg" = "android" ]; then
-  android_dir=${DEST_DIR:-"$dir/android/keybaselib"}
+  android_dir=${DEST_DIR:-"$dir/../android/keybaselib"}
   android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e

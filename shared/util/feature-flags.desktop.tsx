@@ -13,6 +13,7 @@ const ff: FeatureFlags = {
   admin: false,
   airdrop: false,
   chatIndexProfilingEnabled: false,
+  conflictResolution: false,
   dbCleanEnabled: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
@@ -21,14 +22,17 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
+  stellarExternalPartners: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
+  kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
+  stellarExternalPartners: true,
 }
 
 // load overrides

@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _onManageRetention: conversationIDKey =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatInfoPanel'}],
+        path: [{props: {conversationIDKey, tab: 'settings'}, selected: 'chatInfoPanel'}],
       })
     ),
 })

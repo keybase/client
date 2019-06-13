@@ -34,7 +34,7 @@ const mapStateToProps = state => ({
 const Connected = connect(
   mapStateToProps,
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(HeaderArea)
 
 const Empty = () => null

@@ -1,4 +1,4 @@
-import {connect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
@@ -13,10 +13,10 @@ export type OwnProps = {
   teamname: Types.Teamname
 }
 
-const mapStateToProps = (state, {teamname}: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
-    _canRenameTeam: yourOperations.manageSubteams && teamname.includes('.'),
+    _canRenameTeam: yourOperations.renameTeam,
     _you: state.config.username,
     canChat: yourOperations.chat,
     canEditDescription: yourOperations.editTeamDescription,
@@ -29,7 +29,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnProps) => ({
   _onAddSelf: (you: string | null) => {
     if (!you) {
       return
@@ -53,26 +53,26 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamRename'}]})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  canChat: stateProps.canChat,
-  canEditDescription: stateProps.canEditDescription,
-  canJoinTeam: stateProps.canJoinTeam,
-  canManageMembers: stateProps.canManageMembers,
-  description: stateProps.description,
-  memberCount: stateProps.memberCount,
-  onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
-  onChat: dispatchProps.onChat,
-  onEditDescription: dispatchProps.onEditDescription,
-  onEditIcon: dispatchProps.onEditIcon,
-  onFilePickerError: dispatchProps.onFilePickerError,
-  onRename: stateProps._canRenameTeam ? dispatchProps.onRename : null,
-  openTeam: stateProps.openTeam,
-  role: stateProps.role,
-  teamname: ownProps.teamname,
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    canChat: stateProps.canChat,
+    canEditDescription: stateProps.canEditDescription,
+    canJoinTeam: stateProps.canJoinTeam,
+    canManageMembers: stateProps.canManageMembers,
+    description: stateProps.description,
+    loading: false,
+    memberCount: stateProps.memberCount,
+    onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
+    onChat: dispatchProps.onChat,
+    onEditDescription: dispatchProps.onEditDescription,
+    onEditIcon: dispatchProps.onEditIcon,
+    onFilePickerError: dispatchProps.onFilePickerError,
+    onRename: stateProps._canRenameTeam ? dispatchProps.onRename : null,
+    openTeam: stateProps.openTeam,
+    role: stateProps.role,
+    showingMenu: false,
+    teamname: ownProps.teamname,
+  })
 )(TeamHeader)

@@ -2492,6 +2492,10 @@
         },
         {
           "type": "boolean",
+          "name": "renameTeam"
+        },
+        {
+          "type": "boolean",
           "name": "editChannelDescription"
         },
         {

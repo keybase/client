@@ -18,5 +18,6 @@ if [ -n "$convid" ]; then
   echo "Sending to Keybase convID: $convid"
   location=${KEYBASE_LOCATION:-"keybase"}
   home=${KEYBASE_HOME:-$HOME}
-  $location --home $home chat api -m "{\"method\":\"send\", \"params\": {\"options\": { \"conversation_id\": \"$convid\" , \"message\": { \"body\": \"$@\" }}}}"
+  msg=`echo -n "$@" | awk '{ printf "%s\\\n", $0 }'`
+  $location --home $home chat api -m "{\"method\":\"send\", \"params\": {\"options\": { \"conversation_id\": \"$convid\" , \"message\": { \"body\": \"$msg\" }}}}"
 fi

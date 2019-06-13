@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import Avatar, {AvatarSize} from '../avatar'
 import Box from '../box'
-// @ts-ignore
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, IconType} from '../icon'
 import Text, {TextType} from '../text'
@@ -24,7 +23,7 @@ export type NameWithIconProps = {
   icon?: IconType
   iconBoxStyle?: Styles.StylesCrossPlatform
   isYou?: boolean
-  metaOne?: string | React.ReactElement
+  metaOne?: string | React.ReactNode
   metaStyle?: Styles.StylesCrossPlatform
   metaTwo?: string | React.ReactElement // If components such as metaOne or
   // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,,
@@ -37,7 +36,7 @@ export type NameWithIconProps = {
   teamname?: string
   channelname?: string
   // for non-users
-  title?: string | React.ReactElement
+  title?: string | React.ReactNode
   titleStyle?: Styles.StylesCrossPlatform
   underline?: boolean
   username?: string
@@ -67,7 +66,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         <Avatar
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
-          size={this.props.avatarSize || (this.props.horizontal ? commonHeight : adapterProps.iconSize)}
+          size={
+            this.props.avatarSize || (this.props.horizontal ? commonHeight : (adapterProps.iconSize as any))
+          }
           showFollowingStatus={this.props.horizontal ? undefined : !this.props.hideFollowingOverlay}
           username={this.props.username}
           teamname={this.props.teamname}
@@ -182,7 +183,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
 
 // Render text if it's text, or identity if otherwise
 const TextOrComponent = (props: {
-  val: string | React.ReactElement
+  val: string | React.ReactNode
   textType: TextType
   style?: Styles.StylesCrossPlatform
 }): React.ReactElement => {
@@ -193,6 +194,7 @@ const TextOrComponent = (props: {
       </Text>
     )
   }
+  // @ts-ignore to fix wrap in fragment
   return props.val
 }
 

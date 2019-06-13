@@ -174,4 +174,5 @@ func TestUnfurler(t *testing.T) {
 	status, _, err = unfurler.Status(context.TODO(), outboxID)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+	require.Equal(t, types.UnfurlerTaskStatusFailed, status)
 }

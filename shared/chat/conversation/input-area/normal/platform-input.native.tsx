@@ -38,6 +38,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
+    // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
     this.props.inputRef.current = ref
   }
 

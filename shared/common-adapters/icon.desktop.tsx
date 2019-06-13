@@ -140,8 +140,6 @@ class Icon extends Component<Props, void> {
           <span
             style={Styles.collapseStyles([
               style,
-              // @ts-ignore the TS compiler doesn't know enough about symbols to
-              // know whether they can be used as keys - see https://github.com/Microsoft/TypeScript/issues/24587
               this.props.padding && Shared.paddingStyles[this.props.padding],
             ])}
             className={Styles.classNames(

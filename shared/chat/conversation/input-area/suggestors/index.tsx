@@ -70,9 +70,7 @@ type AddSuggestorsState = {
 
 type SuggestorHooks = {
   suggestionsVisible: boolean
-  inputRef: {
-    current: React.RefObject<typeof Kb.PlainInput> | null
-  }
+  inputRef: React.RefObject<Kb.PlainInput> | null
   onChangeText: (arg0: string) => void
   onKeyDown: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onBlur: () => void
@@ -80,19 +78,19 @@ type SuggestorHooks = {
   onSelectionChange: (arg0: {start: number; end: number}) => void
 }
 
-export type PropsWithSuggestorOuter<P> = {} & P & AddSuggestorsProps
+export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
 
-export type PropsWithSuggestor<P> = {} & P & SuggestorHooks
+export type PropsWithSuggestor<P> = P & SuggestorHooks
 
 const AddSuggestors = <WrappedOwnProps extends {}>(
-  // ts is losing the types here anyways
-  WrappedComponent: any // React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
-): React.Component<PropsWithSuggestorOuter<WrappedOwnProps>> => {
+  WrappedComponent: React.ComponentType<PropsWithSuggestor<WrappedOwnProps>>
+): React.ComponentType<PropsWithSuggestorOuter<WrappedOwnProps>> => {
   type SuggestorsComponentProps = {
     forwardedRef: React.Ref<typeof WrappedComponent> | null
-  } & PropsWithSuggestorOuter<WrappedOwnProps>
+  } & PropsWithSuggestorOuter<WrappedOwnProps> &
+    SuggestorHooks
 
-  class SuggestorsComponent extends React.Component<any /* SuggestorsComponentProps */, AddSuggestorsState> {
+  class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
     state = {active: null, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
@@ -109,16 +107,16 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
       this._attachmentRef.current = r
       if (typeof this.props.forwardedRef === 'function') {
-        // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
+        // @ts-ignore this function probably needs some cleanup
         this.props.forwardedRef(r)
       } else if (this.props.forwardedRef && typeof this.props.forwardedRef !== 'string') {
-        // @ts-ignore thinks this is ready only: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
+        // @ts-ignore we probably shouldn't be doing this
         this.props.forwardedRef.current = r
       } // intentionally not supporting string refs
     }
 
     _getInputRef = () => this._inputRef.current
-    _getAttachmentRef = () => this._attachmentRef.current
+    _getAttachmentRef: () => any = () => this._attachmentRef.current
 
     _setInactive = () => this.setState(s => (s.active ? {active: null, filter: '', selected: 0} : null))
 
@@ -269,7 +267,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     }
 
     _onSelectionChange = selection => {
-      this.props.onSelectionChange && this.props.onSelectionChange()
+      this.props.onSelectionChange && this.props.onSelectionChange(selection)
       this._checkTrigger(this._lastText || '')
     }
 
@@ -378,11 +376,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         transformers,
         ...wrappedOP
       } = this.props
+
       return (
         <>
           {overlay}
           <WrappedComponent
-            {...wrappedOP}
+            {...wrappedOP as WrappedOwnProps}
             suggestionsVisible={suggestionsVisible}
             ref={this._setAttachmentRef}
             inputRef={this._inputRef}

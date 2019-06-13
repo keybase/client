@@ -154,7 +154,6 @@ const keybaseUserProps = {
 }
 
 const stellarPublicKeyProps = {
-  keyCounter: 0,
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onScanQRCode: Sb.action('onScanQRCode'),
   recipientPublicKey: '',

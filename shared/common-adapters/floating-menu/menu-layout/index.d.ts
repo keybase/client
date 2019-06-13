@@ -13,7 +13,8 @@ export type MenuItem = {
   view?: React.ReactNode // Required for header
 }
 
-export type MenuItems = Array<MenuItem | 'Divider' | null>
+type _InnerMenuItem = MenuItem | 'Divider' | null
+export type MenuItems = ReadonlyArray<_InnerMenuItem>
 
 export type MenuLayoutProps = {
   items: MenuItems

@@ -26,7 +26,7 @@ type Props = {
   unMuteConversation: () => void
 }
 
-const descStyle = {fontSize: 13, lineHeight: '17px', wordBreak: 'break-all'}
+const descStyle = {fontSize: 13, lineHeight: '17px' as any, wordBreak: 'break-all'} as const
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,

@@ -1,0 +1,81 @@
+{
+  "name": "react-native-camera",
+  "version": "2.0.0",
+  "summary": "A Camera component for React Native. Also reads barcodes.",
+  "description": "A Camera component for React Native. Also reads barcodes.",
+  "license": "MIT AND Apache-2.0 AND BSD-3-Clause",
+  "authors": "Lochlan Wansbrough <lochie@live.com> (http://lwansbrough.com)",
+  "homepage": "https://github.com/react-native-community/react-native-camera",
+  "source": {
+    "git": "https://github.com/react-native-community/react-native-camera",
+    "tag": "v2.0.0"
+  },
+  "requires_arc": true,
+  "platforms": {
+    "ios": "9.0"
+  },
+  "static_framework": true,
+  "default_subspecs": [
+    "RN",
+    "RCT"
+  ],
+  "preserve_paths": [
+    "LICENSE",
+    "README.md",
+    "package.json",
+    "index.js"
+  ],
+  "dependencies": {
+    "React": [
+
+    ]
+  },
+  "subspecs": [
+    {
+      "name": "RCT",
+      "source_files": "ios/RCT/**/*.{h,m}"
+    },
+    {
+      "name": "RN",
+      "source_files": "ios/RN/**/*.{h,m}"
+    },
+    {
+      "name": "FaceDetector",
+      "dependencies": {
+        "react-native-camera/RN": [
+
+        ],
+        "react-native-camera/RCT": [
+
+        ],
+        "GoogleMobileVision/Detector": [
+          "~> 1.4"
+        ],
+        "GoogleMobileVision/MVDataOutput": [
+          "~> 1.4"
+        ],
+        "GoogleMobileVision/FaceDetector": [
+          "~> 1.4"
+        ]
+      },
+      "source_files": "ios/FaceDetector/**/*.{h,m}"
+    },
+    {
+      "name": "TextDetector",
+      "dependencies": {
+        "react-native-camera/RN": [
+
+        ],
+        "react-native-camera/RCT": [
+
+        ],
+        "Firebase/MLVision": [
+
+        ],
+        "Firebase/MLVisionTextModel": [
+
+        ]
+      }
+    }
+  ]
+}

@@ -1216,11 +1216,33 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 
 		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		convIDs := make(map[chat1.TopicType][]chat1.ConversationID)
+		tlfIDs := make(map[string]struct{})
 		for _, conv := range convs {
+			tlfIDs[conv.Info.Triple.Tlfid.String()] = struct{}{}
 			uiItem := g.presentUIItem(ctx, &conv, uid)
 			if uiItem != nil {
 				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
 				convIDs[uiItem.TopicType] = append(convIDs[uiItem.TopicType], conv.GetConvID())
+			}
+		}
+
+		// force refresh any affected teams
+		m := libkb.NewMetaContext(ctx, g.G().ExternalG())
+		for tlfID := range tlfIDs {
+			teamID, err := keybase1.TeamIDFromString(tlfID)
+			if err != nil {
+				g.Debug(ctx, "SubteamRename: unable to get teamID: %v", err)
+				continue
+			}
+
+			_, err = m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
+				ID:           teamID,
+				Public:       teamID.IsPublic(),
+				ForceRefresh: true,
+			})
+			if err != nil {
+				g.Debug(ctx, "SubteamRename: unable to force-refresh team: %v", err)
+				continue
 			}
 		}
 		for topicType, items := range convUIItems {

@@ -22,7 +22,7 @@ class FolderViewFilter extends React.PureComponent<Props> {
   componentWillUnmount() {
     this._clear()
   }
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props) {
     prevProps.path !== this.props.path && this._clear()
   }
   render() {
@@ -42,27 +42,19 @@ class FolderViewFilter extends React.PureComponent<Props> {
   }
 }
 
-type OwnProps = Exclude<
-  Props,
-  {
-    onUpdate: (arg0: string) => void
-    pathItem: Types.PathItem
-  }
->
+type OwnProps = Omit<Omit<Props, 'onUpdate'>, 'pathItem'>
 
-const mapStateToProps = (state, {path}) => ({
-  pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-})
-const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  _onUpdate: (newFilter: string) => dispatch(FsGen.createSetFolderViewFilter({filter: newFilter})),
-})
-
-const mergeProps = (s, d, o) => ({
-  ...o,
-  onUpdate: debounce(d._onUpdate, 100),
-  pathItem: s.pathItem,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FolderViewFilter')(
-  FolderViewFilter
-)
+export default namedConnect(
+  (state, {path}: OwnProps) => ({
+    pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  }),
+  dispatch => ({
+    _onUpdate: (newFilter: string) => dispatch(FsGen.createSetFolderViewFilter({filter: newFilter})),
+  }),
+  (s, d, o: OwnProps) => ({
+    ...o,
+    onUpdate: debounce(d._onUpdate, 100),
+    pathItem: s.pathItem,
+  }),
+  'FolderViewFilter'
+)(FolderViewFilter)

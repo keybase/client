@@ -21,7 +21,8 @@
       "location": "string",
       "registeredForAirdrop": "boolean",
       "username": "string",
-      "teamShowcase": "Array<Types._TeamShowcase>"
+      "teamShowcase": "Array<Types._TeamShowcase>",
+      "blocked": "boolean"
     },
     "updateResult": {
       "guiID": "string",

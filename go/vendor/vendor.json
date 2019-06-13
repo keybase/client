@@ -391,12 +391,6 @@
 			"revisionTime": "2015-06-08T14:53:52-07:00"
 		},
 		{
-			"checksumSHA1": "37mmUDpo8//7mhcLc9rnsD8OfrE=",
-			"path": "github.com/guelfey/go.dbus",
-			"revision": "f6a3a2366cc39b8479cadc499d3c735fb10fbdda",
-			"revisionTime": "2013-11-13T12:16:18Z"
-		},
-		{
 			"checksumSHA1": "degm0JimzEvQjOTMaHOO6QzXNMI=",
 			"path": "github.com/hashicorp/golang-lru",
 			"revision": "995efda3e073b6946b175ed93901d729ad47466a",
@@ -637,16 +631,16 @@
 			"revisionTime": "2018-08-01T17:02:38Z"
 		},
 		{
-			"checksumSHA1": "mzJSAXuGoLPulltCYgqEo9AVuvQ=",
+			"checksumSHA1": "g0PJMcZdWKAs1cwRwracYXf2omQ=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "da9bb486ccd551aeb1929211500fc4a0bcb62a56",
-			"revisionTime": "2019-03-11T21:27:40Z"
+			"revision": "948cd561218ecd8f9c4548b09ce9d17fcd4b1ba5",
+			"revisionTime": "2019-06-04T18:42:05Z"
 		},
 		{
-			"checksumSHA1": "U4UI9YzOjjzb5wNqyLfGfZBzvcc=",
+			"checksumSHA1": "U/MVaUmN88p7XzeVia6QNUkSW64=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "18419f45091c941bd31260f957523063206554ef",
-			"revisionTime": "2019-04-10T17:11:33Z"
+			"revision": "948cd561218ecd8f9c4548b09ce9d17fcd4b1ba5",
+			"revisionTime": "2019-06-04T18:42:05Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
@@ -713,6 +707,12 @@
 			"path": "github.com/keybase/go-winio",
 			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
 			"revisionTime": "2018-09-13T22:10:37Z"
+		},
+		{
+			"checksumSHA1": "e4+s/4oTQwUd2sfvU2bh2fxYnNI=",
+			"path": "github.com/keybase/go.dbus",
+			"revision": "7ce83444282d459dcd3724fa5e2721d1662c5dc0",
+			"revisionTime": "2019-06-04T18:23:40Z"
 		},
 		{
 			"checksumSHA1": "6siKrD8lFPCe0S3OF9E4wuRgUAo=",
@@ -787,10 +787,10 @@
 			"revisionTime": "2019-05-20T16:34:51Z"
 		},
 		{
-			"checksumSHA1": "MucmIVwe9rnpJMJHeyZpve3GO3w=",
+			"checksumSHA1": "wq6QbjIa6d8w/NPNh/m4umdjAT0=",
 			"path": "github.com/keybase/xurls",
-			"revision": "6af249273d7ac95e5066341dd3c32b9dff554571",
-			"revisionTime": "2019-05-15T20:33:52Z"
+			"revision": "22e24f0bd3f875eae95c21a68d5d16c44ae7c3b6",
+			"revisionTime": "2019-06-11T00:55:34Z"
 		},
 		{
 			"checksumSHA1": "38ZTud4EfZYfY/4YZxwzesb3mIs=",

@@ -4,25 +4,6 @@ import * as Kb from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Props} from './index.types'
 
-const errorHeader = (errorText: string) => {
-  if (!errorText) {
-    return null
-  }
-
-  return (
-    <Kb.Box style={{..._boxStyle, backgroundColor: globalColors.red}}>
-      <Kb.Text
-        center={true}
-        style={{margin: globalMargins.tiny, width: '100%'}}
-        type="BodySemibold"
-        negative={true}
-      >
-        {errorText}
-      </Kb.Text>
-    </Kb.Box>
-  )
-}
-
 const CreateChannel = (props: Props) => (
   <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Kb.Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
@@ -34,7 +15,7 @@ const CreateChannel = (props: Props) => (
         New chat channel
       </Kb.Text>
     </Kb.Box>
-    {errorHeader(props.errorText)}
+    {!!props.errorText && <Kb.Banner color="red" text={props.errorText} />}
     <Kb.Box style={_boxStyle}>
       <Kb.Box style={_backStyle} onClick={props.onBack}>
         <Kb.Icon style={_backIcon} type="iconfont-arrow-left" />

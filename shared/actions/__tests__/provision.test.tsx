@@ -57,7 +57,6 @@ const startReduxSaga = (initialStore = undefined) => {
     },
   })
   const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
-  // @ts-ignore codemod-issue
   const getState: () => any = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
@@ -196,7 +195,6 @@ describe('device name empty', () => {
     payload: {errorMessage: '', existingDevices: null},
   })
 
-  // @ts-ignore codemod-issue
   const {getState}: {getState: () => any} = init
   expect(getState().provision.existingDevices).toEqual(existingDevices)
   expect(getState().provision.error).toEqual(noError)

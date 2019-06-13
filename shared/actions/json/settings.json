@@ -133,5 +133,6 @@
       "_description": "An error occurred while trying to send feedback to Keybase",
       "error": "Error | null"
     }
-  }
+  },
 }
+

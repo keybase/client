@@ -34,7 +34,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   routePath: ownProps.routePath || I.List(),
 })
 
-export default namedConnect<OwnProps, any, any, Props, TypedState>(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,

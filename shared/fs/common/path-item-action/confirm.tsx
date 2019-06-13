@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {FloatingMenuProps} from './types'
 
-type Props = {
+export type Props = {
   confirm: (() => void) | 'disabled'
   floatingMenuProps: FloatingMenuProps
   action: 'save-media' | 'send-to-other-app'

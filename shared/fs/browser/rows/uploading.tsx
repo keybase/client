@@ -36,7 +36,7 @@ const Uploading = (props: UploadingProps) => (
         path={props.path}
         size={32}
         style={Styles.collapseStyles([rowStyles.pathItemIcon, styles.opacity30])}
-        badge="upload"
+        badge={Types.PathItemBadgeType.Upload}
       />
     }
     body={
@@ -44,10 +44,7 @@ const Uploading = (props: UploadingProps) => (
         <Filename
           path={props.path}
           type={Constants.pathTypeToTextType(props.type)}
-          style={Styles.collapseStyles([
-            rowStyles.rowText_30,
-            {color: Constants.getPathTextColor(props.path)},
-          ])}
+          style={rowStyles.rowText_30}
         />
         {props.errorRetry ? (
           <Kb.Text type="BodySmall" style={styles.textFailed}>

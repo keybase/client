@@ -5,11 +5,8 @@ import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
 import {action} from '@storybook/addon-actions'
-// @ts-ignore
 import Box from '../common-adapters/box'
-// @ts-ignore
 import Text from '../common-adapters/text'
-// @ts-ignore
 import ClickableBox from '../common-adapters/clickable-box'
 import RandExp from 'randexp'
 
@@ -92,7 +89,6 @@ class StorybookErrorBoundary extends React.Component<
 
     // Disallow catching errors when snapshot testing
     if (!__STORYSHOT__) {
-      // @ts-ignore
       this.componentDidCatch = (
         error: Error,
         info: {
@@ -102,7 +98,6 @@ class StorybookErrorBoundary extends React.Component<
         this.setState({error, hasError: true, info})
       }
     } else {
-      // @ts-ignore
       this.componentDidCatch = undefined
     }
   }

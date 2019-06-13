@@ -1,6 +1,5 @@
 import Session from './session'
 import {RPCError} from '../util/errors'
-// @ts-ignore codemode issue
 import {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../constants/types/rpc-all-gen'
 
 type WaitingKey = string | Array<string>

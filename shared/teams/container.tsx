@@ -44,7 +44,8 @@ const headerActions = (dispatch, {navigateAppend}) => ({
 })
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   ...headerActions(dispatch, {navigateAppend}),
-  _loadTeams: () => dispatch(TeamsGen.createGetTeams({clearNavBadges: true})),
+  _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  _onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
   onHideChatBanner: () => dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})),
@@ -80,7 +81,19 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void}> {
+class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void; _onClearBadges: () => void}> {
+  _onWillBlur = () => {
+    this.props._onClearBadges()
+  }
+  _onDidFocus = () => {
+    this.props._loadTeams()
+  }
+  componentWillUnmount() {
+    this._onWillBlur()
+  }
+  componentDidMount() {
+    this._onDidFocus()
+  }
   render() {
     const {_loadTeams, ...rest} = this.props
     return (
@@ -91,6 +104,9 @@ class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void}> {
         reloadOnMount={true}
         title={this.props.title}
       >
+        {Container.isMobile && (
+          <Kb.NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
+        )}
         <Teams {...rest} />
       </Kb.Reloadable>
     )
@@ -99,13 +115,7 @@ class Reloadable extends React.PureComponent<Props & {_loadTeams: () => void}> {
 
 const Connected = Container.compose(
   Container.withSafeNavigation,
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  Container.lifecycle({
-    componentDidMount() {
-      // @ts-ignore NO recompose
-      this.props._loadTeams()
-    },
-  })
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)
 )(Reloadable)
 
 const ConnectedHeaderRightActions = Container.compose(

@@ -2,15 +2,14 @@ import logger from '../../logger'
 import * as React from 'react'
 import {HOCTimers, PropsWithTimer} from '../../common-adapters'
 import Feedback from './index'
-// @ts-ignore not typed yet
 import logSend from '../../native/log-send'
-import {compose, connect, RouteProps} from '../../util/container'
+import {compose, connect, RouteProps, getRouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{feedback: string}, {}>
 
 export type State = {
   sentFeedback: boolean
@@ -126,11 +125,17 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   title: 'Feedback',
 })
 
+const mergeProps = (s, d, o: OwnProps) => ({
+  ...s,
+  ...d,
+  feedback: getRouteProps(o, 'feedback') || '',
+})
+
 const connected = compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...s, ...d})
+    mergeProps
   ),
   HOCTimers
 )(FeedbackContainer)

@@ -9,6 +9,10 @@ import {MainBanner} from '.'
 import FilesContainer from '../container'
 
 export const headerProvider = {
+  FsNavHeaderRightActions: p => ({
+    ...p,
+    hasSoftError: false,
+  }),
   MainBanner: (p: any) => ({
     // Auto generated from flowToTs. Please clean me!
     bannerType: (p.storyProps && p.storyProps.bannerType) || Types.MainBannerType.None,

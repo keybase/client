@@ -20,8 +20,8 @@ type TextResult = {
   query: string
 }
 
-type Props = {
-  header?: React.ElementType
+export type Props = {
+  header?: React.ReactNode
   indexPercent: number
   nameStatus: Types.InboxSearchStatus
   nameResults: Array<NameResult>

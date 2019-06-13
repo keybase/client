@@ -113,11 +113,11 @@ func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 	task, err := u.getTask(ctx, outboxID)
 	if err != nil {
 		u.Debug(ctx, "Status: error finding task: outboxID: %s err: %s", outboxID, err)
-		return status, nil, err
+		return types.UnfurlerTaskStatusFailed, nil, err
 	}
 	found, err := u.G().GetKVStore().GetInto(&status, u.statusKey(outboxID))
 	if err != nil {
-		return status, nil, err
+		return types.UnfurlerTaskStatusFailed, nil, err
 	}
 	if !found {
 		u.Debug(ctx, "Status: failed to find status, using unfurling: outboxID: %s", outboxID)

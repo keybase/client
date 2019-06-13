@@ -72,7 +72,7 @@ const typingTests = () => {
   test = <TestArea {...extraJunk} />
 
   const testAreaFunc = (props: TestAreaProps) => {}
-  // @ts-ignore should error (not a class)
+  // @ts-ignore todo investigate
   AddSuggestors(testAreaFunc)
 }
 

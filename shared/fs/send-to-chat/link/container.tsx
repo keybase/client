@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import {namedConnect} from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
+import {TypedState} from '../../../constants/reducer'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as ChatConstants from '../../../constants/chat2'
 import * as Constants from '../../../constants/fs'
@@ -13,12 +14,12 @@ type OwnProps = {
   routePath: I.List<string>
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: TypedState) => ({
   _sendLinkToChat: state.fs.sendLinkToChat,
   _username: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch: (a) => void, _) => ({
   _onSent: (conversationIDKey: ChatTypes.ConversationIDKey) => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
@@ -36,7 +37,11 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onCancel: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
-const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownProps) => {
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  {onCancel, _onSent, _send, _selectChannel}: ReturnType<typeof mapDispatchToProps>,
+  _
+) => {
   const pathTextToCopy = `${Constants.escapePath(stateProps._sendLinkToChat.path)} ` // append space
   const send = () => _send(stateProps._sendLinkToChat.convID, pathTextToCopy)
   const onSent = () => _onSent(stateProps._sendLinkToChat.convID)
@@ -53,7 +58,7 @@ const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownP
       pathTextToCopy,
       send,
       sendLinkToChatState,
-    }
+    } as const
   }
 
   if (elems[1] !== 'team') {
@@ -62,17 +67,17 @@ const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownP
     return {
       conversation:
         usernames.length <= 2
-          ? {
+          ? ({
               name:
                 usernames.length === 1
                   ? elems[2] /* self chat */
                   : usernames.filter(u => u !== stateProps._username).join(','),
               type: 'person',
-            }
-          : {
+            } as const)
+          : ({
               name: usernames.filter(u => u !== stateProps._username).join(','),
               type: 'group',
-            },
+            } as const),
       onCancel,
       onSent,
       pathTextToCopy,
@@ -93,7 +98,7 @@ const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownP
       pathTextToCopy,
       send,
       sendLinkToChatState,
-    }
+    } as const
   }
 
   // big team
@@ -109,7 +114,7 @@ const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownP
       ],
       []
     )
-    .sort((a, b) => a.channelname.localeCompare(b.channelname, 'undefined', {sensitivity: 'base'}))
+    .sort((a, b) => a.channelname.localeCompare(b.channelname, undefined, {sensitivity: 'base'}))
 
   return {
     conversation: {
@@ -125,7 +130,7 @@ const mergeProps = (stateProps, {onCancel, _onSent, _send, _selectChannel}, ownP
           }
         : null,
       type: 'big-team',
-    },
+    } as const,
     onCancel,
     onSent,
     pathTextToCopy,

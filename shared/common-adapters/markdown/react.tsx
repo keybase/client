@@ -1,11 +1,10 @@
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'
 import KbfsPath from './kbfs-path-container'
 import {MarkdownMeta, StyleOverride} from '.'
 import Box from '../box'
-// @ts-ignore
 import Emoji, {Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
 import ServiceDecoration from './service-decoration'
@@ -158,13 +157,12 @@ const markdownStyles = {
 }
 
 // TODO kill this when we remove the old markdown parser. This check is done at the parsing level.
-class EmojiIfExists extends PureComponent<
+class EmojiIfExists extends React.PureComponent<
   EmojiProps & {
     style?: any
     allowFontScaling?: boolean
     lineClamp?: number
-  },
-  void
+  }
 > {
   render() {
     const emojiNameLower = this.props.emojiName.toLowerCase()

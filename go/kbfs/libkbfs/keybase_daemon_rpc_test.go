@@ -346,7 +346,7 @@ func truncateNotificationTimestamps(
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config1.SetMode(modeTest{NewInitModeFromType(InitDefault)})
 

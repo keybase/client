@@ -149,6 +149,6 @@ const styles = styleSheetCreate({
     position: 'relative',
     width: AVATAR_SIZE,
   },
-})
+} as const)
 
 export default AvatarUpload

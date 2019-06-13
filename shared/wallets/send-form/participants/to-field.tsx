@@ -78,7 +78,6 @@ export type ToStellarPublicKeyProps = {
   onChangeRecipient: (recipient: string) => void
   onScanQRCode: (() => void) | null
   setReadyToReview: (ready: boolean) => void
-  keyCounter: number
 }
 
 type ToStellarPublicKeyState = {
@@ -92,6 +91,15 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
     this.setState({recipientPublicKey})
     this.props.setReadyToReview(false)
     this._propsOnChangeRecipient(recipientPublicKey)
+  }
+
+  componentDidUpdate(prevProps: ToStellarPublicKeyProps, prevState: ToStellarPublicKeyState) {
+    if (
+      this.props.recipientPublicKey !== prevProps.recipientPublicKey &&
+      this.props.recipientPublicKey !== this.state.recipientPublicKey
+    ) {
+      this.setState({recipientPublicKey: this.props.recipientPublicKey})
+    }
   }
 
   render = () => (

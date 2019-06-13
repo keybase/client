@@ -4,7 +4,6 @@ import {Box2} from './box'
 import Icon from './icon'
 import Button, {Props as ButtonProps} from './button'
 import Text from './text'
-// @ts-ignore
 import Toast from './toast'
 import HOCTimers, {PropsWithTimer} from './hoc-timers'
 import * as Styles from '../styles'

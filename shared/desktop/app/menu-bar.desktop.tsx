@@ -37,7 +37,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
   })
 
   const updateIcon = selected => {
-    mb.tray.setImage(resolveImage('menubarIcon', selected ? icon : selectedIcon))
+    mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
   }
   const setIcons = (regular, selected) => {
     icon = regular

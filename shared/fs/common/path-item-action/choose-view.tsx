@@ -16,10 +16,6 @@ type OwnProps = {
 type StateProps = {view: Types.PathItemActionMenuView}
 type Props = OwnProps & StateProps
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
-  view: state.fs.pathItemActionMenu.view,
-})
-
 const ChooseView = (props: Props) => {
   if (props.view === Types.PathItemActionMenuView.Root || props.view === Types.PathItemActionMenuView.Share) {
     return (
@@ -42,8 +38,8 @@ const ChooseView = (props: Props) => {
 }
 
 export default namedConnect(
-  mapStateToProps,
+  state => ({view: state.fs.pathItemActionMenu.view}),
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'PathItemActionChooseView'
 )(ChooseView)

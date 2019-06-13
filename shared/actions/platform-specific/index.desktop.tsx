@@ -7,7 +7,6 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import path from 'path'
-// @ts-ignore codemod-issue
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
@@ -204,14 +203,15 @@ function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
   }
 }
 
+const initOsNetworkStatus = (state, action) =>
+  ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine})
+
 function* setupReachabilityWatcher() {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('online', () => emitter('online'))
     window.addEventListener('offline', () => emitter('offline'))
     return () => {}
   }, Saga.buffers.sliding(1))
-
-  yield Saga.put(ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine}))
 
   while (true) {
     const status = yield Saga.take(channel)
@@ -267,7 +267,6 @@ const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePa
 const prepareLogSend = (_, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   dumpLogs().then(() => {
-    // @ts-ignore codemod-issue
     response && response.result()
   })
 }
@@ -400,6 +399,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.onChangeUseNativeFrame,
     setUseNativeFrame
   )
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)

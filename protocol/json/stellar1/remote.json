@@ -651,6 +651,10 @@
           "type": "string",
           "name": "externalTxURL",
           "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "feeCharged"
         }
       ]
     },
@@ -1275,6 +1279,34 @@
         {
           "name": "issuerAccountID",
           "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
+    "fuzzyAssetSearch": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "searchString",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
+    "listPopularAssets": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
         }
       ],
       "response": {

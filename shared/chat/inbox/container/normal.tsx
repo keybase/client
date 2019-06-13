@@ -33,7 +33,7 @@ const splitMetas = memoize((metaMap: Types.MetaMap, selectedConversation) => {
 
 const sortByTimestamp = (a: Types.ConversationMeta, b: Types.ConversationMeta) => b.timestamp - a.timestamp
 const getSmallRows = memoize(
-  (smallMetas, showAllSmallRows, selectedConversation) => {
+  (smallMetas, showAllSmallRows) => {
     let metas
     if (showAllSmallRows) {
       metas = smallMetas.sort(sortByTimestamp)

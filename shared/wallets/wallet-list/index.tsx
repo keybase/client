@@ -97,12 +97,15 @@ type Row =
   | {
       type: 'wallet'
       accountID: AccountID
+      key?: string
     }
   | {
       type: 'add wallet'
+      key?: string
     }
   | {
       type: 'join airdrop'
+      key?: string
     }
 
 class WalletList extends React.Component<Props> {
@@ -141,11 +144,13 @@ class WalletList extends React.Component<Props> {
       )
     }
 
-    const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
+    const rows: Row[] = this.props.accountIDs.map(
+      accountID => ({accountID, key: accountID, type: 'wallet'} as const)
+    )
 
     if (flags.airdrop) {
       const joinAirdrop = 'join airdrop'
-      rows.push({accountID: null, key: joinAirdrop, type: joinAirdrop})
+      rows.push({key: joinAirdrop, type: joinAirdrop})
     }
 
     return (

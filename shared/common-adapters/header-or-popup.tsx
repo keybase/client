@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {isMobile} from '../util/container'
 import HeaderHoc, {HeaderHocHeader} from './header-hoc'
-// @ts-ignore
 import PopupDialog from './popup-dialog'
 import * as Styles from '../styles'
 import {Props} from './header-or-popup.d'

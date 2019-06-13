@@ -49,7 +49,7 @@ const mapStateToPropsTitle = (state, {teamname}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     _canEditDescAvatar: yourOperations.editTeamDescription,
-    _canRenameTeam: yourOperations.manageSubteams && teamname.includes('.'),
+    _canRenameTeam: yourOperations.renameTeam,
     description,
     members,
     role,

@@ -4,11 +4,9 @@ import * as Types from '../../constants/types/fs'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import {TypedState} from '../../constants/reducer'
-// @ts-ignore codemod-issue
 import ImagePicker from 'react-native-image-picker'
 import {isIOS} from '../../constants/platform'
 import {makeRetriableErrorHandler} from './shared'
-// @ts-ignore
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 import {types} from '@babel/core'
 
@@ -65,7 +63,6 @@ const downloadSuccess = (state, action: FsGen.DownloadSuccessPayload) => {
     case Types.DownloadIntent.None:
       return
     default:
-      // @ts-ignore codemod-issue
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
   }
 }

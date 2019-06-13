@@ -1,5 +1,4 @@
 import * as React from 'react'
-// @ts-ignore not converted
 import Box from './box'
 import {globalColors, isMobile} from '../styles'
 

@@ -87,6 +87,7 @@ func checkPendingOp(ctx context.Context,
 	}
 
 	ops, err := sfs.SimpleFSGetOps(ctx)
+	require.NoError(t, err)
 
 	if !pending {
 		require.Len(t, ops, 0, "Expected zero pending operations")
@@ -134,7 +135,7 @@ func checkPendingOp(ctx context.Context,
 }
 
 func testListWithFilterAndUsername(
-	t *testing.T, ctx context.Context, sfs *SimpleFS, path keybase1.Path,
+	ctx context.Context, t *testing.T, sfs *SimpleFS, path keybase1.Path,
 	filter keybase1.ListFilter, username string, expectedEntries ...string) {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
@@ -171,10 +172,10 @@ func testListWithFilterAndUsername(
 }
 
 func testList(
-	t *testing.T, ctx context.Context, sfs *SimpleFS, path keybase1.Path,
+	ctx context.Context, t *testing.T, sfs *SimpleFS, path keybase1.Path,
 	expectedEntries ...string) {
 	testListWithFilterAndUsername(
-		t, ctx, sfs, path, keybase1.ListFilter_NO_FILTER, "jdoe",
+		ctx, t, sfs, path, keybase1.ListFilter_NO_FILTER, "jdoe",
 		expectedEntries...)
 }
 
@@ -211,17 +212,17 @@ func TestList(t *testing.T) {
 
 	pathRoot := keybase1.NewPathWithKbfs(`/`)
 	testListWithFilterAndUsername(
-		t, ctx, sfs, pathRoot, keybase1.ListFilter_NO_FILTER, "",
+		ctx, t, sfs, pathRoot, keybase1.ListFilter_NO_FILTER, "",
 		"private", "public", "team")
 
 	pathPrivate := keybase1.NewPathWithKbfs(`/private`)
 	testListWithFilterAndUsername(
-		t, ctx, sfs, pathPrivate, keybase1.ListFilter_NO_FILTER, "",
+		ctx, t, sfs, pathPrivate, keybase1.ListFilter_NO_FILTER, "",
 		"jdoe")
 
 	t.Log("List directory before it's created")
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
-	testList(t, ctx, sfs, path1)
+	testList(ctx, t, sfs, path1)
 
 	t.Log("Shouldn't have created the TLF")
 	h, err := tlfhandle.ParseHandle(
@@ -245,17 +246,17 @@ func TestList(t *testing.T) {
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `.testfile`), []byte(`foo`))
 
 	testListWithFilterAndUsername(
-		t, ctx, sfs, path1, keybase1.ListFilter_FILTER_ALL_HIDDEN, "jdoe",
+		ctx, t, sfs, path1, keybase1.ListFilter_FILTER_ALL_HIDDEN, "jdoe",
 		"test1.txt", "test2.txt")
 
-	testList(t, ctx, sfs, pathAppend(path1, `test1.txt`), "test1.txt")
+	testList(ctx, t, sfs, pathAppend(path1, `test1.txt`), "test1.txt")
 
 	// Check for hidden files too.
 	testList(
-		t, ctx, sfs, path1, "test1.txt", "test2.txt", ".testfile")
+		ctx, t, sfs, path1, "test1.txt", "test2.txt", ".testfile")
 
 	// A single, requested hidden file shows up even if the filter is on.
-	testList(t, ctx, sfs, pathAppend(path1, `.testfile`), ".testfile")
+	testList(ctx, t, sfs, pathAppend(path1, `.testfile`), ".testfile")
 
 	// Test that the first archived revision shows no directory entries.
 	pathArchivedRev1 := keybase1.NewPathWithKbfsArchived(
@@ -263,14 +264,14 @@ func TestList(t *testing.T) {
 			Path:          `/private/jdoe`,
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(1),
 		})
-	testList(t, ctx, sfs, pathArchivedRev1)
+	testList(ctx, t, sfs, pathArchivedRev1)
 
 	pathArchivedRev2 := keybase1.NewPathWithKbfsArchived(
 		keybase1.KBFSArchivedPath{
 			Path:          `/private/jdoe`,
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(2),
 		})
-	testList(t, ctx, sfs, pathArchivedRev2, "test1.txt")
+	testList(ctx, t, sfs, pathArchivedRev2, "test1.txt")
 
 	// Same test, with by-time archived paths.
 	pathArchivedTime := keybase1.NewPathWithKbfsArchived(
@@ -279,7 +280,7 @@ func TestList(t *testing.T) {
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithTime(
 				keybase1.ToTime(rev1Time)),
 		})
-	testList(t, ctx, sfs, pathArchivedTime)
+	testList(ctx, t, sfs, pathArchivedTime)
 
 	pathArchivedTimeString := keybase1.NewPathWithKbfsArchived(
 		keybase1.KBFSArchivedPath{
@@ -287,7 +288,7 @@ func TestList(t *testing.T) {
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(
 				rev1Time.String()),
 		})
-	testList(t, ctx, sfs, pathArchivedTimeString)
+	testList(ctx, t, sfs, pathArchivedTimeString)
 
 	pathArchivedRelTimeString := keybase1.NewPathWithKbfsArchived(
 		keybase1.KBFSArchivedPath{
@@ -295,10 +296,10 @@ func TestList(t *testing.T) {
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
 				"45s"),
 		})
-	testList(t, ctx, sfs, pathArchivedRelTimeString)
+	testList(ctx, t, sfs, pathArchivedRelTimeString)
 
 	clock.Add(1 * time.Minute)
-	testList(t, ctx, sfs, pathArchivedRelTimeString, "test1.txt")
+	testList(ctx, t, sfs, pathArchivedRelTimeString, "test1.txt")
 }
 
 func TestListRecursive(t *testing.T) {
@@ -880,7 +881,7 @@ func TestRemove(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
 	t.Log("Make sure the file is there")
-	testList(t, ctx, sfs, pathKbfs, "test.txt")
+	testList(ctx, t, sfs, pathKbfs, "test.txt")
 
 	t.Log("Remove the file")
 	pathFile := keybase1.NewPathWithKbfs("/private/jdoe/test.txt")
@@ -898,7 +899,7 @@ func TestRemove(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Make sure it's gone")
-	testList(t, ctx, sfs, pathKbfs)
+	testList(ctx, t, sfs, pathKbfs)
 }
 
 func TestRemoveRecursive(t *testing.T) {
@@ -919,7 +920,7 @@ func TestRemoveRecursive(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
 	t.Log("Make sure the files are there")
-	testList(t, ctx, sfs, pathDir, "test1.txt", "test2.txt", "b")
+	testList(ctx, t, sfs, pathDir, "test1.txt", "test2.txt", "b")
 
 	t.Log("Remove dir without recursion, expect error")
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
@@ -951,7 +952,7 @@ func TestRemoveRecursive(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Make sure it's gone")
-	testList(t, ctx, sfs, pathKbfs)
+	testList(ctx, t, sfs, pathKbfs)
 }
 
 func TestMoveWithinTlf(t *testing.T) {
@@ -967,7 +968,7 @@ func TestMoveWithinTlf(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
 	t.Log("Make sure the file is there")
-	testList(t, ctx, sfs, pathKbfs, "test1.txt")
+	testList(ctx, t, sfs, pathKbfs, "test1.txt")
 
 	t.Log("Move the file")
 	pathFileOld := pathAppend(pathKbfs, "test1.txt")
@@ -987,7 +988,7 @@ func TestMoveWithinTlf(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Make sure it's moved")
-	testList(t, ctx, sfs, pathKbfs, "test2.txt")
+	testList(ctx, t, sfs, pathKbfs, "test2.txt")
 
 	t.Log("Move into subdir")
 	pathDir := pathAppend(pathKbfs, "a")
@@ -1009,8 +1010,8 @@ func TestMoveWithinTlf(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Make sure it's moved")
-	testList(t, ctx, sfs, pathKbfs, "a")
-	testList(t, ctx, sfs, pathDir, "test3.txt")
+	testList(ctx, t, sfs, pathKbfs, "a")
+	testList(ctx, t, sfs, pathDir, "test3.txt")
 
 	t.Log("Move into different, parallel subdir")
 	pathDirB := pathAppend(pathKbfs, "b")
@@ -1034,8 +1035,8 @@ func TestMoveWithinTlf(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Make sure it's moved")
-	testList(t, ctx, sfs, pathDir)
-	testList(t, ctx, sfs, pathDirC, "test3.txt")
+	testList(ctx, t, sfs, pathDir)
+	testList(ctx, t, sfs, pathDirC, "test3.txt")
 }
 
 func TestMoveBetweenTlfs(t *testing.T) {
@@ -1051,7 +1052,7 @@ func TestMoveBetweenTlfs(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe")
 
 	t.Log("Make sure the file is there")
-	testList(t, ctx, sfs, pathPrivate, "test1.txt")
+	testList(ctx, t, sfs, pathPrivate, "test1.txt")
 
 	t.Log("Move the file")
 	pathFileOld := pathAppend(pathPrivate, "test1.txt")
@@ -1073,8 +1074,8 @@ func TestMoveBetweenTlfs(t *testing.T) {
 	syncFS(ctx, t, sfs, "/public/jdoe")
 
 	t.Log("Make sure it's moved")
-	testList(t, ctx, sfs, pathPrivate)
-	testList(t, ctx, sfs, pathPublic, "test2.txt")
+	testList(ctx, t, sfs, pathPrivate)
+	testList(ctx, t, sfs, pathPublic, "test2.txt")
 
 	t.Log("Now move a whole populated directory")
 	pathDir := pathAppend(pathPrivate, "a")
@@ -1101,9 +1102,9 @@ func TestMoveBetweenTlfs(t *testing.T) {
 	syncFS(ctx, t, sfs, "/public/jdoe")
 
 	t.Log("Make sure it's moved (one file was overwritten)")
-	testList(t, ctx, sfs, pathPrivate)
-	testList(t, ctx, sfs, pathPublic, "test1.txt", "test2.txt", "b")
-	testList(t, ctx, sfs, pathAppend(pathPublic, "b"), "test3.txt")
+	testList(ctx, t, sfs, pathPrivate)
+	testList(ctx, t, sfs, pathPublic, "test1.txt", "test2.txt", "b")
+	testList(ctx, t, sfs, pathAppend(pathPublic, "b"), "test3.txt")
 	require.Equal(t, "2",
 		string(readRemoteFile(
 			ctx, t, sfs, pathAppend(pathPublic, "test2.txt"))))
