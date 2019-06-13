@@ -230,7 +230,7 @@ func TestUpgradeSearchOptsFromQuery(t *testing.T) {
 	regexpCase("/", "/", false)
 	regexpCase("//", "//", false)
 	regexpCase("/mike.*always/", "mike.*always", true)
-	regexpCase("X/mike.*always/", "X/mike.*always/", false)
+	regexpCase("X/mike.*always/", "x/mike.*always/", false)
 
 	dateFilterCase := func(query, resQuery string, sentBefore, sentAfter gregor1.Time) {
 		query, opts := UpgradeSearchOptsFromQuery(query, chat1.SearchOpts{}, username)
@@ -252,7 +252,7 @@ func TestUpgradeSearchOptsFromQuery(t *testing.T) {
 	// the whole shabang
 	query, opts := UpgradeSearchOptsFromQuery("from:karenm to:mikem before:2018-03-16 after:3/16/18 /Lisa.*something/",
 		chat1.SearchOpts{}, username)
-	require.Equal(t, "Lisa.*something", query)
+	require.Equal(t, "lisa.*something", query)
 	require.Equal(t, "karenm", opts.SentBy)
 	require.Equal(t, "mikem", opts.SentTo)
 	require.Equal(t, expectedTime, opts.SentBefore)
