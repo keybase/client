@@ -139,6 +139,14 @@ export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
 export const getDeletableByDeleteHistory = (state: TypedState) =>
   (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
 
+type Minimum = {
+  author: string
+  conversationIDKey: Types.ConversationIDKey
+  id: Types.MessageID
+  ordinal: Types.Ordinal
+  timestamp: number
+}
+
 const makeMessageMinimum = {
   author: '',
   bodySummary: new HiddenString(''),
@@ -483,7 +491,7 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
-  minimum,
+  minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
   reactions
 ): Types.Message | null => {
