@@ -1092,12 +1092,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
       onNotifyFSOverallSyncSyncStatusChanged
     )
+    yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
+    yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
+      FsGen.setSpaceAvailableNotificationThreshold,
+      setSpaceNotificationThreshold
+    )
   }
-  yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
-    FsGen.setSpaceAvailableNotificationThreshold,
-    setSpaceNotificationThreshold
-  )
   if (flags.conflictResolution) {
     yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
       FsGen.startManualConflictResolution,
