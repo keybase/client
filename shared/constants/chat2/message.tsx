@@ -158,6 +158,12 @@ const makeMessageCommon = {
   outboxID: Types.stringToOutboxID(''),
 }
 
+const makeMessageCommonNoDeleteNoEdit = {
+  ...makeMessageCommon,
+  isDeleteable: false,
+  isEditable: false,
+}
+
 const makeMessageExplodable = {
   exploded: false,
   explodedBy: '',
@@ -272,19 +278,19 @@ export const makeMessageSendPayment = I.Record<MessageTypes._MessageSendPayment>
 })
 
 const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   type: 'systemJoined',
 })
 
 const makeMessageSystemLeft = I.Record<MessageTypes._MessageSystemLeft>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   type: 'systemLeft',
 })
 
 const makeMessageSystemAddedToTeam = I.Record<MessageTypes._MessageSystemAddedToTeam>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
   isAdmin: false,
@@ -294,7 +300,7 @@ const makeMessageSystemAddedToTeam = I.Record<MessageTypes._MessageSystemAddedTo
 })
 
 const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInviteAccepted>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   adder: '',
   author: '[Keybase]',
   inviteType: 'none',
@@ -306,21 +312,21 @@ const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInvi
 })
 
 const makeMessageSystemSimpleToComplex = I.Record<MessageTypes._MessageSystemSimpleToComplex>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   team: '',
   type: 'systemSimpleToComplex',
 })
 
 const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
 
 const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   pushType: 0,
   pusher: '',
   reactions: I.Map(),
@@ -332,21 +338,21 @@ const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
 })
 
 const makeMessageSetDescription = I.Record<MessageTypes._MessageSetDescription>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   newDescription: new HiddenString(''),
   reactions: I.Map(),
   type: 'setDescription',
 })
 
 const makeMessageSetChannelname = I.Record<MessageTypes._MessageSetChannelname>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   newChannelname: '',
   reactions: I.Map(),
   type: 'setChannelname',
 })
 
 const makeMessageSystemChangeRetention = I.Record<MessageTypes._MessageSystemChangeRetention>({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   isInherit: false,
   isTeam: false,
   membersType: 0,
@@ -360,7 +366,7 @@ const makeMessageSystemChangeRetention = I.Record<MessageTypes._MessageSystemCha
 const makeMessageSystemUsersAddedToConversation = I.Record<
   MessageTypes._MessageSystemUsersAddedToConversation
 >({
-  ...makeMessageMinimum,
+  ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   type: 'systemUsersAddedToConversation',
   usernames: [],
@@ -840,17 +846,17 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.MessageType.join:
-      return makeMessageSystemJoined({...minimum, reactions})
+      return makeMessageSystemJoined({...common, reactions})
     case RPCChatTypes.MessageType.leave:
-      return makeMessageSystemLeft({...minimum, reactions})
+      return makeMessageSystemLeft({...common, reactions})
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(minimum, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
       return m.messageBody.headline
         ? makeMessageSetDescription({
-            ...minimum,
+            ...common,
             newDescription: new HiddenString(m.messageBody.headline.headline),
             reactions,
           })
@@ -858,7 +864,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.metadata:
       return m.messageBody.metadata
         ? makeMessageSetChannelname({
-            ...minimum,
+            ...common,
             newChannelname: m.messageBody.metadata.conversationTitle,
             reactions,
           })
@@ -1231,6 +1237,17 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'text':
     case 'attachment':
     case 'requestPayment':
+    case 'setChannelname':
+    case 'setDescription':
+    case 'systemAddedToTeam':
+    case 'systemChangeRetention':
+    case 'systemGitPush':
+    case 'systemInviteAccepted':
+    case 'systemJoined':
+    case 'systemLeft':
+    case 'systemSimpleToComplex':
+    case 'systemText':
+    case 'systemUsersAddedToConversation':
       return true
     case 'sendPayment': {
       const paymentInfo = getPaymentMessageInfo(state, message)

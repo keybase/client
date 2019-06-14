@@ -13,7 +13,7 @@ import Text from '.'
 
 type OwnProps = {
   attachTo: () => React.Component<any> | null
-  message: Types.MessageText
+  message: Types.MessageWithReactionPopup
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -111,7 +111,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isDeleteable,
     isEditable,
     onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
-    onCopy: () => dispatchProps._onCopy(message),
+    onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : null,
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)
