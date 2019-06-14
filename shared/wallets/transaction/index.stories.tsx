@@ -129,6 +129,15 @@ const load = () => {
       amountUser=""
     />
   ))
+  addConfigs(stories, 'Advanced tx', config => (
+    <Transaction
+      {...config}
+      counterparty=''
+      counterpartyType='stellarPublicKey'
+      isAdvanced={true}
+      summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+    />
+  ))
 }
 
 export default load

@@ -23,6 +23,7 @@ const props = {
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
   feeChargedDescription: '',
+  isAdvanced: false,
   issuerAccountID: null,
   issuerDescription: '',
   loading: false as false,
@@ -35,14 +36,14 @@ const props = {
   onShowProfile: Sb.action('onShowProfile'),
   onViewTransaction: Sb.action('onViewTransaction'),
   recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
-  selectableText: false,
+  selectableText: true,
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
-  title: 'Details',
+  title: 'Transaction details',
   transactionID: '998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591',
   you: 'cjb',
   yourAccountName: '',
@@ -190,6 +191,19 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
+      />
+    ))
+    .add('Advanced payment', () => (
+      <TransactionDetails
+        {...props}
+        counterparty=""
+        counterpartyType="stellarPublicKey"
+        feeChargedDescription="0.0000100 XLM"
+        issuerDescription="Unknown issuer"
+        memo=""
+        recipientAccountID={null}
+        isAdvanced={true}
+        summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
       />
     ))
 }

@@ -48,6 +48,8 @@ export type NotLoadingProps = {
   yourRole: Types.Role
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string
+  isAdvanced: boolean
+  summaryAdvanced?: string
 }
 export type Props =
   | NotLoadingProps
@@ -197,6 +199,8 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
           return 'Received'
         case 'senderAndReceiver':
           return 'Sent'
+        case 'none':
+          return 'Done'
         default:
           throw new Error(`Unexpected role ${yourRole}`)
       }
@@ -226,16 +230,19 @@ const propsToParties = (props: NotLoadingProps) => {
     counterpartyAccountID = null
   }
 
-  const counterparty = (
-    <Counterparty
-      accountID={counterpartyAccountID}
-      counterparty={props.counterparty}
-      counterpartyMeta={props.counterpartyMeta}
-      counterpartyType={props.counterpartyType}
-      onChat={props.onChat}
-      onShowProfile={props.onShowProfile}
-    />
-  )
+  let counterparty = null
+  if (props.counterparty) {
+    counterparty = (
+      <Counterparty
+        accountID={counterpartyAccountID}
+        counterparty={props.counterparty}
+        counterpartyMeta={props.counterpartyMeta}
+        counterpartyType={props.counterpartyType}
+        onChat={props.onChat}
+        onShowProfile={props.onShowProfile}
+      />
+    )
+  }
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -246,6 +253,8 @@ const propsToParties = (props: NotLoadingProps) => {
       // Even if we sent money from an account to itself, show the
       // account details as the recipient.
       return {receiver: counterparty, sender: you}
+    case 'none':
+      return {receiver: null, sender: null}
     default:
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
@@ -301,19 +310,25 @@ const TransactionDetails = (props: NotLoadingProps) => {
           unread={false}
           yourRole={props.yourRole}
           issuerDescription={props.issuerDescription}
+          isAdvanced={props.isAdvanced}
+          summaryAdvanced={props.summaryAdvanced}
         />
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
-          {sender}
-        </Kb.Box2>
+        {sender && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
+            {sender}
+          </Kb.Box2>
+        )}
 
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
-          {receiver}
-        </Kb.Box2>
+        {receiver && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
+            {receiver}
+          </Kb.Box2>
+        )}
 
         {props.issuerAccountID && (
           <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
