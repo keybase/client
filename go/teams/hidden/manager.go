@@ -152,8 +152,30 @@ func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratch
 	return nil
 }
 
-func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain) (update bool, err error) {
+func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (err error) {
+	if expectedPrev == nil {
+		_, ok := newData.Outer[keybase1.Seqno(1)]
+		if !ok {
+			return NewManagerError("if no prev given, a head link is required")
+		}
+		return nil
+	}
+	link, ok := state.Outer[expectedPrev.Seqno]
+	if !ok {
+		return NewManagerError("update at %v left a chain gap", *expectedPrev)
+	}
+	if !link.Eq(expectedPrev.LinkID) {
+		return NewManagerError("prev mismatch at %v", *expectedPrev)
+	}
+	return nil
+}
+
+func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (update bool, err error) {
 	err = m.checkRatchetsOnAdvance(mctx, state.Ratchet, newData)
+	if err != nil {
+		return false, err
+	}
+	err = m.checkPrev(mctx, state, newData, expectedPrev)
 	if err != nil {
 		return false, err
 	}
@@ -192,13 +214,13 @@ func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet ke
 //  - that if the update starts in the middle of the chain, that its head has a prev, and that prev is consistent.
 //  - that the updates are consistent with any known ratchets
 // See hidden.go for and the caller of this function for where that happens.
-func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamChain) (err error) {
+func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (err error) {
 	mctx = withLogTag(mctx)
 	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID()), func() error { return err })()
 	arg := loadArg{
 		id: dat.ID(),
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
-			return m.advance(mctx, state, dat)
+			return m.advance(mctx, state, dat, expectedPrev)
 		},
 	}
 	_, err = m.loadAndMutate(mctx, arg)

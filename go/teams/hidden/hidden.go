@@ -228,6 +228,7 @@ type LoaderPackage struct {
 	data             *keybase1.HiddenTeamChain
 	newData          *keybase1.HiddenTeamChain
 	links            []sig3.Generic
+	expectedPrev     *keybase1.LinkTriple
 	isFresh          bool
 }
 
@@ -310,6 +311,16 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 	if !link.Eq(prev.Export()) {
 		return NewLoaderError("prev mismatch at %d", q)
 	}
+
+	// We check prevs again when we commit this change to the hidden team chain manager. It's not
+	// strictly required, but it seems a good safeguard against future programming bugs. So
+	// store it away here.
+	l.expectedPrev = &keybase1.LinkTriple{
+		Seqno:   q - 1,
+		LinkID:  link,
+		SeqType: keybase1.SeqType_TEAM_PRIVATE_HIDDEN,
+	}
+
 	return nil
 }
 
@@ -527,7 +538,7 @@ func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 	if l.newData == nil {
 		return nil
 	}
-	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData)
+	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData, l.expectedPrev)
 	return err
 }
 

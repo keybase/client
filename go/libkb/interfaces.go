@@ -721,7 +721,7 @@ type HiddenTeamChainManager interface {
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
 	// onto the HiddenTeamChain state. Ensure that the udpated state is at least up to the
 	// given ratchet value.
-	Advance(mctx MetaContext, update keybase1.HiddenTeamChain) error
+	Advance(mctx MetaContext, update keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) error
 	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.
 	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
 	// Load the latest data for the given team ID, and just return it wholesale.
