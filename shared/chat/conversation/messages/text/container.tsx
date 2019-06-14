@@ -37,9 +37,7 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
             onClick: () => onReplyClick(replyTo.id),
             text:
               replyTo.type === 'attachment'
-                ? replyTo.attachmentType === 'image'
-                  ? replyTo.title || ''
-                  : replyTo.fileName
+                ? replyTo.title || (replyTo.attachmentType === 'image' ? '' : replyTo.fileName)
                 : replyTo.text.stringValue(),
             username: replyTo.author,
           }
