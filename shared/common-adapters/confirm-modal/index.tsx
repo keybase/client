@@ -121,8 +121,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       flex: 1,
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
       width: '100%',
     },
   }),
