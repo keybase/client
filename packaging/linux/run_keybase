@@ -247,19 +247,6 @@ while getopts "afghk" flag; do
     esac
 done
 
-  echo "$#"
-  echo "$@"
-  if [[ "$#" -gt 0 ]]; then
-    echo true
-    if command -v Keybase &> /dev/null; then
-        Keybase $1 &
-    else
-        /opt/keybase/Keybase $1 &
-    fi
-    exit
-  fi
-  echo false
-
 init
 # Always stop any running services. With systemd, we could've decided to just
 # `start` services and no-op if they're already running, however:
