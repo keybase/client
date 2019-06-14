@@ -806,6 +806,10 @@
         {
           "name": "sendLogs",
           "type": "boolean"
+        },
+        {
+          "name": "sendMaxBytes",
+          "type": "boolean"
         }
       ],
       "response": "LogSendID"

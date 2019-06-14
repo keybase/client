@@ -175,6 +175,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
               author: m.author,
               ctime: m.timestamp,
               downloading: m.transferState === 'downloading',
+              fileName: m.fileName,
               message: m,
               name: m.title || m.fileName,
               onDownload: !isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : () => null,

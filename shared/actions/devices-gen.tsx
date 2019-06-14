@@ -1,10 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/devices'
-import * as Constants from '../constants/devices'
 import HiddenString from '../util/hidden-string'
 
 // Constants
@@ -75,32 +71,32 @@ export const createShowRevokePage = (payload: _ShowRevokePagePayload): ShowRevok
 // Action Payloads
 export type BadgeAppForDevicesPayload = {
   readonly payload: _BadgeAppForDevicesPayload
-  readonly type: 'devices:badgeAppForDevices'
+  readonly type: typeof badgeAppForDevices
 }
-export type ClearBadgesPayload = {readonly payload: _ClearBadgesPayload; readonly type: 'devices:clearBadges'}
+export type ClearBadgesPayload = {readonly payload: _ClearBadgesPayload; readonly type: typeof clearBadges}
 export type EndangeredTLFsLoadedPayload = {
   readonly payload: _EndangeredTLFsLoadedPayload
-  readonly type: 'devices:endangeredTLFsLoaded'
+  readonly type: typeof endangeredTLFsLoaded
 }
-export type LoadPayload = {readonly payload: _LoadPayload; readonly type: 'devices:load'}
-export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: 'devices:loaded'}
+export type LoadPayload = {readonly payload: _LoadPayload; readonly type: typeof load}
+export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: typeof loaded}
 export type PaperKeyCreatedPayload = {
   readonly payload: _PaperKeyCreatedPayload
-  readonly type: 'devices:paperKeyCreated'
+  readonly type: typeof paperKeyCreated
 }
-export type RevokePayload = {readonly payload: _RevokePayload; readonly type: 'devices:revoke'}
-export type RevokedPayload = {readonly payload: _RevokedPayload; readonly type: 'devices:revoked'}
+export type RevokePayload = {readonly payload: _RevokePayload; readonly type: typeof revoke}
+export type RevokedPayload = {readonly payload: _RevokedPayload; readonly type: typeof revoked}
 export type ShowDevicePagePayload = {
   readonly payload: _ShowDevicePagePayload
-  readonly type: 'devices:showDevicePage'
+  readonly type: typeof showDevicePage
 }
 export type ShowPaperKeyPagePayload = {
   readonly payload: _ShowPaperKeyPagePayload
-  readonly type: 'devices:showPaperKeyPage'
+  readonly type: typeof showPaperKeyPage
 }
 export type ShowRevokePagePayload = {
   readonly payload: _ShowRevokePagePayload
-  readonly type: 'devices:showRevokePage'
+  readonly type: typeof showRevokePage
 }
 
 // All Actions

@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/notifications'
@@ -40,22 +38,22 @@ export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload): SetBadgeC
 })
 
 // Action Payloads
-export type BadgeAppPayload = {readonly payload: _BadgeAppPayload; readonly type: 'notifications:badgeApp'}
+export type BadgeAppPayload = {readonly payload: _BadgeAppPayload; readonly type: typeof badgeApp}
 export type ListenForKBFSNotificationsPayload = {
   readonly payload: _ListenForKBFSNotificationsPayload
-  readonly type: 'notifications:listenForKBFSNotifications'
+  readonly type: typeof listenForKBFSNotifications
 }
 export type ListenForNotificationsPayload = {
   readonly payload: _ListenForNotificationsPayload
-  readonly type: 'notifications:listenForNotifications'
+  readonly type: typeof listenForNotifications
 }
 export type ReceivedBadgeStatePayload = {
   readonly payload: _ReceivedBadgeStatePayload
-  readonly type: 'notifications:receivedBadgeState'
+  readonly type: typeof receivedBadgeState
 }
 export type SetBadgeCountsPayload = {
   readonly payload: _SetBadgeCountsPayload
-  readonly type: 'notifications:setBadgeCounts'
+  readonly type: typeof setBadgeCounts
 }
 
 // All Actions

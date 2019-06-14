@@ -20,4 +20,11 @@ protocol emails {
         @jsonkey("email")
         EmailAddress email;
     }
+
+    // Payload for notifications related to email address list changes:
+    // "email.added", "email.primary_changed", "email.deleted", "email.visibility_changed"
+    record EmailAddressChangedMsg {
+        @jsonkey("email")
+        EmailAddress email;
+    }
 }

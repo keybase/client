@@ -127,11 +127,13 @@
     },
     "sendFeedback": {
       "feedback": "string",
-      "sendLogs": "boolean"
+      "sendLogs": "boolean",
+      "sendMaxBytes": "boolean"
     },
     "feedbackSent": {
       "_description": "An error occurred while trying to send feedback to Keybase",
       "error": "Error | null"
     }
-  }
+  },
 }
+

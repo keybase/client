@@ -61,6 +61,7 @@ const updateUserCard = (state, action: EngineGen.Keybase1Identify3UiIdentify3Upd
 
   return Tracker2Gen.createUpdatedDetails({
     bio: card.bio,
+    blocked: card.blocked,
     followThem: card.youFollowThem,
     followersCount: card.followers,
     followingCount: card.following,

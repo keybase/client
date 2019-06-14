@@ -15,6 +15,7 @@ RCT_REMAP_METHOD(logSend,
                  status:(NSString*)status
                  feedback:(NSString*)feedback
                  sendLogs:(BOOL)sendLogs
+                 sendMaxBytes:(BOOL)sendMaxBytes
                  logPath:(NSString*)logPath
                  traceDir:(NSString*)traceDir
                  cpuProfileDir:(NSString*)cpuProfileDir
@@ -24,7 +25,7 @@ RCT_REMAP_METHOD(logSend,
 
   NSString *logId = nil;
   NSError *err = nil;
-  logId = KeybaseLogSend(status, feedback, sendLogs, logPath, traceDir, cpuProfileDir, &err);
+  logId = KeybaseLogSend(status, feedback, sendLogs, sendMaxBytes, logPath, traceDir, cpuProfileDir, &err);
   if (err == nil) {
     resolve(logId);
   } else {

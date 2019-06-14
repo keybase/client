@@ -1581,6 +1581,10 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_IDENTIFY, true
 }
 
+func (e IdentifySummaryError) Problems() []string {
+	return e.problems
+}
+
 func IsIdentifyProofError(err error) bool {
 	switch err.(type) {
 	case ProofError, IdentifySummaryError:

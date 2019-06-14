@@ -928,6 +928,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
+	require.NoError(t, err)
 
 	t.Log("Release the prefetch for indirect block1.")
 	// Release 2 blocks
@@ -944,6 +945,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
+	require.NoError(t, err)
 
 	t.Log("Release the prefetch for indirect block2.")
 	// Release 2 blocks
@@ -960,6 +962,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
+	require.NoError(t, err)
 
 	t.Log("Fetch indirect block12 on-demand.")
 	block = &data.FileBlock{}
@@ -969,6 +972,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		BlockRequestWithPrefetch)
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
+	require.NoError(t, err)
 
 	t.Log("Wait for the prefetch to finish.")
 	waitForPrefetchOrBust(
@@ -1224,6 +1228,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 		ctx, defaultOnDemandRequestPriority, kmd,
 		rootPtr, block, data.TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
+	require.NoError(t, err)
 
 	t.Log("Release all the blocks.")
 	go func() {
@@ -1379,6 +1384,8 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 		ctx, defaultOnDemandRequestPriority, kmd,
 		rootPtr, block, data.TransientEntry, BlockRequestWithPrefetch)
 	err = <-ch
+	require.NoError(t, err)
+
 	// Notify the sync chan once for the canceled prefetch.
 	notifySyncCh(t, prefetchSyncCh)
 

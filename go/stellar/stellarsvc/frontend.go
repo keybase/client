@@ -1219,3 +1219,35 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 
 	return res, nil
 }
+
+func (s *Server) FuzzyAssetSearchLocal(ctx context.Context, arg stellar1.FuzzyAssetSearchLocalArg) (res []stellar1.Asset, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "FuzzyAssetSearchLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	remoteArg := stellar1.FuzzyAssetSearchArg{
+		SearchString: arg.SearchString,
+	}
+	return stellar.FuzzyAssetSearch(mctx, s.remoter, remoteArg)
+}
+
+func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []stellar1.Asset, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "ListPopularAssetsLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	remoteArg := stellar1.ListPopularAssetsArg{}
+	return stellar.ListPopularAssets(mctx, s.remoter, remoteArg)
+}

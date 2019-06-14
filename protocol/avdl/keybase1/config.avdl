@@ -152,7 +152,7 @@ protocol config {
 
   @typedef("string")  record LogSendID {}
   LogSendID logSend(int sessionID, string statusJSON, string feedback,
-    boolean sendLogs);
+    boolean sendLogs, boolean sendMaxBytes);
 
   record AllProvisionedUsernames {
     string defaultUsername;

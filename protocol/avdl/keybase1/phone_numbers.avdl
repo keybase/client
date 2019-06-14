@@ -14,6 +14,8 @@ protocol phoneNumbers {
       PhoneNumber phoneNumber;
       @jsonkey("verified")
       boolean verified;
+      @jsonkey("superseded")
+      boolean superseded;
       @jsonkey("visibility")
       IdentityVisibility visibility;
       @jsonkey("ctime")
@@ -39,17 +41,10 @@ protocol phoneNumbers {
     void setVisibilityPhoneNumber(int sessionID, PhoneNumber phoneNumber, IdentityVisibility visibility);
     void setVisibilityAllPhoneNumber(int sessionID, IdentityVisibility visibility);
 
-    record PhoneNumberAddedMsg {
-        @jsonkey("phone")
-        PhoneNumber phoneNumber;
-    }
-
-    record PhoneNumberVerifiedMsg {
-        @jsonkey("phone")
-        PhoneNumber phoneNumber;
-    }
-
-    record PhoneNumberSupersededMsg {
+    // Notification from gregor when phone number changes it's state. It is sent
+    // to clients when phone number is either added, deleted, changes its publicity
+    // setting or is superseded.
+    record PhoneNumberChangedMsg {
         @jsonkey("phone")
         PhoneNumber phoneNumber;
     }

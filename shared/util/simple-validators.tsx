@@ -39,6 +39,12 @@ function isValidUsername(username: string | null): string {
   if (username && hasPeriod(username)) {
     return "Usernames can't contain periods."
   }
+  if (username.startsWith('_')) {
+    return "Usernames can't start with an underscore."
+  }
+  if (username.includes('__')) {
+    return "Usernames can't contain double underscores to avoid confusion."
+  }
   return ''
 }
 

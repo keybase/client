@@ -1,29 +1,24 @@
 import * as React from 'react'
 import DeleteChannel from './delete-channel'
-import {
-  Avatar,
-  Text,
-  Box,
-  Button,
-  HeaderOrPopupWithHeader,
-  Input,
-  ProgressIndicator,
-  ButtonBar,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 export type Props = {
   teamname: string
   channelName: string
+  errorText: string
   topic: string
   loadChannelInfo: () => void
   onCancel: () => void
+  onSetChannelCreationError: (error: string) => void
   onSave: (channelName: string, topic: string) => void
+  onSaveSuccess: () => void
   onConfirmedDelete: () => void
   showDelete: boolean
   title: string
   deleteRenameDisabled: boolean
   waitingForGetInfo: boolean
+  waitingOnSave: boolean
 }
 
 type State = {
@@ -42,6 +37,7 @@ class _EditChannel extends React.Component<Props, State> {
     if (this.props.waitingForGetInfo) {
       this.props.loadChannelInfo()
     }
+    this.props.onSetChannelCreationError('')
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -51,28 +47,32 @@ class _EditChannel extends React.Component<Props, State> {
     if (prevProps.topic !== this.props.topic) {
       this._onChangeTopic(this.props.topic)
     }
+    if (prevProps.waitingOnSave && !this.props.waitingOnSave && !this.props.errorText) {
+      this.props.onSaveSuccess()
+    }
   }
 
   render() {
     return (
-      <Box style={_boxStyle}>
-        <Avatar isTeam={true} teamname={this.props.teamname} size={32} />
-        <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
+      <Kb.Box style={_boxStyle}>
+        <Kb.Avatar isTeam={true} teamname={this.props.teamname} size={32} />
+        <Kb.Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
           {this.props.teamname}
-        </Text>
+        </Kb.Text>
         {this.props.waitingForGetInfo ? (
-          <ProgressIndicator
+          <Kb.ProgressIndicator
             style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny, width: 20}}
           />
         ) : (
           !isMobile && (
-            <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+            <Kb.Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
               {this.props.title}
-            </Text>
+            </Kb.Text>
           )
         )}
-        <Box style={{position: 'relative'}}>
-          <Input
+        {!!this.props.errorText && <Kb.Banner color="red" text={this.props.errorText} />}
+        <Kb.Box style={{position: 'relative'}}>
+          <Kb.Input
             onChangeText={this._onChangeChannelName}
             hintText={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
             editable={!this.props.waitingForGetInfo && !this.props.deleteRenameDisabled}
@@ -80,7 +80,7 @@ class _EditChannel extends React.Component<Props, State> {
           />
 
           {this.props.deleteRenameDisabled && (
-            <Text
+            <Kb.Text
               center={true}
               type="BodySmall"
               style={{
@@ -91,10 +91,10 @@ class _EditChannel extends React.Component<Props, State> {
               }}
             >
               #general can’t be renamed or deleted.
-            </Text>
+            </Kb.Text>
           )}
 
-          <Input
+          <Kb.Input
             onChangeText={this._onChangeTopic}
             editable={!this.props.waitingForGetInfo}
             hintText={
@@ -104,8 +104,8 @@ class _EditChannel extends React.Component<Props, State> {
             }
             value={this.state.newTopic}
           />
-        </Box>
-        <Box style={_bottomRowStyle}>
+        </Kb.Box>
+        <Kb.Box style={_bottomRowStyle}>
           {!isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
             <DeleteChannel
               channelName={this.props.channelName}
@@ -113,19 +113,20 @@ class _EditChannel extends React.Component<Props, State> {
               disabled={this.props.deleteRenameDisabled}
             />
           )}
-          <ButtonBar>
-            <Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
-            <Button
+          <Kb.ButtonBar>
+            <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
+            <Kb.Button
               label="Save"
               disabled={
                 this.props.channelName === this.state.newChannelName &&
                 this.props.topic === this.state.newTopic
               }
+              waiting={this.props.waitingOnSave}
               onClick={this._onSave}
               style={{marginLeft: globalMargins.tiny}}
             />
-          </ButtonBar>
-        </Box>
+          </Kb.ButtonBar>
+        </Kb.Box>
         {isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
           <DeleteChannel
             channelName={this.props.channelName}
@@ -133,18 +134,16 @@ class _EditChannel extends React.Component<Props, State> {
             disabled={false}
           />
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }
-const EditChannel = HeaderOrPopupWithHeader(_EditChannel)
+const EditChannel = Kb.HeaderOrPopupWithHeader(_EditChannel)
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   paddingBottom: globalMargins.medium,
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
   ...(isMobile ? {flex: 1} : {}),
 }

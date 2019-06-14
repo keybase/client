@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -99,7 +97,11 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
+type _SendFeedbackPayload = {
+  readonly feedback: string
+  readonly sendLogs: boolean
+  readonly sendMaxBytes: boolean
+}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
@@ -300,192 +302,177 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 // Action Payloads
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
-  readonly type: 'settings:checkPassword'
+  readonly type: typeof checkPassword
 }
-export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: 'settings:dbNuke'}
+export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
   readonly payload: _DeleteAccountForeverPayload
-  readonly type: 'settings:deleteAccountForever'
+  readonly type: typeof deleteAccountForever
 }
-export type FeedbackSentPayload = {
-  readonly payload: _FeedbackSentPayload
-  readonly type: 'settings:feedbackSent'
-}
+export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
 export type InvitesClearErrorPayload = {
   readonly payload: _InvitesClearErrorPayload
-  readonly type: 'settings:invitesClearError'
+  readonly type: typeof invitesClearError
 }
 export type InvitesReclaimPayload = {
   readonly payload: _InvitesReclaimPayload
-  readonly type: 'settings:invitesReclaim'
+  readonly type: typeof invitesReclaim
 }
 export type InvitesReclaimedPayload = {
   readonly payload: _InvitesReclaimedPayload
-  readonly type: 'settings:invitesReclaimed'
+  readonly type: typeof invitesReclaimed
 }
 export type InvitesReclaimedPayloadError = {
   readonly error: true
   readonly payload: _InvitesReclaimedPayloadError
-  readonly type: 'settings:invitesReclaimed'
+  readonly type: typeof invitesReclaimed
 }
 export type InvitesRefreshPayload = {
   readonly payload: _InvitesRefreshPayload
-  readonly type: 'settings:invitesRefresh'
+  readonly type: typeof invitesRefresh
 }
 export type InvitesRefreshedPayload = {
   readonly payload: _InvitesRefreshedPayload
-  readonly type: 'settings:invitesRefreshed'
+  readonly type: typeof invitesRefreshed
 }
-export type InvitesSendPayload = {
-  readonly payload: _InvitesSendPayload
-  readonly type: 'settings:invitesSend'
-}
-export type InvitesSentPayload = {
-  readonly payload: _InvitesSentPayload
-  readonly type: 'settings:invitesSent'
-}
+export type InvitesSendPayload = {readonly payload: _InvitesSendPayload; readonly type: typeof invitesSend}
+export type InvitesSentPayload = {readonly payload: _InvitesSentPayload; readonly type: typeof invitesSent}
 export type InvitesSentPayloadError = {
   readonly error: true
   readonly payload: _InvitesSentPayloadError
-  readonly type: 'settings:invitesSent'
+  readonly type: typeof invitesSent
 }
 export type LoadHasRandomPwPayload = {
   readonly payload: _LoadHasRandomPwPayload
-  readonly type: 'settings:loadHasRandomPw'
+  readonly type: typeof loadHasRandomPw
 }
 export type LoadLockdownModePayload = {
   readonly payload: _LoadLockdownModePayload
-  readonly type: 'settings:loadLockdownMode'
+  readonly type: typeof loadLockdownMode
 }
 export type LoadRememberPasswordPayload = {
   readonly payload: _LoadRememberPasswordPayload
-  readonly type: 'settings:loadRememberPassword'
+  readonly type: typeof loadRememberPassword
 }
-export type LoadSettingsPayload = {
-  readonly payload: _LoadSettingsPayload
-  readonly type: 'settings:loadSettings'
-}
+export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; readonly type: typeof loadSettings}
 export type LoadedCheckPasswordPayload = {
   readonly payload: _LoadedCheckPasswordPayload
-  readonly type: 'settings:loadedCheckPassword'
+  readonly type: typeof loadedCheckPassword
 }
 export type LoadedHasRandomPwPayload = {
   readonly payload: _LoadedHasRandomPwPayload
-  readonly type: 'settings:loadedHasRandomPw'
+  readonly type: typeof loadedHasRandomPw
 }
 export type LoadedLockdownModePayload = {
   readonly payload: _LoadedLockdownModePayload
-  readonly type: 'settings:loadedLockdownMode'
+  readonly type: typeof loadedLockdownMode
 }
 export type LoadedRememberPasswordPayload = {
   readonly payload: _LoadedRememberPasswordPayload
-  readonly type: 'settings:loadedRememberPassword'
+  readonly type: typeof loadedRememberPassword
 }
 export type LoadedSettingsPayload = {
   readonly payload: _LoadedSettingsPayload
-  readonly type: 'settings:loadedSettings'
+  readonly type: typeof loadedSettings
 }
 export type NotificationsRefreshPayload = {
   readonly payload: _NotificationsRefreshPayload
-  readonly type: 'settings:notificationsRefresh'
+  readonly type: typeof notificationsRefresh
 }
 export type NotificationsRefreshedPayload = {
   readonly payload: _NotificationsRefreshedPayload
-  readonly type: 'settings:notificationsRefreshed'
+  readonly type: typeof notificationsRefreshed
 }
 export type NotificationsSavedPayload = {
   readonly payload: _NotificationsSavedPayload
-  readonly type: 'settings:notificationsSaved'
+  readonly type: typeof notificationsSaved
 }
 export type NotificationsTogglePayload = {
   readonly payload: _NotificationsTogglePayload
-  readonly type: 'settings:notificationsToggle'
+  readonly type: typeof notificationsToggle
 }
 export type OnChangeLockdownModePayload = {
   readonly payload: _OnChangeLockdownModePayload
-  readonly type: 'settings:onChangeLockdownMode'
+  readonly type: typeof onChangeLockdownMode
 }
 export type OnChangeNewEmailPayload = {
   readonly payload: _OnChangeNewEmailPayload
-  readonly type: 'settings:onChangeNewEmail'
+  readonly type: typeof onChangeNewEmail
 }
 export type OnChangeNewPasswordConfirmPayload = {
   readonly payload: _OnChangeNewPasswordConfirmPayload
-  readonly type: 'settings:onChangeNewPasswordConfirm'
+  readonly type: typeof onChangeNewPasswordConfirm
 }
 export type OnChangeNewPasswordPayload = {
   readonly payload: _OnChangeNewPasswordPayload
-  readonly type: 'settings:onChangeNewPassword'
+  readonly type: typeof onChangeNewPassword
 }
 export type OnChangeRememberPasswordPayload = {
   readonly payload: _OnChangeRememberPasswordPayload
-  readonly type: 'settings:onChangeRememberPassword'
+  readonly type: typeof onChangeRememberPassword
 }
 export type OnChangeShowPasswordPayload = {
   readonly payload: _OnChangeShowPasswordPayload
-  readonly type: 'settings:onChangeShowPassword'
+  readonly type: typeof onChangeShowPassword
 }
 export type OnChangeUseNativeFramePayload = {
   readonly payload: _OnChangeUseNativeFramePayload
-  readonly type: 'settings:onChangeUseNativeFrame'
+  readonly type: typeof onChangeUseNativeFrame
 }
 export type OnSubmitNewEmailPayload = {
   readonly payload: _OnSubmitNewEmailPayload
-  readonly type: 'settings:onSubmitNewEmail'
+  readonly type: typeof onSubmitNewEmail
 }
 export type OnSubmitNewPasswordPayload = {
   readonly payload: _OnSubmitNewPasswordPayload
-  readonly type: 'settings:onSubmitNewPassword'
+  readonly type: typeof onSubmitNewPassword
 }
 export type OnUpdateEmailErrorPayload = {
   readonly payload: _OnUpdateEmailErrorPayload
-  readonly type: 'settings:onUpdateEmailError'
+  readonly type: typeof onUpdateEmailError
 }
 export type OnUpdatePGPSettingsPayload = {
   readonly payload: _OnUpdatePGPSettingsPayload
-  readonly type: 'settings:onUpdatePGPSettings'
+  readonly type: typeof onUpdatePGPSettings
 }
 export type OnUpdatePasswordErrorPayload = {
   readonly payload: _OnUpdatePasswordErrorPayload
-  readonly type: 'settings:onUpdatePasswordError'
+  readonly type: typeof onUpdatePasswordError
 }
 export type OnUpdatedPGPSettingsPayload = {
   readonly payload: _OnUpdatedPGPSettingsPayload
-  readonly type: 'settings:onUpdatedPGPSettings'
+  readonly type: typeof onUpdatedPGPSettings
 }
 export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
-  readonly type: 'settings:processorProfile'
+  readonly type: typeof processorProfile
 }
-export type SendFeedbackPayload = {
-  readonly payload: _SendFeedbackPayload
-  readonly type: 'settings:sendFeedback'
-}
+export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
-  readonly type: 'settings:setAllowDeleteAccount'
+  readonly type: typeof setAllowDeleteAccount
 }
-export type StopPayload = {readonly payload: _StopPayload; readonly type: 'settings:stop'}
-export type TracePayload = {readonly payload: _TracePayload; readonly type: 'settings:trace'}
+export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
+export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
 export type UnfurlSettingsErrorPayload = {
   readonly payload: _UnfurlSettingsErrorPayload
-  readonly type: 'settings:unfurlSettingsError'
+  readonly type: typeof unfurlSettingsError
 }
 export type UnfurlSettingsRefreshPayload = {
   readonly payload: _UnfurlSettingsRefreshPayload
-  readonly type: 'settings:unfurlSettingsRefresh'
+  readonly type: typeof unfurlSettingsRefresh
 }
 export type UnfurlSettingsRefreshedPayload = {
   readonly payload: _UnfurlSettingsRefreshedPayload
-  readonly type: 'settings:unfurlSettingsRefreshed'
+  readonly type: typeof unfurlSettingsRefreshed
 }
 export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
-  readonly type: 'settings:unfurlSettingsSaved'
+  readonly type: typeof unfurlSettingsSaved
 }
 export type WaitingForResponsePayload = {
   readonly payload: _WaitingForResponsePayload
-  readonly type: 'settings:waitingForResponse'
+  readonly type: typeof waitingForResponse
 }
 
 // All Actions

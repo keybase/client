@@ -4,6 +4,10 @@ const closeWindow = () => {
   const win = BrowserWindow && BrowserWindow.getFocusedWindow()
   win && win.close()
 }
+const isMaximized = () => {
+  const win = BrowserWindow && BrowserWindow.getFocusedWindow()
+  return win && win.isMaximized()
+}
 const minimizeWindow = () => {
   const win = BrowserWindow && BrowserWindow.getFocusedWindow()
   win && win.minimize()
@@ -15,4 +19,4 @@ const toggleMaximizeWindow = () => {
   }
 }
 
-export {closeWindow, minimizeWindow, toggleMaximizeWindow}
+export {closeWindow, isMaximized, minimizeWindow, toggleMaximizeWindow}

@@ -25,11 +25,11 @@ import {NotifyPopup} from '../../native/notifications'
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
     case RPCTypes.FolderType.private:
-      return 'private'
+      return Types.TlfType.Private
     case RPCTypes.FolderType.public:
-      return 'public'
+      return Types.TlfType.Public
     case RPCTypes.FolderType.team:
-      return 'team'
+      return Types.TlfType.Team
     default:
       return null
   }
@@ -52,7 +52,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
         folders.reduce((mutablePayload, folder) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
-            tlfType === 'private' || tlfType === 'public'
+            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
               ? tlfToPreferredOrder(folder.name, state.config.username)
               : folder.name
           return !tlfType
@@ -67,6 +67,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
                     isNew,
                     name: tlfName,
                     resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig),
                     teamId: folder.team_id || '',
                     tlfMtime: folder.mtime || 0,
                   })
@@ -89,7 +90,14 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
     })
   })
 
-const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
+const getSyncConfigFromRPC = (
+  tlfName: string,
+  tlfType: Types.TlfType,
+  config: RPCTypes.FolderSyncConfig | null
+): Types.TlfSyncConfig => {
+  if (!config) {
+    return Constants.tlfSyncDisabled
+  }
   switch (config.mode) {
     case RPCTypes.FolderSyncMode.disabled:
       return Constants.tlfSyncDisabled
@@ -106,40 +114,6 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
       return Constants.tlfSyncDisabled
   }
 }
-
-// TODO: perhaps favoritesLoad's response should just include these from the Go
-// side -- when we move it to a SimpleFS RPC.
-const loadSyncConfigForAllTlfs = (state, action: FsGen.FavoritesLoadedPayload) =>
-  RPCTypes.SimpleFSSimpleFSSyncConfigAndStatusRpcPromise().then(({folders}) => {
-    if (!folders) {
-      return null
-    }
-    const payloadMutable = folders.reduce(
-      (payloadMutable, {folder, config}) => {
-        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-        const tlfName = tlfToPreferredOrder(folder.name, state.config.username)
-        return tlfType
-          ? {
-              ...payloadMutable,
-              [tlfType]: payloadMutable[tlfType].set(tlfName, getSyncConfigFromRPC(tlfName, tlfType, config)),
-            }
-          : payloadMutable
-      },
-      {
-        private: I.Map().asMutable(),
-        public: I.Map().asMutable(),
-        team: I.Map().asMutable(),
-      }
-    )
-    return FsGen.createTlfSyncConfigsForAllSyncEnabledTlfsLoaded({
-      // @ts-ignore asImmutable returns a weak type
-      private: payloadMutable.private.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      public: payloadMutable.public.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      team: payloadMutable.team.asImmutable(),
-    })
-  })
 
 const loadTlfSyncConfig = (state, action: FsGen.LoadTlfSyncConfigPayload) => {
   // @ts-ignore probably a real issue
@@ -259,7 +233,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     action.type === FsGen.editSuccess
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
-  const loadingPathID = Constants.makeUUID()
 
   if (refreshTag) {
     if (folderListRefreshTags.get(refreshTag) === rootPath) {
@@ -271,13 +244,9 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
   }
 
   try {
-    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-    yield Saga.put(FsGen.createLoadingPath({done: false, id: loadingPathID, path: rootPath}))
-
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
@@ -285,7 +254,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
         refreshSubscription: !!refreshTag,
       })
     } else {
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
@@ -295,10 +263,8 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       })
     }
 
-    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
 
-    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     const result = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
@@ -360,9 +326,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     }
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
-  } finally {
-    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-    yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
 }
 
@@ -416,14 +379,12 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
       intent,
       key,
       localPath,
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       opID,
       path,
       // Omit entryType to let reducer figure out.
     })
   )
 
-  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     dest: {
       PathType: RPCTypes.PathType.local,
@@ -435,9 +396,7 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
 
   try {
     yield Saga.race({
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       monitor: Saga.callUntyped(monitorDownloadProgress, key, opID),
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
       wait: Saga.callUntyped(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
     })
 
@@ -476,7 +435,6 @@ function* upload(_, action: FsGen.UploadPayload) {
 
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
-  // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
   yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
     dest: Constants.pathToRPCPath(path),
     opID,
@@ -487,7 +445,6 @@ function* upload(_, action: FsGen.UploadPayload) {
   })
 
   try {
-    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
@@ -715,7 +672,6 @@ const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeA
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
         dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.OpenFlags.directory,
-        // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
         opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
@@ -775,17 +731,13 @@ const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
 
 const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
-  return (
-    RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-      opID,
-      path: Constants.pathToRPCPath(action.payload.path),
-      recursive: true,
-    })
-      // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-      .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
-      .catch(makeRetriableErrorHandler(action, action.payload.path))
-  )
+  return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+    opID,
+    path: Constants.pathToRPCPath(action.payload.path),
+    recursive: true,
+  })
+    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
+    .catch(makeRetriableErrorHandler(action, action.payload.path))
 }
 
 const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
@@ -802,7 +754,6 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
         // We use the local path name here since we only care about file name.
       )
     ),
-    // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
     opID: Constants.makeUUID() as string,
     src:
       state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
@@ -960,7 +911,10 @@ const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload) => {
+const waitForKbfsDaemon = (
+  state,
+  action: ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+) => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
@@ -982,6 +936,11 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
       })
     })
 }
+
+const startManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.tlfPath),
+  }).then(() => FsGen.createFavoritesLoad())
 
 const updateKbfsDaemonOnlineStatus = (
   state,
@@ -1092,12 +1051,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.kbfsDaemonRpcStatusChanged,
     clearRefreshTags
   )
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
-    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
-    waitForKbfsDaemon
-  )
+  yield* Saga.chainAction<
+    ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+  >([ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon], waitForKbfsDaemon)
   if (flags.kbfsOfflineMode) {
-    yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
     yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
       [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],
@@ -1126,6 +1083,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
       FsGen.setSpaceAvailableNotificationThreshold,
       setSpaceNotificationThreshold
+    )
+  }
+  if (flags.conflictResolution) {
+    yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
+      FsGen.startManualConflictResolution,
+      startManualCR
     )
   }
 

@@ -1,9 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
+
 import * as Types from '../constants/types/git'
 
 // Constants
@@ -99,38 +96,38 @@ export const createSetTeamRepoSettings = (
 // Action Payloads
 export type BadgeAppForGitPayload = {
   readonly payload: _BadgeAppForGitPayload
-  readonly type: 'git:badgeAppForGit'
+  readonly type: typeof badgeAppForGit
 }
-export type ClearBadgesPayload = {readonly payload: _ClearBadgesPayload; readonly type: 'git:clearBadges'}
+export type ClearBadgesPayload = {readonly payload: _ClearBadgesPayload; readonly type: typeof clearBadges}
 export type CreatePersonalRepoPayload = {
   readonly payload: _CreatePersonalRepoPayload
-  readonly type: 'git:createPersonalRepo'
+  readonly type: typeof createPersonalRepo
 }
 export type CreateTeamRepoPayload = {
   readonly payload: _CreateTeamRepoPayload
-  readonly type: 'git:createTeamRepo'
+  readonly type: typeof createTeamRepo
 }
 export type DeletePersonalRepoPayload = {
   readonly payload: _DeletePersonalRepoPayload
-  readonly type: 'git:deletePersonalRepo'
+  readonly type: typeof deletePersonalRepo
 }
 export type DeleteTeamRepoPayload = {
   readonly payload: _DeleteTeamRepoPayload
-  readonly type: 'git:deleteTeamRepo'
+  readonly type: typeof deleteTeamRepo
 }
-export type LoadGitPayload = {readonly payload: _LoadGitPayload; readonly type: 'git:loadGit'}
-export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: 'git:loaded'}
-export type NavToGitPayload = {readonly payload: _NavToGitPayload; readonly type: 'git:navToGit'}
+export type LoadGitPayload = {readonly payload: _LoadGitPayload; readonly type: typeof loadGit}
+export type LoadedPayload = {readonly payload: _LoadedPayload; readonly type: typeof loaded}
+export type NavToGitPayload = {readonly payload: _NavToGitPayload; readonly type: typeof navToGit}
 export type NavigateToTeamRepoPayload = {
   readonly payload: _NavigateToTeamRepoPayload
-  readonly type: 'git:navigateToTeamRepo'
+  readonly type: typeof navigateToTeamRepo
 }
-export type RepoCreatedPayload = {readonly payload: _RepoCreatedPayload; readonly type: 'git:repoCreated'}
-export type RepoDeletedPayload = {readonly payload: _RepoDeletedPayload; readonly type: 'git:repoDeleted'}
-export type SetErrorPayload = {readonly payload: _SetErrorPayload; readonly type: 'git:setError'}
+export type RepoCreatedPayload = {readonly payload: _RepoCreatedPayload; readonly type: typeof repoCreated}
+export type RepoDeletedPayload = {readonly payload: _RepoDeletedPayload; readonly type: typeof repoDeleted}
+export type SetErrorPayload = {readonly payload: _SetErrorPayload; readonly type: typeof setError}
 export type SetTeamRepoSettingsPayload = {
   readonly payload: _SetTeamRepoSettingsPayload
-  readonly type: 'git:setTeamRepoSettings'
+  readonly type: typeof setTeamRepoSettings
 }
 
 // All Actions

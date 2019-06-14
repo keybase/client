@@ -61,6 +61,6 @@ const mapDispatchToProps = dispatch => ({})
 const Connected = connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(Main)
 export default Connected

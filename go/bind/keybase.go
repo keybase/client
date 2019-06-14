@@ -122,9 +122,10 @@ func setInited() {
 
 // InitOnce runs the Keybase services (only runs one time)
 func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
-	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
+	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
+	mobileOsVersion string) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh, mobileOsVersion); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
@@ -132,7 +133,8 @@ func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 
 // Init runs the Keybase services
 func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
-	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper,
+	mobileOsVersion string) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -165,6 +167,9 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
+
+	fmt.Printf("Go: Mobile OS version is: %q\n", mobileOsVersion)
+	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
@@ -272,7 +277,7 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(statusJSON string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
+func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	env := kbCtx.Env
 	logSendContext.UID = env.GetUID()
@@ -282,8 +287,13 @@ func LogSend(statusJSON string, feedback string, sendLogs bool, uiLogPath, trace
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
+	numBytes := status.LogSendDefaultBytesMobile
+	if sendMaxBytes {
+		numBytes = status.LogSendMaxBytes
+	}
 
-	logSendID, err := logSendContext.LogSend(sendLogs, status.LogSendDefaultBytesMobile, true /* mergeExtendedStatus */)
+	logSendID, err := logSendContext.LogSend(sendLogs, numBytes, true /* mergeExtendedStatus */)
+	logSendContext.Clear()
 	return string(logSendID), err
 }
 

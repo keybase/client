@@ -311,6 +311,20 @@ func (o Folder) DeepCopy() Folder {
 	}
 }
 
+type FolderHandle struct {
+	Name       string     `codec:"name" json:"name"`
+	FolderType FolderType `codec:"folderType" json:"folderType"`
+	Created    bool       `codec:"created" json:"created"`
+}
+
+func (o FolderHandle) DeepCopy() FolderHandle {
+	return FolderHandle{
+		Name:       o.Name,
+		FolderType: o.FolderType.DeepCopy(),
+		Created:    o.Created,
+	}
+}
+
 type FavoritesResult struct {
 	FavoriteFolders []Folder `codec:"favoriteFolders" json:"favoriteFolders"`
 	IgnoredFolders  []Folder `codec:"ignoredFolders" json:"ignoredFolders"`
@@ -356,13 +370,13 @@ func (o FavoritesResult) DeepCopy() FavoritesResult {
 }
 
 type FavoriteAddArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Folder    Folder `codec:"folder" json:"folder"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Folder    FolderHandle `codec:"folder" json:"folder"`
 }
 
 type FavoriteIgnoreArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Folder    Folder `codec:"folder" json:"folder"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Folder    FolderHandle `codec:"folder" json:"folder"`
 }
 
 type GetFavoritesArg struct {

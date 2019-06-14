@@ -38,7 +38,8 @@ const BOOL isSimulator = NO;
     NSError* error = nil;
     NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
     PushNotifier* pusher = [[PushNotifier alloc] init];
-    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, pusher, &error);
+    NSString* systemVer = [[UIDevice currentDevice] systemVersion];
+    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, pusher, systemVer, &error);
     if (error != nil) {
       dispatch_async(dispatch_get_main_queue(), ^{
         // If Init failed, then let's throw up our error screen.

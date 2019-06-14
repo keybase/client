@@ -96,7 +96,7 @@ func (rh *RPCHandler) waitForJournal(
 }
 
 func (rh *RPCHandler) getHandleAndConfig(
-	ctx context.Context, folder keybase1.Folder) (
+	ctx context.Context, folder keybase1.FolderHandle) (
 	newCtx context.Context, gitConfigRet libkbfs.Config,
 	tlfHandle *tlfhandle.Handle, tempDirRet string, err error) {
 	newCtx, gitConfig, tempDir, err := getNewConfig(
@@ -168,7 +168,7 @@ func (rh *RPCHandler) CreateRepo(
 	return keybase1.RepoID(gitID.String()), nil
 }
 
-func (rh *RPCHandler) scheduleCleaning(folder keybase1.Folder) {
+func (rh *RPCHandler) scheduleCleaning(folder keybase1.FolderHandle) {
 	// TODO: cancel outstanding timers on shutdown, if we ever utilize
 	// the DeleteRepo RPC handler in a test.
 	time.AfterFunc(minDeletedAgeForCleaning+1*time.Second, func() {
@@ -292,7 +292,7 @@ func (rh *RPCHandler) Gc(
 //
 // TODO: Hook this up to an RPC.
 func (rh *RPCHandler) RenameRepo(ctx context.Context,
-	folder keybase1.Folder, oldName, newName string) (err error) {
+	folder keybase1.FolderHandle, oldName, newName string) (err error) {
 	rh.log.CDebugf(ctx, "Renaming repo %s to %s", oldName, newName)
 	defer func() {
 		rh.log.CDebugf(ctx, "Done renaming repo: %+v", err)

@@ -6,48 +6,73 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 import EditChannel from './edit-channel'
+import {formatTimeRelativeToNow} from '../../util/timestamp'
+
+const origin = new Date().getTime()
+const mtimeHuman = formatTimeRelativeToNow(origin)
 
 const channels = [
   {
     convID: ChatTypes.stringToConversationIDKey('1'),
     description: 'General things on things.',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'general',
+    numParticipants: 5,
     selected: true,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('2'),
     description: 'Random things randomly discussed.',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'random',
+    numParticipants: 5,
     selected: true,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('3'),
     description: 'Revenue data worth checking',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'revenue',
+    numParticipants: 5,
     selected: false,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('4'),
     description: 'Talk to the sales team',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'sales',
+    numParticipants: 5,
     selected: false,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('5'),
     description: 'True discussions on true news.',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'truechannel',
+    numParticipants: 5,
     selected: false,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('13'),
     description: 'Boring things not worth discussing',
+    hasAllMembers: false,
+    mtimeHuman,
     name: 'zzz',
+    numParticipants: 1,
     selected: true,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('21'),
     description: 'This is a very long long long description to test that things flow correctly',
+    hasAllMembers: false,
+    mtimeHuman,
     name: 'superlonglonglongnameforachannel',
+    numParticipants: 2,
     selected: true,
   },
 ]
@@ -122,9 +147,13 @@ const load = () => {
     .add('EditChannel', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          teamname={'stripe.usa'}
-          channelName={'takeover'}
-          topic={''}
+          errorText=""
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
+          teamname="stripe.usa"
+          channelName="takeover"
+          topic=""
           title="Edit #takeover"
           onCancel={Sb.action('onCancel')}
           onSave={Sb.action('onSave')}
@@ -139,9 +168,13 @@ const load = () => {
     .add('EditChannel - general', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          teamname={'stripe.usa'}
-          channelName={'general'}
-          topic={''}
+          errorText=""
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
+          teamname="stripe.usa"
+          channelName="general"
+          topic=""
           title="Edit #general"
           onCancel={Sb.action('onCancel')}
           onSave={Sb.action('onSave')}
@@ -156,9 +189,34 @@ const load = () => {
     .add('EditChannel - loading', () => (
       <Box style={toPlatformStyle(editChannelStyle)}>
         <EditChannel
-          teamname={'stripe.usa'}
-          channelName={''}
-          topic={''}
+          errorText=""
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
+          teamname="stripe.usa"
+          channelName=""
+          topic=""
+          title="Edit #"
+          onCancel={Sb.action('onCancel')}
+          onSave={Sb.action('onSave')}
+          onConfirmedDelete={Sb.action('onConfirmedDelete')}
+          showDelete={true}
+          deleteRenameDisabled={false}
+          waitingForGetInfo={true}
+          loadChannelInfo={Sb.action('loadChannelInfo')}
+        />
+      </Box>
+    ))
+    .add('EditChannel - loading with error', () => (
+      <Box style={toPlatformStyle(editChannelStyle)}>
+        <EditChannel
+          errorText="invalid channel name"
+          onSetChannelCreationError={Sb.action('onSetChannelCreationError')}
+          onSaveSuccess={Sb.action('onSaveSuccess')}
+          waitingOnSave={false}
+          teamname="stripe.usa"
+          channelName=""
+          topic=""
           title="Edit #"
           onCancel={Sb.action('onCancel')}
           onSave={Sb.action('onSave')}

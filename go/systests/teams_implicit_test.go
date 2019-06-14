@@ -239,6 +239,7 @@ func trySBSConsolidation(t *testing.T, impteamExpr string, public bool) {
 		})
 		require.NoError(t, err)
 		displayName, err := team.ImplicitTeamDisplayName(context.Background())
+		require.NoError(t, err)
 		t.Logf("Got team back: %q (waiting for %q)", displayName.String(), expectedTeamName)
 		return displayName.String() == expectedTeamName
 	})
@@ -342,6 +343,7 @@ func TestImplicitSBSPukless(t *testing.T) {
 		})
 		require.NoError(t, err)
 		displayName, err := team.ImplicitTeamDisplayName(context.Background())
+		require.NoError(t, err)
 		t.Logf("Got team back: %s", displayName.String())
 		return displayName.String() == expectedTeamName
 	})

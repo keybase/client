@@ -18,16 +18,17 @@ const noErrors = (state: TypedState) =>
   !state.signup.inviteCodeError &&
   !state.signup.nameError &&
   !state.signup.usernameError &&
-  !state.signup.signupError.stringValue()
+  !state.signup.signupError.stringValue() &&
+  !state.signup.usernameTaken
 
 // Navigation side effects ///////////////////////////////////////////////////////////
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => RouteTreeGen.createNavigateUp()
 
-const showUserEmailOnNoErrors = (state: TypedState) =>
+const showUserOnNoErrors = (state: TypedState) =>
   noErrors(state) && [
     RouteTreeGen.createNavigateUp(),
-    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']}),
+    RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterUsername']}),
   ]
 
 const showInviteScreen = () =>
@@ -37,13 +38,12 @@ const showInviteSuccessOnNoErrors = (state: TypedState) =>
   noErrors(state) &&
   RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
 
-const goToLoginRoot = () => [
-  RouteTreeGen.createClearModals(),
-  RouteTreeGen.createNavUpToScreen({routeName: loginTab}),
-]
+const showEmailScreenOnNoErrors = (state: TypedState) =>
+  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterEmail']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
+  noErrors(state) &&
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
@@ -87,23 +87,32 @@ const requestInvite = (state: TypedState) =>
       })
     )
 
-const checkUsernameEmail = (state: TypedState) =>
-  noErrors(state) &&
-  RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
-    .then(r =>
-      SignupGen.createCheckedUsernameEmail({
-        email: state.signup.email,
-        username: state.signup.username,
+const checkUsername = (state: TypedState, _, logger) => {
+  logger.info(`checking ${state.signup.username}`)
+  return (
+    noErrors(state) &&
+    RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
+      .then(() => {
+        logger.info(`${state.signup.username} success`)
+        return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
       })
-    )
-    .catch(err =>
-      SignupGen.createCheckedUsernameEmailError({
-        email: state.signup.email,
-        emailError: '',
-        username: state.signup.username,
-        usernameError: `Sorry, there was a problem: ${err.desc}`,
+      .catch(err => {
+        logger.warn(`${state.signup.username} error: ${err.message}`)
+        const error = `Sorry, there was a problem: ${err.desc}.${
+          err.code === RPCTypes.StatusCode.scinputerror
+            ? ' Usernames must be 2-16 characters, and can only contain letters, numbers, and underscores.'
+            : ''
+        }`
+        return SignupGen.createCheckedUsername({
+          // Don't set error if it's 'username taken', we show a banner in that case
+          error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
+          username: state.signup.username,
+          usernameTaken:
+            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : null,
+        })
       })
-    )
+  )
+}
 
 const checkDevicename = (state: TypedState) =>
   noErrors(state) &&
@@ -166,9 +175,10 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
 const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   // validation actions
   yield* Saga.chainAction<SignupGen.RequestInvitePayload>(SignupGen.requestInvite, requestInvite)
-  yield* Saga.chainAction<SignupGen.CheckUsernameEmailPayload>(
-    SignupGen.checkUsernameEmail,
-    checkUsernameEmail
+  yield* Saga.chainAction<SignupGen.CheckUsernamePayload>(
+    SignupGen.checkUsername,
+    checkUsername,
+    'checkUsername'
   )
   yield* Saga.chainAction<SignupGen.RequestAutoInvitePayload>(SignupGen.requestAutoInvite, requestAutoInvite)
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload | SignupGen.CheckInviteCodePayload>(
@@ -177,24 +187,21 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<SignupGen.CheckDevicenamePayload>(SignupGen.checkDevicename, checkDevicename)
 
-  // move to next screen actions
-  yield* Saga.chainAction<SignupGen.RestartSignupPayload>(SignupGen.restartSignup, goToLoginRoot)
+  // move to next screen actions\
   yield* Saga.chainAction<SignupGen.RequestedInvitePayload>(
     SignupGen.requestedInvite,
     showInviteSuccessOnNoErrors
   )
-  yield* Saga.chainAction<SignupGen.CheckedUsernameEmailPayload>(
-    SignupGen.checkedUsernameEmail,
-    showDeviceScreenOnNoErrors
+  yield* Saga.chainAction<SignupGen.CheckedUsernamePayload>(
+    SignupGen.checkedUsername,
+    showEmailScreenOnNoErrors
   )
+  yield* Saga.chainAction<SignupGen.CheckEmailPayload>([SignupGen.checkEmail], showDeviceScreenOnNoErrors)
   yield* Saga.chainAction<SignupGen.RequestedAutoInvitePayload>(
     SignupGen.requestedAutoInvite,
     showInviteScreen
   )
-  yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(
-    SignupGen.checkedInviteCode,
-    showUserEmailOnNoErrors
-  )
+  yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(SignupGen.checkedInviteCode, showUserOnNoErrors)
   yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
 
   // actually make the signup call
@@ -213,7 +220,7 @@ export default signupSaga
 export const _testing = {
   checkDevicename,
   checkInviteCode,
-  checkUsernameEmail,
+  checkUsername,
   goBackAndClearErrors,
   reallySignupOnNoErrors,
   requestAutoInvite,
@@ -222,5 +229,5 @@ export const _testing = {
   showErrorOrCleanupAfterSignup,
   showInviteScreen,
   showInviteSuccessOnNoErrors,
-  showUserEmailOnNoErrors,
+  showUserOnNoErrors,
 }

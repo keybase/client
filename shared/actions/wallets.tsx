@@ -481,6 +481,7 @@ const loadDisplayCurrency = (state, action: WalletsGen.LoadDisplayCurrencyPayloa
     })
   )
 }
+
 const setInflationDestination = (_, action: WalletsGen.SetInflationDestinationPayload) => {
   const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
@@ -509,6 +510,7 @@ const setInflationDestination = (_, action: WalletsGen.SetInflationDestinationPa
       })
     )
 }
+
 const loadInflationDestination = (_, action: WalletsGen.LoadInflationDestinationPayload) => {
   const accountID = action.payload.accountID
   if (!accountID || !Types.isValidAccountID(accountID)) {
@@ -534,6 +536,11 @@ const loadInflationDestination = (_, action: WalletsGen.LoadInflationDestination
     })
   })
 }
+
+const loadExternalPartners = () =>
+  RPCStellarTypes.localGetPartnerUrlsLocalRpcPromise().then(partners =>
+    WalletsGen.createExternalPartnersReceived({externalPartners: I.List(partners)})
+  )
 
 const refreshAssets = (state, action: WalletsGen.DisplayCurrencyReceivedPayload) =>
   action.payload.accountID ? WalletsGen.createLoadAssets({accountID: action.payload.accountID}) : undefined
@@ -1165,6 +1172,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.loadInflationDestination,
     loadInflationDestination,
     'loadInflationDestination'
+  )
+  yield* Saga.chainAction<WalletsGen.LoadExternalPartnersPayload>(
+    WalletsGen.loadExternalPartners,
+    loadExternalPartners,
+    'loadExternalPartners'
   )
   yield* Saga.chainAction<WalletsGen.SetInflationDestinationPayload>(
     WalletsGen.setInflationDestination,

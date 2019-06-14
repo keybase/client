@@ -28,6 +28,7 @@ export const makeState = I.Record<Types._State>({
   finalError: null,
   forgotUsernameResult: '',
   gpgImportError: null,
+  initialUsername: '',
   inlineError: null,
   username: '',
 })

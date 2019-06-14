@@ -179,6 +179,7 @@ describe('fs reducer', () => {
       isNew: true,
       name: 'foo',
       resetParticipants: I.List(),
+      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
       teamId: '123',
     }
     const state0 = Constants.makeState({

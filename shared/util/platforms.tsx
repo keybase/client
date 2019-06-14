@@ -1,5 +1,5 @@
 import {PlatformsExpandedType} from '../constants/types/more'
-import {IconType} from '../common-adapters'
+import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
 
 const ProveMessages = {
   btc: 'Set a Bitcoin address',

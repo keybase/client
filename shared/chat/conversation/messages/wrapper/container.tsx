@@ -111,16 +111,22 @@ const getUsernameToShow = (message, previous, you, orangeLineAbove) => {
 const getFailureDescriptionAllowCancel = (message, you) => {
   let failureDescription = ''
   let allowCancelRetry = false
+  let resolveByEdit = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = message.errorReason
     if (you && ['pending', 'failed'].includes(message.submitState)) {
-      // This is a message still in the outbox, we can retry/edit to fix
-      failureDescription = `Failed to send: ${message.errorReason}`
+      // This is a message still in the outbox, we can retry/edit to fix, but
       // for flip messages, don't allow retry/cancel
       allowCancelRetry = message.type === 'attachment' || !message.flipGameID
+      const messageType = message.type === 'attachment' ? 'attachment' : 'message'
+      failureDescription = `This ${messageType} failed to send`
+      resolveByEdit = !!message.outboxID && !!you && message.errorReason === 'message is too long'
+      if (resolveByEdit) {
+        failureDescription += `, ${message.errorReason}`
+      }
     }
   }
-  return {allowCancelRetry, failureDescription}
+  return {allowCancelRetry, failureDescription, resolveByEdit}
 }
 
 const getDecorate = (message, you) => {
@@ -139,9 +145,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
   // $ForceType
   const outboxID = message.outboxID
-  let {allowCancelRetry, failureDescription} = getFailureDescriptionAllowCancel(message, _you)
-  const resolveByEdit: boolean =
-    !!outboxID && !!_you && failureDescription === 'Failed to send: message is too long'
+  let {allowCancelRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(message, _you)
 
   // show send only if its possible we sent while you're looking at it
   const showSendIndicator = _you === message.author && message.ordinal !== message.id

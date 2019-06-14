@@ -13,7 +13,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _send: (conversationIDKey, path) => {
+  _send: (conversationIDKey, path, title) => {
     dispatch(
       ChatGen.createAttachmentsUpload({
         conversationIDKey,
@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
             path: Types.pathToString(path),
           },
         ],
-        titles: [Types.getPathName(path)],
+        titles: [title],
       })
     )
     dispatch(RouteTreeGen.createClearModals())
@@ -37,14 +37,21 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(FsGen.createSentAttachmentToChat())
   },
   onCancel: () => dispatch(RouteTreeGen.createClearModals()),
+  onSetTitle: (title: string) => dispatch(FsGen.createSetSendAttachmentToChatTitle({title})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownPropps) => ({
   onCancel: dispatchProps.onCancel,
+  onSetTitle: dispatchProps.onSetTitle,
   path: stateProps._sendAttachmentToChat.path,
   send: () =>
-    dispatchProps._send(stateProps._sendAttachmentToChat.convID, stateProps._sendAttachmentToChat.path),
+    dispatchProps._send(
+      stateProps._sendAttachmentToChat.convID,
+      stateProps._sendAttachmentToChat.path,
+      stateProps._sendAttachmentToChat.title
+    ),
   sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
+  title: stateProps._sendAttachmentToChat.title,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SendAttachmentToChat')(

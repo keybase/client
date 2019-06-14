@@ -940,6 +940,23 @@ func (f Folder) String() string {
 	return f.ToString()
 }
 
+func (f FolderHandle) ToString() string {
+	prefix := "<unrecognized>"
+	switch f.FolderType {
+	case FolderType_PRIVATE:
+		prefix = "private"
+	case FolderType_PUBLIC:
+		prefix = "public"
+	case FolderType_TEAM:
+		prefix = "team"
+	}
+	return prefix + "/" + f.Name
+}
+
+func (f FolderHandle) String() string {
+	return f.ToString()
+}
+
 func (t TrackToken) String() string {
 	return string(t)
 }

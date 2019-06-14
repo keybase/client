@@ -348,7 +348,7 @@ function* refreshNotifications() {
   const groups = results.notifications
   const notifications = mapValues(groups, group => ({
     settings: group.settings.map(settingsToPayload),
-    unsub: group.unsub,
+    unsubscribedFromAll: group.unsub,
   }))
 
   yield Saga.put(
@@ -443,7 +443,7 @@ const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload)
     .catch(() => SettingsGen.createLoadLockdownMode())
 
 const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<Saga.MaybeAction> => {
-  const {feedback, sendLogs} = action.payload
+  const {feedback, sendLogs, sendMaxBytes} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve()
   const status = {version}
   return maybeDump
@@ -453,7 +453,8 @@ const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<S
       return RPCTypes.configLogSendRpcPromise(
         {
           feedback: feedback || '',
-          sendLogs: sendLogs,
+          sendLogs,
+          sendMaxBytes,
           statusJSON: JSON.stringify(extra),
         },
         Constants.sendFeedbackWaitingKey

@@ -42,6 +42,14 @@
     "submitBTCAddress": {},
     "submitRevokeProof": {"proofId": "string"},
     "submitUsername": {},
+    "submitBlockUser": {"username": "string"},
+    "submitUnblockUser": {
+      "username": "string",
+      "guiID": "string"
+    },
+    "finishBlockUser": {
+      "canError": {"error": "string"}
+    },
     "updateErrorText": {
       "errorText": "string",
       "errorCode": "number | null"

@@ -1326,7 +1326,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		// Make sure we aren't current playing this game, and bail out if we are
 		if m.dealer.IsGameActive(ctx, flipConvID, job.gameID) {
 			m.Debug(ctx, "loadGame: game is currently active, bailing out")
-			return nil
+			return errors.New("game is active")
 		}
 		// Spawn off this error notification in a goroutine and only deliver it if the game is not active
 		// after the timer
@@ -1402,6 +1402,7 @@ func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID 
 	default:
 		m.Debug(ctx, "LoadFlip: queue full: gameID: %s hostConvID %s flipConvID: %s", gameID, hostConvID,
 			flipConvID)
+		job.errCh <- errors.New("queue full")
 	}
 	return job.resCh, job.errCh
 }
