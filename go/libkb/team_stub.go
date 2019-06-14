@@ -169,10 +169,6 @@ func (n nullHiddenTeamChainManager) Ratchet(MetaContext, keybase1.TeamID, keybas
 func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.HiddenTeamChain) error {
 	return nil
 }
-func (n nullHiddenTeamChainManager) PerTeamKeyAtGeneration(MetaContext, keybase1.TeamID, keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamKey, error) {
-	return nil, fmt.Errorf("null hidden team chain manager")
-}
-
 func (n nullHiddenTeamChainManager) Load(MetaContext, keybase1.TeamID) (*keybase1.HiddenTeamChain, error) {
 	return nil, fmt.Errorf("null hidden team chain manager")
 }

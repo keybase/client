@@ -124,7 +124,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	}
 	rsq := p.MerkleRoot.Seqno()
 	if rsq == nil {
-		return nil, nil, fmt.Errorf("cannot work with a nil merkle root seqno")
+		return nil, nil, NewGenerateError("cannot work with a nil merkle root seqno")
 	}
 	teamIDimport, err := sig3.ImportTeamID(p.TeamID)
 	if err != nil {
@@ -174,10 +174,10 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	keyPair := func(g libkb.GenericKey) (*sig3.KeyPair, error) {
 		signing, ok := g.(libkb.NaclSigningKeyPair)
 		if !ok {
-			return nil, fmt.Errorf("bad key pair, wrong type: %T", g)
+			return nil, NewGenerateError("bad key pair, wrong type: %T", g)
 		}
 		if signing.Private == nil {
-			return nil, fmt.Errorf("bad key pair, got null private key")
+			return nil, NewGenerateError("bad key pair, got null private key")
 		}
 		return sig3.NewKeyPair(*signing.Private, sig3.KID(g.GetBinaryKID())), nil
 	}
@@ -232,17 +232,26 @@ type LoaderPackage struct {
 }
 
 // NewLoaderPackage creates an object used to load the hidden team chain along with the
-// slow or fast team loader. It manages internal state during the loading process.
+// slow or fast team loader. It manages internal state during the loading process. Pass an
+// encryption KID from the main chain for authentication purposes, that we can prove to the server
+// that we've previously seen data for this team (and therefor we're allowed to know whether or not
+// the team has a hidden chain (but nothing more)).
 func NewLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyGeneration) *LoaderPackage {
 	return &LoaderPackage{id: id, encKID: e, lastMainChainGen: g, isFresh: true}
 }
 
-// Load in data from storage for this chain.
+// Load in data from storage for this chain. We're going to make a deep copy so that
+// we don't worry about mutating the object in the storage layer's memory LRU.
 func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
-	l.data, err = mctx.G().GetHiddenTeamChainManager().Load(mctx, l.id)
+	tmp, err := mctx.G().GetHiddenTeamChainManager().Load(mctx, l.id)
 	if err != nil {
 		return err
 	}
+	if tmp == nil {
+		return nil
+	}
+	cp := tmp.DeepCopy()
+	l.data = &cp
 	return err
 }
 
@@ -254,7 +263,7 @@ func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 // main chain, to prove we had access to it. The server returns one bit in that case, saying
 // whether or not the team chain exists.
 func (l *LoaderPackage) MerkleLoadArg(mctx libkb.MetaContext) (ret *libkb.LookupTeamHiddenArg, err error) {
-	if tail := l.LastReaderPerTeamKeyLinkID(); !tail.IsNil() {
+	if tail := l.lastReaderPerTeamKeyLinkID(); !tail.IsNil() {
 		return &libkb.LookupTeamHiddenArg{LastKnownHidden: tail}, nil
 	}
 	if !l.encKID.IsNil() && l.lastMainChainGen > keybase1.PerTeamKeyGeneration(0) {
@@ -263,17 +272,21 @@ func (l *LoaderPackage) MerkleLoadArg(mctx libkb.MetaContext) (ret *libkb.Lookup
 	return nil, nil
 }
 
-func (l *LoaderPackage) LastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
+func (l *LoaderPackage) lastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
 	if l.data == nil {
 		return ret
 	}
 	return l.data.LastReaderPerTeamKeyLinkID()
 }
 
+// SetIsFresh sets the fresh bit, which says that preloaded version of the hidden chain is the
+// most up-to-date. By default, this bit is set to true, but we can turn it off if the merkle/path.json
+// endpoint tells us otherwise.
 func (l *LoaderPackage) SetIsFresh(b bool) {
 	l.isFresh = b
 }
 
+// IsFresh returns false only if someone called SetIsFresh(false).
 func (l *LoaderPackage) IsFresh() bool {
 	return l.isFresh
 }
@@ -282,20 +295,20 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 	q := first.Seqno()
 	prev := first.Prev()
 	if q == keybase1.Seqno(1) && prev != nil {
-		return fmt.Errorf("bad link that had seqno=1 and non=nil prev")
+		return NewLoaderError("bad link that had seqno=1 and non=nil prev")
 	}
 	if prev == nil {
 		return nil
 	}
 	if l.data == nil {
-		return fmt.Errorf("didn't get prior data and update was for a chain middle")
+		return NewLoaderError("didn't get prior data and update was for a chain middle")
 	}
 	link, ok := l.data.Outer[q-1]
 	if !ok {
-		return fmt.Errorf("previous link wasn't found")
+		return NewLoaderError("previous link wasn't found")
 	}
 	if !link.Eq(prev.Export()) {
-		return fmt.Errorf("prev mismatch at %d", q)
+		return NewLoaderError("prev mismatch at %d", q)
 	}
 	return nil
 }
@@ -309,15 +322,14 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 	if len(links) > 0 && links[len(links)-1].Seqno() >= max {
 		return nil
 	}
-	return fmt.Errorf("Server promised a hidden chain up to %d, but never recevied; is it withholding?", max)
+	return NewLoaderError("Server promised a hidden chain up to %d, but never recevied; is it withholding?", max)
 }
 
 func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
 	q := ratchet.Triple.Seqno
 	link, ok := update.Outer[q]
 	if ok && !link.Eq(ratchet.Triple.LinkID) {
-		mctx.Debug("Dump %+v %+v", *l.data, *update)
-		return fmt.Errorf("update data failed to match ratchet %+v v %s", ratchet, link)
+		return NewLoaderError("update data failed to match ratchet %+v v %s", ratchet, link)
 	}
 	return nil
 }
@@ -335,6 +347,8 @@ func (l *LoaderPackage) checkRatchets(mctx libkb.MetaContext, update *keybase1.H
 	return nil
 }
 
+// Update combines the preloaded data with any downloaded updates from the server, and stores
+// the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
 	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
 
@@ -390,7 +404,7 @@ func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.Exp
 	return data, nil
 }
 
-func (l *LoaderPackage) LastRotator(mctx libkb.MetaContext, typ keybase1.PTKType) *keybase1.Signer {
+func (l *LoaderPackage) lastRotator(mctx libkb.MetaContext, typ keybase1.PTKType) *keybase1.Signer {
 	if l.data == nil {
 		return nil
 	}
@@ -405,8 +419,10 @@ func (l *LoaderPackage) LastRotator(mctx libkb.MetaContext, typ keybase1.PTKType
 	return &inner.Signer
 }
 
+// LastReaderKeyRotator returns a signer object that signifies the last KID/UID pair to sign
+// a reader PTK into this chain.
 func (l *LoaderPackage) LastReaderKeyRotator(mctx libkb.MetaContext) *keybase1.Signer {
-	return l.LastRotator(mctx, keybase1.PTKType_READER)
+	return l.lastRotator(mctx, keybase1.PTKType_READER)
 }
 
 func (l *LoaderPackage) storeData(mctx libkb.MetaContext, newData *keybase1.HiddenTeamChain) (err error) {
@@ -415,14 +431,12 @@ func (l *LoaderPackage) storeData(mctx libkb.MetaContext, newData *keybase1.Hidd
 		l.data = newData
 		return nil
 	}
-	tmp := l.data.DeepCopy()
 	if newData != nil {
-		_, err = tmp.Merge(*newData)
+		_, err = l.data.Merge(*newData)
 		if err != nil {
 			return err
 		}
 	}
-	l.data = &tmp
 	return nil
 }
 
@@ -447,24 +461,27 @@ func checkUpdateAgainstSeed(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKe
 	gen := readerKey.Ptk.Gen
 	seed, ok := seeds[gen]
 	if !ok {
-		return fmt.Errorf("seed at generation %d wasn't found", gen)
+		return NewLoaderError("seed at generation %d wasn't found", gen)
 	}
 	if seed.Check == nil {
-		return fmt.Errorf("seed check at generation %d was nil", gen)
+		return NewLoaderError("seed check at generation %d was nil", gen)
 	}
 	hash, err := seed.Check.Hash()
 	if err != nil {
 		return err
 	}
 	if readerKey.Check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
-		return fmt.Errorf("can only handle seed check version 1; got %s", readerKey.Check.Version)
+		return NewLoaderError("can only handle seed check version 1; got %s", readerKey.Check.Version)
 	}
 	if !hash.Eq(readerKey.Check) {
-		return fmt.Errorf("wrong seed check at generation %d", gen)
+		return NewLoaderError("wrong seed check at generation %d", gen)
 	}
 	return nil
 }
 
+// CheckUpdatesAgainstSeeds checks the update inside this loader package against unverified team seeds. It
+// enforces equality and will error out if not. Through this check, a client can convince itself that the
+// recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, seeds map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem) (err error) {
 	if l.newData == nil {
 		return nil
@@ -478,6 +495,7 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, seeds m
 	return nil
 }
 
+// LastSeqno returns the last seqno when the preloaded sequence and the update are taken together.
 func (l *LoaderPackage) LastSeqno() keybase1.Seqno {
 	if l.data == nil {
 		return keybase1.Seqno(0)
@@ -485,6 +503,8 @@ func (l *LoaderPackage) LastSeqno() keybase1.Seqno {
 	return l.data.Last
 }
 
+// MaxRatchet returns the greatest sequence number across all ratchets in the loaded data and also
+// in the data from the recent update from the server.
 func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 	if l.data == nil {
 		return keybase1.Seqno(0)
@@ -492,6 +512,8 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 	return l.data.Ratchet.Max()
 }
 
+// HasReaderPerTeamKeyAtGeneration returns true if the LoaderPackage has a sigchain entry for
+// the PTK at the given generation. Whether in the preloaded data or the udpate.
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
 	if l.data == nil {
 		return false
@@ -500,6 +522,7 @@ func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyG
 	return ok
 }
 
+// Commit the update from the server to main HiddenTeamChain storage.
 func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 	if l.newData == nil {
 		return nil
@@ -508,10 +531,13 @@ func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 	return err
 }
 
+// ChainData returns the merge of the preloaded hidden chain data and the recently downloaded chain update.
 func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
 	return l.data
 }
 
+// MaxReaderTeamKeyGeneration returns the highest Reader PTK generation from the preloaded and hidden
+// data.
 func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
 	if l.data == nil {
 		return keybase1.PerTeamKeyGeneration(0)

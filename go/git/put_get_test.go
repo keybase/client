@@ -55,7 +55,7 @@ func TestPutAndGet(t *testing.T) {
 	require.NoError(t, err)
 	_, err = teams.AddMember(context.Background(), tc.G, teamName1, u2.Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
-	team1, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
+	team1, _, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
 	require.NoError(t, err)
 
 	teamName2 := u.Username + "t2"

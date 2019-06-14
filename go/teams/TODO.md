@@ -6,7 +6,10 @@
 - [ ] test case where alice and bob rotate the team and they each take turns
 - [ ] precheck that a link will be accepted by the server (as does chain3)
 - [ ] feature-flag this for almost everything except for blessed prod teams (by team ID) (server + client)
+  - prod disallowed in this PR
+  - future tickets for allowing some teams to use new features on prod
 - [ ] alert in laoder2.go / addSecrets -- add back later
+- [ ] in Advance() we should still check prevs
 - [ ] fix addSecrets to take a Teamer
 - [ ] proprer fix (with vendoring) for test vector
 - [x] try to figure out refreshing and cache-bust store for chain17

@@ -8,6 +8,9 @@ import (
 	storage "github.com/keybase/client/go/teams/storage"
 )
 
+// ChainManager manages a hidden team chain, and wraps put/gets to mem/disk storage.
+// Accesses are single-flighted by TeamID. Implements that libkb.HiddenTeamChainManager
+// interface.
 type ChainManager struct {
 	// single-flight lock on TeamID
 	locktab libkb.LockTable
@@ -39,10 +42,10 @@ func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybas
 func (m *ChainManager) loadLocked(mctx libkb.MetaContext, arg loadArg) (ret *keybase1.HiddenTeamChain, err error) {
 	state, frozen, tombstoned := m.storage.Get(mctx, arg.id, arg.id.IsPublic())
 	if frozen {
-		return nil, fmt.Errorf("cannot load hidden chain for frozen team")
+		return nil, NewManagerError("cannot load hidden chain for frozen team")
 	}
 	if tombstoned {
-		return nil, fmt.Errorf("cannot load hidden chain for tombstoned team")
+		return nil, NewManagerError("cannot load hidden chain for tombstoned team")
 	}
 	return state, nil
 }
@@ -87,13 +90,13 @@ func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state
 
 func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
 	if ratchet.Triple.SeqType != sig3.ChainTypeTeamPrivateHidden {
-		return fmt.Errorf("bad chain type: %s", ratchet.Triple.SeqType)
+		return NewManagerError("bad chain type: %s", ratchet.Triple.SeqType)
 	}
 
 	// The new ratchet can't clash the existing accepted ratchets
 	for _, accepted := range state.Ratchet.Flat() {
 		if accepted.Clashes(ratchet) {
-			return fmt.Errorf("bad ratchet, clashes existing pin: %+v != %v", accepted, accepted)
+			return NewManagerError("bad ratchet, clashes existing pin: %+v != %v", accepted, accepted)
 		}
 	}
 
@@ -102,7 +105,7 @@ func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.Hidd
 
 	// If either the ratchet didn't match a known link, or equals what's already there, great.
 	if ok && !link.Eq(ratchet.Triple.LinkID) {
-		return fmt.Errorf("Ratchet failed to match a currently accepted chainlink: %+v", ratchet)
+		return NewManagerError("Ratchet failed to match a currently accepted chainlink: %+v", ratchet)
 	}
 
 	return nil
@@ -159,7 +162,7 @@ func (m *ChainManager) checkRatchetOnAdvance(mctx libkb.MetaContext, r keybase1.
 	q := r.Triple.Seqno
 	link, ok := newData.Outer[q]
 	if ok && !link.Eq(r.Triple.LinkID) {
-		return fmt.Errorf("update data failed to match ratchet %+v", r)
+		return NewManagerError("update data failed to match ratchet %+v", r)
 	}
 	return nil
 }
@@ -174,6 +177,15 @@ func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet ke
 	return nil
 }
 
+// Advance the stored hidden team storage by the given update. Before this function is called, we should
+// have checked many things:
+//  - that the PTKs match the unverified seeds sent down by the server.
+//  - that the postImages of the seedChecks are continuous, given a consistent set of seeds
+//  - that all full (unstubbed links) have valid reverse signatures
+//  - that all prevs are self consistent, and consistent with any preloaded data
+//  - that if the update starts in the middle of the chain, that its head has a prev, and that prev is consistent.
+//  - that the updates are consistent with any known ratchets
+// See hidden.go for and the caller of this function for where that happens.
 func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamChain) (err error) {
 	mctx = withLogTag(mctx)
 	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Advance(%s)", dat.ID()), func() error { return err })()
@@ -188,36 +200,6 @@ func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamCh
 		return err
 	}
 	return nil
-}
-
-func (m *ChainManager) PerTeamKeyAtGeneration(mctx libkb.MetaContext, id keybase1.TeamID, ptkg keybase1.PerTeamKeyGeneration) (ret *keybase1.PerTeamKey, err error) {
-	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#PerTeamKeyGeneration(%s)", id), func() error { return err })()
-	arg := loadArg{id: id}
-	state, err := m.loadAndMutate(mctx, arg)
-	if err != nil {
-		return nil, err
-	}
-	if state == nil {
-		mctx.Debug("no state found for team")
-		return nil, nil
-	}
-	q, ok := state.ReaderPerTeamKeys[ptkg]
-	if !ok {
-		mctx.Debug("no link found for generation")
-		return nil, nil
-	}
-	i, ok := state.Inner[q]
-	if !ok {
-		mctx.Debug("no inner link for for seqno %d", q)
-		return nil, nil
-	}
-	ptk, ok := i.Ptk[keybase1.PTKType_READER]
-	if !ok {
-		mctx.Debug("no reader key found at seqno %d", q)
-		return nil, nil
-	}
-	return &ptk.Ptk, nil
 }
 
 func NewChainMananger(g *libkb.GlobalContext) *ChainManager {
