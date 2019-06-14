@@ -844,7 +844,7 @@ const validUIMessagetoMessage = (
       return m.messageBody.sendpayment
         ? makeMessageSendPayment({
             ...common,
-            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos),
+            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos || null),
           })
         : null
     case RPCChatTypes.MessageType.requestpayment:
@@ -853,7 +853,7 @@ const validUIMessagetoMessage = (
             ...common,
             note: new HiddenString(m.messageBody.requestpayment.note),
             requestID: m.messageBody.requestpayment.requestID,
-            requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo),
+            requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo || null),
           })
         : null
     case RPCChatTypes.MessageType.edit:
@@ -889,7 +889,6 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
 const outboxUIMessagetoMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage,
   o: RPCChatTypes.UIMessageOutbox
 ) => {
   const errorReason =
@@ -910,8 +909,8 @@ const outboxUIMessagetoMessage = (
           o.preview.location.url
             ? o.preview.location.url
             : ''
-        const md = o.preview && o.preview.metadata
-        const baseMd = o.preview && o.preview.baseMetadata
+        const md = (o.preview && o.preview.metadata) || null
+        const baseMd = (o.preview && o.preview.baseMetadata) || null
         pre = previewSpecs(md, baseMd)
       }
       return makePendingAttachmentMessage(
@@ -943,11 +942,11 @@ const outboxUIMessagetoMessage = (
         timestamp: o.ctime,
       })
   }
+  return null
 }
 
 const placeholderUIMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage,
   p: RPCChatTypes.MessageUnboxedPlaceholder
 ) => {
   return !p.hidden
@@ -965,7 +964,6 @@ const placeholderUIMessageToMessage = (
 
 const errorUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage,
   o: RPCChatTypes.MessageUnboxedError
 ) => {
   return makeMessageText({
@@ -996,17 +994,17 @@ export const uiMessageToMessage = (
       return null
     case RPCChatTypes.MessageUnboxedState.error:
       if (uiMessage.error) {
-        return errorUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.error)
+        return errorUIMessagetoMessage(conversationIDKey, uiMessage.error)
       }
       return null
     case RPCChatTypes.MessageUnboxedState.outbox:
       if (uiMessage.outbox) {
-        return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage, uiMessage.outbox)
+        return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
       }
       return null
     case RPCChatTypes.MessageUnboxedState.placeholder:
       if (uiMessage.placeholder) {
-        return placeholderUIMessageToMessage(conversationIDKey, uiMessage, uiMessage.placeholder)
+        return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
       }
       return null
     default:
@@ -1099,9 +1097,9 @@ export const getClientPrev = (state: TypedState, conversationIDKey: Types.Conver
   const mm = state.chat2.messageMap.get(conversationIDKey)
   if (mm) {
     // find last valid messageid we know about
-    const goodOrdinal = state.chat2.messageOrdinals
-      .get(conversationIDKey, I.OrderedSet())
-      .findLast(o => mm.getIn([o, 'id']))
+    const goodOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet()).findLast(o =>
+      mm.getIn([o, 'id'])
+    )
 
     if (goodOrdinal) {
       clientPrev = mm.getIn([goodOrdinal, 'id'])
