@@ -68,21 +68,25 @@ export type _PasswordState = {
 }
 export type PasswordState = I.RecordOf<_PasswordState>
 
-// Record types don't play well with $ReadOnly types, which
-// RPCTypes.TeamSettings is, so we want to extract the underlying
-// writeable type. Just spreading doesn't give us what we want, as
-// that makes all keys optional (see
-// https://github.com/facebook/flow/issues/3534 ), so use $Exact to
-// fix that.
-export type _EmailRow = {} & RPCTypes.Email
+export type _EmailRow = RPCTypes.Email
 export type EmailRow = I.RecordOf<_EmailRow>
 
 export type _EmailState = {
-  emails: I.List<EmailRow> | null
+  emails: I.Map<string, EmailRow> | null
   newEmail: string
   error: Error | null
 }
 export type EmailState = I.RecordOf<_EmailState>
+
+export type _PhoneRow = RPCTypes.UserPhoneNumber
+export type PhoneRow = I.RecordOf<_PhoneRow>
+
+export type _PhoneState = {
+  phones: I.Map<string, PhoneRow> | null
+  newPhone: string
+  error: Error | null
+}
+export type PhoneState = I.RecordOf<_PhoneState>
 
 export type _FeedbackState = {
   error: Error | null
@@ -109,6 +113,7 @@ export type _State = {
   notifications: NotificationsState
   email: EmailState
   password: PasswordState
+  phone: PhoneState
   lockdownModeEnabled: boolean | null
   useNativeFrame: boolean
   chat: ChatState
@@ -126,7 +131,7 @@ type FoldersTab = 'settingsTabs.foldersTab'
 type FsTab = 'settingsTabs.fsTab'
 type GitTab = 'settingsTabs.gitTab'
 type InvitationsTab = 'settingsTabs.invitationsTab'
-type LandingTab = 'settingsTabs.landingTab'
+type AccountTab = 'settingsTabs.accountTab'
 type NotificationsTab = 'settingsTabs.notificationsTab'
 type PasswordTab = 'settingsTabs.password'
 type ScreenprotectorTab = 'settingsTabs.screenprotector'
@@ -135,7 +140,7 @@ type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
 type WalletsTab = 'settingsTabs.walletsTab'
 
 export type Tab =
-  | LandingTab
+  | AccountTab
   | UpdatePaymentTab
   | InvitationsTab
   | NotificationsTab

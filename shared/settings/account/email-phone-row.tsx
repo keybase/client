@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 
 // props exported for stories
 export type Props = {
@@ -145,21 +147,61 @@ export type OwnProps = {
   contactKey: string
 }
 
-// TODO mocked for now
-const mapStateToProps = (state, ownProps) => ({})
-const mapDispatchToProps = dispatch => ({})
-const mergeProps = (stateProps, dispatchProps, ownProps) =>
-  ({
-    address: '',
-    onDelete: () => {},
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  _emailRow: state.settings.email.emails.get(ownProps.contactKey, null),
+  _phoneRow: state.settings.phone.phones.get(ownProps.contactKey, null),
+})
+
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+  email: {
+    onDelete: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, delete: true})),
+    onMakePrimary: () =>
+      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
+    onToggleSearchable: () =>
+      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, toggleSearchable: true})),
+    onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
+  },
+  phone: {
+    onDelete: () => dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, delete: true})),
     onMakePrimary: () => {},
-    onToggleSearchable: () => {},
+    onToggleSearchable: () =>
+      dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
+    // TODO: this requires popping up a thing and also sending an RPC, waiting on Danny's existing flow from another PR
     onVerify: () => {},
-    primary: false,
-    searchable: false,
-    type: 'phone',
-    verified: false,
-  } as const)
+  },
+})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  if (!!stateProps._phoneRow) {
+    return {
+      ...dispatchProps.phone,
+      address: stateProps._phoneRow.phoneNumber,
+      primary: false,
+      searchable: stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public,
+      type: 'phone',
+      verified: stateProps._phoneRow.verified,
+    }
+  } else if (!!stateProps._emailRow) {
+    return {
+      ...dispatchProps.email,
+      address: stateProps._emailRow.email,
+      primary: stateProps._emailRow.isPrimary,
+      searchable: stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public,
+      type: 'email',
+      verified: stateProps._phoneRow.isVerified,
+    }
+  } else
+    return {
+      address: '',
+      onDelete: () => {},
+      onMakePrimary: () => {},
+      onToggleSearchable: () => {},
+      onVerify: () => {},
+      primary: false,
+      searchable: false,
+      type: 'phone',
+      verified: false,
+    } as const
+}
 
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,

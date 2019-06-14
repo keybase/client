@@ -10,7 +10,7 @@ const settingsSubRoutes = {
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
-  [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
+  [Constants.accountTab]: {getScreen: () => require('./account/container').default},
   [Constants.feedbackTab]: {getScreen: () => require('./feedback/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
   changeEmail: {getScreen: () => require('./email/container').default},
@@ -44,7 +44,7 @@ class SettingsSubNav extends React.PureComponent<any> {
 }
 const SettingsSubNavigator = createNavigator(
   SettingsSubNav,
-  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.landingTab}),
+  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
   {}
 )
 

@@ -13,6 +13,8 @@ export const typePrefix = 'settings:'
 export const checkPassword = 'settings:checkPassword'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
+export const editEmail = 'settings:editEmail'
+export const editPhone = 'settings:editPhone'
 export const feedbackSent = 'settings:feedbackSent'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
@@ -62,6 +64,19 @@ export const waitingForResponse = 'settings:waitingForResponse'
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
+type _EditEmailPayload = {
+  readonly email: string
+  readonly delete?: boolean
+  readonly makePrimary?: boolean
+  readonly toggleSearchable?: boolean
+  readonly verify?: boolean
+}
+type _EditPhonePayload = {
+  readonly phone: string
+  readonly delete?: boolean
+  readonly toggleSearchable?: boolean
+  readonly verify?: boolean
+}
 type _FeedbackSentPayload = {readonly error: Error | null}
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
@@ -80,7 +95,10 @@ type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect: boolean | n
 type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
 type _LoadedLockdownModePayload = {readonly status: boolean | null}
 type _LoadedRememberPasswordPayload = {readonly remember: boolean}
-type _LoadedSettingsPayload = {readonly emails: I.List<Types.EmailRow> | null}
+type _LoadedSettingsPayload = {
+  readonly emails: I.Map<string, Types.EmailRow> | null
+  readonly phones: I.Map<string, Types.PhoneRow> | null
+}
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
@@ -155,6 +173,8 @@ export const createDbNuke = (payload: _DbNukePayload): DbNukePayload => ({payloa
 export const createDeleteAccountForever = (
   payload: _DeleteAccountForeverPayload
 ): DeleteAccountForeverPayload => ({payload, type: deleteAccountForever})
+export const createEditEmail = (payload: _EditEmailPayload): EditEmailPayload => ({payload, type: editEmail})
+export const createEditPhone = (payload: _EditPhonePayload): EditPhonePayload => ({payload, type: editPhone})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
   payload,
   type: invitesClearError,
@@ -307,6 +327,8 @@ export type DeleteAccountForeverPayload = {
   readonly payload: _DeleteAccountForeverPayload
   readonly type: typeof deleteAccountForever
 }
+export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
+export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
 export type InvitesClearErrorPayload = {
   readonly payload: _InvitesClearErrorPayload
@@ -479,6 +501,8 @@ export type Actions =
   | CheckPasswordPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
+  | EditEmailPayload
+  | EditPhonePayload
   | FeedbackSentPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload

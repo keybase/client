@@ -149,6 +149,13 @@
             "items": "Email"
           },
           "name": "emails"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserPhoneNumber"
+          },
+          "name": "phones"
         }
       ]
     },

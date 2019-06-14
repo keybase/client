@@ -1,0 +1,49 @@
+import * as Constants from '../../constants/settings'
+import * as Types from '../../constants/types/settings'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as I from 'immutable'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import Bootstrapable from '../../util/bootstrapable'
+import {connect, compose, TypedState, TypedDispatch} from '../../util/container'
+import AccountSettings from '.'
+
+type OwnProps = {}
+const mapStateToProps = (state: TypedState, o: OwnProps) => ({
+  _emails: state.settings.email.emails,
+  _phones: state.settings.phone.phones,
+  bootstrapDone: state.settings.email.emails !== null && state.settings.phone.phones !== null,
+  hasPassword: !state.settings.password.randomPW,
+})
+
+const mapDispatchToProps = (dispatch: TypedDispatch) => ({
+  onBootstrap: () => {
+    dispatch(SettingsGen.createLoadSettings())
+    dispatch(SettingsGen.createLoadRememberPassword())
+    dispatch(SettingsGen.createLoadHasRandomPw())
+  },
+  onChangePassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassword']})),
+})
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (stateProps, dispatchProps, o) => {
+      if (!stateProps.bootstrapDone) {
+        return {
+          bootstrapDone: false,
+          onBootstrap: dispatchProps.onBootstrap,
+        }
+      }
+      return {
+        bootstrapDone: true,
+        originalProps: {
+          ...dispatchProps,
+          contactKeys: I.List([...stateProps._emails.keys(), ...stateProps._phones.keys()]),
+          hasPassword: stateProps.hasPassword,
+        },
+      }
+    }
+  ),
+  Bootstrapable
+)(AccountSettings)

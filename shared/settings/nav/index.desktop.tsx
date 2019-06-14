@@ -11,8 +11,8 @@ function SettingsNav(props: Props) {
     <Box style={styles.container}>
       <SettingsItem
         text="Your account"
-        selected={props.selectedTab === Constants.landingTab}
-        onClick={() => props.onTabChange(Constants.landingTab)}
+        selected={props.selectedTab === Constants.accountTab}
+        onClick={() => props.onTabChange(Constants.accountTab)}
       />
       <SettingsItem
         text="Chat"

@@ -7,6 +7,18 @@
   "actions": {
     "dbNuke": {},
     "deleteAccountForever": {},
+    "editEmail": {
+      "email": "string",
+      "delete?": "boolean",
+      "makePrimary?": "boolean",
+      "toggleSearchable?": "boolean",
+      "verify?": "boolean"
+    },
+    "editPhone": {
+      "phone": "string",
+      "delete?": "boolean",
+      "toggleSearchable?": "boolean"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
@@ -35,7 +47,8 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "I.List<Types.EmailRow> | null"
+      "emails": "I.Map<string, Types.EmailRow> | null",
+      "phones": "I.Map<string, Types.PhoneRow> | null"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
@@ -133,6 +146,5 @@
       "_description": "An error occurred while trying to send feedback to Keybase",
       "error": "Error | null"
     }
-  },
+  }
 }
-

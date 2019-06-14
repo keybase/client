@@ -439,6 +439,26 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'keybase.1.emails.addEmail': {
+    inParam: {readonly email: EmailAddress; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.emails.deleteEmail': {
+    inParam: {readonly email: EmailAddress}
+    outParam: void
+  }
+  'keybase.1.emails.sendVerificationEmail': {
+    inParam: {readonly email: EmailAddress}
+    outParam: void
+  }
+  'keybase.1.emails.setPrimaryEmail': {
+    inParam: {readonly email: EmailAddress}
+    outParam: void
+  }
+  'keybase.1.emails.setVisibilityEmail': {
+    inParam: {readonly email: EmailAddress; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
   'keybase.1.favorite.favoriteAdd': {
     inParam: {readonly folder: FolderHandle}
     outParam: void
@@ -782,6 +802,22 @@ export type MessageTypes = {
   'keybase.1.pgpUi.shouldPushPrivate': {
     inParam: {readonly prompt: Boolean}
     outParam: Boolean
+  }
+  'keybase.1.phoneNumbers.addPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.deletePhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.setVisibilityPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.verifyPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly code: String}
+    outParam: void
   }
   'keybase.1.pprof.logProcessorProfile': {
     inParam: {readonly logDirForMobile: String; readonly profileDurationSeconds: DurationSec}
@@ -2525,7 +2561,7 @@ export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; read
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion}
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole}
-export type UserSettings = {readonly emails?: Array<Email> | null}
+export type UserSettings = {readonly emails?: Array<Email> | null; readonly phones?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}
 export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}
 export type UserSummary2Set = {readonly users?: Array<UserSummary2> | null; readonly time: Time; readonly version: Int}
@@ -2834,6 +2870,11 @@ export const deviceCheckDeviceNameFormatRpcPromise = (params: MessageTypes['keyb
 export const deviceDeviceAddRpcSaga = (p: {params: MessageTypes['keybase.1.device.deviceAdd']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.device.deviceAdd', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const deviceDeviceHistoryListRpcPromise = (params: MessageTypes['keybase.1.device.deviceHistoryList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.device.deviceHistoryList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.deviceHistoryList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const deviceDismissDeviceChangeNotificationsRpcPromise = (params: MessageTypes['keybase.1.device.dismissDeviceChangeNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.device.dismissDeviceChangeNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.dismissDeviceChangeNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsAddEmailRpcPromise = (params: MessageTypes['keybase.1.emails.addEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.addEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.addEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsDeleteEmailRpcPromise = (params: MessageTypes['keybase.1.emails.deleteEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.deleteEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.deleteEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsSendVerificationEmailRpcPromise = (params: MessageTypes['keybase.1.emails.sendVerificationEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.sendVerificationEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.sendVerificationEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsSetPrimaryEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setPrimaryEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setPrimaryEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setPrimaryEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsSetVisibilityEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setVisibilityEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setVisibilityEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setVisibilityEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteAddRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteAdd']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteAdd']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteAdd', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteIgnoreRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteIgnore']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteIgnore']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteIgnore', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreatePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.createPersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createPersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createPersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -2872,6 +2913,10 @@ export const loginPaperKeySubmitRpcPromise = (params: MessageTypes['keybase.1.lo
 export const notifyCtlSetNotificationsRpcPromise = (params: MessageTypes['keybase.1.notifyCtl.setNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.notifyCtl.setNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pgpPgpKeyGenDefaultRpcSaga = (p: {params: MessageTypes['keybase.1.pgp.pgpKeyGenDefault']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params: MessageTypes['keybase.1.pgp.pgpStorageDismiss']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pgp.pgpStorageDismiss']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersAddPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.addPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersDeletePhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.deletePhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.deletePhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.deletePhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersSetVisibilityPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.setVisibilityPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.setVisibilityPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.setVisibilityPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersVerifyPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.verifyPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params: MessageTypes['keybase.1.pprof.logProcessorProfile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logProcessorProfile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params: MessageTypes['keybase.1.pprof.logTrace']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logTrace']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const proveCheckProofRpcPromise = (params: MessageTypes['keybase.1.prove.checkProof']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.prove.checkProof']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.prove.checkProof', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -2987,12 +3032,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.delegateUiCtl.registerGregorFirehose'
 // 'keybase.1.device.deviceList'
 // 'keybase.1.device.checkDeviceNameForUser'
-// 'keybase.1.emails.addEmail'
-// 'keybase.1.emails.deleteEmail'
 // 'keybase.1.emails.editEmail'
-// 'keybase.1.emails.setPrimaryEmail'
-// 'keybase.1.emails.sendVerificationEmail'
-// 'keybase.1.emails.setVisibilityEmail'
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
@@ -3180,12 +3220,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.pgpUi.keyGenerated'
 // 'keybase.1.pgpUi.shouldPushPrivate'
 // 'keybase.1.pgpUi.finished'
-// 'keybase.1.phoneNumbers.addPhoneNumber'
 // 'keybase.1.phoneNumbers.editPhoneNumber'
-// 'keybase.1.phoneNumbers.verifyPhoneNumber'
 // 'keybase.1.phoneNumbers.getPhoneNumbers'
-// 'keybase.1.phoneNumbers.deletePhoneNumber'
-// 'keybase.1.phoneNumbers.setVisibilityPhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
 // 'keybase.1.pprof.processorProfile'
 // 'keybase.1.pprof.trace'
