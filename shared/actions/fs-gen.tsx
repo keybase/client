@@ -32,7 +32,6 @@ export const favoritesLoaded = 'fs:favoritesLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
-export const hideDiskSpaceBanner = 'fs:hideDiskSpaceBanner'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const initSendLinkToChat = 'fs:initSendLinkToChat'
@@ -81,6 +80,7 @@ export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
+export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
@@ -145,7 +145,6 @@ type _FolderListLoadedPayload = {
   readonly pathItems: I.Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
-type _HideDiskSpaceBannerPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
 type _InitSendLinkToChatPayload = {readonly path: Types.Path}
@@ -172,7 +171,7 @@ type _OpenPathInSystemFileManagerPayload = {readonly path: Types.Path}
 type _OpenSecurityPreferencesPayload = void
 type _OverallSyncStatusChangedPayload = {
   readonly progress: Types.SyncingFoldersProgress
-  readonly outOfSpace: boolean
+  readonly diskSpaceStatus: Types.DiskSpaceStatus
 }
 type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
@@ -201,6 +200,7 @@ type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: T
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
 type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
 type _ShareNativePayload = {readonly path: Types.Path; readonly key: string}
+type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
 type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowSystemFileManagerIntegrationBannerPayload = void
@@ -309,9 +309,6 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   type: folderListLoaded,
 })
 export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
-export const createHideDiskSpaceBanner = (
-  payload: _HideDiskSpaceBannerPayload
-): HideDiskSpaceBannerPayload => ({payload, type: hideDiskSpaceBanner})
 export const createHideSystemFileManagerIntegrationBanner = (
   payload: _HideSystemFileManagerIntegrationBannerPayload
 ): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
@@ -471,6 +468,9 @@ export const createShareNative = (payload: _ShareNativePayload): ShareNativePayl
   payload,
   type: shareNative,
 })
+export const createShowHideDiskSpaceBanner = (
+  payload: _ShowHideDiskSpaceBannerPayload
+): ShowHideDiskSpaceBannerPayload => ({payload, type: showHideDiskSpaceBanner})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload): ShowIncomingSharePayload => ({
   payload,
   type: showIncomingShare,
@@ -599,10 +599,6 @@ export type FolderListLoadedPayload = {
   readonly type: typeof folderListLoaded
 }
 export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
-export type HideDiskSpaceBannerPayload = {
-  readonly payload: _HideDiskSpaceBannerPayload
-  readonly type: typeof hideDiskSpaceBanner
-}
 export type HideSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _HideSystemFileManagerIntegrationBannerPayload
   readonly type: typeof hideSystemFileManagerIntegrationBanner
@@ -780,6 +776,10 @@ export type SettingsLoadedPayload = {
   readonly type: typeof settingsLoaded
 }
 export type ShareNativePayload = {readonly payload: _ShareNativePayload; readonly type: typeof shareNative}
+export type ShowHideDiskSpaceBannerPayload = {
+  readonly payload: _ShowHideDiskSpaceBannerPayload
+  readonly type: typeof showHideDiskSpaceBanner
+}
 export type ShowIncomingSharePayload = {
   readonly payload: _ShowIncomingSharePayload
   readonly type: typeof showIncomingShare
@@ -863,7 +863,6 @@ export type Actions =
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
-  | HideDiskSpaceBannerPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | InitSendLinkToChatPayload
@@ -912,6 +911,7 @@ export type Actions =
   | SetTlfSyncConfigPayload
   | SettingsLoadedPayload
   | ShareNativePayload
+  | ShowHideDiskSpaceBannerPayload
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
   | ShowSystemFileManagerIntegrationBannerPayload
