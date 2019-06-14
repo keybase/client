@@ -56,8 +56,10 @@ func TestRotateHiddenSelf(t *testing.T) {
 	require.NoError(t, err)
 	err = team.Rotate(context.TODO())
 	require.NoError(t, err)
+	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
 
-	keys3, err := after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+	keys3, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, len(keys3), 6)
 	require.Equal(t, keys3[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))

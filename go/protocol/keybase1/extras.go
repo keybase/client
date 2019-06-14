@@ -2904,7 +2904,7 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 
 	for k, v := range newData.LastPerTeamKeys {
 		existing, ok := d.LastPerTeamKeys[k]
-		if !ok && existing < v {
+		if !ok || existing < v {
 			d.LastPerTeamKeys[k] = v
 		}
 	}
@@ -2983,4 +2983,40 @@ func (h *HiddenTeamChain) MaxReaderPerTeamKeyGeneration() PerTeamKeyGeneration {
 		return PerTeamKeyGeneration(0)
 	}
 	return k.Gen
+}
+
+func (h *HiddenTeamChain) KeySummary() string {
+	if h == nil {
+		return "Ø"
+	}
+	return fmt.Sprintf("{last:%d, lastPerTeamKeys:%+v, readerPerTeamKeys: %+v}", h.Last, h.LastPerTeamKeys, h.ReaderPerTeamKeys)
+}
+
+func (h *TeamData) KeySummary() string {
+	if h == nil {
+		return "Ø"
+	}
+	var p []PerTeamKeyGeneration
+	for k := range h.PerTeamKeySeedsUnverified {
+		p = append(p, k)
+	}
+	m := make(map[PerTeamKeyGeneration]bool)
+	for _, v := range h.ReaderKeyMasks {
+		for k := range v {
+			m[k] = true
+		}
+	}
+	var r []PerTeamKeyGeneration
+	for k := range m {
+		r = append(r, k)
+	}
+	return fmt.Sprintf("{ptksu:%v, rkms:%v, sigchain:%s}", p, r, h.Chain.KeySummary())
+}
+
+func (s TeamSigChainState) KeySummary() string {
+	var v []PerTeamKeyGeneration
+	for k := range s.PerTeamKeys {
+		v = append(v, k)
+	}
+	return fmt.Sprintf("{maxPTK:%d, ptk:%v}", s.MaxPerTeamKeyGeneration, v)
 }

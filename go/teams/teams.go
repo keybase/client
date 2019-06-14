@@ -2278,3 +2278,10 @@ func (t *TeamShim) MainChain() *keybase1.TeamData          { return t.Data }
 func (t *TeamShim) HiddenChain() *keybase1.HiddenTeamChain { return t.Hidden }
 
 var _ Teamer = (*TeamShim)(nil)
+
+func KeySummary(t Teamer) string {
+	if t == nil {
+		return "Ø"
+	}
+	return fmt.Sprintf("{main:%s, hidden:%s}", t.MainChain().KeySummary(), t.HiddenChain().KeySummary())
+}
