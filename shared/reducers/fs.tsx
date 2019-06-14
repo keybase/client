@@ -523,9 +523,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           .set('diskSpaceStatus', action.payload.diskSpaceStatus)
       )
     case FsGen.showHideDiskSpaceBanner:
-      return state.update('overallSyncStatus', overallSyncStatus =>
-        overallSyncStatus.set('showingBanner', action.payload.show)
-      )
+      return state.setIn(['overallSyncStatus', 'showingBanner'], action.payload.show)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:
