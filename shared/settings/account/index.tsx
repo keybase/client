@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import EmailPhoneRow from './email-phone-row'
+import * as I from 'immutable'
 
 type Props = {
   contactKeys: Array<string>
@@ -21,7 +22,7 @@ const EmailPhone = props => (
         find you by phone number or email.
       </Kb.Text>
     </Kb.Box2>
-    {!!props.contactKeys.length && (
+    {!!props.contactKeys.size && (
       <Kb.Box2 direction="vertical" style={styles.contactRows} fullWidth={true}>
         {props.contactKeys.map(ck => (
           <EmailPhoneRow contactKey={ck} key={ck} />

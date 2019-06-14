@@ -381,8 +381,8 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
 
 const loadSettings = () =>
   RPCTypes.userLoadMySettingsRpcPromise().then(settings => {
-    let emailMap: I.Map<string, Types.EmailRow> | null = null
-    let phoneMap: I.Map<string, Types.PhoneRow> | null = null
+    let emailMap: I.Map<string, Types.EmailRow> = I.Map()
+    let phoneMap: I.Map<string, Types.PhoneRow> = I.Map()
     if (settings.emails) {
       emailMap = I.Map(settings.emails.map(row => [row.email, Constants.makeEmailRow(row)]))
     }
@@ -398,7 +398,7 @@ const loadSettings = () =>
 
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
   visibility === ChatTypes.Keybase1.IdentityVisibility.private
-    ? ChatTypes.Keybase1.IdentityVisibility.private
+    ? ChatTypes.Keybase1.IdentityVisibility.public
     : ChatTypes.Keybase1.IdentityVisibility.private
 
 const editEmail = (state, action: SettingsGen.EditEmailPayload) => {
