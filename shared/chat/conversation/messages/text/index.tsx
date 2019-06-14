@@ -56,8 +56,8 @@ class Reply extends React.Component<ReplyProps, ReplyState> {
                       onLoad={this._setImageLoaded}
                       style={{...sizing.dims}}
                     />
+                    {!this.state.imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
                   </Kb.Box>
-                  {!this.state.imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
                 </Kb.Box2>
               )}
               <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
@@ -182,10 +182,10 @@ const styles = Styles.styleSheetCreate({
   replyProgress: {
     bottom: '50%',
     left: '50%',
-    marginBottom: -24,
-    marginLeft: -24,
-    marginRight: -24,
-    marginTop: -24,
+    marginBottom: -12,
+    marginLeft: -12,
+    marginRight: -12,
+    marginTop: -12,
     position: 'absolute',
     right: '50%',
     top: '50%',
