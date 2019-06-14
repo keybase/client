@@ -463,13 +463,83 @@ func (e *loginProvision) ensureLKSec(m libkb.MetaContext) error {
 		return nil
 	}
 
-	pps, err := e.ppStream(m)
+	pps, err := e.recoverPassphraseAfterSignup(m)
 	if err != nil {
-		return err
+		m.Debug("Couldn't recoverPassphraseAfterSignup: %s, continuing", err)
+		pps, err = e.ppStream(m)
+		fmt.Printf("e.ppStream: %s\n", err)
+		if err != nil {
+			return err
+		}
 	}
 
 	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID())
 	return nil
+}
+
+func (e *loginProvision) recoverPassphraseAfterSignup(mctx libkb.MetaContext) (ret *libkb.PassphraseStream, err error) {
+	defer func() { fmt.Printf("recoverPassphraseAfterSignup: %s\n", err) }()
+	if !e.arg.User.GetCurrentEldestSeqno().Eq(keybase1.Seqno(0)) {
+		return nil, errors.New("user has live sigchain, cannot do recover-after-signup login")
+	}
+	username := e.arg.User.GetNormalizedName()
+	ss := mctx.G().SecretStore()
+	fullSecret, err := ss.RetrieveSecret(mctx, username)
+	if err != nil {
+		return nil, err
+	}
+	lks := libkb.NewLKSecWithFullSecret(fullSecret, e.arg.User.GetUID())
+	if err = lks.LoadServerHalf(mctx); err != nil {
+		mctx.Debug("No server half for LKSec (expected): %s", err)
+		lks.ResetServerHalf()
+	} else {
+		mctx.Debug("LoadServerHalf returned server half which was unexpected at this stage, bailing out")
+		return nil, errors.New("user has secret server-half, cannot do recover-after-signup login")
+	}
+	stream, err := libkb.NewPassphraseStreamLKSecOnly(lks)
+	if err != nil {
+		return nil, nil
+	}
+
+	edDSASecret, err := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", username)))
+	if err != nil {
+		return nil, err
+	}
+	pwHashSecret, err := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", username)))
+	if err != nil {
+		return nil, err
+	}
+
+	err = stream.SetEdDSAAndPWH(pwHashSecret.Bytes(), edDSASecret.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	err = libkb.LoginFromPassphraseStream(mctx, username.String(), stream)
+	if err != nil {
+		return nil, err
+	}
+
+	mctx.LoginContext().CreateStreamCache(nil, stream)
+	fmt.Printf("mctx.pps: %v\n", mctx.PassphraseStream())
+
+	ok, err := mctx.LoginContext().LoggedInLoad()
+	fmt.Printf("LoggedInLoad: %t %s\n", ok, err)
+	return stream, nil
+}
+
+func clearRecoveryPassphraseSecrets(mctx libkb.MetaContext, username libkb.NormalizedUsername) error {
+	ss := mctx.G().SecretStore()
+	ssOptions := &libkb.SecretStoreOptions{RandomPw: true}
+
+	prevOptions := ss.GetOptions(mctx)
+	ss.SetOptions(mctx, ssOptions)
+	// Restore secret store options after we are done here.
+	defer ss.SetOptions(mctx, prevOptions)
+
+	err1 := ss.ClearSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", username)))
+	err2 := ss.ClearSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", username)))
+	return libkb.CombineErrors(err1, err2)
 }
 
 // ppStream gets the passphrase stream, either cached or via
@@ -1121,6 +1191,11 @@ func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
 		return err
 	}
 	e.saveToSecretStore(m)
+
+	if cErr := clearRecoveryPassphraseSecrets(m, e.arg.User.GetNormalizedName()); cErr != nil {
+		m.Debug("clearRecoveryPassphraseSecrets failed with: %s", cErr)
+	}
+
 	return nil
 }
 

@@ -19,11 +19,12 @@ type signupAPIMock struct {
 	t       *testing.T
 	realAPI libkb.API
 
+	failKeyMulti         bool
 	localTimeoutKeyMulti bool
 	failEverything       bool
 }
 
-var _ API = (*signupAPIMock)(nil)
+var _ libkb.API = (*signupAPIMock)(nil)
 
 func (n *signupAPIMock) Post(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
 	fmt.Printf("Post: %s\n", args.Endpoint)
@@ -31,7 +32,12 @@ func (n *signupAPIMock) Post(m libkb.MetaContext, args libkb.APIArg) (*libkb.API
 }
 
 func (n *signupAPIMock) PostJSON(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
-	fmt.Printf("PostJSON: %s\n", args.Endpoint)
+	n.t.Logf("PostJSON: %s\n", args.Endpoint)
+	if n.localTimeoutKeyMulti && args.Endpoint == "key/multi" {
+		n.failEverything = true
+		n.t.Logf("Got key/multi, failing the call (not sending to real API), subsequent calls will fail as well")
+		return nil, errors.New("Mock failure")
+	}
 	res, err := n.realAPI.PostJSON(m, args)
 	if n.localTimeoutKeyMulti && args.Endpoint == "key/multi" {
 		n.failEverything = true
@@ -100,17 +106,36 @@ func TestSignupFailProvision(t *testing.T) {
 	err := RunEngine2(m, s)
 	// We are expecting an error during signup.
 	require.Error(tc.T, err)
-	require.Contains(t, err.Error(), "Mock local failure")
+	require.Contains(t, err.Error(), "Mock failure")
 	fu.EncryptionKey = s.encryptionKey
 
 	t.Logf("Signup failed with: %s", err)
 	require.True(t, fakeAPI.failEverything)
 
+	checkStoredPw := func() (foundA, foundB bool, err error) {
+		ss := tc.G.SecretStore()
+		mctx := libkb.NewMetaContextForTest(tc)
+		a, err1 := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", fu.Username)))
+		b, err2 := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", fu.Username)))
+		return !a.IsNil(), !b.IsNil(), libkb.CombineErrors(err1, err2)
+	}
+
+	// We expect to see stored eddsa and pwhash after signup.
+	foundA, foundB, err := checkStoredPw()
+	require.NoError(t, err)
+	require.True(t, foundA && foundB)
+
 	// Restore real API access.
 	tc.G.API = fakeAPI.realAPI
 
 	t.Logf("Trying to login after failed signup")
-	fu.LoginOrBust(tc)
+	err = fu.Login(tc.G)
+	require.NoError(t, err) // This will not work - user has already devices provisioned, no way to recover.
+
+	// After signing up, we expect pw secret store entries to be cleared up.
+	foundA, foundB, err = checkStoredPw()
+	require.Error(t, err)
+	require.True(t, !foundA && !foundB)
 
 	// Try to post a link to see if things work.
 	_, _, err = runTrack(tc, fu, "t_alice", libkb.GetDefaultSigVersion(tc.G))

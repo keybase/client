@@ -9,9 +9,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
-	"strings"
 )
 
 const LKSecVersion = 100
@@ -91,6 +92,10 @@ func newLKSecFullSecretFromBytes(b []byte) (ret LKSecFullSecret, err error) {
 	copy(v[:], b)
 	ret = LKSecFullSecret{f: &v}
 	return ret, nil
+}
+
+func NewLKSecFullSecretFromBytes(b []byte) (ret LKSecFullSecret, err error) {
+	return newLKSecFullSecretFromBytes(b)
 }
 
 func NewLKSecClientHalfFromBytes(b []byte) (ret LKSecClientHalf, err error) {
@@ -258,6 +263,11 @@ func (s *LKSec) GenerateServerHalf() error {
 	return nil
 }
 
+func (s *LKSec) ResetServerHalf() {
+	var v [LKSecLen]byte
+	s.serverHalf = LKSecServerHalf{s: &v}
+}
+
 func (s *LKSec) GetServerHalf() LKSecServerHalf {
 	return s.serverHalf
 }
@@ -292,6 +302,7 @@ func (s *LKSec) LoadServerHalf(m MetaContext) (err error) {
 	defer m.Trace("LKSec::LoadServerHalf()", func() error { return err })()
 
 	if !s.serverHalf.IsNil() {
+		fmt.Printf("| short-circuit: already have serverHalf\n")
 		m.Debug("| short-circuit: already have serverHalf")
 		return nil
 	}

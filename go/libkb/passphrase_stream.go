@@ -87,6 +87,18 @@ func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 	ps.gen = gen
 }
 
+func (ps *PassphraseStream) SetEdDSAAndPWH(pwhash, eddsa []byte) error {
+	if len(pwhash) != pwhLen {
+		return fmt.Errorf("Invalid PWHash len: %d, expected %d", len(pwhash), pwhLen)
+	}
+	if len(eddsa) != eddsaLen {
+		return fmt.Errorf("Invalid EdDSA seed len: %d, expected %d", len(eddsa), eddsaLen)
+	}
+	copy(ps.stream[pwhIndex:eddsaIndex], pwhash[:])
+	copy(ps.stream[eddsaIndex:dhIndex], eddsa[:])
+	return nil
+}
+
 func (ps PassphraseStream) PWHash() []byte {
 	return ps.stream[pwhIndex:eddsaIndex]
 }

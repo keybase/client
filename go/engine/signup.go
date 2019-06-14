@@ -5,7 +5,6 @@ package engine
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -293,25 +292,17 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	}
 
 	eng := NewDeviceWrap(m.G(), args)
-	deviceWrapErr := RunEngine2(m, eng)
-	if !eng.KeysGenerated() {
-		if deviceWrapErr != nil {
-			// Should not happen
-			return errors.New("Failed to generate device keys")
+	err := RunEngine2(m, eng)
+	if err != nil {
+		m.Warning("Failed to provision device: %s", err)
+		if ssErr := s.storeSecretRecovery(m); ssErr != nil {
+			m.Warning("Failed to store secrets for recovery: %s", ssErr)
 		}
-		return deviceWrapErr
+		return err
 	}
 
 	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
-		m.Warning("Failed to switch config for active device: %s", err)
-		m.Warning("Trying again in offline mode.")
-		// We failed to switch config, possibly because of a network error. Try
-		// offline version of that for for users signing up.
-		err2 := eng.SwitchConfigAndActiveDeviceOffline(m)
-		if err2 != nil {
-			m.Warning("Failed to switch config in offline mode: %s", err2)
-			return libkb.CombineErrors(deviceWrapErr, err, err2)
-		}
+		return err
 	}
 
 	s.signingKey = eng.SigningKey()
@@ -328,7 +319,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	m.Debug("registered new device: %s", m.G().Env.GetDeviceID())
 	m.Debug("eldest kid: %s", s.me.GetEldestKID())
 
-	return deviceWrapErr
+	return nil
 }
 
 func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
@@ -345,6 +336,49 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
 	if w != nil {
 		m.Warning("StoreSecret error: %s", w)
 	}
+}
+
+func (s *SignupEngine) storeSecretRecovery(m libkb.MetaContext) (err error) {
+	defer m.Trace("SignupEngine#storeSecretRecovery", func() error { return err })()
+
+	ssOptions := &libkb.SecretStoreOptions{RandomPw: true}
+
+	username := s.me.GetNormalizedName()
+	err = libkb.StoreSecretAfterLoginWithLKSWithOptions(m, username, s.lks, ssOptions)
+	if err != nil {
+		return err
+	}
+
+	ss := m.G().SecretStore()
+
+	var secret libkb.LKSecFullSecret
+	var id libkb.NormalizedUsername
+
+	prevOptions := ss.GetOptions(m)
+	ss.SetOptions(m, ssOptions)
+	// Restore secret store options after we are done here.
+	defer ss.SetOptions(m, prevOptions)
+
+	secret, err = libkb.NewLKSecFullSecretFromBytes(s.ppStream.EdDSASeed())
+	if err != nil {
+		return err
+	}
+	id = libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", username))
+	if err := ss.StoreSecret(m, id, secret); err != nil {
+		return err
+	}
+
+	secret, err = libkb.NewLKSecFullSecretFromBytes(s.ppStream.PWHash())
+	if err != nil {
+		return err
+	}
+
+	id = libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", username))
+	if err := ss.StoreSecret(m, id, secret); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *SignupEngine) genPaperKeys(m libkb.MetaContext) error {

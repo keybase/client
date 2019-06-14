@@ -496,3 +496,39 @@ func UnverifiedPassphraseStream(m MetaContext, uid keybase1.UID, passphrase stri
 	}
 	return StretchPassphrase(m.G(), passphrase, salt)
 }
+
+func LoginFromPassphraseStream(mctx MetaContext, username string, pps *PassphraseStream) error {
+	ls, err := pplGetLoginSession(mctx, username)
+	if err != nil {
+		return err
+	}
+	loginSessionBytes, err := ls.Session()
+	if err != nil {
+		return err
+	}
+	pdpka, err := computeLoginPackageFromEmailOrUsername(username, pps, loginSessionBytes)
+	if err != nil {
+		return err
+	}
+	res, err := pplPost(mctx, username, pdpka)
+	if err != nil {
+		return err
+	}
+
+	var nilDeviceID keybase1.DeviceID
+	err = mctx.LoginContext().SaveState(
+		res.sessionID,
+		res.csrfToken,
+		NewNormalizedUsername(res.username),
+		res.uv,
+		nilDeviceID,
+	)
+	if err != nil {
+		return err
+	}
+	pps.SetGeneration(res.ppGen)
+	mctx.LoginContext().CreateStreamCache(nil, pps)
+
+	fmt.Printf("pplPost: %+v\n", res)
+	return nil
+}
