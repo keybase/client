@@ -27,7 +27,7 @@ const Reply = (props: ReplyProps) => {
         className={Styles.classNames('ReplyBox')}
       >
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-        <Kb.Box2 direction="vertical" gap="xtiny">
+        <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
@@ -152,6 +152,9 @@ const styles = Styles.styleSheetCreate({
   replyContainer: {
     paddingTop: Styles.globalMargins.xtiny,
   },
+  replyContentContainer: {
+    flex: 1,
+  },
   replyEdited: {
     color: Styles.globalColors.black_20,
   },
@@ -162,7 +165,6 @@ const styles = Styles.styleSheetCreate({
   replyTextContainer: {
     alignSelf: 'flex-start',
     flex: 1,
-    paddingRight: Styles.globalMargins.tiny,
   },
   replyUsername: {
     alignSelf: 'center',
