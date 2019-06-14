@@ -10,7 +10,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
   switch (action.type) {
     case ProvisionGen.resetStore:
     case ProvisionGen.startProvision:
-      return action.payload.initUsername
+      return action.payload && action.payload.initUsername
         ? initialState.merge({initialUsername: action.payload.initUsername})
         : initialState
     case ProvisionGen.provisionError:
