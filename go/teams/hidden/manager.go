@@ -27,6 +27,8 @@ type loadArg struct {
 	mutate func(libkb.MetaContext, *keybase1.HiddenTeamChain) (bool, error)
 }
 
+// Tail returns the furthest known tail of the hidden team chain, as known to our local cache.
+// Needed when posting new main chain links that point back to the most recently known tail.
 func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybase1.LinkTriple, error) {
 	mctx = withLogTag(mctx)
 	state, err := m.loadAndMutate(mctx, loadArg{id: id})
@@ -54,6 +56,7 @@ func withLogTag(mctx libkb.MetaContext) libkb.MetaContext {
 	return mctx.WithLogTag("HTCM")
 }
 
+// Load hidden team chain data from storage, either mem or disk. Will not the network.
 func (m *ChainManager) Load(mctx libkb.MetaContext, id keybase1.TeamID) (ret *keybase1.HiddenTeamChain, err error) {
 	mctx = withLogTag(mctx)
 	ret, err = m.loadAndMutate(mctx, loadArg{id: id})
@@ -130,6 +133,9 @@ func (m *ChainManager) ratchet(mctx libkb.MetaContext, state *keybase1.HiddenTea
 	return updated, nil
 }
 
+// Ratchet should be called when we know about advances in this chain but don't necessarily have the links to back the
+// ratchet up. We'll check them later when next we refresh. But we do check that the ratchet is consistent with the known
+// data (and ratchets) that we have.
 func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.HiddenTeamChainRatchet) (err error) {
 	mctx = withLogTag(mctx)
 	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Ratchet(%s, %+v)", id, ratchet), func() error { return err })()
