@@ -88,7 +88,7 @@ const ChangeRetention = (props: Props) => {
       bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={() => props.onClickUserAvatar()}
     >
-      <Kb.Text type="BodySmallSemibold" negative={true} style={styles.text}>
+      <Kb.Text type="BodyTiny" negative={true} style={styles.text}>
         {formatTimeForMessages(props.timestamp)}
       </Kb.Text>
       <Kb.Box2 direction="vertical" centerChildren={true}>

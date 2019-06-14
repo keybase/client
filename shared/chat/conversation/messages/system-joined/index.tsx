@@ -44,7 +44,7 @@ const JoinedUserNotice = (props: Props) => (
     username={props.author}
     bgColor={Styles.globalColors.blueLighter2}
   >
-    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
+    <Kb.Text type="BodyTiny" negative={true} style={{color: Styles.globalColors.black_50}}>
       {formatTimeForMessages(props.timestamp)}
     </Kb.Text>
     <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>

@@ -18,7 +18,7 @@ class SystemText extends React.PureComponent<Props> {
         username={author}
         bgColor={globalColors.blueLighter2}
       >
-        <Text type="BodySmallSemibold" negative={true} style={{color: globalColors.black_50}}>
+        <Text type="BodyTiny" negative={true} style={{color: globalColors.black_50}}>
           {formatTimeForMessages(timestamp)}
         </Text>
         <Text type="BodySmallSemibold" negative={true} style={{color: globalColors.black_50}}>

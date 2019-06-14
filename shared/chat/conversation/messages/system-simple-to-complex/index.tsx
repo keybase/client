@@ -39,7 +39,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         onClickAvatar={() => onViewTeam(team)}
       >
         <Text
-          type="BodySmallSemibold"
+          type="BodyTiny"
           negative={true}
           style={{color: globalColors.black_50, marginTop: globalMargins.tiny}}
         >
@@ -57,7 +57,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
               </Text>
-              <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}} center={true}>
+              <Text type="BodySmallSemibold">
                 Your team channels will now appear in the "Big teams" section of the inbox.
               </Text>
             </Box>
@@ -65,7 +65,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
               </Text>
-              <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}} center={true}>
+              <Text type="BodySmallSemibold">
                 Everyone can now create and join channels.{' '}
                 <Text
                   onClick={onManageChannels}

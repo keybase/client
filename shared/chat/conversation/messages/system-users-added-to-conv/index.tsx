@@ -13,7 +13,7 @@ type YouAddedProps = {
 
 const YouAdded = (props: YouAddedProps) => (
   <UserNotice username={props.author} bgColor={Styles.globalColors.blueLighter2}>
-    <Kb.Text center={true} type="BodySmallSemibold">
+    <Kb.Text center={true} type="BodyTiny">
       {formatTimeForMessages(props.timestamp)}
     </Kb.Text>
     <Kb.Text center={true} type="BodySmallSemibold">
