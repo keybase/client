@@ -1,5 +1,4 @@
 import * as React from 'react'
-import {memoize} from '../../util/memoize'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -18,10 +17,10 @@ export type Props = {
   onViewDetails: () => void
 }
 
-const stopPropagation = memoize(onClick => e => {
+const stopPropagation = onClick => e => {
   e.stopPropagation()
   onClick()
-})
+}
 
 const getCode = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="xtiny">
