@@ -15,7 +15,9 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     message && message.type === 'text'
       ? message.text.stringValue()
       : message.type === 'attachment'
-      ? message.title || message.fileName
+      ? message.attachmentType === 'image'
+        ? message.title || ''
+        : message.fileName
       : ''
   const attachment: Types.MessageAttachment =
     message.type === 'attachment' && message.attachmentType === 'image' ? message : null

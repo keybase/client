@@ -36,7 +36,11 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
             imageWidth: attachment ? attachment.previewWidth : undefined,
             onClick: () => onReplyClick(replyTo.id),
             text:
-              replyTo.type === 'attachment' ? replyTo.title || replyTo.fileName : replyTo.text.stringValue(),
+              replyTo.type === 'attachment'
+                ? replyTo.attachmentType === 'image'
+                  ? replyTo.title || ''
+                  : replyTo.fileName
+                : replyTo.text.stringValue(),
             username: replyTo.author,
           }
     case 'deleted':
