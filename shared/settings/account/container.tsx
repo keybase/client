@@ -17,12 +17,15 @@ const mapStateToProps = (state: TypedState, o: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: TypedDispatch) => ({
+  onAddEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['addEmail']})),
+  onAddPhone: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['addPhone']})),
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassword())
     dispatch(SettingsGen.createLoadHasRandomPw())
   },
-  onChangePassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassword']})),
+  onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
+  onSetPassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassword']})),
 })
 export default compose(
   connect(

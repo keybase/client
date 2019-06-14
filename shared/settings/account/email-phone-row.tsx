@@ -147,14 +147,14 @@ export type OwnProps = {
   contactKey: string
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
-  _emailRow: state.settings.email.emails.get(ownProps.contactKey, null),
-  _phoneRow: state.settings.phone.phones.get(ownProps.contactKey, null),
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+  _emailRow: state.settings.email.emails.get(ownProps.contactKey) || null,
+  _phoneRow: state.settings.phone.phones.get(ownProps.contactKey) || null,
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   email: {
-    onDelete: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, delete: true})),
+    onDelete: () => dispatch(SettingsGen.createEditEmail({delete: true, email: ownProps.contactKey})),
     onMakePrimary: () =>
       dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
     onToggleSearchable: () =>
@@ -162,51 +162,50 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
-    onDelete: () => dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, delete: true})),
-    onMakePrimary: () => {},
+    onDelete: () => dispatch(SettingsGen.createEditPhone({delete: true, phone: ownProps.contactKey})),
+    onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
     // TODO: this requires popping up a thing and also sending an RPC, waiting on Danny's existing flow from another PR
     onVerify: () => {},
   },
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  if (!!stateProps._phoneRow) {
-    return {
-      ...dispatchProps.phone,
-      address: stateProps._phoneRow.phoneNumber,
-      primary: false,
-      searchable: stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public,
-      type: 'phone',
-      verified: stateProps._phoneRow.verified,
-    }
-  } else if (!!stateProps._emailRow) {
-    return {
-      ...dispatchProps.email,
-      address: stateProps._emailRow.email,
-      primary: stateProps._emailRow.isPrimary,
-      searchable: stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public,
-      type: 'email',
-      verified: stateProps._phoneRow.isVerified,
-    }
-  } else
-    return {
-      address: '',
-      onDelete: () => {},
-      onMakePrimary: () => {},
-      onToggleSearchable: () => {},
-      onVerify: () => {},
-      primary: false,
-      searchable: false,
-      type: 'phone',
-      verified: false,
-    } as const
-}
 
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    if (stateProps._phoneRow) {
+      return {
+        ...dispatchProps.phone,
+        address: stateProps._phoneRow.phoneNumber,
+        primary: false,
+        searchable: stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public,
+        type: 'phone' as const,
+        verified: stateProps._phoneRow.verified,
+      }
+    } else if (stateProps._emailRow) {
+      return {
+        ...dispatchProps.email,
+        address: stateProps._emailRow.email,
+        primary: stateProps._emailRow.isPrimary,
+        searchable: stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public,
+        type: 'email' as const,
+        verified: stateProps._emailRow.isVerified,
+      }
+    } else
+      return {
+        address: '',
+        onDelete: () => {},
+        onMakePrimary: () => {},
+        onToggleSearchable: () => {},
+        onVerify: () => {},
+        primary: false,
+        searchable: false,
+        type: 'phone' as const,
+        verified: false,
+      }
+  },
   'ConnectedEmailPhoneRow'
 )(EmailPhoneRow)
 
