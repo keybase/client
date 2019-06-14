@@ -9,6 +9,7 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
+import {formatTimeForMessages} from '../../util/timestamp'
 
 type OwnProps = Container.RouteProps<
   {
@@ -31,11 +32,17 @@ const mapStateToProps = (state, ownProps) => {
     yourOperations.editChannelDescription || yourOperations.renameChannel || yourOperations.deleteChannel
   const canCreateChannels = yourOperations.createChannel
 
+  const generalCh = channelInfos.find(i => i.channelname === 'general')
+  const teamSize = generalCh ? generalCh.numParticipants : 0
+
   const channels = channelInfos
     .map((info, convID) => ({
       convID,
       description: info.description,
+      hasAllMembers: info.numParticipants === teamSize,
+      mtimeHuman: formatTimeForMessages(info.mtime),
       name: info.channelname,
+      numParticipants: info.numParticipants,
       selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
     }))
     .valueSeq()

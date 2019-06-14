@@ -48,7 +48,7 @@ class FeedbackContainer extends React.Component<Props, State> {
     this.mounted = true
   }
 
-  _onSendFeedback = (feedback: string, sendLogs: boolean) => {
+  _onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
     this.setState({sending: true, sentFeedback: false})
 
     this.props.setTimeout(() => {
@@ -64,7 +64,15 @@ class FeedbackContainer extends React.Component<Props, State> {
             : this.props.status
           const traceDir = pprofDir
           const cpuProfileDir = traceDir
-          return logSend(JSON.stringify(extra), feedback || '', sendLogs, logPath, traceDir, cpuProfileDir)
+          return logSend(
+            JSON.stringify(extra),
+            feedback || '',
+            sendLogs,
+            sendMaxBytes,
+            logPath,
+            traceDir,
+            cpuProfileDir
+          )
         })
         .then(logSendId => {
           logger.info('logSendId is', logSendId)

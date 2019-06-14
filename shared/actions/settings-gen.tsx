@@ -97,7 +97,11 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
+type _SendFeedbackPayload = {
+  readonly feedback: string
+  readonly sendLogs: boolean
+  readonly sendMaxBytes: boolean
+}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
