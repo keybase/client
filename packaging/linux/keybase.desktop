@@ -1,8 +1,13 @@
 [Desktop Entry]
 Name=Keybase
-Exec=run_keybase
+Exec=/opt/keybase/Keybase
 Icon=keybase
 Terminal=false
 Type=Application
 Categories=Network;
 StartupNotify=false
+Actions=restart;
+
+[Desktop Action restart]
+Name=Restart
+Exec=run_keybase
