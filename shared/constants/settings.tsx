@@ -38,6 +38,14 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
   visibility: 0,
 })
 
+export const makePhoneRow = I.Record<Types._PhoneRow>({
+  phoneNumber: '',
+  verified: false,
+  visibility: 0,
+  superseded: false,
+  ctime: 0,
+})
+
 export const makeFeedback = I.Record<Types._FeedbackState>({
   error: null,
 })
@@ -63,6 +71,7 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
   error: '',
   pendingVerification: '',
   pendingVerificationAllowSearch: null,
+  phones: null,
   verificationState: null,
 })
 
@@ -153,7 +162,7 @@ export const foldersTab = 'settingsTabs.foldersTab'
 export const fsTab = 'settingsTabs.fsTab'
 export const gitTab = 'settingsTabs.gitTab'
 export const invitationsTab = 'settingsTabs.invitationsTab'
-export const landingTab = 'settingsTabs.landingTab'
+export const accountTab = 'settingsTabs.accountTab'
 export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
 export const passwordTab = 'settingsTabs.password'

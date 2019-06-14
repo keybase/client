@@ -380,13 +380,67 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
 }
 
 const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(
-    settings =>
-      settings.emails &&
-      SettingsGen.createLoadedSettings({
-        emails: I.List(settings.emails.map(row => Constants.makeEmailRow(row))),
-      })
-  )
+  RPCTypes.userLoadMySettingsRpcPromise().then(settings => {
+    let emailMap: I.Map<string, Types.EmailRow> | null = null
+    let phoneMap: I.Map<string, Types.PhoneRow> | null = null
+    if (settings.emails) {
+      emailMap = I.Map(settings.emails.map(row => [row.email, Constants.makeEmailRow(row)]))
+    }
+
+    if (settings.phones) {
+      phoneMap = I.Map(settings.phones.map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
+    }
+    return SettingsGen.createLoadedSettings({
+      emails: emailMap,
+      phones: phoneMap,
+    })
+  })
+
+const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
+  visibility === ChatTypes.Keybase1.IdentityVisibility.private
+    ? ChatTypes.Keybase1.IdentityVisibility.private
+    : ChatTypes.Keybase1.IdentityVisibility.private
+
+const editEmail = (state, action: SettingsGen.EditEmailPayload) => {
+  // TODO: consider allowing more than one action here
+  // TODO: handle errors
+  if (action.payload.delete) {
+    return RPCTypes.emailsDeleteEmailRpcPromise({email: action.payload.email})
+  }
+  if (action.payload.makePrimary) {
+    return RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
+  }
+  if (action.payload.verify) {
+    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
+  }
+  if (action.payload.toggleSearchable) {
+    const currentSettings = state.settings.email.emails.get(action.payload.email)
+    const newVisibility = currentSettings
+      ? flipVis(currentSettings.visibility)
+      : ChatTypes.Keybase1.IdentityVisibility.private
+    return RPCTypes.emailsSetVisibilityEmailRpcPromise({
+      email: action.payload.email,
+      visibility: newVisibility,
+    })
+  }
+}
+const editPhone = (state, action: SettingsGen.EditPhonePayload) => {
+  // TODO: consider allowing more than one action here
+  // TODO: handle errors
+  if (action.payload.delete) {
+    return RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
+  }
+  if (action.payload.toggleSearchable) {
+    const currentSettings = state.settings.phone.phones.get(action.payload.phone)
+    const newVisibility = currentSettings
+      ? flipVis(currentSettings.visibility)
+      : ChatTypes.Keybase1.IdentityVisibility.private
+    return RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
+      phoneNumber: action.payload.phone,
+      visibility: newVisibility,
+    })
+  }
+}
 
 const getRememberPassword = () =>
   RPCTypes.configGetRememberPassphraseRpcPromise().then(remember =>
@@ -592,6 +646,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     deleteAccountForever
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
+  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail)
+  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone)
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail
