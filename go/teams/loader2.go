@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams/hidden"
 	"github.com/keybase/go-codec/codec"
 )
 
@@ -711,8 +710,10 @@ func (l *TeamLoader) addKBFSCryptKeys(mctx libkb.MetaContext, team Teamer, upgra
 // Does _not_ check that keys match the sigchain.
 // Mutates `state`
 func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
-	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
-	readerKeyMasks []keybase1.ReaderKeyMask, hiddenPackage *hidden.LoaderPackage) error {
+	team Teamer, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
+	readerKeyMasks []keybase1.ReaderKeyMask) error {
+
+	state := team.MainChain()
 
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(mctx, box, prevs)
 	if err != nil {
@@ -723,13 +724,10 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 
-	// Latest generation from the sigchain
-	latestChainGen := state.Chain.MaxPerTeamKeyGeneration
-	// .. Or from the hidden chain
-	h := hiddenPackage.MaxReaderPerTeamKeyGeneration()
-	if h > latestChainGen {
-		latestChainGen = h
-	}
+	stateWrapper := newTeamSigChainState(team)
+
+	// Latest generation from the sigchain or the hidden chain...
+	latestChainGen := stateWrapper.GetLatestGeneration()
 
 	mctx.Debug("TeamLoader.addSecrets: received:%v->%v nseeds:%v nprevs:%v",
 		earliestReceivedGen, latestReceivedGen, len(seeds), len(prevs))
@@ -743,7 +741,7 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 
 		ptkGen := keybase1.PerTeamKeyGeneration(gen)
 
-		chainKey, err := TeamSigChainState{inner: state.Chain, hidden: hiddenPackage.ChainData()}.GetPerTeamKeyAtGeneration(ptkGen)
+		chainKey, err := stateWrapper.GetPerTeamKeyAtGeneration(ptkGen)
 		if err != nil {
 			return err
 		}
@@ -766,8 +764,7 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 		}
 	}
 
-	chain := TeamSigChainState{inner: state.Chain}
-	role, err := chain.GetUserRole(me)
+	role, err := stateWrapper.GetUserRole(me)
 	if err != nil {
 		role = keybase1.TeamRole_NONE
 	}

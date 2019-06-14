@@ -12,7 +12,7 @@
 - [x] alert in laoder2.go / addSecrets -- add back later
 - [x] in Advance() we should still check prevs
   - [x] thought more about this, and it's not needed, but it can't hurt
-- [ ] fix addSecrets to take a Teamer
+- [x] fix addSecrets to take a Teamer
 - [ ] proprer fix (with vendoring) for test vector
 - [x] try to figure out refreshing and cache-bust store for chain17
   - idea: merkle/path.json:
