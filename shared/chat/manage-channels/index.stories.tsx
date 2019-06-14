@@ -6,48 +6,73 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 import EditChannel from './edit-channel'
+import {formatTimeForMessages} from '../../util/timestamp'
+
+const origin = new Date().getTime()
+const mtimeHuman = formatTimeForMessages(origin)
 
 const channels = [
   {
     convID: ChatTypes.stringToConversationIDKey('1'),
     description: 'General things on things.',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'general',
+    numParticipants: 5,
     selected: true,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('2'),
     description: 'Random things randomly discussed.',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'random',
+    numParticipants: 5,
     selected: true,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('3'),
     description: 'Revenue data worth checking',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'revenue',
+    numParticipants: 5,
     selected: false,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('4'),
     description: 'Talk to the sales team',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'sales',
+    numParticipants: 5,
     selected: false,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('5'),
     description: 'True discussions on true news.',
+    hasAllMembers: true,
+    mtimeHuman,
     name: 'truechannel',
+    numParticipants: 5,
     selected: false,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('13'),
     description: 'Boring things not worth discussing',
+    hasAllMembers: false,
+    mtimeHuman,
     name: 'zzz',
+    numParticipants: 1,
     selected: true,
   },
   {
     convID: ChatTypes.stringToConversationIDKey('21'),
     description: 'This is a very long long long description to test that things flow correctly',
+    hasAllMembers: false,
+    mtimeHuman,
     name: 'superlonglonglongnameforachannel',
+    numParticipants: 2,
     selected: true,
   },
 ]

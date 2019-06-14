@@ -3,7 +3,10 @@ import {ConversationIDKey} from '../../constants/types/chat2'
 
 export type RowProps = {
   description: string
+  hasAllMembers: boolean
   name: string
+  numParticipants: number
+  mtimeHuman: string
 }
 
 export type Props = {
