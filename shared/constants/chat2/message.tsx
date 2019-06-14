@@ -781,7 +781,7 @@ const validUIMessagetoMessage = (
         }
       }
 
-      const a = attachment || {object: {filename: undefined, title: undefined, size: undefined}}
+      const a = attachment || {object: {filename: undefined, size: undefined, title: undefined}}
       const {filename, title, size} = a.object
 
       const pre = previewSpecs(preview && preview.metadata, full && full.metadata)
