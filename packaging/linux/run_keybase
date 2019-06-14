@@ -176,10 +176,10 @@ init() {
   rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
 }
 
-handle_deeplink() {
+handle_url_schema() {
   # We set a URL schema handler on our .desktop file, and since that file
   # points to this script, that's what gets called with URL links. We can
-  # differentiate between a normal run_keybase invocation and a deeplink
+  # differentiate between a normal run_keybase invocation and a URL launch
   # by checking argv.
   if command -v Keybase &> /dev/null; then
       Keybase $1 &
@@ -230,7 +230,7 @@ KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
 
 if [[ -z "$1" ]]; then
-  handle_deeplink $@
+  handle_url_schema $@
   exit
 fi
 

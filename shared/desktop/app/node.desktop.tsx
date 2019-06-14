@@ -70,8 +70,8 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
     mainWindow.window && mainWindow.window.focus()
   }
 
-  // The new instance might be due to a deeplink launch.
-  logger.info('Launched with deeplink', commandLine)
+  // The new instance might be due to a URL schema handler launch.
+  logger.info('Launched with URL', commandLine)
   if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
     sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
   }
