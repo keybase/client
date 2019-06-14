@@ -176,17 +176,16 @@ init() {
   rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
 }
 
-check_for_deeplink() {
+handle_deeplink() {
   # We set a URL schema handler on our .desktop file, and since that file
   # points to this script, that's what gets called with URL links. We can
   # differentiate between a normal run_keybase invocation and a deeplink
   # by checking argv.
-
-  # if command -v Keybase &> /dev/null; then
-  #     Keybase $1 &
-  # else
-  #     /opt/keybase/Keybase $1 &
-  # fi
+  if command -v Keybase &> /dev/null; then
+      Keybase $1 &
+  else
+      /opt/keybase/Keybase $1 &
+  fi
 }
 
 startup_all() {
@@ -229,6 +228,12 @@ KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
 KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
+
+if [[ -z "$1" ]]; then
+  handle_deeplink $@
+  exit
+fi
+
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
 #   http://keybase.io/docs/linux-user-guide
 while getopts "afghk" flag; do
@@ -242,7 +247,19 @@ while getopts "afghk" flag; do
     esac
 done
 
-check_for_deeplink
+  echo "$#"
+  echo "$@"
+  if [[ "$#" -gt 0 ]]; then
+    echo true
+    if command -v Keybase &> /dev/null; then
+        Keybase $1 &
+    else
+        /opt/keybase/Keybase $1 &
+    fi
+    exit
+  fi
+  echo false
+
 init
 # Always stop any running services. With systemd, we could've decided to just
 # `start` services and no-op if they're already running, however:
