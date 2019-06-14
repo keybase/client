@@ -6,6 +6,7 @@
 - [ ] feature-flag this for almost everything except for blessed prod teams (by team ID) (server + client)
 - [ ] alert in laoder2.go / addSecrets -- add back later
 - [ ] fix addSecrets to take a Teamer
+- [ ] proprer fix (with vendoring) for test vector
 - [x] try to figure out refreshing and cache-bust store for chain17
   - idea: merkle/path.json:
     - you're allowed to know if there's something bigger than a given linkID, without explicitly checking membership:
