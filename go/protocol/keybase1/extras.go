@@ -2836,21 +2836,6 @@ func (r HiddenTeamChainRatchet) MaxTriple() (ret *LinkTriple) {
 	return ret
 }
 
-func (d *HiddenTeamChain) RemoveLink(i Seqno) {
-	inner, ok := d.Inner[i]
-	if ok {
-		ptk, ok := inner.Ptk[PTKType_READER]
-		if ok {
-			delete(d.ReaderPerTeamKeys, ptk.Ptk.Gen)
-		}
-	}
-	delete(d.Inner, i)
-	delete(d.Outer, i)
-	if d.Last == i {
-		d.Last--
-	}
-}
-
 func (r *HiddenTeamChainRatchet) Merge(r2 HiddenTeamChainRatchet) (updated bool) {
 	visit := func(l1 **LinkTripleAndTime, l2 *LinkTripleAndTime) {
 		if l2 != nil && (*l1 == nil || (*l1).Triple.Seqno < l2.Triple.Seqno) {

@@ -57,6 +57,8 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 	return nil
 }
 
+// GenerateKeyRotationParams are for generating a sig3 KeyRotation to store on the hidden team chain.
+// Fill in all parameters of the struct (there were too many to pass as a list)
 type GenerateKeyRotationParams struct {
 	TeamID           keybase1.TeamID
 	IsPublic         bool
@@ -72,6 +74,8 @@ type GenerateKeyRotationParams struct {
 	Check            keybase1.PerTeamSeedCheck
 }
 
+// GenerateKeyRotation generates and signs a new sig3 KeyRotation. The result can be passed to
+// sig/mutli.json and stored along with other sig1, sig2 or sig3 signatures in an atomic transaction.
 func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
 
 	s3, ratchet, err := generateKeyRotationSig3(mctx, p)
@@ -227,10 +231,13 @@ type LoaderPackage struct {
 	isFresh          bool
 }
 
+// NewLoaderPackage creates an object used to load the hidden team chain along with the
+// slow or fast team loader. It manages internal state during the loading process.
 func NewLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyGeneration) *LoaderPackage {
 	return &LoaderPackage{id: id, encKID: e, lastMainChainGen: g, isFresh: true}
 }
 
+// Load in data from storage for this chain.
 func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 	l.data, err = mctx.G().GetHiddenTeamChainManager().Load(mctx, l.id)
 	if err != nil {
@@ -239,6 +246,13 @@ func (l *LoaderPackage) Load(mctx libkb.MetaContext) (err error) {
 	return err
 }
 
+// MerkleLoadArg is the argument to pass to merkle/path.json so that the state of the hidden
+// chain can be queried along with the main team chain. If we've ever loaded this chain, we pass
+// up the last known chain tail and the server replies with a bit saying whether it's the latest
+// or not (this save the server from having to auth us and check if we're in the team). If we've
+// never loaded the hidden chain for this team, we pass up a team encryption KID from the team's
+// main chain, to prove we had access to it. The server returns one bit in that case, saying
+// whether or not the team chain exists.
 func (l *LoaderPackage) MerkleLoadArg(mctx libkb.MetaContext) (ret *libkb.LookupTeamHiddenArg, err error) {
 	if tail := l.LastReaderPerTeamKeyLinkID(); !tail.IsNil() {
 		return &libkb.LookupTeamHiddenArg{LastKnownHidden: tail}, nil
