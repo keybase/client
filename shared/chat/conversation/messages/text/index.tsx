@@ -54,6 +54,13 @@ const Reply = (props: ReplyProps) => {
               )}
             </Kb.Box2>
           </Kb.Box2>
+          {!props.deleted ? (
+            <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              Original message deleted
+            </Kb.Text>
+          )}
           {props.edited && (
             <Kb.Text type="BodyTiny" style={styles.replyEdited}>
               EDITED
