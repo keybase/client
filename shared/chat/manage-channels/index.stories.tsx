@@ -6,10 +6,10 @@ import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 import EditChannel from './edit-channel'
-import {formatTimeForMessages} from '../../util/timestamp'
+import {formatTimeRelativeToNow} from '../../util/timestamp'
 
 const origin = new Date().getTime()
-const mtimeHuman = formatTimeForMessages(origin)
+const mtimeHuman = formatTimeRelativeToNow(origin)
 
 const channels = [
   {
