@@ -663,7 +663,6 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
 const validUIMessagetoMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage,
   m: RPCChatTypes.UIMessageValid
 ) => {
   const minimum = {
@@ -699,42 +698,16 @@ const validUIMessagetoMessage = (
   switch (m.messageBody.messageType) {
     case RPCChatTypes.MessageType.flip:
     case RPCChatTypes.MessageType.text:
-      let rawText
-      let payments
+      let rawText: string
+      let payments: Array<RPCChatTypes.TextPayment> | null = null
       switch (m.messageBody.messageType) {
         case RPCChatTypes.MessageType.flip:
-          rawText = // Auto generated from flowToTs. Please clean me!
-            // Auto generated from flowToTs. Please clean me!
-            (m.messageBody.flip === null || m.messageBody.flip === undefined
-              ? undefined
-              : m.messageBody.flip.text) !== null && // Auto generated from flowToTs. Please clean me!
-            (m.messageBody.flip === null || m.messageBody.flip === undefined
-              ? undefined
-              : m.messageBody.flip.text) !== undefined // Auto generated from flowToTs. Please clean me!
-              ? m.messageBody.flip === null || m.messageBody.flip === undefined
-                ? undefined
-                : m.messageBody.flip.text
-              : ''
+          rawText = (m.messageBody.flip && m.messageBody.flip.text) || ''
           break
         case RPCChatTypes.MessageType.text:
           const messageText = m.messageBody.text
-          rawText = // Auto generated from flowToTs. Please clean me!
-            // Auto generated from flowToTs. Please clean me!
-            (messageText === null || messageText === undefined ? undefined : messageText.body) !== null && // Auto generated from flowToTs. Please clean me!
-            (messageText === null || messageText === undefined ? undefined : messageText.body) !== undefined // Auto generated from flowToTs. Please clean me!
-              ? messageText === null || messageText === undefined
-                ? undefined
-                : messageText.body
-              : ''
-          payments = // Auto generated from flowToTs. Please clean me!
-            // Auto generated from flowToTs. Please clean me!
-            (messageText === null || messageText === undefined ? undefined : messageText.payments) !== null && // Auto generated from flowToTs. Please clean me!
-            (messageText === null || messageText === undefined ? undefined : messageText.payments) !==
-              undefined // Auto generated from flowToTs. Please clean me!
-              ? messageText === null || messageText === undefined
-                ? undefined
-                : messageText.payments
-              : null
+          rawText = (messageText && messageText.body) || ''
+          payments = (messageText && messageText.payments) || null
           break
         default:
           rawText = ''
@@ -747,14 +720,13 @@ const validUIMessagetoMessage = (
         hasBeenEdited: m.superseded,
         inlinePaymentIDs: payments
           ? I.List(
-              payments
-                .map(p => {
-                  if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent && p.result.sent) {
-                    return WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
-                  }
-                  return null
-                })
-                .filter(Boolean)
+              payments.reduce((arr: Array<string>, p) => {
+                if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent && p.result.sent) {
+                  const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
+                  s && arr.push(s)
+                }
+                return arr
+              }, [])
             )
           : null,
         inlinePaymentSuccessful: m.paymentInfos
@@ -778,10 +750,10 @@ const validUIMessagetoMessage = (
       // 2. On incoming we get attachment first (placeholder), then we get the full data (attachmentuploaded)
       // 3. When we send we place a pending attachment, then get the real attachment then attachmentuploaded
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
-      let attachment = {} as RPCChatTypes.MessageAttachment | RPCChatTypes.MessageAttachmentUploaded | null
-      let preview: RPCChatTypes.Asset | null
-      let full: RPCChatTypes.Asset | null
-      let transferState = null
+      let attachment: RPCChatTypes.MessageAttachment | RPCChatTypes.MessageAttachmentUploaded | null = null
+      let preview: RPCChatTypes.Asset | null = null
+      let full: RPCChatTypes.Asset | null = null
+      let transferState: 'remoteUploading' | null = null
 
       if (m.messageBody.messageType === RPCChatTypes.MessageType.attachment) {
         attachment = m.messageBody.attachment
@@ -791,7 +763,7 @@ const validUIMessagetoMessage = (
             (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
           full = attachment.object
           if (!attachment.uploaded) {
-            transferState = 'remoteUploading'
+            transferState = 'remoteUploading' as const
           }
         }
       } else if (m.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded) {
@@ -802,7 +774,9 @@ const validUIMessagetoMessage = (
           transferState = null
         }
       }
-      const {filename, title, size} = attachment.object
+
+      const a = attachment || {object: {filename: undefined, title: undefined, size: undefined}}
+      const {filename, title, size} = a.object
 
       const pre = previewSpecs(preview && preview.metadata, full && full.metadata)
       let previewURL = ''
@@ -1017,7 +991,7 @@ export const uiMessageToMessage = (
   switch (uiMessage.state) {
     case RPCChatTypes.MessageUnboxedState.valid:
       if (uiMessage.valid) {
-        return validUIMessagetoMessage(state, conversationIDKey, uiMessage, uiMessage.valid)
+        return validUIMessagetoMessage(state, conversationIDKey, uiMessage.valid)
       }
       return null
     case RPCChatTypes.MessageUnboxedState.error:
