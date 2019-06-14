@@ -3,6 +3,7 @@ import WaitingButton from '../waiting-button'
 import {Box, Box2} from '../box'
 import HeaderOrPopup from '../header-or-popup'
 import ButtonBar from '../button-bar'
+import Banner from '../banner'
 import Icon from '../icon'
 import ScrollView from '../scroll-view'
 import Text from '../text'
@@ -29,18 +30,13 @@ class _ConfirmModal extends React.PureComponent<Props> {
     return (
       <Box style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
-          {this.props.error && (
-            <Box2 alignItems="center" direction="vertical" style={styles.errorBanner}>
-              <Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
-                {this.props.error}
-              </Text>
-            </Box2>
-          )}
+          {this.props.error && <Banner color="red" text={this.props.error} />}
           <Box2 direction="vertical" style={styles.container2}>
-            <ScrollView>
+            <ScrollView contentContainerStyle={{flexGrow: 1}}>
               <Box2
                 alignItems="center"
                 direction="vertical"
+                centerChildren={true}
                 fullWidth={true}
                 fullHeight={true}
                 style={styles.inner}
@@ -135,11 +131,6 @@ const styles = Styles.styleSheetCreate({
       padding: 64,
     },
   }),
-  errorBanner: {
-    backgroundColor: Styles.globalColors.red,
-    padding: Styles.globalMargins.small,
-    width: '100%',
-  },
   errorBannerText: {
     color: Styles.globalColors.white,
     maxWidth: 512,
