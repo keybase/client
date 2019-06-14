@@ -555,3 +555,11 @@ func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGener
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()
 }
+
+func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (err error) {
+	runmode := mctx.G().Env.GetRunMode()
+	if runmode == libkb.ProductionRunMode {
+		return fmt.Errorf("posting hidden team chains is not supported yet in production")
+	}
+	return nil
+}

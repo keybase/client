@@ -21,6 +21,9 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+// Teamer is an interface that can fit a materialized Team (just below) or intermediary temporary products
+// that are available during the team load process. It has access to both the main and hidden chain data
+// so that we can ask questions like "what is the maximal on-chain PTK generation."
 type Teamer interface {
 	MainChain() *keybase1.TeamData
 	HiddenChain() *keybase1.HiddenTeamChain
@@ -482,9 +485,16 @@ func (t *Team) RotateHidden(ctx context.Context) (err error) {
 	return t.rotate(ctx, true)
 }
 
-func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
+func (t *Team) rotate(ctx context.Context, isHidden bool) (err error) {
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
-	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%v)", t.ID, hidden), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%v)", t.ID, isHidden), func() error { return err })()
+
+	if isHidden {
+		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
+		if err != nil {
+			return err
+		}
+	}
 
 	// initialize key manager
 	if _, err := t.SharedSecret(mctx.Ctx()); err != nil {
@@ -542,7 +552,7 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 		teamEKPayload: teamEKPayload,
 	}
 
-	if !hidden {
+	if !isHidden {
 		err = t.rotatePostVisible(mctx.Ctx(), section, mr, payloadArgs)
 	} else {
 		err = t.rotatePostHidden(mctx.Ctx(), section, mr, payloadArgs)
