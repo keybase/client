@@ -32,7 +32,7 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
     <Box style={globalStyles.flexBoxColumn}>
       <Text center={true} type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} />
-        {` `} created a new team repository called {` `}
+        {` `}created a new team repository called{` `}
         <Text
           type="BodySmallSemibold"
           style={repoID ? {color: globalColors.black_50} : undefined}
