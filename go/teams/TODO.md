@@ -4,6 +4,7 @@
   - maybe we should have server sign these things and we cache it, so client can prove server lied?
 - [x] test case that works for hidden rotation
 - [ ] test case where alice and bob rotate the team and they each take turns
+  - [ ] future ticket
 - [ ] precheck that a link will be accepted by the server (as does chain3)
   - [ ] future ticket
 - [ ] feature-flag this for almost everything except for blessed prod teams (by team ID) (server + client)
