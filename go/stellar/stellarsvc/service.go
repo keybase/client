@@ -651,7 +651,8 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		}
 		local.Summary.Operations = make([]string, len(tx.Operations))
 		for i, op := range tx.Operations {
-			local.Summary.Operations[i] = stellarnet.OpSummary(op)
+			const pastTense = false
+			local.Summary.Operations[i] = stellarnet.OpSummary(op, pastTense)
 		}
 	}
 
