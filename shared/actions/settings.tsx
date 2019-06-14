@@ -538,7 +538,7 @@ const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPay
   )
     .then(() => {
       logger.info('success')
-      return SettingsGen.createAddedPhoneNumber({allowSearch, error: '', phoneNumber})
+      return SettingsGen.createAddedPhoneNumber({allowSearch, phoneNumber})
     })
     .catch(err => {
       logger.warn('error ', err.message)
@@ -555,7 +555,7 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
   )
     .then(() => {
       logger.info('success')
-      return SettingsGen.createVerifiedPhoneNumber({error: '', phoneNumber})
+      return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
     })
     .catch(err => {
       logger.warn('error ', err.message)

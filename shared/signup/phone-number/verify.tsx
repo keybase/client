@@ -6,7 +6,6 @@ import {SignupScreen} from '../common'
 export type Props = {
   error: string
   onBack: () => void
-  onCancel: () => void
   onContinue: (code: string) => void
   onResend: () => void
   phoneNumber: string
@@ -15,10 +14,6 @@ export type Props = {
 }
 
 const VerifyPhoneNumber = (props: Props) => {
-  // Clear data on unmount
-  React.useEffect(() => {
-    return props.onCancel
-  }, [props.onCancel])
   const [code, onChangeCode] = React.useState('')
   const disabled = !code
   const onContinue = () => (disabled ? {} : props.onContinue(code))

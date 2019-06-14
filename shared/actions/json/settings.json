@@ -14,7 +14,7 @@
     "addedPhoneNumber": {
       "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
       "allowSearch": "boolean",
-      "error": "string",
+      "error?": "string",
       "phoneNumber": "string"
     },
     "verifyPhoneNumber": {
@@ -24,7 +24,7 @@
     },
     "verifiedPhoneNumber": {
       "_description": "We verified a phone number or hit an error.",
-      "error": "string",
+      "error?": "string",
       "phoneNumber": "string"
     },
     "clearPhoneNumberVerification": {

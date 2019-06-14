@@ -18,13 +18,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onContinue: (phoneNumber: string, code: string) =>
     dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onCancel: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
+  onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
   onResend: () =>
     dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
   onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
 })
 
 type WatcherProps = Props & {
+  onCleanup: () => void
   onSuccess: () => void
   verificationStatus: 'success' | 'error' | null
 }
@@ -35,12 +36,14 @@ class WatchForSuccess extends React.Component<WatcherProps> {
       this.props.onSuccess()
     }
   }
+  componentWillUnmount() {
+    this.props.onCleanup()
+  }
   render() {
     return (
       <VerifyPhoneNumber
         error={this.props.error}
         onBack={this.props.onBack}
-        onCancel={this.props.onCancel}
         onContinue={this.props.onContinue}
         onResend={this.props.onResend}
         phoneNumber={this.props.phoneNumber}
@@ -58,7 +61,7 @@ const ConnectedVerifyPhoneNumber = Container.namedConnect(
     ...o,
     ...s,
     onBack: d.onBack,
-    onCancel: d.onCancel,
+    onCleanup: d.onCleanup,
     onContinue: (code: string) => d._onContinue(s.phoneNumber, code),
     onResend: d.onResend,
     onSuccess: d.onSuccess,

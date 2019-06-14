@@ -71,7 +71,7 @@ type _AddPhoneNumberPayload = {
 }
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
-  readonly error: string
+  readonly error?: string
   readonly phoneNumber: string
 }
 type _CheckPasswordPayload = {readonly password: HiddenString}
@@ -129,7 +129,7 @@ type _UnfurlSettingsSavedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: I.List<string>
 }
-type _VerifiedPhoneNumberPayload = {readonly error: string; readonly phoneNumber: string}
+type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 type _WaitingForResponsePayload = {readonly waiting: boolean}
 
