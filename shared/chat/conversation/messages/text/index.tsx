@@ -15,71 +15,60 @@ type ReplyProps = {
   username: string
 }
 
-type ReplyState = {
-  imageLoaded: boolean
-}
-
-class Reply extends React.Component<ReplyProps, ReplyState> {
-  state = {imageLoaded: false}
-  _setImageLoaded = () => {
-    this.setState({imageLoaded: true})
-  }
-  render() {
-    const sizing = this.props.imageHeight
-      ? Constants.zoomImage(this.props.imageWidth, this.props.imageHeight, 80)
-      : null
-    return (
-      <Kb.ClickableBox onClick={this.props.onClick}>
-        <Kb.Box2
-          direction="horizontal"
-          gap="tiny"
-          fullWidth={true}
-          style={styles.replyContainer}
-          className={Styles.classNames('ReplyBox')}
-        >
-          <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
-          <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
-                <Kb.Avatar username={this.props.username} size={32} />
-                <Kb.Text type="BodySemibold" style={styles.replyUsername}>
-                  {this.props.username}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-              {!!this.props.imageURL && (
-                <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                  <Kb.Box style={{...sizing.margins}}>
-                    <Kb.Image
-                      src={this.props.imageURL}
-                      onLoad={this._setImageLoaded}
-                      style={{...sizing.dims}}
-                    />
-                    {!this.state.imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
-                  </Kb.Box>
-                </Kb.Box2>
-              )}
-              <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
-                {!this.props.deleted ? (
-                  <Kb.Text type="BodySmall">{this.props.text}</Kb.Text>
-                ) : (
-                  <Kb.Text type="BodyTiny" style={styles.replyEdited}>
-                    Original message deleted
-                  </Kb.Text>
-                )}
-              </Kb.Box2>
-            </Kb.Box2>
-            {this.props.edited && (
-              <Kb.Text type="BodyTiny" style={styles.replyEdited}>
-                EDITED
+const Reply = (props: ReplyProps) => {
+  const [imageLoaded, setImageLoaded] = React.useState(false)
+  const sizing = props.imageHeight ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80) : null
+  return (
+    <Kb.ClickableBox onClick={props.onClick}>
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        fullWidth={true}
+        style={styles.replyContainer}
+        className={Styles.classNames('ReplyBox')}
+      >
+        <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
+        <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              <Kb.Avatar username={props.username} size={32} />
+              <Kb.Text type="BodySemibold" style={styles.replyUsername}>
+                {props.username}
               </Kb.Text>
-            )}
+            </Kb.Box2>
           </Kb.Box2>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+            {!!props.imageURL && (
+              <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
+                <Kb.Box style={{...sizing.margins}}>
+                  <Kb.Image
+                    src={props.imageURL}
+                    onLoad={() => setImageLoaded(true)}
+                    style={{...sizing.dims}}
+                  />
+                  {!imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
+                </Kb.Box>
+              </Kb.Box2>
+            )}
+            <Kb.Box2 direction="horizontal" style={styles.replyTextContainer}>
+              {!props.deleted ? (
+                <Kb.Text type="BodySmall">{props.text}</Kb.Text>
+              ) : (
+                <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+                  Original message deleted
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
+          {props.edited && (
+            <Kb.Text type="BodyTiny" style={styles.replyEdited}>
+              EDITED
+            </Kb.Text>
+          )}
         </Kb.Box2>
-      </Kb.ClickableBox>
-    )
-  }
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
 }
 
 export type Props = {
