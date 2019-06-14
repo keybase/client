@@ -85,15 +85,15 @@ func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state
 	return state, nil
 }
 
-func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (changed bool, err error) {
+func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
 	if ratchet.Triple.SeqType != sig3.ChainTypeTeamPrivateHidden {
-		return false, fmt.Errorf("bad chain type: %s", ratchet.Triple.SeqType)
+		return fmt.Errorf("bad chain type: %s", ratchet.Triple.SeqType)
 	}
 
 	// The new ratchet can't clash the existing accepted ratchets
 	for _, accepted := range state.Ratchet.Flat() {
 		if accepted.Clashes(ratchet) {
-			return false, fmt.Errorf("bad ratchet, clashes existing pin: %+v != %v", accepted, accepted)
+			return fmt.Errorf("bad ratchet, clashes existing pin: %+v != %v", accepted, accepted)
 		}
 	}
 
@@ -101,47 +101,30 @@ func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.Hidd
 	link, ok := state.Outer[q]
 
 	// If either the ratchet didn't match a known link, or equals what's already there, great.
-	if !ok || link.Eq(ratchet.Triple.LinkID) {
-		return false, nil
+	if ok && !link.Eq(ratchet.Triple.LinkID) {
+		return fmt.Errorf("Ratchet failed to match a currently accepted chainlink: %+v", ratchet)
 	}
 
-	// If the ratchet clashes with links we have already accepted, something is really wrong, and we
-	// have to bail out. Likely this team is totally hosed.
-	if ratchet.Triple.Seqno <= state.Ratchet.Max() {
-		return false, fmt.Errorf("Ratchet failed to match a currently accepted chainlink: %+v", ratchet)
-	}
-
-	// We can recover in a case in which we held provisional links that came after the last known Ratchet.
-	// We just have to remove those links though and then start again.
-	for i := state.Last; i >= ratchet.Triple.Seqno; i-- {
-		mctx.Warning("Removing link at %d, since it is in front of a ratchet that it clashes with (%+v)", ratchet)
-		state.RemoveLink(i)
-	}
-
-	return true, nil
+	return nil
 }
 
-func (m *ChainManager) checkRatchets(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchet) (changed bool, err error) {
+func (m *ChainManager) checkRatchets(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchet) (err error) {
 	for _, r := range ratchet.Flat() {
-		tmp, err := m.checkRatchet(mctx, state, r)
+		err = m.checkRatchet(mctx, state, r)
 		if err != nil {
-			return false, err
-		}
-		if tmp {
-			changed = true
+			return err
 		}
 	}
-	return changed, nil
+	return nil
 }
 
 func (m *ChainManager) ratchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchet) (ret bool, err error) {
-	var provisionalLinksDeleted bool
-	provisionalLinksDeleted, err = m.checkRatchets(mctx, state, ratchet)
+	err = m.checkRatchets(mctx, state, ratchet)
 	if err != nil {
 		return false, err
 	}
 	updated := state.Ratchet.Merge(ratchet)
-	return (updated || provisionalLinksDeleted), nil
+	return updated, nil
 }
 
 func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.HiddenTeamChainRatchet) (err error) {
