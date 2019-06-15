@@ -2813,10 +2813,17 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
 
 const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload) => {
   const response = action.payload.response
-  response.result({
-    lat: 40.800302,
-    lon: -73.969922,
-  })
+  if (isMobile) {
+    navigator.geolocation.getCurrentPosition(
+      pos => response.result({lat: pos.coords.latitude, lon: pos.coords.longitude}),
+      err => logger.warn(err.message)
+    )
+  } else {
+    response.result({
+      lat: 40.800302,
+      lon: -73.969922,
+    })
+  }
   return []
 }
 
