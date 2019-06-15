@@ -2,19 +2,35 @@ package maps
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"golang.org/x/net/context/ctxhttp"
 )
 
 const mapsAPIKey = "AIzaSyAL0pIEYTxyVp6T5aK8eHQclmtNxCDEmZE"
+const mapsProxy = "maps-proxy.core.keybaseapi.com"
+const mapsHost = "maps.googleapis.com"
 
 func GetMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf(
-		"https://maps.googleapis.com/maps/api/staticmap?center=%f,%f&zoom=15&size=320x319&key=%s",
-		lat, lon, mapsAPIKey)
+		"https://%s/maps/api/staticmap?center=%f,%f&zoom=15&size=320x319&key=%s",
+		mapsProxy, lat, lon, mapsAPIKey)
+}
+
+func httpClient(host string) *http.Client {
+	var xprt http.Transport
+	tlsConfig := &tls.Config{
+		ServerName: host,
+	}
+	xprt.TLSClientConfig = tlsConfig
+	return &http.Client{
+		Transport: &xprt,
+		Timeout:   10 * time.Second,
+	}
 }
 
 func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, length int64, err error) {
@@ -22,7 +38,8 @@ func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, lengt
 	if err != nil {
 		return res, length, err
 	}
-	resp, err := ctxhttp.Do(ctx, http.DefaultClient, req)
+	req.Host = mapsHost
+	resp, err := ctxhttp.Do(ctx, httpClient(mapsHost), req)
 	if err != nil {
 		return res, length, err
 	}
