@@ -77,6 +77,7 @@ protocol config {
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
+    array<ConfiguredAccount> configuredAccounts;
     @lint("ignore")
     array<ClientStatus> Clients;
     array<string> deviceEkNames;
