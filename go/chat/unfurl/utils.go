@@ -47,6 +47,9 @@ func GetDomain(uri string) (res string, err error) {
 	if len(hostname) == 0 {
 		return res, errors.New("no hostname")
 	}
+	if hostname == mapsDomain {
+		return hostname, nil
+	}
 	return publicsuffix.EffectiveTLDPlusOne(hostname)
 }
 
@@ -60,7 +63,7 @@ func ClassifyDomain(domain string) chat1.UnfurlType {
 		fallthrough
 	case IsDomain(domain, "giphy"):
 		return chat1.UnfurlType_GIPHY
-	case IsDomain(domain, mapsDomain):
+	case domain == mapsDomain:
 		return chat1.UnfurlType_MAPS
 	default:
 		return chat1.UnfurlType_GENERIC

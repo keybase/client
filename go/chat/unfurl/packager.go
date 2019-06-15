@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/keybase/client/go/chat/maps"
+
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/s3"
@@ -258,6 +260,32 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	return chat1.NewUnfurlWithGiphy(g), nil
 }
 
+func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	g := chat1.UnfurlGeneric{
+		Title:       raw.Maps().Title,
+		Url:         raw.Maps().Url,
+		SiteName:    raw.Maps().SiteName,
+		Description: raw.Maps().Description,
+	}
+	// load map
+	mapsURL := raw.Maps().ImageUrl
+	if mapsURL == nil {
+		return res, errors.New("no maps URL")
+	}
+	reader, length, err := maps.MapReaderFromURL(ctx, *mapsURL)
+	if err != nil {
+		return res, err
+	}
+	asset, err := p.assetFromURLWithBody(ctx, reader, length, *mapsURL, uid, convID, true)
+	if err != nil {
+		p.Debug(ctx, "Package: failed to get maps asset URL: %s", err)
+		return res, errors.New("image not available for maps unfurl")
+	}
+	g.Image = &asset
+	return chat1.NewUnfurlWithGeneric(g), nil
+}
+
 func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw chat1.UnfurlRaw) string {
 	url := raw.GetUrl()
 	if url == "" {
@@ -294,6 +322,8 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return p.packageGeneric(ctx, uid, convID, raw)
 	case chat1.UnfurlType_GIPHY:
 		return p.packageGiphy(ctx, uid, convID, raw)
+	case chat1.UnfurlType_MAPS:
+		return p.packageMaps(ctx, uid, convID, raw)
 	default:
 		return res, errors.New("not implemented")
 	}
