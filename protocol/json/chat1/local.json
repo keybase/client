@@ -134,6 +134,20 @@
     },
     {
       "type": "record",
+      "name": "Coordinate",
+      "fields": [
+        {
+          "type": "double",
+          "name": "lat"
+        },
+        {
+          "type": "double",
+          "name": "lon"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -167,6 +181,13 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        },
+        {
+          "type": [
+            null,
+            "Coordinate"
+          ],
+          "name": "coord"
         }
       ]
     },

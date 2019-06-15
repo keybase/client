@@ -43,12 +43,18 @@ protocol local {
     string channel;
   }
 
+  record Coordinate {
+    double lat;
+    double lon;
+  }
+
   record MessageText {
     string body;
     array<TextPayment> payments;
     union { null, MessageID } replyTo;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
+    union { null, Coordinate } coord;
   }
 
   record MessageConversationMetadata {

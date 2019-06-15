@@ -425,4 +425,6 @@ protocol chatUi {
   void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
 
   void chatLoadGalleryHit(int sessionID, UIMessage message);
+
+  Coordinate chatGetCoordinate(int sessionID);
 }
