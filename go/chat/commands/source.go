@@ -41,6 +41,7 @@ const (
 	cmdHide
 	cmdJoin
 	cmdLeave
+	cmdLocation
 	cmdMe
 	cmdMsg
 	cmdMute
@@ -58,6 +59,7 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
 	res[cmdLeave] = NewLeave(s.G())
+	res[cmdLocation] = NewLocation(s.G())
 	res[cmdMe] = NewMe(s.G())
 	res[cmdMsg] = NewMsg(s.G())
 	res[cmdMute] = NewMute(s.G())
@@ -80,6 +82,9 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	if s.isAdmin() {
+		common = append(common, cmds[cmdLocation])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common

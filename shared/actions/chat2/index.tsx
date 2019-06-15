@@ -33,6 +33,7 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
+import {getEngine} from '../../engine/require'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -2810,6 +2811,15 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
   })
 }
 
+const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload) => {
+  const response = action.payload.response
+  response.result({
+    lat: -74.0,
+    lon: -47.0,
+  })
+  return []
+}
+
 const resolveMaybeMention = (state, action: Chat2Gen.ResolveMaybeMentionPayload) => {
   return RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
@@ -3415,6 +3425,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,
     onChatMaybeMentionUpdate
+  )
+  getEngine().registerCustomResponse('chat.1.chatUi.chatGetCoordinate')
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGetCoordinatePayload>(
+    EngineGen.chat1ChatUiChatGetCoordinate,
+    onChatGetCoordinate,
+    'onChatGetCoordinate'
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)

@@ -1180,6 +1180,10 @@ func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) er
 	return nil
 }
 
+func (c *ChatUI) ChatGetCoordinate(ctx context.Context) (chat1.Coordinate, error) {
+	return chat1.Coordinate{}, nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
