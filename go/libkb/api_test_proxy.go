@@ -9,14 +9,11 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"testing"
 
 	context "golang.org/x/net/context"
 )
 
-type offlineAPI struct {
-	t *testing.T
-}
+type offlineAPI struct{}
 
 var _ API = (*offlineAPI)(nil)
 
