@@ -21,6 +21,10 @@ func GetMapURL(ctx context.Context, lat, lon float64) string {
 		mapsProxy, lat, lon, lat, lon, mapsAPIKey)
 }
 
+func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
+	return fmt.Sprintf("https://www.google.com/maps/place/%f,%f/@%f,%f,15z", lat, lon, lat, lon)
+}
+
 func httpClient(host string) *http.Client {
 	var xprt http.Transport
 	tlsConfig := &tls.Config{

@@ -27,10 +27,11 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		return res, err
 	}
 	mapURL := maps.GetMapURL(ctx, lat, lon)
-	desc := fmt.Sprintf("My current location coordinate is (%f,%f)", lat, lon)
+	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
+	desc := fmt.Sprintf("My location coordinate is (%f,%f). Shared with /location.", lat, lon)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlGenericRaw{
 		Title:       "Open this location with Google Maps",
-		Url:         "https://maps.google.com",
+		Url:         linkURL,
 		SiteName:    "Location Share",
 		ImageUrl:    &mapURL,
 		Description: &desc,

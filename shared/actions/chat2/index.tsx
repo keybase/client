@@ -2820,8 +2820,8 @@ const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordina
     )
   } else {
     response.result({
-      lat: 40.800302,
-      lon: -73.969922,
+      lat: 4.678383,
+      lon: -74.0790887,
     })
   }
   return []
