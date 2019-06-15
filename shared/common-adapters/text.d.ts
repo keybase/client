@@ -25,7 +25,6 @@ export type AllowedColors = Values<
     | 'purpleDark'
     | 'black'
     | 'black_on_white'
-    | 'black_63'
     | 'black_50'
     | 'black_50_on_white'
     | 'black_35'
