@@ -341,6 +341,11 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
 func (s *SignupEngine) storeSecretRecovery(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#storeSecretRecovery", func() error { return err })()
 
+	if !s.arg.GenerateRandomPassphrase {
+		m.Debug("Not GenerateRandomPassphrase - skipping storeSecretRecovery")
+		return nil
+	}
+
 	ssOptions := &libkb.SecretStoreOptions{RandomPw: true}
 
 	username := s.me.GetNormalizedName()

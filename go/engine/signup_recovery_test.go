@@ -75,6 +75,39 @@ func (n *signupAPIMock) GetDecodeCtx(ctx context.Context, args libkb.APIArg, wra
 	return n.realAPI.GetDecodeCtx(ctx, args, wrap)
 }
 
+func TestSecretStorePwhashAfterSignup(t *testing.T) {
+	// Ensure there are no leftovers in secret store after normal, successful
+	// signup.
+
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "su")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.GenerateRandomPassphrase = true
+	arg.Passphrase = ""
+	arg.StoreSecret = true
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+	eng := NewSignupEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	ss := tc.G.SecretStore()
+	mctx := libkb.NewMetaContextForTest(tc)
+	a, err1 := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", fu.Username)))
+	b, err2 := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", fu.Username)))
+	require.True(t, a.IsNil())
+	require.True(t, b.IsNil())
+	require.Error(t, err1)
+	require.Error(t, err2)
+}
+
 func TestSignupFailProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
