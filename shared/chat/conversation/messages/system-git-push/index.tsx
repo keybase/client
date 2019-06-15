@@ -94,7 +94,7 @@ const GitPushDefault = ({
                   style={platformStyles({
                     common: {
                       color: globalColors.blue,
-                      fontSize: 12,
+                      fontSize: 13,
                       lineHeight: 16,
                     },
                   })}

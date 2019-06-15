@@ -360,6 +360,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       backgroundColor: Styles.globalColors.white,
       borderLeft: border,
     },

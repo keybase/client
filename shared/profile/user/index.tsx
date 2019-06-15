@@ -407,7 +407,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = Styles.isAndroid ? 30 : Styles.isIOS ? Styles.statusBarHeight + 46 : 80
+const headerHeight = Styles.isAndroid ? 30 : Styles.isIOS ? Styles.statusBarHeight + 46 : 96
 
 export const styles = Styles.styleSheetCreate({
   addIdentityButton: {
@@ -529,7 +529,7 @@ export const styles = Styles.styleSheetCreate({
   },
   reason: Styles.platformStyles({
     isElectron: {
-      height: avatarSize / 2 + Styles.globalMargins.small,
+      height: avatarSize / 2 + Styles.globalMargins.medium,
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,

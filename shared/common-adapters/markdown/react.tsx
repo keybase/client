@@ -109,10 +109,10 @@ const codeSnippetStyle = Styles.platformStyles({
     paddingRight: Styles.globalMargins.xtiny,
   },
   isElectron: {
-    fontSize: 12,
+    fontSize: 13,
   },
   isMobile: {
-    fontSize: 15,
+    fontSize: 16,
   },
 })
 
@@ -138,7 +138,7 @@ const codeSnippetBlockTextStyle = Styles.platformStyles({
   isMobile: {
     ...Styles.globalStyles.fontTerminal,
     color: Styles.globalColors.black,
-    fontSize: 15,
+    fontSize: 16,
   },
 })
 

@@ -91,7 +91,7 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'flex-start',
       marginLeft: Styles.globalMargins.xsmall,
       marginRight: Styles.globalMargins.xsmall,
-      marginTop: -Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.xtiny,
       paddingLeft: Styles.globalMargins.xsmall,
       width: '100%',
     },

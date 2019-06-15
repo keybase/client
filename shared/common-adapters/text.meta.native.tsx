@@ -49,33 +49,33 @@ const _blueLink = {
 const metaData: {[K in TextType]: MetaType} = {
   Body: {
     colorForBackground: whiteNegative,
-    fontSize: 16,
+    fontSize: 17,
     styleOverride: globalStyles.fontRegular,
   },
   BodyBig: {
     colorForBackground: whiteNegative,
-    fontSize: 17,
+    fontSize: 18,
     styleOverride: globalStyles.fontSemibold,
   },
   BodyBigExtrabold: {
     colorForBackground: whiteNegative,
-    fontSize: 17,
+    fontSize: 18,
     styleOverride: globalStyles.fontExtrabold,
   },
   BodyBigLink: {
     colorForBackground: _blueLink,
-    fontSize: 17,
+    fontSize: 18,
     isLink: true,
     styleOverride: globalStyles.fontSemibold,
   },
   BodyExtrabold: {
     colorForBackground: whiteNegative,
-    fontSize: 16,
+    fontSize: 17,
     styleOverride: globalStyles.fontExtrabold,
   },
   BodyItalic: {
     colorForBackground: whiteNegative,
-    fontSize: 16,
+    fontSize: 17,
     styleOverride: {
       ...globalStyles.fontRegular,
       fontStyle: 'italic',
@@ -86,13 +86,13 @@ const metaData: {[K in TextType]: MetaType} = {
       ..._blueLink,
       negative: globalColors.white,
     },
-    fontSize: 16,
+    fontSize: 17,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
   BodySecondaryLink: {
     colorForBackground: {...whiteNegative, positive: globalColors.black_50},
-    fontSize: 16,
+    fontSize: 17,
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
@@ -103,7 +103,7 @@ const metaData: {[K in TextType]: MetaType} = {
   },
   BodySemiboldItalic: {
     colorForBackground: whiteNegative,
-    fontSize: 16,
+    fontSize: 17,
     styleOverride: {
       ...globalStyles.fontSemibold,
       fontStyle: 'italic',
@@ -111,7 +111,7 @@ const metaData: {[K in TextType]: MetaType} = {
   },
   BodySemiboldLink: {
     colorForBackground: _blueLink,
-    fontSize: 16,
+    fontSize: 17,
     isLink: true,
     styleOverride: globalStyles.fontSemibold,
   },
@@ -283,7 +283,7 @@ const metaData: {[K in TextType]: MetaType} = {
       negative: globalColors.darkBlue,
       positive: globalColors.blueLighter,
     },
-    fontSize: 15,
+    fontSize: 16,
     styleOverride: {
       ...globalStyles.fontTerminal,
       lineHeight: 20,
@@ -294,7 +294,7 @@ const metaData: {[K in TextType]: MetaType} = {
       negative: globalColors.blueLighter_40,
       positive: globalColors.blueLighter_40,
     },
-    fontSize: 15,
+    fontSize: 16,
     styleOverride: {
       ...globalStyles.fontTerminal,
       lineHeight: 20,
@@ -305,7 +305,7 @@ const metaData: {[K in TextType]: MetaType} = {
       negative: globalColors.blueLighter_40,
       positive: globalColors.blueLighter_40,
     },
-    fontSize: 15,
+    fontSize: 16,
     styleOverride: {
       ...globalStyles.fontTerminal,
       height: 20,
@@ -317,7 +317,7 @@ const metaData: {[K in TextType]: MetaType} = {
       negative: globalColors.darkBlue,
       positive: globalColors.darkBlue,
     },
-    fontSize: 15,
+    fontSize: 16,
     styleOverride: {
       ...globalStyles.fontTerminal,
       backgroundColor: globalColors.blueLighter2,

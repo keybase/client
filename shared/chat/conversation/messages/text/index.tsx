@@ -32,7 +32,7 @@ const Reply = (props: ReplyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               <Kb.Avatar username={props.username} size={32} />
-              <Kb.Text type="BodySemibold" style={styles.replyUsername}>
+              <Kb.Text type="BodySmallBold" style={styles.replyUsername}>
                 {props.username}
               </Kb.Text>
             </Kb.Box2>
@@ -185,6 +185,7 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   replyUsername: {
+    color: Styles.globalColors.black,
     alignSelf: 'center',
   },
   sent,

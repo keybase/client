@@ -160,8 +160,6 @@ const summaryRowStyle = {
 
 const detailStyle = {
   color: Styles.globalColors.white_75,
-  fontSize: 14,
-  lineHeight: 19,
   padding: Styles.globalMargins.xtiny,
   paddingTop: Styles.globalMargins.tiny,
 }
