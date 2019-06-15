@@ -93,7 +93,7 @@ const styles = Styles.styleSheetCreate({
   },
   text: {
     ...Styles.globalStyles.fontTerminal,
-    color: Styles.globalColors.blueDarker,
+    color: Styles.globalColors.blueDark,
   },
 })
 

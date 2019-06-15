@@ -1,5 +1,6 @@
 import React, {PureComponent} from 'react'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
+import {AllowedColors} from '../../../../common-adapters/text'
 import {
   globalStyles,
   globalColors,
@@ -16,7 +17,7 @@ type Props = {
   showBold: boolean
   snippet: string | null
   snippetDecoration: string | null
-  subColor: string
+  subColor: AllowedColors
   youNeedToRekey: boolean
   youAreReset: boolean
   hasResetUsers: boolean

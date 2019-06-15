@@ -238,7 +238,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   error: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   filler: {
     flex: 1,

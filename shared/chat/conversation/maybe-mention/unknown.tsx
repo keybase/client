@@ -141,7 +141,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   warning: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
 })
 

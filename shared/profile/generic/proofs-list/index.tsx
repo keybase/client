@@ -180,7 +180,7 @@ const styles = Styles.styleSheetCreate({
   },
   footerText: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
     marginLeft: Styles.globalMargins.tiny,
   },
   header: {

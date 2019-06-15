@@ -55,7 +55,7 @@ const Row = (
           <Kb.Text
             type="BodySemiboldLink"
             onClick={props.onClickChannel}
-            style={{color: Styles.globalColors.blue}}
+            style={{color: Styles.globalColors.blueDark}}
           >
             #{props.name}
           </Kb.Text>

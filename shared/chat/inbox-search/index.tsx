@@ -216,7 +216,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   errorText: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   percentContainer: {
     padding: Styles.globalMargins.tiny,

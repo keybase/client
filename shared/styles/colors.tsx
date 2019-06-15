@@ -85,6 +85,6 @@ const colors = {
   yellow: '#fff75a',
   yellowDark: '#FFB800',
   yellowLight: '#fffdcc',
-}
+} as const
 
 export default colors

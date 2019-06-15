@@ -70,7 +70,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
                 <Text
                   onClick={onManageChannels}
                   type="BodySmallSemiboldSecondaryLink"
-                  style={{color: globalColors.blue}}
+                  style={{color: globalColors.blueDark}}
                 >
                   Browse other channels
                 </Text>

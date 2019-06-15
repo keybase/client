@@ -18,7 +18,7 @@ export default (props: Props) => {
         {props.explanation}
       </Text>
       {props.canChange && (
-        <Text type="BodySmallSemibold" style={{color: globalColors.blue}} onClick={props.onChange}>
+        <Text type="BodySmallSemibold" style={{color: globalColors.blueDark}} onClick={props.onChange}>
           Change this
         </Text>
       )}

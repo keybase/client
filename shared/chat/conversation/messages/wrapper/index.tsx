@@ -652,8 +652,8 @@ const styles = Styles.styleSheetCreate({
       top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
     },
   }),
-  fail: {color: Styles.globalColors.red},
-  failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
+  fail: {color: Styles.globalColors.redDark},
+  failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
   fast,
   marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
   menuButtons: Styles.platformStyles({

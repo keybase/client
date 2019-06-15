@@ -265,7 +265,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   leaveButtonBar: {marginBottom: Styles.globalMargins.small},
-  link: {color: Styles.globalColors.purple, fontWeight: '600'},
+  link: {color: Styles.globalColors.purpleDark, fontWeight: '600'},
   progress: {
     height: 20,
     width: 20,

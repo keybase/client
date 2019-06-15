@@ -87,7 +87,7 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  headerTeamname: {color: Styles.globalColors.red, textDecorationLine: 'line-through'},
+  headerTeamname: {color: Styles.globalColors.redDark, textDecorationLine: 'line-through'},
 })
 
 export default _ReallyDeleteTeam

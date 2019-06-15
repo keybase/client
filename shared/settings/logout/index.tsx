@@ -119,7 +119,7 @@ class LogOut extends React.Component<Props> {
               {this.props.checkPasswordIsCorrect ? (
                 <Kb.Box2 direction="vertical" gap="xtiny" centerChildren={true} style={styles.headerText}>
                   <Kb.Icon type="iconfont-check" sizeType="Small" color={Styles.globalColors.green} />
-                  <Kb.Text style={{color: Styles.globalColors.green}} type="Header">
+                  <Kb.Text style={{color: Styles.globalColors.greenDark}} type="Header">
                     Your password is correct.
                   </Kb.Text>
                 </Kb.Box2>

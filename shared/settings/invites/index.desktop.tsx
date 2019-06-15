@@ -140,7 +140,7 @@ function PendingInviteItem({
       <Kb.Text
         type="BodyPrimaryLink"
         onClick={() => onReclaimInvitation(invite.id)}
-        style={{color: Styles.globalColors.red}}
+        style={{color: Styles.globalColors.redDark}}
       >
         Reclaim
       </Kb.Text>
@@ -180,7 +180,7 @@ function PendingURLContent({invite}: {invite: Types.PendingInvite}) {
         color={Styles.globalColors.black_20}
         fontSize={13}
       />
-      <Kb.Text type="Body" selectable={true} style={{color: Styles.globalColors.blue}}>
+      <Kb.Text type="Body" selectable={true} style={{color: Styles.globalColors.blueDark}}>
         {invite.url}
       </Kb.Text>
     </Kb.Box>

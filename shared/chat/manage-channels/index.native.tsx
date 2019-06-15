@@ -45,7 +45,7 @@ const Row = (
       <Text
         type="BodySemiboldLink"
         onClick={props.onClickChannel}
-        style={{color: globalColors.blue, maxWidth: '100%'}}
+        style={{color: globalColors.blueDark, maxWidth: '100%'}}
         lineClamp={1}
       >
         #{props.name}

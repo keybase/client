@@ -27,9 +27,7 @@ export const backgroundModeToColor = {
   Terminal: globalColors.blueDarker2,
 }
 
-export const backgroundModeToTextColor = (
-  backgroundMode: Background
-): typeof globalColors[keyof typeof globalColors] => {
+export const backgroundModeToTextColor = (backgroundMode: Background) => {
   switch (backgroundMode) {
     case 'Information':
       return globalColors.brown_75
