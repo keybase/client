@@ -811,6 +811,7 @@ export enum UnfurlType {
   generic = 0,
   youtube = 1,
   giphy = 2,
+  maps = 3,
 }
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
@@ -1088,7 +1089,7 @@ export type UnfurlGiphyDisplay = {readonly favicon?: UnfurlImageDisplay | null; 
 export type UnfurlGiphyRaw = {readonly imageUrl?: String | null; readonly video?: UnfurlVideo | null; readonly faviconUrl?: String | null}
 export type UnfurlImageDisplay = {readonly url: String; readonly height: Int; readonly width: Int; readonly isVideo: Boolean}
 export type UnfurlPromptResult = {actionType: UnfurlPromptAction.always} | {actionType: UnfurlPromptAction.never} | {actionType: UnfurlPromptAction.notnow} | {actionType: UnfurlPromptAction.accept; accept: String | null} | {actionType: UnfurlPromptAction.onetime; onetime: String | null}
-export type UnfurlRaw = {unfurlType: UnfurlType.generic; generic: UnfurlGenericRaw | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeRaw | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyRaw | null}
+export type UnfurlRaw = {unfurlType: UnfurlType.generic; generic: UnfurlGenericRaw | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeRaw | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyRaw | null} | {unfurlType: UnfurlType.maps; maps: UnfurlGenericRaw | null}
 export type UnfurlResult = {readonly unfurl: Unfurl; readonly url: String}
 export type UnfurlSettings = {readonly mode: UnfurlMode; readonly whitelist: {[key: string]: Boolean}}
 export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode; readonly whitelist?: Array<String> | null}

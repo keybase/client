@@ -2814,8 +2814,8 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
 const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload) => {
   const response = action.payload.response
   response.result({
-    lat: -74.0,
-    lon: -47.0,
+    lat: 40.800302,
+    lon: -73.969922,
   })
   return []
 }

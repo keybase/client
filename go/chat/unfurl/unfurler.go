@@ -152,6 +152,14 @@ func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
+		// check for coordinate message
+		if body.Text().Coord != nil {
+			return []ExtractorHit{ExtractorHit{
+				URL: fmt.Sprintf("https://fake.%s/?lat=%f&lon=%f", mapsDomain, body.Text().Coord.Lat,
+					body.Text().Coord.Lon),
+				Typ: ExtractorHitUnfurl,
+			}}
+		}
 		hits, err := u.extractor.Extract(ctx, uid, convID, msg.GetMessageID(), body.Text().Body, u.settings)
 		if err != nil {
 			u.Debug(ctx, "extractURLs: failed to extract: %s", err)
