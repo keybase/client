@@ -375,6 +375,14 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails:
       return state.merge({airdropDetails: action.payload.details})
+    case WalletsGen.setTrustlineExpanded:
+      return state.update('trustline', trustline =>
+        trustline.update('expandedAssets', expandedAssets =>
+          action.payload.expanded
+            ? expandedAssets.add(action.payload.trustlineAssetID)
+            : expandedAssets.delete(action.payload.trustlineAssetID)
+        )
+      )
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

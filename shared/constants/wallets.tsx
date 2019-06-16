@@ -116,6 +116,22 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   worthInfo: '',
 })
 
+export const makeTrustlineAsset = I.Record<Types._TrustlineAsset>({
+  assetCode: '',
+  issuerAccountID: '',
+  issuerVerifiedDomain: '',
+  trustedLimit: 0,
+})
+export const emptyTrustlineAsset = makeTrustlineAsset()
+
+export const makeTrustline = I.Record<Types._Trustline>({
+  acceptedAssets: I.List(),
+  assetMap: I.Map(),
+  expandedAssets: I.Set(),
+  popularAssets: I.List(),
+  searchingAssetsHit: I.List(),
+})
+
 export const makeState = I.Record<Types._State>({
   acceptedDisclaimer: false,
   acceptingDisclaimerDelay: false,
@@ -156,6 +172,7 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  trustline: makeTrustline(),
   unreadPaymentsMap: I.Map(),
 })
 

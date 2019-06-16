@@ -91,6 +91,7 @@ export const setBuildingTo = 'wallets:setBuildingTo'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const setTrustlineExpanded = 'wallets:setTrustlineExpanded'
 export const showTransaction = 'wallets:showTransaction'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropDetails = 'wallets:updateAirdropDetails'
@@ -272,6 +273,10 @@ type _SetInflationDestinationPayload = {
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
+type _SetTrustlineExpandedPayload = {
+  readonly expanded: boolean
+  readonly trustlineAssetID: Types.TrustlineAssetID
+}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
@@ -884,6 +889,9 @@ export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload): Hid
   payload,
   type: hideAirdropBanner,
 })
+export const createSetTrustlineExpanded = (
+  payload: _SetTrustlineExpandedPayload
+): SetTrustlineExpandedPayload => ({payload, type: setTrustlineExpanded})
 export const createUpdateAirdropBannerState = (
   payload: _UpdateAirdropBannerStatePayload
 ): UpdateAirdropBannerStatePayload => ({payload, type: updateAirdropBannerState})
@@ -1226,6 +1234,10 @@ export type SetReadyToReviewPayload = {
   readonly payload: _SetReadyToReviewPayload
   readonly type: typeof setReadyToReview
 }
+export type SetTrustlineExpandedPayload = {
+  readonly payload: _SetTrustlineExpandedPayload
+  readonly type: typeof setTrustlineExpanded
+}
 export type ShowTransactionPayload = {
   readonly payload: _ShowTransactionPayload
   readonly type: typeof showTransaction
@@ -1370,6 +1382,7 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | SetTrustlineExpandedPayload
   | ShowTransactionPayload
   | UpdateAirdropBannerStatePayload
   | UpdateAirdropDetailsPayload
