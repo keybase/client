@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import Styles from '../../styles'
+import * as Styles from '../../styles'
 
 export type Props = {
   onCancel: () => void

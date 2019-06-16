@@ -361,7 +361,7 @@ const styles = Styles.styleSheetCreate({
   },
   expandedProxyContainer: {
     marginTop: Styles.globalMargins.small,
-    width: '40ch',
+    width: '40%',
   },
   filler: {
     flex: 1,
