@@ -3,19 +3,23 @@ package commands
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 type Location struct {
 	*baseCommand
+	sync.Mutex
+	displayed bool
 }
 
 func NewLocation(g *globals.Context) *Location {
 	return &Location{
-		baseCommand: newBaseCommand(g, "location", "", "Post your current location", false),
+		baseCommand: newBaseCommand(g, "location", "", "Post your current location", true),
 	}
 }
 
@@ -42,3 +46,29 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	}
 	return nil
 }
+
+func (h *Location) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	tlfName, text string) {
+	h.Lock()
+	defer h.Unlock()
+	defer h.Trace(ctx, func() error { return nil }, "Preview")()
+	if !h.Match(ctx, text) {
+		if h.displayed {
+			h.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+			h.displayed = false
+		}
+		return
+	}
+	h.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
+		Body:  utils.DecorateWithLinks(ctx, utils.EscapeForDecorate(ctx, locationUsage)),
+		Title: &locationTitle,
+	})
+	h.displayed = true
+}
+
+var locationTitle = `*/location*`
+
+var locationUsage = `Location posts consist of your current location coordinate, and a map rendered through the use of Google Maps. We take care to guard your privacy: https://keybase.io/docs/chat/location
+
+- The location sender obtains the map from Google without using their IP address directly. The map is then sent as an encrypted attachment into the conversation. 
+- Other members in the conversation obtain the map as an encrypted attachment, and never talk to Google at all.`

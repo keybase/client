@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -52,7 +53,7 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 		usage = fmt.Sprintf(flipDesktopUsage, "```", "```", cur)
 	}
 	s.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
-		Body:  usage,
+		Body:  utils.DecorateWithLinks(ctx, utils.EscapeForDecorate(ctx, usage)),
 		Title: &flipTitle,
 	})
 	s.displayed = true
