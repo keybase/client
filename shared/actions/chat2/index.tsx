@@ -2819,9 +2819,10 @@ const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordina
       err => logger.warn(err.message)
     )
   } else {
+    // desktop doesn't really work, so just stick us in the Atlantic
     response.result({
-      lat: 4.678383,
-      lon: -74.0790887,
+      lat: 0,
+      lon: 0,
     })
   }
   return []
