@@ -73,7 +73,7 @@ const Asset = (props: Props) => (
   <Kb.ListItem2
     firstItem={props.firstItem}
     type="Small"
-    height={props.expanded ? expandedHeight : nonExpandedHeight}
+    height={props.expanded ? expandedHeight : undefined}
     body={
       // We use this instead of the action prop on ListItem2 so that it
       // "floats" on top of the content and the account ID can extend below it
