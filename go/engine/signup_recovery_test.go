@@ -27,12 +27,12 @@ type signupAPIMock struct {
 var _ libkb.API = (*signupAPIMock)(nil)
 
 func (n *signupAPIMock) Post(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
-	fmt.Printf("Post: %s\n", args.Endpoint)
+	n.t.Logf("signupAPIMock.Post: %s\n", args.Endpoint)
 	return n.realAPI.Post(m, args)
 }
 
 func (n *signupAPIMock) PostJSON(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
-	n.t.Logf("PostJSON: %s\n", args.Endpoint)
+	n.t.Logf("signupAPIMock.PostJSON: %s\n", args.Endpoint)
 	if n.failKeyMulti && args.Endpoint == "key/multi" {
 		n.failEverything = true
 		n.t.Logf("Got key/multi, failing the call (not sending to real API), subsequent calls will fail as well")
@@ -125,10 +125,9 @@ func TestSignupFailProvision(t *testing.T) {
 	arg.StoreSecret = true
 	fu.DeviceName = arg.DeviceName
 
-	// Try to sign up - we will fail because our provisioning request will go
-	// through but the response will not get back to us. But our device keys
-	// should have been stored, so we should be good to go after we log back in
-	// afterwards.
+	// Try to sign up - we will fail because our key/multi request for
+	// provisioning will not go through. We should be able to login+provision
+	// afterwards with stored passphrase stream.
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -193,9 +192,8 @@ func TestSignupFailAfterProvision(t *testing.T) {
 	fu.DeviceName = arg.DeviceName
 
 	// Try to sign up - we will fail because our provisioning request will go
-	// through but the response will not get back to us. But our device keys
-	// should have been stored, so we should be good to go after we log back in
-	// afterwards.
+	// through but the response will not get back to us. So we are provisioned,
+	// but our device does not know about this.
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -207,7 +205,7 @@ func TestSignupFailAfterProvision(t *testing.T) {
 	err := RunEngine2(m, s)
 	// We are expecting an error during signup.
 	require.Error(tc.T, err)
-	require.Contains(t, err.Error(), "Mock failure")
+	require.Contains(t, err.Error(), "Mock local failure")
 	fu.EncryptionKey = s.encryptionKey
 
 	t.Logf("Signup failed with: %s", err)
@@ -230,15 +228,9 @@ func TestSignupFailAfterProvision(t *testing.T) {
 	tc.G.API = fakeAPI.realAPI
 
 	t.Logf("Trying to login after failed signup")
+	// This will not work - user has already devices provisioned, no way to recover.
+	// There is another ticket to make this work using stored secrets.
 	err = fu.Login(tc.G)
-	require.NoError(t, err) // This will not work - user has already devices provisioned, no way to recover.
-
-	// After signing up, we expect pw secret store entries to be cleared up.
-	foundA, foundB, err = checkStoredPw()
 	require.Error(t, err)
-	require.True(t, !foundA && !foundB)
-
-	// Try to post a link to see if things work.
-	_, _, err = runTrack(tc, fu, "t_alice", libkb.GetDefaultSigVersion(tc.G))
-	require.NoError(t, err)
+	require.Contains(t, err.Error(), "Provision unavailable as you don't have access to any of your devices")
 }

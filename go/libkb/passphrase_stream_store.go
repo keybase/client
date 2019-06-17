@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -23,25 +22,7 @@ func RetrieveFullPassphraseStream(mctx MetaContext, username NormalizedUsername,
 		func() error { return err })()
 
 	ss := mctx.G().SecretStore()
-	fullSecret, err := ss.RetrieveSecret(mctx, username)
-	if err != nil {
-		mctx.Debug("No secret found for %q", username)
-		return nil, err
-	}
-	lks := NewLKSecWithFullSecret(fullSecret, uid)
-	err = lks.LoadServerHalf(mctx)
-	if err == nil {
-		mctx.Debug("Loaded server half, bailing out")
-		return nil, errors.New("user has secret server-half, cannot recover after signup")
-	}
 
-	mctx.Debug("No server-half, as expected, err was: %s", err)
-	lks.ResetServerHalf()
-
-	pps, err := NewPassphraseStreamLKSecOnly(lks)
-	if err != nil {
-		return nil, err
-	}
 	edDSASecret, err := ss.RetrieveSecret(mctx, formatPPSSecretStoreIdentifier(username, ssEddsaSuffix))
 	if err != nil {
 		return nil, err
@@ -50,7 +31,8 @@ func RetrieveFullPassphraseStream(mctx MetaContext, username NormalizedUsername,
 	if err != nil {
 		return nil, err
 	}
-	err = pps.SetEdDSAAndPWH(pwHashSecret.Bytes(), edDSASecret.Bytes())
+
+	pps, err := newPassphraseStreamPE(pwHashSecret.Bytes(), edDSASecret.Bytes())
 	if err != nil {
 		return nil, err
 	}

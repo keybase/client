@@ -13,48 +13,48 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type offlineAPI struct{}
+type OfflineAPI struct{}
 
-var _ API = (*offlineAPI)(nil)
+var _ API = (*OfflineAPI)(nil)
 
-var errIsOffline = errors.New("API is offline due to test offlineAPI")
+var errIsOffline = errors.New("API is offline due to test OfflineAPI")
 
-func (n *offlineAPI) Post(m MetaContext, args APIArg) (*APIRes, error) {
+func (n *OfflineAPI) Post(m MetaContext, args APIArg) (*APIRes, error) {
 	return nil, errIsOffline
 }
 
-func (n *offlineAPI) PostJSON(m MetaContext, args APIArg) (*APIRes, error) {
+func (n *OfflineAPI) PostJSON(m MetaContext, args APIArg) (*APIRes, error) {
 	return nil, errIsOffline
 }
 
-func (n *offlineAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error {
+func (n *OfflineAPI) PostDecode(MetaContext, APIArg, APIResponseWrapper) error {
 	return errIsOffline
 }
 
-func (n *offlineAPI) PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error {
+func (n *OfflineAPI) PostDecodeCtx(context.Context, APIArg, APIResponseWrapper) error {
 	return errIsOffline
 }
 
-func (n *offlineAPI) PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error) {
+func (n *OfflineAPI) PostRaw(MetaContext, APIArg, string, io.Reader) (*APIRes, error) {
 	return nil, errIsOffline
 }
 
-func (n *offlineAPI) Get(m MetaContext, args APIArg) (*APIRes, error) {
+func (n *OfflineAPI) Get(m MetaContext, args APIArg) (*APIRes, error) {
 	return nil, errIsOffline
 }
 
-func (n *offlineAPI) GetResp(m MetaContext, args APIArg) (*http.Response, func(), error) {
+func (n *OfflineAPI) GetResp(m MetaContext, args APIArg) (*http.Response, func(), error) {
 	return nil, func() {}, errIsOffline
 }
 
-func (n *offlineAPI) GetDecode(m MetaContext, args APIArg, wrap APIResponseWrapper) error {
+func (n *OfflineAPI) GetDecode(m MetaContext, args APIArg, wrap APIResponseWrapper) error {
 	return errIsOffline
 }
 
-func (n *offlineAPI) GetDecodeCtx(ctx context.Context, args APIArg, wrap APIResponseWrapper) error {
+func (n *OfflineAPI) GetDecodeCtx(ctx context.Context, args APIArg, wrap APIResponseWrapper) error {
 	return errIsOffline
 }
 
-func (n *offlineAPI) Delete(MetaContext, APIArg) (*APIRes, error) {
+func (n *OfflineAPI) Delete(MetaContext, APIArg) (*APIRes, error) {
 	return nil, errIsOffline
 }

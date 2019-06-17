@@ -78,22 +78,10 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	apiArg.InitialTimeout = 5 * time.Minute
 	apiArg.RetryCount = 10
 
-	// TODO: Comment this to not provision and error out
 	_, err = m.G().API.PostJSON(m, apiArg)
 	if err != nil {
 		return err
 	}
-
-	// TODO: REMOVE
-	// realAPI := m.G().API
-	// m.G().API = &offlineAPI{}
-	// go func() {
-	// 	time.Sleep(5000)
-	// 	m.G().API = realAPI
-	// }()
-	// return errors.New("Erroring anyway in key/multi delegate key")
-	// TODO: ------
-
 	return MerkleCheckPostedUserSig(m, uid, lastSeqno, lastLinkID)
 }
 

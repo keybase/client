@@ -302,7 +302,6 @@ func (s *LKSec) LoadServerHalf(m MetaContext) (err error) {
 	defer m.Trace("LKSec::LoadServerHalf()", func() error { return err })()
 
 	if !s.serverHalf.IsNil() {
-		fmt.Printf("| short-circuit: already have serverHalf\n")
 		m.Debug("| short-circuit: already have serverHalf")
 		return nil
 	}
