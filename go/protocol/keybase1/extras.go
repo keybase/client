@@ -1587,6 +1587,10 @@ func (s ChatConversationID) String() string {
 	return hex.EncodeToString(s)
 }
 
+func (s ChatConversationID) Bytes() []byte {
+	return s
+}
+
 // IsOlderThan returns true if any of the versions of u are older than v
 func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 	if u.Base.Uvv.SigChain < v.Base.Uvv.SigChain {
