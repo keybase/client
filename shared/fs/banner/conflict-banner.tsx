@@ -7,7 +7,7 @@ export type Props = {
   conflictState: Types.ConflictState
   onFeedback: () => void
   onFinishResolving: () => void
-  onGoToTlf: (tlfPath: Types.Path) => void
+  onGoToSamePathInDifferentTlf: (tlfPath: Types.Path) => void
   onHelp: () => void
   onStartResolving: () => void
   tlfPath: Types.Path
@@ -62,14 +62,14 @@ const ConflictBanner = (props: Props) => {
     case Types.ConflictStateType.ManualLocalView:
       const tlfPath = props.conflictState.serverViewTlfPath
       const onSeeGlobalView = {
-        onClick: () => props.onGoToTlf(tlfPath),
+        onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
         title: 'See the global view',
       }
       return <Kb.Banner {...commonProps} actions={[onSeeGlobalView, finishRes, feedbackAction, helpAction]} />
     case Types.ConflictStateType.ManualServerView:
       const count = props.conflictState.localViewTlfPaths.size
       const onSeeLocalViews = props.conflictState.localViewTlfPaths.toArray().map((tlfPath, idx) => ({
-        onClick: () => props.onGoToTlf(tlfPath),
+        onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
         title: 'See local changes' + (count > 1 ? ` (version ${idx.toString} of ${count}` : ''),
       }))
       return <Kb.Banner {...commonProps} actions={[...onSeeLocalViews, feedbackAction, helpAction]} />

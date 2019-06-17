@@ -824,6 +824,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
   }
 }
 
+export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Path) =>
+  Types.pathConcat(
+    newTlfPath,
+    Types.getPathElements(path)
+      .slice(3)
+      .join('/')
+  )
+
 export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
   switch (parsedPath.kind) {
     case Types.PathKind.Root:

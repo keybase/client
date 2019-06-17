@@ -27,10 +27,10 @@ export const bannerProvider = {
     conflictState: (p.storyProps && p.storyProps.conflictState) || 'none',
     onFeedback: Sb.action('onFeedback'),
     onFinishResolving: Sb.action('onFinishResolving'),
-    onGoToTlf: Sb.action('onGoToTlf'),
+    onGoToSamePathInDifferentTlf: Sb.action('onGoToSamePathInDifferentTlf'),
     onHelp: Sb.action('onHelp'),
     onStartResolving: Sb.action('onStartResolving'),
-    tlfName: '/keybase/private/alice,bob',
+    tlfPath: '/keybase/private/alice,bob',
   }),
   PublicReminder: ({path}: {path: Types.Path}) => {
     const parsedPath = Constants.parsePath(path)

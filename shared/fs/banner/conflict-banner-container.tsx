@@ -27,9 +27,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         ],
       })
     ),
-  onFinishResolving: dispatch(FsGen.createFinishManualConflictResolution({localViewTlfPath: ownProps.path})),
-  onGoToTlf: (tlfPath: Types.Path) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path: tlfPath}, selected: 'main'}]})),
+  onFinishResolving: () =>
+    dispatch(FsGen.createFinishManualConflictResolution({localViewTlfPath: ownProps.path})),
+  onGoToSamePathInDifferentTlf: (tlfPath: Types.Path) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {path: Constants.rebasePathToDifferentTlf(ownProps.path, tlfPath)}, selected: 'main'}],
+      })
+    ),
   onHelp: () => openUrl('https://keybase.io/docs/kbfs/understanding_kbfs#conflict_resolution'),
   onStartResolving: () => dispatch(FsGen.createStartManualConflictResolution({tlfPath: ownProps.path})),
 })
