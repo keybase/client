@@ -173,6 +173,11 @@ func TestSignupFailProvision(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, foundA && foundB)
 
+	// We do not expect to see them in GetUsersWithStoredSecrets
+	users, err := tc.G.GetUsersWithStoredSecrets(context.Background())
+	require.NoError(t, err)
+	require.Empty(t, users)
+
 	// Restore real API access.
 	tc.G.API = fakeAPI.realAPI
 

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -15,6 +16,11 @@ const (
 
 func formatPPSSecretStoreIdentifier(username NormalizedUsername, typ pwhStoreIdentifier) NormalizedUsername {
 	return NormalizedUsername(fmt.Sprintf("%s.%s", username, typ))
+}
+
+func isPPSSecretStore(identifier string) bool {
+	return strings.HasSuffix(identifier, string(ssEddsaSuffix)) ||
+		strings.HasSuffix(identifier, string(ssPwhashSuffix))
 }
 
 func RetrieveFullPassphraseStream(mctx MetaContext, username NormalizedUsername, uid keybase1.UID) (ret *PassphraseStream, err error) {

@@ -179,7 +179,13 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 		return nil, err
 	}
 	ch := kbcrypto.CodecHandle()
-	err = msgpack.DecodeAll(usersMsgPack, ch, &users)
+	var usersUnpacked []string
+	err = msgpack.DecodeAll(usersMsgPack, ch, &usersUnpacked)
+	for _, v := range usersUnpacked {
+		if !isPPSSecretStore(v) {
+			users = append(users, v)
+		}
+	}
 	return users, err
 }
 
