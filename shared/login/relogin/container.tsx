@@ -29,7 +29,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   const users = stateProps._users.sort().toArray()
   let inputError = ''
   let bannerError = ''
-  if (stateProps.error === 'You are offline') {
+  if (stateProps.error === 'You are offline.') {
     bannerError = stateProps.error
   } else {
     inputError = stateProps.error
