@@ -87,21 +87,18 @@ func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 	ps.gen = gen
 }
 
-func newPassphraseStreamFromPwhAndEddsa(pwhash, eddsa []byte) (*PassphraseStream, error) {
+type passphraseStreamPWHash [pwhLen]byte
+type passphraseSteramEdDSASeed [eddsaLen]byte
+
+func newPassphraseStreamFromPwhAndEddsa(pwhash passphraseStreamPWHash, eddsa passphraseSteramEdDSASeed) *PassphraseStream {
 	stream := make([]byte, extraLen)
-	if len(pwhash) != pwhLen {
-		return nil, fmt.Errorf("Invalid PWHash len: %d, expected %d", len(pwhash), pwhLen)
-	}
-	if len(eddsa) != eddsaLen {
-		return nil, fmt.Errorf("Invalid EdDSA seed len: %d, expected %d", len(eddsa), eddsaLen)
-	}
 	copy(stream[pwhIndex:eddsaIndex], pwhash[:])
 	copy(stream[eddsaIndex:dhIndex], eddsa[:])
 	ps := &PassphraseStream{
 		stream: stream,
 		gen:    PassphraseGeneration(0),
 	}
-	return ps, nil
+	return ps
 }
 
 func (ps PassphraseStream) PWHash() []byte {

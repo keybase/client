@@ -11,7 +11,7 @@ type pwhStoreIdentifier string
 
 const (
 	ssEddsaSuffix  pwhStoreIdentifier = "tmp_eddsa"
-	ssPwhashSuffix                    = "tmp_pwhash"
+	ssPwhashSuffix pwhStoreIdentifier = "tmp_pwhash"
 )
 
 func formatPPSSecretStoreIdentifier(username NormalizedUsername, typ pwhStoreIdentifier) NormalizedUsername {
@@ -29,20 +29,21 @@ func RetrievePwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUs
 
 	ss := mctx.G().SecretStore()
 
-	edDSASecret, err := ss.RetrieveSecret(mctx, formatPPSSecretStoreIdentifier(username, ssEddsaSuffix))
-	if err != nil {
-		return nil, err
-	}
+	var pwHash passphraseStreamPWHash
 	pwHashSecret, err := ss.RetrieveSecret(mctx, formatPPSSecretStoreIdentifier(username, ssPwhashSuffix))
 	if err != nil {
 		return nil, err
 	}
+	copy(pwHash[:], pwHashSecret.Bytes())
 
-	pps, err := newPassphraseStreamFromPwhAndEddsa(pwHashSecret.Bytes(), edDSASecret.Bytes())
+	var eddsaSeed passphraseSteramEdDSASeed
+	edDSASecret, err := ss.RetrieveSecret(mctx, formatPPSSecretStoreIdentifier(username, ssEddsaSuffix))
 	if err != nil {
 		return nil, err
 	}
+	copy(eddsaSeed[:], edDSASecret.Bytes())
 
+	pps := newPassphraseStreamFromPwhAndEddsa(pwHash, eddsaSeed)
 	return pps, nil
 }
 
