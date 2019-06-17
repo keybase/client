@@ -49,14 +49,57 @@ func TestRotateHiddenSelf(t *testing.T) {
 		require.NoError(t, err)
 		err = team.Rotate(context.TODO())
 		require.NoError(t, err)
-		team, err = GetForTestByStringName(context.TODO(), tc.G, name)
-		require.NoError(t, err)
 	}
 
+	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
 	keys3, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	require.Equal(t, len(keys3), 8)
 	require.Equal(t, keys3[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 	require.Equal(t, keys1[0].Key, keys3[0].Key)
 	require.Equal(t, keys2[1].Key, keys3[1].Key)
+}
+
+func TestRotateHiddenOther(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	ctx := context.TODO()
+	numKeys := 1
+
+	rotate := func(h bool) {
+		g := tcs[0].G
+		team, err := GetForTestByID(ctx, g, teamID)
+		require.NoError(t, err)
+		err = team.rotate(ctx, h)
+		require.NoError(t, err)
+		numKeys++
+	}
+
+	checkForUser := func(i int) {
+		g := tcs[i].G
+		team, err := GetForTestByID(ctx, g, teamID)
+		require.NoError(t, err)
+		keys, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+		require.NoError(t, err)
+		require.Equal(t, len(keys), numKeys)
+	}
+
+	check := func() {
+		checkForUser(0)
+		checkForUser(1)
+	}
+
+	for i := 0; i < 5; i++ {
+		rotate(i%2 == 0)
+		check()
+	}
 }
