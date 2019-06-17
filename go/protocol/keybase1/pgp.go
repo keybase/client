@@ -288,6 +288,7 @@ type PGPUpdateArg struct {
 	SessionID    int      `codec:"sessionID" json:"sessionID"`
 	All          bool     `codec:"all" json:"all"`
 	Fingerprints []string `codec:"fingerprints" json:"fingerprints"`
+	PushSecret   bool     `codec:"pushSecret" json:"pushSecret"`
 }
 
 type PGPPurgeArg struct {

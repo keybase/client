@@ -11,7 +11,7 @@ import (
 )
 
 func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContext) (err error) {
-	eng := NewPGPUpdateEngine(tc.G, fingerprints, all)
+	eng := NewPGPUpdateEngine(tc.G, fingerprints, all, false)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),

@@ -12,6 +12,7 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -172,7 +173,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 		// We're sending a key update, then.
 		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
-		eng := NewPGPUpdateEngine(e.G(), []string{fp}, false)
+		eng := NewPGPUpdateEngine(e.G(), []string{fp}, false, false)
 		err = RunEngine2(m, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints
 

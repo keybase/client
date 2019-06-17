@@ -470,6 +470,10 @@
             "type": "array",
             "items": "string"
           }
+        },
+        {
+          "name": "pushSecret",
+          "type": "boolean"
         }
       ],
       "response": null,

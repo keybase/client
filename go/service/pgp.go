@@ -287,7 +287,7 @@ func (h *PGPHandler) PGPUpdate(ctx context.Context, arg keybase1.PGPUpdateArg) e
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewPGPUpdateEngine(h.G(), arg.Fingerprints, arg.All)
+	eng := engine.NewPGPUpdateEngine(h.G(), arg.Fingerprints, arg.All, arg.PushSecret)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }

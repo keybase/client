@@ -13,11 +13,12 @@ import (
 type PGPUpdateEngine struct {
 	selectedFingerprints   map[string]bool
 	all                    bool
+	pushSecret             bool
 	duplicatedFingerprints []libkb.PGPFingerprint
 	libkb.Contextified
 }
 
-func NewPGPUpdateEngine(g *libkb.GlobalContext, fingerprints []string, all bool) *PGPUpdateEngine {
+func NewPGPUpdateEngine(g *libkb.GlobalContext, fingerprints []string, all bool, pushSecret bool) *PGPUpdateEngine {
 	selectedFingerprints := make(map[string]bool)
 	for _, fpString := range fingerprints {
 		selectedFingerprints[strings.ToLower(fpString)] = true
@@ -25,6 +26,7 @@ func NewPGPUpdateEngine(g *libkb.GlobalContext, fingerprints []string, all bool)
 	return &PGPUpdateEngine{
 		selectedFingerprints: selectedFingerprints,
 		all:                  all,
+		pushSecret:           pushSecret,
 		Contextified:         libkb.NewContextified(g),
 	}
 }
@@ -87,7 +89,7 @@ func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 			m.UIs().LogUI.Warning("Skipping update for key %s", fingerprint.String())
 			continue
 		}
-		bundle, err := gpgCLI.ImportKey(false /* secret */, fingerprint, "")
+		bundle, err := gpgCLI.ImportKey(e.pushSecret, fingerprint, "")
 		if err != nil {
 			_, isNoKey := err.(libkb.NoKeyError)
 			if isNoKey {
@@ -102,6 +104,20 @@ func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 
 		bundle.InitGPGKey()
 		del.NewKey = bundle
+		if e.pushSecret {
+			tsec, gen, err := libkb.GetTriplesecMaybePrompt(m)
+			if err != nil {
+				return err
+			}
+			skb, err := bundle.ToServerSKB(m.G(), tsec, gen)
+			if err != nil {
+				return err
+			}
+			del.EncodedPrivateKey, err = skb.ArmoredEncode()
+			if err != nil {
+				return err
+			}
+		}
 
 		m.UIs().LogUI.Info("Posting update for key %s.", fingerprint.String())
 		if err := del.Run(m); err != nil {

@@ -15,12 +15,14 @@ import (
 type CmdPGPUpdate struct {
 	fingerprints []string
 	all          bool
+	pushSecret   bool
 	libkb.Contextified
 }
 
 func (v *CmdPGPUpdate) ParseArgv(ctx *cli.Context) error {
 	v.fingerprints = ctx.Args()
 	v.all = ctx.Bool("all")
+	v.pushSecret = ctx.Bool("push-secret")
 	return nil
 }
 
@@ -40,6 +42,7 @@ func (v *CmdPGPUpdate) Run() (err error) {
 	return cli.PGPUpdate(context.TODO(), keybase1.PGPUpdateArg{
 		Fingerprints: v.fingerprints,
 		All:          v.all,
+		PushSecret:   v.pushSecret,
 	})
 }
 
@@ -52,6 +55,10 @@ func NewCmdPGPUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cli.BoolFlag{
 				Name:  "all",
 				Usage: "Update all available keys.",
+			},
+			cli.BoolFlag{
+				Name:  "push-secret",
+				Usage: "Push the secret key to Keybase.",
 			},
 		},
 		Action: func(c *cli.Context) {
