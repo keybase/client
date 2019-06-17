@@ -295,7 +295,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	err := RunEngine2(m, eng)
 	if err != nil {
 		m.Warning("Failed to provision device: %s", err)
-		if ssErr := s.storeSecretRecovery(m); ssErr != nil {
+		if ssErr := s.storeSecretForRecovery(m); ssErr != nil {
 			m.Warning("Failed to store secrets for recovery: %s", ssErr)
 		}
 		return err
@@ -338,11 +338,11 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
 	}
 }
 
-func (s *SignupEngine) storeSecretRecovery(m libkb.MetaContext) (err error) {
-	defer m.Trace("SignupEngine#storeSecretRecovery", func() error { return err })()
+func (s *SignupEngine) storeSecretForRecovery(m libkb.MetaContext) (err error) {
+	defer m.Trace("SignupEngine#storeSecretForRecovery", func() error { return err })()
 
 	if !s.arg.GenerateRandomPassphrase {
-		m.Debug("Not GenerateRandomPassphrase - skipping storeSecretRecovery")
+		m.Debug("Not GenerateRandomPassphrase - skipping storeSecretForRecovery")
 		return nil
 	}
 
@@ -354,32 +354,8 @@ func (s *SignupEngine) storeSecretRecovery(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	ss := m.G().SecretStore()
-
-	var secret libkb.LKSecFullSecret
-	var id libkb.NormalizedUsername
-
-	prevOptions := ss.GetOptions(m)
-	ss.SetOptions(m, ssOptions)
-	// Restore secret store options after we are done here.
-	defer ss.SetOptions(m, prevOptions)
-
-	secret, err = libkb.NewLKSecFullSecretFromBytes(s.ppStream.EdDSASeed())
+	err = libkb.StoreFullPassphraseStream(m, username, s.ppStream)
 	if err != nil {
-		return err
-	}
-	id = libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", username))
-	if err := ss.StoreSecret(m, id, secret); err != nil {
-		return err
-	}
-
-	secret, err = libkb.NewLKSecFullSecretFromBytes(s.ppStream.PWHash())
-	if err != nil {
-		return err
-	}
-
-	id = libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", username))
-	if err := ss.StoreSecret(m, id, secret); err != nil {
 		return err
 	}
 

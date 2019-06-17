@@ -33,7 +33,7 @@ func (n *signupAPIMock) Post(m libkb.MetaContext, args libkb.APIArg) (*libkb.API
 
 func (n *signupAPIMock) PostJSON(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIRes, error) {
 	n.t.Logf("PostJSON: %s\n", args.Endpoint)
-	if n.localTimeoutKeyMulti && args.Endpoint == "key/multi" {
+	if n.failKeyMulti && args.Endpoint == "key/multi" {
 		n.failEverything = true
 		n.t.Logf("Got key/multi, failing the call (not sending to real API), subsequent calls will fail as well")
 		return nil, errors.New("Mock failure")
@@ -109,6 +109,74 @@ func TestSecretStorePwhashAfterSignup(t *testing.T) {
 }
 
 func TestSignupFailProvision(t *testing.T) {
+	// Test recovery after NOPW SignupJoin succeeds but we fail to provision.
+	tc := SetupEngineTest(t, "signup")
+	defer tc.Cleanup()
+
+	fakeAPI := &signupAPIMock{t: t, realAPI: tc.G.API}
+	tc.G.API = fakeAPI
+	fakeAPI.failKeyMulti = true
+
+	fu := NewFakeUserOrBust(tc.T, "su")
+	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.GenerateRandomPassphrase = true
+	arg.Passphrase = ""
+	arg.StoreSecret = true
+	fu.DeviceName = arg.DeviceName
+
+	// Try to sign up - we will fail because our provisioning request will go
+	// through but the response will not get back to us. But our device keys
+	// should have been stored, so we should be good to go after we log back in
+	// afterwards.
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, s)
+	// We are expecting an error during signup.
+	require.Error(tc.T, err)
+	require.Contains(t, err.Error(), "Mock failure")
+	fu.EncryptionKey = s.encryptionKey
+
+	t.Logf("Signup failed with: %s", err)
+	require.True(t, fakeAPI.failEverything)
+
+	checkStoredPw := func() (foundA, foundB bool, err error) {
+		ss := tc.G.SecretStore()
+		mctx := libkb.NewMetaContextForTest(tc)
+		a, err1 := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_eddsa", fu.Username)))
+		b, err2 := ss.RetrieveSecret(mctx, libkb.NormalizedUsername(fmt.Sprintf("%s.tmp_pwhash", fu.Username)))
+		return !a.IsNil(), !b.IsNil(), libkb.CombineErrors(err1, err2)
+	}
+
+	// We expect to see stored eddsa and pwhash after signup.
+	foundA, foundB, err := checkStoredPw()
+	require.NoError(t, err)
+	require.True(t, foundA && foundB)
+
+	// Restore real API access.
+	tc.G.API = fakeAPI.realAPI
+
+	t.Logf("Trying to login after failed signup")
+	err = fu.Login(tc.G)
+	require.NoError(t, err) // This will not work - user has already devices provisioned, no way to recover.
+
+	// After signing up, we expect pw secret store entries to be cleared up.
+	foundA, foundB, err = checkStoredPw()
+	require.Error(t, err)
+	require.True(t, !foundA && !foundB)
+
+	// Try to post a link to see if things work.
+	_, _, err = runTrack(tc, fu, "t_alice", libkb.GetDefaultSigVersion(tc.G))
+	require.NoError(t, err)
+}
+
+func TestSignupFailAfterProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 
