@@ -9,7 +9,10 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/keybase/client/go/chat/maps"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -317,5 +320,22 @@ func TestGiphySearchScrape(t *testing.T) {
 	require.NotNil(t, res.Giphy().ImageUrl)
 	require.Nil(t, res.Giphy().Video)
 	require.Equal(t, *res.Giphy().ImageUrl, url)
+}
 
+func TestMapScraper(t *testing.T) {
+	scraper := NewScraper(logger.NewTestLogger(t))
+	lat := 40.800099
+	lon := -73.969341
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f", mapsDomain, lat, lon)
+	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lon)))
+	require.NotNil(t, unfurl.Maps().ImageUrl)
+	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, maps.MapsProxy))
+	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
 }

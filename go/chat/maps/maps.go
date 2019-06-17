@@ -12,13 +12,13 @@ import (
 )
 
 const mapsAPIKey = "AIzaSyAL0pIEYTxyVp6T5aK8eHQclmtNxCDEmZE"
-const mapsProxy = "maps-proxy.core.keybaseapi.com"
+const MapsProxy = "maps-proxy.core.keybaseapi.com"
 const mapsHost = "maps.googleapis.com"
 
 func GetMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf(
 		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&zoom=15&size=320x319&key=%s",
-		mapsProxy, lat, lon, lat, lon, mapsAPIKey)
+		MapsProxy, lat, lon, lat, lon, mapsAPIKey)
 }
 
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
