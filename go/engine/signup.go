@@ -291,17 +291,6 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 		return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
 	}
 
-	// //
-	// fmt.Printf("Replacing API\n")
-	// realAPI := m.G().API
-	// m.G().API = &libkb.OfflineAPI{}
-	// go func() {
-	// 	time.Sleep(5 * time.Second)
-	// 	fmt.Printf("Restoring API\n")
-	// 	m.G().API = realAPI
-	// }()
-	// //
-
 	eng := NewDeviceWrap(m.G(), args)
 	err := RunEngine2(m, eng)
 	if err != nil {
