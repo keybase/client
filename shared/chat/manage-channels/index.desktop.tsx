@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {Props, RowProps} from './index.types'
+import {pluralize} from '../../util/string'
 
 const HoverBox = Styles.styled(Kb.Box)({
   '.channel-row:hover &': {opacity: 1},
@@ -59,7 +60,13 @@ const Row = (
           >
             #{props.name}
           </Kb.Text>
-          <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {props.description}
+          </Kb.Text>
+          <Kb.Text type="BodySmall">
+            {props.numParticipants} {pluralize('member', props.numParticipants)}{' '}
+            {props.hasAllMembers ? '(entire team)' : ''} &bull; Last activity {props.mtimeHuman}{' '}
+          </Kb.Text>
         </Kb.Box>
         {props.showEdit && props.canEditChannels && (
           <Edit
@@ -94,7 +101,7 @@ const ManageChannels = (props: Props) => {
         type="Header"
         style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
       >
-        {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
+        {props.channels.length} {pluralize('chat channel', props.channels.length)}
       </Kb.Text>
     )
   }
@@ -126,7 +133,10 @@ const ManageChannels = (props: Props) => {
               key={c.convID}
               canEditChannels={props.canEditChannels}
               description={c.description}
+              hasAllMembers={c.hasAllMembers}
               name={c.name}
+              numParticipants={c.numParticipants}
+              mtimeHuman={c.mtimeHuman}
               selected={props.nextChannelState[c.convID]}
               onToggle={() => props.onToggle(c.convID)}
               showEdit={!props.unsavedSubscriptions}

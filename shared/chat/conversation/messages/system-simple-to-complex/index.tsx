@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
-import {Box, Text, ConnectedUsernames} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   message: Types.MessageSystemSimpleToComplex
@@ -22,7 +22,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
       author === you ? (
         'You'
       ) : (
-        <ConnectedUsernames
+        <Kb.ConnectedUsernames
           onUsernameClicked="profile"
           inline={true}
           type="BodySmallSemibold"
@@ -38,46 +38,40 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         bgColor={globalColors.blueLighter2}
         onClickAvatar={() => onViewTeam(team)}
       >
-        <Text
-          type="BodySmallSemibold"
-          negative={true}
-          style={{color: globalColors.black_50, marginTop: globalMargins.tiny}}
-        >
-          {formatTimeForMessages(timestamp)}
-        </Text>
-        <Box style={globalStyles.flexBoxColumn}>
-          <Text center={true} type="BodySmallSemibold">
+        <SystemMessageTimestamp timestamp={timestamp} />
+        <Kb.Box2 direction="vertical">
+          <Kb.Text center={true} type="BodySmallSemibold">
             {authorComponent} made {team} a big team!
-          </Text>
-          <Text center={true} type="BodySmallSemibold" style={{marginTop: globalMargins.tiny}}>
+          </Kb.Text>
+          <Kb.Text center={true} type="BodySmallSemibold" style={{marginTop: globalMargins.tiny}}>
             Note that:
-          </Text>
-          <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.xtiny}}>
-            <Box style={{...globalStyles.flexBoxRow}}>
-              <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+          </Kb.Text>
+          <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+              <Kb.Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
-              </Text>
-              <Text type="BodySmallSemibold">
+              </Kb.Text>
+              <Kb.Text type="BodySmallSemibold">
                 Your team channels will now appear in the "Big teams" section of the inbox.
-              </Text>
-            </Box>
-            <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
-              <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
+              </Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+              <Kb.Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
-              </Text>
-              <Text type="BodySmallSemibold">
+              </Kb.Text>
+              <Kb.Text type="BodySmallSemibold">
                 Everyone can now create and join channels.{' '}
-                <Text
+                <Kb.Text
                   onClick={onManageChannels}
                   type="BodySmallSemiboldSecondaryLink"
                   style={{color: globalColors.blueDark}}
                 >
                   Browse other channels
-                </Text>
-              </Text>
-            </Box>
-          </Box>
-        </Box>
+                </Kb.Text>
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
       </UserNotice>
     )
   }

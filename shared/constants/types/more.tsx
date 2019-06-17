@@ -1,56 +1,64 @@
-const provablePlatformsMap = {
-  dns: true,
-  facebook: true,
-  github: true,
-  hackernews: true,
-  http: true,
-  https: true,
-  reddit: true,
-  rooter: __DEV__,
-  twitter: true,
-  web: true,
-}
+export type ProvablePlatformsType =
+  | 'dns'
+  | 'facebook'
+  | 'github'
+  | 'hackernews'
+  | 'http'
+  | 'https'
+  | 'reddit'
+  | 'rooter'
+  | 'twitter'
+  | 'web'
+  | 'rooter'
 
-const platformsExpandedMap = {
-  // Flow needs this to be duplicated
-  btc: true,
-  dns: true,
-  dnsOrGenericWebSite: true,
-  facebook: true,
-  github: true,
-  hackernews: true,
-  http: true,
-  https: true,
-  pgp: true,
-  reddit: true,
-  rooter: __DEV__,
-  twitter: true,
-  web: true,
-  zcash: true,
-}
+export const ProvablePlatforms: ReadonlyArray<ProvablePlatformsType> = [
+  'dns',
+  'facebook',
+  'github',
+  'hackernews',
+  'http',
+  'https',
+  'reddit',
+  'rooter',
+  'twitter',
+  'web',
+  ...(__DEV__ ? ['rooter' as const] : []),
+]
 
-export type ProvablePlatformsType = keyof typeof provablePlatformsMap
-export const ProvablePlatforms = Object.keys(provablePlatformsMap).reduce((arr, p) => {
-  if (provablePlatformsMap[p]) {
-    arr.push(p)
-  }
-  return arr
-}, [])
+export type PlatformsExpandedType =
+  | 'btc'
+  | 'dns'
+  | 'dnsOrGenericWebSite'
+  | 'facebook'
+  | 'github'
+  | 'hackernews'
+  | 'http'
+  | 'https'
+  | 'pgp'
+  | 'reddit'
+  | 'twitter'
+  | 'web'
+  | 'zcash'
+  | 'rooter'
 
-export type PlatformsExpandedType = keyof typeof platformsExpandedMap
-export const PlatformsExpanded: Array<PlatformsExpandedType> = Object.keys(platformsExpandedMap).reduce(
-  (arr, p) => {
-    if (platformsExpandedMap[p]) {
-      arr.push(p)
-    }
-    return arr
-  },
-  []
-)
+export const PlatformsExpanded = [
+  'btc',
+  'dns',
+  'dnsOrGenericWebSite',
+  'facebook',
+  'github',
+  'hackernews',
+  'http',
+  'https',
+  'pgp',
+  'reddit',
+  'twitter',
+  'web',
+  'zcash',
+  ...(__DEV__ ? ['rooter' as const] : []),
+]
 
-export function isPlatformsExpandedType(str: string): PlatformsExpandedType | null {
-  if (PlatformsExpanded.includes(str as PlatformsExpandedType)) {
-    return str as PlatformsExpandedType
-  }
-  return null
-}
+const isPlatformsExpandedType = (str: string): str is PlatformsExpandedType =>
+  PlatformsExpanded.includes(str as any)
+export const asPlatformsExpandedType = (str: string): PlatformsExpandedType | null =>
+  isPlatformsExpandedType(str) ? str : null

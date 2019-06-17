@@ -261,6 +261,11 @@ export type _MessageSystemInviteAccepted = {
   bodySummary: HiddenString
   author: string
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text'
   invitee: string
@@ -277,6 +282,11 @@ export type _MessageSystemSimpleToComplex = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -290,6 +300,11 @@ export type _MessageSystemGitPush = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   pusher: string
@@ -310,6 +325,11 @@ export type _MessageSystemAddedToTeam = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   isAdmin: boolean
   ordinal: Ordinal
@@ -324,6 +344,11 @@ export type _MessageSystemJoined = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -336,6 +361,11 @@ export type _MessageSystemLeft = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -348,6 +378,11 @@ export type _MessageSystemText = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -361,6 +396,11 @@ export type _MessageSetDescription = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -374,6 +414,11 @@ export type _MessageSetChannelname = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -387,6 +432,11 @@ export type _MessageSystemChangeRetention = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   isInherit: boolean
   isTeam: boolean
@@ -405,6 +455,11 @@ export type _MessageSystemUsersAddedToConversation = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
   id: MessageID
   ordinal: Ordinal
   reactions: Reactions
@@ -414,7 +469,25 @@ export type _MessageSystemUsersAddedToConversation = {
 }
 export type MessageSystemUsersAddedToConversation = I.RecordOf<_MessageSystemUsersAddedToConversation>
 
-export type DecoratedMessage = MessageAttachment | MessageText | MessageRequestPayment | MessageSendPayment
+export type MessageWithReactionPopup =
+  | MessageText
+  | MessageSetChannelname
+  | MessageSetDescription
+  | MessageSystemAddedToTeam
+  | MessageSystemChangeRetention
+  | MessageSystemGitPush
+  | MessageSystemInviteAccepted
+  | MessageSystemJoined
+  | MessageSystemLeft
+  | MessageSystemSimpleToComplex
+  | MessageSystemText
+  | MessageSystemUsersAddedToConversation
+
+export type DecoratedMessage =
+  | MessageWithReactionPopup
+  | MessageAttachment
+  | MessageRequestPayment
+  | MessageSendPayment
 
 // If you add a message type here, you'll probably want to check
 // `deletableByDeleteHistory` stuff in constants/chat2/message

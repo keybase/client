@@ -61,7 +61,7 @@ const recheckProof = (state, action: ProfileGen.RecheckProofPayload) =>
 // only let one of these happen at a time
 let addProofInProgress = false
 function* addProof(state, action: ProfileGen.AddProofPayload) {
-  const service = More.isPlatformsExpandedType(action.payload.platform)
+  const service = More.asPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases
   switch (service) {

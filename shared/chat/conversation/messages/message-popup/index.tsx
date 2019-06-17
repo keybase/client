@@ -42,6 +42,27 @@ class MessageAction extends React.PureComponent<Props> {
             visible={this.props.visible}
           />
         )
+      case 'setChannelname':
+      case 'setDescription':
+      case 'systemAddedToTeam':
+      case 'systemChangeRetention':
+      case 'systemGitPush':
+      case 'systemInviteAccepted':
+      case 'systemJoined':
+      case 'systemLeft':
+      case 'systemSimpleToComplex':
+      case 'systemText':
+      case 'systemUsersAddedToConversation':
+        return (
+          <TextMessage
+            attachTo={this.props.attachTo}
+            message={this.props.message}
+            onHidden={this.props.onHidden}
+            position={this.props.position}
+            style={this.props.style}
+            visible={this.props.visible}
+          />
+        )
       case 'attachment':
         if (this.props.message.exploding) {
           return (

@@ -1,7 +1,6 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/team-building'",
-    "import HiddenString from '../util/hidden-string'"
+    "import * as Types from '../constants/types/team-building'"
   ],
   "actions": {
     "fetchedUserRecs": {"users": "Array<Types.User>"},

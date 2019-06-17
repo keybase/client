@@ -139,8 +139,8 @@ export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersP
 } as Types._SyncingFoldersProgress)
 
 export const makeOverallSyncStatus: I.Record.Factory<Types._OverallSyncStatus> = I.Record({
-  diskSpaceBannerHidden: false,
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
+  showingBanner: false,
   syncingFoldersProgress: makeSyncingFoldersProgress(),
 } as Types._OverallSyncStatus)
 

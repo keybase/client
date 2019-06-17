@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -192,25 +193,9 @@ class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
 const rowSize = 4
 
 export class MediaView {
-  _clamp = (thumb: Thumb, maxThumbSize: number) => {
-    return thumb.height > thumb.width
-      ? {height: (maxThumbSize * thumb.height) / thumb.width, width: maxThumbSize}
-      : {height: maxThumbSize, width: (maxThumbSize * thumb.width) / thumb.height}
-  }
   _resize = (thumb: Thumb) => {
     const maxThumbSize = Styles.isMobile ? imgMaxWidthRaw() / rowSize : 80
-    const dims = this._clamp(thumb, maxThumbSize)
-    const marginHeight = dims.height > maxThumbSize ? (dims.height - maxThumbSize) / 2 : 0
-    const marginWidth = dims.width > maxThumbSize ? (dims.width - maxThumbSize) / 2 : 0
-    return {
-      dims,
-      margins: {
-        marginBottom: -marginHeight,
-        marginLeft: -marginWidth,
-        marginRight: -marginWidth,
-        marginTop: -marginHeight,
-      },
-    }
+    return Constants.zoomImage(thumb.width, thumb.height, maxThumbSize)
   }
 
   _formRows = (thumbs: Array<Thumb>): Array<Array<ThumbSizing>> => {

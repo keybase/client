@@ -279,7 +279,18 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     (this.props.message.type === 'text' ||
       this.props.message.type === 'attachment' ||
       this.props.message.type === 'sendPayment' ||
-      this.props.message.type === 'requestPayment') &&
+      this.props.message.type === 'requestPayment' ||
+      this.props.message.type === 'setChannelname' ||
+      this.props.message.type === 'setDescription' ||
+      this.props.message.type === 'systemAddedToTeam' ||
+      this.props.message.type === 'systemChangeRetention' ||
+      this.props.message.type === 'systemGitPush' ||
+      this.props.message.type === 'systemInviteAccepted' ||
+      this.props.message.type === 'systemJoined' ||
+      this.props.message.type === 'systemLeft' ||
+      this.props.message.type === 'systemSimpleToComplex' ||
+      this.props.message.type === 'systemText' ||
+      this.props.message.type === 'systemUsersAddedToConversation') &&
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
       <MessagePopup

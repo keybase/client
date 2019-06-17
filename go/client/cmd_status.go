@@ -132,6 +132,7 @@ type jsonStatus struct {
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
+	ConfiguredAccounts   []keybase1.ConfiguredAccount
 	Clients              []keybase1.ClientStatus
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
@@ -164,6 +165,7 @@ func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
 	status.SecretPromptSkip = fstatus.ExtStatus.SecretPromptSkip
 	status.DefaultUsername = fstatus.ExtStatus.DefaultUsername
 	status.ProvisionedUsernames = fstatus.ExtStatus.ProvisionedUsernames
+	status.ConfiguredAccounts = fstatus.ExtStatus.ConfiguredAccounts
 	status.Clients = fstatus.ExtStatus.Clients
 	status.PlatformInfo = fstatus.ExtStatus.PlatformInfo
 	status.OSVersion = fstatus.ExtStatus.PlatformInfo.OsVersion
@@ -274,6 +276,21 @@ func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
 	dui.Printf("Config path:   %s\n", status.ConfigPath)
 	dui.Printf("Default user:  %s\n", extStatus.DefaultUsername)
 	dui.Printf("Other users:   %s\n", strings.Join(extStatus.ProvisionedUsernames, ", "))
+	dui.Printf("Configured accounts:\n")
+	for _, account := range extStatus.ConfiguredAccounts {
+		var details []string
+		if account.IsCurrent {
+			details = append(details, "current")
+		}
+		if account.HasStoredSecret {
+			details = append(details, "logged in")
+		}
+		var detailsStr string
+		if len(details) > 0 {
+			detailsStr = " (" + strings.Join(details, ", ") + ")"
+		}
+		dui.Printf("    %s%s\n", account.Username, detailsStr)
+	}
 	dui.Printf("Known DeviceEKs:\n")
 	dui.Printf("    %s \n", strings.Join(extStatus.DeviceEkNames, "\n    "))
 	dui.Printf("LocalDbStats:\n%s \n", strings.Join(extStatus.LocalDbStats, "\n"))

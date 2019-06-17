@@ -566,6 +566,18 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	return ret
 }
 
+func (l *TrackChainLink) GetTrackedLinkSeqno() (seqno keybase1.Seqno, err error) {
+	seqnoJSON := l.UnmarshalPayloadJSON().AtPath("body.track.seq_tail.seqno")
+	if seqnoJSON.IsNil() {
+		return seqno, nil
+	}
+	i64, err := seqnoJSON.GetInt64()
+	if err != nil {
+		return seqno, err
+	}
+	return keybase1.Seqno(i64), nil
+}
+
 // convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
 // to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
 // well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeds,
