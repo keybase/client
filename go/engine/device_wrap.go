@@ -102,15 +102,12 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 		EldestKID: e.args.EldestKID,
 	}
 
-	pushErr := kgEng.Push(m, pargs)
+	if err = kgEng.Push(m, pargs); err != nil {
+		return err
+	}
 
 	e.signingKey = kgEng.SigningKey()
 	e.encryptionKey = kgEng.EncryptionKey()
-
-	if pushErr != nil {
-		m.Warning("Failed to push keys: %s", pushErr)
-		return pushErr
-	}
 	return nil
 }
 
