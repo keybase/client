@@ -179,6 +179,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				WorthCurrency:          "",
 				Worth:                  "",
 				AvailableToSendWorth:   "",
+				Desc:                   d.Asset.Desc,
+				InfoUrl:                d.Asset.InfoUrl,
 			})
 		}
 	}

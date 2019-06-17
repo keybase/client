@@ -15,15 +15,18 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const asset = stateProps._asset
+  console.warn('asset:', asset)
   return {
     availableToSend: asset.balanceAvailableToSend,
     balance: asset.balanceTotal,
     code: asset.assetCode,
     equivAvailableToSend: `${asset.availableToSendWorth}`,
     equivBalance: `${asset.worth}`,
+    infoUrlDesc: asset.infoUrlDesc,
     issuerAccountID: asset.issuerAccountID,
     issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,
+    openInfoURL: () => (asset.infoUrl.length > 0 ? openURL(asset.infoUrl) : undefined),
     openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
     reserves: asset.reserves.toArray(),
   }
