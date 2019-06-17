@@ -229,7 +229,7 @@ KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
 
-if [[ -z "$1" ]]; then
+if [[ $# -eq 1 && "$1" == web+stellar:* ]]; then
   handle_url_schema $@
   exit
 fi
