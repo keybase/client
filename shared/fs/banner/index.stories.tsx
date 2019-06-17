@@ -24,7 +24,7 @@ const commonSystemFileManagerIntegrationBannerActions = {
 
 export const bannerProvider = {
   ConflictBanner: (p: any) => ({
-    conflictState: (p.storyProps && p.storyProps.conflictState) || 'none',
+    conflictState: (p.storyProps && p.storyProps.conflictState) || Constants.tlfServerViewWithNoConflict,
     onFeedback: Sb.action('onFeedback'),
     onFinishResolving: Sb.action('onFinishResolving'),
     onGoToSamePathInDifferentTlf: Sb.action('onGoToSamePathInDifferentTlf'),
@@ -129,21 +129,40 @@ export default () => {
     .add('Conflict Resolution - in conflict, not stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        {...Sb.propOverridesForStory({conflictState: Constants.conflictStateAutomaticResolvingNotStuck})}
+        {...Sb.propOverridesForStory({
+          conflictState: Constants.makeConflictStateServerView({resolvingConflict: true}),
+        })}
       />
     ))
     .add('Conflict Resolution - in conflict, stuck', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
-        {...Sb.propOverridesForStory({conflictState: Constants.conflictStateAutomaticResolvingStuck})}
+        {...Sb.propOverridesForStory({
+          conflictState: Constants.makeConflictStateServerView({
+            resolvingConflict: true,
+            stuckInConflict: true,
+          }),
+        })}
       />
     ))
     .add('Conflict Resolution - in resolution, server view, one conflict', () => (
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateManualResolvingServerView({
+          conflictState: Constants.makeConflictStateServerView({
             localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
+          }),
+        })}
+      />
+    ))
+    .add('Conflict Resolution - in resolution, server view, one conflict, stuck again', () => (
+      <ConflictBanner
+        path={Types.stringToPath('/keybase/team/keybasefriends')}
+        {...Sb.propOverridesForStory({
+          conflictState: Constants.makeConflictStateServerView({
+            localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
+            resolvingConflict: true,
+            stuckInConflict: true,
           }),
         })}
       />
@@ -152,7 +171,7 @@ export default () => {
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateManualResolvingServerView({
+          conflictState: Constants.makeConflictStateServerView({
             localViewTlfPaths: I.List([
               Types.stringToPath('/keybase/team/keybasefriends (conflict #1)'),
               Types.stringToPath('/keybase/team/keybasefriends (conflict #2)'),

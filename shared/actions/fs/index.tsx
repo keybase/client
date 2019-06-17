@@ -35,6 +35,30 @@ const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   }
 }
 
+const rpcConflictStateToConflictState = (
+  rpcConflictState: RPCTypes.ConflictState | null
+): Types.ConflictState =>
+  rpcConflictState
+    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.serverview
+      ? Constants.makeConflictStateServerView({
+          localViewTlfPaths: I.List(
+            (rpcConflictState.serverview.localViews || [])
+              .map(p =>
+                p.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(p.kbfs) : Constants.defaultPath
+              )
+              .filter(p => p !== Constants.defaultPath)
+          ),
+          resolvingConflict: rpcConflictState.serverview.resolvingConflict,
+          stuckInConflict: rpcConflictState.serverview.stuckInConflict,
+        })
+      : Constants.makeConflictStateManualResolvingLocalView({
+          serverViewTlfPath:
+            rpcConflictState.manualresolvinglocalview.serverView.PathType === RPCTypes.PathType.kbfs
+              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.serverView.kbfs)
+              : Constants.defaultPath,
+        })
+    : Constants.tlfServerViewWithNoConflict
+
 const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
     const mutablePayload = [
@@ -62,6 +86,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
                 [tlfType]: mutablePayload[tlfType].set(
                   tlfName,
                   Constants.makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState),
                     isFavorite,
                     isIgnored,
                     isNew,

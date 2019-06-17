@@ -83,40 +83,25 @@ export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
 export enum ConflictStateType {
-  None = 'none',
-  Automatic = 'automatic',
-  ManualServerView = 'manual-server-view',
-  ManualLocalView = 'manual-local-view',
+  ServerView = 'manual-server-view',
+  ManualResolvingLocalView = 'manual-resolving-local-view',
 }
 
-export type _ConflictStateNone = {
-  type: ConflictStateType.None
-}
-export type ConflictStateNone = I.RecordOf<_ConflictStateNone>
-
-export type _ConflictStateAutomaticResolving = {
-  isStuck: boolean
-  type: ConflictStateType.Automatic
-}
-export type ConflictStateAutomaticResolving = I.RecordOf<_ConflictStateAutomaticResolving>
-
-export type _ConflictStateManualResolvingServerView = {
+export type _ConflictStateServerView = {
   localViewTlfPaths: I.List<Path>
-  type: ConflictStateType.ManualServerView
+  resolvingConflict: boolean
+  stuckInConflict: boolean
+  type: ConflictStateType.ServerView
 }
-export type ConflictStateManualResolvingServerView = I.RecordOf<_ConflictStateManualResolvingServerView>
+export type ConflictStateServerView = I.RecordOf<_ConflictStateServerView>
 
 export type _ConflictStateManualResolvingLocalView = {
   serverViewTlfPath: Path
-  type: ConflictStateType.ManualLocalView
+  type: ConflictStateType.ManualResolvingLocalView
 }
 export type ConflictStateManualResolvingLocalView = I.RecordOf<_ConflictStateManualResolvingLocalView>
 
-export type ConflictState =
-  | ConflictStateNone
-  | ConflictStateAutomaticResolving
-  | ConflictStateManualResolvingServerView
-  | ConflictStateManualResolvingLocalView
+export type ConflictState = ConflictStateServerView | ConflictStateManualResolvingLocalView
 
 export type _Tlf = {
   conflictState: ConflictState

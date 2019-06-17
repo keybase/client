@@ -1425,9 +1425,10 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.NotNil(t, f.ConflictState)
 			conflictStateType, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
-			require.Equal(t, keybase1.ConflictStateType_AutomaticResolving,
+			require.Equal(t, keybase1.ConflictStateType_ServerView,
 				conflictStateType)
-			require.True(t, f.ConflictState.Automaticresolving().IsStuck)
+			require.True(t, f.ConflictState.Serverview().ResolvingConflict)
+			require.True(t, f.ConflictState.Serverview().StuckInConflict)
 			stuck++
 		} else {
 			require.Nil(t, f.ConflictState)
@@ -1460,10 +1461,12 @@ func TestFavoriteConflicts(t *testing.T) {
 			ct, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
 			require.Equal(
-				t, keybase1.ConflictStateType_ManualResolvingServerView, ct)
-			mrsv := f.ConflictState.Manualresolvingserverview()
-			require.Len(t, mrsv.LocalViews, 1)
-			pathLocalView = mrsv.LocalViews[0]
+				t, keybase1.ConflictStateType_ServerView, ct)
+			sv := f.ConflictState.Serverview()
+			require.False(t, sv.ResolvingConflict)
+			require.False(t, sv.StuckInConflict)
+			require.Len(t, sv.LocalViews, 1)
+			pathLocalView = sv.LocalViews[0]
 		} else {
 			require.Nil(t, f.ConflictState)
 		}
