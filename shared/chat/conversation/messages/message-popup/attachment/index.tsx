@@ -15,6 +15,7 @@ type Props = {
   onDelete: null | (() => void)
   onDownload: null | (() => void)
   onHidden: () => void
+  onReply: () => void
   onSaveAttachment: null | (() => void)
   onShareAttachment: null | (() => void)
   onShowInFinder: null | (() => void)
@@ -52,6 +53,7 @@ const AttachmentPopupMenu = (props: Props) => {
       : []),
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
+    ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
   ] as const
 
   const header = {

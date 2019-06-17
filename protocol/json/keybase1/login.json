@@ -18,6 +18,10 @@
         {
           "type": "boolean",
           "name": "hasStoredSecret"
+        },
+        {
+          "type": "boolean",
+          "name": "isCurrent"
         }
       ]
     }

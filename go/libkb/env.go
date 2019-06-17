@@ -1927,7 +1927,7 @@ func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
 	var maxSize int64
 
 	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin(e.GetUID()) {
-		maxKeepFiles = 1
+		maxKeepFiles = 2
 		maxSize = 16 * opt.MiB // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
 	} else {
 		maxKeepFiles = 3

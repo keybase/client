@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,7 +22,6 @@ func TestProxyTypeStrToEnum(t *testing.T) {
 
 func TestMakeProxy(t *testing.T) {
 	resetGlobals()
-	os.Clearenv()
 	mockedEnv := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
 
 	require.Equal(t, NoProxy, mockedEnv.GetProxyType())

@@ -28,7 +28,6 @@ const props = {
   ],
   daemonHandshakeState: 'done' as 'done',
 
-  diskSpaceBannerHidden: false,
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   fileName: null,
   files: 0,
@@ -49,6 +48,7 @@ const props = {
   showHelp: Storybook.action('showHelp'),
   showInFinder: Storybook.action('showInFinder'),
   showUser: Storybook.action('showUser'),
+  showingDiskSpaceBanner: true,
   totalSyncingBytes: 0,
   updateNow: Storybook.action('updateNow'),
   username: 'nathunsmitty',

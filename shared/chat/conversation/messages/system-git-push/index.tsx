@@ -5,7 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import {Box, Text, ConnectedUsernames, TimelineMarker, Icon} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 const branchRefPrefix = 'refs/heads/'
 
@@ -32,7 +32,7 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
     <Box style={globalStyles.flexBoxColumn}>
       <Text center={true} type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} />
-        {` `} created a new team repository called {` `}
+        {` `}created a new team repository called{` `}
         <Text
           type="BodySmallSemibold"
           style={repoID ? {color: globalColors.black_50} : undefined}
@@ -131,9 +131,7 @@ const GitPushCommon = ({children, pusher, timestamp, onClickUserAvatar}: PushCom
     onClickAvatar={() => onClickUserAvatar(pusher)}
   >
     {!isMobile && <Icon type="icon-team-git-16" style={{marginLeft: 20, marginTop: -12, zIndex: 999}} />}
-    <Text type="BodySmallSemibold" negative={true} style={{color: globalColors.black_50}}>
-      {formatTimeForMessages(timestamp)}
-    </Text>
+    <SystemMessageTimestamp timestamp={timestamp} />
     {children}
   </UserNotice>
 )

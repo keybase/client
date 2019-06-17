@@ -64,6 +64,14 @@ const mapDispatchToProps = dispatch => ({
       })
     )
   },
+  _onReply: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createToggleReplyToMessage({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
+  },
   _onSaveAttachment: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createMessageAttachmentNativeSave({
@@ -100,6 +108,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     // We only show the share/save options for video if we have the file stored locally from a download
     onHidden: () => ownProps.onHidden(),
+    onReply: () => dispatchProps._onReply(message),
     onSaveAttachment:
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,

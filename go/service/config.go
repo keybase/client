@@ -144,8 +144,13 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 	}
 	statusJSON := status.MergeStatusJSON(fstatus, "fstatus", arg.StatusJSON)
 
+	numBytes := status.LogSendDefaultBytesDesktop
+	if arg.SendMaxBytes {
+		numBytes = status.LogSendMaxBytes
+	}
+
 	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, arg.Feedback)
-	return logSendContext.LogSend(arg.SendLogs, status.LogSendDefaultBytesDesktop,
+	return logSendContext.LogSend(arg.SendLogs, numBytes,
 		false /* mergeExtendedStatus */)
 }
 

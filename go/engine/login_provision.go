@@ -49,6 +49,10 @@ type loginProvisionArg struct {
 	// Used for non-interactive provisioning
 	PaperKey   string
 	DeviceName string
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
 }
 
 // newLoginProvision creates a loginProvision engine.
@@ -449,11 +453,13 @@ func (e *loginProvision) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceWrapArg
 	e.devname = devname
 
 	return &DeviceWrapArgs{
-		Me:             e.arg.User,
-		DeviceName:     e.devname,
-		DeviceType:     e.arg.DeviceType,
-		Lks:            e.lks,
-		PerUserKeyring: e.perUserKeyring,
+		Me:                    e.arg.User,
+		DeviceName:            e.devname,
+		DeviceType:            e.arg.DeviceType,
+		Lks:                   e.lks,
+		PerUserKeyring:        e.perUserKeyring,
+		naclSigningKeyPair:    e.arg.naclSigningKeyPair,
+		naclEncryptionKeyPair: e.arg.naclEncryptionKeyPair,
 	}, nil
 }
 

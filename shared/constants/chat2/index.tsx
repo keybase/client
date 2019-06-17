@@ -363,6 +363,24 @@ export const clampImageSize = (width: number, height: number, maxSize: number) =
         width: clamp(width || 0, 0, maxSize),
       }
 
+export const zoomImage = (width: number, height: number, maxThumbSize: number) => {
+  const dims =
+    height > width
+      ? {height: (maxThumbSize * height) / width, width: maxThumbSize}
+      : {height: maxThumbSize, width: (maxThumbSize * width) / height}
+  const marginHeight = dims.height > maxThumbSize ? (dims.height - maxThumbSize) / 2 : 0
+  const marginWidth = dims.width > maxThumbSize ? (dims.width - maxThumbSize) / 2 : 0
+  return {
+    dims,
+    margins: {
+      marginBottom: -marginHeight,
+      marginLeft: -marginWidth,
+      marginRight: -marginWidth,
+      marginTop: -marginHeight,
+    },
+  }
+}
+
 export {
   getAllChannels,
   getChannelForTeam,

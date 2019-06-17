@@ -120,7 +120,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: String}
+    inParam: {readonly username: String; readonly signedUp: Boolean}
     outParam: void
   }
   'keybase.1.NotifySession.loggedOut': {
@@ -364,7 +364,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.config.logSend': {
-    inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean}
+    inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean; readonly sendMaxBytes: Boolean}
     outParam: LogSendID
   }
   'keybase.1.config.setProxyData': {
@@ -790,6 +790,14 @@ export type MessageTypes = {
   'keybase.1.pgpUi.shouldPushPrivate': {
     inParam: {readonly prompt: Boolean}
     outParam: Boolean
+  }
+  'keybase.1.phoneNumbers.addPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.verifyPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly code: String}
+    outParam: void
   }
   'keybase.1.pprof.logProcessorProfile': {
     inParam: {readonly logDirForMobile: String; readonly profileDurationSeconds: DurationSec}
@@ -2115,7 +2123,7 @@ export type CompatibilityTeamID = {typ: TeamType.legacy; legacy: TLFID | null} |
 export type ComponentResult = {readonly name: String; readonly status: Status; readonly exitCode: Int}
 export type Config = {readonly serverURI: String; readonly socketFile: String; readonly label: String; readonly runMode: String; readonly gpgExists: Boolean; readonly gpgPath: String; readonly version: String; readonly path: String; readonly binaryRealpath: String; readonly configPath: String; readonly versionShort: String; readonly versionFull: String; readonly isAutoForked: Boolean; readonly forkType: ForkType}
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly s?: String | null; readonly o?: String | null}
-export type ConfiguredAccount = {readonly username: String; readonly hasStoredSecret: Boolean}
+export type ConfiguredAccount = {readonly username: String; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}
 export type ConfirmResult = {readonly identityConfirmed: Boolean; readonly remoteConfirmed: Boolean; readonly expiringLocal: Boolean; readonly autoConfirmed: Boolean}
 export type ConflictAutomaticResolving = {readonly isStuck: Boolean}
 export type ConflictGeneration = Int
@@ -2158,7 +2166,7 @@ export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UI
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}
 export type ErrorNum = Int
-export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
+export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly configuredAccounts?: Array<ConfiguredAccount> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
 export type ExternalServiceConfig = {readonly schemaVersion: Int; readonly display?: ServiceDisplayConfig | null; readonly config?: ParamProofServiceConfig | null}
 export type FSEditListRequest = {readonly folder: Folder; readonly requestID: Int}
 export type FSFolderEditHistory = {readonly folder: Folder; readonly serverTime: Time; readonly history?: Array<FSFolderWriterEditHistory> | null}
@@ -2889,6 +2897,8 @@ export const loginPaperKeySubmitRpcPromise = (params: MessageTypes['keybase.1.lo
 export const notifyCtlSetNotificationsRpcPromise = (params: MessageTypes['keybase.1.notifyCtl.setNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.notifyCtl.setNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pgpPgpKeyGenDefaultRpcSaga = (p: {params: MessageTypes['keybase.1.pgp.pgpKeyGenDefault']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params: MessageTypes['keybase.1.pgp.pgpStorageDismiss']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pgp.pgpStorageDismiss']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersAddPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.addPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersVerifyPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.verifyPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params: MessageTypes['keybase.1.pprof.logProcessorProfile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logProcessorProfile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params: MessageTypes['keybase.1.pprof.logTrace']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logTrace']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const proveCheckProofRpcPromise = (params: MessageTypes['keybase.1.prove.checkProof']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.prove.checkProof']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.prove.checkProof', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3197,9 +3207,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.pgpUi.keyGenerated'
 // 'keybase.1.pgpUi.shouldPushPrivate'
 // 'keybase.1.pgpUi.finished'
-// 'keybase.1.phoneNumbers.addPhoneNumber'
 // 'keybase.1.phoneNumbers.editPhoneNumber'
-// 'keybase.1.phoneNumbers.verifyPhoneNumber'
 // 'keybase.1.phoneNumbers.getPhoneNumbers'
 // 'keybase.1.phoneNumbers.deletePhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityPhoneNumber'

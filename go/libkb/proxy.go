@@ -69,7 +69,6 @@ func GetCommaSeparatedListOfProxyTypes() string {
 	return strings.Join(proxyTypes, ",")
 }
 
-
 // Return a function that can be passed to the http library in order to configure a proxy
 func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 	return func(r *http.Request) (*url.URL, error) {
