@@ -132,10 +132,25 @@ const load = () => {
   addConfigs(stories, 'Advanced tx', config => (
     <Transaction
       {...config}
-      counterparty=''
-      counterpartyType='stellarPublicKey'
+      counterparty=""
+      counterpartyType="stellarPublicKey"
       isAdvanced={true}
       summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+    />
+  ))
+  addConfigs(stories, 'Advanced tx multi', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Multi-operation transaction with 3 operations"
+      operations={[
+        'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+        'Paid 1.0000000 XLM to account GA5MKLM3B2L4SXXXXFZAIX54KVUTEKIXRB2XOKAGYVTQMWD77AMKUD2G',
+        'Set master key weight to 100',
+      ]}
     />
   ))
 }

@@ -155,8 +155,9 @@ export type _PaymentCommon = {
   worth: string
   worthAtSendTime: string // for "(APPROXIMATELY $X.XX)" strings,
   // issuer, for non-xlm assets
-  isAdvanced: boolean,
-  summaryAdvanced: string,
+  isAdvanced: boolean
+  operations: Array<string> | null
+  summaryAdvanced: string
   issuerDescription: string
   issuerAccountID: AccountID | null
 }

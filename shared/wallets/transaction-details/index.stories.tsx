@@ -193,7 +193,7 @@ const load = () => {
         sourceAsset="TOAD"
       />
     ))
-    .add('Advanced payment', () => (
+    .add('Advanced tx', () => (
       <TransactionDetails
         {...props}
         counterparty=""
@@ -204,6 +204,27 @@ const load = () => {
         recipientAccountID={null}
         isAdvanced={true}
         summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+        operations={[
+          'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+        ]}
+      />
+    ))
+    .add('Advanced tx multi', () => (
+      <TransactionDetails
+        {...props}
+        counterparty=""
+        counterpartyType="stellarPublicKey"
+        feeChargedDescription="0.0000100 XLM"
+        issuerDescription="Unknown issuer"
+        memo=""
+        recipientAccountID={null}
+        isAdvanced={true}
+        summaryAdvanced="Multi-operation transaction with 3 operations"
+        operations={[
+          'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          'Paid 1.0000000 XLM to account GA5MKLM3B2L4SXXXXFZAIX54KVUTEKIXRB2XOKAGYVTQMWD77AMKUD2G',
+          'Set master key weight to 100',
+        ]}
       />
     ))
 }

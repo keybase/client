@@ -32,6 +32,7 @@ export type NotLoadingProps = {
   onLoadPaymentDetail: () => void
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
+  operations?: Array<string>
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean
@@ -230,19 +231,16 @@ const propsToParties = (props: NotLoadingProps) => {
     counterpartyAccountID = null
   }
 
-  let counterparty = null
-  if (props.counterparty) {
-    counterparty = (
-      <Counterparty
-        accountID={counterpartyAccountID}
-        counterparty={props.counterparty}
-        counterpartyMeta={props.counterpartyMeta}
-        counterpartyType={props.counterpartyType}
-        onChat={props.onChat}
-        onShowProfile={props.onShowProfile}
-      />
-    )
-  }
+  const counterparty = props.counterparty ? (
+    <Counterparty
+      accountID={counterpartyAccountID}
+      counterparty={props.counterparty}
+      counterpartyMeta={props.counterpartyMeta}
+      counterpartyType={props.counterpartyType}
+      onChat={props.onChat}
+      onShowProfile={props.onShowProfile}
+    />
+  ) : null
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -316,14 +314,14 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        {sender && (
+        {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
             {sender}
           </Kb.Box2>
         )}
 
-        {receiver && (
+        {!!receiver && (
           <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
             {receiver}
@@ -339,6 +337,17 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Text selectable={true} style={styles.transactionID} type="Body">
               {props.issuerAccountID}
             </Kb.Text>
+          </Kb.Box2>
+        )}
+
+        {props.operations && props.operations.length && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
+            {props.operations.map((op, i) => (
+              <Kb.Text key={i} selectable={true} style={styles.operation} type="Body">
+                {i + 1}. {op}
+              </Kb.Text>
+            ))}
           </Kb.Box2>
         )}
 
@@ -509,6 +518,7 @@ const styles = Styles.styleSheetCreate({
   },
   flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
+  operation: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   partyAccountContainer: {
     alignSelf: 'flex-start',
   },
