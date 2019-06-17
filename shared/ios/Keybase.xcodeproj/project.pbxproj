@@ -459,8 +459,6 @@
 				DB229EE81BF697160081901A /* Bundle React Native code and images */,
 				A90CD56F1FD70F7E00F97901 /* Embed Frameworks */,
 				279FB5D82139AB6A005E4864 /* Embed App Extensions */,
-				219698F240E55C8E4DBBE382 /* [CP] Embed Pods Frameworks */,
-				3945D04652EFE3D0CB0C5345 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -480,7 +478,6 @@
 				279FB5982139AB6A005E4864 /* Sources */,
 				279FB5992139AB6A005E4864 /* Frameworks */,
 				279FB59A2139AB6A005E4864 /* Resources */,
-				B6F9A60297A477349653C548 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -500,8 +497,6 @@
 				DB7539061D776CC400AFA61B /* Frameworks */,
 				DB7539131D776CC400AFA61B /* Resources */,
 				DB75391E1D776CC400AFA61B /* Bundle React Native code and images */,
-				B64595940AD1C93ECE274CCF /* [CP] Embed Pods Frameworks */,
-				E80332A108B8C6A2190D8BA9 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -631,36 +626,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		219698F240E55C8E4DBBE382 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		3945D04652EFE3D0CB0C5345 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase/Pods-Keybase-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		56262AC05B7D338505B39A58 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -695,36 +660,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B64595940AD1C93ECE274CCF /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B6F9A60297A477349653C548 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KeybaseShare/Pods-KeybaseShare-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DB229EE81BF697160081901A /* Bundle React Native code and images */ = {
@@ -771,21 +706,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		E80332A108B8C6A2190D8BA9 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
