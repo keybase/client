@@ -5,11 +5,13 @@ package status
 
 import (
 	"bytes"
+	"fmt"
 	"mime/multipart"
 	"os"
 	"regexp"
 	"strings"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -229,8 +231,10 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 
 // LogSend sends the tails of log files to kb, and also the last few trace
 // output files.
-func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatus bool) (keybase1.LogSendID, error) {
+func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatus bool) (id keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContextBackground(l.G()).WithLogTag("LOGSEND")
+	defer mctx.TraceTimed(fmt.Sprintf("LogSend sendLogs: %v numBytes: %s",
+		sendLogs, humanize.Bytes(uint64(numBytes))), func() error { return err })()
 
 	if numBytes < 1 {
 		numBytes = LogSendDefaultBytesDesktop

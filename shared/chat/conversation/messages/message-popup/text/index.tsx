@@ -12,7 +12,7 @@ type Props = {
   deviceRevokedAt: number | null
   deviceType: DeviceType
   onAddReaction: null | (() => void)
-  onCopy: () => void
+  onCopy: null | (() => void)
   onDelete: null | (() => void)
   onDeleteMessageHistory: null | (() => void)
   onEdit: null | (() => void)
@@ -56,7 +56,7 @@ const TextPopupMenu = (props: Props) => {
         ]
       : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-    {onClick: props.onCopy, title: 'Copy text'},
+    ...(props.onCopy ? [{onClick: props.onCopy, title: 'Copy text'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
     ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),

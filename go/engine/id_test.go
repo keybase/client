@@ -210,6 +210,7 @@ type FakeIdentifyUI struct {
 	DisplayTLFArg   keybase1.DisplayTLFCreateWithInviteArg
 	DisplayTLFCount int
 	FakeConfirm     bool
+	LastTrack       *keybase1.TrackSummary
 	sync.Mutex
 }
 
@@ -292,7 +293,8 @@ func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKe
 	ui.DisplayKeyCalls++
 	return nil
 }
-func (ui *FakeIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
+func (ui *FakeIdentifyUI) ReportLastTrack(_ libkb.MetaContext, summary *keybase1.TrackSummary) error {
+	ui.LastTrack = summary
 	return nil
 }
 

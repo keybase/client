@@ -13,7 +13,7 @@ import Text from '.'
 
 type OwnProps = {
   attachTo: () => React.Component<any> | null
-  message: Types.MessageText
+  message: Types.MessageWithReactionPopup
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -79,24 +79,20 @@ const mapDispatchToProps = dispatch => ({
     )
   },
   _onReply: (message: Types.Message) => {
-    if (message.type === 'text') {
-      dispatch(
-        Chat2Gen.createToggleReplyToMessage({
-          conversationIDKey: message.conversationIDKey,
-          ordinal: message.ordinal,
-        })
-      )
-    }
+    dispatch(
+      Chat2Gen.createToggleReplyToMessage({
+        conversationIDKey: message.conversationIDKey,
+        ordinal: message.ordinal,
+      })
+    )
   },
   _onReplyPrivately: (message: Types.Message) => {
-    if (message.type === 'text' && message.author && message.text) {
-      dispatch(
-        Chat2Gen.createMessageReplyPrivately({
-          ordinal: message.ordinal,
-          sourceConversationIDKey: message.conversationIDKey,
-        })
-      )
-    }
+    dispatch(
+      Chat2Gen.createMessageReplyPrivately({
+        ordinal: message.ordinal,
+        sourceConversationIDKey: message.conversationIDKey,
+      })
+    )
   },
   _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
@@ -115,7 +111,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isDeleteable,
     isEditable,
     onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
-    onCopy: () => dispatchProps._onCopy(message),
+    onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : null,
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
     onDeleteMessageHistory: stateProps._canDeleteHistory
       ? () => dispatchProps._onDeleteMessageHistory(message)

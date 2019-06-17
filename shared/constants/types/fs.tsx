@@ -632,7 +632,7 @@ export const stringToPath = (s: string): Path =>
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
-export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
+export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop() || '')
 export const getPathNameFromElems = (elems: Array<string>): string => {
   if (elems.length === 0) return ''
   return elems[elems.length - 1]
@@ -734,7 +734,7 @@ export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + local
 export const getLocalPathName = (localPath: LocalPath): string => {
   const elems = localPath.split(localSep)
   for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
-    if (elem !== '') {
+    if (elem) {
       return elem
     }
   }

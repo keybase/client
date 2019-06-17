@@ -2327,3 +2327,7 @@ func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, source stel
 func FuzzyAssetSearch(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
 	return remoter.FuzzyAssetSearch(mctx, arg)
 }
+
+func ListPopularAssets(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+	return remoter.ListPopularAssets(mctx, arg)
+}
