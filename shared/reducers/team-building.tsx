@@ -3,13 +3,34 @@ import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import {TypedActions} from '../actions/typed-actions-gen'
 import {trim} from 'lodash-es'
 
-export default function<
-  X extends {
-    teamBuilding: Types.TeamBuildingSubState
+export function isTeamBuildingAction(action: TypedActions): action is TeamBuildingGen.Actions {
+  switch (action.type) {
+    case TeamBuildingGen.resetStore:
+    case TeamBuildingGen.cancelTeamBuilding:
+    case TeamBuildingGen.addUsersToTeamSoFar:
+    case TeamBuildingGen.removeUsersFromTeamSoFar:
+    case TeamBuildingGen.searchResultsLoaded:
+    case TeamBuildingGen.finishedTeamBuilding:
+    case TeamBuildingGen.search:
+    case TeamBuildingGen.fetchedUserRecs:
+    case TeamBuildingGen.fetchUserRecs:
+      return true
   }
->(state: I.RecordOf<X>, action: TeamBuildingGen.Actions): I.RecordOf<X> {
+  return false
+}
+
+export default function<X extends {teamBuilding: Types.TeamBuildingSubState}>(
+  namespace: string,
+  state: I.RecordOf<X>,
+  action: TeamBuildingGen.Actions
+): I.RecordOf<X> {
+  if (action.namespace !== namespace) {
+    return state
+  }
+
   switch (action.type) {
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
@@ -28,14 +49,14 @@ export default function<
       return state.mergeIn(['teamBuilding', 'teamBuildingSearchResults', query], {[service]: users})
     }
     case TeamBuildingGen.finishedTeamBuilding:
-      return state.mergeIn<'teamBuilding', X['teamBuilding']>(['teamBuilding'], {
+      return state.mergeIn(['teamBuilding'], {
         teamBuildingTeamSoFar: I.Set<Types.User>(),
-      })
+      } as Partial<X['teamBuilding']>)
 
     case TeamBuildingGen.fetchedUserRecs:
-      return state.mergeIn<'teamBuilding'>(['teamBuilding' as const], {
+      return state.mergeIn(['teamBuilding'], {
         teamBuildingUserRecs: action.payload.users,
-      })
+      } as Partial<X['teamBuilding']>)
 
     case TeamBuildingGen.search: {
       const {query, service, limit = state.teamBuilding.teamBuildingSearchLimit} = action.payload
@@ -43,7 +64,7 @@ export default function<
         teamBuildingSearchLimit: limit,
         teamBuildingSearchQuery: trim(query),
         teamBuildingSelectedService: service,
-      })
+      } as Partial<X['teamBuilding']>)
     }
 
     case TeamBuildingGen.fetchUserRecs:

@@ -2470,11 +2470,11 @@ function genHelper(count) {
 
   mergeIn<K1 extends keyof TProps, V extends TProps[K1]>(
     keyPath: [K1],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<K1 extends keyof TProps, K2 extends keyof TProps[K1], V extends TProps[K1][K2]>(
     keyPath: [K1, K2],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2483,7 +2483,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3]
   >(
     keyPath: [K1, K2, K3],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2493,7 +2493,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4]
   >(
     keyPath: [K1, K2, K3, K4],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2504,7 +2504,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5]
   >(
     keyPath: [K1, K2, K3, K4, K5],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2516,7 +2516,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5][K6]
   >(
     keyPath: [K1, K2, K3, K4, K5, K6],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2529,7 +2529,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5][K6][K7]
   >(
     keyPath: [K1, K2, K3, K4, K5, K6, K7],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2543,7 +2543,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5][K6][K7][K8]
   >(
     keyPath: [K1, K2, K3, K4, K5, K6, K7, K8],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   // mergeIn<K1 extends keyof TProps, K2 extends keyof TProps[K1]>(keyPath: [K1, K2], ...collections: Array<Partial<TProps[K1][K2]>>): this;
   // mergeIn<K1 extends keyof TProps, K2 extends keyof TProps[K1], K3 extends keyof TProps[K1][K2]>(keyPath: [K1,K2,K3], ...collections: Array<Partial<TProps[K1][K2][K3]>>): this;

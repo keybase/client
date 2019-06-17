@@ -4,14 +4,20 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "fetchedUserRecs": {"users": "Array<Types.User>"},
-    "fetchUserRecs": {},
-    "finishedTeamBuilding": {},
-    "cancelTeamBuilding": {},
-    "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},
-    "addUsersToTeamSoFar": {"users": "Array<Types.User>"},
-    "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
+    "fetchedUserRecs": {"namespace": "string", "users": "Array<Types.User>"},
+    "fetchUserRecs": {"namespace": "string"},
+    "finishedTeamBuilding": {"namespace": "string"},
+    "cancelTeamBuilding": {"namespace": "string"},
+    "search": {
+      "namespace": "string",
+      "query": "string",
+      "service": "Types.ServiceIdWithContact",
+      "limit?": "number"
+    },
+    "addUsersToTeamSoFar": {"namespace": "string", "users": "Array<Types.User>"},
+    "removeUsersFromTeamSoFar": {"namespace": "string", "users": "Array<Types.UserID>"},
     "searchResultsLoaded": {
+      "namespace": "string",
       "users": "Array<Types.User>",
       "query": "string",
       "service": "Types.ServiceIdWithContact"

@@ -19,18 +19,20 @@ export const search = 'team-building:search'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
 
 // Payload Types
-type _AddUsersToTeamSoFarPayload = {readonly users: Array<Types.User>}
-type _CancelTeamBuildingPayload = void
-type _FetchUserRecsPayload = void
-type _FetchedUserRecsPayload = {readonly users: Array<Types.User>}
-type _FinishedTeamBuildingPayload = void
-type _RemoveUsersFromTeamSoFarPayload = {readonly users: Array<Types.UserID>}
+type _AddUsersToTeamSoFarPayload = {readonly namespace: string; readonly users: Array<Types.User>}
+type _CancelTeamBuildingPayload = {readonly namespace: string}
+type _FetchUserRecsPayload = {readonly namespace: string}
+type _FetchedUserRecsPayload = {readonly namespace: string; readonly users: Array<Types.User>}
+type _FinishedTeamBuildingPayload = {readonly namespace: string}
+type _RemoveUsersFromTeamSoFarPayload = {readonly namespace: string; readonly users: Array<Types.UserID>}
 type _SearchPayload = {
+  readonly namespace: string
   readonly query: string
   readonly service: Types.ServiceIdWithContact
   readonly limit?: number
 }
 type _SearchResultsLoadedPayload = {
+  readonly namespace: string
   readonly users: Array<Types.User>
   readonly query: string
   readonly service: Types.ServiceIdWithContact

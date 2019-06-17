@@ -6,7 +6,7 @@ import TeamBuilding from '.'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {compose, namedConnect} from '../util/container'
+import {compose, namedConnect, TypedState, TypedDispatch} from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
@@ -16,7 +16,10 @@ import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 
+type ValidNS = 'chat2' | 'teams'
+
 type OwnProps = {
+  namespace: ValidNS
   searchString: string
   selectedService: ServiceIdWithContact
   highlightedIndex: number
@@ -89,45 +92,47 @@ const deriveUserFromUserIdFn = memoize(
     null
 )
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const userResults = state.chat2.teamBuildingSearchResults.getIn([
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const teamBuildingState = state[ownProps.namespace].teamBuilding
+  const userResults = state.chat2.teamBuilding.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
   ])
 
   return {
     recommendations: deriveSearchResults(
-      state.chat2.teamBuildingUserRecs,
-      state.chat2.teamBuildingTeamSoFar,
+      state.chat2.teamBuilding.teamBuildingUserRecs,
+      state.chat2.teamBuilding.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following
     ),
     searchResults: deriveSearchResults(
       userResults,
-      state.chat2.teamBuildingTeamSoFar,
+      state.chat2.teamBuilding.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following
     ),
     serviceResultCount: deriveServiceResultCount(
-      state.chat2.teamBuildingSearchResults,
+      state.chat2.teamBuilding.teamBuildingSearchResults,
       ownProps.searchString
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
-    teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
-    userFromUserId: deriveUserFromUserIdFn(userResults, state.chat2.teamBuildingUserRecs),
+    teamSoFar: deriveTeamSoFar(state.chat2.teamBuilding.teamBuildingTeamSoFar),
+    userFromUserId: deriveUserFromUserIdFn(userResults, state.chat2.teamBuilding.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
-  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
+const mapDispatchToProps = (dispatch: TypedDispatch, {namespace}: OwnProps) => ({
+  _onAdd: (user: User) =>
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
-    requestIdleCallback(() => dispatch(TeamBuildingGen.createSearch({limit, query, service})))
+    requestIdleCallback(() => dispatch(TeamBuildingGen.createSearch({namespace, limit, query, service})))
   }, 500),
-  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
-  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
+  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
+  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace})),
+  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
 })
 
 const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {

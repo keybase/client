@@ -12,6 +12,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
+import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
 
@@ -1316,10 +1317,10 @@ const rootReducer = (
     case TeamBuildingGen.removeUsersFromTeamSoFar:
     case TeamBuildingGen.searchResultsLoaded:
     case TeamBuildingGen.finishedTeamBuilding:
-    case TeamBuildingGen.search:
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
-      return teamBuildingReducer(state, action)
+    case TeamBuildingGen.search:
+      return teamBuildingReducer('chat2', state, action)
 
     // Saga only actions
     case Chat2Gen.attachmentPreviewSelect:
@@ -1372,6 +1373,7 @@ const rootReducer = (
     case Chat2Gen.resolveMaybeMention:
       return state
     default:
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }
