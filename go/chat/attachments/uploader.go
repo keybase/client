@@ -357,9 +357,9 @@ func (u *Uploader) getBaseDir() string {
 // normalizeFilenameFromCache substitutes the existing cache dir value into the
 // file path since it's possible for the path to the cache dir to change,
 // especially on mobile.
-func (u *Uploader) normalizeFilenameFromCache(file string) string {
+func (u *Uploader) normalizeFilenameFromCache(dir, file string) string {
 	file = filepath.Base(file)
-	return filepath.Join(u.getBaseDir(), file)
+	return filepath.Join(dir, file)
 }
 
 func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dirname, prefix string) (f *os.File, err error) {
@@ -381,7 +381,7 @@ func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dir
 		return nil, err
 	}
 	if evicted != nil {
-		path := u.normalizeFilenameFromCache(evicted.Value.(string))
+		path := u.normalizeFilenameFromCache(dir, evicted.Value.(string))
 		if oerr := os.Remove(path); oerr != nil {
 			u.Debug(ctx, "failed to remove file at %s, %v", path, oerr)
 		}
