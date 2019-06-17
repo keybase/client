@@ -354,6 +354,14 @@ func (u *Uploader) getBaseDir() string {
 	return baseDir
 }
 
+// normalizeFilenameFromCache substitutes the existing cache dir value into the
+// file path since it's possible for the path to the cache dir to change,
+// especially on mobile.
+func (u *Uploader) normalizeFilenameFromCache(file string) string {
+	file = filepath.Base(file)
+	return filepath.Join(u.getBaseDir(), file)
+}
+
 func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dirname, prefix string) (f *os.File, err error) {
 	baseDir := u.getBaseDir()
 	dir := filepath.Join(baseDir, dirname)
@@ -367,13 +375,13 @@ func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dir
 
 	// Add an entry to the disk LRU mapping with the tmpfilename to limit the
 	// number of resources on disk.  If we evict something we remove the
-	// remnants .
+	// remnants.
 	evicted, err := diskLRU.Put(ctx, u.G(), f.Name(), f.Name())
 	if err != nil {
 		return nil, err
 	}
 	if evicted != nil {
-		path := evicted.Value.(string)
+		path := u.normalizeFilenameFromCache(evicted.Value.(string))
 		if oerr := os.Remove(path); oerr != nil {
 			u.Debug(ctx, "failed to remove file at %s, %v", path, oerr)
 		}
