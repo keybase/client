@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
@@ -73,6 +74,20 @@ func (n *signupAPIMock) GetDecodeCtx(ctx context.Context, args libkb.APIArg, wra
 		return errors.New("signupAPIMock simulated network error")
 	}
 	return n.realAPI.GetDecodeCtx(ctx, args, wrap)
+}
+
+func nopwChangePassphrase(tc libkb.TestContext) error {
+	newPassphrase := "okokokok"
+	arg := &keybase1.PassphraseChangeArg{
+		Passphrase: newPassphrase,
+		Force:      true,
+	}
+	uis := libkb.UIs{
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := NewPassphraseChange(tc.G, arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	return RunEngine2(m, eng)
 }
 
 func TestSecretStorePwhashAfterSignup(t *testing.T) {
@@ -173,6 +188,18 @@ func TestSignupFailProvision(t *testing.T) {
 	// Try to post a link to see if things work.
 	_, _, err = runTrack(tc, fu, "t_alice", libkb.GetDefaultSigVersion(tc.G))
 	require.NoError(t, err)
+
+	// See if user can set passphrase
+	err = nopwChangePassphrase(tc)
+	require.NoError(t, err)
+
+	{
+		eng := NewPassphraseCheck(tc.G, &keybase1.PassphraseCheckArg{
+			Passphrase: "okokokok",
+		})
+		err := RunEngine2(m, eng)
+		require.NoError(t, err)
+	}
 }
 
 func TestSignupFailAfterProvision(t *testing.T) {

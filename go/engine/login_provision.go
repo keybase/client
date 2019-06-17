@@ -500,7 +500,6 @@ func (e *loginProvision) recoverAfterFailedSignup(mctx libkb.MetaContext) (ret *
 		return nil, err
 	}
 
-	mctx.LoginContext().CreateStreamCache(nil, stream)
 	ok, err := mctx.LoginContext().LoggedInLoad()
 	mctx.Debug("LoggedInLoad: ok=%t err=%v", ok, err)
 	return stream, nil
