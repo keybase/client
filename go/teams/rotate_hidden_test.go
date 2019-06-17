@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -91,6 +92,52 @@ func TestRotateHiddenOther(t *testing.T) {
 		keys, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
 		require.NoError(t, err)
 		require.Equal(t, len(keys), numKeys)
+	}
+
+	check := func() {
+		checkForUser(0)
+		checkForUser(1)
+	}
+
+	for i := 0; i < 5; i++ {
+		rotate(i%2 == 0)
+		check()
+	}
+}
+
+func TestRotateHiddenOtherFTL(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	ctx := context.TODO()
+	numKeys := 1
+
+	rotate := func(h bool) {
+		g := tcs[0].G
+		team, err := GetForTestByID(ctx, g, teamID)
+		require.NoError(t, err)
+		err = team.rotate(ctx, h)
+		require.NoError(t, err)
+		numKeys++
+	}
+
+	checkForUser := func(i int) {
+		mctx := libkb.NewMetaContextForTest(*tcs[i])
+		arg := keybase1.FastTeamLoadArg{
+			ID:            teamID,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			NeedLatestKey: true,
+		}
+		team, err := mctx.G().GetFastTeamLoader().Load(mctx, arg)
+		require.NoError(t, err)
+		fmt.Printf("%+v\n", team)
 	}
 
 	check := func() {

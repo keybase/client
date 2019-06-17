@@ -800,7 +800,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	err = hiddenPackage.CheckUpdatesAgainstSeeds(mctx, ret.PerTeamKeySeedsUnverified)
+	err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
 	if err != nil {
 		return nil, err
 	}
@@ -902,22 +902,17 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 }
 
 func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData) (ret *hidden.LoaderPackage, err error) {
-	var encKID keybase1.KID
-	var gen keybase1.PerTeamKeyGeneration
-	if team != nil {
-		ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey()
-		if err != nil {
-			return nil, err
-		}
-		encKID = ptk.EncKID
-		gen = ptk.Gen
-	}
-	ret = hidden.NewLoaderPackage(id, encKID, gen)
-	err = ret.Load(mctx)
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
+	return hidden.NewLoaderPackage(mctx, id,
+		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, err error) {
+			if team == nil {
+				return encKID, gen, nil
+			}
+			ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey()
+			if err != nil {
+				return encKID, gen, err
+			}
+			return ptk.EncKID, ptk.Gen, nil
+		})
 }
 
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {
