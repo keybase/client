@@ -601,7 +601,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.
 		s.Debug(ctx, "ApplyLocalChatState: failed to get conv: %s", err)
 		return i
 	}
-	if rc.LocallyRead {
+	if rc.IsLocallyRead() {
 		return keybase1.BadgeConversationInfo{
 			ConvID:         i.ConvID,
 			BadgeCounts:    make(map[keybase1.DeviceType]int),
@@ -620,6 +620,11 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
 		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
 		return nil
+	}
+	if err := s.createInbox().MarkLocalRead(ctx, uid, convID, msgID); err != nil {
+		s.Debug(ctx, "MarkAsRead: failed to mark local read: %s", err)
+	} else {
+		s.badger.Send(ctx)
 	}
 	if err := s.readOutbox.PushRead(ctx, convID, msgID); err != nil {
 		return err
