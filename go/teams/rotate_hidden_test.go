@@ -103,3 +103,51 @@ func TestRotateHiddenOther(t *testing.T) {
 		check()
 	}
 }
+
+func TestRotateHiddenOtherFTL(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	ctx := context.TODO()
+	keyGen := keybase1.PerTeamKeyGeneration(1)
+
+	rotate := func(h bool) {
+		g := tcs[0].G
+		team, err := GetForTestByID(ctx, g, teamID)
+		require.NoError(t, err)
+		err = team.rotate(ctx, h)
+		require.NoError(t, err)
+		keyGen++
+	}
+
+	checkForUser := func(i int) {
+		mctx := libkb.NewMetaContextForTest(*tcs[i])
+		arg := keybase1.FastTeamLoadArg{
+			ID:            teamID,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			NeedLatestKey: true,
+			ForceRefresh:  true,
+		}
+		team, err := mctx.G().GetFastTeamLoader().Load(mctx, arg)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(team.ApplicationKeys))
+		require.Equal(t, keyGen, team.ApplicationKeys[0].KeyGeneration)
+	}
+
+	check := func() {
+		checkForUser(0)
+		checkForUser(1)
+	}
+
+	for i := 0; i < 5; i++ {
+		rotate(i%2 == 0)
+		check()
+	}
+}
