@@ -489,7 +489,7 @@ func (e *loginProvision) recoverAfterFailedSignup(mctx libkb.MetaContext) (ret *
 	username := user.GetNormalizedName()
 	uid := user.GetUID()
 
-	stream, err := libkb.RetrieveFullPassphraseStream(mctx, username, uid)
+	stream, err := libkb.RetrievePwhashEddsaPassphraseStream(mctx, username, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -1154,8 +1154,8 @@ func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
 	}
 	e.saveToSecretStore(m)
 
-	if cErr := libkb.ClearFullPassphraseSecret(m, e.arg.User.GetNormalizedName()); cErr != nil {
-		m.Debug("ClearFullPassphraseSecret failed with: %s", cErr)
+	if cErr := libkb.ClearPwhashEddsaPassphraseStream(m, e.arg.User.GetNormalizedName()); cErr != nil {
+		m.Debug("ClearPwhashEddsaPassphraseStream failed with: %s", cErr)
 	}
 
 	return nil

@@ -23,8 +23,8 @@ func isPPSSecretStore(identifier string) bool {
 		strings.HasSuffix(identifier, string(ssPwhashSuffix))
 }
 
-func RetrieveFullPassphraseStream(mctx MetaContext, username NormalizedUsername, uid keybase1.UID) (ret *PassphraseStream, err error) {
-	defer mctx.Trace(fmt.Sprintf("RetrieveFullPassphraseStream(%q,%q)", username, uid),
+func RetrievePwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUsername, uid keybase1.UID) (ret *PassphraseStream, err error) {
+	defer mctx.Trace(fmt.Sprintf("RetrievePwhashEddsaPassphraseStream(%q,%q)", username, uid),
 		func() error { return err })()
 
 	ss := mctx.G().SecretStore()
@@ -38,7 +38,7 @@ func RetrieveFullPassphraseStream(mctx MetaContext, username NormalizedUsername,
 		return nil, err
 	}
 
-	pps, err := newPassphraseStreamPE(pwHashSecret.Bytes(), edDSASecret.Bytes())
+	pps, err := newPassphraseStreamFromPwhAndEddsa(pwHashSecret.Bytes(), edDSASecret.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func RetrieveFullPassphraseStream(mctx MetaContext, username NormalizedUsername,
 	return pps, nil
 }
 
-func StoreFullPassphraseStream(mctx MetaContext, username NormalizedUsername, pps *PassphraseStream) (err error) {
-	defer mctx.Trace(fmt.Sprintf("StoreFullPassphraseStream(%q)", username),
+func StorePwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUsername, pps *PassphraseStream) (err error) {
+	defer mctx.Trace(fmt.Sprintf("StorePwhashEddsaPassphraseStream(%q)", username),
 		func() error { return err })()
 
 	ss := mctx.G().SecretStore()
@@ -64,7 +64,7 @@ func StoreFullPassphraseStream(mctx MetaContext, username NormalizedUsername, pp
 		if err != nil {
 			// Never store partial secret.
 			mctx.Debug("Clearing partial secret after unsuccessful store, error was: %s", err)
-			clrErr := ClearFullPassphraseSecret(mctx, username)
+			clrErr := ClearPwhashEddsaPassphraseStream(mctx, username)
 			if clrErr != nil {
 				mctx.Debug("Failed to clear: %v", clrErr)
 			}
@@ -92,7 +92,7 @@ func StoreFullPassphraseStream(mctx MetaContext, username NormalizedUsername, pp
 	return nil
 }
 
-func ClearFullPassphraseSecret(mctx MetaContext, username NormalizedUsername) error {
+func ClearPwhashEddsaPassphraseStream(mctx MetaContext, username NormalizedUsername) error {
 	ss := mctx.G().SecretStore()
 
 	prevOptions := ss.GetOptions(mctx)

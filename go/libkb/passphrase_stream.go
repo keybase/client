@@ -87,7 +87,7 @@ func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 	ps.gen = gen
 }
 
-func newPassphraseStreamPE(pwhash, eddsa []byte) (*PassphraseStream, error) {
+func newPassphraseStreamFromPwhAndEddsa(pwhash, eddsa []byte) (*PassphraseStream, error) {
 	stream := make([]byte, extraLen)
 	if len(pwhash) != pwhLen {
 		return nil, fmt.Errorf("Invalid PWHash len: %d, expected %d", len(pwhash), pwhLen)

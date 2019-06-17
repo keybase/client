@@ -347,7 +347,7 @@ func (s *SignupEngine) storeSecretForRecovery(m libkb.MetaContext) (err error) {
 	}
 
 	username := s.me.GetNormalizedName()
-	err = libkb.StoreFullPassphraseStream(m, username, s.ppStream)
+	err = libkb.StorePwhashEddsaPassphraseStream(m, username, s.ppStream)
 	if err != nil {
 		return err
 	}
