@@ -30,6 +30,7 @@ type blockOpsConfig interface {
 	blockCryptVersioner
 	clockGetter
 	reporterGetter
+	settingsDBGetter
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying
@@ -49,7 +50,7 @@ func NewBlockOpsStandard(
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
-		bg:                          bg,
+		bg: bg,
 	}
 	q := newBlockRetrievalQueue(
 		queueSize, prefetchQueueSize, throttledPrefetchPeriod, qConfig)

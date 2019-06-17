@@ -38,6 +38,7 @@ type prefetcherConfig interface {
 	diskBlockCacheGetter
 	clockGetter
 	reporterGetter
+	settingsDBGetter
 }
 
 type prefetchRequest struct {
@@ -899,7 +900,7 @@ func (p *blockPrefetcher) reschedulePrefetch(req *prefetchRequest) {
 	}
 }
 
-func (p *blockPrefetcher) sendOutOfSpaceNotification() {
+func (p *blockPrefetcher) sendOverallSyncStatusNotification() {
 	p.overallSyncStatusLock.Lock()
 	defer p.overallSyncStatusLock.Unlock()
 	p.sendOverallSyncStatusHelperLocked()
@@ -911,12 +912,18 @@ func (p *blockPrefetcher) stopIfNeeded(
 	if dbc == nil {
 		return false, false
 	}
-	hasRoom, _, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
+	hasRoom, howMuchRoom, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
 	if err != nil {
 		p.log.CDebugf(ctx, "Error checking space: +%v", err)
 		return false, false
 	}
 	if hasRoom {
+		db := p.config.GetSettingsDB()
+		if db != nil {
+			if settings, err := db.Settings(ctx); err != nil && req.action.CacheType() == DiskBlockSyncCache && howMuchRoom < settings.SpaceAvailableNotificationThreshold {
+				p.sendOverallSyncStatusNotification()
+			}
+		}
 		return false, false
 	}
 
@@ -931,7 +938,7 @@ func (p *blockPrefetcher) stopIfNeeded(
 	if req.action.Sync() {
 		// If the sync cache is close to full, reschedule the prefetch.
 		p.reschedulePrefetch(req)
-		p.sendOutOfSpaceNotification()
+		p.sendOverallSyncStatusNotification()
 		return true, false
 	}
 
