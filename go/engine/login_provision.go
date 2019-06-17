@@ -465,9 +465,8 @@ func (e *loginProvision) ensureLKSec(m libkb.MetaContext) error {
 
 	pps, err := e.recoverAfterFailedSignup(m)
 	if err != nil {
-		m.Debug("Couldn't recoverAfterFailedSignup: %s, continuing", err)
+		m.Debug("recoverAfterFailedSignup not possible: %s, continuing with e.ppStream", err)
 		pps, err = e.ppStream(m)
-		fmt.Printf("e.ppStream: %s\n", err)
 		if err != nil {
 			return err
 		}

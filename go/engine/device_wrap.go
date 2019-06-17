@@ -18,7 +18,6 @@ type DeviceWrap struct {
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.NaclDHKeyPair
 	deviceID      keybase1.DeviceID
-	keysGenerated bool
 }
 
 type DeviceWrapArgs struct {
@@ -107,7 +106,6 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 
 	e.signingKey = kgEng.SigningKey()
 	e.encryptionKey = kgEng.EncryptionKey()
-	e.keysGenerated = true
 
 	if pushErr != nil {
 		m.Warning("Failed to push keys: %s", pushErr)
@@ -161,25 +159,6 @@ func (e *DeviceWrap) SwitchConfigAndActiveDevice(m libkb.MetaContext) (err error
 	return nil
 }
 
-func (e *DeviceWrap) SwitchConfigAndActiveDeviceOffline(m libkb.MetaContext) (err error) {
-	salt, err := e.args.Me.GetSalt()
-	if err != nil {
-		return err
-	}
-	// Since this is signup, we are guessing our UV is UID%1.
-	me := e.args.Me
-	uv := keybase1.UserVersion{
-		Uid:         me.GetUID(),
-		EldestSeqno: 1,
-	}
-	// Atomically swap to the new config and active device
-	if err := m.SwitchUserNewConfigActiveDevice(uv, me.GetNormalizedName(), salt,
-		e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
-		return err
-	}
-	return nil
-}
-
 // Run starts the engine.
 func (e *DeviceWrap) Run(m libkb.MetaContext) (err error) {
 
@@ -202,8 +181,4 @@ func (e *DeviceWrap) EncryptionKey() libkb.NaclDHKeyPair {
 
 func (e *DeviceWrap) DeviceID() keybase1.DeviceID {
 	return e.deviceID
-}
-
-func (e *DeviceWrap) KeysGenerated() bool {
-	return e.keysGenerated
 }

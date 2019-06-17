@@ -94,10 +94,6 @@ func newLKSecFullSecretFromBytes(b []byte) (ret LKSecFullSecret, err error) {
 	return ret, nil
 }
 
-func NewLKSecFullSecretFromBytes(b []byte) (ret LKSecFullSecret, err error) {
-	return newLKSecFullSecretFromBytes(b)
-}
-
 func NewLKSecClientHalfFromBytes(b []byte) (ret LKSecClientHalf, err error) {
 	if len(b) != LKSecLen {
 		err = fmt.Errorf("Wrong LKSecClientHalf len: %d != %d", len(b), LKSecLen)
@@ -261,11 +257,6 @@ func (s *LKSec) GenerateServerHalf() error {
 	}
 	s.serverHalf = LKSecServerHalf{s: &v}
 	return nil
-}
-
-func (s *LKSec) ResetServerHalf() {
-	var v [LKSecLen]byte
-	s.serverHalf = LKSecServerHalf{s: &v}
 }
 
 func (s *LKSec) GetServerHalf() LKSecServerHalf {

@@ -71,7 +71,7 @@ func StoreFullPassphraseStream(mctx MetaContext, username NormalizedUsername, pp
 		}
 	}()
 
-	secret, err = NewLKSecFullSecretFromBytes(pps.EdDSASeed())
+	secret, err = newLKSecFullSecretFromBytes(pps.EdDSASeed())
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func StoreFullPassphraseStream(mctx MetaContext, username NormalizedUsername, pp
 		return err
 	}
 
-	secret, err = NewLKSecFullSecretFromBytes(pps.PWHash())
+	secret, err = newLKSecFullSecretFromBytes(pps.PWHash())
 	if err != nil {
 		return err
 	}
