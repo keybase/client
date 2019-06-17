@@ -15,11 +15,12 @@ type Background =
 
 type TextType = keyof typeof allTextTypes
 
+// Talk to design before adding a color here - these should cover all cases.
 export type AllowedColors = Values<
   Pick<
     typeof colors,
     | 'blueDark'
-    | 'blueLighter' //for terminal background only
+    | 'blueLighter' // for terminal background only
     | 'greenDark'
     | 'redDark'
     | 'purpleDark'
