@@ -88,7 +88,6 @@ class GetTitles extends React.Component<Props, State> {
           alignItems="center"
           direction="vertical"
           fullWidth={true}
-          justifyContent="flex-start"
           style={styles.container}
         >
           <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
@@ -106,17 +105,25 @@ class GetTitles extends React.Component<Props, State> {
               </Kb.Text>
             </Kb.Box2>
           )}
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={styles.inputContainer}
+          >
+
           <Kb.PlainInput
             style={styles.input}
             autoFocus={true}
             autoCorrect={true}
             placeholder={titleHint}
             multiline={true}
+            rowsMin={2}
             value={info.title}
             onEnterKeyDown={this._onNext}
             onChangeText={this._updateTitle}
             selectTextOnFocus={true}
-          />
+            />
+          </Kb.Box2>
           <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
             {!Styles.isMobile && (
               <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
@@ -206,6 +213,12 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       maxHeight: 100,
+    },
+  }),
+  inputContainer: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   scrollView: Styles.platformStyles({
