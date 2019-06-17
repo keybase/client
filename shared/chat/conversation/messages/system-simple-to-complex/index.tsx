@@ -3,7 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 import * as Kb from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   message: Types.MessageSystemSimpleToComplex
@@ -38,13 +38,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         bgColor={globalColors.blueLighter2}
         onClickAvatar={() => onViewTeam(team)}
       >
-        <Kb.Text
-          type="BodyTiny"
-          negative={true}
-          style={{color: globalColors.black_50, marginTop: globalMargins.tiny}}
-        >
-          {formatTimeForMessages(timestamp)}
-        </Kb.Text>
+        <SystemMessageTimestamp timestamp={timestamp} />
         <Kb.Box2 direction="vertical">
           <Kb.Text center={true} type="BodySmallSemibold">
             {authorComponent} made {team} a big team!

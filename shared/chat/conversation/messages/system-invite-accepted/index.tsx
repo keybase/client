@@ -3,7 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   message: Types.MessageSystemInviteAccepted
@@ -67,9 +67,7 @@ const YouInviteAddedToTeamNotice = (props: Props) => {
       onClickAvatar={props.onViewTeam}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-      <Kb.Text type="BodyTiny" negative={true} style={{color: Styles.globalColors.black_50}}>
-        {formatTimeForMessages(timestamp)}
-      </Kb.Text>
+      <SystemMessageTimestamp timestamp={timestamp} />
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>{copy}</Kb.Box>
     </UserNotice>
   )
