@@ -277,7 +277,7 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(statusJSON string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
+func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	env := kbCtx.Env
 	logSendContext.UID = env.GetUID()
@@ -287,8 +287,12 @@ func LogSend(statusJSON string, feedback string, sendLogs bool, uiLogPath, trace
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
+	numBytes := status.LogSendDefaultBytesMobile
+	if sendMaxBytes {
+		numBytes = status.LogSendMaxBytes
+	}
 
-	logSendID, err := logSendContext.LogSend(sendLogs, status.LogSendDefaultBytesMobile, true /* mergeExtendedStatus */)
+	logSendID, err := logSendContext.LogSend(sendLogs, numBytes, true /* mergeExtendedStatus */)
 	logSendContext.Clear()
 	return string(logSendID), err
 }

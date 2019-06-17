@@ -255,6 +255,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConfiguredAccount"
+          },
+          "name": "configuredAccounts"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ClientStatus"
           },
           "name": "Clients",
@@ -805,6 +812,10 @@
         },
         {
           "name": "sendLogs",
+          "type": "boolean"
+        },
+        {
+          "name": "sendMaxBytes",
           "type": "boolean"
         }
       ],

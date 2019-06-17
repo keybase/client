@@ -447,7 +447,7 @@ const sendFeedback = (
   state: TypedState,
   action: SettingsGen.SendFeedbackPayload
 ): Promise<Saga.MaybeAction> => {
-  const {feedback, sendLogs} = action.payload
+  const {feedback, sendLogs, sendMaxBytes} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve()
   const status = {version}
   return maybeDump
@@ -457,7 +457,8 @@ const sendFeedback = (
       return RPCTypes.configLogSendRpcPromise(
         {
           feedback: feedback || '',
-          sendLogs: sendLogs,
+          sendLogs,
+          sendMaxBytes,
           statusJSON: JSON.stringify(extra),
         },
         Constants.sendFeedbackWaitingKey

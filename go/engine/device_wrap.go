@@ -31,6 +31,10 @@ type DeviceWrapArgs struct {
 	EldestKID       keybase1.KID
 	PerUserKeyring  *libkb.PerUserKeyring
 	EkReboxer       *ephemeralKeyReboxer
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.
@@ -82,15 +86,17 @@ func (e *DeviceWrap) genKeys(m libkb.MetaContext) (err error) {
 	defer m.Trace("DeviceWrap#genKeys", func() error { return err })()
 
 	kgArgs := &DeviceKeygenArgs{
-		Me:              e.args.Me,
-		DeviceID:        e.deviceID,
-		DeviceName:      e.args.DeviceName,
-		DeviceType:      e.args.DeviceType,
-		Lks:             e.args.Lks,
-		IsEldest:        e.args.IsEldest,
-		IsSelfProvision: e.args.IsSelfProvision,
-		PerUserKeyring:  e.args.PerUserKeyring,
-		EkReboxer:       e.args.EkReboxer,
+		Me:                    e.args.Me,
+		DeviceID:              e.deviceID,
+		DeviceName:            e.args.DeviceName,
+		DeviceType:            e.args.DeviceType,
+		Lks:                   e.args.Lks,
+		IsEldest:              e.args.IsEldest,
+		IsSelfProvision:       e.args.IsSelfProvision,
+		PerUserKeyring:        e.args.PerUserKeyring,
+		EkReboxer:             e.args.EkReboxer,
+		naclSigningKeyPair:    e.args.naclSigningKeyPair,
+		naclEncryptionKeyPair: e.args.naclEncryptionKeyPair,
 	}
 	kgEng := NewDeviceKeygen(m.G(), kgArgs)
 	if err = RunEngine2(m, kgEng); err != nil {

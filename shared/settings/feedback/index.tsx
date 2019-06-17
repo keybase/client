@@ -19,20 +19,39 @@ export const getOtherErrorInfo = (err: Error) => {
 type Props = {
   feedback?: string | null
   loggedOut: boolean
-  onSendFeedback: (feedback: string, sendLogs: boolean) => void
+  onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
   sendError: Error | null
 }
 
 type State = {
+  clickCount: number
   email: string | null
   showSuccessBanner: boolean
   sendLogs: boolean
   feedback: string
 }
 
+const clickThreshold = 7
+
 class Feedback extends React.Component<Props, State> {
-  state = {email: null, feedback: this.props.feedback, sendLogs: true, showSuccessBanner: false}
+  state = {
+    clickCount: 0,
+    email: null,
+    feedback: this.props.feedback,
+    sendLogs: true,
+    showSuccessBanner: false,
+  }
+
+  _onLabelClick = () => {
+    this.setState(state => {
+      const clickCount = state.clickCount + 1
+      if (clickCount < clickThreshold) {
+        console.log(`clickCount = ${clickCount} (${clickThreshold - clickCount} away from sending full logs)`)
+      }
+      return {clickCount}
+    })
+  }
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.sending !== this.props.sending || this.props.sendError !== prevProps.sendError) {
@@ -43,22 +62,29 @@ class Feedback extends React.Component<Props, State> {
       })
     }
   }
+
   _onChangeFeedback = feedback => {
     this.setState({feedback})
   }
+
   _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
 
   _onChangeEmail = email => {
     this.setState({email})
   }
 
+  _sendMaxBytes = () => this.state.clickCount >= clickThreshold
+
   _onSendFeedback = () => {
-    this.setState({showSuccessBanner: false})
+    const sendMaxBytes = this._sendMaxBytes()
+    this.setState({clickCount: 0, showSuccessBanner: false})
     this.props.onSendFeedback(
       this.state.email ? `${this.state.feedback} (email: ${this.state.email} )` : this.state.feedback,
-      this.state.sendLogs
+      this.state.sendLogs,
+      sendMaxBytes
     )
   }
+
   render() {
     const {sending, sendError} = this.props
     return (
@@ -82,11 +108,12 @@ class Feedback extends React.Component<Props, State> {
                 onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
+            {this._sendMaxBytes() && <Kb.Banner color="green" text="sending full logs" />}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
               <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
               <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
-                <Kb.Text type="BodySmall">
+                <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
                   This includes some private metadata info (e.g., filenames, but not contents) but it will
                   help the developers fix bugs more quickly.
                 </Kb.Text>
@@ -140,6 +167,11 @@ const styles = Styles.styleSheetCreate({
   smallLabel: {
     color: 'black',
   },
+  text: Styles.platformStyles({
+    isElectron: {
+      cursor: 'default',
+    },
+  }),
   textBox: {
     flex: 1,
   },

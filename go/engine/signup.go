@@ -44,6 +44,10 @@ type SignupEngineRunArg struct {
 	SkipMail                 bool
 	SkipPaper                bool
 	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
 }
 
 func NewSignupEngine(g *libkb.GlobalContext, arg *SignupEngineRunArg) *SignupEngine {
@@ -261,10 +265,12 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	m.Debug("SignupEngine#registerDevice")
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	args := &DeviceWrapArgs{
-		Me:         s.me,
-		DeviceName: libkb.CheckDeviceName.Transform(deviceName),
-		Lks:        s.lks,
-		IsEldest:   true,
+		Me:                    s.me,
+		DeviceName:            libkb.CheckDeviceName.Transform(deviceName),
+		Lks:                   s.lks,
+		IsEldest:              true,
+		naclSigningKeyPair:    s.arg.naclSigningKeyPair,
+		naclEncryptionKeyPair: s.arg.naclEncryptionKeyPair,
 	}
 
 	if !libkb.CheckDeviceName.F(s.arg.DeviceName) {
