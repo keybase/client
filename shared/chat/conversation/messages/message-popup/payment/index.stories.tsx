@@ -11,6 +11,7 @@ const commonProps = {
   approxWorth: '',
   bottomLine: '',
   cancelButtonLabel: '',
+  errorDetails: '',
   loading: false,
   onCancel: null,
   onClaimLumens: null,
@@ -21,7 +22,6 @@ const commonProps = {
   status: 'completed',
   timestamp: 'Yesterday 8:11 PM',
   visible: true,
-  errorDetails: '',
 }
 
 const onCancel = Sb.action('onCancel')
