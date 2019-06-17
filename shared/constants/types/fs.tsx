@@ -562,7 +562,10 @@ export enum DiskSpaceStatus {
 export type _OverallSyncStatus = {
   syncingFoldersProgress: SyncingFoldersProgress
   diskSpaceStatus: DiskSpaceStatus
-  diskSpaceBannerHidden: boolean
+  // showingBanner tracks whether we need to show the banner.
+  // It's mostly derived from diskSpaceStatus above, but it has to appear
+  // in the state since the user can dismiss it.
+  showingBanner: boolean
 }
 export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
 
