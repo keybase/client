@@ -3,10 +3,10 @@
   - we had this but @mlsteele talked us out of it, so just error in that case too, server should not have lied
   - maybe we should have server sign these things and we cache it, so client can prove server lied?
 - [x] test case that works for hidden rotation
-- [ ] test case where alice and bob rotate the team and they each take turns
-  - [ ] future ticket
-- [ ] precheck that a link will be accepted by the server (as does chain3)
-  - [ ] future ticket
+- [x] test case where alice and bob rotate the team and they each take turns
+  - [x] future ticket
+- [x] precheck that a link will be accepted by the server (as does chain3)
+  - [x] future ticket
 - [ ] feature-flag this for almost everything except for blessed prod teams (by team ID) (server + client)
   - [x] prod disallowed in this PR
   - [ ] future tickets for allowing some teams to use new features on prod
