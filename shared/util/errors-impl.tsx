@@ -128,7 +128,7 @@ export const niceError = (e: RPCError) => {
     case RPCTypes.StatusCode.scgenericapierror:
     case RPCTypes.StatusCode.sctimeout:
     case RPCTypes.StatusCode.scapinetworkerror:
-      return 'Looks like the internet is gone...'
+      return 'You are offline'
     case RPCTypes.StatusCode.scbadsignupusernamedeleted:
       return 'Looks like this user was deleted, or something'
     case RPCTypes.StatusCode.scstreameof:
