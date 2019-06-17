@@ -259,6 +259,9 @@ const reviewPayment = state =>
 const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
+const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
+  RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link})
+
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()
 
@@ -1424,6 +1427,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.stellar1UiPaymentReviewed,
     paymentReviewed,
     'paymentReviewed'
+  )
+  yield* Saga.chainAction<WalletsGen.ValidateSEP7LinkPayload>(
+    WalletsGen.validateSEP7Link,
+    validateSEP7Link,
+    'validateSEP7Link'
   )
 
   if (flags.airdrop) {

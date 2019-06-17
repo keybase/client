@@ -98,6 +98,7 @@ export const updateAirdropState = 'wallets:updateAirdropState'
 export const updatedAirdropDetails = 'wallets:updatedAirdropDetails'
 export const updatedAirdropState = 'wallets:updatedAirdropState'
 export const validateAccountName = 'wallets:validateAccountName'
+export const validateSEP7Link = 'wallets:validateSEP7Link'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
 export const validatedSecretKey = 'wallets:validatedSecretKey'
@@ -280,6 +281,7 @@ type _UpdatedAirdropStatePayload = {
   readonly airdropState: Types.AirdropState
 }
 type _ValidateAccountNamePayload = {readonly name: string}
+type _ValidateSEP7LinkPayload = {readonly link: string}
 type _ValidateSecretKeyPayload = {readonly secretKey: HiddenString}
 type _ValidatedAccountNamePayload = {readonly name: string}
 type _ValidatedAccountNamePayloadError = {readonly name: string; readonly error: string}
@@ -861,6 +863,13 @@ export const createSendAssetChoicesReceived = (
   payload: _SendAssetChoicesReceivedPayload
 ): SendAssetChoicesReceivedPayload => ({payload, type: sendAssetChoicesReceived})
 /**
+ * Validate and handle a SEP7 Stellar URL link sent to the app.
+ */
+export const createValidateSEP7Link = (payload: _ValidateSEP7LinkPayload): ValidateSEP7LinkPayload => ({
+  payload,
+  type: validateSEP7Link,
+})
+/**
  * We received an updated account record
  */
 export const createAccountUpdateReceived = (
@@ -1241,6 +1250,10 @@ export type ValidateAccountNamePayload = {
   readonly payload: _ValidateAccountNamePayload
   readonly type: 'wallets:validateAccountName'
 }
+export type ValidateSEP7LinkPayload = {
+  readonly payload: _ValidateSEP7LinkPayload
+  readonly type: 'wallets:validateSEP7Link'
+}
 export type ValidateSecretKeyPayload = {
   readonly payload: _ValidateSecretKeyPayload
   readonly type: 'wallets:validateSecretKey'
@@ -1362,6 +1375,7 @@ export type Actions =
   | UpdatedAirdropDetailsPayload
   | UpdatedAirdropStatePayload
   | ValidateAccountNamePayload
+  | ValidateSEP7LinkPayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload
   | ValidatedAccountNamePayloadError

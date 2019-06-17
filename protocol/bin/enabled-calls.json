@@ -256,5 +256,6 @@
   "stellar.1.local.startBuildPaymentLocal": {"promise": true},
   "stellar.1.local.stopBuildPaymentLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
-  "stellar.1.local.validateSecretKeyLocal": {"promise": true}
+  "stellar.1.local.validateSecretKeyLocal": {"promise": true},
+  "stellar.1.local.validateStellarURILocal": {"promise": true}
 }
