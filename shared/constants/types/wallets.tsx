@@ -8,7 +8,7 @@ export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
-export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
+export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver' | 'none'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
@@ -155,6 +155,9 @@ export type _PaymentCommon = {
   worth: string
   worthAtSendTime: string // for "(APPROXIMATELY $X.XX)" strings,
   // issuer, for non-xlm assets
+  isAdvanced: boolean
+  operations: Array<string> | null
+  summaryAdvanced: string
   issuerDescription: string
   issuerAccountID: AccountID | null
 }
