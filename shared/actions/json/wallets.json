@@ -178,11 +178,6 @@
       "_description": "Update valid send assets to choose from",
       "sendAssetChoices": "Array<StellarRPCTypes.SendAssetChoiceLocal>"
     },
-    "changeAccountName": {
-      "_description": "Change the name of an account",
-      "accountID": "Types.AccountID",
-      "name": "string"
-    },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
       "accountID": "Types.AccountID",

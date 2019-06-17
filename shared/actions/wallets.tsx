@@ -554,15 +554,6 @@ const changeDisplayCurrency = (state, action: WalletsGen.ChangeDisplayCurrencyPa
     Constants.changeDisplayCurrencyWaitingKey
   ).then(_ => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
-const changeAccountName = (state, action: WalletsGen.ChangeAccountNamePayload) =>
-  RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(
-    {
-      accountID: action.payload.accountID,
-      newName: action.payload.name,
-    },
-    Constants.changeAccountNameWaitingKey
-  ).then(res => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
-
 const deleteAccount = (state, action: WalletsGen.DeleteAccountPayload) =>
   RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
     {
@@ -686,10 +677,7 @@ const createdOrLinkedAccount = (
   return RouteTreeGen.createNavigateUp()
 }
 
-const navigateUp = (
-  state,
-  action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
-) => {
+const navigateUp = (state, action: WalletsGen.DidSetAccountAsDefaultPayload) => {
   if (actionHasError(action)) {
     // we don't want to nav on error
     return
@@ -1198,11 +1186,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     setAccountAsDefault,
     'setAccountAsDefault'
   )
-  yield* Saga.chainAction<WalletsGen.ChangeAccountNamePayload>(
-    WalletsGen.changeAccountName,
-    changeAccountName,
-    'changeAccountName'
-  )
   yield* Saga.chainAction<WalletsGen.SelectAccountPayload>(
     WalletsGen.selectAccount,
     navigateToAccount,
@@ -1213,8 +1196,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     navigateToTransaction,
     'navigateToTransaction'
   )
-  yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload>(
-    [WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName],
+  yield* Saga.chainAction<WalletsGen.DidSetAccountAsDefaultPayload>(
+    [WalletsGen.didSetAccountAsDefault],
     navigateUp,
     'navigateUp'
   )

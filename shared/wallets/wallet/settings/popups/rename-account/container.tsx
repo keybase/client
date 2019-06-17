@@ -4,6 +4,7 @@ import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import {changeAccountName, validateAccountName} from '../../../../../actions/wallets-ui'
 import {anyWaiting} from '../../../../../constants/waiting'
 import RenameAccount from '.'
 
@@ -19,10 +20,7 @@ const mapStateToProps = (state, ownProps) => {
   const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID,
-    error: state.wallets.accountNameError,
     initialName: selectedAccount.name,
-    nameValidationState: state.wallets.accountNameValidationState,
-    renameAccountError: state.wallets.createNewAccountError,
     waiting: anyWaiting(
       state,
       Constants.changeAccountNameWaitingKey,
@@ -32,23 +30,20 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
-    dispatch(WalletsGen.createChangeAccountName({accountID, name})),
+  _onChangeAccountName: (accountID: Types.AccountID, newName: string) =>
+    changeAccountName({accountID, newName}, dispatch),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-  onDone: (name: string) => {
-    dispatch(WalletsGen.createValidateAccountName({name}))
-  },
+  onValidate: (name: string) => validateAccountName({name}, dispatch),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  error: capitalize(stateProps.error),
   initialName: stateProps.initialName,
   nameValidationState: stateProps.nameValidationState,
   onCancel: dispatchProps.onCancel,
   onChangeAccountName: name => dispatchProps._onChangeAccountName(stateProps.accountID, name),
   onClearErrors: dispatchProps.onClearErrors,
-  onDone: dispatchProps.onDone,
+  onValidate: dispatchProps.onValidate,
   renameAccountError: stateProps.renameAccountError,
   waiting: stateProps.waiting,
 })
