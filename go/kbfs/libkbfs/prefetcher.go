@@ -911,7 +911,7 @@ func (p *blockPrefetcher) stopIfNeeded(
 	if dbc == nil {
 		return false, false
 	}
-	hasRoom, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
+	hasRoom, _, err := dbc.DoesCacheHaveSpace(ctx, req.action.CacheType())
 	if err != nil {
 		p.log.CDebugf(ctx, "Error checking space: +%v", err)
 		return false, false
