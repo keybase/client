@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"net"
@@ -11,7 +12,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
@@ -85,7 +85,9 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 }
 
 func TestScraper(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "scraper", 1)
+
+	scraper := NewScraper(tc.G)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -290,7 +292,9 @@ func TestScraper(t *testing.T) {
 }
 
 func TestGiphySearchScrape(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "giphyScraper", 1)
+
+	scraper := NewScraper(tc.G)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)

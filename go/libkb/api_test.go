@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"crypto/x509"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
@@ -42,8 +43,11 @@ func TestProductionCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	if tc.G.Env.GetServerURI() != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", tc.G.Env.GetServerURI(), uriExpected)
+	serverURI, err := tc.G.Env.GetServerURI()
+	require.NoError(t, err)
+
+	if serverURI != uriExpected {
+		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
 	}
 
 	tc.G.ConfigureAPI()
@@ -59,7 +63,7 @@ func TestProductionCA(t *testing.T) {
 		t.Fatalf("api url: %s, expected %s", url.String(), pingExpected)
 	}
 
-	_, err := tc.G.API.Post(mctx, arg)
+	_, err = tc.G.API.Post(mctx, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,8 +82,11 @@ func TestProductionBadCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	if tc.G.Env.GetServerURI() != uriExpected {
-		t.Fatalf("production server uri: %s, expected %s", tc.G.Env.GetServerURI(), uriExpected)
+	serverURI, err := tc.G.Env.GetServerURI()
+	require.NoError(t, err)
+
+	if serverURI != uriExpected {
+		t.Fatalf("production server uri: %s, expected %s", serverURI, uriExpected)
 	}
 
 	// change the api CA to one that api.keybase.io doesn't know:
@@ -101,7 +108,7 @@ func TestProductionBadCA(t *testing.T) {
 		t.Fatalf("api url: %s, expected %s", iurl.String(), pingExpected)
 	}
 
-	_, err := tc.G.API.Post(mctx, arg)
+	_, err = tc.G.API.Post(mctx, arg)
 	if err == nil {
 		t.Errorf("api ping POST worked with unknown CA")
 	} else {

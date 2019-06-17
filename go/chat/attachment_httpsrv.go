@@ -393,7 +393,7 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	}
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
-	client := giphy.AssetClient()
+	client := giphy.AssetClient(libkb.NewMetaContext(ctx, r.G().GlobalContext))
 	url, err := giphy.ProxyURL(val.(string))
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "url creation: %s", err)
