@@ -428,7 +428,9 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
+	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
+	g.InboxSource = inboxSource
+	d.badger.SetLocalChatState(inboxSource)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
