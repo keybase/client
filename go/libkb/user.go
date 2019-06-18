@@ -868,9 +868,14 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 	mctx = mctx.WithLogTag("HASRPW")
 	defer mctx.TraceTimed(fmt.Sprintf("User#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
 
+	currentUID := mctx.CurrentUID()
+	if arg.ForUID != nil && !arg.ForUID.Equal(currentUID) {
+		return res, errors.New("current user changed")
+	}
+
 	cacheKey := DbKey{
 		Typ: DBHasRandomPW,
-		Key: mctx.ActiveDevice().UID().String(),
+		Key: currentUID.String(),
 	}
 
 	var cachedValue, hasCache bool
@@ -888,7 +893,7 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 	}
 
 	var initialTimeout time.Duration
-	if !arg.ForceRepoll {
+	if !arg.ForceRepoll && !arg.NoShortTimeout {
 		// If we are do not need accurate response from the API server, make
 		// the request with a timeout for quicker overall RPC response time
 		// if network is bad/unavailable.
@@ -915,6 +920,10 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out: %s.", err)
 		}
 		return res, err
+	}
+
+	if arg.ForUID != nil && !arg.ForUID.Equal(currentUID) {
+		return res, errors.New("current user changed")
 	}
 
 	if !hasCache || cachedValue != ret.RandomPW {

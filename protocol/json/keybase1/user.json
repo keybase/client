@@ -669,6 +669,17 @@
         {
           "name": "forceRepoll",
           "type": "boolean"
+        },
+        {
+          "name": "forUID",
+          "type": [
+            null,
+            "UID"
+          ]
+        },
+        {
+          "name": "noShortTimeout",
+          "type": "boolean"
         }
       ],
       "response": "boolean"

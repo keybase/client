@@ -178,7 +178,12 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
-  boolean loadHasRandomPw(int sessionID, boolean forceRepoll);
+  /*
+    forUid is optional, used in multithreaded contexts where one can expect
+    a race in which currently logged in UID can change while this function
+    is executing.
+  */
+  boolean loadHasRandomPw(int sessionID, boolean forceRepoll, union { null, UID } forUID, boolean noShortTimeout);
 
   record CanLogoutRes {
     boolean canLogout;
