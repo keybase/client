@@ -6,12 +6,15 @@ import * as Types from '../../constants/types/wallets'
 import Asset from './asset-container'
 
 type BodyProps = {
-  totalAssetsCount: number
+  accountID: Types.AccountID
+  acceptedAssets: I.Map<Types.AssetID, number>
   errorMessage?: string
-  acceptedAssets: I.List<Types.TrustlineAssetID>
-  popularAssets: I.List<Types.TrustlineAssetID>
-  searchingAssets?: I.List<Types.TrustlineAssetID>
+  loaded: boolean
   onSearchChange: (text: string) => void
+  popularAssets: I.List<Types.AssetID>
+  refresh: () => void
+  searchingAssets?: I.List<Types.AssetID>
+  totalAssetsCount?: number
 }
 
 type Props = BodyProps & {
@@ -32,7 +35,7 @@ const makeSections = (props: BodyProps) => [
   ...(!props.searchingAssets && props.acceptedAssets.size
     ? [
         {
-          data: props.acceptedAssets.toArray(),
+          data: props.acceptedAssets.keySeq().toArray(),
           key: 'section-accepted',
           keyExtractor: item => item,
           title: 'Accepted assets',
@@ -58,25 +61,41 @@ const sectionHeader = section =>
     </Kb.Box2>
   )
 
-const Body = (props: BodyProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
-      <Kb.SearchFilter
-        icon="iconfont-search"
-        fullWidth={true}
-        placeholderText={`Search ${props.totalAssetsCount} assets`}
-        onChange={props.onSearchChange}
-      />
+const Body = (props: BodyProps) => {
+  React.useEffect(() => props.refresh(), [])
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
+        <Kb.SearchFilter
+          icon="iconfont-search"
+          fullWidth={true}
+          placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
+          onChange={props.onSearchChange}
+        />
+      </Kb.Box2>
+      <Kb.Divider />
+      {!!props.errorMessage && <Kb.Banner color="red" text={props.errorMessage} />}
+      {props.loaded ? (
+        <Kb.SectionList
+          sections={makeSections(props)}
+          renderItem={({index, item}) => (
+            <Asset accountID={props.accountID} firstItem={index === 0} assetID={item} />
+          )}
+          renderSectionHeader={({section}) => sectionHeader(section)}
+        />
+      ) : (
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          style={styles.loadingContainer}
+          centerChildren={true}
+        >
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
-    <Kb.Divider />
-    {!!props.errorMessage && <Kb.Banner color="red" text={props.errorMessage} />}
-    <Kb.SectionList
-      sections={makeSections(props)}
-      renderItem={({index, item}) => <Asset firstItem={index === 0} trustlineAssetID={item} />}
-      renderSectionHeader={({section}) => sectionHeader(section)}
-    />
-  </Kb.Box2>
-)
+  )
+}
 
 const TrustlineDesktop = Kb.HeaderOrPopup((props: Props) => {
   const {onDone, ...rest} = props
@@ -138,9 +157,16 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xsmall,
   },
   headerDesktop: {
+    flexShrink: 0,
     height: 48,
   },
+  loadingContainer: {
+    ...Styles.globalStyles.flexGrow,
+  },
   searchFilter: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+    },
     isElectron: {
       padding: Styles.globalMargins.tiny,
     },

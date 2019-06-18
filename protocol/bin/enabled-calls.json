@@ -275,5 +275,9 @@
   "stellar.1.local.startBuildPaymentLocal": {"promise": true},
   "stellar.1.local.stopBuildPaymentLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
-  "stellar.1.local.validateSecretKeyLocal": {"promise": true}
+  "stellar.1.local.validateSecretKeyLocal": {"promise": true},
+  "stellar.1.local.listPopularAssetsLocal": {"promise":true},
+  "stellar.1.local.addTrustlineLocal": {"promise":true},
+  "stellar.1.local.deleteTrustlineLocal": {"promise":true},
+  "stellar.1.local.getTrustlinesLocal": {"promise":true}
 }

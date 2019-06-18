@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
+import * as Types from '../../constants/types/wallets'
 import Asset from './asset'
 import Trustline from '.'
 
@@ -26,62 +27,58 @@ const AssetWrapper = props => {
 }
 
 const assets = {
-  'issuer1-KEYZ': Constants.makeTrustlineAsset({
-    assetCode: 'KEYZ',
+  'issuer1-KEYZ': Constants.makeAssetDescription({
+    code: 'KEYZ',
     issuerAccountID: '1BQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I41',
     issuerVerifiedDomain: 'issuer1.com',
-    trustedLimit: 1,
   }),
-  'issuer1-USD': Constants.makeTrustlineAsset({
-    assetCode: 'USD',
+  'issuer1-USD': Constants.makeAssetDescription({
+    code: 'USD',
     issuerAccountID: '1BQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I41',
     issuerVerifiedDomain: 'issuer1.com',
-    trustedLimit: 0,
   }),
-  'issuer2-KEYZ': Constants.makeTrustlineAsset({
-    assetCode: 'KEYZ',
+  'issuer2-KEYZ': Constants.makeAssetDescription({
+    code: 'KEYZ',
     issuerAccountID: '2BQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I41',
     issuerVerifiedDomain: 'issuer2.com',
-    trustedLimit: 0,
   }),
-  'issuer2-PINGPONG': Constants.makeTrustlineAsset({
-    assetCode: 'PINGPONG',
+  'issuer2-PINGPONG': Constants.makeAssetDescription({
+    code: 'PINGPONG',
     issuerAccountID: '2BQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I41',
     issuerVerifiedDomain: 'issuer2.com',
-    trustedLimit: 0,
   }),
-  'issuer2-USD': Constants.makeTrustlineAsset({
-    assetCode: 'USD',
+  'issuer2-USD': Constants.makeAssetDescription({
+    code: 'USD',
     issuerAccountID: '2BQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I41',
     issuerVerifiedDomain: '',
-    trustedLimit: 0,
   }),
 }
 
 const commonTrustlineProps = {
-  acceptedAssets: I.List(['issuer1-KEYZ']),
+  acceptedAssets: I.Map({'issuer1-KEYZ': 10}),
+  accountID: Types.noAccountID,
+  loaded: true,
   onDone: Sb.action('onDone'),
   onSearchChange: Sb.action('onSearchChange'),
   popularAssets: I.List(['issuer1-USD', 'issuer2-USD', 'issuer2-KEYZ', 'issuer2-PINGPONG']),
+  refresh: Sb.action('refresh'),
   totalAssetsCount: Object.keys(assets).length,
 }
 
 const provider = Sb.createPropProviderWithCommon({
-  Asset: ({firstItem, trustlineAssetID}) => {
-    const asset = assets[trustlineAssetID]
-    return asset
-      ? {
-          ...commonAssetProps,
-          code: asset.assetCode,
-          expanded: asset.assetCode === 'KEYZ',
-          firstItem,
-          issuerAccountID: asset.issuerAccountID,
-          issuerVerifiedDomain: asset.issuerVerifiedDomain,
-          onCollapse: Sb.action('onCollapse'),
-          onExpand: Sb.action('onExpand'),
-          trusted: !!asset.trustedLimit,
-        }
-      : Constants.emptyTrustlineAsset
+  Asset: ({firstItem, assetID}) => {
+    const asset = assets[assetID] || Constants.emptyAssetDescription
+    return {
+      ...commonAssetProps,
+      code: asset.code,
+      expanded: asset.code === 'KEYZ',
+      firstItem,
+      issuerAccountID: asset.issuerAccountID,
+      issuerVerifiedDomain: asset.issuerVerifiedDomain,
+      onCollapse: Sb.action('onCollapse'),
+      onExpand: Sb.action('onExpand'),
+      trusted: assetID === 'issuer1-KEYZ',
+    }
   },
 })
 
@@ -132,6 +129,7 @@ const load = () => {
         errorMessage="Stellar holds 0.5 XLM per trustline, and your Lumens balance is 0.32341567 XLM."
       />
     ))
+    .add('Trustline - loading', () => <Trustline {...commonTrustlineProps} loaded={false} />)
 }
 
 export default load

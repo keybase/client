@@ -426,9 +426,22 @@
     },
     "updateAirdropDetails": {},
     "updatedAirdropDetails": {"details": "Types.AirdropDetails"},
+    "refreshTrustlineAcceptedAssets":{
+      "accountID":"Types.AccountID"
+    },
+    "refreshTrustlinePopularAssets":{
+    },
+    "setTrustlineAcceptedAssets": {
+      "accountID":"Types.AccountID",
+      "assets":"Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlinePopularAssets": {
+      "assets":"Array<Types.AssetDescription>"
+    },
     "setTrustlineExpanded": {
       "expanded": "boolean",
-      "trustlineAssetID": "Types.TrustlineAssetID"
+      "assetID": "Types.AssetID"
     }
   }
 }

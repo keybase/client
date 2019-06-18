@@ -117,21 +117,18 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   worthInfo: '',
 })
 
-export const makeTrustlineAsset = I.Record<Types._TrustlineAsset>({
-  assetCode: '',
-  issuerAccountID: '',
-  issuerVerifiedDomain: '',
-  trustedLimit: 0,
-})
-export const emptyTrustlineAsset = makeTrustlineAsset()
+export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 
 export const makeTrustline = I.Record<Types._Trustline>({
-  acceptedAssets: I.List(),
+  acceptedAssets: I.Map(),
   assetMap: I.Map(),
+  errorMessage: undefined,
   expandedAssets: I.Set(),
+  loaded: false,
   popularAssets: I.List(),
-  searchingAssetsHit: I.List(),
+  searchingAssets: undefined,
 })
+export const emptyTrustline = makeTrustline()
 
 export const makeState = I.Record<Types._State>({
   acceptedDisclaimer: false,
@@ -173,7 +170,7 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
-  trustline: makeTrustline(),
+  trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
 
@@ -433,6 +430,7 @@ export const makeAssetDescription = I.Record<Types._AssetDescription>({
   issuerName: '',
   issuerVerifiedDomain: '',
 })
+export const emptyAssetDescription = makeAssetDescription()
 
 export const bannerLevelToBackground = (level: string) => {
   switch (level) {

@@ -1078,6 +1078,41 @@ const gregorPushState = (_, action: GregorGen.PushStatePayload) =>
     show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
   })
 
+const rpcAssetToTrustlineAsset = (asset: RPCStellarTypes.Asset): Types.AssetDescription =>
+  Constants.makeAssetDescription({
+    code: asset.code,
+    issuerAccountID: asset.issuer,
+    issuerName: asset.issuerName,
+    issuerVerifiedDomain: asset.verifiedDomain,
+  })
+
+const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
+  RPCStellarTypes.localGetTrustlinesLocalRpcPromise({accountID}).then(balances => {
+    const {assets, limitsMutable} = balances.reduce(
+      ({assets, limitsMutable}, balance) => {
+        const assetDescription = rpcAssetToTrustlineAsset(balance.asset)
+        return {
+          assets: [...assets, assetDescription],
+          limitsMutable: limitsMutable.set(
+            Types.assetDescriptionToAssetID(assetDescription),
+            Number.parseFloat(balance.limit) || 0
+          ),
+        }
+      },
+      {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
+    )
+    return WalletsGen.createSetTrustlineAcceptedAssets({
+      accountID,
+      assets,
+      limits: limitsMutable.asImmutable(),
+    })
+  })
+
+const refreshTrustlinePopularAssets = () =>
+  RPCStellarTypes.localListPopularAssetsLocalRpcPromise().then(assets =>
+    WalletsGen.createSetTrustlinePopularAssets({assets: assets.map(asset => rpcAssetToTrustlineAsset(asset))})
+  )
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
     WalletsGen.createNewAccount,
@@ -1471,6 +1506,15 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       'hideAirdropBanner'
     )
   }
+
+  yield* Saga.chainAction<WalletsGen.RefreshTrustlineAcceptedAssetsPayload>(
+    WalletsGen.refreshTrustlineAcceptedAssets,
+    refreshTrustlineAcceptedAssets
+  )
+  yield* Saga.chainAction<WalletsGen.RefreshTrustlinePopularAssetsPayload>(
+    WalletsGen.refreshTrustlinePopularAssets,
+    refreshTrustlinePopularAssets
+  )
 }
 
 export default walletsSaga
