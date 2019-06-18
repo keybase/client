@@ -508,6 +508,7 @@ func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
 }
 
 func (s *HybridInboxSource) Connected(ctx context.Context) {
+	defer s.Trace(ctx, func() error { return nil }, "Connected")()
 	s.baseInboxSource.Connected(ctx)
 	s.flushMarkAsRead(ctx)
 }
