@@ -4,6 +4,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import {usernameHint} from '../../constants/signup'
 
 type OwnProps = {}
 
@@ -19,7 +20,7 @@ const decodeInlineError = inlineRPCError => {
         inlineSignUpLink = true
         break
       case RPCTypes.StatusCode.scbadusername:
-        inlineError = 'This username is not valid.'
+        inlineError = usernameHint
         inlineSignUpLink = false
         break
     }

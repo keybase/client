@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import {formatTimeForMessages} from '../../../../util/timestamp'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   canManage: boolean
@@ -88,9 +88,7 @@ const ChangeRetention = (props: Props) => {
       bgColor={Styles.globalColors.blueLighter2}
       onClickAvatar={() => props.onClickUserAvatar()}
     >
-      <Kb.Text type="BodySmallSemibold" negative={true} style={styles.text}>
-        {formatTimeForMessages(props.timestamp)}
-      </Kb.Text>
+      <SystemMessageTimestamp timestamp={props.timestamp} />
       <Kb.Box2 direction="vertical" centerChildren={true}>
         <Kb.Text type="BodySmallSemibold" center={true} negative={true} style={styles.text} selectable={true}>
           {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will{' '}

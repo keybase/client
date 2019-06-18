@@ -120,7 +120,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: String}
+    inParam: {readonly username: String; readonly signedUp: Boolean}
     outParam: void
   }
   'keybase.1.NotifySession.loggedOut': {
@@ -782,6 +782,14 @@ export type MessageTypes = {
   'keybase.1.pgpUi.shouldPushPrivate': {
     inParam: {readonly prompt: Boolean}
     outParam: Boolean
+  }
+  'keybase.1.phoneNumbers.addPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.verifyPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly code: String}
+    outParam: void
   }
   'keybase.1.pprof.logProcessorProfile': {
     inParam: {readonly logDirForMobile: String; readonly profileDurationSeconds: DurationSec}
@@ -2872,6 +2880,8 @@ export const loginPaperKeySubmitRpcPromise = (params: MessageTypes['keybase.1.lo
 export const notifyCtlSetNotificationsRpcPromise = (params: MessageTypes['keybase.1.notifyCtl.setNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.notifyCtl.setNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pgpPgpKeyGenDefaultRpcSaga = (p: {params: MessageTypes['keybase.1.pgp.pgpKeyGenDefault']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params: MessageTypes['keybase.1.pgp.pgpStorageDismiss']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pgp.pgpStorageDismiss']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersAddPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.addPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersVerifyPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.verifyPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params: MessageTypes['keybase.1.pprof.logProcessorProfile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logProcessorProfile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params: MessageTypes['keybase.1.pprof.logTrace']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logTrace']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const proveCheckProofRpcPromise = (params: MessageTypes['keybase.1.prove.checkProof']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.prove.checkProof']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.prove.checkProof', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3180,9 +3190,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.pgpUi.keyGenerated'
 // 'keybase.1.pgpUi.shouldPushPrivate'
 // 'keybase.1.pgpUi.finished'
-// 'keybase.1.phoneNumbers.addPhoneNumber'
 // 'keybase.1.phoneNumbers.editPhoneNumber'
-// 'keybase.1.phoneNumbers.verifyPhoneNumber'
 // 'keybase.1.phoneNumbers.getPhoneNumbers'
 // 'keybase.1.phoneNumbers.deletePhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityPhoneNumber'

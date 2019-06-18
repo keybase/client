@@ -354,8 +354,9 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 		Endpoint:    "stellar/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":    libkb.S{Val: string(accountID)},
-			"include_multi": libkb.B{Val: true},
+			"account_id":       libkb.S{Val: string(accountID)},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: true},
 		},
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
@@ -972,7 +973,8 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 		Endpoint:    "stellar/details_plus_payments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id": libkb.S{Val: accountID.String()},
+			"account_id":       libkb.S{Val: accountID.String()},
+			"include_advanced": libkb.B{Val: true},
 		},
 	}
 	var apiRes detailsPlusPaymentsRes

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   isAdmin: boolean
@@ -73,7 +73,7 @@ const AddedToTeam = (props: Props) => {
 }
 
 const YouAddedToTeam = (props: Props) => {
-  const {teamname, you, onViewTeam, adder, addee} = props
+  const {teamname, you, onViewTeam, adder, addee, timestamp} = props
   return (
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
@@ -82,9 +82,7 @@ const YouAddedToTeam = (props: Props) => {
       onClickAvatar={onViewTeam}
     >
       <Kb.Icon type="icon-team-sparkles-64-40" style={{height: 40, marginTop: -36, width: 64}} />
-      <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
-        {formatTimeForMessages(props.timestamp)}
-      </Kb.Text>
+      <SystemMessageTimestamp timestamp={timestamp} />
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Kb.Text
           type="BodySmallSemibold"

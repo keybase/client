@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
+import {maxUsernameLength} from '../../constants/signup'
 
 type Props = {
   error: string
@@ -59,6 +60,7 @@ class Username extends React.Component<Props, State> {
             autoFocus={true}
             style={styles.input}
             hintText="Username"
+            maxLength={maxUsernameLength}
             errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
             errorTextComponent={errorTextComponent}
             onEnterKeyDown={this._submit}

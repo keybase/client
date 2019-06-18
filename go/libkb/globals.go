@@ -170,7 +170,7 @@ func (g *GlobalContext) GetLog() logger.Logger                         { return 
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetServerURI() (string, error)                 { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
@@ -281,11 +281,11 @@ func (g *GlobalContext) simulateServiceRestart() {
 func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
 	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
-	return g.LogoutCurrentUserWithSecretKill(mctx, true)
+	return g.LogoutCurrentUserWithSecretKill(mctx, true /* killSecrets */)
 }
 
 func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
-	return g.LogoutCurrentUserWithSecretKill(mctx, false)
+	return g.LogoutCurrentUserWithSecretKill(mctx, false /* killSecrets */)
 }
 
 func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedUsername, killSecrets bool) {

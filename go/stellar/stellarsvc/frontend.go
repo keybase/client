@@ -313,7 +313,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		AccountID:       arg.AccountID,
 		Cursor:          arg.Cursor,
 		SkipPending:     true,
-		IncludeAdvanced: false, // TODO: make this true when the frontend is ready for it
+		IncludeAdvanced: true,
 	}
 	srvPayments, err := s.remoter.RecentPayments(ctx, rpArg)
 	if err != nil {

@@ -41,12 +41,6 @@ const (
 	NoRunMode         RunMode = kbconst.NoRunMode
 )
 
-var ServerLookup = map[RunMode]string{
-	DevelRunMode:      DevelServerURI,
-	StagingRunMode:    StagingServerURI,
-	ProductionRunMode: ProductionServerURI,
-}
-
 var SiteURILookup = map[RunMode]string{
 	DevelRunMode:      DevelSiteURI,
 	StagingRunMode:    StagingSiteURI,

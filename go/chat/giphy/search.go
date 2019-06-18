@@ -1,7 +1,6 @@
 package giphy
 
 import (
-	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -105,28 +104,32 @@ func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.At
 	return res
 }
 
-func httpClient(host string) *http.Client {
+func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 	var xprt http.Transport
 	tlsConfig := &tls.Config{
 		ServerName: host,
 	}
 	xprt.TLSClientConfig = tlsConfig
+
+	env := mctx.G().Env
+	xprt.Proxy = libkb.MakeProxy(env.GetProxyType(), env.GetProxy())
+
 	return &http.Client{
 		Transport: &xprt,
 		Timeout:   10 * time.Second,
 	}
 }
 
-func APIClient() *http.Client {
-	return httpClient(APIHost)
+func APIClient(mctx libkb.MetaContext) *http.Client {
+	return httpClient(mctx, APIHost)
 }
 
-func AssetClient() *http.Client {
-	return httpClient(MediaHost)
+func AssetClient(mctx libkb.MetaContext) *http.Client {
+	return httpClient(mctx, MediaHost)
 }
 
-func WebClient() *http.Client {
-	return httpClient(Host)
+func WebClient(mctx libkb.MetaContext) *http.Client {
+	return httpClient(mctx, Host)
 }
 
 func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
@@ -135,7 +138,8 @@ func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURL
 		return res, err
 	}
 	req.Host = APIHost
-	resp, err := ctxhttp.Do(mctx.Ctx(), APIClient(), req)
+
+	resp, err := ctxhttp.Do(mctx.Ctx(), APIClient(mctx), req)
 	if err != nil {
 		return res, err
 	}
@@ -159,7 +163,7 @@ func ProxyURL(sourceURL string) (res string, err error) {
 	return fmt.Sprintf("%s%s", giphyProxy, u.Path), nil
 }
 
-func Asset(ctx context.Context, sourceURL string) (res io.ReadCloser, length int64, err error) {
+func Asset(mctx libkb.MetaContext, sourceURL string) (res io.ReadCloser, length int64, err error) {
 	proxyURL, err := ProxyURL(sourceURL)
 	if err != nil {
 		return res, length, err
@@ -170,7 +174,7 @@ func Asset(ctx context.Context, sourceURL string) (res io.ReadCloser, length int
 	}
 	req.Header.Add("Accept", "image/*")
 	req.Host = MediaHost
-	resp, err := ctxhttp.Do(ctx, WebClient(), req)
+	resp, err := ctxhttp.Do(mctx.Ctx(), WebClient(mctx), req)
 	if err != nil {
 		return res, length, err
 	}
