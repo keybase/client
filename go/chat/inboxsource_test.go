@@ -334,7 +334,7 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "HI"}))
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 	select {
-	case <-listener1.readMessage:
+	case <-listener1.newMessageRemote:
 		require.Fail(t, "no read message yet")
 	default:
 	}
