@@ -461,9 +461,13 @@ const loadSendAssetChoices = (state, action: WalletsGen.LoadSendAssetChoicesPayl
   RPCStellarTypes.localGetSendAssetChoicesLocalRpcPromise({
     from: action.payload.from,
     to: action.payload.to,
-  }).then(res => {
-    res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
   })
+    .then(res => {
+      res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
+    })
+    .catch(err => {
+      logger.warn(`Error: ${err.desc}`)
+    })
 
 const loadDisplayCurrency = (state, action: WalletsGen.LoadDisplayCurrencyPayload) => {
   let accountID = action.payload.accountID
