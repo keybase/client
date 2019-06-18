@@ -108,7 +108,7 @@ class Feedback extends React.Component<Props, State> {
                 onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
-            {this._sendMaxBytes() && <Kb.Banner color="green" text="sending full logs" />}
+            {this._sendMaxBytes() && <Kb.Banner color="green" text="next send will include full logs" />}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
               <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
               <Kb.Box2 direction="vertical" style={styles.textBox}>

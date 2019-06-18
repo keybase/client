@@ -89,6 +89,28 @@ func (o Asset) DeepCopy() Asset {
 	}
 }
 
+type AssetListResult struct {
+	Assets     []Asset `codec:"assets" json:"assets"`
+	TotalCount int     `codec:"totalCount" json:"totalCount"`
+}
+
+func (o AssetListResult) DeepCopy() AssetListResult {
+	return AssetListResult{
+		Assets: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Assets),
+		TotalCount: o.TotalCount,
+	}
+}
+
 type Balance struct {
 	Asset  Asset  `codec:"asset" json:"asset"`
 	Amount string `codec:"amount" json:"amount"`
