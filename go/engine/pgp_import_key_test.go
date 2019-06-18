@@ -207,6 +207,11 @@ func TestPGPImportLocalPrivateThenServer(t *testing.T) {
 
 	kid := eng.GetKID()
 
+	ss, err := mctx.ActiveDevice().SyncSecretsForce(mctx)
+	require.NoError(t, err)
+	_, ok := ss.FindPrivateKey(kid.String())
+	require.False(t, ok)
+
 	// Try to import with push secret afterwards - user also wants
 	// to have this key available online.
 	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true /* pushSecret*/)
@@ -215,7 +220,7 @@ func TestPGPImportLocalPrivateThenServer(t *testing.T) {
 	err = RunEngine2(mctx, eng)
 	require.NoError(t, err)
 
-	ss, err := mctx.ActiveDevice().SyncSecretsForce(mctx)
+	ss, err = mctx.ActiveDevice().SyncSecretsForce(mctx)
 	require.NoError(t, err)
 	privKey, ok := ss.FindPrivateKey(kid.String())
 	require.True(t, ok)
