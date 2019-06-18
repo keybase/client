@@ -29,7 +29,8 @@ ExecStart=/opt/keybase/Keybase
 # environment variable into systemd during autostart.
 # We need to shell out because systemctl is sometimes in /bin and sometimes in
 # /usr/bin depending on the distro
-ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART
+# Also clear out KEYBASE_STARTUP_URL, for the same reasons.
+ExecStartPost=/usr/bin/env systemctl --user unset-environment KEYBASE_AUTOSTART KEYBASE_STARTUP_URL
 
 # We don't set Restart=, since a GUI crash is probably visible to the user.
 
