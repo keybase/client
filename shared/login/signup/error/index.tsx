@@ -1,18 +1,21 @@
 import * as React from 'react'
-import {Text} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import {Wrapper, ContinueButton} from '../common'
 
 type Props = {
-  error: string
+  header: string
+  body: string
   onBack: () => void
 }
 
 const Error = (props: Props) => (
   <Wrapper onBack={() => {}}>
-    <Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
-      Ah Shoot! Something went wrong, wanna try again?
-    </Text>
-    <Text type="BodySmallError">{props.error}</Text>
+    <Kb.Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
+      {props.header}
+    </Kb.Text>
+    <Kb.Text type="Body" center={true}>
+      {props.body}
+    </Kb.Text>
     <ContinueButton label="Back" onClick={props.onBack} />
   </Wrapper>
 )

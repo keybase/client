@@ -1,5 +1,6 @@
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
+import {RPCError} from '../../util/errors'
 
 export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
 
@@ -14,7 +15,7 @@ export type _State = {
   nameError: string
   password: HiddenString
   passwordError: HiddenString
-  signupError: HiddenString
+  signupError: RPCError
   username: string
   usernameError: string
   usernameTaken: string

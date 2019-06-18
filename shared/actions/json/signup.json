@@ -1,5 +1,8 @@
 {
-  "prelude": ["import HiddenString from '../util/hidden-string'"],
+  "prelude": [
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
+  ],
   "actions": {
     "goBackAndClearErrors": {},
     "requestAutoInvite": {},
@@ -47,7 +50,7 @@
     "restartSignup": {},
     "signedup": {
       "canError": {
-        "error": "HiddenString"
+        "error?": "RPCError | null",
       }
     },
     "checkDevicename": {

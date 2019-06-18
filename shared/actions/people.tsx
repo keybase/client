@@ -6,6 +6,7 @@ import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+import {networkErrorCodes} from '../util/container'
 
 // set this to true to have all todo items show up all the time
 const debugTodo = false
@@ -95,7 +96,7 @@ const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
 
 const markViewed = () =>
   RPCTypes.homeHomeMarkViewedRpcPromise().catch(err => {
-    if (networkErrors.includes(err.code)) {
+    if (networkErrorCodes.includes(err.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
       throw err
@@ -126,12 +127,6 @@ const connected = () => {
     .then(() => console.log('Registered home UI'))
     .catch(error => console.warn('Error in registering home UI:', error))
 }
-
-const networkErrors = [
-  RPCTypes.StatusCode.scgenericapierror,
-  RPCTypes.StatusCode.scapinetworkerror,
-  RPCTypes.StatusCode.sctimeout,
-]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<PeopleGen.GetPeopleDataPayload>(PeopleGen.getPeopleData, getPeopleData)

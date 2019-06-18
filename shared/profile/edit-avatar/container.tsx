@@ -4,7 +4,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
-import {connect, getRouteProps} from '../../util/container'
+import {connect, getRouteProps, networkErrorCodes} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {RouteProps} from '../../route-tree/render-route'
@@ -43,11 +43,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ProfileGen.createUploadAvatar({crop, filename})),
 })
 
-const networkErrorCodes = [
-  RPCTypes.StatusCode.scgenericapierror,
-  RPCTypes.StatusCode.scapinetworkerror,
-  RPCTypes.StatusCode.sctimeout,
-]
 const mergeProps = (stateProps, dispatchProps) => {
   let error = ''
   if (stateProps.error) {

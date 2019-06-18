@@ -4,7 +4,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {connect} from '../../util/container'
+import {connect, networkErrorCodes} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
@@ -12,7 +12,7 @@ type OwnProps = {
 
 const mapStateToProps = state => ({
   _users: state.config.configuredAccounts,
-  error: state.login.error.stringValue(),
+  error: state.login.error,
   selectedUser: state.config.defaultUsername,
 })
 
@@ -27,16 +27,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const users = stateProps._users.sort().toArray()
-  let inputError = ''
-  let bannerError = ''
-  if (stateProps.error === 'You are offline.') {
-    bannerError = stateProps.error
-  } else {
-    inputError = stateProps.error
-  }
+  const bannerError = !!stateProps.error && networkErrorCodes.includes(stateProps.error.code)
+  const inputError = !!stateProps.error && !bannerError
 
   return {
     bannerError,
+    error: stateProps.error ? stateProps.error.desc : '',
     inputError,
     onFeedback: dispatchProps.onFeedback,
     onForgotPassword: dispatchProps.onForgotPassword,
@@ -60,8 +56,9 @@ type Props = {
   onForgotPassword: () => void
   onSignup: () => void
   onSomeoneElse: () => void
-  bannerError: string
-  inputError: string
+  bannerError: boolean
+  inputError: boolean
+  error: string
   selectedUser: string
   onFeedback: () => void
   onLogin: (user: string, password: string) => void
@@ -79,7 +76,7 @@ class LoginWrapper extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    // Clear the password when there's an error.
+    // Clear the password when there's an input error.
     if (this.props.inputError !== prevProps.inputError) {
       this.setState(p => ({inputKey: p.inputKey + 1, password: ''}))
     }
@@ -93,6 +90,7 @@ class LoginWrapper extends React.Component<Props, State> {
       <Login
         bannerError={this.props.bannerError}
         inputError={this.props.inputError}
+        error={this.props.error}
         inputKey={String(this.state.inputKey)}
         onFeedback={this.props.onFeedback}
         onForgotPassword={this.props.onForgotPassword}

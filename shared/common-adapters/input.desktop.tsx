@@ -337,7 +337,7 @@ class Input extends React.PureComponent<Props, State> {
       placeholder: this.props.hintText,
       readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? true : undefined,
       ref: this._setInputRef,
-      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
+      ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
     }
 
     if (!this.props.uncontrolled) {
