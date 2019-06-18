@@ -547,6 +547,11 @@ export enum ConversationStatus {
   reported = 5,
 }
 
+export enum ExternalAPIKeyTyp {
+  googlemaps = 0,
+  giphy = 1,
+}
+
 export enum GalleryItemTyp {
   media = 0,
   link = 1,
@@ -871,6 +876,7 @@ export type EphemeralPurgeNotifInfo = {readonly convID: ConversationID; readonly
 export type Expunge = {readonly upto: MessageID; readonly basis: MessageID}
 export type ExpungeInfo = {readonly convID: ConversationID; readonly expunge: Expunge; readonly conv?: InboxUIItem | null}
 export type ExpungePayload = {readonly Action: String; readonly convID: ConversationID; readonly inboxVers: InboxVers; readonly expunge: Expunge; readonly maxMsgs?: Array<MessageSummary> | null; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
+export type ExternalAPIKey = {typ: ExternalAPIKeyTyp.googlemaps; googlemaps: String | null} | {typ: ExternalAPIKeyTyp.giphy; giphy: String | null}
 export type FailedMessageInfo = {readonly outboxRecords?: Array<OutboxRecord> | null; readonly isEphemeralPurge: Boolean}
 export type FindConversationsLocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly uiConversations?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type FlipGameID = Bytes
@@ -1344,3 +1350,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.failSharePost'
 // 'chat.1.remote.broadcastGregorMessageToConv'
 // 'chat.1.remote.serverNow'
+// 'chat.1.remote.getExternalAPIKeys'
