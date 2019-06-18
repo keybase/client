@@ -76,7 +76,7 @@ const metaMapReducer = (metaMap, action) => {
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )
-            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv, username || '')
+            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
             if (!newMeta) {
               // public conversation, do nothing
               return metaMap

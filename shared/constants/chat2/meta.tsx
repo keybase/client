@@ -31,10 +31,7 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
 const supersededConversationIDToKey = (id: string | Buffer): string =>
   typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
 
-export const unverifiedInboxUIItemToConversationMeta = (
-  i: RPCChatTypes.UnverifiedInboxUIItem,
-  username: string
-) => {
+export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.UnverifiedInboxUIItem) => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
@@ -104,18 +101,21 @@ export const unverifiedInboxUIItemToConversationMeta = (
   })
 }
 
-const conversationMetadataToMetaSupersedeInfo = (metas: Array<RPCChatTypes.ConversationMetadata> | null) => {
-  const meta: RPCChatTypes.ConversationMetadata | null = (metas || []).find(
+const conversationMetadataToMetaSupersedeInfo = (metas?: Array<RPCChatTypes.ConversationMetadata> | null) => {
+  const meta = (metas || []).find(
     m => m.idTriple.topicType === RPCChatTypes.TopicType.chat && !!m.finalizeInfo
   )
 
   return meta ? supersededConversationIDToKey(meta.conversationID) : null
 }
 
-const getTeamType = ({teamType, membersType}) => {
-  if (teamType === RPCChatTypes.TeamType.complex) {
+const getTeamType = (tt: {
+  teamType: RPCChatTypes.TeamType
+  membersType: RPCChatTypes.ConversationMembersType
+}): Types.TeamType => {
+  if (tt.teamType === RPCChatTypes.TeamType.complex) {
     return 'big'
-  } else if (membersType === RPCChatTypes.ConversationMembersType.team) {
+  } else if (tt.membersType === RPCChatTypes.ConversationMembersType.team) {
     return 'small'
   } else {
     return 'adhoc'
@@ -164,7 +164,7 @@ type NotificationSettingsParsed = {
   notificationsMobile: Types.NotificationsType
 }
 const parseNotificationSettings = (
-  notifications: RPCChatTypes.ConversationNotificationInfo | null
+  notifications?: RPCChatTypes.ConversationNotificationInfo | null
 ): NotificationSettingsParsed => {
   let notificationsDesktop = 'never' as Types.NotificationsType
   let notificationsGlobalIgnoreMentions = false
@@ -213,7 +213,10 @@ export const updateMetaWithNotificationSettings = (
   }) as Types.ConversationMeta
 }
 
-const UIItemToRetentionPolicies = (i, isTeam) => {
+const UIItemToRetentionPolicies = (
+  i: RPCChatTypes.InboxUIItem | RPCChatTypes.UnverifiedInboxUIItem,
+  isTeam: boolean
+) => {
   // default inherit for teams, retain for ad-hoc
   // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
   let retentionPolicy = isTeam
@@ -356,18 +359,20 @@ export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
 // we want the memoized function to have access to state but not have it be a part of the memoization else it'll fail always
-let _unmemoizedState
-const _getParticipantSuggestionsMemoized = memoize((participants, teamType) => {
-  let suggestions = participants.map(username => ({
-    fullName: getFullname(_unmemoizedState, username) || '',
-    username,
-  }))
-  if (teamType !== 'adhoc') {
-    const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-    suggestions = suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+let _unmemoizedState: TypedState
+const _getParticipantSuggestionsMemoized = memoize(
+  (participants: I.List<string>, teamType: Types.TeamType) => {
+    let suggestions = participants.map(username => ({
+      fullName: getFullname(_unmemoizedState, username) || '',
+      username,
+    }))
+    if (teamType !== 'adhoc') {
+      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+      suggestions = suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+    }
+    return suggestions
   }
-  return suggestions
-})
+)
 
 export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
   const {participants, teamType} = getMeta(state, id)
@@ -381,7 +386,7 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   }
   // First try channelinfos (all channels in a team), then try inbox (the
   // partial list of channels that you have joined).
-  const convs = state.teams.getIn(['teamNameToChannelInfos', teamname])
+  const convs = state.teams.teamNameToChannelInfos.get(teamname)
   if (convs) {
     return convs
       .toIndexedSeq()
@@ -458,7 +463,7 @@ export const getConversationIDKeyMetasToLoad = (
   conversationIDKeys: Array<Types.ConversationIDKey>,
   metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>
 ) =>
-  conversationIDKeys.reduce((arr, id) => {
+  conversationIDKeys.reduce((arr: Array<string>, id) => {
     if (id && isValidConversationIDKey(id)) {
       const trustedState = metaMap.getIn([id, 'trustedState'])
       if (trustedState !== 'requesting' && trustedState !== 'trusted') {
@@ -471,7 +476,7 @@ export const getConversationIDKeyMetasToLoad = (
 export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
   meta.participants
     // Filter out ourselves unless it's our 1:1 conversation
-    .filter((participant, idx, list) => (list.size === 1 ? true : participant !== username))
+    .filter((participant, _, list) => (list.size === 1 ? true : participant !== username))
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)
@@ -487,11 +492,10 @@ export const getConversationRetentionPolicy = (
 export const isDecryptingSnippet = (meta: Types.ConversationMeta) =>
   meta.trustedState === 'requesting' || meta.trustedState === 'untrusted'
 
-export const getTeams = (metaMap: Types.MetaMap) => {
-  return metaMap.reduce((l, meta) => {
+export const getTeams = (metaMap: Types.MetaMap) =>
+  metaMap.reduce((l: Array<string>, meta) => {
     if (meta.teamname && meta.channelname === 'general') {
       l.push(meta.teamname)
     }
     return l
   }, [])
-}

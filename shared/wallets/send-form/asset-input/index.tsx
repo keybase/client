@@ -7,6 +7,9 @@ const commasToPeriods = s => s.replace(/,/, '.')
 
 const isValidAmount = (amt, numDecimalsAllowed) => {
   if (!isNaN(Number(amt)) || amt === '.') {
+    if (amt && amt.startsWith && amt.startsWith('-')) {
+      return false
+    }
     // This is a valid number. Now check the number of decimal places
     const split = amt.split('.')
     if (split.length === 1) {

@@ -469,13 +469,45 @@ func (e *loginProvision) ensureLKSec(m libkb.MetaContext) error {
 		return nil
 	}
 
-	pps, err := e.ppStream(m)
+	pps, err := e.recoverAfterFailedSignup(m)
 	if err != nil {
-		return err
+		m.Debug("recoverAfterFailedSignup not possible: %s, continuing with e.ppStream", err)
+		pps, err = e.ppStream(m)
+		if err != nil {
+			return err
+		}
 	}
 
 	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID())
 	return nil
+}
+
+func (e *loginProvision) recoverAfterFailedSignup(mctx libkb.MetaContext) (ret *libkb.PassphraseStream, err error) {
+	mctx = mctx.WithLogTag("RSGNUP")
+	user := e.arg.User
+	defer mctx.TraceTimed(fmt.Sprintf("recoverAfterFailedSignup(%q)", user.GetNormalizedName()),
+		func() error { return err })()
+
+	if !user.GetCurrentEldestSeqno().Eq(keybase1.Seqno(0)) {
+		return nil, errors.New("user has live sigchain, cannot do recover-after-signup login")
+	}
+
+	username := user.GetNormalizedName()
+	uid := user.GetUID()
+
+	stream, err := libkb.RetrievePwhashEddsaPassphraseStream(mctx, username, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	err = libkb.LoginFromPassphraseStream(mctx, username.String(), stream)
+	if err != nil {
+		return nil, err
+	}
+
+	ok, err := mctx.LoginContext().LoggedInLoad()
+	mctx.Debug("LoggedInLoad: ok=%t err=%v", ok, err)
+	return stream, nil
 }
 
 // ppStream gets the passphrase stream, either cached or via
@@ -1127,6 +1159,11 @@ func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
 		return err
 	}
 	e.saveToSecretStore(m)
+
+	if cErr := libkb.ClearPwhashEddsaPassphraseStream(m, e.arg.User.GetNormalizedName()); cErr != nil {
+		m.Debug("ClearPwhashEddsaPassphraseStream failed with: %s", cErr)
+	}
+
 	return nil
 }
 
