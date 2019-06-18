@@ -34,7 +34,10 @@ module.exports = ({config, mode}) => {
       __STORYSHOT__: false,
       'process.platform': JSON.stringify('darwin'),
     }),
-    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.tsx'),
+    new webpack.NormalModuleReplacementPlugin(
+      /typed-connect/,
+      __dirname + '/../util/__mocks__/typed-connect.tsx'
+    ),
     new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.tsx'),
     new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.tsx'),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),

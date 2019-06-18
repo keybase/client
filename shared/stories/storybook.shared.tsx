@@ -45,6 +45,7 @@ class DestBox extends React.Component {
  */
 // Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
 // work around this issue
+// TODO remove this and move to createProvider below
 let uniqueProviderKey = 1
 const createPropProvider = (...maps: SelectorMap[]) => {
   const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
@@ -72,6 +73,46 @@ const createPropProvider = (...maps: SelectorMap[]) => {
     </Provider>
   )
 }
+
+export const createProvider = store => story => {
+  const merged = store
+  return (
+    <Provider
+      key={`storyprovider:${uniqueProviderKey++}`}
+      store={createStore(state => state, merged)}
+      merged={merged}
+    >
+      <GatewayProvider>
+        <React.Fragment>
+          <StorybookErrorBoundary children={story()} />
+          <GatewayDest component={DestBox} name="popup-root" />
+        </React.Fragment>
+      </GatewayProvider>
+    </Provider>
+  )
+}
+
+export const MockStore = ({store, children}) => {
+  return (
+    <Provider
+      key={`storyprovider:${uniqueProviderKey++}`}
+      store={createStore(state => state, store)}
+      merged={store}
+    >
+      <GatewayProvider>
+        <React.Fragment>
+          <StorybookErrorBoundary children={children} />
+          <GatewayDest component={DestBox} name="popup-root" />
+        </React.Fragment>
+      </GatewayProvider>
+    </Provider>
+  )
+}
+export const createNavigator = params => ({
+  navigation: {
+    getParam: key => params[key],
+  },
+})
 
 class StorybookErrorBoundary extends React.Component<
   any,

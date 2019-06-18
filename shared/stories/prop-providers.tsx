@@ -8,11 +8,12 @@ import {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/me
 import * as _CopyText from '../common-adapters/copy-text'
 import {NameWithIconProps} from '../common-adapters/name-with-icon'
 import {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
-import {createPropProvider, action} from './storybook.shared'
+import {createPropProvider, createProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import {unescapePath} from '../constants/fs'
 import {OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
+import rootReducer from '../reducers'
 
 /*
  * Some common prop factory creators.
@@ -181,3 +182,5 @@ export const createPropProviderWithCommon = (custom: Object | null) =>
     ...Common(),
     ...(custom || {}),
   })
+
+export const createStoreWithCommon = () => rootReducer(undefined, {type: 'ignore'})
