@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {Provider} from 'react-redux'
-import {createStore} from 'redux'
+import {createStore, applyMiddleware} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
 import {action} from '@storybook/addon-actions'
 import Box from '../common-adapters/box'
@@ -92,11 +92,16 @@ export const createProvider = store => story => {
   )
 }
 
+const actionLog = () => next => a => {
+  action()
+  return next(a)
+}
+
 export const MockStore = ({store, children}) => {
   return (
     <Provider
       key={`storyprovider:${uniqueProviderKey++}`}
-      store={createStore(state => state, store)}
+      store={createStore(state => state, store, applyMiddleware(actionLog))}
       merged={store}
     >
       <GatewayProvider>
