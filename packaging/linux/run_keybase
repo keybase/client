@@ -196,10 +196,6 @@ check_for_url_scheme_launch() {
               /opt/keybase/Keybase $1 &
           fi
           exit
-      else
-          if command -v systemctl &> /dev/null; then
-              systemctl --user set-environment KEYBASE_STARTUP_URL="$KEYBASE_STARTUP_URL"
-          fi
       fi
   fi
 
