@@ -463,6 +463,7 @@ const loadSendAssetChoices = (state, action: WalletsGen.LoadSendAssetChoicesPayl
     to: action.payload.to,
   })
     .then(res => {
+      // The result is dropped here. See PICNIC-84 for fixing it.
       res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
     })
     .catch(err => {
