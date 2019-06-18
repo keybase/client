@@ -73,8 +73,10 @@ const Advanced = (props: Props) => {
           <Kb.Checkbox
             checked={props.hasRandomPW || !!props.lockdownModeEnabled}
             disabled={disabled}
-            label={`Forbid account changes from the website 
-              ${props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
+            label={
+              'Forbid account changes from the website' +
+              (props.hasRandomPW ? ' (you need to set a password first)' : '')
+            }
             onCheck={props.onChangeLockdownMode}
             style={styles.checkbox}
           />
@@ -162,12 +164,7 @@ class Developer extends React.Component<Props, State> {
           Please don't do anything below here unless instructed to by a developer.
         </Kb.Text>
         <Kb.Divider style={styles.divider} />
-        <Kb.Button
-          style={{marginTop: Styles.globalMargins.small}}
-          type="Danger"
-          label="DB Nuke"
-          onClick={props.onDBNuke}
-        />
+        <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={props.onDBNuke} />
         {this._showPprofControls() && (
           <React.Fragment>
             <StartButton
@@ -195,6 +192,8 @@ class Developer extends React.Component<Props, State> {
                 identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
               }).then(() => this.setState({indexTook: Date.now() - start}))
             }}
+            mode="Secondary"
+            style={styles.developerButtons}
           />
         )}
         {flags.dbCleanEnabled && (
@@ -208,6 +207,8 @@ class Developer extends React.Component<Props, State> {
                 force: true,
               }).then(() => this.setState({cleanTook: Date.now() - start}))
             }}
+            mode="Secondary"
+            style={styles.developerButtons}
           />
         )}
         <Kb.Box style={styles.filler} />
@@ -311,11 +312,10 @@ class ProxySettings extends React.Component<Props, ProxyState> {
             value={this.state.port}
           />
         </Kb.Box2>
-        <Kb.Switch
-          on={!this.certPinning()}
-          onClick={this.toggleCertPinning}
+        <Kb.Checkbox
+          checked={!this.certPinning()}
+          onCheck={this.toggleCertPinning}
           label="Allow TLS Interception"
-          gapSize={Styles.globalMargins.xtiny}
           style={styles.proxySetting}
         />
         <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
@@ -366,6 +366,9 @@ const styles = Styles.styleSheetCreate({
     maxHeight: 48,
     minHeight: 48,
   },
+  developerButtons: {
+    marginTop: Styles.globalMargins.small,
+  },
   developerContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -390,6 +393,7 @@ const styles = Styles.styleSheetCreate({
     display: 'flex',
     flexShrink: 0,
     flexWrap: 'wrap',
+    marginTop: Styles.globalMargins.tiny,
   },
   openAtLoginCheckboxContainer: {
     ...Styles.globalStyles.flexBoxColumn,
