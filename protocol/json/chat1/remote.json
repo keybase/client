@@ -629,7 +629,7 @@
     },
     {
       "type": "enum",
-      "name": "APIKeyTyp",
+      "name": "ExternalAPIKeyTyp",
       "symbols": [
         "GOOGLEMAPS_0",
         "GIPHY_1"
@@ -637,9 +637,9 @@
     },
     {
       "type": "variant",
-      "name": "APIKey",
+      "name": "ExternalAPIKey",
       "switch": {
-        "type": "APIKeyTyp",
+        "type": "ExternalAPIKeyTyp",
         "name": "typ"
       },
       "cases": [
@@ -1280,19 +1280,19 @@
       "request": [],
       "response": "ServerNowRes"
     },
-    "getAPIKeys": {
+    "getExternalAPIKeys": {
       "request": [
         {
           "name": "typs",
           "type": {
             "type": "array",
-            "items": "APIKeyTyp"
+            "items": "ExternalAPIKeyTyp"
           }
         }
       ],
       "response": {
         "type": "array",
-        "items": "APIKey"
+        "items": "ExternalAPIKey"
       }
     }
   },

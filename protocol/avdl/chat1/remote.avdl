@@ -324,13 +324,13 @@ protocol remote {
   ServerNowRes serverNow();
 
   // Support for receiving third party API keys from the server
-  enum APIKeyTyp {
+  enum ExternalAPIKeyTyp {
     GOOGLEMAPS_0,
     GIPHY_1
   }
-  variant APIKey switch(APIKeyTyp typ) {
+  variant ExternalAPIKey switch(ExternalAPIKeyTyp typ) {
   case GOOGLEMAPS: string;
   case GIPHY: string;
   }
-  array<APIKey> getAPIKeys(array<APIKeyTyp> typs);
+  array<ExternalAPIKey> getExternalAPIKeys(array<ExternalAPIKeyTyp> typs);
 }

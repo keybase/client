@@ -826,46 +826,46 @@ func (o ServerNowRes) DeepCopy() ServerNowRes {
 	}
 }
 
-type APIKeyTyp int
+type ExternalAPIKeyTyp int
 
 const (
-	APIKeyTyp_GOOGLEMAPS APIKeyTyp = 0
-	APIKeyTyp_GIPHY      APIKeyTyp = 1
+	ExternalAPIKeyTyp_GOOGLEMAPS ExternalAPIKeyTyp = 0
+	ExternalAPIKeyTyp_GIPHY      ExternalAPIKeyTyp = 1
 )
 
-func (o APIKeyTyp) DeepCopy() APIKeyTyp { return o }
+func (o ExternalAPIKeyTyp) DeepCopy() ExternalAPIKeyTyp { return o }
 
-var APIKeyTypMap = map[string]APIKeyTyp{
+var ExternalAPIKeyTypMap = map[string]ExternalAPIKeyTyp{
 	"GOOGLEMAPS": 0,
 	"GIPHY":      1,
 }
 
-var APIKeyTypRevMap = map[APIKeyTyp]string{
+var ExternalAPIKeyTypRevMap = map[ExternalAPIKeyTyp]string{
 	0: "GOOGLEMAPS",
 	1: "GIPHY",
 }
 
-func (e APIKeyTyp) String() string {
-	if v, ok := APIKeyTypRevMap[e]; ok {
+func (e ExternalAPIKeyTyp) String() string {
+	if v, ok := ExternalAPIKeyTypRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type APIKey struct {
-	Typ__        APIKeyTyp `codec:"typ" json:"typ"`
-	Googlemaps__ *string   `codec:"googlemaps,omitempty" json:"googlemaps,omitempty"`
-	Giphy__      *string   `codec:"giphy,omitempty" json:"giphy,omitempty"`
+type ExternalAPIKey struct {
+	Typ__        ExternalAPIKeyTyp `codec:"typ" json:"typ"`
+	Googlemaps__ *string           `codec:"googlemaps,omitempty" json:"googlemaps,omitempty"`
+	Giphy__      *string           `codec:"giphy,omitempty" json:"giphy,omitempty"`
 }
 
-func (o *APIKey) Typ() (ret APIKeyTyp, err error) {
+func (o *ExternalAPIKey) Typ() (ret ExternalAPIKeyTyp, err error) {
 	switch o.Typ__ {
-	case APIKeyTyp_GOOGLEMAPS:
+	case ExternalAPIKeyTyp_GOOGLEMAPS:
 		if o.Googlemaps__ == nil {
 			err = errors.New("unexpected nil value for Googlemaps__")
 			return ret, err
 		}
-	case APIKeyTyp_GIPHY:
+	case ExternalAPIKeyTyp_GIPHY:
 		if o.Giphy__ == nil {
 			err = errors.New("unexpected nil value for Giphy__")
 			return ret, err
@@ -874,8 +874,8 @@ func (o *APIKey) Typ() (ret APIKeyTyp, err error) {
 	return o.Typ__, nil
 }
 
-func (o APIKey) Googlemaps() (res string) {
-	if o.Typ__ != APIKeyTyp_GOOGLEMAPS {
+func (o ExternalAPIKey) Googlemaps() (res string) {
+	if o.Typ__ != ExternalAPIKeyTyp_GOOGLEMAPS {
 		panic("wrong case accessed")
 	}
 	if o.Googlemaps__ == nil {
@@ -884,8 +884,8 @@ func (o APIKey) Googlemaps() (res string) {
 	return *o.Googlemaps__
 }
 
-func (o APIKey) Giphy() (res string) {
-	if o.Typ__ != APIKeyTyp_GIPHY {
+func (o ExternalAPIKey) Giphy() (res string) {
+	if o.Typ__ != ExternalAPIKeyTyp_GIPHY {
 		panic("wrong case accessed")
 	}
 	if o.Giphy__ == nil {
@@ -894,22 +894,22 @@ func (o APIKey) Giphy() (res string) {
 	return *o.Giphy__
 }
 
-func NewAPIKeyWithGooglemaps(v string) APIKey {
-	return APIKey{
-		Typ__:        APIKeyTyp_GOOGLEMAPS,
+func NewExternalAPIKeyWithGooglemaps(v string) ExternalAPIKey {
+	return ExternalAPIKey{
+		Typ__:        ExternalAPIKeyTyp_GOOGLEMAPS,
 		Googlemaps__: &v,
 	}
 }
 
-func NewAPIKeyWithGiphy(v string) APIKey {
-	return APIKey{
-		Typ__:   APIKeyTyp_GIPHY,
+func NewExternalAPIKeyWithGiphy(v string) ExternalAPIKey {
+	return ExternalAPIKey{
+		Typ__:   ExternalAPIKeyTyp_GIPHY,
 		Giphy__: &v,
 	}
 }
 
-func (o APIKey) DeepCopy() APIKey {
-	return APIKey{
+func (o ExternalAPIKey) DeepCopy() ExternalAPIKey {
+	return ExternalAPIKey{
 		Typ__: o.Typ__.DeepCopy(),
 		Googlemaps__: (func(x *string) *string {
 			if x == nil {
@@ -1139,8 +1139,8 @@ type BroadcastGregorMessageToConvArg struct {
 type ServerNowArg struct {
 }
 
-type GetAPIKeysArg struct {
-	Typs []APIKeyTyp `codec:"typs" json:"typs"`
+type GetExternalAPIKeysArg struct {
+	Typs []ExternalAPIKeyTyp `codec:"typs" json:"typs"`
 }
 
 type RemoteInterface interface {
@@ -1183,7 +1183,7 @@ type RemoteInterface interface {
 	FailSharePost(context.Context, FailSharePostArg) error
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
 	ServerNow(context.Context) (ServerNowRes, error)
-	GetAPIKeys(context.Context, []APIKeyTyp) ([]APIKey, error)
+	GetExternalAPIKeys(context.Context, []ExternalAPIKeyTyp) ([]ExternalAPIKey, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1765,18 +1765,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getAPIKeys": {
+			"getExternalAPIKeys": {
 				MakeArg: func() interface{} {
-					var ret [1]GetAPIKeysArg
+					var ret [1]GetExternalAPIKeysArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetAPIKeysArg)
+					typedArgs, ok := args.(*[1]GetExternalAPIKeysArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]GetAPIKeysArg)(nil), args)
+						err = rpc.NewTypeError((*[1]GetExternalAPIKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.GetAPIKeys(ctx, typedArgs[0].Typs)
+					ret, err = i.GetExternalAPIKeys(ctx, typedArgs[0].Typs)
 					return
 				},
 			},
@@ -1995,8 +1995,8 @@ func (c RemoteClient) ServerNow(ctx context.Context) (res ServerNowRes, err erro
 	return
 }
 
-func (c RemoteClient) GetAPIKeys(ctx context.Context, typs []APIKeyTyp) (res []APIKey, err error) {
-	__arg := GetAPIKeysArg{Typs: typs}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip)
+func (c RemoteClient) GetExternalAPIKeys(ctx context.Context, typs []ExternalAPIKeyTyp) (res []ExternalAPIKey, err error) {
+	__arg := GetExternalAPIKeysArg{Typs: typs}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getExternalAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
 }
