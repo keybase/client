@@ -4,14 +4,23 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
-    "fetchedUserRecs": {"users": "Array<Types.User>"},
-    "fetchUserRecs": {},
-    "finishedTeamBuilding": {},
-    "cancelTeamBuilding": {},
-    "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},
-    "addUsersToTeamSoFar": {"users": "Array<Types.User>"},
-    "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
+    "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
+    "fetchUserRecs": {"namespace": "Types.AllowedNamespace"},
+    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace"},
+    "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
+    "search": {
+      "namespace": "Types.AllowedNamespace",
+      "query": "string",
+      "service": "Types.ServiceIdWithContact",
+      "limit?": "number"
+    },
+    "addUsersToTeamSoFar": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
+    "removeUsersFromTeamSoFar": {
+      "namespace": "Types.AllowedNamespace",
+      "users": "Array<Types.UserID>"
+    },
     "searchResultsLoaded": {
+      "namespace": "Types.AllowedNamespace",
       "users": "Array<Types.User>",
       "query": "string",
       "service": "Types.ServiceIdWithContact"

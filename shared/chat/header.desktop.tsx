@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
@@ -182,12 +182,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-  onNewChat: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {}, selected: 'chatNewChat'}],
-      })
-    ),
+  onNewChat: () => dispatch(appendNewChatBuilder()),
   onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   onToggleThreadSearch: conversationIDKey => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
   onUnMuteConversation: conversationIDKey =>

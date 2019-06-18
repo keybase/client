@@ -2370,49 +2370,50 @@ export interface Record<TProps extends Object> {
   // Reading deep values
 
   hasIn(keyPath: Iterable<any>): boolean
-  getIn<K1 extends keyof TProps>(keyPath: [K1]): TProps[K1]
-  getIn<K1 extends keyof TProps, K2 extends keyof TProps[K1]>(keyPath: [K1, K2]): TProps[K1][K2]
-  getIn<K1 extends keyof TProps, K2 extends keyof TProps[K1], K3 extends keyof TProps[K1][K2]>(
-    keyPath: [K1, K2, K3]
-  ): TProps[K1][K2][K3]
-  getIn<
-    K1 extends keyof TProps,
-    K2 extends keyof TProps[K1],
-    K3 extends keyof TProps[K1][K2],
-    K4 extends keyof TProps[K1][K2][K3]
-  >(
-    keyPath: [K1, K2, K3, K4]
-  ): TProps[K1][K2][K3][K4]
-  getIn<
-    K1 extends keyof TProps,
-    K2 extends keyof TProps[K1],
-    K3 extends keyof TProps[K1][K2],
-    K4 extends keyof TProps[K1][K2][K3],
-    K5 extends keyof TProps[K1][K2][K3][K4]
-  >(
-    keyPath: [K1, K2, K3, K4, K5]
-  ): TProps[K1][K2][K3][K4][K5]
-  getIn<
-    K1 extends keyof TProps,
-    K2 extends keyof TProps[K1],
-    K3 extends keyof TProps[K1][K2],
-    K4 extends keyof TProps[K1][K2][K3],
-    K5 extends keyof TProps[K1][K2][K3][K4],
-    K6 extends keyof TProps[K1][K2][K3][K4][K5]
-  >(
-    keyPath: [K1, K2, K3, K4, K5, K6]
-  ): TProps[K1][K2][K3][K4][K5][K6]
-  getIn<
-    K1 extends keyof TProps,
-    K2 extends keyof TProps[K1],
-    K3 extends keyof TProps[K1][K2],
-    K4 extends keyof TProps[K1][K2][K3],
-    K5 extends keyof TProps[K1][K2][K3][K4],
-    K6 extends keyof TProps[K1][K2][K3][K4][K5],
-    K7 extends keyof TProps[K1][K2][K3][K4][K5][K6]
-  >(
-    keyPath: [K1, K2, K3, K4, K5, K6, K7]
-  ): TProps[K1][K2][K3][K4][K5][K6][K7]
+  getIn(keyPath: Array<any>, notSetValue?: any): any
+  // getIn<K1 extends keyof TProps>(keyPath: [K1]): TProps[K1]
+  // getIn<K1 extends keyof TProps, K2 extends keyof TProps[K1]>(keyPath: [K1, K2]): TProps[K1][K2]
+  // getIn<K1 extends keyof TProps, K2 extends keyof TProps[K1], K3 extends keyof TProps[K1][K2]>(
+  //   keyPath: [K1, K2, K3]
+  // ): TProps[K1][K2][K3]
+  // getIn<
+  //   K1 extends keyof TProps,
+  //   K2 extends keyof TProps[K1],
+  //   K3 extends keyof TProps[K1][K2],
+  //   K4 extends keyof TProps[K1][K2][K3]
+  // >(
+  //   keyPath: [K1, K2, K3, K4]
+  // ): TProps[K1][K2][K3][K4]
+  // getIn<
+  //   K1 extends keyof TProps,
+  //   K2 extends keyof TProps[K1],
+  //   K3 extends keyof TProps[K1][K2],
+  //   K4 extends keyof TProps[K1][K2][K3],
+  //   K5 extends keyof TProps[K1][K2][K3][K4]
+  // >(
+  //   keyPath: [K1, K2, K3, K4, K5]
+  // ): TProps[K1][K2][K3][K4][K5]
+  // getIn<
+  //   K1 extends keyof TProps,
+  //   K2 extends keyof TProps[K1],
+  //   K3 extends keyof TProps[K1][K2],
+  //   K4 extends keyof TProps[K1][K2][K3],
+  //   K5 extends keyof TProps[K1][K2][K3][K4],
+  //   K6 extends keyof TProps[K1][K2][K3][K4][K5]
+  // >(
+  //   keyPath: [K1, K2, K3, K4, K5, K6]
+  // ): TProps[K1][K2][K3][K4][K5][K6]
+  // getIn<
+  //   K1 extends keyof TProps,
+  //   K2 extends keyof TProps[K1],
+  //   K3 extends keyof TProps[K1][K2],
+  //   K4 extends keyof TProps[K1][K2][K3],
+  //   K5 extends keyof TProps[K1][K2][K3][K4],
+  //   K6 extends keyof TProps[K1][K2][K3][K4][K5],
+  //   K7 extends keyof TProps[K1][K2][K3][K4][K5][K6]
+  // >(
+  //   keyPath: [K1, K2, K3, K4, K5, K6, K7]
+  // ): TProps[K1][K2][K3][K4][K5][K6][K7]
 
   // Value equality
 
@@ -2470,11 +2471,11 @@ function genHelper(count) {
 
   mergeIn<K1 extends keyof TProps, V extends TProps[K1]>(
     keyPath: [K1],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<K1 extends keyof TProps, K2 extends keyof TProps[K1], V extends TProps[K1][K2]>(
     keyPath: [K1, K2],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2483,7 +2484,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3]
   >(
     keyPath: [K1, K2, K3],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2493,7 +2494,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4]
   >(
     keyPath: [K1, K2, K3, K4],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2504,7 +2505,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5]
   >(
     keyPath: [K1, K2, K3, K4, K5],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2516,7 +2517,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5][K6]
   >(
     keyPath: [K1, K2, K3, K4, K5, K6],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2529,7 +2530,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5][K6][K7]
   >(
     keyPath: [K1, K2, K3, K4, K5, K6, K7],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   mergeIn<
     K1 extends keyof TProps,
@@ -2543,7 +2544,7 @@ function genHelper(count) {
     V extends TProps[K1][K2][K3][K4][K5][K6][K7][K8]
   >(
     keyPath: [K1, K2, K3, K4, K5, K6, K7, K8],
-    ...collections: Array<Partial<V>>
+    ...collections: Array<V | Partial<V>>
   ): this
   // mergeIn<K1 extends keyof TProps, K2 extends keyof TProps[K1]>(keyPath: [K1, K2], ...collections: Array<Partial<TProps[K1][K2]>>): this;
   // mergeIn<K1 extends keyof TProps, K2 extends keyof TProps[K1], K3 extends keyof TProps[K1][K2]>(keyPath: [K1,K2,K3], ...collections: Array<Partial<TProps[K1][K2][K3]>>): this;

@@ -2,6 +2,7 @@ import * as React from 'react'
 import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import {teamsTab} from '../../../../constants/tabs'
 import openURL from '../../../../util/open-url'
 
@@ -15,13 +16,14 @@ type OwnProps = {
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
-        })
-      )
-      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
+      dispatch(appendNewTeamBuilder())
+      // dispatch(
+      //   RouteTreeGen.createNavigateTo({
+      //     parentPath: [teamsTab],
+      //     path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
+      //   })
+      // )
+      // dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
     onInvite: () => {
       dispatch(

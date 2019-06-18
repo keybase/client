@@ -6,17 +6,19 @@ import TeamBuilding from '.'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {compose, namedConnect} from '../util/container'
+import {compose, namedConnect, TypedState, TypedDispatch} from '../util/container'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc} from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
+import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {
+  namespace: AllowedNamespace
   searchString: string
   selectedService: ServiceIdWithContact
   highlightedIndex: number
@@ -89,45 +91,56 @@ const deriveUserFromUserIdFn = memoize(
     null
 )
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const userResults = state.chat2.teamBuildingSearchResults.getIn([
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const teamBuildingState = state[ownProps.namespace].teamBuilding
+  const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
     trim(ownProps.searchString),
     ownProps.selectedService,
   ])
 
   return {
     recommendations: deriveSearchResults(
-      state.chat2.teamBuildingUserRecs,
-      state.chat2.teamBuildingTeamSoFar,
+      teamBuildingState.teamBuildingUserRecs,
+      teamBuildingState.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following
     ),
     searchResults: deriveSearchResults(
       userResults,
-      state.chat2.teamBuildingTeamSoFar,
+      teamBuildingState.teamBuildingTeamSoFar,
       state.config.username,
       state.config.following
     ),
     serviceResultCount: deriveServiceResultCount(
-      state.chat2.teamBuildingSearchResults,
+      teamBuildingState.teamBuildingSearchResults,
       ownProps.searchString
     ),
     showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
-    teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
-    userFromUserId: deriveUserFromUserIdFn(userResults, state.chat2.teamBuildingUserRecs),
+    teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
+    userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
-  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
+const mapDispatchToProps = (dispatch: TypedDispatch, {namespace}: OwnProps) => ({
+  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
-    requestIdleCallback(() => dispatch(TeamBuildingGen.createSearch({limit, query, service})))
+    requestIdleCallback(() =>
+      dispatch(
+        TeamBuildingGen.createSearch({
+          limit,
+          namespace,
+          query,
+          service,
+        })
+      )
+    )
   }, 500),
-  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs()),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
-  onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
+  fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
+  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace})),
+  onRemove: (userId: string) =>
+    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
 })
 
 const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {
@@ -201,7 +214,11 @@ const deriveOnDownArrowKeyDown = memoize(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => {
   const {
     teamSoFar,
     searchResults,
@@ -289,12 +306,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-const Connected = compose(
+const Connected: React.ComponentType<OwnProps> = compose(
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
   isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
+class StateWrapperForTeamBuilding extends React.Component<RouteProps<{}, {}>, LocalState> {
   state: LocalState = initialState
 
   onChangeService = (selectedService: ServiceIdWithContact) => this.setState({selectedService})
@@ -316,8 +333,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
 
   render() {
     return (
-      // @ts-ignore
       <Connected
+        namespace={this.props.navigation.getParam('namespace')}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

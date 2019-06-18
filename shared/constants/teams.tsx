@@ -7,6 +7,7 @@ import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
+import * as TeamBuildingConstants from '../constants/team-building'
 import {Service} from './types/search'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
@@ -144,6 +145,7 @@ export const makeState = I.Record<Types._State>({
   sawChatBanner: false,
   sawSubteamsBanner: false,
   teamAccessRequestsPending: I.Set(),
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
   teamInviteError: '',
   teamJoinError: '',

@@ -36,7 +36,7 @@ function followStateHelperWithId(
   return 'NoState'
 }
 
-const makeSubState = (): Types.TeamBuildingSubState => ({
+const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
   teamBuildingFinishedTeam: I.Set(),
   teamBuildingSearchLimit: 11,
   teamBuildingSearchQuery: '',
@@ -46,6 +46,8 @@ const makeSubState = (): Types.TeamBuildingSubState => ({
   teamBuildingTeamSoFar: I.Set(),
   teamBuildingUserRecs: null,
 })
+
+const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
 const parseRawResultToUser = (
   result: Types.RawSearchResult,

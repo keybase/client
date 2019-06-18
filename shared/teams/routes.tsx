@@ -30,4 +30,5 @@ export const newModalRoutes = {
     getScreen: () => require('./rename-team/container').default,
     upgraded: true,
   },
+  teamsTeamBuilder: {getScreen: () => require('../team-building/container').default, upgraded: true},
 }

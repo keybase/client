@@ -3,10 +3,16 @@ import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
+import * as TeamBuildingGen from '../actions/team-building-gen'
+import teamBuildingReducer from './team-building'
+import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 const initialState: Types.State = Constants.makeState()
 
-const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions): Types.State => {
+const rootReducer = (
+  state: Types.State = initialState,
+  action: TeamsGen.Actions | TeamBuildingGen.Actions
+): Types.State => {
   switch (action.type) {
     case TeamsGen.resetStore:
       return initialState
@@ -102,11 +108,13 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({teamsWithChosenChannels: teams})
     case TeamsGen.setUpdatedChannelName:
       return state.mergeIn(
+        // @ts-ignore
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
         {channelname: action.payload.newChannelName}
       )
     case TeamsGen.setUpdatedTopic:
       return state.mergeIn(
+        // @ts-ignore
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey],
         {description: action.payload.newTopic}
       )
@@ -126,6 +134,16 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
         memberStatus => RPCChatTypes.ConversationMemberStatus.left
       )
+    case TeamBuildingGen.resetStore:
+    case TeamBuildingGen.cancelTeamBuilding:
+    case TeamBuildingGen.addUsersToTeamSoFar:
+    case TeamBuildingGen.removeUsersFromTeamSoFar:
+    case TeamBuildingGen.searchResultsLoaded:
+    case TeamBuildingGen.finishedTeamBuilding:
+    case TeamBuildingGen.fetchedUserRecs:
+    case TeamBuildingGen.fetchUserRecs:
+    case TeamBuildingGen.search:
+      return state.update('teamBuilding', teamBuilding => teamBuildingReducer('teams', teamBuilding, action))
     // Saga-only actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addUserToTeams:
@@ -169,6 +187,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.updateTopic:
       return state
     default:
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }
