@@ -2368,7 +2368,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 	hasRoom := true
 	if dbc != nil {
-		hasRoom, err = dbc.DoesCacheHaveSpace(ctx, libkbfs.DiskBlockSyncCache)
+		hasRoom, _, err = dbc.DoesCacheHaveSpace(ctx, libkbfs.DiskBlockSyncCache)
 		if err != nil {
 			return keybase1.SyncConfigAndStatusRes{}, err
 		}
