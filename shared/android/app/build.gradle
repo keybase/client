@@ -229,16 +229,13 @@ dependencies {
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation "com.android.support:multidex:1.0.3"
     implementation "com.google.firebase:firebase-messaging:17.3.0" // sync with firebaseVersion in gradle.properties
-    implementation "com.google.android.gms:play-services-gcm:16.0.0"
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation "com.facebook.fresco:animated-gif:1.13.0"
     implementation "com.facebook.fresco:fresco:1.13.0"
     implementation "com.evernote:android-job:1.2.6"
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
-    implementation(project(':react-native-push-notification'), {
-      exclude group: "com.google.android.gms"
-    })
+    implementation project(':react-native-push-notification')
     implementation project(':react-native-camera')
     implementation project(':react-native-image-picker')
     implementation project(':react-native-fetch-blob')
