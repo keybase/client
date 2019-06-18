@@ -66,8 +66,6 @@ const EnterUsername = (props: Props) => {
             maxLength={maxUsernameLength}
             onChangeText={onChangeUsername}
             onEnterKeyDown={onContinue}
-            // TODO (DA) there's an issue with editing this causing remounts.
-            // Spent some time looking, figure out later.
             value={username}
           />
           <Kb.Text type="BodySmall" style={styles.inputSub}>

@@ -53,7 +53,7 @@ func (s *AppStatusEmbed) GetAppStatus() *AppStatus {
 // allowing us to share the request-making code below in doRequest
 type Requester interface {
 	fixHeaders(m MetaContext, arg APIArg, req *http.Request, nist *NIST) error
-	getCli(needSession bool) *Client
+	getCli(needSession bool) (*Client, error)
 	consumeHeaders(m MetaContext, resp *http.Response, nist *NIST) error
 	isExternal() bool
 }
@@ -130,7 +130,7 @@ func (a *APIError) Error() string {
 //============================================================================
 // BaseApiEngine
 
-func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
+func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client, err error) {
 	key := 0
 	if cookied {
 		key |= 1
@@ -139,11 +139,14 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 	client, found := api.clients[key]
 	if !found {
 		api.G().Log.Debug("| Cli wasn't found; remaking for cookied=%v", cookied)
-		client = NewClient(api.G(), api.config, cookied)
+		client, err = NewClient(api.G(), api.config, cookied)
+		if err != nil {
+			return nil, err
+		}
 		api.clients[key] = client
 	}
 	api.clientsMu.Unlock()
-	return client
+	return client, err
 }
 
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
@@ -267,7 +270,10 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	if arg.SessionType != APISessionTypeNONE {
 		needSession = true
 	}
-	cli := api.getCli(needSession)
+	cli, err := api.getCli(needSession)
+	if err != nil {
+		return
+	}
 
 	// Actually send the request via Go's libraries
 	timerType := TimerAPI

@@ -50,9 +50,27 @@ export const InfoIcon = Container.namedConnect(
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
+type HeaderProps = {
+  onBack: () => void
+  title?: string
+  titleComponent?: React.ReactNode
+  showInfoIcon: boolean
+  style: Styles.StylesCrossPlatform
+  negative: boolean
+}
+
 // Only used on desktop
-const Header = props => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={props.style}>
+const Header = (props: HeaderProps) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.headerContainer, props.style])}
+  >
+    {props.showInfoIcon && (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
+        <InfoIcon invisible={props.negative as boolean} />
+      </Kb.Box2>
+    )}
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
       {props.onBack && (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
@@ -102,6 +120,7 @@ type SignupScreenProps = {
   onRightAction?: () => void | null
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
+  showHeaderInfoicon?: boolean
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
@@ -112,8 +131,9 @@ export const SignupScreen = (props: SignupScreenProps) => (
         onBack={props.onBack}
         title={props.title}
         titleComponent={props.titleComponent}
+        showInfoIcon={!!props.showHeaderInfoicon}
         style={props.headerStyle}
-        negative={props.negativeHeader}
+        negative={!!props.negativeHeader}
       />
     )}
     {Styles.isMobile && !props.skipMobileHeader && (
@@ -121,6 +141,8 @@ export const SignupScreen = (props: SignupScreenProps) => (
         headerStyle={props.headerStyle}
         title={props.title}
         titleComponent={props.titleComponent}
+        rightActionLabel={props.rightActionLabel}
+        onRightAction={props.onRightAction}
         leftAction={props.leftAction}
         leftActionText={props.leftActionText}
         onBack={props.onBack}
@@ -200,6 +222,13 @@ const styles = Styles.styleSheetCreate({
   fixIconAlignment: {
     position: 'relative',
     top: 2,
+  },
+  headerContainer: {
+    backgroundColor: Styles.globalColors.white,
+  },
+  infoIconContainer: {
+    justifyContent: 'flex-end',
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
   },
   opacityNone: {
     opacity: 0,

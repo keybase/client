@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -29,9 +30,10 @@ type Packager struct {
 	store        attachments.Store
 	s3signer     s3.Signer
 	maxAssetSize int64
+	libkb.Contextified
 }
 
-func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
+func NewPackager(g *libkb.GlobalContext, l logger.Logger, store attachments.Store, s3signer s3.Signer,
 	ri func() chat1.RemoteInterface) *Packager {
 	return &Packager{
 		DebugLabeler: utils.NewDebugLabeler(l, "Packager", false),
@@ -40,6 +42,7 @@ func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
 		ri:           ri,
 		s3signer:     s3signer,
 		maxAssetSize: 10000000,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -209,7 +212,7 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	var imgBody io.ReadCloser
 	var imgLength int64
 	if raw.Giphy().ImageUrl != nil {
-		imgBody, imgLength, err = giphy.Asset(ctx, *raw.Giphy().ImageUrl)
+		imgBody, imgLength, err = giphy.Asset(libkb.NewMetaContext(ctx, p.G()), *raw.Giphy().ImageUrl)
 		if err != nil {
 			p.Debug(ctx, "Package: failed to get body specs for giphy image: %s", err)
 			return res, err
@@ -219,7 +222,7 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	if raw.Giphy().Video != nil {
 		// If we found a video, then let's see if it is smaller than the image, if so we will
 		// set it (which means it will get used by the frontend)
-		vidBody, vidLength, err := giphy.Asset(ctx, raw.Giphy().Video.Url)
+		vidBody, vidLength, err := giphy.Asset(libkb.NewMetaContext(ctx, p.G()), raw.Giphy().Video.Url)
 		if err == nil && (imgLength == 0 || vidLength < imgLength) && vidLength < p.maxAssetSize {
 			p.Debug(ctx, "Package: found video: len: %d", vidLength)
 			defer vidBody.Close()

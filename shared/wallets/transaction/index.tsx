@@ -25,6 +25,9 @@ type CounterpartyIconProps = {
 
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
+  if (!props.counterparty) {
+    return <Icon type="icon-stellar-logo-grey-48" style={{height: size, width: size}} />
+  }
   switch (props.counterpartyType) {
     case 'keybaseUser':
       return (
@@ -110,15 +113,26 @@ type DetailProps = {
   sourceAsset: string
   status: string
   issuerDescription: string
+  isAdvanced: boolean
+  summaryAdvanced?: string
 }
 
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
+  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
+
+  if (props.isAdvanced) {
+    return (
+      <Text type={textType} style={{...{wordBreak: 'break-word'}, ...textStyle}}>
+        {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
+      </Text>
+    )
+  }
 
   let amount
   if (props.issuerDescription) {
@@ -182,8 +196,6 @@ const Detail = (props: DetailProps) => {
       </Text>
     </Text>
   ) : null
-
-  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -258,6 +270,8 @@ const roleToColor = (role: Types.Role): string => {
     case 'receiverOnly':
       return globalColors.green
     case 'senderAndReceiver':
+      return globalColors.black
+    case 'none':
       return globalColors.black
     default:
       throw new Error(`Unexpected role ${role}`)
@@ -371,6 +385,8 @@ export type Props = {
   counterparty: string
   counterpartyType: Types.CounterpartyType
   detailView?: boolean
+  isAdvanced: boolean
+  summaryAdvanced?: string
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string
@@ -393,24 +409,24 @@ export type Props = {
 }
 
 export const Transaction = (props: Props) => {
-  let large: boolean
   let showMemo: boolean
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      large = true
       showMemo = true
       break
     case 'stellarPublicKey':
-      large = true
       showMemo = props.yourRole !== 'receiverOnly'
       break
     case 'otherAccount':
-      large = true
       showMemo = !!props.memo
       break
     default:
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
+  if (props.isAdvanced) {
+    showMemo = !!props.memo
+  }
+  const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
   const backgroundColor = props.unread && !props.detailView ? globalColors.blueLighter2 : globalColors.white
   return (
@@ -449,6 +465,8 @@ export const Transaction = (props: Props) => {
               sourceAsset={props.sourceAsset}
               status={props.status}
               issuerDescription={props.issuerDescription}
+              isAdvanced={props.isAdvanced}
+              summaryAdvanced={props.summaryAdvanced}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
@@ -472,7 +490,7 @@ export const Transaction = (props: Props) => {
                 </Box2>
               )}
               <Box2 direction="horizontal" style={styles.marginLeftAuto} />
-              {props.status !== 'error' && (
+              {props.status !== 'error' && !props.isAdvanced && (
                 <AmountXLM
                   selectableText={props.selectableText}
                   canceled={props.status === 'canceled'}

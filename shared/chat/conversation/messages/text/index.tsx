@@ -16,6 +16,7 @@ type ReplyProps = {
 }
 
 const Reply = (props: ReplyProps) => {
+  const [imageLoaded, setImageLoaded] = React.useState(false)
   const sizing = props.imageHeight ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80) : null
   return (
     <Kb.ClickableBox onClick={props.onClick}>
@@ -40,7 +41,12 @@ const Reply = (props: ReplyProps) => {
             {!!props.imageURL && (
               <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
                 <Kb.Box style={{...sizing.margins}}>
-                  <Kb.Image src={props.imageURL} style={{...sizing.dims}} />
+                  <Kb.Image
+                    src={props.imageURL}
+                    onLoad={() => setImageLoaded(true)}
+                    style={{...sizing.dims}}
+                  />
+                  {!imageLoaded && <Kb.ProgressIndicator style={styles.replyProgress} />}
                 </Kb.Box>
               </Kb.Box2>
             )}
@@ -161,6 +167,18 @@ const styles = Styles.styleSheetCreate({
   replyImageContainer: {
     overflow: 'hidden',
     position: 'relative',
+  },
+  replyProgress: {
+    bottom: '50%',
+    left: '50%',
+    marginBottom: -12,
+    marginLeft: -12,
+    marginRight: -12,
+    marginTop: -12,
+    position: 'absolute',
+    right: '50%',
+    top: '50%',
+    width: 24,
   },
   replyTextContainer: {
     alignSelf: 'flex-start',
