@@ -17,7 +17,7 @@ const mapsHost = "maps.googleapis.com"
 
 func GetMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&zoom=15&size=320x319&key=%s",
+		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&zoom=15&size=320x200&key=%s",
 		MapsProxy, lat, lon, lat, lon, mapsAPIKey)
 }
 

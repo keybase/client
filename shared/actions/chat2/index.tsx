@@ -2820,10 +2820,10 @@ const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordina
       {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
     )
   } else {
-    // desktop doesn't really work, so just stick us in the Atlantic
+    // desktop doesn't really work, so just stick us in SF
     response.result({
-      lat: 0,
-      lon: 0,
+      lat: 37.785834,
+      lon: -122.406417,
     })
   }
   return []
