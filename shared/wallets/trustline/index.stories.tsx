@@ -11,6 +11,10 @@ const commonAssetProps = {
   onAccept: Sb.action('onAccept'),
   onRemove: Sb.action('onRemove'),
   onViewDetails: Sb.action('onViewDetails'),
+
+  waitingAdd: false,
+  waitingDelete: false,
+  waitingRefresh: false,
 }
 
 const AssetWrapper = props => {
@@ -57,12 +61,14 @@ const assets = {
 const commonTrustlineProps = {
   acceptedAssets: I.Map({'issuer1-KEYZ': 10}),
   accountID: Types.noAccountID,
+  clearTrustlineModal: Sb.action('clearTrustlineModal'),
   loaded: true,
   onDone: Sb.action('onDone'),
   onSearchChange: Sb.action('onSearchChange'),
   popularAssets: I.List(['issuer1-USD', 'issuer2-USD', 'issuer2-KEYZ', 'issuer2-PINGPONG']),
   refresh: Sb.action('refresh'),
   totalAssetsCount: Object.keys(assets).length,
+  waitingSearch: false,
 }
 
 const provider = Sb.createPropProviderWithCommon({

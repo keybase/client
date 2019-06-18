@@ -1078,7 +1078,7 @@ const gregorPushState = (_, action: GregorGen.PushStatePayload) =>
     show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
   })
 
-const rpcAssetToTrustlineAsset = (asset: RPCStellarTypes.Asset): Types.AssetDescription =>
+const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDescription =>
   Constants.makeAssetDescription({
     code: asset.code,
     issuerAccountID: asset.issuer,
@@ -1087,10 +1087,14 @@ const rpcAssetToTrustlineAsset = (asset: RPCStellarTypes.Asset): Types.AssetDesc
   })
 
 const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
-  RPCStellarTypes.localGetTrustlinesLocalRpcPromise({accountID}).then(balances => {
+  accountID !== Types.noAccountID &&
+  RPCStellarTypes.localGetTrustlinesLocalRpcPromise(
+    {accountID},
+    Constants.refreshTrustlineAcceptedAssetsWaitingKey(accountID)
+  ).then(balances => {
     const {assets, limitsMutable} = balances.reduce(
       ({assets, limitsMutable}, balance) => {
-        const assetDescription = rpcAssetToTrustlineAsset(balance.asset)
+        const assetDescription = rpcAssetToAssetDescription(balance.asset)
         return {
           assets: [...assets, assetDescription],
           limitsMutable: limitsMutable.set(
@@ -1110,8 +1114,81 @@ const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
 
 const refreshTrustlinePopularAssets = () =>
   RPCStellarTypes.localListPopularAssetsLocalRpcPromise().then(assets =>
-    WalletsGen.createSetTrustlinePopularAssets({assets: assets.map(asset => rpcAssetToTrustlineAsset(asset))})
+    WalletsGen.createSetTrustlinePopularAssets({
+      assets: assets.map(asset => rpcAssetToAssetDescription(asset)),
+    })
   )
+
+const humanizeError = (state, accountID, originalErrorMessage: string) =>
+  originalErrorMessage.includes('tx_insufficient_balance')
+    ? `Stellar holds 0.5 XLM per trustline, and your Lumens balance is ${
+        Constants.getAssets(state, accountID).find(
+          ({assetCode}) => assetCode === 'XLM',
+          undefined,
+          Constants.makeAssets()
+        ).balanceTotal
+      } XLM.`
+    : originalErrorMessage
+
+const addTrustline = (state, {payload: {accountID, assetID}}) => {
+  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyTrustline)
+  return (
+    asset !== Constants.emptyTrustline &&
+    RPCStellarTypes.localAddTrustlineLocalRpcPromise(
+      {
+        accountID: accountID,
+        limit: '',
+        trustline: {assetCode: asset.code, issuer: asset.issuerAccountID},
+      },
+      Constants.addTrustlineWaitingKey(accountID, assetID)
+    )
+  )
+    .then(() => [
+      WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}),
+      WalletsGen.createSetTrustlineErrorMessage({errorMessage: null}),
+    ])
+    .catch(err =>
+      WalletsGen.createSetTrustlineErrorMessage({errorMessage: humanizeError(state, accountID, err.desc)})
+    )
+}
+
+const deleteTrustline = (state, {payload: {accountID, assetID}}) => {
+  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyTrustline)
+  return (
+    asset !== Constants.emptyTrustline &&
+    RPCStellarTypes.localDeleteTrustlineLocalRpcPromise(
+      {
+        accountID: accountID,
+        trustline: {assetCode: asset.code, issuer: asset.issuerAccountID},
+      },
+      Constants.deleteTrustlineWaitingKey(accountID, assetID)
+    )
+  )
+    .then(() => [
+      WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}),
+      WalletsGen.createSetTrustlineErrorMessage({errorMessage: null}),
+    ])
+    .catch(err =>
+      WalletsGen.createSetTrustlineErrorMessage({errorMessage: humanizeError(state, accountID, err.desc)})
+    )
+}
+
+let lastSearchText = ''
+const searchTrustlineAssets = (state, {payload: {text}}) => {
+  lastSearchText = text
+  return text
+    ? RPCStellarTypes.localFuzzyAssetSearchLocalRpcPromise(
+        {searchString: text},
+        Constants.searchTrustlineAssetsWaitingKey
+      ).then(
+        assets =>
+          text === lastSearchText &&
+          WalletsGen.createSetTrustlineSearchResults({
+            assets: assets ? assets.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : [],
+          })
+      )
+    : WalletsGen.createClearTrustlineSearchResults()
+}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
@@ -1509,11 +1586,28 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<WalletsGen.RefreshTrustlineAcceptedAssetsPayload>(
     WalletsGen.refreshTrustlineAcceptedAssets,
-    refreshTrustlineAcceptedAssets
+    refreshTrustlineAcceptedAssets,
+    'refreshTrustlineAcceptedAssets'
   )
   yield* Saga.chainAction<WalletsGen.RefreshTrustlinePopularAssetsPayload>(
     WalletsGen.refreshTrustlinePopularAssets,
-    refreshTrustlinePopularAssets
+    refreshTrustlinePopularAssets,
+    'refreshTrustlinePopularAssets'
+  )
+  yield* Saga.chainAction<WalletsGen.AddTrustlinePayload>(
+    WalletsGen.addTrustline,
+    addTrustline,
+    'addTrustline'
+  )
+  yield* Saga.chainAction<WalletsGen.DeleteTrustlinePayload>(
+    WalletsGen.deleteTrustline,
+    deleteTrustline,
+    'deleteTrustline'
+  )
+  yield* Saga.chainAction<WalletsGen.SetTrustlineSearchTextPayload>(
+    WalletsGen.setTrustlineSearchText,
+    searchTrustlineAssets,
+    'searchTrustlineAssets'
   )
 }
 

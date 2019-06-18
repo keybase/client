@@ -79,6 +79,10 @@ export type MessageTypes = {
     inParam: {readonly accountID: AccountID; readonly userAcknowledged: String}
     outParam: void
   }
+  'stellar.1.local.fuzzyAssetSearchLocal': {
+    inParam: {readonly searchString: String}
+    outParam: Array<Asset> | null
+  }
   'stellar.1.local.getAccountAssetsLocal': {
     inParam: {readonly accountID: AccountID}
     outParam: Array<AccountAssetLocal> | null
@@ -455,6 +459,7 @@ export const localChangeWalletAccountNameLocalRpcPromise = (params: MessageTypes
 export const localCreateWalletAccountLocalRpcPromise = (params: MessageTypes['stellar.1.local.createWalletAccountLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.createWalletAccountLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.createWalletAccountLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteTrustlineLocalRpcPromise = (params: MessageTypes['stellar.1.local.deleteTrustlineLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.deleteTrustlineLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.deleteTrustlineLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteWalletAccountLocalRpcPromise = (params: MessageTypes['stellar.1.local.deleteWalletAccountLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.deleteWalletAccountLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.deleteWalletAccountLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localFuzzyAssetSearchLocalRpcPromise = (params: MessageTypes['stellar.1.local.fuzzyAssetSearchLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.fuzzyAssetSearchLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.fuzzyAssetSearchLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetAccountAssetsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getAccountAssetsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getAccountAssetsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getAccountAssetsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetDisplayCurrenciesLocalRpcPromise = (params: MessageTypes['stellar.1.local.getDisplayCurrenciesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getDisplayCurrenciesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getDisplayCurrenciesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetDisplayCurrencyLocalRpcPromise = (params: MessageTypes['stellar.1.local.getDisplayCurrencyLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getDisplayCurrencyLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getDisplayCurrencyLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -491,7 +496,6 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.getWalletAccountPublicKeyLocal'
 // 'stellar.1.local.sendPathLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
-// 'stellar.1.local.fuzzyAssetSearchLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
 // 'stellar.1.local.findPaymentPathLocal'
 // 'stellar.1.local.balancesLocal'

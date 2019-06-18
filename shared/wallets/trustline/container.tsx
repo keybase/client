@@ -3,6 +3,8 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as Waiting from '../../constants/waiting'
+import {debounce} from 'lodash-es'
 import Trustline from '.'
 
 type OwnProps = Container.RouteProps<
@@ -14,11 +16,16 @@ type OwnProps = Container.RouteProps<
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   trustline: state.wallets.trustline,
+  waitingSearch: Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+  clearTrustlineModal: () => {
+    dispatch(WalletsGen.createClearTrustlineSearchResults())
+    dispatch(WalletsGen.createSetTrustlineErrorMessage({errorMessage: null}))
+  },
   onDone: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSearchChange: (text: string) => {},
+  onSearchChange: debounce((text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})), 500),
   refresh: () => {
     const accountID = Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID
     accountID !== Types.noAccountID && dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
@@ -28,13 +35,16 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (s, d, o: OwnProps) => {
   const accountID = Container.getRouteProps(o, 'accountID') || Types.noAccountID
+  const acceptedAssets = s.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
   return {
-    acceptedAssets: s.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets),
+    acceptedAssets,
     accountID,
+    clearTrustlineModal: d.clearTrustlineModal,
     errorMessage: s.trustline.errorMessage,
     loaded: s.trustline.loaded,
-    popularAssets: s.trustline.popularAssets,
-    searchingAssets: s.trustline.searchingAssetsHit,
+    popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)),
+    searchingAssets: s.trustline.searchingAssets,
+    waitingSearch: s.waitingSearch,
     ...d,
   }
 }

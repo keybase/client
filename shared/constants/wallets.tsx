@@ -562,6 +562,13 @@ export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
 export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
   `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
 export const checkOnlineWaitingKey = 'wallets:checkOnline'
+export const addTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:addTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:deleteTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
+  `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
+export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 

@@ -15,6 +15,10 @@ export type Props = {
   onExpand: () => void
   onRemove: () => void
   onViewDetails: () => void
+
+  waitingAdd: boolean
+  waitingDelete: boolean
+  waitingRefresh: boolean
 }
 
 const stopPropagation = onClick => e => {
@@ -88,6 +92,8 @@ const Asset = (props: Props) => (
               small={true}
               label="Remove"
               onClick={stopPropagation(props.onRemove)}
+              disabled={props.waitingRefresh}
+              waiting={props.waitingDelete}
             />
           ) : (
             <Kb.Button
@@ -96,6 +102,8 @@ const Asset = (props: Props) => (
               small={true}
               label="Accept"
               onClick={stopPropagation(props.onAccept)}
+              disabled={props.waitingRefresh}
+              waiting={props.waitingAdd}
             />
           )}
         </Kb.Box2>

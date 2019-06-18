@@ -5,9 +5,10 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/wallets'
 import Asset from './asset-container'
 
-type BodyProps = {
+type _Props = {
   accountID: Types.AccountID
   acceptedAssets: I.Map<Types.AssetID, number>
+  clearTrustlineModal: () => void
   errorMessage?: string
   loaded: boolean
   onSearchChange: (text: string) => void
@@ -15,9 +16,12 @@ type BodyProps = {
   refresh: () => void
   searchingAssets?: I.List<Types.AssetID>
   totalAssetsCount?: number
+  waitingSearch: boolean
 }
 
-type Props = BodyProps & {
+type BodyProps = _Props & {onFocusChange?: (focused: boolean) => void}
+
+type Props = _Props & {
   onDone: () => void
 }
 
@@ -27,7 +31,7 @@ const makeSections = (props: BodyProps) => [
         {
           data: props.searchingAssets.toArray(),
           key: 'section-search',
-          keyExtractor: item => item,
+          keyExtractor: item => `search-item:${item}`,
           title: '',
         },
       ]
@@ -37,7 +41,7 @@ const makeSections = (props: BodyProps) => [
         {
           data: props.acceptedAssets.keySeq().toArray(),
           key: 'section-accepted',
-          keyExtractor: item => item,
+          keyExtractor: item => `accepted-item:${item}`,
           title: 'Accepted assets',
         },
       ]
@@ -47,7 +51,7 @@ const makeSections = (props: BodyProps) => [
         {
           data: props.popularAssets.toArray(),
           key: 'section-popular',
-          keyExtractor: item => item,
+          keyExtractor: item => `popular-item:${item}`,
           title: 'Popular assets',
         },
       ]
@@ -61,35 +65,50 @@ const sectionHeader = section =>
     </Kb.Box2>
   )
 
+const getContent = (props: BodyProps) =>
+  props.searchingAssets && !props.searchingAssets.size ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
+      <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
+    </Kb.Box2>
+  ) : (
+    <Kb.SectionList
+      // hack around the bug where when we change from search mode where
+      // there's no section header, into normal mode where there are
+      // section headers, first section header doesn't show.
+      key={props.searchingAssets ? 'search-section-list' : 'non-search-section-list'}
+      sections={makeSections(props)}
+      renderItem={({index, item}) => (
+        <Asset accountID={props.accountID} firstItem={index === 0} assetID={item} />
+      )}
+      renderSectionHeader={({section}) => sectionHeader(section)}
+    />
+  )
+
 const Body = (props: BodyProps) => {
   React.useEffect(() => props.refresh(), [])
+  React.useEffect(() => () => props.clearTrustlineModal(), [])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
-        <Kb.SearchFilter
-          icon="iconfont-search"
-          fullWidth={true}
-          placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
-          onChange={props.onSearchChange}
-        />
-      </Kb.Box2>
-      <Kb.Divider />
-      {!!props.errorMessage && <Kb.Banner color="red" text={props.errorMessage} />}
       {props.loaded ? (
-        <Kb.SectionList
-          sections={makeSections(props)}
-          renderItem={({index, item}) => (
-            <Asset accountID={props.accountID} firstItem={index === 0} assetID={item} />
-          )}
-          renderSectionHeader={({section}) => sectionHeader(section)}
-        />
+        <>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
+            <Kb.SearchFilter
+              icon="iconfont-search"
+              fullWidth={true}
+              placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
+              hotkey="f"
+              onChange={props.onSearchChange}
+              onFocus={props.onFocusChange && (() => props.onFocusChange(true))}
+              onBlur={props.onFocusChange && (() => props.onFocusChange(false))}
+              waiting={props.waitingSearch}
+            />
+          </Kb.Box2>
+          <Kb.Divider />
+          {!!props.errorMessage && <Kb.Banner color="red" text={props.errorMessage} />}
+          {getContent(props)}
+        </>
       ) : (
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          style={styles.loadingContainer}
-          centerChildren={true}
-        >
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
           <Kb.ProgressIndicator />
         </Kb.Box2>
       )}
@@ -97,25 +116,28 @@ const Body = (props: BodyProps) => {
   )
 }
 
-const TrustlineDesktop = Kb.HeaderOrPopup((props: Props) => {
+const TrustlineDesktop = (props: Props) => {
   const {onDone, ...rest} = props
+  const [searchFilterFocused, setSearchFilterFocused] = React.useState(false)
   return (
-    <Kb.Box2 direction="vertical" style={styles.containerDesktop}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.headerDesktop}>
-        <Kb.Text type="Header">Trustlines</Kb.Text>
+    <Kb.PopupDialog onClose={onDone} immuneToEscape={searchFilterFocused}>
+      <Kb.Box2 direction="vertical" style={styles.containerDesktop}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.headerDesktop}>
+          <Kb.Text type="Header">Trustlines</Kb.Text>
+        </Kb.Box2>
+        <Body {...rest} onFocusChange={setSearchFilterFocused} />
+        <Kb.Divider />
+        <Kb.Button
+          type="Default"
+          mode="Primary"
+          label="Done"
+          onClick={props.onDone}
+          style={styles.doneButtonDesktop}
+        />
       </Kb.Box2>
-      <Body {...rest} />
-      <Kb.Divider />
-      <Kb.Button
-        type="Default"
-        mode="Primary"
-        label="Done"
-        onClick={props.onDone}
-        style={styles.doneButtonDesktop}
-      />
-    </Kb.Box2>
+    </Kb.PopupDialog>
   )
-})
+}
 
 const TrustlineMobile = Kb.HeaderHoc<BodyProps>(Body)
 
@@ -133,10 +155,7 @@ const Trustline = Styles.isMobile
         />
       )
     }
-  : (props: Props) => {
-      const {onDone} = props
-      return <TrustlineDesktop onCancel={onDone} {...props} />
-    }
+  : TrustlineDesktop
 
 export default Trustline
 
@@ -156,12 +175,12 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.xsmall,
   },
+  grow: {
+    ...Styles.globalStyles.flexGrow,
+  },
   headerDesktop: {
     flexShrink: 0,
     height: 48,
-  },
-  loadingContainer: {
-    ...Styles.globalStyles.flexGrow,
   },
   searchFilter: Styles.platformStyles({
     common: {

@@ -419,6 +419,27 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
           .set('loaded', true)
       )
+    case WalletsGen.setTrustlineSearchText:
+      return action.payload.text
+        ? state
+        : state.update('trustline', trustline =>
+            trustline.update('searchingAssets', searchingAssets => searchingAssets.clear())
+          )
+    case WalletsGen.setTrustlineSearchResults:
+      return state.update('trustline', trustline =>
+        trustline
+          .set(
+            'searchingAssets',
+            I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
+          )
+          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+      )
+    case WalletsGen.clearTrustlineSearchResults:
+      return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
+    case WalletsGen.setTrustlineErrorMessage:
+      return state.update('trustline', trustline =>
+        trustline.set('errorMessage', action.payload.errorMessage)
+      )
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
