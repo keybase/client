@@ -294,7 +294,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
       return null
     }
     return (
-      <Kb.Box direction="vertical" alignItems="flex-start" style={styles.expandedProxyContainer}>
+      <Kb.Box direction="vertical" style={styles.expandedProxyContainer}>
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
           <Kb.NewInput
@@ -315,6 +315,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
           on={!this.certPinning()}
           onClick={this.toggleCertPinning}
           label="Allow TLS Interception"
+          gapSize={Styles.globalMargins.xtiny}
           style={styles.proxySetting}
         />
         <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
@@ -325,7 +326,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
   render() {
     return (
       <Kb.Box style={styles.proxyContainer}>
-        <Kb.Divider style={styles.divider} />
+        <Kb.Divider style={styles.proxyDivider} />
         <Kb.Text type="BodyBig" style={styles.text}>
           Proxy Settings
         </Kb.Text>
@@ -381,7 +382,6 @@ const styles = Styles.styleSheetCreate({
   },
   expandedProxyContainer: {
     marginTop: Styles.globalMargins.small,
-    width: '40%',
   },
   filler: {
     flex: 1,
@@ -406,7 +406,11 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.medium,
+  },
+  proxyDivider: {
+    marginBottom: Styles.globalMargins.small,
+    width: '100%',
   },
   proxySetting: {
     marginBottom: Styles.globalMargins.small,

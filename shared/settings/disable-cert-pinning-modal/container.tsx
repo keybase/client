@@ -25,4 +25,4 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(Kb.HeaderOrPopup(ConfirmDisableCertPinningModal))
+)(ConfirmDisableCertPinningModal)

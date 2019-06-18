@@ -8,30 +8,15 @@ export type Props = {
 }
 
 const ConfirmDisableCertPinningModal = (props: Props) => (
-  <Kb.Box style={styles.modal}>
-    <Kb.Text center={true} type="Header" style={styles.header}>
-      Are you sure you want to allow TLS MITM? This means your proxy will be able to view all traffic between
-      you and Keybase servers. It is not recommended to use this option unless absolutely required.
-    </Kb.Text>
-    <Kb.ButtonBar>
-      <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
-      <Kb.Button type="Danger" label="Yes, I am sure" onClick={props.onConfirm} />
-    </Kb.ButtonBar>
-  </Kb.Box>
+  <Kb.ConfirmModal
+    confirmText="Yes, I am sure"
+    description="This means your proxy or your ISP will be able to view all
+        traffic between you and Keybase servers. It is not recommended to use this option unless absolutely required."
+    header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Styles.globalColors.red} />}
+    onCancel={props.onCancel}
+    onConfirm={props.onConfirm}
+    prompt={`Are you sure you want to allow TLS MITM?`}
+  />
 )
-
-const styles = Styles.styleSheetCreate({
-  header: {
-    marginTop: Styles.globalMargins.medium,
-    width: 320,
-  },
-  modal: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    padding: Styles.globalMargins.medium,
-  },
-})
 
 export default ConfirmDisableCertPinningModal
