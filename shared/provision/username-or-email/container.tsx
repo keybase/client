@@ -1,12 +1,12 @@
+import * as Container from '../../util/container'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
-import {compose, connect, safeSubmit} from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import {usernameHint} from '../../constants/signup'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {}
 
 const decodeInlineError = inlineRPCError => {
   let inlineError = ''
@@ -20,7 +20,7 @@ const decodeInlineError = inlineRPCError => {
         inlineSignUpLink = true
         break
       case RPCTypes.StatusCode.scbadusername:
-        inlineError = 'This username is not valid.'
+        inlineError = usernameHint
         inlineSignUpLink = false
         break
     }
@@ -28,10 +28,11 @@ const decodeInlineError = inlineRPCError => {
   return {inlineError, inlineSignUpLink}
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   const {inlineError, inlineSignUpLink} = decodeInlineError(state.provision.inlineError)
   return {
     error: state.provision.error.stringValue(),
+    initialUsername: state.provision.initialUsername,
     inlineError,
     inlineSignUpLink,
     // So we can clear the error if the name is changed
@@ -39,7 +40,7 @@ const mapStateToProps = state => {
   }
 }
 
-const dispatchToProps = dispatch => ({
+const dispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onForgotUsername: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
@@ -47,11 +48,7 @@ const dispatchToProps = dispatch => ({
   onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    dispatchToProps,
-    (s, d, _) => ({...s, ...d})
-  ),
-  safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError'])
+export default Container.compose(
+  Container.connect(mapStateToProps, dispatchToProps, (s, d, _: OwnProps) => ({...s, ...d})),
+  Container.safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError'])
 )(Username)

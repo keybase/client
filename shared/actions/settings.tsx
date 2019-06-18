@@ -15,13 +15,14 @@ import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
+import {TypedState} from '../util/container'
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
     .then(({hasServerKeys}) => SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys}))
     .catch(error => SettingsGen.createOnUpdatePasswordError({error}))
 
-function* onSubmitNewEmail(state) {
+function* onSubmitNewEmail(state: TypedState) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const newEmail = state.settings.email.newEmail
@@ -37,7 +38,7 @@ function* onSubmitNewEmail(state) {
   }
 }
 
-function* onSubmitNewPassword(state, action: SettingsGen.OnSubmitNewPasswordPayload) {
+function* onSubmitNewPassword(state: TypedState, action: SettingsGen.OnSubmitNewPasswordPayload) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const {newPassword, newPasswordConfirm} = state.settings.password
@@ -61,7 +62,7 @@ function* onSubmitNewPassword(state, action: SettingsGen.OnSubmitNewPasswordPayl
   }
 }
 
-function* toggleNotifications(state) {
+function* toggleNotifications(state: TypedState) {
   try {
     yield Saga.put(SettingsGen.createWaitingForResponse({waiting: true}))
     const current = state.settings.notifications
@@ -361,7 +362,7 @@ function* refreshNotifications() {
 
 const dbNuke = () => RPCTypes.ctlDbNukeRpcPromise()
 
-const deleteAccountForever = (state, action: SettingsGen.DeleteAccountForeverPayload) => {
+const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccountForeverPayload) => {
   const username = state.config.username
   const allowDeleteAccount = state.settings.allowDeleteAccount
 
@@ -425,7 +426,7 @@ const checkPassword = (_, action: SettingsGen.CheckPasswordPayload) =>
     Constants.checkPasswordWaitingKey
   ).then(res => SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: res}))
 
-const loadLockdownMode = state =>
+const loadLockdownMode = (state: TypedState) =>
   state.config.loggedIn &&
   RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.loadLockdownModeWaitingKey)
     .then((result: RPCTypes.GetLockdownResponse) =>
@@ -433,7 +434,7 @@ const loadLockdownMode = state =>
     )
     .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
-const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload) =>
+const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise(
     {enabled: action.payload.enabled},
@@ -442,8 +443,11 @@ const setLockdownMode = (state, action: SettingsGen.OnChangeLockdownModePayload)
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 
-const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<Saga.MaybeAction> => {
-  const {feedback, sendLogs} = action.payload
+const sendFeedback = (
+  state: TypedState,
+  action: SettingsGen.SendFeedbackPayload
+): Promise<Saga.MaybeAction> => {
+  const {feedback, sendLogs, sendMaxBytes} = action.payload
   const maybeDump = sendLogs ? logger.dump().then(writeLogLinesToFile) : Promise.resolve()
   const status = {version}
   return maybeDump
@@ -453,7 +457,8 @@ const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<S
       return RPCTypes.configLogSendRpcPromise(
         {
           feedback: feedback || '',
-          sendLogs: sendLogs,
+          sendLogs,
+          sendMaxBytes,
           statusJSON: JSON.stringify(extra),
         },
         Constants.sendFeedbackWaitingKey
@@ -468,7 +473,7 @@ const sendFeedback = (state, action: SettingsGen.SendFeedbackPayload): Promise<S
     })
 }
 
-const unfurlSettingsRefresh = (state, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
+const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
@@ -483,7 +488,7 @@ const unfurlSettingsRefresh = (state, action: SettingsGen.UnfurlSettingsRefreshP
       })
     )
 
-const unfurlSettingsSaved = (state, action: SettingsGen.UnfurlSettingsSavedPayload) =>
+const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettingsSavedPayload) =>
   state.config.loggedIn &&
   ChatTypes.localSaveUnfurlSettingsRpcPromise(
     {
@@ -502,7 +507,7 @@ const unfurlSettingsSaved = (state, action: SettingsGen.UnfurlSettingsSavedPaylo
 // Once loaded, do not issue this RPC again. This field can only go true ->
 // false (never the opposite way), and there are notifications set up when
 // this happens.
-const loadHasRandomPW = state =>
+const loadHasRandomPW = (state: TypedState) =>
   state.settings.password.randomPW === null
     ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
         .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
@@ -514,6 +519,50 @@ const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: fal
 
 const stop = (_, action: SettingsGen.StopPayload) =>
   RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
+
+const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPayload, logger) => {
+  logger.info('adding phone number')
+  let {phoneNumber, allowSearch, resend = false} = action.payload
+  if (resend) {
+    logger.info('resending verification code')
+    phoneNumber = state.settings.phoneNumbers.pendingVerification
+    allowSearch = state.settings.phoneNumbers.pendingVerificationAllowSearch
+    if (!phoneNumber || allowSearch === null) {
+      logger.error("Tried to resend verification code, but couldn't find stashed fields.")
+      throw new Error("Tried to resend verification code, but couldn't find stashed fields.")
+    }
+  }
+  const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
+  return RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
+    {phoneNumber, visibility},
+    Constants.addPhoneNumberWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createAddedPhoneNumber({allowSearch, phoneNumber})
+    })
+    .catch(err => {
+      logger.warn('error ', err.message)
+      return SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
+    })
+}
+
+const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logger) => {
+  logger.info('verifying phone number')
+  const {code, phoneNumber} = action.payload
+  return RPCTypes.phoneNumbersVerifyPhoneNumberRpcPromise(
+    {code, phoneNumber},
+    Constants.verifyPhoneNumberWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
+    })
+    .catch(err => {
+      logger.warn('error ', err.message)
+      return SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
+    })
+}
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
@@ -581,6 +630,18 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.StopPayload>(SettingsGen.stop, stop)
 
   yield* Saga.chainAction<SettingsGen.CheckPasswordPayload>(SettingsGen.checkPassword, checkPassword)
+
+  // Phone numbers
+  yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(
+    SettingsGen.addPhoneNumber,
+    addPhoneNumber,
+    'addPhoneNumber'
+  )
+  yield* Saga.chainAction<SettingsGen.VerifyPhoneNumberPayload>(
+    SettingsGen.verifyPhoneNumber,
+    verifyPhoneNumber,
+    'verifyPhoneNumber'
+  )
 }
 
 export default settingsSaga

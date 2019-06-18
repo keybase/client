@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -10,7 +8,10 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addPhoneNumber = 'settings:addPhoneNumber'
+export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const checkPassword = 'settings:checkPassword'
+export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const feedbackSent = 'settings:feedbackSent'
@@ -56,10 +57,23 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
+export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddPhoneNumberPayload = {
+  readonly allowSearch: boolean
+  readonly phoneNumber: string
+  readonly resend?: boolean
+}
+type _AddedPhoneNumberPayload = {
+  readonly allowSearch: boolean
+  readonly error?: string
+  readonly phoneNumber: string
+}
 type _CheckPasswordPayload = {readonly password: HiddenString}
+type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _FeedbackSentPayload = {readonly error: Error | null}
@@ -99,7 +113,11 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
+type _SendFeedbackPayload = {
+  readonly feedback: string
+  readonly sendLogs: boolean
+  readonly sendMaxBytes: boolean
+}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
@@ -113,9 +131,18 @@ type _UnfurlSettingsSavedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: I.List<string>
 }
+type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
+type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
+/**
+ * Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.
+ */
+export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
+  payload,
+  type: addPhoneNumber,
+})
 /**
  * An error occurred on the unfurl settings screen
  */
@@ -130,6 +157,12 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
   type: feedbackSent,
 })
 /**
+ * Cancel a phone number verification-in-progress.
+ */
+export const createClearPhoneNumberVerification = (
+  payload: _ClearPhoneNumberVerificationPayload
+): ClearPhoneNumberVerificationPayload => ({payload, type: clearPhoneNumberVerification})
+/**
  * Refresh unfurl settings
  */
 export const createUnfurlSettingsRefresh = (
@@ -142,11 +175,31 @@ export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
 /**
+ * Submit a verification code for a phone number
+ */
+export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload): VerifyPhoneNumberPayload => ({
+  payload,
+  type: verifyPhoneNumber,
+})
+/**
  * Update unfurl settings from settings screen
  */
 export const createUnfurlSettingsSaved = (
   payload: _UnfurlSettingsSavedPayload
 ): UnfurlSettingsSavedPayload => ({payload, type: unfurlSettingsSaved})
+/**
+ * We just attempted to add a phone number and either got an error or the number is pending verification.
+ */
+export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): AddedPhoneNumberPayload => ({
+  payload,
+  type: addedPhoneNumber,
+})
+/**
+ * We verified a phone number or hit an error.
+ */
+export const createVerifiedPhoneNumber = (
+  payload: _VerifiedPhoneNumberPayload
+): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
   type: checkPassword,
@@ -298,9 +351,21 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type AddPhoneNumberPayload = {
+  readonly payload: _AddPhoneNumberPayload
+  readonly type: typeof addPhoneNumber
+}
+export type AddedPhoneNumberPayload = {
+  readonly payload: _AddedPhoneNumberPayload
+  readonly type: typeof addedPhoneNumber
+}
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
+}
+export type ClearPhoneNumberVerificationPayload = {
+  readonly payload: _ClearPhoneNumberVerificationPayload
+  readonly type: typeof clearPhoneNumberVerification
 }
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
@@ -468,6 +533,14 @@ export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
   readonly type: typeof unfurlSettingsSaved
 }
+export type VerifiedPhoneNumberPayload = {
+  readonly payload: _VerifiedPhoneNumberPayload
+  readonly type: typeof verifiedPhoneNumber
+}
+export type VerifyPhoneNumberPayload = {
+  readonly payload: _VerifyPhoneNumberPayload
+  readonly type: typeof verifyPhoneNumber
+}
 export type WaitingForResponsePayload = {
   readonly payload: _WaitingForResponsePayload
   readonly type: typeof waitingForResponse
@@ -476,7 +549,10 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddPhoneNumberPayload
+  | AddedPhoneNumberPayload
   | CheckPasswordPayload
+  | ClearPhoneNumberVerificationPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | FeedbackSentPayload
@@ -524,5 +600,7 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | VerifiedPhoneNumberPayload
+  | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: null}

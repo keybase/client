@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
-import {formatTimeForMessages} from '../../../../util/timestamp'
+import SystemMessageTimestamp from '../system-message-timestamp'
 
 type Props = {
   author: string
@@ -44,9 +44,7 @@ const JoinedUserNotice = (props: Props) => (
     username={props.author}
     bgColor={Styles.globalColors.blueLighter2}
   >
-    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
-      {formatTimeForMessages(props.timestamp)}
-    </Kb.Text>
+    <SystemMessageTimestamp timestamp={props.timestamp} />
     <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
       {props.authorIsYou ? (
         'You'

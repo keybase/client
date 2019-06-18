@@ -139,8 +139,8 @@ export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersP
 } as Types._SyncingFoldersProgress)
 
 export const makeOverallSyncStatus: I.Record.Factory<Types._OverallSyncStatus> = I.Record({
-  diskSpaceBannerHidden: false,
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
+  showingBanner: false,
   syncingFoldersProgress: makeSyncingFoldersProgress(),
 } as Types._OverallSyncStatus)
 
@@ -949,13 +949,13 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  routePath?: I.List<string> | null
+  navigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
     path,
   }),
-  RouteTreeGen.createNavigateAppend({
+  navigateAppend({
     path: [{props: {index}, selected: 'destinationPicker'}],
   }),
 ]

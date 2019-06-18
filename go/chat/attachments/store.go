@@ -86,8 +86,8 @@ type streamCache struct {
 
 type S3Store struct {
 	utils.DebugLabeler
+	libkb.Contextified
 
-	env      *libkb.Env
 	s3signer s3.Signer
 	s3c      s3.Root
 	stash    AttachmentStash
@@ -104,12 +104,12 @@ type S3Store struct {
 
 // NewS3Store creates a standard Store that uses a real
 // S3 connection.
-func NewS3Store(logger logger.Logger, env *libkb.Env, runtimeDir string) *S3Store {
+func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 	return &S3Store{
-		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
-		env:          env,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -117,14 +117,14 @@ func NewS3Store(logger logger.Logger, env *libkb.Env, runtimeDir string) *S3Stor
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte)) *S3Store {
+func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte), g *libkb.GlobalContext) *S3Store {
 	return &S3Store{
 		DebugLabeler: utils.NewDebugLabeler(log, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
 		testing:      true,
-		env:          libkb.NewEnv(nil, nil, func() logger.Logger { return log }),
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -429,7 +429,7 @@ func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 }
 
 func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
-	conn := a.s3c.New(signer, region)
+	conn := a.s3c.New(a.G(), signer, region)
 	conn.SetAccessKey(accessKey)
 	return conn
 }

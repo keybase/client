@@ -25,8 +25,14 @@ type Login struct {
 	clientType keybase1.ClientType
 
 	doUserSwitch bool
-	PaperKey     string
-	DeviceName   string
+
+	// Used for non-interactive provisioning
+	PaperKey   string
+	DeviceName string
+
+	// Used in tests for reproducible key generation
+	naclSigningKeyPair    libkb.NaclKeyPair
+	naclEncryptionKeyPair libkb.NaclKeyPair
 
 	resetPending bool
 }
@@ -204,6 +210,9 @@ func (e *Login) loginProvision(m libkb.MetaContext) (bool, error) {
 
 		PaperKey:   e.PaperKey,
 		DeviceName: e.DeviceName,
+
+		naclSigningKeyPair:    e.naclSigningKeyPair,
+		naclEncryptionKeyPair: e.naclEncryptionKeyPair,
 	}
 	deng := newLoginProvision(m.G(), darg)
 	if err := RunEngine2(m, deng); err != nil {

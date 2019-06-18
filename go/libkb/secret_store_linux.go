@@ -22,11 +22,14 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 	shouldUpgradeOpportunistically := func() bool {
 		return false
 	}
-	shouldStoreInFallback := func(options *SecretStoreOptions) bool {
-		if options == nil {
-			return false
+	shouldStoreInFallback := func(options *SecretStoreOptions) SecretStoreFallbackBehavior {
+		if options != nil && options.RandomPw {
+			// With RandomPW, always fallback to file based secret store (safer
+			// choice on Linux).
+			return SecretStoreFallbackBehaviorAlways
 		}
-		return options.RandomPw
+		// Use system keychain but fall back to file store if not available.
+		return SecretStoreFallbackBehaviorOnError
 	}
 	return NewSecretStoreUpgradeable(ssecretservice, sfile, shouldUpgradeOpportunistically, shouldStoreInFallback)
 }

@@ -36,7 +36,6 @@ export const serialize: any = {
           }
     }, {}),
   daemonHandshakeState: v => v,
-  diskSpaceBannerHidden: v => v,
   diskSpaceStatus: v => v,
   endEstimate: v => v,
   externalRemoteWindow: v => v,
@@ -50,6 +49,7 @@ export const serialize: any = {
   kbfsEnabled: v => v,
   loggedIn: v => v,
   outOfDate: v => v,
+  showingDiskSpaceBanner: v => v,
   totalSyncingBytes: v => v,
   // Just send broken over, if its the same send null
   userInfo: (v, o) => {

@@ -326,13 +326,32 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	})
 }
 
-// HandleLogin is called whenever a user logs in. It will broadcast
-// the message to all connections who care about such a message.
+// HandleLogin is called when a user logs in.
 func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q", u)
+	n.G().Log.CDebugf(ctx, "+ Sending login notification for user %q", u)
+	n.SendLogin(ctx, u, false)
+}
+
+// HandleSignup is called when a user is signed up. It will broadcast a loggedIn
+// notification with a flag to signify this was because of a signup.
+func (n *NotifyRouter) HandleSignup(ctx context.Context, u string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending login notification for signup, as user %q", u)
+	n.SendLogin(ctx, u, true)
+}
+
+// SendLogin is called whenever a user logs in. It will broadcast
+// the message to all connections who care about such a message.
+func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q, signedUp %t", u, signedUp)
 	// For all connections we currently have open...
 	ctx = CopyTagsToBackground(ctx)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -343,7 +362,10 @@ func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 				// A send of a `LoggedIn` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(ctx, u)
+				}).LoggedIn(ctx, keybase1.LoggedInArg{
+					Username: u,
+					SignedUp: signedUp,
+				})
 			}()
 		}
 		return true

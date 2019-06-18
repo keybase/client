@@ -184,25 +184,6 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 	}
 }
 
-func (s *baseConversationSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID) (err error) {
-	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
-	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
-	readRes, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
-	if err == nil && readRes.GetConvID().Eq(convID) &&
-		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
-		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
-		return nil
-	}
-	if _, err = s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
-		ConversationID: convID,
-		MsgID:          msgID,
-	}); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 	query *chat1.GetThreadQuery, maxPages *int) (res chat1.ThreadView, err error) {
 	pagination := &chat1.Pagination{
@@ -576,7 +557,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// requested.
 			if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
 				readMsgID := thread.Messages[0].GetMessageID()
-				if err = s.MarkAsRead(ctx, convID, uid, readMsgID); err != nil {
+				if err = s.G().InboxSource.MarkAsRead(ctx, convID, uid, readMsgID); err != nil {
 					return chat1.ThreadView{}, err
 				}
 				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {

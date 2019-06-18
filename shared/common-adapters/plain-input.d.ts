@@ -82,7 +82,7 @@ export type Props = {
   value?: string // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API,
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
-  onEnterKeyDown?: () => void
+  onEnterKeyDown?: (event?: React.SyntheticEvent) => void
   // Desktop only
   onClick?: (event: Event) => void
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void

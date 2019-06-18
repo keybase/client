@@ -566,6 +566,14 @@ func (r *RemoteClientMock) SubmitPathPayment(_ libkb.MetaContext, _ stellar1.Pat
 	return stellar1.PaymentResult{}, errors.New("not mocked")
 }
 
+func (r *RemoteClientMock) FuzzyAssetSearch(_ libkb.MetaContext, _ stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	return nil, errors.New("not mocked")
+}
+
+func (r *RemoteClientMock) ListPopularAssets(_ libkb.MetaContext, _ stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+	return nil, errors.New("not mocked")
+}
+
 func (r *RemoteClientMock) PostAnyTransaction(_ libkb.MetaContext, _ string) error {
 	return errors.New("post any transaction is not mocked")
 }
