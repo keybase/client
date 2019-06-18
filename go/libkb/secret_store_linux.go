@@ -31,5 +31,5 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 		// Use system keychain but fall back to file store if not available.
 		return SecretStoreFallbackBehaviorOnError
 	}
-	return NewSecretStoreUpgradeable(ssecretservice, sfile, shouldUpgradeOpportunistically, shouldStoreInFallback)
+	return NewSecretStoreUpgradeable(ssecretservice, sfile, "linux keyring secret store", "file-based secret store", shouldUpgradeOpportunistically, shouldStoreInFallback)
 }
