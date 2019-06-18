@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Keybase
-Exec=env KEYBASE_STARTUP_URL=%u run_keybase
+Exec=run_keybase %u
 Icon=keybase
 Terminal=false
 Type=Application
