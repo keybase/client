@@ -216,6 +216,47 @@ const load = () => {
         ]}
       />
     ))
+    .add('Team Building - Show role picker', () => (
+      <TeamBuilding
+        rolePickerProps={{
+          onConfirmRolePicker: Sb.action('onConfirmRolePicker'),
+          onSelectRole: Sb.action('confirmRolePicker'),
+          selectedRole: 'writer',
+          showRolePicker: true,
+        }}
+        searchString=""
+        selectedService="keybase"
+        waitingForCreate={false}
+        onChangeService={Sb.action('onChangeService')}
+        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+        onChangeText={Sb.action('onChangeText')}
+        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onBackspace={Sb.action('onBackspace')}
+        onRemove={Sb.action('onRemove')}
+        onMakeItATeam={Sb.action('onMakeItATeam')}
+        showRecs={false}
+        recommendations={[]}
+        fetchUserRecs={() => {}}
+        onSearchForMore={() => {
+          Sb.action('onSearchForMore')
+        }}
+        teamSoFar={[
+          {
+            prettyName: 'max (Max Krohn)',
+            service: 'keybase',
+            userId: 'max',
+            username: 'max',
+          },
+        ]}
+        serviceResultCount={{}}
+        showServiceResultCount={false}
+        onAdd={Sb.action('onAdd')}
+        highlightedIndex={1}
+        searchResults={[]}
+      />
+    ))
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
         searchString=""

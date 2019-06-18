@@ -5,6 +5,15 @@ import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
+import {FloatingRolePicker} from '../teams/role-picker'
+import {TeamRoleType} from '../constants/types/teams'
+
+type RolePickerProps = {
+  onConfirmRolePicker: () => void
+  onSelectRole: () => void
+  showRolePicker: boolean
+  selectedRole: TeamRoleType
+}
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -21,6 +30,7 @@ type Props = {
   onBackspace: () => void
   onFinishTeamBuilding: () => void
   searchString: string
+  rolePickerProps?: RolePickerProps
 }
 
 const formatNameForUserBubble = (
@@ -74,7 +84,19 @@ const TeamBox = (props: Props) =>
         <Kb.Box2 direction="horizontal" style={styles.search}>
           <TeamInput {...props} />
         </Kb.Box2>
-        {!!props.teamSoFar.length && <GoButton onClick={props.onFinishTeamBuilding} />}
+        {!!props.teamSoFar.length &&
+          (props.rolePickerProps ? (
+            <FloatingRolePicker
+              open={props.rolePickerProps.showRolePicker}
+              onConfirm={props.rolePickerProps.onConfirmRolePicker}
+              onSelectRole={props.rolePickerProps.onSelectRole}
+              selectedRole={props.rolePickerProps.selectedRole}
+            >
+              <GoButton onClick={props.onFinishTeamBuilding} />
+            </FloatingRolePicker>
+          ) : (
+            <GoButton onClick={props.onFinishTeamBuilding} />
+          ))}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
         <Kb.ScrollView horizontal={true}>

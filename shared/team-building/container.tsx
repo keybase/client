@@ -19,6 +19,7 @@ import {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {
   namespace: AllowedNamespace
+  showTeamRole?: boolean
   searchString: string
   selectedService: ServiceIdWithContact
   highlightedIndex: number

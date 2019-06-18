@@ -8,6 +8,8 @@ import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
+import {FloatingRolePicker} from '../teams/role-picker'
+import {TeamRoleType} from '../constants/types/teams'
 
 type SearchResult = {
   userId: string
@@ -18,7 +20,14 @@ type SearchResult = {
   followingState: FollowingState
 }
 
-export type Props = {
+type RolePickerProps = {
+  onConfirmRolePicker: () => void
+  onSelectRole: () => void
+  showRolePicker: boolean
+  selectedRole: TeamRoleType
+}
+
+type Props = {
   fetchUserRecs: () => void
   highlightedIndex: number | null
   onAdd: (userId: string) => void
@@ -46,6 +55,7 @@ export type Props = {
     username: string
   }>
   waitingForCreate: boolean
+  rolePickerProps?: RolePickerProps
 }
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
@@ -89,6 +99,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             teamSoFar={props.teamSoFar}
             onBackspace={props.onBackspace}
             searchString={props.searchString}
+            rolePickerProps={props.rolePickerProps}
           />
         )}
         {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (

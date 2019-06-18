@@ -21,6 +21,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
+import {teamsTeamBuildingSaga} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
 import openSMS from '../util/sms'
@@ -1603,6 +1604,9 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
+
+  // Hook up the team building sub saga
+  yield* teamsTeamBuildingSaga()
 }
 
 export default teamsSaga
