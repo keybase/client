@@ -1,4 +1,21 @@
+// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
+
+// Code in this file drives a temporary storage for PWHash and EdDSA parts of
+// passphrase stream. If signup is done with GenerateRandomPassphrase=true and
+// it fails, but after SignupJoin has already succeeded (so account has been
+// created, but it has no sigchain or devices), we store PWHash and EdDSA parts
+// of passphrase stream using additional two secret store entries. Each part is
+// 32-bytes so they fit using existing secret store code: we pretend these are
+// LKSecFullSecret.
+
+// This partial passphrase stream is then used during login to let the user in
+// and continue signup process and provision their first device. Normally they
+// would be able to do that by entering their password, but since it was a
+// GenerateRandomPassphrase (or NOPW) signup, they don't know it. Both EdDSA
+// and PWHash entries are then cleared after provisioning succeeds.
 
 import (
 	"fmt"
@@ -7,6 +24,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// pwhStoreIdentifier is the suffix used for secret store identifier.
 type pwhStoreIdentifier string
 
 const (
