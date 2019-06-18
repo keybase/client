@@ -59,6 +59,13 @@ export const makePassword = I.Record<Types._PasswordState>({
   rememberPassword: true,
 })
 
+export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
+  error: '',
+  pendingVerification: '',
+  pendingVerificationAllowSearch: null,
+  verificationState: null,
+})
+
 export const makeState = I.Record<Types._State>({
   allowDeleteAccount: false,
   chat: makeChat(),
@@ -69,6 +76,7 @@ export const makeState = I.Record<Types._State>({
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
+  phoneNumbers: makePhoneNumbers(),
   useNativeFrame: true,
   waitingForResponse: false,
 })
@@ -159,3 +167,5 @@ export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
+export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
+export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'

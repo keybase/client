@@ -21,24 +21,14 @@ class Block extends React.Component<Props> {
 
   render() {
     const props = this.props
-    let errorBox = null
-    if (props.errorMessage) {
-      errorBox = (
-        <Kb.Box style={styles.errorBanner}>
-          <Kb.Text center={!Styles.isMobile} style={styles.errorBannerText} type="BodySemibold">
-            {props.errorMessage}
-          </Kb.Text>
-        </Kb.Box>
-      )
-    }
     const modalProps = {
       confirmText: 'Yes, block them',
       description:
         'This will hide them from your followers and suggestions, and prevent them from creating new conversations or teams with you. Note that they may be able to find out that you block them.',
-      header: errorBox,
+      error: props.errorMessage,
       onCancel: props.onClose,
       onConfirm: props.onSubmit,
-      prompt: `Block ${props.username}`,
+      prompt: `Block ${props.username}?`,
       waitingKey: Constants.blockUserWaitingKey,
     }
     return <Kb.ConfirmModal {...modalProps} />
@@ -46,19 +36,6 @@ class Block extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  errorBanner: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.red,
-    justifyContent: 'center',
-    minHeight: Styles.globalMargins.large,
-    padding: Styles.globalMargins.tiny,
-    width: '100%',
-  },
-  errorBannerText: {
-    color: Styles.globalColors.white,
-    maxWidth: 512,
-  },
 })
 
 export default Block

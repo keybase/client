@@ -49,8 +49,6 @@ const EnterEmail = (props: Props) => {
             onChangeText={onChangeEmail}
             onEnterKeyDown={onContinue}
             textContentType="emailAddress"
-            // TODO (DA) there's an issue with editing this causing remounts.
-            // Spent some time looking, figure out later.
             value={email}
           />
           {/* TODO hook in to "add an email" settings

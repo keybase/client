@@ -98,11 +98,7 @@ const checkUsername = (state: TypedState, _, logger) => {
       })
       .catch(err => {
         logger.warn(`${state.signup.username} error: ${err.message}`)
-        const error = `Sorry, there was a problem: ${err.desc}.${
-          err.code === RPCTypes.StatusCode.scinputerror
-            ? ' Usernames must be 2-16 characters, and can only contain letters, numbers, and underscores.'
-            : ''
-        }`
+        const error = err.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : err.desc
         return SignupGen.createCheckedUsername({
           // Don't set error if it's 'username taken', we show a banner in that case
           error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
