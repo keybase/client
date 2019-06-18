@@ -14,8 +14,8 @@ const ConfirmDisableCertPinningModal = (props: Props) => (
       you and Keybase servers. It is not recommended to use this option unless absolutely required.
     </Kb.Text>
     <Kb.ButtonBar>
-      <Kb.Button type="Dim" label="Cancel" onClick={this.props.onCancel} />
-      <Kb.Button type="Danger" label="Yes, I am sure" onClick={this.props.onConfirm} />
+      <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+      <Kb.Button type="Danger" label="Yes, I am sure" onClick={props.onConfirm} />
     </Kb.ButtonBar>
   </Kb.Box>
 )

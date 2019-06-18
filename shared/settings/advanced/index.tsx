@@ -64,38 +64,40 @@ const UseNativeFrame = (props: Props) => {
 const Advanced = (props: Props) => {
   const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
-    <Kb.Box style={styles.advancedContainer}>
-      <Kb.Box style={styles.progressContainer}>
-        {props.settingLockdownMode && <Kb.ProgressIndicator />}
-      </Kb.Box>
-      <Kb.Box style={styles.checkboxContainer}>
-        <Kb.Checkbox
-          checked={props.hasRandomPW || !!props.lockdownModeEnabled}
-          disabled={disabled}
-          label={`Forbid account changes from the website 
-            ${props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
-          onCheck={props.onChangeLockdownMode}
-          style={styles.checkbox}
-        />
-      </Kb.Box>
-      {!!props.setLockdownModeError && (
-        <Kb.Text type="BodySmall" style={styles.error}>
-          {props.setLockdownModeError}
-        </Kb.Text>
-      )}
-      {isLinux && <UseNativeFrame {...props} />}
-      {!Styles.isMobile && !isLinux && (
-        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+    <Kb.ScrollView>
+      <Kb.Box style={styles.advancedContainer}>
+        <Kb.Box style={styles.progressContainer}>
+          {props.settingLockdownMode && <Kb.ProgressIndicator />}
+        </Kb.Box>
+        <Kb.Box style={styles.checkboxContainer}>
           <Kb.Checkbox
-            label="Open Keybase on startup"
-            checked={props.openAtLogin}
-            onCheck={props.onSetOpenAtLogin}
+            checked={props.hasRandomPW || !!props.lockdownModeEnabled}
+            disabled={disabled}
+            label={`Forbid account changes from the website 
+              ${props.hasRandomPW ? ' (you need to set a password first)' : ''}`}
+            onCheck={props.onChangeLockdownMode}
+            style={styles.checkbox}
           />
         </Kb.Box>
-      )}
-      <ProxySettings {...props} />
-      <Developer {...props} />
-    </Kb.Box>
+        {!!props.setLockdownModeError && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            {props.setLockdownModeError}
+          </Kb.Text>
+        )}
+        {isLinux && <UseNativeFrame {...props} />}
+        {!Styles.isMobile && !isLinux && (
+          <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+            <Kb.Checkbox
+              label="Open Keybase on startup"
+              checked={props.openAtLogin}
+              onCheck={props.onSetOpenAtLogin}
+            />
+          </Kb.Box>
+        )}
+        <ProxySettings {...props} />
+        <Developer {...props} />
+      </Kb.Box>
+    </Kb.ScrollView>
   )
 }
 
@@ -278,6 +280,15 @@ class ProxySettings extends React.Component<Props, ProxyState> {
     }
   }
 
+  proxyTypeSelected = (proxyType: string) => {
+    var cb = () => {}
+    if (proxyType === 'noProxy') {
+      // Setting the proxy type to no proxy collapses the menu including the save button, so save immediately
+      cb = this.saveProxySettings
+    }
+    this.setState({proxyType}, cb)
+  }
+
   renderProxySettings() {
     if (this.state.proxyType === 'noProxy') {
       return null
@@ -286,11 +297,19 @@ class ProxySettings extends React.Component<Props, ProxyState> {
       <Kb.Box direction="vertical" alignItems="flex-start" style={styles.expandedProxyContainer}>
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-          <Kb.NewInput placeholder="127.0.0.1" onChangeText={address => this.setState({address})} />
+          <Kb.NewInput
+            placeholder="127.0.0.1"
+            onChangeText={address => this.setState({address})}
+            value={this.state.address}
+          />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-          <Kb.NewInput placeholder="8080" onChangeText={port => this.setState({port})} />
+          <Kb.NewInput
+            placeholder="8080"
+            onChangeText={port => this.setState({port})}
+            value={this.state.port}
+          />
         </Kb.Box2>
         <Kb.Switch
           on={!this.certPinning()}
@@ -313,7 +332,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
         <Kb.Box style={styles.flexButtons}>
           {proxyTypeList.map(proxyType => (
             <Kb.RadioButton
-              onSelect={() => this.setState({proxyType})}
+              onSelect={() => this.proxyTypeSelected(proxyType)}
               selected={this.state.proxyType === proxyType}
               key={proxyType}
               label={proxyTypeToDisplayName[proxyType]}
