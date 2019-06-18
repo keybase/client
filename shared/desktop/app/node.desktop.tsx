@@ -8,7 +8,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {sendToMainWindow} from '../remote/util.desktop'
 import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
@@ -158,9 +158,13 @@ const createMainWindow = () => {
       // stash a startupURL to be dispatched when we're ready for it.
       sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
       startupURL = null
-    } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('web+stellar:')) {
-      // Windows and Linux instead store a launch URL in argv.
+    } else if (isWindows && process.argv.length > 0 && process.argv[1].startsWith('web+stellar:')) {
+      // Windows instead stores a launch URL in argv.
       sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
+    } else if (isLinux) {
+      // Linux instead stores a launch URL in KEYBASE_STARTUP_URL.
+      const startupEnv = process.env.KEYBASE_STARTUP_URL
+      startupEnv && sendToMainWindow('dispatchAction', {payload: {link: startupEnv}, type: ConfigGen.link})
     }
   })
 }

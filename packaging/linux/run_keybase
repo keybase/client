@@ -176,16 +176,34 @@ init() {
   rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
 }
 
-handle_url_schema() {
-  # We set a URL schema handler on our .desktop file, and since that file
+check_for_url_scheme_launch() {
+  # We set a URL scheme handler on our .desktop file, and since that file
   # points to this script, that's what gets called with URL links. We can
   # differentiate between a normal run_keybase invocation and a URL launch
-  # by checking argv.
-  if command -v Keybase &> /dev/null; then
-      Keybase $1 &
-  else
-      /opt/keybase/Keybase $1 &
+  # by checking KEYBASE_STARTUP_URL.
+
+  # Check that we control the web+stellar scheme.
+  if command -v xdg-mime &> /dev/null; then
+    xdg-mime default keybase.desktop x-scheme-handler/web+stellar
   fi
+
+  # If Keybase is already running, then pass it the link and exit.
+  if [[ ! -z "${KEYBASE_STARTUP_URL:-}" ]]; then
+      if  [[ $(pgrep -u $USER 'Keybase$') ]]; then
+          if command -v Keybase &> /dev/null; then
+              KEYBASE_STARTUP_URL="$KEYBASE_STARTUP_URL" Keybase &
+          else
+              KEYBASE_STARTUP_URL="$KEYBASE_STARTUP_URL" /opt/keybase/Keybase &
+          fi
+          exit
+      else
+          if command -v systemctl &> /dev/null; then
+              systemctl --user set-environment KEYBASE_STARTUP_URL="$KEYBASE_STARTUP_URL"
+          fi
+      fi
+  fi
+
+  # Since we didn't exit, fall through to a normal startup.
 }
 
 startup_all() {
@@ -229,10 +247,7 @@ KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
 
-if [[ $# -eq 1 && "$1" == web+stellar:* ]]; then
-  handle_url_schema $@
-  exit
-fi
+check_for_url_scheme_launch
 
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
 #   http://keybase.io/docs/linux-user-guide
