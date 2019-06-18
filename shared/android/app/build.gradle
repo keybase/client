@@ -235,7 +235,10 @@ dependencies {
     implementation "com.evernote:android-job:1.2.6"
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
-    implementation project(':react-native-push-notification')
+    implementation(project(':react-native-push-notification'), {
+      exclude group: "com.google.android.gms"
+      exclude group: "com.google.firebase"
+    })
     implementation project(':react-native-camera')
     implementation project(':react-native-image-picker')
     implementation project(':react-native-fetch-blob')
