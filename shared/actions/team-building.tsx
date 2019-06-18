@@ -1,14 +1,13 @@
-import logger from '../../logger'
-import * as Constants from '../../constants/team-building'
-import * as ChatConstants from '../../constants/chat2'
-import * as TeamBuildingTypes from '../../constants/types/team-building'
-import * as TeamBuildingGen from '../team-building-gen'
-import * as Chat2Gen from '../chat2-gen'
-import * as RouteTreeGen from '../route-tree-gen'
-import * as Saga from '../../util/saga'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../../util/switch'
-import {TypedState} from '../../constants/reducer'
+import logger from '../logger'
+import * as Constants from '../constants/team-building'
+import * as ChatConstants from '../constants/chat2'
+import * as TeamBuildingTypes from '../constants/types/team-building'
+import * as TeamBuildingGen from './team-building-gen'
+import * as Chat2Gen from './chat2-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Saga from '../util/saga'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {TypedState} from '../constants/reducer'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -211,16 +210,4 @@ function* teamsTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   // )
 }
 
-function newTeamBuildingSaga(namespace: TeamBuildingTypes.AllowedNamespace) {
-  switch (namespace) {
-    case 'chat2':
-      return chatTeamBuildingSaga
-    case 'teams':
-      return teamsTeamBuildingSaga
-    default:
-      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(namespace)
-      return function*() {}
-  }
-}
-
-export default chatTeamBuildingSaga
+export {chatTeamBuildingSaga, teamsTeamBuildingSaga}

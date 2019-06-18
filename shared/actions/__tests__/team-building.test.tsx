@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import teamBuildingSaga from '../chat2/team-building'
+import {chatTeamBuildingSaga} from '../team-building'
 import * as Testing from '../../util/testing'
 
 const testNamespace = 'chat2'
@@ -20,7 +20,7 @@ const initialStore = {
   }),
 }
 
-const startReduxSaga = Testing.makeStartReduxSaga(teamBuildingSaga, initialStore, () => {})
+const startReduxSaga = Testing.makeStartReduxSaga(chatTeamBuildingSaga, initialStore, () => {})
 
 // Maps the user search function to a hashmap, query -> num_wanted -> service -> include_services_summary
 // note the keybase service is a special case where the service is empty string
