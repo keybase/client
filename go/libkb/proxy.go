@@ -79,11 +79,12 @@ func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 			// No proxy so returning nil tells it not to use a proxy
 			return nil, nil
 		}
-		realProxyAddress := ""
+		realProxyAddress := proxyAddress
 		if proxyType == Socks {
 			realProxyAddress = "socks5://" + proxyAddress
-		} else {
-			realProxyAddress = proxyAddress
+		} else if proxyType == HTTPConnect && !strings.Contains(proxyAddress, "http://") && !strings.Contains(proxyAddress, "https://") {
+			// If they don't specify a protocol, default to http:// since it is the most common
+			realProxyAddress = "http://" + proxyAddress
 		}
 
 		realProxyURL, err := url.Parse(realProxyAddress)
