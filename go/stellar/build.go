@@ -866,12 +866,12 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			res.worthInfo = ""
 		}
 
-		res.displayAmountXLM, err = FormatAmountDescriptionXLM(mctx, arg.Amount)
-		if err != nil {
-			log("error formatting xlm %q: %s", arg.Amount, err)
-			res.displayAmountXLM = ""
-		}
 		if arg.Amount != "" {
+			res.displayAmountXLM, err = FormatAmountDescriptionXLM(mctx, arg.Amount)
+			if err != nil {
+				log("error formatting xlm %q: %s", arg.Amount, err)
+				res.displayAmountXLM = ""
+			}
 			res.displayAmountFiat, err = FormatCurrencyWithCodeSuffix(mctx, outsideAmount, xrate.Currency, stellarnet.Round)
 			if err != nil {
 				log("error formatting fiat %q / %v: %s", outsideAmount, xrate.Currency, err)
