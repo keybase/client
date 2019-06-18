@@ -9,9 +9,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
-	"strings"
 )
 
 const LKSecVersion = 100
