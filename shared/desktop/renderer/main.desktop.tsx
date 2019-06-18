@@ -90,7 +90,7 @@ function setupApp(store, runSagas) {
   store.dispatch(NotificationsGen.createListenForNotifications())
 
   // Check for a startup URL
-  SafeElectron.getIpcRenderer().send('launchStartupURLIfPresent')
+  SafeElectron.getIpcRenderer().send('reduxLaunched')
 }
 
 const FontLoader = () => (

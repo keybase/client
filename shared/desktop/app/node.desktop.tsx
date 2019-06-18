@@ -14,6 +14,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
 
 let mainWindow = null
+let reduxLaunched = false
 let startupURL = null
 
 const installCrashReporter = () => {
@@ -150,7 +151,8 @@ const createMainWindow = () => {
     mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
   })
 
-  SafeElectron.getIpcMain().on('launchStartupURLIfPresent', () => {
+  SafeElectron.getIpcMain().on('reduxLaunched', () => {
+    reduxLaunched = true
     if (startupURL) {
       // Mac calls open-url for a launch URL before redux is up, so we
       // stash a startupURL to be dispatched when we're ready for it.
@@ -199,10 +201,11 @@ const handleQuitting = event => {
 const willFinishLaunching = () => {
   SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
-    if (!startupURL && link) {
+    if (!reduxLaunched) {
       startupURL = link
+    } else {
+      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
     }
-    sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
   })
 }
 
