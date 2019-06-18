@@ -288,7 +288,7 @@ class ProxySettings extends React.Component<Props, ProxyState> {
           <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
           <Kb.NewInput placeholder="127.0.0.1" onChangeText={address => this.setState({address})} />
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" gap="tiny" alignItems="left" style={styles.proxySetting}>
+        <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
           <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
           <Kb.NewInput placeholder="8080" onChangeText={port => this.setState({port})} />
         </Kb.Box2>
@@ -343,6 +343,7 @@ const styles = Styles.styleSheetCreate({
   checkboxContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
+    maxHeight: 48,
     minHeight: 48,
   },
   developerContainer: {
@@ -368,6 +369,7 @@ const styles = Styles.styleSheetCreate({
   },
   flexButtons: {
     display: 'flex',
+    flexShrink: 0,
     flexWrap: 'wrap',
   },
   openAtLoginCheckboxContainer: {
@@ -384,7 +386,6 @@ const styles = Styles.styleSheetCreate({
   proxyContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    flex: 1,
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.large,
   },

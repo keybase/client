@@ -192,6 +192,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.loadHasRandomPw:
     case SettingsGen.addPhoneNumber:
     case SettingsGen.verifyPhoneNumber:
+    case SettingsGen.loadProxyData:
+    case SettingsGen.saveProxyData:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
