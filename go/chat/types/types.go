@@ -84,8 +84,9 @@ type RemoteConversationMetadata struct {
 }
 
 type RemoteConversation struct {
-	Conv          chat1.Conversation          `codec:"c"`
-	LocalMetadata *RemoteConversationMetadata `codec:"l"`
+	Conv           chat1.Conversation          `codec:"c"`
+	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
+	LocalReadMsgID chat1.MessageID             `codec:"r"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
@@ -139,6 +140,10 @@ func (rc RemoteConversation) GetName() string {
 
 func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 	return rc.Conv.GetTopicType()
+}
+
+func (rc RemoteConversation) IsLocallyRead() bool {
+	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
 type Inbox struct {

@@ -281,11 +281,11 @@ func (g *GlobalContext) simulateServiceRestart() {
 func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
 	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
-	return g.LogoutCurrentUserWithSecretKill(mctx, true)
+	return g.LogoutCurrentUserWithSecretKill(mctx, true /* killSecrets */)
 }
 
 func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
-	return g.LogoutCurrentUserWithSecretKill(mctx, false)
+	return g.LogoutCurrentUserWithSecretKill(mctx, false /* killSecrets */)
 }
 
 func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedUsername, killSecrets bool) {

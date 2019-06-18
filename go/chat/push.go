@@ -190,6 +190,9 @@ type PushHandler struct {
 	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
+
+	// testing only
+	testingIgnoreBroadcasts bool
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
@@ -1255,6 +1258,9 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 }
 
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
+	if g.testingIgnoreBroadcasts {
+		return false, errors.New("ignoring broadcasts for tests")
+	}
 	if obm.System() == nil {
 		return false, errors.New("nil system in out of band message")
 	}

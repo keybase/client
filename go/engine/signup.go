@@ -81,7 +81,12 @@ func (s *SignupEngine) GetMe() *libkb.User {
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#Run", func() error { return err })()
 
-	// make sure we're starting with a clear login state:
+	// Make sure we're starting with a clear login state. But check
+	// if it's fine to logout current user.
+	if clRes := libkb.CanLogout(m); !clRes.CanLogout {
+		return fmt.Errorf("Cannot signup because of currently logged in user: %s", clRes.Reason)
+	}
+
 	if err = m.G().Logout(m.Ctx()); err != nil {
 		return err
 	}
@@ -130,9 +135,14 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	m.Info("Signed up and provisioned a device.")
+
+	// After we are provisioned, do not fail the signup process. Everything
+	// else happening here is optional.
+
 	if !s.arg.SkipPaper {
 		if err = s.genPaperKeys(m); err != nil {
-			return err
+			m.Warning("Paper key was not generated. Failed with an error: %s", err)
 		}
 	}
 
@@ -141,7 +151,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	// user interaction to make testing easier.
 	if s.arg.GenPGPBatch {
 		if err = s.genPGPBatch(m); err != nil {
-			return err
+			m.Warning("genPGPBatch failed with an error: %s", err)
 		}
 	}
 
@@ -288,12 +298,19 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	}
 
 	eng := NewDeviceWrap(m.G(), args)
-	if err := RunEngine2(m, eng); err != nil {
+	err := RunEngine2(m, eng)
+	if err != nil {
+		m.Warning("Failed to provision device: %s", err)
+		if ssErr := s.storeSecretForRecovery(m); ssErr != nil {
+			m.Warning("Failed to store secrets for recovery: %s", ssErr)
+		}
 		return err
 	}
+
 	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
+
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
 	did := eng.DeviceID()
@@ -325,6 +342,23 @@ func (s *SignupEngine) storeSecret(m libkb.MetaContext, randomPw bool) {
 	if w != nil {
 		m.Warning("StoreSecret error: %s", w)
 	}
+}
+
+func (s *SignupEngine) storeSecretForRecovery(m libkb.MetaContext) (err error) {
+	defer m.Trace("SignupEngine#storeSecretForRecovery", func() error { return err })()
+
+	if !s.arg.GenerateRandomPassphrase {
+		m.Debug("Not GenerateRandomPassphrase - skipping storeSecretForRecovery")
+		return nil
+	}
+
+	username := s.me.GetNormalizedName()
+	err = libkb.StorePwhashEddsaPassphraseStream(m, username, s.ppStream)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *SignupEngine) genPaperKeys(m libkb.MetaContext) error {

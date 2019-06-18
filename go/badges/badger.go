@@ -67,6 +67,10 @@ func (b *Badger) notifyLoop() {
 	}
 }
 
+func (b *Badger) SetLocalChatState(s LocalChatState) {
+	b.badgeState.SetLocalChatState(s)
+}
+
 func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 	b.iboxVersSource = s
 }
@@ -132,7 +136,7 @@ func (b *Badger) Clear(ctx context.Context) {
 
 // Send the badgestate to electron
 func (b *Badger) Send(ctx context.Context) error {
-	state, err := b.badgeState.Export()
+	state, err := b.badgeState.Export(ctx)
 	if err != nil {
 		return err
 	}

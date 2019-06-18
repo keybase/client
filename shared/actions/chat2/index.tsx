@@ -89,9 +89,7 @@ function* inboxRefresh(
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
     const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
     // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items
-      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-      .filter(Boolean)
+    const metas = items.map(item => Constants.unverifiedInboxUIItemToConversationMeta(item)).filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
       Chat2Gen.createMetasReceived({
@@ -610,10 +608,9 @@ const onChatInboxSynced = (state, action: EngineGen.Chat1NotifyChatChatInboxSync
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
       const selectedConversation = Constants.getSelectedConversation(state)
-      const username = state.config.username
       const items = (syncRes.incremental && syncRes.incremental.items) || []
       const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
         if (meta) {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
