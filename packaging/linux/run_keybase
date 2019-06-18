@@ -182,14 +182,9 @@ check_for_url_scheme_launch() {
   # differentiate between a normal run_keybase invocation and a URL launch
   # by checking argv.
 
-  # Check that we control the web+stellar scheme.
-  if command -v xdg-mime &> /dev/null; then
-    xdg-mime default keybase.desktop x-scheme-handler/web+stellar
-  fi
-
   # If Keybase is already running, then pass it the link and exit.
   if [[ $# -eq 1 && "$1" == web+stellar:* ]]; then
-      if  [[ $(pgrep -u $USER 'Keybase$') ]]; then
+      if pgrep -u "$USER" 'Keybase$' &> /dev/null; then
           if command -v Keybase &> /dev/null; then
               Keybase $1 &
           else
@@ -243,8 +238,6 @@ KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
 
-check_for_url_scheme_launch
-
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
 #   http://keybase.io/docs/linux-user-guide
 while getopts "afghk" flag; do
@@ -257,6 +250,8 @@ while getopts "afghk" flag; do
         ?) usage; exit 1;;
     esac
 done
+
+check_for_url_scheme_launch $@
 
 init
 # Always stop any running services. With systemd, we could've decided to just
