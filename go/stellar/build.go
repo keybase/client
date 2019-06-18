@@ -136,7 +136,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				bannerTheir = fmt.Sprintf("%s's", recipient.User.Username)
 				recipientUV = recipient.User.UV
 			}
-			if recipient.AccountID == nil && !fromPrimaryAccount {
+			if recipient.AccountID == nil && fromInfo.available && !fromPrimaryAccount {
 				// This would have been a relay from a non-primary account.
 				// We cannot allow that.
 				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
@@ -178,7 +178,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						}
 					}
 				}
-				if selfSendErr == nil && !sendingToSelf && !fromPrimaryAccount {
+				if fromInfo.available && !sendingToSelf && !fromPrimaryAccount {
 					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 						Level:   "info",
 						Message: "Your Keybase username will not be linked to this transaction.",
