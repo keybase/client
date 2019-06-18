@@ -313,7 +313,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		AccountID:       arg.AccountID,
 		Cursor:          arg.Cursor,
 		SkipPending:     true,
-		IncludeAdvanced: false, // TODO: make this true when the frontend is ready for it
+		IncludeAdvanced: true,
 	}
 	srvPayments, err := s.remoter.RecentPayments(ctx, rpArg)
 	if err != nil {
@@ -1237,7 +1237,7 @@ func (s *Server) FuzzyAssetSearchLocal(ctx context.Context, arg stellar1.FuzzyAs
 	return stellar.FuzzyAssetSearch(mctx, s.remoter, remoteArg)
 }
 
-func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []stellar1.Asset, err error) {
+func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res stellar1.AssetListResult, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ListPopularAssetsLocal",
 		Err:           &err,

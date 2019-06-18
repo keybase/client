@@ -16,7 +16,6 @@ import SpaceWarning from './space-warning'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
-  diskSpaceBannerHidden: boolean
   diskSpaceStatus: FsTypes.DiskSpaceStatus
   logIn: () => void
   loggedIn: boolean
@@ -34,6 +33,7 @@ export type Props = {
   showBug: () => void
   showHelp: () => void
   showUser: (username?: string) => void
+  showingDiskSpaceBanner: boolean
   username: string | null
   waitForKbfsDaemon: () => void
   badgeInfo: {[K in string]: number}
@@ -111,7 +111,7 @@ class MenubarRender extends React.Component<Props, State> {
           diskSpaceStatus={this.props.diskSpaceStatus}
           onRetry={this.props.onRetrySync}
           onClose={this.props.onHideDiskSpaceBanner}
-          hidden={this.props.diskSpaceBannerHidden}
+          hidden={!this.props.showingDiskSpaceBanner}
         />
         <Kb.Box
           style={{

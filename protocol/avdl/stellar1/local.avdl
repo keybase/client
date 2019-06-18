@@ -546,7 +546,7 @@ protocol local {
 
   // search by user search string
   array<Asset> fuzzyAssetSearchLocal(int sessionID, string searchString);
-  array<Asset> listPopularAssetsLocal(int sessionID);
+  AssetListResult listPopularAssetsLocal(int sessionID);
 
   // Trustline operations:
   // In addTrustline, limit is optional, if not supplied, max limit will be used.

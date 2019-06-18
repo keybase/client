@@ -16,9 +16,8 @@
 
 // Currently Image/IO does not support WebP
 #define kSDUTTypeWebP ((__bridge CFStringRef)@"public.webp")
-// AVFileTypeHEIC/AVFileTypeHEIF is defined in AVFoundation via iOS 11, we use this without import AVFoundation
+// AVFileTypeHEIC is defined in AVFoundation via iOS 11, we use this without import AVFoundation
 #define kSDUTTypeHEIC ((__bridge CFStringRef)@"public.heic")
-#define kSDUTTypeHEIF ((__bridge CFStringRef)@"public.heif")
 
 @implementation NSData (ImageContentType)
 
@@ -60,9 +59,6 @@
                     || [testString isEqualToString:@"ftyphevx"]) {
                     return SDImageFormatHEIC;
                 }
-                if ([testString isEqualToString:@"ftypmif1"] || [testString isEqualToString:@"ftypmsf1"]) {
-                    return SDImageFormatHEIF;
-                }
             }
             break;
         }
@@ -91,9 +87,6 @@
         case SDImageFormatHEIC:
             UTType = kSDUTTypeHEIC;
             break;
-        case SDImageFormatHEIF:
-            UTType = kSDUTTypeHEIF;
-            break;
         default:
             // default is kUTTypePNG
             UTType = kUTTypePNG;
@@ -119,8 +112,6 @@
         imageFormat = SDImageFormatWebP;
     } else if (CFStringCompare(uttype, kSDUTTypeHEIC, 0) == kCFCompareEqualTo) {
         imageFormat = SDImageFormatHEIC;
-    } else if (CFStringCompare(uttype, kSDUTTypeHEIF, 0) == kCFCompareEqualTo) {
-        imageFormat = SDImageFormatHEIF;
     } else {
         imageFormat = SDImageFormatUndefined;
     }

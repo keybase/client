@@ -29,7 +29,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createShowMain())
     dispatch(RouteTreeGen.createNavigateTo({path: [loginTab]}))
   },
-  onHideDiskSpaceBanner: dispatch(FsGen.createHideDiskSpaceBanner()),
+  onHideDiskSpaceBanner: dispatch(FsGen.createShowHideDiskSpaceBanner({show: false})),
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
     hideWindow()

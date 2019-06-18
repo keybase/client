@@ -32,6 +32,7 @@ export type NotLoadingProps = {
   onLoadPaymentDetail: () => void
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
+  operations?: Array<string>
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean
@@ -48,6 +49,8 @@ export type NotLoadingProps = {
   yourRole: Types.Role
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string
+  isAdvanced: boolean
+  summaryAdvanced?: string
 }
 export type Props =
   | NotLoadingProps
@@ -197,6 +200,8 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
           return 'Received'
         case 'senderAndReceiver':
           return 'Sent'
+        case 'none':
+          return 'Done'
         default:
           throw new Error(`Unexpected role ${yourRole}`)
       }
@@ -226,7 +231,7 @@ const propsToParties = (props: NotLoadingProps) => {
     counterpartyAccountID = null
   }
 
-  const counterparty = (
+  const counterparty = props.counterparty ? (
     <Counterparty
       accountID={counterpartyAccountID}
       counterparty={props.counterparty}
@@ -235,7 +240,7 @@ const propsToParties = (props: NotLoadingProps) => {
       onChat={props.onChat}
       onShowProfile={props.onShowProfile}
     />
-  )
+  ) : null
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -246,6 +251,8 @@ const propsToParties = (props: NotLoadingProps) => {
       // Even if we sent money from an account to itself, show the
       // account details as the recipient.
       return {receiver: counterparty, sender: you}
+    case 'none':
+      return {receiver: null, sender: null}
     default:
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
@@ -301,19 +308,25 @@ const TransactionDetails = (props: NotLoadingProps) => {
           unread={false}
           yourRole={props.yourRole}
           issuerDescription={props.issuerDescription}
+          isAdvanced={props.isAdvanced}
+          summaryAdvanced={props.summaryAdvanced}
         />
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
-          {sender}
-        </Kb.Box2>
+        {!!sender && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
+            {sender}
+          </Kb.Box2>
+        )}
 
-        <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-          <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
-          {receiver}
-        </Kb.Box2>
+        {!!receiver && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Recipient:</Kb.Text>
+            {receiver}
+          </Kb.Box2>
+        )}
 
         {props.issuerAccountID && (
           <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -324,6 +337,17 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Text selectable={true} style={styles.transactionID} type="Body">
               {props.issuerAccountID}
             </Kb.Text>
+          </Kb.Box2>
+        )}
+
+        {props.operations && props.operations.length && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
+            {props.operations.map((op, i) => (
+              <Kb.Text key={i} selectable={true} style={styles.operation} type="Body">
+                {i + 1}. {op}
+              </Kb.Text>
+            ))}
           </Kb.Box2>
         )}
 
@@ -494,6 +518,7 @@ const styles = Styles.styleSheetCreate({
   },
   flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
+  operation: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   partyAccountContainer: {
     alignSelf: 'flex-start',
   },

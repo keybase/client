@@ -29,7 +29,7 @@ const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayloa
   logger.info('keybase.1.NotifySession.loggedIn')
   // only send this if we think we're not logged in
   if (!state.config.loggedIn) {
-    return ConfigGen.createLoggedIn({causedByStartup: false})
+    return ConfigGen.createLoggedIn({causedBySignup: action.payload.params.signedUp, causedByStartup: false})
   }
 }
 
@@ -114,9 +114,9 @@ function* loadDaemonBootstrapStatus(
       )
       break
     case GregorGen.updateReachable:
-        if (action.payload.reachable) {
-          yield* makeCall()
-        }
+      if (action.payload.reachable) {
+        yield* makeCall()
+      }
       break
     case ConfigGen.loggedIn:
       yield* makeCall()
@@ -239,7 +239,12 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
   if (state.config.loggedIn) {
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
-      return RouteTreeGen.createSwitchRouteDef({loggedIn: true})
+      return [
+        RouteTreeGen.createSwitchRouteDef({loggedIn: true}),
+        ...(action.payload.causedBySignup
+          ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
+          : []),
+      ]
     }
   } else {
     return RouteTreeGen.createSwitchRouteDef({loggedIn: false})
@@ -391,7 +396,7 @@ const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
 }
 
 const emitInitialLoggedIn = state =>
-  state.config.loggedIn && ConfigGen.createLoggedIn({causedByStartup: true})
+  state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
 
 function* allowLogoutWaiters(_, action: ConfigGen.LogoutHandshakePayload) {
   yield Saga.put(
