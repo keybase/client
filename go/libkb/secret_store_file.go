@@ -30,8 +30,10 @@ func NewSecretStoreFile(dir string) *SecretStoreFile {
 	return &SecretStoreFile{dir: dir}
 }
 
-func (s *SecretStoreFile) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
-	secret, err := s.retrieveSecretV2(username)
+func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.RetrieveSecret(%s)", username), func() error { return err })()
+	mctx.Debug("Retrieving secret V2 from file")
+	secret, err = s.retrieveSecretV2(username)
 	switch err.(type) {
 	case nil:
 		return secret, nil
@@ -41,16 +43,17 @@ func (s *SecretStoreFile) RetrieveSecret(m MetaContext, username NormalizedUsern
 	}
 
 	// check for v1
+	mctx.Debug("Retrieving secret V1 from file")
 	secret, err = s.retrieveSecretV1(username)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
 
 	// upgrade to v2
-	if err := s.StoreSecret(m, username, secret); err != nil {
+	if err = s.StoreSecret(mctx, username, secret); err != nil {
 		return secret, err
 	}
-	if err := s.clearSecretV1(username); err != nil {
+	if err = s.clearSecretV1(username); err != nil {
 		return secret, err
 	}
 	return secret, nil
@@ -100,7 +103,8 @@ func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) error {
+func (s *SecretStoreFile) StoreSecret(mctx MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.StoreSecret(%s)", username), func() error { return err })()
 	noise, err := MakeNoise()
 	if err != nil {
 		return err
@@ -198,11 +202,11 @@ func (s *SecretStoreFile) StoreSecret(m MetaContext, username NormalizedUsername
 	return nil
 }
 
-func (s *SecretStoreFile) ClearSecret(m MetaContext, username NormalizedUsername) error {
+func (s *SecretStoreFile) ClearSecret(mctx MetaContext, username NormalizedUsername) error {
 	// try both
 
 	if username.IsNil() {
-		m.Debug("NOOPing SecretStoreFile#ClearSecret for empty username")
+		mctx.Debug("NOOPing SecretStoreFile#ClearSecret for empty username")
 		return nil
 	}
 
@@ -249,7 +253,7 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 	return nil
 }
 
-func (s *SecretStoreFile) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
+func (s *SecretStoreFile) GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error) {
 	files, err := filepath.Glob(filepath.Join(s.dir, "*.ss*"))
 	if err != nil {
 		return nil, err
