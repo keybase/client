@@ -826,6 +826,108 @@ func (o ServerNowRes) DeepCopy() ServerNowRes {
 	}
 }
 
+type APIKeyTyp int
+
+const (
+	APIKeyTyp_GOOGLEMAPS APIKeyTyp = 0
+	APIKeyTyp_GIPHY      APIKeyTyp = 1
+)
+
+func (o APIKeyTyp) DeepCopy() APIKeyTyp { return o }
+
+var APIKeyTypMap = map[string]APIKeyTyp{
+	"GOOGLEMAPS": 0,
+	"GIPHY":      1,
+}
+
+var APIKeyTypRevMap = map[APIKeyTyp]string{
+	0: "GOOGLEMAPS",
+	1: "GIPHY",
+}
+
+func (e APIKeyTyp) String() string {
+	if v, ok := APIKeyTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type APIKey struct {
+	Typ__        APIKeyTyp `codec:"typ" json:"typ"`
+	Googlemaps__ *string   `codec:"googlemaps,omitempty" json:"googlemaps,omitempty"`
+	Giphy__      *string   `codec:"giphy,omitempty" json:"giphy,omitempty"`
+}
+
+func (o *APIKey) Typ() (ret APIKeyTyp, err error) {
+	switch o.Typ__ {
+	case APIKeyTyp_GOOGLEMAPS:
+		if o.Googlemaps__ == nil {
+			err = errors.New("unexpected nil value for Googlemaps__")
+			return ret, err
+		}
+	case APIKeyTyp_GIPHY:
+		if o.Giphy__ == nil {
+			err = errors.New("unexpected nil value for Giphy__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o APIKey) Googlemaps() (res string) {
+	if o.Typ__ != APIKeyTyp_GOOGLEMAPS {
+		panic("wrong case accessed")
+	}
+	if o.Googlemaps__ == nil {
+		return
+	}
+	return *o.Googlemaps__
+}
+
+func (o APIKey) Giphy() (res string) {
+	if o.Typ__ != APIKeyTyp_GIPHY {
+		panic("wrong case accessed")
+	}
+	if o.Giphy__ == nil {
+		return
+	}
+	return *o.Giphy__
+}
+
+func NewAPIKeyWithGooglemaps(v string) APIKey {
+	return APIKey{
+		Typ__:        APIKeyTyp_GOOGLEMAPS,
+		Googlemaps__: &v,
+	}
+}
+
+func NewAPIKeyWithGiphy(v string) APIKey {
+	return APIKey{
+		Typ__:   APIKeyTyp_GIPHY,
+		Giphy__: &v,
+	}
+}
+
+func (o APIKey) DeepCopy() APIKey {
+	return APIKey{
+		Typ__: o.Typ__.DeepCopy(),
+		Googlemaps__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Googlemaps__),
+		Giphy__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Giphy__),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1037,6 +1139,10 @@ type BroadcastGregorMessageToConvArg struct {
 type ServerNowArg struct {
 }
 
+type GetAPIKeysArg struct {
+	Typs []APIKeyTyp `codec:"typs" json:"typs"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1077,6 +1183,7 @@ type RemoteInterface interface {
 	FailSharePost(context.Context, FailSharePostArg) error
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
 	ServerNow(context.Context) (ServerNowRes, error)
+	GetAPIKeys(context.Context, []APIKeyTyp) ([]APIKey, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1658,6 +1765,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getAPIKeys": {
+				MakeArg: func() interface{} {
+					var ret [1]GetAPIKeysArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetAPIKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetAPIKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.GetAPIKeys(ctx, typedArgs[0].Typs)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1870,5 +1992,11 @@ func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg Br
 
 func (c RemoteClient) ServerNow(ctx context.Context) (res ServerNowRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.serverNow", []interface{}{ServerNowArg{}}, &res, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) GetAPIKeys(ctx context.Context, typs []APIKeyTyp) (res []APIKey, err error) {
+	__arg := GetAPIKeysArg{Typs: typs}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
 }

@@ -441,6 +441,11 @@ export type MessageTypes = {
   }
 }
 
+export enum APIKeyTyp {
+  googlemaps = 0,
+  giphy = 1,
+}
+
 export enum AssetMetadataType {
   none = 0,
   image = 1,
@@ -808,6 +813,7 @@ export enum UnfurlType {
   youtube = 1,
   giphy = 2,
 }
+export type APIKey = {typ: APIKeyTyp.googlemaps; googlemaps: String | null} | {typ: APIKeyTyp.giphy; giphy: String | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
 export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage | null} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo | null} | {assetType: AssetMetadataType.audio; audio: AssetMetadataAudio | null}
@@ -1344,3 +1350,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.failSharePost'
 // 'chat.1.remote.broadcastGregorMessageToConv'
 // 'chat.1.remote.serverNow'
+// 'chat.1.remote.getAPIKeys'
