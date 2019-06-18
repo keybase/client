@@ -80,10 +80,10 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	if arg.FromPrimaryAccount {
 		primaryAccountID, err := bpc.PrimaryAccount(mctx)
 		if err != nil {
-			log("PrimaryAccount -> err:%v", err)
+			log("PrimaryAccount -> err:[%T] %v", err, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 				Level:   "error",
-				Message: "Could not find primary account.",
+				Message: fmt.Sprintf("Could not find primary account.%v", msgMore(err)),
 			})
 		} else {
 			fromInfo.from = primaryAccountID
@@ -92,10 +92,10 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	} else {
 		owns, fromPrimary, err := bpc.OwnsAccount(mctx, arg.From)
 		if err != nil || !owns {
-			log("OwnsAccount (from) -> owns:%v err:%v", owns, err)
+			log("OwnsAccount (from) -> owns:%v err:[%T] %v", owns, err, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 				Level:   "error",
-				Message: "Could not find source account.",
+				Message: fmt.Sprintf("Could not find source account.%v", msgMore(err)),
 			})
 		} else {
 			fromInfo.from = arg.From
@@ -178,7 +178,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						}
 					}
 				}
-				if !sendingToSelf && !fromPrimaryAccount {
+				if selfSendErr == nil && !sendingToSelf && !fromPrimaryAccount {
 					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 						Level:   "info",
 						Message: "Your Keybase username will not be linked to this transaction.",
@@ -678,7 +678,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 		log("PrimaryAccount -> err:%v", err)
 		res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 			Level:   "error",
-			Message: "Could not find primary account.",
+			Message: fmt.Sprintf("Could not find primary account.%v", msgMore(err)),
 		})
 	} else {
 		bpaArg.From = &primaryAccountID
@@ -991,4 +991,13 @@ func (b *buildPaymentData) CheckReadyToSend(arg stellar1.SendPaymentLocalArg) er
 		return fmt.Errorf("mismatched asset: %v != %v", arg.Asset, b.Frozen.Asset)
 	}
 	return nil
+}
+
+func msgMore(err error) string {
+	switch err.(type) {
+	case libkb.APINetError, *libkb.APINetError:
+		return " Please check your network and try again."
+	default:
+		return ""
+	}
 }
