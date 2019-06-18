@@ -41,3 +41,12 @@ func TestProveTypes(t *testing.T) {
 		}
 	}
 }
+
+type MockedConfig struct {
+	NullConfiguration
+	mockedIsSslPinningEnabled bool
+}
+
+func (mc MockedConfig) IsCertPinningEnabled() bool {
+	return mc.mockedIsSslPinningEnabled
+}

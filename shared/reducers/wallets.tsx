@@ -75,6 +75,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({builtPayment: Constants.makeBuiltPayment()})
     case WalletsGen.clearBuiltRequest:
       return state.merge({builtRequest: Constants.makeBuiltRequest()})
+    case WalletsGen.externalPartnersReceived:
+      return state.merge({externalPartners: action.payload.externalPartners})
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
         Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
@@ -409,6 +411,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeMobileOnlyMode:
     case WalletsGen.exitFailedPayment:
     case WalletsGen.loadInflationDestination:
+    case WalletsGen.loadExternalPartners:
       return state
     default:
       return state

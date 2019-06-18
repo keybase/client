@@ -45,6 +45,7 @@ export type _State = {
   proofStatus: RPCTypes.ProofStatus | null
   proofText: string
   revokeError: string
+  blockUserModal: null | 'waiting' | {error: string}
   sigID: RPCTypes.SigID | null
   username: string
   usernameValid: boolean

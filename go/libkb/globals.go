@@ -155,6 +155,10 @@ type GlobalContext struct {
 	switchUserMu  *VerboseLock
 	ActiveDevice  *ActiveDevice
 	switchedUsers map[NormalizedUsername]bool // bookkeep users who have been switched over (and are still in secret store)
+
+	// OS Version passed from mobile native code. iOS and Android only.
+	// See go/bind/keybase.go
+	MobileOsVersion string
 }
 
 type GlobalTestOptions struct {
@@ -166,7 +170,7 @@ func (g *GlobalContext) GetLog() logger.Logger                         { return 
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetServerURI() (string, error)                 { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
@@ -1000,10 +1004,6 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin(mctx)
-
-	if _, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{ForceRepoll: true}); err != nil {
-		mctx.Warning("failed to pre-fetch no-password state: %s", err)
-	}
 
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()

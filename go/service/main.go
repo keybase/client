@@ -55,24 +55,23 @@ type Service struct {
 	libkb.Contextified
 	globals.ChatContextified
 
-	isDaemon             bool
-	chdirTo              string
-	lockPid              *libkb.LockPIDFile
-	ForkType             keybase1.ForkType
-	startCh              chan struct{}
-	stopCh               chan keybase1.ExitCode
-	logForwarder         *logFwd
-	gregor               *gregorHandler
-	rekeyMaster          *rekeyMaster
-	badger               *badges.Badger
-	reachability         *reachability
-	backgroundIdentifier *BackgroundIdentifier
-	home                 *home.Home
-	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
-	teamUpgrader         *teams.Upgrader
-	avatarLoader         avatars.Source
-	walletState          *stellar.WalletState
-	offlineRPCCache      *offline.RPCCache
+	isDaemon        bool
+	chdirTo         string
+	lockPid         *libkb.LockPIDFile
+	ForkType        keybase1.ForkType
+	startCh         chan struct{}
+	stopCh          chan keybase1.ExitCode
+	logForwarder    *logFwd
+	gregor          *gregorHandler
+	rekeyMaster     *rekeyMaster
+	badger          *badges.Badger
+	reachability    *reachability
+	home            *home.Home
+	tlfUpgrader     *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader    *teams.Upgrader
+	avatarLoader    avatars.Source
+	walletState     *stellar.WalletState
+	offlineRPCCache *offline.RPCCache
 }
 
 type Shutdowner interface {
@@ -351,7 +350,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
-	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
 	d.runBackgroundPerUserKeyUpkeep()
 	d.runBackgroundWalletUpkeep()
@@ -455,9 +453,10 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
-	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
+	store := attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir())
 	attachmentLRUSize := 1000
 	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
+	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
@@ -574,13 +573,6 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 		eng.Shutdown()
 		return nil
 	})
-}
-
-func (d *Service) runBackgroundIdentifier() {
-	uid := d.G().Env.GetUID()
-	if !uid.IsNil() {
-		d.runBackgroundIdentifierWithUID(uid)
-	}
 }
 
 func (d *Service) startupGregor() {
@@ -792,25 +784,6 @@ func (d *Service) tryGregordConnect() error {
 	return d.gregordConnect()
 }
 
-func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
-	if d.G().Env.GetBGIdentifierDisabled() {
-		d.G().Log.Debug("BackgroundIdentifier disabled")
-		return
-	}
-
-	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), d.ChatG(), u)
-	if err != nil {
-		d.G().Log.Warning("Problem running new background identifier: %s", err)
-		return
-	}
-	if newBgi == nil {
-		d.G().Log.Debug("No new background identifier needed")
-		return
-	}
-	d.backgroundIdentifier = newBgi
-	d.G().AddUserChangedHandler(newBgi)
-}
-
 func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	if !d.G().Env.GetUpgradePerUserKey() {
 		d.G().Log.Debug("PerUserKeyUpgradeBackground disabled (not starting)")
@@ -910,7 +883,6 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	if !uid.IsNil() {
 		d.startChatModules()
 		d.G().PushShutdownHook(func() error { return d.stopChatModules(mctx) })
-		d.runBackgroundIdentifierWithUID(uid)
 		d.runTLFUpgrade()
 		go d.identifySelf()
 	}
@@ -942,11 +914,6 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log("shutting down badger")
 	if d.badger != nil {
 		d.badger.Clear(context.TODO())
-	}
-
-	log("shutting down BG identifier")
-	if d.backgroundIdentifier != nil {
-		d.backgroundIdentifier.Logout()
 	}
 
 	log("shutting down TLF upgrader")

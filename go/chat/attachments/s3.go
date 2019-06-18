@@ -88,7 +88,7 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
 	multiPartUpload := size > minMultiSize
-	if multiPartUpload && a.env.GetAttachmentDisableMulti() {
+	if multiPartUpload && a.G().Env.GetAttachmentDisableMulti() {
 		a.Debug(ctx, "PutS3: multi part upload manually disabled, overriding for size: %v", size)
 		multiPartUpload = false
 	}

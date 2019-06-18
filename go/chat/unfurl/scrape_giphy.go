@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"errors"
+	"github.com/keybase/client/go/libkb"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -100,7 +101,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 	})
 	var uri string
 	if s.giphyProxy {
-		c.WithTransport(giphy.WebClient().Transport)
+		c.WithTransport(giphy.WebClient(libkb.NewMetaContext(ctx, s.G())).Transport)
 		if uri, err = giphy.ProxyURL(sourceURL); err != nil {
 			return res, err
 		}

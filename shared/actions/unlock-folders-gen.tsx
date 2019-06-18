@@ -1,9 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Constants from '../constants/unlock-folders'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer. NEVER dispatch this
@@ -72,43 +69,34 @@ export const createWaiting = (payload: _WaitingPayload): WaitingPayload => ({pay
 // Action Payloads
 export type CheckPaperKeyDonePayload = {
   readonly payload: _CheckPaperKeyDonePayload
-  readonly type: 'unlock-folders:checkPaperKeyDone'
+  readonly type: typeof checkPaperKeyDone
 }
 export type CheckPaperKeyDonePayloadError = {
   readonly error: true
   readonly payload: _CheckPaperKeyDonePayloadError
-  readonly type: 'unlock-folders:checkPaperKeyDone'
+  readonly type: typeof checkPaperKeyDone
 }
 export type CheckPaperKeyPayload = {
   readonly payload: _CheckPaperKeyPayload
-  readonly type: 'unlock-folders:checkPaperKey'
+  readonly type: typeof checkPaperKey
 }
-export type CloseDonePayload = {
-  readonly payload: _CloseDonePayload
-  readonly type: 'unlock-folders:closeDone'
-}
-export type ClosePopupPayload = {
-  readonly payload: _ClosePopupPayload
-  readonly type: 'unlock-folders:closePopup'
-}
-export type FinishPayload = {readonly payload: _FinishPayload; readonly type: 'unlock-folders:finish'}
+export type CloseDonePayload = {readonly payload: _CloseDonePayload; readonly type: typeof closeDone}
+export type ClosePopupPayload = {readonly payload: _ClosePopupPayload; readonly type: typeof closePopup}
+export type FinishPayload = {readonly payload: _FinishPayload; readonly type: typeof finish}
 export type NewRekeyPopupPayload = {
   readonly payload: _NewRekeyPopupPayload
-  readonly type: 'unlock-folders:newRekeyPopup'
+  readonly type: typeof newRekeyPopup
 }
 export type OnBackFromPaperKeyPayload = {
   readonly payload: _OnBackFromPaperKeyPayload
-  readonly type: 'unlock-folders:onBackFromPaperKey'
+  readonly type: typeof onBackFromPaperKey
 }
-export type OpenPopupPayload = {
-  readonly payload: _OpenPopupPayload
-  readonly type: 'unlock-folders:openPopup'
-}
+export type OpenPopupPayload = {readonly payload: _OpenPopupPayload; readonly type: typeof openPopup}
 export type ToPaperKeyInputPayload = {
   readonly payload: _ToPaperKeyInputPayload
-  readonly type: 'unlock-folders:toPaperKeyInput'
+  readonly type: typeof toPaperKeyInput
 }
-export type WaitingPayload = {readonly payload: _WaitingPayload; readonly type: 'unlock-folders:waiting'}
+export type WaitingPayload = {readonly payload: _WaitingPayload; readonly type: typeof waiting}
 
 // All Actions
 // prettier-ignore

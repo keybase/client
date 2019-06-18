@@ -5,6 +5,31 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addPhoneNumber": {
+      "_description": "Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.",
+      "allowSearch": "boolean",
+      "phoneNumber": "string",
+      "resend?": "boolean"
+    },
+    "addedPhoneNumber": {
+      "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
+      "allowSearch": "boolean",
+      "error?": "string",
+      "phoneNumber": "string"
+    },
+    "verifyPhoneNumber": {
+      "_description": "Submit a verification code for a phone number",
+      "phoneNumber": "string",
+      "code": "string"
+    },
+    "verifiedPhoneNumber": {
+      "_description": "We verified a phone number or hit an error.",
+      "error?": "string",
+      "phoneNumber": "string"
+    },
+    "clearPhoneNumberVerification": {
+      "_description": "Cancel a phone number verification-in-progress."
+    },
     "dbNuke": {},
     "deleteAccountForever": {},
     "invitesClearError": {},
@@ -127,7 +152,8 @@
     },
     "sendFeedback": {
       "feedback": "string",
-      "sendLogs": "boolean"
+      "sendLogs": "boolean",
+      "sendMaxBytes": "boolean"
     },
     "feedbackSent": {
       "_description": "An error occurred while trying to send feedback to Keybase",

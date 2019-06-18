@@ -133,24 +133,19 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
   if (!oldTlf) {
     return newTlf
   }
-  // TODO: Ideally this should come in with other data from the same RPC.
-  const newTlfDontClearSyncConfig = newTlf.syncConfig ? newTlf : newTlf.set('syncConfig', oldTlf.syncConfig)
-  if (
-    !I.is(newTlfDontClearSyncConfig.syncConfig, oldTlf.syncConfig) &&
-    !haveSamePartialSyncConfig(oldTlf, newTlfDontClearSyncConfig)
-  ) {
-    return newTlfDontClearSyncConfig
+  if (!I.is(newTlf.syncConfig, oldTlf.syncConfig) && !haveSamePartialSyncConfig(oldTlf, newTlf)) {
+    return newTlf
   }
   if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
-    return newTlfDontClearSyncConfig
+    return newTlf
   }
   if (!newTlf.conflict.equals(oldTlf.conflict)) {
-    return newTlfDontClearSyncConfig
+    return newTlf
   }
   // syncConfig, resetParticipants, and conflict all stayed thte same in value,
   // so just reuse old reference.
   return oldTlf.merge(
-    newTlfDontClearSyncConfig.withMutations(n =>
+    newTlf.withMutations(n =>
       n
         .set('syncConfig', oldTlf.syncConfig)
         .set('resetParticipants', oldTlf.resetParticipants)
@@ -240,10 +235,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
       )
     }
-    case FsGen.loadingPath:
-      return state.updateIn(['loadingPaths', action.payload.path], set =>
-        action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
-      )
     case FsGen.favoritesLoaded:
       return state.update('tlfs', tlfs =>
         tlfs.withMutations(tlfsMutable =>
@@ -264,30 +255,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           )
         )
       )
-    case FsGen.tlfSyncConfigsForAllSyncEnabledTlfsLoaded:
-      // This should come in after favorites are loaded. Go through existing
-      // TLFs, and update their syncConfig as needed based on the incoming
-      // payload. Note that if a TLF that we know of doesn't appear in the
-      // payload, we assume it's sync-disable.
-      return [Types.TlfType.Private, Types.TlfType.Public, Types.TlfType.Team].reduce((state, tlfType) => {
-        const tlfsFromAction = action.payload[tlfType] || I.Map()
-        return state.update('tlfs', tlfs =>
-          tlfs.update(tlfType, tlfList =>
-            tlfList.withMutations(tlfList =>
-              tlfList.map((tlf, tlfName) => {
-                const syncConfigFromAction = tlfsFromAction.get(tlfName, Constants.tlfSyncDisabled)
-                // Can't just use equal as flow would freak out on different
-                // types. Enable/disable are constants, so no need to deep
-                // compare for them; can just set.
-                return syncConfigFromAction.mode === Types.TlfSyncMode.Partial &&
-                  syncConfigFromAction.equals(tlf.syncConfig)
-                  ? tlf
-                  : tlf.set('syncConfig', syncConfigFromAction)
-              })
-            )
-          )
-        )
-      }, state)
     case FsGen.sortSetting:
       return state.update('pathUserSettings', pathUserSettings =>
         pathUserSettings.update(action.payload.path, setting =>
@@ -467,6 +434,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         Constants.makeSendAttachmentToChat({
           path: action.payload.path,
           state: Types.SendAttachmentToChatState.PendingSelectConversation,
+          title: Types.getPathName(action.payload.path),
         })
       )
     case FsGen.setSendAttachmentToChatConvID:
@@ -483,6 +451,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSendAttachmentToChatFilter:
       return state.update('sendAttachmentToChat', sendAttachmentToChat =>
         sendAttachmentToChat.set('filter', action.payload.filter)
+      )
+    case FsGen.setSendAttachmentToChatTitle:
+      return state.update('sendAttachmentToChat', sendAttachmentToChat =>
+        sendAttachmentToChat.set('title', action.payload.title)
       )
     case FsGen.sentAttachmentToChat:
       return state.setIn(['sendAttachmentToChat', 'state'], Types.SendLinkToChatState.Sent)
@@ -547,30 +519,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.overallSyncStatusChanged:
       return state.update('overallSyncStatus', overallSyncStatus =>
         overallSyncStatus
-          .update('syncingFoldersProgress', syncingFoldersProgress =>
-            action.payload.progress.equals(syncingFoldersProgress)
-              ? syncingFoldersProgress
-              : action.payload.progress
-          )
-          .set(
-            'diskSpaceStatus',
-            action.payload.outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok
-          )
-          // Unhide the banner if the state we're coming from isn't WARNING.
-          .set(
-            'diskSpaceBannerHidden',
-            overallSyncStatus.diskSpaceBannerHidden &&
-              overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Warning
-          )
+          .set('syncingFoldersProgress', action.payload.progress)
+          .set('diskSpaceStatus', action.payload.diskSpaceStatus)
       )
+    case FsGen.showHideDiskSpaceBanner:
+      return state.setIn(['overallSyncStatus', 'showingBanner'], action.payload.show)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
     case FsGen.hideSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
-    case FsGen.hideDiskSpaceBanner:
-      return state.update('overallSyncStatus', status => status.set('diskSpaceBannerHidden', true))
     case FsGen.driverEnable:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
@@ -595,6 +554,14 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
+    case FsGen.tlfCrStatusChanged:
+      const parsedPath = Constants.parsePath(action.payload.tlfPath)
+      const newState = action.payload.status
+      if (parsedPath.kind !== Types.PathKind.TeamTlf && parsedPath.kind !== Types.PathKind.GroupTlf) {
+        // This should not happen.
+        return state
+      }
+      return state.setIn(['tlfs', parsedPath.tlfType, parsedPath.tlfName, 'conflict', 'state'], newState)
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
@@ -620,6 +587,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.loadSettings:
       return state.update('settings', s => s.set('isLoading', true))
 
+    case FsGen.startManualConflictResolution:
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:

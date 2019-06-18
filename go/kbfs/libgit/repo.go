@@ -186,7 +186,7 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	tlfHandle *tlfhandle.Handle, fs billy.Filesystem,
 	pushType keybase1.GitPushType,
 	oldRepoName string, refDataByName RefDataByName) error {
-	folder := tlfHandle.ToFavorite().ToKBFolder(false)
+	folder := tlfHandle.ToFavorite().ToKBFolderHandle(false)
 
 	// Get the user-formatted repo name.
 	f, err := fs.Open(kbfsConfigName)

@@ -4,6 +4,8 @@ import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from '../const
 import HiddenString from '../util/hidden-string'
 
 export const maxUsernameLength = 16
+export const usernameHint =
+  'Usernames must be 2-16 characters, and can only contain letters, numbers, and underscores.'
 
 const devicename =
   (isAndroid && 'My Android Device') ||
@@ -27,6 +29,7 @@ export const makeState = I.Record<Types._State>({
   signupError: new HiddenString(''),
   username: '',
   usernameError: '',
+  usernameTaken: '',
 })
 
 export const waitingKey = 'signup:waiting'

@@ -1,8 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/search'
 
 // Constants
@@ -84,36 +81,36 @@ export const createUserInputItemsUpdated = (
 // Action Payloads
 export type AddResultsToUserInputPayload = {
   readonly payload: _AddResultsToUserInputPayload
-  readonly type: 'search:addResultsToUserInput'
+  readonly type: typeof addResultsToUserInput
 }
 export type ClearSearchResultsPayload = {
   readonly payload: _ClearSearchResultsPayload
-  readonly type: 'search:clearSearchResults'
+  readonly type: typeof clearSearchResults
 }
 export type FinishedSearchPayload = {
   readonly payload: _FinishedSearchPayload
-  readonly type: 'search:finishedSearch'
+  readonly type: typeof finishedSearch
 }
 export type RemoveResultsToUserInputPayload = {
   readonly payload: _RemoveResultsToUserInputPayload
-  readonly type: 'search:removeResultsToUserInput'
+  readonly type: typeof removeResultsToUserInput
 }
-export type SearchPayload = {readonly payload: _SearchPayload; readonly type: 'search:search'}
+export type SearchPayload = {readonly payload: _SearchPayload; readonly type: typeof search}
 export type SearchSuggestionsPayload = {
   readonly payload: _SearchSuggestionsPayload
-  readonly type: 'search:searchSuggestions'
+  readonly type: typeof searchSuggestions
 }
 export type SetUserInputItemsPayload = {
   readonly payload: _SetUserInputItemsPayload
-  readonly type: 'search:setUserInputItems'
+  readonly type: typeof setUserInputItems
 }
 export type UpdateSelectedSearchResultPayload = {
   readonly payload: _UpdateSelectedSearchResultPayload
-  readonly type: 'search:updateSelectedSearchResult'
+  readonly type: typeof updateSelectedSearchResult
 }
 export type UserInputItemsUpdatedPayload = {
   readonly payload: _UserInputItemsUpdatedPayload
-  readonly type: 'search:userInputItemsUpdated'
+  readonly type: typeof userInputItemsUpdated
 }
 
 // All Actions

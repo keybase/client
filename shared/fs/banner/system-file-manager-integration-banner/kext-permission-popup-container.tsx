@@ -1,15 +1,14 @@
 import {namedConnect, RouteProps} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
-
-type OwnProps = RouteProps<{}, {}>
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onCancel: () => dispatch(ownProps.navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
 

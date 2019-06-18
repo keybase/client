@@ -114,7 +114,7 @@ const mergeProps = (
       ],
       []
     )
-    .sort((a, b) => a.channelname.localeCompare(b.channelname, 'undefined', {sensitivity: 'base'}))
+    .sort((a, b) => a.channelname.localeCompare(b.channelname, undefined, {sensitivity: 'base'}))
 
   return {
     conversation: {

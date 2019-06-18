@@ -1,7 +1,6 @@
 export const newRoutes = {
   fsRoot: {getScreen: () => require('./container').default, upgraded: true},
   main: {getScreen: () => require('./container').default, upgraded: true},
-  'settingsTabs.fsTab': {getScreen: () => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {
@@ -12,6 +11,11 @@ export const newModalRoutes = {
   },
   destinationPicker: {
     getScreen: () => require('./browser/destination-picker/container').default,
+    upgraded: true,
+  },
+  kextPermission: {
+    getScreen: () =>
+      require('./banner/system-file-manager-integration-banner/kext-permission-popup-container').default,
     upgraded: true,
   },
   sendAttachmentToChat: {

@@ -728,4 +728,12 @@ func (s *stellarRetryClient) SignTransactionXdrLocal(ctx context.Context, arg st
 	return s.cli.SignTransactionXdrLocal(ctx, arg)
 }
 
+func (s *stellarRetryClient) FuzzyAssetSearchLocal(ctx context.Context, arg stellar1.FuzzyAssetSearchLocalArg) (res []stellar1.Asset, err error) {
+	return s.cli.FuzzyAssetSearchLocal(ctx, arg)
+}
+
+func (s *stellarRetryClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []stellar1.Asset, err error) {
+	return s.cli.ListPopularAssetsLocal(ctx, sessionID)
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

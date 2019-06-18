@@ -164,6 +164,14 @@ func (md modeDefault) OldStorageRootCleaningEnabled() bool {
 	return true
 }
 
+func (md modeDefault) DoRefreshFavoritesOnInit() bool {
+	return true
+}
+
+func (md modeDefault) DoLogObfuscation() bool {
+	return true
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -307,6 +315,14 @@ func (mm modeMinimal) OldStorageRootCleaningEnabled() bool {
 	return false
 }
 
+func (mm modeMinimal) DoRefreshFavoritesOnInit() bool {
+	return false
+}
+
+func (mm modeMinimal) DoLogObfuscation() bool {
+	return true
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -376,6 +392,10 @@ func (mso modeSingleOp) LocalHTTPServerEnabled() bool {
 }
 
 func (mso modeSingleOp) OldStorageRootCleaningEnabled() bool {
+	return false
+}
+
+func (mso modeSingleOp) DoRefreshFavoritesOnInit() bool {
 	return false
 }
 
@@ -533,4 +553,8 @@ func (mt modeTest) QuotaReclamationMinUnrefAge() time.Duration {
 func (mt modeTest) QuotaReclamationMinHeadAge() time.Duration {
 	// No min head age during testing.
 	return 0
+}
+
+func (mt modeTest) DoLogObfuscation() bool {
+	return false
 }

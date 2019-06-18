@@ -1040,6 +1040,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2Dev2)
+	require.NoError(t, err)
 	if _, ok := children["d"]; !ok {
 		t.Fatalf("Device 2 couldn't see the new dir entry")
 	}
@@ -1059,6 +1060,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	// Should still be seeing the old children, since the updates from
 	// the latest revision were never applied.
 	children, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
+	require.NoError(t, err)
 	if _, ok := children["d"]; ok {
 		t.Fatalf("Found c unexpectedly: %v", children)
 	}
@@ -1284,6 +1286,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	t.Log("User 2 device 2 reads user 1's file")
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
+	require.NoError(t, err)
 	if _, ok := children2["a"]; !ok {
 		t.Fatalf("Device 2 couldn't see user 1's dir entry")
 	}
@@ -1307,6 +1310,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	t.Log("User 1 should be able to read the file that user 2 device 2 created")
 	children1, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
+	require.NoError(t, err)
 	if _, ok := children1["b"]; !ok {
 		t.Fatalf("Device 1 couldn't see the new dir entry")
 	}
@@ -1317,6 +1321,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	session1, err := config1.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1396,6 +1401,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	t.Log("User 2 device 2 reads user 1's file")
 	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
+	require.NoError(t, err)
 	if _, ok := children2["a"]; !ok {
 		t.Fatalf("Device 2 couldn't see user 1's dir entry")
 	}
@@ -1851,6 +1857,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	rootNode1 = GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	children, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
+	require.NoError(t, err)
 	if _, ok := children["b"]; !ok {
 		t.Fatalf("Device 1 couldn't see the new dir entry")
 	}
@@ -1967,6 +1974,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 
 	kbfsOps2 := config2Dev2.KBFSOps()
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
+	require.NoError(t, err)
 	if _, ok := children["a"]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
@@ -1987,6 +1995,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
+	require.NoError(t, err)
 	if _, ok := children["b"]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
@@ -2105,6 +2114,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 
 	kbfsOps2 := config2Dev2.KBFSOps()
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
+	require.NoError(t, err)
 	if _, ok := children["a"]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
@@ -2301,6 +2311,7 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	}
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, root2Dev2)
+	require.NoError(t, err)
 	if _, ok := children["a"]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry")
 	}
@@ -2414,6 +2425,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	_, latestKeyGen, err := config1.KBPKI().GetTeamTLFCryptKeys(
 		ctx, teamID, kbfsmd.UnspecifiedKeyGen,
 		keybase1.OfflineAvailability_NONE)
+	require.NoError(t, err)
 
 	rmd, err := makeInitialRootMetadata(config1.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)

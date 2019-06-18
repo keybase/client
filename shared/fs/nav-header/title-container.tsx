@@ -1,33 +1,40 @@
+import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {namedConnect} from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
 import Title from './title'
-
-// TODO destination-picker
 
 type OwnProps = {
   path: Types.Path
   inDestinationPicker?: boolean | null
 }
 
-const mapStateToProps = state => ({})
+type OwnPropsWithSafeNavigation = Container.PropsWithSafeNavigation<OwnProps>
 
-const mapDispatchToProps = (dispatch, {inDestinationPicker}) => ({
+const mapDispatchToProps = (dispatch, {inDestinationPicker, navigateAppend}: OwnPropsWithSafeNavigation) => ({
   onOpenPath: inDestinationPicker
     ? (path: Types.Path) =>
-        Constants.makeActionsForDestinationPickerOpen(0, path).forEach(action => dispatch(action))
+        Constants.makeActionsForDestinationPickerOpen(0, path, navigateAppend).forEach(action =>
+          dispatch(action)
+        )
     : (path: Types.Path) =>
         dispatch(
-          RouteTreeGen.createNavigateAppend({
+          navigateAppend({
             path: [{props: {path}, selected: 'main'}],
           })
         ),
 })
 
-const mergeProps = (s, d, o) => ({
-  path: o.path || Constants.defaultPath,
-  ...d,
-})
+const NavHeaderTitleConnected: React.ComponentType<OwnProps> = Container.withSafeNavigation<OwnProps>(
+  Container.namedConnect(
+    () => ({}),
+    mapDispatchToProps,
+    (_, d, o: OwnPropsWithSafeNavigation) => ({
+      path: o.path || Constants.defaultPath,
+      ...d,
+    }),
+    'NavHeaderTitle'
+  )(Title)
+)
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'NavHeaderTitle')(Title)
+export default NavHeaderTitleConnected

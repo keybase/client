@@ -98,6 +98,10 @@
         "error": "string"
       }
     },
+    "externalPartnersReceived": {
+      "_description": "Update our list of external tools and partners",
+      "externalPartners": "I.List<Types.PartnerUrl>"
+    },
     "exitFailedPayment": {
       "_description": "Close the send form and show the user their transactions so they can review."
     },
@@ -112,6 +116,9 @@
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
       "reason": "'initial-load' | 'open-send-req-form'"
+    },
+    "loadExternalPartners": {
+      "_description": "Refresh our list of external tools and partner links"
     },
     "loadInflationDestination": {
       "_description": "Refresh inflation destination and options",

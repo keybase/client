@@ -530,6 +530,13 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
 }
 
+func (km *mdRecordingKeyManager) GetFirstTLFCryptKey(
+	ctx context.Context, kmd libkey.KeyMetadata) (
+	kbfscrypto.TLFCryptKey, error) {
+	km.setLastKMD(kmd)
+	return km.delegate.GetFirstTLFCryptKey(ctx, kmd)
+}
+
 func (km *mdRecordingKeyManager) GetTLFCryptKeyOfAllGenerations(
 	ctx context.Context, kmd libkey.KeyMetadata) (
 	keys []kbfscrypto.TLFCryptKey, err error) {

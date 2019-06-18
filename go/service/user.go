@@ -134,7 +134,7 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 
 	if err == nil {
 		// ret.Status might indicate an error we should return
-		// (like libkb.DeletedError, for example)
+		// (like libkb.UserDeletedError, for example)
 		err = libkb.UserErrorFromStatus(ret.Status)
 		if err != nil {
 			h.G().Log.CDebugf(netCtx, "using error from StatusCode: %v => %s", ret.Status, err)
@@ -622,4 +622,34 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
 	}
 	return libkb.UserCard(mctx, uid, arg.UseSession)
+}
+
+func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
+	return h.setUserBlock(mctx, username, true)
+}
+
+func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
+	return h.setUserBlock(mctx, username, false)
+}
+
+func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, block bool) error {
+	uid, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(username))
+	if err != nil {
+		return err
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/block",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"block_uid": libkb.S{Val: uid.String()},
+			"unblock":   libkb.B{Val: !block},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	mctx.G().CardCache().Delete(uid)
+	return err
 }

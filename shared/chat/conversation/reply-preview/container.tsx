@@ -11,11 +11,20 @@ type OwnProps = {
 const mapStateToProps = (state, {conversationIDKey}) => {
   const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
   const message = ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
-  const text = message && message.type === 'text' ? message.text.stringValue() : ''
+  const text =
+    message && message.type === 'text'
+      ? message.text.stringValue()
+      : message.type === 'attachment'
+      ? message.title || (message.attachmentType === 'image' ? '' : message.fileName)
+      : ''
+  const attachment: Types.MessageAttachment =
+    message.type === 'attachment' && message.attachmentType === 'image' ? message : null
   return {
+    imageHeight: attachment ? attachment.previewHeight : undefined,
+    imageURL: attachment ? attachment.previewURL : undefined,
+    imageWidth: attachment ? attachment.previewWidth : undefined,
     text,
-    // Auto generated from flowToTs. Please clean me!
-    username: (message === null || message === undefined ? undefined : message.author) || '',
+    username: message ? message.author : '',
   }
 }
 

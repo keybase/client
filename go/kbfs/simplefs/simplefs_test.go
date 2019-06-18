@@ -87,6 +87,7 @@ func checkPendingOp(ctx context.Context,
 	}
 
 	ops, err := sfs.SimpleFSGetOps(ctx)
+	require.NoError(t, err)
 
 	if !pending {
 		require.Len(t, ops, 0, "Expected zero pending operations")

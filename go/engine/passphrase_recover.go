@@ -251,6 +251,9 @@ func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 	// We either have no server keys or the user is OK with resetting them
 	// Prompt the user for a new passphrase.
 	passphrase, err := e.promptPassphrase(mctx)
+	if err != nil {
+		return err
+	}
 
 	// ppres.Passphrase contains our new password
 	// Run passphrase change to finish the flow

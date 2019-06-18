@@ -1,10 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/team-building'
-import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of team-building but is handled by every reducer. NEVER dispatch this
@@ -66,32 +62,32 @@ export const createSearchResultsLoaded = (
 // Action Payloads
 export type AddUsersToTeamSoFarPayload = {
   readonly payload: _AddUsersToTeamSoFarPayload
-  readonly type: 'team-building:addUsersToTeamSoFar'
+  readonly type: typeof addUsersToTeamSoFar
 }
 export type CancelTeamBuildingPayload = {
   readonly payload: _CancelTeamBuildingPayload
-  readonly type: 'team-building:cancelTeamBuilding'
+  readonly type: typeof cancelTeamBuilding
 }
 export type FetchUserRecsPayload = {
   readonly payload: _FetchUserRecsPayload
-  readonly type: 'team-building:fetchUserRecs'
+  readonly type: typeof fetchUserRecs
 }
 export type FetchedUserRecsPayload = {
   readonly payload: _FetchedUserRecsPayload
-  readonly type: 'team-building:fetchedUserRecs'
+  readonly type: typeof fetchedUserRecs
 }
 export type FinishedTeamBuildingPayload = {
   readonly payload: _FinishedTeamBuildingPayload
-  readonly type: 'team-building:finishedTeamBuilding'
+  readonly type: typeof finishedTeamBuilding
 }
 export type RemoveUsersFromTeamSoFarPayload = {
   readonly payload: _RemoveUsersFromTeamSoFarPayload
-  readonly type: 'team-building:removeUsersFromTeamSoFar'
+  readonly type: typeof removeUsersFromTeamSoFar
 }
-export type SearchPayload = {readonly payload: _SearchPayload; readonly type: 'team-building:search'}
+export type SearchPayload = {readonly payload: _SearchPayload; readonly type: typeof search}
 export type SearchResultsLoadedPayload = {
   readonly payload: _SearchResultsLoadedPayload
-  readonly type: 'team-building:searchResultsLoaded'
+  readonly type: typeof searchResultsLoaded
 }
 
 // All Actions

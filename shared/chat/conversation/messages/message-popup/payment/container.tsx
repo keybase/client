@@ -36,6 +36,7 @@ const commonLoadingProps = {
   balanceChangeColor: '',
   bottomLine: '',
   cancelButtonLabel: '',
+  errorDetails: '',
   icon: 'sending',
   loading: true,
   onCancel: null,
@@ -50,9 +51,9 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state, ownProps: SendOwnProps) => {
+const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps) => {
   let paymentInfo = ownProps.paymentID
-    ? state.chat2.getIn(['paymentStatusMap', ownProps.paymentID], null)
+    ? state.chat2.getIn(['paymentStatusMap', ownProps.paymentID]) || null
     : null
   if (!paymentInfo && ownProps.message.type === 'sendPayment') {
     paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
@@ -63,7 +64,7 @@ const sendMapStateToProps = (state, ownProps: SendOwnProps) => {
   }
 }
 
-const sendMapDispatchToProps = dispatch => ({
+const sendMapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
   onClaimLumens: () =>
     dispatch(
@@ -75,7 +76,7 @@ const sendMapDispatchToProps = dispatch => ({
     dispatch(WalletGen.createShowTransaction({accountID, paymentID})),
 })
 
-const getTopLineUser = (paymentInfo, sender, you) => {
+const getTopLineUser = (paymentInfo, sender, you: string) => {
   if (paymentInfo.fromUsername === you) {
     return 'you sent'
   } else if (paymentInfo.toUsername === you) {
@@ -85,7 +86,11 @@ const getTopLineUser = (paymentInfo, sender, you) => {
   }
 }
 
-const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
+const sendMergeProps = (
+  stateProps: ReturnType<typeof sendMapStateToProps>,
+  dispatchProps: ReturnType<typeof sendMapDispatchToProps>,
+  ownProps: SendOwnProps
+) => {
   if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
     // @ts-ignore message is type `never` correctly
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
@@ -116,7 +121,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
       paymentInfo.status === 'canceled' ||
       paymentInfo.status === 'claimable'
         ? paymentInfo.statusDetail
-        : undefined,
+        : '',
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
     onCancel: paymentInfo.showCancel ? () => dispatchProps.onCancel(paymentInfo.paymentID) : null,
@@ -148,15 +153,15 @@ export const SendPaymentPopup = Container.connect(
   sendMapStateToProps,
   sendMapDispatchToProps,
   sendMergeProps
-)(PaymentPopup)
+)(PaymentPopup) as any
 
 // MessageRequestPayment ================================
-const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
+const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({
   _you: state.config.username,
   requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
 })
 
-const requestMapDispatchToProps = (dispatch, ownProps: RequestOwnProps) => ({
+const requestMapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: RequestOwnProps) => ({
   onCancel: () => {
     if (ownProps.message.type !== 'requestPayment') {
       throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
@@ -171,7 +176,11 @@ const requestMapDispatchToProps = (dispatch, ownProps: RequestOwnProps) => ({
   },
 })
 
-const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps) => {
+const requestMergeProps = (
+  stateProps: ReturnType<typeof requestMapStateToProps>,
+  dispatchProps: ReturnType<typeof requestMapDispatchToProps>,
+  ownProps: RequestOwnProps
+) => {
   const {_you: you} = stateProps
   const {message} = ownProps
   if (message.type !== 'requestPayment') {
@@ -237,7 +246,7 @@ const RequestPaymentPopup = Container.connect(
   requestMapStateToProps,
   requestMapDispatchToProps,
   requestMergeProps
-)(PaymentPopup)
+)(PaymentPopup) as any
 
 // Wrapper ==============================================
 const PaymentPopupChooser = (props: OwnProps) => {

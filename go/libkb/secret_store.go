@@ -125,7 +125,8 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 
 	for _, username := range allUsernames {
 		accounts[username] = keybase1.ConfiguredAccount{
-			Username: username.String(),
+			Username:  username.String(),
+			IsCurrent: username.Eq(currentUsername),
 		}
 	}
 	var storedSecretUsernames []string

@@ -857,6 +857,7 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	_, err = config.MDOps().Put(ctx, rmd, session.VerifyingKey,
 		nil, keybase1.MDPriorityNormal)
+	require.NoError(t, err)
 
 	rmds := mdServer.getLastRmds()
 	validatePutPublicRMDS(ctx, t, ver, config, rmd.bareMd, rmds)

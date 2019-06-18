@@ -1,11 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as chat1Types from '../constants/types/rpc-chat-gen'
 import * as keybase1Types from '../constants/types/rpc-gen'
-import * as gregor1Types from '../constants/types/rpc-gregor-gen'
 import * as stellar1Types from '../constants/types/rpc-stellar-gen'
 
 // Constants
@@ -121,6 +117,7 @@ export const keybase1NotifyDeviceCloneDeviceCloneCountChanged =
   'engine-gen:keybase1NotifyDeviceCloneDeviceCloneCountChanged'
 export const keybase1NotifyEmailAddressEmailAddressVerified =
   'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
+export const keybase1NotifyEmailAddressEmailsChanged = 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
@@ -135,12 +132,8 @@ export const keybase1NotifyFavoritesFavoritesChanged = 'engine-gen:keybase1Notif
 export const keybase1NotifyKeyfamilyKeyfamilyChanged = 'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged'
 export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile'
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
-export const keybase1NotifyPhoneNumberPhoneNumberAdded =
-  'engine-gen:keybase1NotifyPhoneNumberPhoneNumberAdded'
-export const keybase1NotifyPhoneNumberPhoneNumberSuperseded =
-  'engine-gen:keybase1NotifyPhoneNumberPhoneNumberSuperseded'
-export const keybase1NotifyPhoneNumberPhoneNumberVerified =
-  'engine-gen:keybase1NotifyPhoneNumberPhoneNumberVerified'
+export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
+  'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1001,6 +994,17 @@ type _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {
     ) => void
   }
 }
+type _Keybase1NotifyEmailAddressEmailsChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {
     sessionID: number
@@ -1110,36 +1114,14 @@ type _Keybase1NotifyPaperKeyPaperKeyCachedPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void
   }
 }
-type _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['inParam'] & {
+type _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberAdded']['outParam']
-    ) => void
-  }
-}
-type _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberSuperseded']['outParam']
-    ) => void
-  }
-}
-type _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['inParam'] & {
-    sessionID: number
-  }
-  response: {
-    error: keybase1Types.IncomingErrorCallback
-    result: (
-      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumberVerified']['outParam']
+      param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']
     ) => void
   }
 }
@@ -2008,6 +1990,12 @@ export const createKeybase1NotifyEmailAddressEmailAddressVerified = (
   payload,
   type: keybase1NotifyEmailAddressEmailAddressVerified,
 })
+export const createKeybase1NotifyEmailAddressEmailsChanged = (
+  payload: _Keybase1NotifyEmailAddressEmailsChangedPayload
+): Keybase1NotifyEmailAddressEmailsChangedPayload => ({
+  payload,
+  type: keybase1NotifyEmailAddressEmailsChanged,
+})
 export const createKeybase1NotifyEphemeralNewTeamEk = (
   payload: _Keybase1NotifyEphemeralNewTeamEkPayload
 ): Keybase1NotifyEphemeralNewTeamEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
@@ -2059,23 +2047,11 @@ export const createKeybase1NotifyPGPPgpKeyInSecretStoreFile = (
 export const createKeybase1NotifyPaperKeyPaperKeyCached = (
   payload: _Keybase1NotifyPaperKeyPaperKeyCachedPayload
 ): Keybase1NotifyPaperKeyPaperKeyCachedPayload => ({payload, type: keybase1NotifyPaperKeyPaperKeyCached})
-export const createKeybase1NotifyPhoneNumberPhoneNumberAdded = (
-  payload: _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-): Keybase1NotifyPhoneNumberPhoneNumberAddedPayload => ({
+export const createKeybase1NotifyPhoneNumberPhoneNumbersChanged = (
+  payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+): Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload => ({
   payload,
-  type: keybase1NotifyPhoneNumberPhoneNumberAdded,
-})
-export const createKeybase1NotifyPhoneNumberPhoneNumberSuperseded = (
-  payload: _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-): Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload => ({
-  payload,
-  type: keybase1NotifyPhoneNumberPhoneNumberSuperseded,
-})
-export const createKeybase1NotifyPhoneNumberPhoneNumberVerified = (
-  payload: _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
-): Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload => ({
-  payload,
-  type: keybase1NotifyPhoneNumberPhoneNumberVerified,
+  type: keybase1NotifyPhoneNumberPhoneNumbersChanged,
 })
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
@@ -2300,716 +2276,709 @@ export const createStellar1UiPaymentReviewed = (
 // Action Payloads
 export type Chat1ChatUiChatAttachmentDownloadDonePayload = {
   readonly payload: _Chat1ChatUiChatAttachmentDownloadDonePayload
-  readonly type: 'engine-gen:chat1ChatUiChatAttachmentDownloadDone'
+  readonly type: typeof chat1ChatUiChatAttachmentDownloadDone
 }
 export type Chat1ChatUiChatAttachmentDownloadProgressPayload = {
   readonly payload: _Chat1ChatUiChatAttachmentDownloadProgressPayload
-  readonly type: 'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
+  readonly type: typeof chat1ChatUiChatAttachmentDownloadProgress
 }
 export type Chat1ChatUiChatAttachmentDownloadStartPayload = {
   readonly payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
-  readonly type: 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
+  readonly type: typeof chat1ChatUiChatAttachmentDownloadStart
 }
 export type Chat1ChatUiChatCoinFlipStatusPayload = {
   readonly payload: _Chat1ChatUiChatCoinFlipStatusPayload
-  readonly type: 'engine-gen:chat1ChatUiChatCoinFlipStatus'
+  readonly type: typeof chat1ChatUiChatCoinFlipStatus
 }
 export type Chat1ChatUiChatCommandMarkdownPayload = {
   readonly payload: _Chat1ChatUiChatCommandMarkdownPayload
-  readonly type: 'engine-gen:chat1ChatUiChatCommandMarkdown'
+  readonly type: typeof chat1ChatUiChatCommandMarkdown
 }
 export type Chat1ChatUiChatConfirmChannelDeletePayload = {
   readonly payload: _Chat1ChatUiChatConfirmChannelDeletePayload
-  readonly type: 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
+  readonly type: typeof chat1ChatUiChatConfirmChannelDelete
 }
 export type Chat1ChatUiChatGiphySearchResultsPayload = {
   readonly payload: _Chat1ChatUiChatGiphySearchResultsPayload
-  readonly type: 'engine-gen:chat1ChatUiChatGiphySearchResults'
+  readonly type: typeof chat1ChatUiChatGiphySearchResults
 }
 export type Chat1ChatUiChatGiphyToggleResultWindowPayload = {
   readonly payload: _Chat1ChatUiChatGiphyToggleResultWindowPayload
-  readonly type: 'engine-gen:chat1ChatUiChatGiphyToggleResultWindow'
+  readonly type: typeof chat1ChatUiChatGiphyToggleResultWindow
 }
 export type Chat1ChatUiChatInboxConversationPayload = {
   readonly payload: _Chat1ChatUiChatInboxConversationPayload
-  readonly type: 'engine-gen:chat1ChatUiChatInboxConversation'
+  readonly type: typeof chat1ChatUiChatInboxConversation
 }
 export type Chat1ChatUiChatInboxFailedPayload = {
   readonly payload: _Chat1ChatUiChatInboxFailedPayload
-  readonly type: 'engine-gen:chat1ChatUiChatInboxFailed'
+  readonly type: typeof chat1ChatUiChatInboxFailed
 }
 export type Chat1ChatUiChatInboxUnverifiedPayload = {
   readonly payload: _Chat1ChatUiChatInboxUnverifiedPayload
-  readonly type: 'engine-gen:chat1ChatUiChatInboxUnverified'
+  readonly type: typeof chat1ChatUiChatInboxUnverified
 }
 export type Chat1ChatUiChatLoadGalleryHitPayload = {
   readonly payload: _Chat1ChatUiChatLoadGalleryHitPayload
-  readonly type: 'engine-gen:chat1ChatUiChatLoadGalleryHit'
+  readonly type: typeof chat1ChatUiChatLoadGalleryHit
 }
 export type Chat1ChatUiChatMaybeMentionUpdatePayload = {
   readonly payload: _Chat1ChatUiChatMaybeMentionUpdatePayload
-  readonly type: 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'
+  readonly type: typeof chat1ChatUiChatMaybeMentionUpdate
 }
 export type Chat1ChatUiChatSearchConvHitsPayload = {
   readonly payload: _Chat1ChatUiChatSearchConvHitsPayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchConvHits'
+  readonly type: typeof chat1ChatUiChatSearchConvHits
 }
 export type Chat1ChatUiChatSearchDonePayload = {
   readonly payload: _Chat1ChatUiChatSearchDonePayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchDone'
+  readonly type: typeof chat1ChatUiChatSearchDone
 }
 export type Chat1ChatUiChatSearchHitPayload = {
   readonly payload: _Chat1ChatUiChatSearchHitPayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchHit'
+  readonly type: typeof chat1ChatUiChatSearchHit
 }
 export type Chat1ChatUiChatSearchInboxDonePayload = {
   readonly payload: _Chat1ChatUiChatSearchInboxDonePayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchInboxDone'
+  readonly type: typeof chat1ChatUiChatSearchInboxDone
 }
 export type Chat1ChatUiChatSearchInboxHitPayload = {
   readonly payload: _Chat1ChatUiChatSearchInboxHitPayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchInboxHit'
+  readonly type: typeof chat1ChatUiChatSearchInboxHit
 }
 export type Chat1ChatUiChatSearchInboxStartPayload = {
   readonly payload: _Chat1ChatUiChatSearchInboxStartPayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchInboxStart'
+  readonly type: typeof chat1ChatUiChatSearchInboxStart
 }
 export type Chat1ChatUiChatSearchIndexStatusPayload = {
   readonly payload: _Chat1ChatUiChatSearchIndexStatusPayload
-  readonly type: 'engine-gen:chat1ChatUiChatSearchIndexStatus'
+  readonly type: typeof chat1ChatUiChatSearchIndexStatus
 }
 export type Chat1ChatUiChatShowManageChannelsPayload = {
   readonly payload: _Chat1ChatUiChatShowManageChannelsPayload
-  readonly type: 'engine-gen:chat1ChatUiChatShowManageChannels'
+  readonly type: typeof chat1ChatUiChatShowManageChannels
 }
 export type Chat1ChatUiChatStellarDataConfirmPayload = {
   readonly payload: _Chat1ChatUiChatStellarDataConfirmPayload
-  readonly type: 'engine-gen:chat1ChatUiChatStellarDataConfirm'
+  readonly type: typeof chat1ChatUiChatStellarDataConfirm
 }
 export type Chat1ChatUiChatStellarDataErrorPayload = {
   readonly payload: _Chat1ChatUiChatStellarDataErrorPayload
-  readonly type: 'engine-gen:chat1ChatUiChatStellarDataError'
+  readonly type: typeof chat1ChatUiChatStellarDataError
 }
 export type Chat1ChatUiChatStellarDonePayload = {
   readonly payload: _Chat1ChatUiChatStellarDonePayload
-  readonly type: 'engine-gen:chat1ChatUiChatStellarDone'
+  readonly type: typeof chat1ChatUiChatStellarDone
 }
 export type Chat1ChatUiChatStellarShowConfirmPayload = {
   readonly payload: _Chat1ChatUiChatStellarShowConfirmPayload
-  readonly type: 'engine-gen:chat1ChatUiChatStellarShowConfirm'
+  readonly type: typeof chat1ChatUiChatStellarShowConfirm
 }
 export type Chat1ChatUiChatThreadCachedPayload = {
   readonly payload: _Chat1ChatUiChatThreadCachedPayload
-  readonly type: 'engine-gen:chat1ChatUiChatThreadCached'
+  readonly type: typeof chat1ChatUiChatThreadCached
 }
 export type Chat1ChatUiChatThreadFullPayload = {
   readonly payload: _Chat1ChatUiChatThreadFullPayload
-  readonly type: 'engine-gen:chat1ChatUiChatThreadFull'
+  readonly type: typeof chat1ChatUiChatThreadFull
 }
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
+  readonly type: typeof chat1NotifyChatChatAttachmentUploadProgress
 }
 export type Chat1NotifyChatChatAttachmentUploadStartPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentUploadStartPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
+  readonly type: typeof chat1NotifyChatChatAttachmentUploadStart
 }
 export type Chat1NotifyChatChatIdentifyUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatIdentifyUpdatePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatIdentifyUpdate'
+  readonly type: typeof chat1NotifyChatChatIdentifyUpdate
 }
 export type Chat1NotifyChatChatInboxStalePayload = {
   readonly payload: _Chat1NotifyChatChatInboxStalePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatInboxStale'
+  readonly type: typeof chat1NotifyChatChatInboxStale
 }
 export type Chat1NotifyChatChatInboxSyncStartedPayload = {
   readonly payload: _Chat1NotifyChatChatInboxSyncStartedPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatInboxSyncStarted'
+  readonly type: typeof chat1NotifyChatChatInboxSyncStarted
 }
 export type Chat1NotifyChatChatInboxSyncedPayload = {
   readonly payload: _Chat1NotifyChatChatInboxSyncedPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatInboxSynced'
+  readonly type: typeof chat1NotifyChatChatInboxSynced
 }
 export type Chat1NotifyChatChatJoinedConversationPayload = {
   readonly payload: _Chat1NotifyChatChatJoinedConversationPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatJoinedConversation'
+  readonly type: typeof chat1NotifyChatChatJoinedConversation
 }
 export type Chat1NotifyChatChatKBFSToImpteamUpgradePayload = {
   readonly payload: _Chat1NotifyChatChatKBFSToImpteamUpgradePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatKBFSToImpteamUpgrade'
+  readonly type: typeof chat1NotifyChatChatKBFSToImpteamUpgrade
 }
 export type Chat1NotifyChatChatLeftConversationPayload = {
   readonly payload: _Chat1NotifyChatChatLeftConversationPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatLeftConversation'
+  readonly type: typeof chat1NotifyChatChatLeftConversation
 }
 export type Chat1NotifyChatChatPaymentInfoPayload = {
   readonly payload: _Chat1NotifyChatChatPaymentInfoPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatPaymentInfo'
+  readonly type: typeof chat1NotifyChatChatPaymentInfo
 }
 export type Chat1NotifyChatChatPromptUnfurlPayload = {
   readonly payload: _Chat1NotifyChatChatPromptUnfurlPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatPromptUnfurl'
+  readonly type: typeof chat1NotifyChatChatPromptUnfurl
 }
 export type Chat1NotifyChatChatRequestInfoPayload = {
   readonly payload: _Chat1NotifyChatChatRequestInfoPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatRequestInfo'
+  readonly type: typeof chat1NotifyChatChatRequestInfo
 }
 export type Chat1NotifyChatChatResetConversationPayload = {
   readonly payload: _Chat1NotifyChatChatResetConversationPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatResetConversation'
+  readonly type: typeof chat1NotifyChatChatResetConversation
 }
 export type Chat1NotifyChatChatSetConvRetentionPayload = {
   readonly payload: _Chat1NotifyChatChatSetConvRetentionPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatSetConvRetention'
+  readonly type: typeof chat1NotifyChatChatSetConvRetention
 }
 export type Chat1NotifyChatChatSetConvSettingsPayload = {
   readonly payload: _Chat1NotifyChatChatSetConvSettingsPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatSetConvSettings'
+  readonly type: typeof chat1NotifyChatChatSetConvSettings
 }
 export type Chat1NotifyChatChatSetTeamRetentionPayload = {
   readonly payload: _Chat1NotifyChatChatSetTeamRetentionPayload
-  readonly type: 'engine-gen:chat1NotifyChatChatSetTeamRetention'
+  readonly type: typeof chat1NotifyChatChatSetTeamRetention
 }
 export type Chat1NotifyChatChatSubteamRenamePayload = {
   readonly payload: _Chat1NotifyChatChatSubteamRenamePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatSubteamRename'
+  readonly type: typeof chat1NotifyChatChatSubteamRename
 }
 export type Chat1NotifyChatChatTLFFinalizePayload = {
   readonly payload: _Chat1NotifyChatChatTLFFinalizePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatTLFFinalize'
+  readonly type: typeof chat1NotifyChatChatTLFFinalize
 }
 export type Chat1NotifyChatChatTLFResolvePayload = {
   readonly payload: _Chat1NotifyChatChatTLFResolvePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatTLFResolve'
+  readonly type: typeof chat1NotifyChatChatTLFResolve
 }
 export type Chat1NotifyChatChatThreadsStalePayload = {
   readonly payload: _Chat1NotifyChatChatThreadsStalePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatThreadsStale'
+  readonly type: typeof chat1NotifyChatChatThreadsStale
 }
 export type Chat1NotifyChatChatTypingUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatTypingUpdatePayload
-  readonly type: 'engine-gen:chat1NotifyChatChatTypingUpdate'
+  readonly type: typeof chat1NotifyChatChatTypingUpdate
 }
 export type Chat1NotifyChatNewChatActivityPayload = {
   readonly payload: _Chat1NotifyChatNewChatActivityPayload
-  readonly type: 'engine-gen:chat1NotifyChatNewChatActivity'
+  readonly type: typeof chat1NotifyChatNewChatActivity
 }
-export type ConnectedPayload = {readonly payload: _ConnectedPayload; readonly type: 'engine-gen:connected'}
-export type DisconnectedPayload = {
-  readonly payload: _DisconnectedPayload
-  readonly type: 'engine-gen:disconnected'
-}
+export type ConnectedPayload = {readonly payload: _ConnectedPayload; readonly type: typeof connected}
+export type DisconnectedPayload = {readonly payload: _DisconnectedPayload; readonly type: typeof disconnected}
 export type Keybase1GpgUiConfirmDuplicateKeyChosenPayload = {
   readonly payload: _Keybase1GpgUiConfirmDuplicateKeyChosenPayload
-  readonly type: 'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen'
+  readonly type: typeof keybase1GpgUiConfirmDuplicateKeyChosen
 }
 export type Keybase1GpgUiConfirmImportSecretToExistingKeyPayload = {
   readonly payload: _Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
-  readonly type: 'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey'
+  readonly type: typeof keybase1GpgUiConfirmImportSecretToExistingKey
 }
 export type Keybase1GpgUiGetTTYPayload = {
   readonly payload: _Keybase1GpgUiGetTTYPayload
-  readonly type: 'engine-gen:keybase1GpgUiGetTTY'
+  readonly type: typeof keybase1GpgUiGetTTY
 }
 export type Keybase1GpgUiSelectKeyAndPushOptionPayload = {
   readonly payload: _Keybase1GpgUiSelectKeyAndPushOptionPayload
-  readonly type: 'engine-gen:keybase1GpgUiSelectKeyAndPushOption'
+  readonly type: typeof keybase1GpgUiSelectKeyAndPushOption
 }
 export type Keybase1GpgUiSelectKeyPayload = {
   readonly payload: _Keybase1GpgUiSelectKeyPayload
-  readonly type: 'engine-gen:keybase1GpgUiSelectKey'
+  readonly type: typeof keybase1GpgUiSelectKey
 }
 export type Keybase1GpgUiSignPayload = {
   readonly payload: _Keybase1GpgUiSignPayload
-  readonly type: 'engine-gen:keybase1GpgUiSign'
+  readonly type: typeof keybase1GpgUiSign
 }
 export type Keybase1GpgUiWantToAddGPGKeyPayload = {
   readonly payload: _Keybase1GpgUiWantToAddGPGKeyPayload
-  readonly type: 'engine-gen:keybase1GpgUiWantToAddGPGKey'
+  readonly type: typeof keybase1GpgUiWantToAddGPGKey
 }
 export type Keybase1GregorUIPushOutOfBandMessagesPayload = {
   readonly payload: _Keybase1GregorUIPushOutOfBandMessagesPayload
-  readonly type: 'engine-gen:keybase1GregorUIPushOutOfBandMessages'
+  readonly type: typeof keybase1GregorUIPushOutOfBandMessages
 }
 export type Keybase1GregorUIPushStatePayload = {
   readonly payload: _Keybase1GregorUIPushStatePayload
-  readonly type: 'engine-gen:keybase1GregorUIPushState'
+  readonly type: typeof keybase1GregorUIPushState
 }
 export type Keybase1HomeUIHomeUIRefreshPayload = {
   readonly payload: _Keybase1HomeUIHomeUIRefreshPayload
-  readonly type: 'engine-gen:keybase1HomeUIHomeUIRefresh'
+  readonly type: typeof keybase1HomeUIHomeUIRefresh
 }
 export type Keybase1Identify3UiIdentify3ResultPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3ResultPayload
-  readonly type: 'engine-gen:keybase1Identify3UiIdentify3Result'
+  readonly type: typeof keybase1Identify3UiIdentify3Result
 }
 export type Keybase1Identify3UiIdentify3ShowTrackerPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3ShowTrackerPayload
-  readonly type: 'engine-gen:keybase1Identify3UiIdentify3ShowTracker'
+  readonly type: typeof keybase1Identify3UiIdentify3ShowTracker
 }
 export type Keybase1Identify3UiIdentify3TrackerTimedOutPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3TrackerTimedOutPayload
-  readonly type: 'engine-gen:keybase1Identify3UiIdentify3TrackerTimedOut'
+  readonly type: typeof keybase1Identify3UiIdentify3TrackerTimedOut
 }
 export type Keybase1Identify3UiIdentify3UpdateRowPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3UpdateRowPayload
-  readonly type: 'engine-gen:keybase1Identify3UiIdentify3UpdateRow'
+  readonly type: typeof keybase1Identify3UiIdentify3UpdateRow
 }
 export type Keybase1Identify3UiIdentify3UpdateUserCardPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3UpdateUserCardPayload
-  readonly type: 'engine-gen:keybase1Identify3UiIdentify3UpdateUserCard'
+  readonly type: typeof keybase1Identify3UiIdentify3UpdateUserCard
 }
 export type Keybase1Identify3UiIdentify3UserResetPayload = {
   readonly payload: _Keybase1Identify3UiIdentify3UserResetPayload
-  readonly type: 'engine-gen:keybase1Identify3UiIdentify3UserReset'
+  readonly type: typeof keybase1Identify3UiIdentify3UserReset
 }
 export type Keybase1IdentifyUiCancelPayload = {
   readonly payload: _Keybase1IdentifyUiCancelPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiCancel'
+  readonly type: typeof keybase1IdentifyUiCancel
 }
 export type Keybase1IdentifyUiConfirmPayload = {
   readonly payload: _Keybase1IdentifyUiConfirmPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiConfirm'
+  readonly type: typeof keybase1IdentifyUiConfirm
 }
 export type Keybase1IdentifyUiDelegateIdentifyUIPayload = {
   readonly payload: _Keybase1IdentifyUiDelegateIdentifyUIPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDelegateIdentifyUI'
+  readonly type: typeof keybase1IdentifyUiDelegateIdentifyUI
 }
 export type Keybase1IdentifyUiDismissPayload = {
   readonly payload: _Keybase1IdentifyUiDismissPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDismiss'
+  readonly type: typeof keybase1IdentifyUiDismiss
 }
 export type Keybase1IdentifyUiDisplayCryptocurrencyPayload = {
   readonly payload: _Keybase1IdentifyUiDisplayCryptocurrencyPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDisplayCryptocurrency'
+  readonly type: typeof keybase1IdentifyUiDisplayCryptocurrency
 }
 export type Keybase1IdentifyUiDisplayKeyPayload = {
   readonly payload: _Keybase1IdentifyUiDisplayKeyPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDisplayKey'
+  readonly type: typeof keybase1IdentifyUiDisplayKey
 }
 export type Keybase1IdentifyUiDisplayStellarAccountPayload = {
   readonly payload: _Keybase1IdentifyUiDisplayStellarAccountPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDisplayStellarAccount'
+  readonly type: typeof keybase1IdentifyUiDisplayStellarAccount
 }
 export type Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload = {
   readonly payload: _Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDisplayTLFCreateWithInvite'
+  readonly type: typeof keybase1IdentifyUiDisplayTLFCreateWithInvite
 }
 export type Keybase1IdentifyUiDisplayTrackStatementPayload = {
   readonly payload: _Keybase1IdentifyUiDisplayTrackStatementPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDisplayTrackStatement'
+  readonly type: typeof keybase1IdentifyUiDisplayTrackStatement
 }
 export type Keybase1IdentifyUiDisplayUserCardPayload = {
   readonly payload: _Keybase1IdentifyUiDisplayUserCardPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiDisplayUserCard'
+  readonly type: typeof keybase1IdentifyUiDisplayUserCard
 }
 export type Keybase1IdentifyUiFinishPayload = {
   readonly payload: _Keybase1IdentifyUiFinishPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiFinish'
+  readonly type: typeof keybase1IdentifyUiFinish
 }
 export type Keybase1IdentifyUiFinishSocialProofCheckPayload = {
   readonly payload: _Keybase1IdentifyUiFinishSocialProofCheckPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiFinishSocialProofCheck'
+  readonly type: typeof keybase1IdentifyUiFinishSocialProofCheck
 }
 export type Keybase1IdentifyUiFinishWebProofCheckPayload = {
   readonly payload: _Keybase1IdentifyUiFinishWebProofCheckPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiFinishWebProofCheck'
+  readonly type: typeof keybase1IdentifyUiFinishWebProofCheck
 }
 export type Keybase1IdentifyUiLaunchNetworkChecksPayload = {
   readonly payload: _Keybase1IdentifyUiLaunchNetworkChecksPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiLaunchNetworkChecks'
+  readonly type: typeof keybase1IdentifyUiLaunchNetworkChecks
 }
 export type Keybase1IdentifyUiReportLastTrackPayload = {
   readonly payload: _Keybase1IdentifyUiReportLastTrackPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiReportLastTrack'
+  readonly type: typeof keybase1IdentifyUiReportLastTrack
 }
 export type Keybase1IdentifyUiReportTrackTokenPayload = {
   readonly payload: _Keybase1IdentifyUiReportTrackTokenPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiReportTrackToken'
+  readonly type: typeof keybase1IdentifyUiReportTrackToken
 }
 export type Keybase1IdentifyUiStartPayload = {
   readonly payload: _Keybase1IdentifyUiStartPayload
-  readonly type: 'engine-gen:keybase1IdentifyUiStart'
+  readonly type: typeof keybase1IdentifyUiStart
 }
 export type Keybase1LogUiLogPayload = {
   readonly payload: _Keybase1LogUiLogPayload
-  readonly type: 'engine-gen:keybase1LogUiLog'
+  readonly type: typeof keybase1LogUiLog
 }
 export type Keybase1LoginUiDisplayPaperKeyPhrasePayload = {
   readonly payload: _Keybase1LoginUiDisplayPaperKeyPhrasePayload
-  readonly type: 'engine-gen:keybase1LoginUiDisplayPaperKeyPhrase'
+  readonly type: typeof keybase1LoginUiDisplayPaperKeyPhrase
 }
 export type Keybase1LoginUiDisplayPrimaryPaperKeyPayload = {
   readonly payload: _Keybase1LoginUiDisplayPrimaryPaperKeyPayload
-  readonly type: 'engine-gen:keybase1LoginUiDisplayPrimaryPaperKey'
+  readonly type: typeof keybase1LoginUiDisplayPrimaryPaperKey
 }
 export type Keybase1LoginUiDisplayResetProgressPayload = {
   readonly payload: _Keybase1LoginUiDisplayResetProgressPayload
-  readonly type: 'engine-gen:keybase1LoginUiDisplayResetProgress'
+  readonly type: typeof keybase1LoginUiDisplayResetProgress
 }
 export type Keybase1LoginUiExplainDeviceRecoveryPayload = {
   readonly payload: _Keybase1LoginUiExplainDeviceRecoveryPayload
-  readonly type: 'engine-gen:keybase1LoginUiExplainDeviceRecovery'
+  readonly type: typeof keybase1LoginUiExplainDeviceRecovery
 }
 export type Keybase1LoginUiGetEmailOrUsernamePayload = {
   readonly payload: _Keybase1LoginUiGetEmailOrUsernamePayload
-  readonly type: 'engine-gen:keybase1LoginUiGetEmailOrUsername'
+  readonly type: typeof keybase1LoginUiGetEmailOrUsername
 }
 export type Keybase1LoginUiPromptPassphraseRecoveryPayload = {
   readonly payload: _Keybase1LoginUiPromptPassphraseRecoveryPayload
-  readonly type: 'engine-gen:keybase1LoginUiPromptPassphraseRecovery'
+  readonly type: typeof keybase1LoginUiPromptPassphraseRecovery
 }
 export type Keybase1LoginUiPromptResetAccountPayload = {
   readonly payload: _Keybase1LoginUiPromptResetAccountPayload
-  readonly type: 'engine-gen:keybase1LoginUiPromptResetAccount'
+  readonly type: typeof keybase1LoginUiPromptResetAccount
 }
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {
   readonly payload: _Keybase1LoginUiPromptRevokePaperKeysPayload
-  readonly type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
+  readonly type: typeof keybase1LoginUiPromptRevokePaperKeys
 }
 export type Keybase1LogsendPrepareLogsendPayload = {
   readonly payload: _Keybase1LogsendPrepareLogsendPayload
-  readonly type: 'engine-gen:keybase1LogsendPrepareLogsend'
+  readonly type: typeof keybase1LogsendPrepareLogsend
 }
 export type Keybase1NotifyAppExitPayload = {
   readonly payload: _Keybase1NotifyAppExitPayload
-  readonly type: 'engine-gen:keybase1NotifyAppExit'
+  readonly type: typeof keybase1NotifyAppExit
 }
 export type Keybase1NotifyAuditBoxAuditErrorPayload = {
   readonly payload: _Keybase1NotifyAuditBoxAuditErrorPayload
-  readonly type: 'engine-gen:keybase1NotifyAuditBoxAuditError'
+  readonly type: typeof keybase1NotifyAuditBoxAuditError
 }
 export type Keybase1NotifyAuditRootAuditErrorPayload = {
   readonly payload: _Keybase1NotifyAuditRootAuditErrorPayload
-  readonly type: 'engine-gen:keybase1NotifyAuditRootAuditError'
+  readonly type: typeof keybase1NotifyAuditRootAuditError
 }
 export type Keybase1NotifyBadgesBadgeStatePayload = {
   readonly payload: _Keybase1NotifyBadgesBadgeStatePayload
-  readonly type: 'engine-gen:keybase1NotifyBadgesBadgeState'
+  readonly type: typeof keybase1NotifyBadgesBadgeState
 }
 export type Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = {
   readonly payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'
+  readonly type: typeof keybase1NotifyCanUserPerformCanUserPerformChanged
 }
 export type Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload = {
   readonly payload: _Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyDeviceCloneDeviceCloneCountChanged'
+  readonly type: typeof keybase1NotifyDeviceCloneDeviceCloneCountChanged
 }
 export type Keybase1NotifyEmailAddressEmailAddressVerifiedPayload = {
   readonly payload: _Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
-  readonly type: 'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
+  readonly type: typeof keybase1NotifyEmailAddressEmailAddressVerified
+}
+export type Keybase1NotifyEmailAddressEmailsChangedPayload = {
+  readonly payload: _Keybase1NotifyEmailAddressEmailsChangedPayload
+  readonly type: typeof keybase1NotifyEmailAddressEmailsChanged
 }
 export type Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly payload: _Keybase1NotifyEphemeralNewTeamEkPayload
-  readonly type: 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
+  readonly type: typeof keybase1NotifyEphemeralNewTeamEk
 }
 export type Keybase1NotifyFSFSActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSActivityPayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSActivity'
+  readonly type: typeof keybase1NotifyFSFSActivity
 }
 export type Keybase1NotifyFSFSEditListResponsePayload = {
   readonly payload: _Keybase1NotifyFSFSEditListResponsePayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSEditListResponse'
+  readonly type: typeof keybase1NotifyFSFSEditListResponse
 }
 export type Keybase1NotifyFSFSFavoritesChangedPayload = {
   readonly payload: _Keybase1NotifyFSFSFavoritesChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSFavoritesChanged'
+  readonly type: typeof keybase1NotifyFSFSFavoritesChanged
 }
 export type Keybase1NotifyFSFSOnlineStatusChangedPayload = {
   readonly payload: _Keybase1NotifyFSFSOnlineStatusChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSOnlineStatusChanged'
+  readonly type: typeof keybase1NotifyFSFSOnlineStatusChanged
 }
 export type Keybase1NotifyFSFSOverallSyncStatusChangedPayload = {
   readonly payload: _Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSOverallSyncStatusChanged'
+  readonly type: typeof keybase1NotifyFSFSOverallSyncStatusChanged
 }
 export type Keybase1NotifyFSFSPathUpdatedPayload = {
   readonly payload: _Keybase1NotifyFSFSPathUpdatedPayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSPathUpdated'
+  readonly type: typeof keybase1NotifyFSFSPathUpdated
 }
 export type Keybase1NotifyFSFSSyncActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSSyncActivityPayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSSyncActivity'
+  readonly type: typeof keybase1NotifyFSFSSyncActivity
 }
 export type Keybase1NotifyFSFSSyncStatusResponsePayload = {
   readonly payload: _Keybase1NotifyFSFSSyncStatusResponsePayload
-  readonly type: 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'
+  readonly type: typeof keybase1NotifyFSFSSyncStatusResponse
 }
 export type Keybase1NotifyFavoritesFavoritesChangedPayload = {
   readonly payload: _Keybase1NotifyFavoritesFavoritesChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyFavoritesFavoritesChanged'
+  readonly type: typeof keybase1NotifyFavoritesFavoritesChanged
 }
 export type Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged'
+  readonly type: typeof keybase1NotifyKeyfamilyKeyfamilyChanged
 }
 export type Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload = {
   readonly payload: _Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
-  readonly type: 'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile'
+  readonly type: typeof keybase1NotifyPGPPgpKeyInSecretStoreFile
 }
 export type Keybase1NotifyPaperKeyPaperKeyCachedPayload = {
   readonly payload: _Keybase1NotifyPaperKeyPaperKeyCachedPayload
-  readonly type: 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
+  readonly type: typeof keybase1NotifyPaperKeyPaperKeyCached
 }
-export type Keybase1NotifyPhoneNumberPhoneNumberAddedPayload = {
-  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumberAdded'
-}
-export type Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload = {
-  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumberSuperseded'
-}
-export type Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload = {
-  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
-  readonly type: 'engine-gen:keybase1NotifyPhoneNumberPhoneNumberVerified'
+export type Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
+  readonly payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+  readonly type: typeof keybase1NotifyPhoneNumberPhoneNumbersChanged
 }
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
-  readonly type: 'engine-gen:keybase1NotifyServiceShutdown'
+  readonly type: typeof keybase1NotifyServiceShutdown
 }
 export type Keybase1NotifySessionClientOutOfDatePayload = {
   readonly payload: _Keybase1NotifySessionClientOutOfDatePayload
-  readonly type: 'engine-gen:keybase1NotifySessionClientOutOfDate'
+  readonly type: typeof keybase1NotifySessionClientOutOfDate
 }
 export type Keybase1NotifySessionLoggedInPayload = {
   readonly payload: _Keybase1NotifySessionLoggedInPayload
-  readonly type: 'engine-gen:keybase1NotifySessionLoggedIn'
+  readonly type: typeof keybase1NotifySessionLoggedIn
 }
 export type Keybase1NotifySessionLoggedOutPayload = {
   readonly payload: _Keybase1NotifySessionLoggedOutPayload
-  readonly type: 'engine-gen:keybase1NotifySessionLoggedOut'
+  readonly type: typeof keybase1NotifySessionLoggedOut
 }
 export type Keybase1NotifyTeamAvatarUpdatedPayload = {
   readonly payload: _Keybase1NotifyTeamAvatarUpdatedPayload
-  readonly type: 'engine-gen:keybase1NotifyTeamAvatarUpdated'
+  readonly type: typeof keybase1NotifyTeamAvatarUpdated
 }
 export type Keybase1NotifyTeamNewlyAddedToTeamPayload = {
   readonly payload: _Keybase1NotifyTeamNewlyAddedToTeamPayload
-  readonly type: 'engine-gen:keybase1NotifyTeamNewlyAddedToTeam'
+  readonly type: typeof keybase1NotifyTeamNewlyAddedToTeam
 }
 export type Keybase1NotifyTeamTeamAbandonedPayload = {
   readonly payload: _Keybase1NotifyTeamTeamAbandonedPayload
-  readonly type: 'engine-gen:keybase1NotifyTeamTeamAbandoned'
+  readonly type: typeof keybase1NotifyTeamTeamAbandoned
 }
 export type Keybase1NotifyTeamTeamChangedByIDPayload = {
   readonly payload: _Keybase1NotifyTeamTeamChangedByIDPayload
-  readonly type: 'engine-gen:keybase1NotifyTeamTeamChangedByID'
+  readonly type: typeof keybase1NotifyTeamTeamChangedByID
 }
 export type Keybase1NotifyTeamTeamChangedByNamePayload = {
   readonly payload: _Keybase1NotifyTeamTeamChangedByNamePayload
-  readonly type: 'engine-gen:keybase1NotifyTeamTeamChangedByName'
+  readonly type: typeof keybase1NotifyTeamTeamChangedByName
 }
 export type Keybase1NotifyTeamTeamDeletedPayload = {
   readonly payload: _Keybase1NotifyTeamTeamDeletedPayload
-  readonly type: 'engine-gen:keybase1NotifyTeamTeamDeleted'
+  readonly type: typeof keybase1NotifyTeamTeamDeleted
 }
 export type Keybase1NotifyTeamTeamExitPayload = {
   readonly payload: _Keybase1NotifyTeamTeamExitPayload
-  readonly type: 'engine-gen:keybase1NotifyTeamTeamExit'
+  readonly type: typeof keybase1NotifyTeamTeamExit
 }
 export type Keybase1NotifyTrackingTrackingChangedPayload = {
   readonly payload: _Keybase1NotifyTrackingTrackingChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyTrackingTrackingChanged'
+  readonly type: typeof keybase1NotifyTrackingTrackingChanged
 }
 export type Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
   readonly payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged'
+  readonly type: typeof keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged
 }
 export type Keybase1NotifyUsersPasswordChangedPayload = {
   readonly payload: _Keybase1NotifyUsersPasswordChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyUsersPasswordChanged'
+  readonly type: typeof keybase1NotifyUsersPasswordChanged
 }
 export type Keybase1NotifyUsersUserChangedPayload = {
   readonly payload: _Keybase1NotifyUsersUserChangedPayload
-  readonly type: 'engine-gen:keybase1NotifyUsersUserChanged'
+  readonly type: typeof keybase1NotifyUsersUserChanged
 }
 export type Keybase1PgpUiFinishedPayload = {
   readonly payload: _Keybase1PgpUiFinishedPayload
-  readonly type: 'engine-gen:keybase1PgpUiFinished'
+  readonly type: typeof keybase1PgpUiFinished
 }
 export type Keybase1PgpUiKeyGeneratedPayload = {
   readonly payload: _Keybase1PgpUiKeyGeneratedPayload
-  readonly type: 'engine-gen:keybase1PgpUiKeyGenerated'
+  readonly type: typeof keybase1PgpUiKeyGenerated
 }
 export type Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
   readonly payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
-  readonly type: 'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase'
+  readonly type: typeof keybase1PgpUiOutputSignatureSuccessNonKeybase
 }
 export type Keybase1PgpUiOutputSignatureSuccessPayload = {
   readonly payload: _Keybase1PgpUiOutputSignatureSuccessPayload
-  readonly type: 'engine-gen:keybase1PgpUiOutputSignatureSuccess'
+  readonly type: typeof keybase1PgpUiOutputSignatureSuccess
 }
 export type Keybase1PgpUiShouldPushPrivatePayload = {
   readonly payload: _Keybase1PgpUiShouldPushPrivatePayload
-  readonly type: 'engine-gen:keybase1PgpUiShouldPushPrivate'
+  readonly type: typeof keybase1PgpUiShouldPushPrivate
 }
 export type Keybase1ProveUiCheckingPayload = {
   readonly payload: _Keybase1ProveUiCheckingPayload
-  readonly type: 'engine-gen:keybase1ProveUiChecking'
+  readonly type: typeof keybase1ProveUiChecking
 }
 export type Keybase1ProveUiContinueCheckingPayload = {
   readonly payload: _Keybase1ProveUiContinueCheckingPayload
-  readonly type: 'engine-gen:keybase1ProveUiContinueChecking'
+  readonly type: typeof keybase1ProveUiContinueChecking
 }
 export type Keybase1ProveUiDisplayRecheckWarningPayload = {
   readonly payload: _Keybase1ProveUiDisplayRecheckWarningPayload
-  readonly type: 'engine-gen:keybase1ProveUiDisplayRecheckWarning'
+  readonly type: typeof keybase1ProveUiDisplayRecheckWarning
 }
 export type Keybase1ProveUiOkToCheckPayload = {
   readonly payload: _Keybase1ProveUiOkToCheckPayload
-  readonly type: 'engine-gen:keybase1ProveUiOkToCheck'
+  readonly type: typeof keybase1ProveUiOkToCheck
 }
 export type Keybase1ProveUiOutputInstructionsPayload = {
   readonly payload: _Keybase1ProveUiOutputInstructionsPayload
-  readonly type: 'engine-gen:keybase1ProveUiOutputInstructions'
+  readonly type: typeof keybase1ProveUiOutputInstructions
 }
 export type Keybase1ProveUiOutputPrechecksPayload = {
   readonly payload: _Keybase1ProveUiOutputPrechecksPayload
-  readonly type: 'engine-gen:keybase1ProveUiOutputPrechecks'
+  readonly type: typeof keybase1ProveUiOutputPrechecks
 }
 export type Keybase1ProveUiPreProofWarningPayload = {
   readonly payload: _Keybase1ProveUiPreProofWarningPayload
-  readonly type: 'engine-gen:keybase1ProveUiPreProofWarning'
+  readonly type: typeof keybase1ProveUiPreProofWarning
 }
 export type Keybase1ProveUiPromptOverwritePayload = {
   readonly payload: _Keybase1ProveUiPromptOverwritePayload
-  readonly type: 'engine-gen:keybase1ProveUiPromptOverwrite'
+  readonly type: typeof keybase1ProveUiPromptOverwrite
 }
 export type Keybase1ProveUiPromptUsernamePayload = {
   readonly payload: _Keybase1ProveUiPromptUsernamePayload
-  readonly type: 'engine-gen:keybase1ProveUiPromptUsername'
+  readonly type: typeof keybase1ProveUiPromptUsername
 }
 export type Keybase1ProvisionUiChooseDevicePayload = {
   readonly payload: _Keybase1ProvisionUiChooseDevicePayload
-  readonly type: 'engine-gen:keybase1ProvisionUiChooseDevice'
+  readonly type: typeof keybase1ProvisionUiChooseDevice
 }
 export type Keybase1ProvisionUiChooseDeviceTypePayload = {
   readonly payload: _Keybase1ProvisionUiChooseDeviceTypePayload
-  readonly type: 'engine-gen:keybase1ProvisionUiChooseDeviceType'
+  readonly type: typeof keybase1ProvisionUiChooseDeviceType
 }
 export type Keybase1ProvisionUiChooseGPGMethodPayload = {
   readonly payload: _Keybase1ProvisionUiChooseGPGMethodPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiChooseGPGMethod'
+  readonly type: typeof keybase1ProvisionUiChooseGPGMethod
 }
 export type Keybase1ProvisionUiChooseProvisioningMethodPayload = {
   readonly payload: _Keybase1ProvisionUiChooseProvisioningMethodPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiChooseProvisioningMethod'
+  readonly type: typeof keybase1ProvisionUiChooseProvisioningMethod
 }
 export type Keybase1ProvisionUiDisplayAndPromptSecretPayload = {
   readonly payload: _Keybase1ProvisionUiDisplayAndPromptSecretPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiDisplayAndPromptSecret'
+  readonly type: typeof keybase1ProvisionUiDisplayAndPromptSecret
 }
 export type Keybase1ProvisionUiDisplaySecretExchangedPayload = {
   readonly payload: _Keybase1ProvisionUiDisplaySecretExchangedPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiDisplaySecretExchanged'
+  readonly type: typeof keybase1ProvisionUiDisplaySecretExchanged
 }
 export type Keybase1ProvisionUiPromptNewDeviceNamePayload = {
   readonly payload: _Keybase1ProvisionUiPromptNewDeviceNamePayload
-  readonly type: 'engine-gen:keybase1ProvisionUiPromptNewDeviceName'
+  readonly type: typeof keybase1ProvisionUiPromptNewDeviceName
 }
 export type Keybase1ProvisionUiProvisioneeSuccessPayload = {
   readonly payload: _Keybase1ProvisionUiProvisioneeSuccessPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiProvisioneeSuccess'
+  readonly type: typeof keybase1ProvisionUiProvisioneeSuccess
 }
 export type Keybase1ProvisionUiProvisionerSuccessPayload = {
   readonly payload: _Keybase1ProvisionUiProvisionerSuccessPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiProvisionerSuccess'
+  readonly type: typeof keybase1ProvisionUiProvisionerSuccess
 }
 export type Keybase1ProvisionUiSwitchToGPGSignOKPayload = {
   readonly payload: _Keybase1ProvisionUiSwitchToGPGSignOKPayload
-  readonly type: 'engine-gen:keybase1ProvisionUiSwitchToGPGSignOK'
+  readonly type: typeof keybase1ProvisionUiSwitchToGPGSignOK
 }
 export type Keybase1ReachabilityReachabilityChangedPayload = {
   readonly payload: _Keybase1ReachabilityReachabilityChangedPayload
-  readonly type: 'engine-gen:keybase1ReachabilityReachabilityChanged'
+  readonly type: typeof keybase1ReachabilityReachabilityChanged
 }
 export type Keybase1RekeyUIDelegateRekeyUIPayload = {
   readonly payload: _Keybase1RekeyUIDelegateRekeyUIPayload
-  readonly type: 'engine-gen:keybase1RekeyUIDelegateRekeyUI'
+  readonly type: typeof keybase1RekeyUIDelegateRekeyUI
 }
 export type Keybase1RekeyUIRefreshPayload = {
   readonly payload: _Keybase1RekeyUIRefreshPayload
-  readonly type: 'engine-gen:keybase1RekeyUIRefresh'
+  readonly type: typeof keybase1RekeyUIRefresh
 }
 export type Keybase1RekeyUIRekeySendEventPayload = {
   readonly payload: _Keybase1RekeyUIRekeySendEventPayload
-  readonly type: 'engine-gen:keybase1RekeyUIRekeySendEvent'
+  readonly type: typeof keybase1RekeyUIRekeySendEvent
 }
 export type Keybase1SaltpackUiSaltpackPromptForDecryptPayload = {
   readonly payload: _Keybase1SaltpackUiSaltpackPromptForDecryptPayload
-  readonly type: 'engine-gen:keybase1SaltpackUiSaltpackPromptForDecrypt'
+  readonly type: typeof keybase1SaltpackUiSaltpackPromptForDecrypt
 }
 export type Keybase1SaltpackUiSaltpackVerifyBadSenderPayload = {
   readonly payload: _Keybase1SaltpackUiSaltpackVerifyBadSenderPayload
-  readonly type: 'engine-gen:keybase1SaltpackUiSaltpackVerifyBadSender'
+  readonly type: typeof keybase1SaltpackUiSaltpackVerifyBadSender
 }
 export type Keybase1SaltpackUiSaltpackVerifySuccessPayload = {
   readonly payload: _Keybase1SaltpackUiSaltpackVerifySuccessPayload
-  readonly type: 'engine-gen:keybase1SaltpackUiSaltpackVerifySuccess'
+  readonly type: typeof keybase1SaltpackUiSaltpackVerifySuccess
 }
 export type Keybase1SecretUiGetPassphrasePayload = {
   readonly payload: _Keybase1SecretUiGetPassphrasePayload
-  readonly type: 'engine-gen:keybase1SecretUiGetPassphrase'
+  readonly type: typeof keybase1SecretUiGetPassphrase
 }
 export type Keybase1StreamUiClosePayload = {
   readonly payload: _Keybase1StreamUiClosePayload
-  readonly type: 'engine-gen:keybase1StreamUiClose'
+  readonly type: typeof keybase1StreamUiClose
 }
 export type Keybase1StreamUiReadPayload = {
   readonly payload: _Keybase1StreamUiReadPayload
-  readonly type: 'engine-gen:keybase1StreamUiRead'
+  readonly type: typeof keybase1StreamUiRead
 }
 export type Keybase1StreamUiResetPayload = {
   readonly payload: _Keybase1StreamUiResetPayload
-  readonly type: 'engine-gen:keybase1StreamUiReset'
+  readonly type: typeof keybase1StreamUiReset
 }
 export type Keybase1StreamUiWritePayload = {
   readonly payload: _Keybase1StreamUiWritePayload
-  readonly type: 'engine-gen:keybase1StreamUiWrite'
+  readonly type: typeof keybase1StreamUiWrite
 }
 export type Keybase1TeamsUiConfirmRootTeamDeletePayload = {
   readonly payload: _Keybase1TeamsUiConfirmRootTeamDeletePayload
-  readonly type: 'engine-gen:keybase1TeamsUiConfirmRootTeamDelete'
+  readonly type: typeof keybase1TeamsUiConfirmRootTeamDelete
 }
 export type Keybase1TeamsUiConfirmSubteamDeletePayload = {
   readonly payload: _Keybase1TeamsUiConfirmSubteamDeletePayload
-  readonly type: 'engine-gen:keybase1TeamsUiConfirmSubteamDelete'
+  readonly type: typeof keybase1TeamsUiConfirmSubteamDelete
 }
 export type Keybase1UiPromptYesNoPayload = {
   readonly payload: _Keybase1UiPromptYesNoPayload
-  readonly type: 'engine-gen:keybase1UiPromptYesNo'
+  readonly type: typeof keybase1UiPromptYesNo
 }
 export type Stellar1NotifyAccountDetailsUpdatePayload = {
   readonly payload: _Stellar1NotifyAccountDetailsUpdatePayload
-  readonly type: 'engine-gen:stellar1NotifyAccountDetailsUpdate'
+  readonly type: typeof stellar1NotifyAccountDetailsUpdate
 }
 export type Stellar1NotifyAccountsUpdatePayload = {
   readonly payload: _Stellar1NotifyAccountsUpdatePayload
-  readonly type: 'engine-gen:stellar1NotifyAccountsUpdate'
+  readonly type: typeof stellar1NotifyAccountsUpdate
 }
 export type Stellar1NotifyPaymentNotificationPayload = {
   readonly payload: _Stellar1NotifyPaymentNotificationPayload
-  readonly type: 'engine-gen:stellar1NotifyPaymentNotification'
+  readonly type: typeof stellar1NotifyPaymentNotification
 }
 export type Stellar1NotifyPaymentStatusNotificationPayload = {
   readonly payload: _Stellar1NotifyPaymentStatusNotificationPayload
-  readonly type: 'engine-gen:stellar1NotifyPaymentStatusNotification'
+  readonly type: typeof stellar1NotifyPaymentStatusNotification
 }
 export type Stellar1NotifyPendingPaymentsUpdatePayload = {
   readonly payload: _Stellar1NotifyPendingPaymentsUpdatePayload
-  readonly type: 'engine-gen:stellar1NotifyPendingPaymentsUpdate'
+  readonly type: typeof stellar1NotifyPendingPaymentsUpdate
 }
 export type Stellar1NotifyRecentPaymentsUpdatePayload = {
   readonly payload: _Stellar1NotifyRecentPaymentsUpdatePayload
-  readonly type: 'engine-gen:stellar1NotifyRecentPaymentsUpdate'
+  readonly type: typeof stellar1NotifyRecentPaymentsUpdate
 }
 export type Stellar1NotifyRequestStatusNotificationPayload = {
   readonly payload: _Stellar1NotifyRequestStatusNotificationPayload
-  readonly type: 'engine-gen:stellar1NotifyRequestStatusNotification'
+  readonly type: typeof stellar1NotifyRequestStatusNotification
 }
 export type Stellar1UiPaymentReviewedPayload = {
   readonly payload: _Stellar1UiPaymentReviewedPayload
-  readonly type: 'engine-gen:stellar1UiPaymentReviewed'
+  readonly type: typeof stellar1UiPaymentReviewed
 }
 
 // All Actions
@@ -3116,6 +3085,7 @@ export type Actions =
   | Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
   | Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload
   | Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
+  | Keybase1NotifyEmailAddressEmailsChangedPayload
   | Keybase1NotifyEphemeralNewTeamEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
@@ -3129,9 +3099,7 @@ export type Actions =
   | Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
-  | Keybase1NotifyPhoneNumberPhoneNumberAddedPayload
-  | Keybase1NotifyPhoneNumberPhoneNumberSupersededPayload
-  | Keybase1NotifyPhoneNumberPhoneNumberVerifiedPayload
+  | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

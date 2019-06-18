@@ -56,8 +56,8 @@ func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer
 	storage types.ConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
 	log := g.GetLog()
 	extractor := NewExtractor(log)
-	scraper := NewScraper(log)
-	packager := NewPackager(log, store, s3signer, ri)
+	scraper := NewScraper(g.GlobalContext)
+	packager := NewPackager(g.GlobalContext, log, store, s3signer, ri)
 	settings := NewSettings(log, storage)
 	return &Unfurler{
 		Contextified: globals.NewContextified(g),
@@ -113,11 +113,11 @@ func (u *Unfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (status 
 	task, err := u.getTask(ctx, outboxID)
 	if err != nil {
 		u.Debug(ctx, "Status: error finding task: outboxID: %s err: %s", outboxID, err)
-		return status, nil, err
+		return types.UnfurlerTaskStatusFailed, nil, err
 	}
 	found, err := u.G().GetKVStore().GetInto(&status, u.statusKey(outboxID))
 	if err != nil {
-		return status, nil, err
+		return types.UnfurlerTaskStatusFailed, nil, err
 	}
 	if !found {
 		u.Debug(ctx, "Status: failed to find status, using unfurling: outboxID: %s", outboxID)

@@ -85,7 +85,7 @@ export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 export enum ConflictState {
   None = 'none',
   InConflictStuck = 'in-conflict-stuck',
-  InCondlictNotStuck = 'in-conflict-not-stuck',
+  InConflictNotStuck = 'in-conflict-not-stuck',
   InManualResolution = 'in-manual-resolution',
   Finishing = 'finishing',
 }
@@ -105,7 +105,7 @@ export type _Tlf = {
   resetParticipants: I.List<string> // usernames
   // TODO: when we move this stuff into SimpleFS, this should no longer need
   //  to be nullable
-  syncConfig: TlfSyncConfig | null
+  syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
   /*
@@ -450,10 +450,11 @@ export enum SendAttachmentToChatState {
 }
 
 export type _SendAttachmentToChat = {
+  convID: ChatTypes.ConversationIDKey
   filter: string
   path: Path
-  convID: ChatTypes.ConversationIDKey
   state: SendAttachmentToChatState
+  title: string
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
@@ -561,7 +562,10 @@ export enum DiskSpaceStatus {
 export type _OverallSyncStatus = {
   syncingFoldersProgress: SyncingFoldersProgress
   diskSpaceStatus: DiskSpaceStatus
-  diskSpaceBannerHidden: boolean
+  // showingBanner tracks whether we need to show the banner.
+  // It's mostly derived from diskSpaceStatus above, but it has to appear
+  // in the state since the user can dismiss it.
+  showingBanner: boolean
 }
 export type OverallSyncStatus = I.RecordOf<_OverallSyncStatus>
 
@@ -591,7 +595,6 @@ export type _State = {
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
-  loadingPaths: I.Map<Path, I.Set<string>>
   localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
@@ -632,7 +635,7 @@ export const stringToPath = (s: string): Path =>
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
-export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop())
+export const getPathName = (p: Path): string => (!p ? '' : p.split('/').pop() || '')
 export const getPathNameFromElems = (elems: Array<string>): string => {
   if (elems.length === 0) return ''
   return elems[elems.length - 1]
@@ -734,7 +737,7 @@ export const localPathConcat = (p: LocalPath, s: string): LocalPath => p + local
 export const getLocalPathName = (localPath: LocalPath): string => {
   const elems = localPath.split(localSep)
   for (let elem = elems.pop(); elems.length; elem = elems.pop()) {
-    if (elem !== '') {
+    if (elem) {
       return elem
     }
   }

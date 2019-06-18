@@ -107,4 +107,5 @@ func TestEmailHappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	err = SetVisibilityEmail(mctx, oldPrimary, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
 }

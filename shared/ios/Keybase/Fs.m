@@ -128,12 +128,26 @@
   // Setup app level directories
   NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
   NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString* logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString* oldLogPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  // Put logs in a subdir that is entirely background readable
+  NSString* logPath = [oldLogPath stringByAppendingString:@"/logs"];
   NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-  // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
+
+  if (!skipLogFile) {
+      // cleanup old log files
+      NSFileManager* fm = [NSFileManager defaultManager];
+      NSArray<NSString*>* logs = @[@"/ios.log", @"/ios.log.ek"];
+      for (NSString* file in logs) {
+          NSString* oldPath = [oldLogPath stringByAppendingString:file];
+          [fm removeItemAtPath:oldPath error:NULL];
+      }
+  }
+
+  // Create LevelDB and log directories with a slightly lower data protection
+  // mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
+  [self createBackgroundReadableDirectory:logPath setAllFiles:YES];
 
   return @{@"home": home,
            @"sharedHome": sharedHome,

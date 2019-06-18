@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/people'
@@ -47,18 +45,18 @@ export const createSkipTodo = (payload: _SkipTodoPayload): SkipTodoPayload => ({
 // Action Payloads
 export type DismissAnnouncementPayload = {
   readonly payload: _DismissAnnouncementPayload
-  readonly type: 'people:dismissAnnouncement'
+  readonly type: typeof dismissAnnouncement
 }
 export type GetPeopleDataPayload = {
   readonly payload: _GetPeopleDataPayload
-  readonly type: 'people:getPeopleData'
+  readonly type: typeof getPeopleData
 }
-export type MarkViewedPayload = {readonly payload: _MarkViewedPayload; readonly type: 'people:markViewed'}
+export type MarkViewedPayload = {readonly payload: _MarkViewedPayload; readonly type: typeof markViewed}
 export type PeopleDataProcessedPayload = {
   readonly payload: _PeopleDataProcessedPayload
-  readonly type: 'people:peopleDataProcessed'
+  readonly type: typeof peopleDataProcessed
 }
-export type SkipTodoPayload = {readonly payload: _SkipTodoPayload; readonly type: 'people:skipTodo'}
+export type SkipTodoPayload = {readonly payload: _SkipTodoPayload; readonly type: typeof skipTodo}
 
 // All Actions
 // prettier-ignore

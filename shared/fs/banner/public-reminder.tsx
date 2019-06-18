@@ -44,45 +44,43 @@ const PublicBanner = (props: Props) => {
 }
 
 type StateProps = {lastPublicBannerClosedTlf: string; writable: boolean}
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   lastPublicBannerClosedTlf: state.fs.lastPublicBannerClosedTlf,
   writable: state.fs.pathItems.get(ownProps.path, Constants.unknownPathItem).writable,
 })
 
 type DispatchProps = {setLastPublicBannerClosedTlf: (string) => () => void}
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   setLastPublicBannerClosedTlf: tlf => () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf})),
 })
 
-const mergeProps = (s, d, o: OwnProps) => {
-  const parsedPath = Constants.parsePath(o.path)
-  switch (parsedPath.kind) {
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.InGroupTlf:
-      return {
-        ...s,
-        clearLastPublicBannerClosedTlf: d.setLastPublicBannerClosedTlf(''),
-        onClose: d.setLastPublicBannerClosedTlf(parsedPath.tlfName),
-        public: parsedPath.tlfType === Types.TlfType.Public,
-        tlfName: parsedPath.tlfName,
-        url: `https://keybase.pub/${parsedPath.tlfName}`,
-      }
-    default:
-      return {
-        ...s,
-        clearLastPublicBannerClosedTlf: d.setLastPublicBannerClosedTlf(''),
-        onClose: () => {},
-        public: false,
-        tlfName: '',
-        url: '',
-      }
-  }
-}
-
-const ConnectedBanner = Container.namedConnect<OwnProps, StateProps, DispatchProps, Props, {}>(
+const ConnectedBanner = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps,
+  (s, d, o: OwnProps) => {
+    const parsedPath = Constants.parsePath(o.path)
+    switch (parsedPath.kind) {
+      case Types.PathKind.GroupTlf:
+      case Types.PathKind.InGroupTlf:
+        return {
+          ...s,
+          clearLastPublicBannerClosedTlf: d.setLastPublicBannerClosedTlf(''),
+          onClose: d.setLastPublicBannerClosedTlf(parsedPath.tlfName),
+          public: parsedPath.tlfType === Types.TlfType.Public,
+          tlfName: parsedPath.tlfName,
+          url: `https://keybase.pub/${parsedPath.tlfName}`,
+        }
+      default:
+        return {
+          ...s,
+          clearLastPublicBannerClosedTlf: d.setLastPublicBannerClosedTlf(''),
+          onClose: () => {},
+          public: false,
+          tlfName: '',
+          url: '',
+        }
+    }
+  },
   'PublicReminder'
 )(PublicBanner)
 export default ConnectedBanner

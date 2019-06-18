@@ -7,6 +7,7 @@ type Props = {
   onDownload: null | (() => void)
   onShowInFinder: null | (() => void)
   title: string
+  fileName: string
   progress: number
   progressLabel: string
   hasProgress: boolean
@@ -19,10 +20,15 @@ class FileAttachment extends React.PureComponent<Props> {
     return (
       <Kb.ClickableBox onClick={this.props.onDownload} style={styles.fullWidth}>
         <Kb.Box style={styles.containerStyle}>
-          <Kb.Box style={styles.titleStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
             <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
-            <Kb.Text type="BodySemibold">{this.props.title}</Kb.Text>
-          </Kb.Box>
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+              <Kb.Text type="BodySemibold">{this.props.title}</Kb.Text>
+              {this.props.fileName !== this.props.title && (
+                <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
           {!!this.props.arrowColor && (
             <Kb.Box style={styles.downloadedIconWrapperStyle}>
               <Kb.Icon
@@ -80,7 +86,7 @@ const styles = Styles.styleSheetCreate({
   fullWidth: {width: '100%'},
   iconStyle: {
     height: 32,
-    marginRight: Styles.globalMargins.tiny,
+    width: 32,
   },
   linkStyle: {
     color: Styles.globalColors.black_50,
@@ -94,9 +100,7 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   titleStyle: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    padding: Styles.globalMargins.tiny,
+    flex: 1,
   },
 })
 
