@@ -57,6 +57,6 @@ export type _State = {
   uid: string
   userActive: boolean
   username: string
-  userReacjis: RPCTypes.UserReacjis | null
+  userReacjis: RPCTypes.UserReacjis
 }
 export type State = I.RecordOf<_State>

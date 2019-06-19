@@ -4,7 +4,6 @@ import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {defaultTopReacjis} from '../../../../../constants/config'
 import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
@@ -29,7 +28,7 @@ type WrapperState = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
-  topReacjis: state.config.userReacjis ? state.config.userReacjis.topReacjis : defaultTopReacjis,
+  topReacjis: state.config.userReacjis.topReacjis,
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {

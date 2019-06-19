@@ -9,8 +9,9 @@ export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${run
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 export const noKBFSFailReason = "Can't connect to KBFS"
-export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultTeamPrefix = '/team/'
+export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
+const defaultSkinTone = 1
 
 export const privateFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
@@ -116,6 +117,6 @@ export const makeState = I.Record<Types._State>({
   startupWasFromPush: false,
   uid: '',
   userActive: true,
-  userReacjis: null,
+  userReacjis: {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis},
   username: '',
 })

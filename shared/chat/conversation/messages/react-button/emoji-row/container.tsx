@@ -1,7 +1,6 @@
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Types from '../../../../../constants/types/chat2'
-import {defaultTopReacjis} from '../../../../../constants/config'
 import {StylesCrossPlatform} from '../../../../../styles'
 import EmojiRow from '.'
 
@@ -14,7 +13,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
-  topReacjis: state.config.userReacjis ? state.config.userReacjis.topReacjis : defaultTopReacjis,
+  topReacjis: state.config.userReacjis.topReacjis,
 })
 
 const mapDispatchToProps = dispatch => ({

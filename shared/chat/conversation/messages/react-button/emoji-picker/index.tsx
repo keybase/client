@@ -7,8 +7,13 @@ import {chunk} from 'lodash-es'
 import {memoize} from '../../../../../util/memoize'
 
 // defer loading this until we need to, very expensive
-const getData = memoize((topReacjis: Array<string>) => {
+const _getData = memoize(() => {
   const {categories, emojiIndex, emojiNameMap} = require('./data')
+  return {categories, emojiIndex, emojiNameMap}
+})
+
+const getData = memoize((topReacjis: Array<string>) => {
+  const {categories, emojiIndex, emojiNameMap} = _getData()
   const allCategories =
     !!topReacjis && topReacjis.length
       ? [
