@@ -148,16 +148,6 @@ func (e *PGPKeyImportEngine) checkPregenPrivate() error {
 }
 
 func (e *PGPKeyImportEngine) checkExistingKey(m libkb.MetaContext) error {
-	// Check if the secret key already exists
-	// if _, err := m.G().Keyrings.GetSecretKeyLocked(m, libkb.SecretKeyArg{
-	// 	Me:       e.me,
-	// 	KeyType:  libkb.PGPKeyType,
-	// 	KeyQuery: e.GetKID().String(),
-	// }); err == nil {
-	// 	// There's a secret key, so let the engine return an error later
-	// 	return nil
-	// }
-
 	// Check if we have a public key that matches
 	pgps := e.me.GetActivePGPKeys(false)
 	for _, key := range pgps {
@@ -235,7 +225,7 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		if err = e.exportToGPG(m); err != nil {
 			return GPGExportingError{err, true /* inPGPGen */}
 		}
-	} else if e.arg.OnlySave && e.arg.PushSecret {
+	} else if e.arg.PushSecret {
 		if err = e.pushSecretOnly(m); err != nil {
 			return err
 		}

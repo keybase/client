@@ -205,6 +205,13 @@ func TestPGPImportLocalPrivateThenServer(t *testing.T) {
 	err = RunEngine2(mctx, eng)
 	require.NoError(t, err)
 
+	// Can we import locally twice?
+	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false /* pushSecret*/)
+	require.NoError(t, err)
+	mctx = NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
 	kid := eng.GetKID()
 
 	ss, err := mctx.ActiveDevice().SyncSecretsForce(mctx)
