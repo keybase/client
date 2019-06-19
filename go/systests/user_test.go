@@ -488,20 +488,3 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	err = logout.Run()
 	require.NoError(t, err)
 }
-
-func TestHasRandomPWPrefetching(t *testing.T) {
-	// This test keeps failing because of races, either where login hooks are
-	// not quick enough before we swaap API, or the test ends and some
-	// background task (not RandomPW related) logs something which panics.
-
-	tt := newTeamTester(t)
-	defer tt.cleanup()
-
-	user := tt.addUser("bob")
-
-	user.tc.G.API = &libkb.ErrorMockAPI{}
-	ucli := keybase1.UserClient{Cli: user.teamsClient.Cli}
-	nopw, err := ucli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
-	require.NoError(t, err)
-	require.False(t, nopw)
-}
