@@ -8,7 +8,7 @@ import {namedConnect} from '../../util/container'
 
 type OwnProps = {}
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({})
+const mapStateToProps = (state, ownProps: OwnProps) => ({loading: !state.wallets.sep7ConfirmInfo})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAccept: () => {
