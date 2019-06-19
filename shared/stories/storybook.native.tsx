@@ -7,6 +7,7 @@ export {PropProviders, createPropProviderWithCommon, createStoreWithCommon}
 export {
   createPropProvider,
   unexpected,
+  createNavigator,
   MockStore,
   Rnd,
   scrollViewDecorator,

@@ -6,7 +6,7 @@ import * as Sb from '../../stories/storybook'
 import DevicePage from './container'
 
 const makeDevice = (options: any) => {
-  const {revoked, type, current, lastUsed = true, revokedAt = true} = options
+  const {revoked, type, current, lastUsed = true} = options
   return Constants.makeDevice({
     created: new Date('2002-10-09T01:23:45').getTime(),
     currentDevice: !!current,
@@ -40,7 +40,7 @@ const store = {
 
 const load = () => {
   Sb.storiesOf('Devices/Device', module)
-    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()} </Sb.MockStore>)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Desktop', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop'})} />)
     .add('Desktop no last used', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop no last'})} />)
     .add('Desktop current', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop current'})} />)
