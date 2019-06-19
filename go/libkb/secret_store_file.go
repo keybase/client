@@ -202,7 +202,8 @@ func (s *SecretStoreFile) StoreSecret(mctx MetaContext, username NormalizedUsern
 	return nil
 }
 
-func (s *SecretStoreFile) ClearSecret(mctx MetaContext, username NormalizedUsername) error {
+func (s *SecretStoreFile) ClearSecret(mctx MetaContext, username NormalizedUsername) (err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.ClearSecret(%s)", username), func() error { return err })()
 	// try both
 
 	if username.IsNil() {
@@ -213,11 +214,10 @@ func (s *SecretStoreFile) ClearSecret(mctx MetaContext, username NormalizedUsern
 	errV1 := s.clearSecretV1(username)
 	errV2 := s.clearSecretV2(username)
 
-	if errV1 != nil {
-		return errV1
-	}
-	if errV2 != nil {
-		return errV2
+	err = CombineErrors(errV1, errV2)
+	if err != nil {
+		mctx.Debug("Failed to clear secret in at least one version: %s", err)
+		return err
 	}
 	return nil
 }
@@ -253,12 +253,13 @@ func (s *SecretStoreFile) clearSecretV2(username NormalizedUsername) error {
 	return nil
 }
 
-func (s *SecretStoreFile) GetUsersWithStoredSecrets(mctx MetaContext) ([]string, error) {
+func (s *SecretStoreFile) GetUsersWithStoredSecrets(mctx MetaContext) (users []string, err error) {
+	defer mctx.TraceTimed("SecretStoreFile.GetUsersWithStoredSecrets", func() error { return err })()
 	files, err := filepath.Glob(filepath.Join(s.dir, "*.ss*"))
 	if err != nil {
 		return nil, err
 	}
-	users := make([]string, 0, len(files))
+	users = make([]string, 0, len(files))
 	for _, f := range files {
 		uname := stripExt(filepath.Base(f))
 		if !isPPSSecretStore(uname) {
