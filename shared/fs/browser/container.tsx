@@ -25,7 +25,6 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}: OwnProps) => ({
-  conflictState: stateProps._tlf.conflict.state,
   offline: Constants.isOfflineUnsynced(stateProps._kbfsDaemonStatus, stateProps._pathItem, path),
   onAttach: stateProps._pathItem.writable ? dispatchProps.onAttach : null,
   path,

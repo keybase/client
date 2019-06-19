@@ -35,6 +35,30 @@ const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   }
 }
 
+const rpcConflictStateToConflictState = (
+  rpcConflictState: RPCTypes.ConflictState | null
+): Types.ConflictState =>
+  rpcConflictState
+    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview
+      ? Constants.makeConflictStateNormalView({
+          localViewTlfPaths: I.List(
+            (rpcConflictState.normalview.localViews || [])
+              .map(p =>
+                p.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(p.kbfs) : Constants.defaultPath
+              )
+              .filter(p => p !== Constants.defaultPath)
+          ),
+          resolvingConflict: rpcConflictState.normalview.resolvingConflict,
+          stuckInConflict: rpcConflictState.normalview.stuckInConflict,
+        })
+      : Constants.makeConflictStateManualResolvingLocalView({
+          normalViewTlfPath:
+            rpcConflictState.manualresolvinglocalview.normalView.PathType === RPCTypes.PathType.kbfs
+              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.normalView.kbfs)
+              : Constants.defaultPath,
+        })
+    : Constants.tlfNormalViewWithNoConflict
+
 const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
     const mutablePayload = [
@@ -62,6 +86,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
                 [tlfType]: mutablePayload[tlfType].set(
                   tlfName,
                   Constants.makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState),
                     isFavorite,
                     isIgnored,
                     isNew,
@@ -942,6 +967,11 @@ const startManualCR = (state, action) =>
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 
+const finishManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
+  }).then(() => FsGen.createFavoritesLoad())
+
 const updateKbfsDaemonOnlineStatus = (
   state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
@@ -1102,6 +1132,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
       FsGen.startManualConflictResolution,
       startManualCR
+    )
+    yield* Saga.chainAction<FsGen.FinishManualConflictResolutionPayload>(
+      FsGen.finishManualConflictResolution,
+      finishManualCR
     )
   }
 

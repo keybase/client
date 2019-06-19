@@ -1257,8 +1257,7 @@ export enum ClientType {
 }
 
 export enum ConflictStateType {
-  automaticresolving = 0,
-  manualresolvingserverview = 1,
+  normalview = 1,
   manualresolvinglocalview = 2,
 }
 
@@ -2132,11 +2131,8 @@ export type Config = {readonly serverURI: String; readonly socketFile: String; r
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly s?: String | null; readonly o?: String | null}
 export type ConfiguredAccount = {readonly username: String; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}
 export type ConfirmResult = {readonly identityConfirmed: Boolean; readonly remoteConfirmed: Boolean; readonly expiringLocal: Boolean; readonly autoConfirmed: Boolean}
-export type ConflictAutomaticResolving = {readonly isStuck: Boolean}
 export type ConflictGeneration = Int
-export type ConflictManualResolvingLocalView = {readonly serverView: Path}
-export type ConflictManualResolvingServerView = {readonly localViews?: Array<Path> | null}
-export type ConflictState = {conflictStateType: ConflictStateType.automaticresolving; automaticresolving: ConflictAutomaticResolving | null} | {conflictStateType: ConflictStateType.manualresolvingserverview; manualresolvingserverview: ConflictManualResolvingServerView | null} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: ConflictManualResolvingLocalView | null}
+export type ConflictState = {conflictStateType: ConflictStateType.normalview; normalview: FolderNormalView | null} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: FolderConflictManualResolvingLocalView | null}
 export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
@@ -2196,7 +2192,9 @@ export type FileDescriptor = {readonly name: String; readonly type: FileType}
 export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
 export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
+export type FolderConflictManualResolvingLocalView = {readonly normalView: Path}
 export type FolderHandle = {readonly name: String; readonly folderType: FolderType; readonly created: Boolean}
+export type FolderNormalView = {readonly resolvingConflict: Boolean; readonly stuckInConflict: Boolean; readonly localViews?: Array<Path> | null}
 export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}

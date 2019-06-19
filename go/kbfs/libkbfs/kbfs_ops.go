@@ -368,8 +368,8 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	clearedMap := make(map[string][]keybase1.Path)
 	for _, c := range cleared {
 		cs := keybase1.NewConflictStateWithManualresolvinglocalview(
-			keybase1.ConflictManualResolvingLocalView{
-				ServerView: c.ServerViewPath,
+			keybase1.FolderConflictManualResolvingLocalView{
+				NormalView: c.ServerViewPath,
 			})
 		favs.FavoriteFolders = append(favs.FavoriteFolders,
 			keybase1.Folder{
@@ -398,9 +398,11 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 			Type: t,
 		}
 
+		folderNormalView := keybase1.FolderNormalView{}
+		currentFavFound := false
+
 		// First check for any current automatically-resolving
-		// conflicts, those take precedence in terms of the state we
-		// return.
+		// conflicts, and whether we're stuck.
 		tlfID, ok := conflictMap[c]
 		if ok {
 			fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
@@ -410,27 +412,25 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 				return keybase1.FavoritesResult{}, err
 			}
 			if s != keybase1.FolderConflictType_NONE {
-				stk := s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
-				conflictState :=
-					keybase1.NewConflictStateWithAutomaticresolving(
-						keybase1.ConflictAutomaticResolving{IsStuck: stk})
-				favs.FavoriteFolders[i].ConflictState = &conflictState
-				found++
+				folderNormalView.ResolvingConflict = true
+				folderNormalView.StuckInConflict =
+					s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+				currentFavFound = true
 			}
-		} else {
-			// Otherwise, check whether this favorite has any local
-			// conflict views.
-			p := tlfhandle.BuildProtocolPathForTlfName(t, name)
+		}
+		// Then check whether this favorite has any local conflict views.
+		p := tlfhandle.BuildProtocolPathForTlfName(t, name)
+		localViews, ok := clearedMap[p.String()]
+		if ok {
+			folderNormalView.LocalViews = localViews
+			currentFavFound = true
+		}
 
-			localViews, ok := clearedMap[p.String()]
-			if ok {
-				cs := keybase1.NewConflictStateWithManualresolvingserverview(
-					keybase1.ConflictManualResolvingServerView{
-						LocalViews: localViews,
-					})
-				favs.FavoriteFolders[i].ConflictState = &cs
-				found++
-			}
+		if currentFavFound {
+			conflictState :=
+				keybase1.NewConflictStateWithNormalview(folderNormalView)
+			favs.FavoriteFolders[i].ConflictState = &conflictState
+			found++
 		}
 
 		if found == len(conflictMap)+len(clearedMap) {
