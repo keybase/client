@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import HiddenString from '../../../../util/hidden-string'
-import {connect} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
 import Input, {Props} from '.'
 
@@ -214,8 +214,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   unsentTextRefresh: !!stateProps.unsentText,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Input)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Input')(Input)

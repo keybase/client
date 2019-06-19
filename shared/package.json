@@ -78,9 +78,9 @@
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.tsx",
+      "typed-connect": "<rootDir>/util/__mocks__/typed-connect.tsx",
       "react-list": "<rootDir>/__mocks__/react-list.tsx",
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.tsx",
-      "react-redux": "<rootDir>/__mocks__/react-redux.tsx",
       "^electron$": "<rootDir>/__mocks__/electron.tsx",
       "hidden-string": "<rootDir>/__mocks__/hidden-string.tsx",
       "constants/platform": "<rootDir>/__mocks__/platform.tsx",
