@@ -253,6 +253,11 @@ const clearRefreshTags = () => {
   pathMetadataRefreshTags.clear()
 }
 
+const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
+  folderListRefreshTags.delete(action.payload.refreshTag)
+  pathMetadataRefreshTags.delete(action.payload.refreshTag)
+}
+
 function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
   const {rootPath, refreshTag} =
     action.type === FsGen.editSuccess
@@ -709,24 +714,27 @@ const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeA
 
 function* loadPathMetadata(state, action: FsGen.LoadPathMetadataPayload) {
   const {path, refreshTag} = action.payload
+  const isSpecialFile = Constants.hasSpecialFileElement(path)
 
-  if (Types.getPathLevel(path) < 3) {
-    return
-  }
-
-  if (refreshTag) {
-    if (pathMetadataRefreshTags.get(refreshTag) === path) {
-      // We are already subscribed; so don't fire RPC.
+  if (!isSpecialFile) {
+    if (Types.getPathLevel(path) < 3) {
       return
     }
 
-    pathMetadataRefreshTags.set(refreshTag, path)
+    if (refreshTag) {
+      if (pathMetadataRefreshTags.get(refreshTag) === path) {
+        // We are already subscribed; so don't fire RPC.
+        return
+      }
+
+      pathMetadataRefreshTags.set(refreshTag, path)
+    }
   }
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
       path: Constants.pathToRPCPath(path),
-      refreshSubscription: !!refreshTag,
+      refreshSubscription: !isSpecialFile && !!refreshTag,
     })
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
@@ -926,11 +934,6 @@ const triggerSendLinkToChat = (state, action: FsGen.TriggerSendLinkToChatPayload
       ChatConstants.waitingKeyPost
     ).then(result => FsGen.createSentLinkToChat({convID: conversationIDKey}))
   )
-}
-
-const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
-  folderListRefreshTags.delete(action.payload.refreshTag)
-  pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
 
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by

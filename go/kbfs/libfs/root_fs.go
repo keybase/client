@@ -7,6 +7,7 @@ package libfs
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"time"
@@ -22,11 +23,19 @@ import (
 type RootFS struct {
 	config libkbfs.Config
 	log    logger.Logger
+	// Yes, storing ctx in a struct is a mortal sin, but the
+	// billy.Filesystem interface doesn't give us a way to accept ctxs
+	// any other way.
+	ctx context.Context
 }
 
 // NewRootFS creates a new RootFS instance.
 func NewRootFS(config libkbfs.Config) *RootFS {
-	return &RootFS{config, config.MakeLogger("")}
+	return &RootFS{
+		config: config,
+		log:    config.MakeLogger(""),
+		ctx:    context.Background(),
+	}
 }
 
 var _ billy.Filesystem = (*RootFS)(nil)
@@ -172,4 +181,15 @@ func (rfs *RootFS) MkdirAll(_ string, _ os.FileMode) (err error) {
 // Symlink implements the billy.Filesystem interface for RootFS.
 func (rfs *RootFS) Symlink(_, _ string) (err error) {
 	return errors.New("RootFS cannot make symlinks")
+}
+
+// ToHTTPFileSystem calls fs.WithCtx with ctx to create a *RootFS with the new
+// ctx, and returns a wrapper around it that satisfies the http.FileSystem
+// interface.
+func (rfs *RootFS) ToHTTPFileSystem(ctx context.Context) http.FileSystem {
+	return httpRootFileSystem{rfs: &RootFS{
+		config: rfs.config,
+		log:    rfs.log,
+		ctx:    ctx,
+	}}
 }
