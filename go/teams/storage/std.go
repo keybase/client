@@ -62,6 +62,7 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 	ret, ok := vp.(*keybase1.TeamData)
 	if !ok {
 		mctx.Debug("teams.Storage#Get cast error: %T is wrong type", vp)
+		return nil, false, false
 	}
 
 	if ret != nil && diskStorageVersion == 10 && ret.Subversion == 0 {

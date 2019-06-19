@@ -746,6 +746,7 @@ func (o TeamData) DeepCopy() TeamData {
 
 type FastTeamData struct {
 	Frozen                     bool                                                 `codec:"frozen" json:"frozen"`
+	Subversion                 int                                                  `codec:"subversion" json:"subversion"`
 	Tombstoned                 bool                                                 `codec:"tombstoned" json:"tombstoned"`
 	Name                       TeamName                                             `codec:"name" json:"name"`
 	Chain                      FastTeamSigChainState                                `codec:"chain" json:"chain"`
@@ -762,6 +763,7 @@ type FastTeamData struct {
 func (o FastTeamData) DeepCopy() FastTeamData {
 	return FastTeamData{
 		Frozen:     o.Frozen,
+		Subversion: o.Subversion,
 		Tombstoned: o.Tombstoned,
 		Name:       o.Name.DeepCopy(),
 		Chain:      o.Chain.DeepCopy(),
