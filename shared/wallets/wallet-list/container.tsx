@@ -35,7 +35,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
     )
   },
-  onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
+  onWhatIsStellar: () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
+  },
 })
 
 export default Container.connect(
