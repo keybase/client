@@ -274,7 +274,7 @@ type _SetInflationDestinationPayload = {
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
-type _SetSEP7TxPayload = {readonly tx: I.Record<Types.SEP7ConfirmInfo>}
+type _SetSEP7TxPayload = {readonly tx: Types.SEP7ConfirmInfo}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
