@@ -44,7 +44,8 @@ func (f *File) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (a *d
 // CanDeleteFile - return just nil
 // TODO check for permissions here.
 func (f *File) CanDeleteFile(ctx context.Context, fi *dokan.FileInfo) error {
-	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %q", f.name)
+	namePPS := f.parent.ChildName(f.name)
+	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %s", namePPS)
 	return nil
 }
 
@@ -61,11 +62,12 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 		f.folder.fs.renameAndDeletionLock.Lock()
 		defer f.folder.fs.renameAndDeletionLock.Unlock()
+		namePPS := f.parent.ChildName(f.name)
 		f.folder.fs.vlog.CLogf(
-			ctx, libkb.VLog1, "Removing (Delete) file in cleanup %s", f.name)
+			ctx, libkb.VLog1, "Removing (Delete) file in cleanup %s", namePPS)
 
 		err = f.folder.fs.config.KBFSOps().RemoveEntry(
-			ctx, f.parent, f.parent.ChildName(f.name))
+			ctx, f.parent, namePPS)
 	}
 
 	if f.refcount.Decrease() {
