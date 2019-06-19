@@ -1029,8 +1029,8 @@ type DiskBlockCache interface {
 	Status(ctx context.Context) map[string]DiskBlockCacheStatus
 	// DoesCacheHaveSpace returns whether the given cache has
 	// space.
-	DoesCacheHaveSpace(
-		ctx context.Context, cacheType DiskBlockCacheType) (bool, error)
+	DoesCacheHaveSpace(ctx context.Context,
+		cacheType DiskBlockCacheType) (bool, int64, error)
 	// Mark tags a given block in the disk cache with the given tag.
 	Mark(
 		ctx context.Context, blockID kbfsblock.ID, tag string,

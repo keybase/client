@@ -46,6 +46,7 @@ type blockRetrievalPartialConfig interface {
 	initModeGetter
 	clockGetter
 	reporterGetter
+	settingsDBGetter
 }
 
 type blockRetrievalConfig interface {
