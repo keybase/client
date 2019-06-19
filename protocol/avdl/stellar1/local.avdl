@@ -253,7 +253,6 @@ protocol local {
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
   SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
 
-  // Not implemented. CORE-8087
   // Get the non-XLM assets for sending.
   array<SendAssetChoiceLocal> getSendAssetChoicesLocal(
     int sessionID,
