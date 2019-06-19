@@ -91,6 +91,9 @@ const mapDispatchToProps = dispatch => ({
       WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
     )
   },
+  _onWhatIsStellar: () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -122,7 +125,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
     onShowProof: stateProps.notAUser || !stateProps.proofURL ? undefined : () => openUrl(stateProps.proofURL),
     onShowSite: stateProps.notAUser || !stateProps.siteURL ? undefined : () => openUrl(stateProps.siteURL),
-    onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
+    onWhatIsStellar: () => dispatchProps._onWhatIsStellar(),
     proofURL: stateProps.proofURL,
     siteIcon: stateProps.siteIcon,
     siteIconFull: stateProps.siteIconFull,
