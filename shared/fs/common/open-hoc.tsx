@@ -2,26 +2,24 @@ import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
-import {namedConnect} from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
 
-type OwnProps = {
-  routePath: I.List<string>
+type OwnProps = Container.PropsWithSafeNavigation<{
   path: Types.Path
   destinationPickerIndex?: number
-}
+}>
 
 const mapStateToProps = state => ({
   _destinationPicker: state.fs.destinationPicker,
   _pathItems: state.fs.pathItems,
 })
 
-const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, navigateAppend}: OwnProps) => ({
   _destinationPickerGoTo: () =>
-    Constants.makeActionsForDestinationPickerOpen(destinationPickerIndex + 1, path, routePath).forEach(
+    Constants.makeActionsForDestinationPickerOpen(destinationPickerIndex + 1, path, navigateAppend).forEach(
       action => dispatch(action)
     ),
-  _open: () => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'main'}]})),
+  _open: () => dispatch(navigateAppend({path: [{props: {path}, selected: 'main'}]})),
 })
 
 const isFolder = (stateProps, ownProps: OwnProps) =>
@@ -52,4 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps 
   ...ownProps,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedOpenHOC')
+export default Container.compose(
+  Container.withSafeNavigation,
+  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedOpenHOC')
+)

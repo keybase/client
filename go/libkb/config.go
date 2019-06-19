@@ -399,8 +399,8 @@ func (f *JSONConfigFile) GetHome() string {
 func (f *JSONConfigFile) GetMobileSharedHome() string {
 	return f.GetTopLevelString("mobile_shared_home")
 }
-func (f *JSONConfigFile) GetServerURI() string {
-	return f.GetTopLevelString("server")
+func (f *JSONConfigFile) GetServerURI() (string, error) {
+	return f.GetTopLevelString("server"), nil
 }
 func (f *JSONConfigFile) GetConfigFilename() string {
 	return f.GetTopLevelString("config_file")
@@ -520,6 +520,17 @@ func (f *JSONConfigFile) GetTorProxy() string {
 
 func (f *JSONConfigFile) GetProxy() string {
 	return f.GetTopLevelString("proxy")
+}
+func (f *JSONConfigFile) GetProxyType() string {
+	return f.GetTopLevelString("proxy-type")
+}
+func (f *JSONConfigFile) IsCertPinningEnabled() bool {
+	res, isSet := f.GetTopLevelBool("disable-cert-pinning")
+	if !isSet {
+		// Enable SSL pinning if the flag is not set
+		return true
+	}
+	return !res
 }
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")

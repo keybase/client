@@ -12,7 +12,6 @@ import (
 )
 
 func TestSecretStoreOps(t *testing.T) {
-
 	tc := SetupTest(t, "secret store ops", 1)
 	defer tc.Cleanup()
 	m := NewMetaContextForTest(tc)

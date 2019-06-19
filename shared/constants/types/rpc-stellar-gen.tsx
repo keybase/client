@@ -317,6 +317,7 @@ export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
 export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String}
 export type AssetCode = String
+export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}
 export type Balance = {readonly asset: Asset; readonly amount: String; readonly limit: String}
 export type BatchPaymentArg = {readonly recipient: String; readonly amount: String; readonly message: String}
@@ -470,6 +471,8 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.getWalletAccountPublicKeyLocal'
 // 'stellar.1.local.sendPathLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
+// 'stellar.1.local.fuzzyAssetSearchLocal'
+// 'stellar.1.local.listPopularAssetsLocal'
 // 'stellar.1.local.addTrustlineLocal'
 // 'stellar.1.local.deleteTrustlineLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
@@ -530,6 +533,8 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.remote.networkOptions'
 // 'stellar.1.remote.detailsPlusPayments'
 // 'stellar.1.remote.assetSearch'
+// 'stellar.1.remote.fuzzyAssetSearch'
+// 'stellar.1.remote.listPopularAssets'
 // 'stellar.1.remote.changeTrustline'
 // 'stellar.1.remote.findPaymentPath'
 // 'stellar.1.remote.postAnyTransaction'

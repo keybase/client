@@ -254,9 +254,12 @@ func (s *SecretStoreFile) GetUsersWithStoredSecrets(m MetaContext) ([]string, er
 	if err != nil {
 		return nil, err
 	}
-	users := make([]string, len(files))
-	for i, f := range files {
-		users[i] = stripExt(filepath.Base(f))
+	users := make([]string, 0, len(files))
+	for _, f := range files {
+		uname := stripExt(filepath.Base(f))
+		if !isPPSSecretStore(uname) {
+			users = append(users, uname)
+		}
 	}
 	return users, nil
 }

@@ -34,6 +34,36 @@ export const getVideoSize = (state: State): Size => {
   }
 }
 
+export const useVideoSizer = () => {
+  const [containerHeight, setContainerHeight] = React.useState(0)
+  const [containerWidth, setContainerWidth] = React.useState(0)
+  const [videoNaturalHeight, setVideoNaturalHeight] = React.useState(0)
+  const [videoNaturalWidth, setVideoNaturalWidth] = React.useState(0)
+  const [loadedVideoNaturalSize, setLoadedVideoNaturalSize] = React.useState(false)
+
+  const setContainerSize = (height, width) => {
+    setContainerHeight(height)
+    setContainerWidth(width)
+  }
+  const setVideoNaturalSize = (height, width) => {
+    setVideoNaturalHeight(height)
+    setVideoNaturalWidth(width)
+    setLoadedVideoNaturalSize(true)
+  }
+
+  return [
+    getVideoSize({
+      containerHeight,
+      containerWidth,
+      loadedVideoSize: loadedVideoNaturalSize,
+      videoHeight: videoNaturalHeight,
+      videoWidth: videoNaturalWidth,
+    }),
+    setContainerSize,
+    setVideoNaturalSize,
+  ] as const
+}
+
 const allowedHosts = ['127.0.0.1', 'localhost']
 
 const urlIsOK = url =>

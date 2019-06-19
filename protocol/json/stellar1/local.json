@@ -2189,6 +2189,31 @@
       ],
       "response": null
     },
+    "fuzzyAssetSearchLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchString",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Asset"
+      }
+    },
+    "listPopularAssetsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "AssetListResult"
+    },
     "addTrustlineLocal": {
       "request": [
         {

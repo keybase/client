@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/keybase/client/go/externalstest"
 	"io"
 	"io/ioutil"
 	"net"
@@ -110,6 +111,9 @@ func TestChatSrvUnfurl(t *testing.T) {
 			return
 		}
 
+		etc := externalstest.SetupTest(t, "unfurl", 1)
+		defer etc.Cleanup()
+
 		ctc := makeChatTestContext(t, "TestChatSrvUnfurl", 1)
 		defer ctc.cleanup()
 		users := ctc.users()
@@ -127,7 +131,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		sender := NewNonblockingSender(tc.Context(),
 			NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 				func() chat1.RemoteInterface { return ri }))
-		store := attachments.NewStoreTesting(tc.Context().GetLog(), nil)
+		store := attachments.NewStoreTesting(tc.Context().GetLog(), nil, etc.G)
 		s3signer := &ptsigner{}
 		unfurler := unfurl.NewUnfurler(tc.Context(), store, s3signer, storage, sender,
 			func() chat1.RemoteInterface { return ri })

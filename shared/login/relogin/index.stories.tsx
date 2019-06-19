@@ -3,7 +3,8 @@ import * as Sb from '../../stories/storybook'
 import Login, {Props} from '.'
 
 const commonProps: Props = {
-  error: '',
+  bannerError: '',
+  inputError: '',
   inputKey: '0',
   onFeedback: Sb.action('onFeedback'),
   onForgotPassword: Sb.action('onForgotPassword'),
@@ -23,7 +24,8 @@ const commonProps: Props = {
 const load = () => {
   Sb.storiesOf('Login/Login', module)
     .add('Single previous user', () => <Login {...commonProps} />)
-    .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
+    .add('Input Error', () => <Login {...commonProps} inputError="Oh, no! What a mess!" />)
+    .add('Banner Error', () => <Login {...commonProps} bannerError="Oh, no! What a mess!" />)
     .add('3 previous users', () => <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />)
     .add('5 previous users', () => (
       <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo', 'trex', 'chrisnojima']} />

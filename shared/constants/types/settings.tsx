@@ -101,6 +101,14 @@ export type _ChatState = {
 }
 export type ChatState = I.RecordOf<_ChatState>
 
+export type _PhoneNumbersState = {
+  error: string
+  pendingVerification: string
+  pendingVerificationAllowSearch: boolean | null // stash this so we can use it when resending the verification code
+  verificationState: 'success' | 'error' | null
+}
+export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
+
 export type _State = {
   allowDeleteAccount: boolean
   waitingForResponse: boolean
@@ -109,10 +117,13 @@ export type _State = {
   notifications: NotificationsState
   email: EmailState
   password: PasswordState
+  phoneNumbers: PhoneNumbersState
   lockdownModeEnabled: boolean | null
   useNativeFrame: boolean
   chat: ChatState
   checkPasswordIsCorrect: boolean | null
+  proxyData: RPCTypes.ProxyData | null
+  didToggleCertificatePinning: boolean
 }
 export type State = I.RecordOf<_State>
 

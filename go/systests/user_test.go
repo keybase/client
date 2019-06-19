@@ -208,7 +208,7 @@ func randomDevice() string {
 
 type notifyHandler struct {
 	logoutCh    chan struct{}
-	loginCh     chan string
+	loginCh     chan keybase1.LoggedInArg
 	outOfDateCh chan keybase1.ClientOutOfDateArg
 	userCh      chan keybase1.UID
 	errCh       chan error
@@ -218,7 +218,7 @@ type notifyHandler struct {
 func newNotifyHandler() *notifyHandler {
 	return &notifyHandler{
 		logoutCh:    make(chan struct{}),
-		loginCh:     make(chan string),
+		loginCh:     make(chan keybase1.LoggedInArg),
 		outOfDateCh: make(chan keybase1.ClientOutOfDateArg),
 		userCh:      make(chan keybase1.UID),
 		errCh:       make(chan error),
@@ -231,8 +231,8 @@ func (h *notifyHandler) LoggedOut(_ context.Context) error {
 	return nil
 }
 
-func (h *notifyHandler) LoggedIn(_ context.Context, un string) error {
-	h.loginCh <- un
+func (h *notifyHandler) LoggedIn(_ context.Context, arg keybase1.LoggedInArg) error {
+	h.loginCh <- arg
 	return nil
 }
 
@@ -337,10 +337,10 @@ func TestSignupLogout(t *testing.T) {
 	case err := <-nh.errCh:
 		t.Fatalf("Error before notify: %v", err)
 	case u := <-nh.loginCh:
-		if u != userInfo.username {
-			t.Fatalf("bad username in login notification: %q != %q", u, userInfo.username)
+		if u.Username != userInfo.username {
+			t.Fatalf("bad username in login notification: %q != %q", u.Username, userInfo.username)
 		}
-		tc.G.Log.Debug("Got notification of login for %q", u)
+		tc.G.Log.Debug("Got notification of login for %q", u.Username)
 	}
 
 	require.Len(t, sui.passphrasePrompts, 2)

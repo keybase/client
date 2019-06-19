@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/libkb"
+
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/colly"
@@ -100,7 +102,7 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 	})
 	var uri string
 	if s.giphyProxy {
-		c.WithTransport(giphy.WebClient().Transport)
+		c.WithTransport(giphy.WebClient(libkb.NewMetaContext(ctx, s.G().ExternalG())).Transport)
 		if uri, err = giphy.ProxyURL(sourceURL); err != nil {
 			return res, err
 		}

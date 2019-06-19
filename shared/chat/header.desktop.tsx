@@ -176,7 +176,7 @@ const mapStateToProps = state => {
     _meta,
     _username: state.config.username,
     canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
-    infoPanelOpen: Constants.isInfoPanelOpen(state),
+    infoPanelOpen: Constants.isInfoPanelOpen(),
   }
 }
 

@@ -144,8 +144,13 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 	}
 	statusJSON := status.MergeStatusJSON(fstatus, "fstatus", arg.StatusJSON)
 
+	numBytes := status.LogSendDefaultBytesDesktop
+	if arg.SendMaxBytes {
+		numBytes = status.LogSendMaxBytes
+	}
+
 	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, arg.Feedback)
-	return logSendContext.LogSend(arg.SendLogs, status.LogSendDefaultBytesDesktop,
+	return logSendContext.LogSend(arg.SendLogs, numBytes,
 		false /* mergeExtendedStatus */)
 }
 
@@ -363,4 +368,62 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 		return res, err
 	}
 	return raw.Res, nil
+}
+
+func (h ConfigHandler) GetProxyData(ctx context.Context) (keybase1.ProxyData, error) {
+	config := h.G().Env.GetConfig()
+	proxyAddress := config.GetProxy()
+	proxyType := libkb.ProxyTypeStrToEnumFunc(config.GetProxyType())
+	certPinning := config.IsCertPinningEnabled()
+
+	var convertedProxyType keybase1.ProxyType
+	if proxyType == libkb.NoProxy {
+		convertedProxyType = keybase1.ProxyType_No_Proxy
+	} else if proxyType == libkb.HTTPConnect {
+		convertedProxyType = keybase1.ProxyType_HTTP_Connect
+	} else if proxyType == libkb.Socks {
+		convertedProxyType = keybase1.ProxyType_Socks
+	} else {
+		return keybase1.ProxyData{AddressWithPort: "", ProxyType: keybase1.ProxyType_No_Proxy, CertPinning: true},
+			fmt.Errorf("Failed to convert proxy type into a protocol compatible proxy type!")
+	}
+
+	return keybase1.ProxyData{AddressWithPort: proxyAddress, ProxyType: convertedProxyType, CertPinning: certPinning}, nil
+}
+
+func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData) error {
+	configWriter := h.G().Env.GetConfigWriter()
+
+	rpcProxyType := arg.ProxyType
+
+	var convertedProxyType libkb.ProxyType
+	if rpcProxyType == keybase1.ProxyType_No_Proxy {
+		convertedProxyType = libkb.NoProxy
+	} else if rpcProxyType == keybase1.ProxyType_HTTP_Connect {
+		convertedProxyType = libkb.HTTPConnect
+	} else if rpcProxyType == keybase1.ProxyType_Socks {
+		convertedProxyType = libkb.Socks
+	} else {
+		// Got a bogus proxy type that we couldn't convert to a libkb enum so return an error
+		return fmt.Errorf("failed to convert given proxy type to a native libkb proxy type")
+	}
+
+	proxyTypeStr, ok := libkb.ProxyTypeEnumToStr[convertedProxyType]
+
+	if !ok {
+		// Got a bogus proxy type that we couldn't convert to a string
+		return fmt.Errorf("failed to convert proxy type into a string")
+	}
+
+	configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
+	configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
+	configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
+
+	// Reload the config file in order to actually start using the proxy
+	err := h.G().ConfigReload()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -62,6 +62,8 @@ const headerProps = {
   icon: undefined,
 }
 
+const errorText = 'Oh nOOooOOooOOooooOoooooOOoooooooooooooooo. Something went wrong while other things were going ok and to explain why the service has a very verbose message for you.'
+
 const load = () => {
   Sb.storiesOf('Common/Confirm Modal', module).add('Confirm', () => <ConfirmModal {...props} />)
   Sb.storiesOf('Common/Confirm Modal', module).add('Confirm w/Button Text', () => (
@@ -72,6 +74,12 @@ const load = () => {
   ))
   Sb.storiesOf('Common/Confirm Modal', module).add('Confirm alternate header', () => (
     <ConfirmModal {...headerProps} />
+  ))
+  Sb.storiesOf('Common/Confirm Modal', module).add('Confirm with error', () => (
+    <ConfirmModal {...props} error={errorText} />
+  ))
+  Sb.storiesOf('Common/Confirm Modal', module).add('Confirm with error and header', () => (
+    <ConfirmModal {...headerProps} error={errorText} />
   ))
 }
 

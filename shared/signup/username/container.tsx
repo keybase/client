@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -25,10 +26,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(RouteTreeGen.createNavigateUp())
   },
   onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
-  onLogin: (username: string) => {
-    /* TODO */
-    logger.warn('TODO')
-  },
+  onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
 })
 
 const ConnectedEnterUsername = Container.connect(

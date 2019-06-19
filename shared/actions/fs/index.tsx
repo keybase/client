@@ -911,7 +911,10 @@ const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload) => {
+const waitForKbfsDaemon = (
+  state,
+  action: ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+) => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
@@ -960,42 +963,59 @@ const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkS
 const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
-const onFSOverallSyncSyncStatusChanged = (
+const onNotifyFSOverallSyncSyncStatusChanged = (
   state,
   action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) =>
-  FsGen.createOverallSyncStatusChanged({
-    outOfSpace: action.payload.params.status.outOfSyncSpace,
-    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
-  })
-
-const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
-  switch (diskSpaceStatus) {
-    case Types.DiskSpaceStatus.Error:
-      NotifyPopup('Sync Error', {
-        body: 'You are out of disk space. Some folders could not be synced.',
-        sound: true,
-      })
-      break
-    case Types.DiskSpaceStatus.Warning:
-      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
-      break
-    case Types.DiskSpaceStatus.Ok:
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+) => {
+  const diskSpaceStatus = action.payload.params.status.outOfSyncSpace
+    ? Types.DiskSpaceStatus.Error
+    : action.payload.params.status.localDiskBytesAvailable <
+      state.fs.settings.spaceAvailableNotificationThreshold
+    ? Types.DiskSpaceStatus.Warning
+    : Types.DiskSpaceStatus.Ok
+  // We need to type this separately since otherwise we can't concat to it.
+  let actions: Array<
+    | NotificationsGen.BadgeAppPayload
+    | FsGen.OverallSyncStatusChangedPayload
+    | FsGen.ShowHideDiskSpaceBannerPayload
+  > = [
+    FsGen.createOverallSyncStatusChanged({
+      diskSpaceStatus,
+      progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+    }),
+  ]
+  // Only notify about the disk space status if it has changed.
+  if (diskSpaceStatus !== state.fs.overallSyncStatus.diskSpaceStatus) {
+    switch (diskSpaceStatus) {
+      case Types.DiskSpaceStatus.Error:
+        NotifyPopup('Sync Error', {
+          body: 'You are out of disk space. Some folders could not be synced.',
+          sound: true,
+        })
+        return actions.concat([
+          NotificationsGen.createBadgeApp({
+            key: 'outOfSpace',
+            on: action.payload.params.status.outOfSyncSpace,
+          }),
+        ])
+      case Types.DiskSpaceStatus.Warning:
+        const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
+        NotifyPopup('Disk Space Low', {
+          body: `You have less than ${threshold} of storage space left.`,
+        })
+        // Only show the banner if the previous state was OK and the new state
+        // is warning. Otherwise we rely on the previous state of the banner.
+        if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
+          return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+        }
+        break
+      case Types.DiskSpaceStatus.Ok:
+        break
+      default:
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+    }
   }
-}
-
-let prevOutOfSpace = false
-const updateMenubarIconOnStuckSync = (state, action) => {
-  const outOfSpace = action.payload.params.status.outOfSyncSpace
-  if (outOfSpace !== prevOutOfSpace) {
-    prevOutOfSpace = outOfSpace
-    // TODO once go side sends info: low on space warning
-    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
-    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
-  }
+  return actions
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -1048,10 +1068,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.kbfsDaemonRpcStatusChanged,
     clearRefreshTags
   )
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
-    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
-    waitForKbfsDaemon
-  )
+  yield* Saga.chainAction<
+    ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+  >([ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon], waitForKbfsDaemon)
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
     yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
@@ -1071,11 +1090,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     )
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      onFSOverallSyncSyncStatusChanged
-    )
-    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
-      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      updateMenubarIconOnStuckSync
+      onNotifyFSOverallSyncSyncStatusChanged
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
