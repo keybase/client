@@ -66,7 +66,7 @@ const WhatIsStellarModal = (props: WhatIsStellarModalProps) => {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
-      padding: 64,
+      padding: Styles.globalMargins.xlarge,
       width: 560,
     },
     isMobile: {
