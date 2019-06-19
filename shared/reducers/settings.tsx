@@ -91,12 +91,12 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
       return state.setIn(
         ['email', 'emails'],
-        I.Map(action.payload.params.list.map(row => [row.email, Constants.makeEmailRow(row)]))
+        I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
       )
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
       return state.setIn(
         ['phone', 'phones'],
-        I.Map(action.payload.params.list.map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
+        I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
       )
     case SettingsGen.loadedRememberPassword:
     case SettingsGen.onChangeRememberPassword:

@@ -126,4 +126,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default AccountSettings
+export default Kb.HeaderHoc(AccountSettings)

@@ -13,7 +13,6 @@ const settingsSubRoutes = {
   [Constants.accountTab]: {getScreen: () => require('./account/container').default},
   [Constants.feedbackTab]: {getScreen: () => require('./feedback/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
-  changeEmail: {getScreen: () => require('./email/container').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},

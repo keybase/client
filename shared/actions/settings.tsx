@@ -381,15 +381,12 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
 
 const loadSettings = () =>
   RPCTypes.userLoadMySettingsRpcPromise().then(settings => {
-    let emailMap: I.Map<string, Types.EmailRow> = I.Map()
-    let phoneMap: I.Map<string, Types.PhoneRow> = I.Map()
-    if (settings.emails) {
-      emailMap = I.Map(settings.emails.map(row => [row.email, Constants.makeEmailRow(row)]))
-    }
-
-    if (settings.phones) {
-      phoneMap = I.Map(settings.phones.map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
-    }
+    const emailMap: I.Map<string, Types.EmailRow> = I.Map(
+      (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
+    )
+    const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
+      (settings.phones || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+    )
     return SettingsGen.createLoadedSettings({
       emails: emailMap,
       phones: phoneMap,
@@ -401,7 +398,7 @@ const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.K
     ? ChatTypes.Keybase1.IdentityVisibility.public
     : ChatTypes.Keybase1.IdentityVisibility.private
 
-const editEmail = (state, action: SettingsGen.EditEmailPayload) => {
+const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -423,8 +420,9 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload) => {
       visibility: newVisibility,
     })
   }
+  logger.warn('Empty editEmail action')
 }
-const editPhone = (state, action: SettingsGen.EditPhonePayload) => {
+const editPhone = (state, action: SettingsGen.EditPhonePayload, logger) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -440,6 +438,7 @@ const editPhone = (state, action: SettingsGen.EditPhonePayload) => {
       visibility: newVisibility,
     })
   }
+  logger.warn('Empty editPhone action')
 }
 
 const getRememberPassword = () =>
@@ -646,8 +645,8 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     deleteAccountForever
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail)
-  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone)
+  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
+  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail
