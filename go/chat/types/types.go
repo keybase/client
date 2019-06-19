@@ -364,6 +364,12 @@ func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+func (d DummyIndexer) Suspend(ctx context.Context) bool {
+	return false
+}
+func (d DummyIndexer) Resume(ctx context.Context) bool {
+	return false
+}
 func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
