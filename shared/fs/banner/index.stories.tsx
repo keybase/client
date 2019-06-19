@@ -24,7 +24,7 @@ const commonSystemFileManagerIntegrationBannerActions = {
 
 export const bannerProvider = {
   ConflictBanner: (p: any) => ({
-    conflictState: (p.storyProps && p.storyProps.conflictState) || Constants.tlfServerViewWithNoConflict,
+    conflictState: (p.storyProps && p.storyProps.conflictState) || Constants.tlfNormalViewWithNoConflict,
     onFeedback: Sb.action('onFeedback'),
     onFinishResolving: Sb.action('onFinishResolving'),
     onGoToSamePathInDifferentTlf: Sb.action('onGoToSamePathInDifferentTlf'),
@@ -130,7 +130,7 @@ export default () => {
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateServerView({resolvingConflict: true}),
+          conflictState: Constants.makeConflictStateNormalView({resolvingConflict: true}),
         })}
       />
     ))
@@ -138,7 +138,7 @@ export default () => {
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateServerView({
+          conflictState: Constants.makeConflictStateNormalView({
             resolvingConflict: true,
             stuckInConflict: true,
           }),
@@ -149,7 +149,7 @@ export default () => {
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateServerView({
+          conflictState: Constants.makeConflictStateNormalView({
             localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
           }),
         })}
@@ -159,7 +159,7 @@ export default () => {
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateServerView({
+          conflictState: Constants.makeConflictStateNormalView({
             localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
             resolvingConflict: true,
             stuckInConflict: true,
@@ -171,7 +171,7 @@ export default () => {
       <ConflictBanner
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
-          conflictState: Constants.makeConflictStateServerView({
+          conflictState: Constants.makeConflictStateNormalView({
             localViewTlfPaths: I.List([
               Types.stringToPath('/keybase/team/keybasefriends (conflict #1)'),
               Types.stringToPath('/keybase/team/keybasefriends (conflict #2)'),
@@ -186,7 +186,7 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateManualResolvingLocalView({
-            serverViewTlfPath: Types.stringToPath('/keybsae/team/keybasefriends'),
+            normalViewTlfPath: Types.stringToPath('/keybsae/team/keybasefriends'),
           }),
         })}
       />

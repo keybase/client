@@ -31,13 +31,13 @@
       "type": "enum",
       "name": "ConflictStateType",
       "symbols": [
-        "ServerView_1",
+        "NormalView_1",
         "ManualResolvingLocalView_2"
       ]
     },
     {
       "type": "record",
-      "name": "FolderServerView",
+      "name": "FolderNormalView",
       "fields": [
         {
           "type": "boolean",
@@ -62,7 +62,7 @@
       "fields": [
         {
           "type": "Path",
-          "name": "serverView"
+          "name": "normalView"
         }
       ]
     },
@@ -76,10 +76,10 @@
       "cases": [
         {
           "label": {
-            "name": "ServerView",
+            "name": "NormalView",
             "def": false
           },
-          "body": "FolderServerView"
+          "body": "FolderNormalView"
         },
         {
           "label": {

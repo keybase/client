@@ -22,7 +22,7 @@ const getActions = (props: Props) => ({
 
 const ConflictBanner = (props: Props) => {
   switch (props.conflictState.type) {
-    case Types.ConflictStateType.ServerView: {
+    case Types.ConflictStateType.NormalView: {
       const {feedbackAction, helpAction, startRes} = getActions(props)
       if (props.conflictState.stuckInConflict) {
         return (

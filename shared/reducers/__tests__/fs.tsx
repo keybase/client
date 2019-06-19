@@ -174,7 +174,7 @@ describe('fs reducer', () => {
 
   test('favorritesLoaded: reuse tlf', () => {
     const tlfFields = {
-      conflictState: Constants.makeConflictStateServerView({
+      conflictState: Constants.makeConflictStateNormalView({
         localViewTlfPaths: I.List([
           Types.stringToPath('/keybase/private/bla (conflict 1)'),
           Types.stringToPath('/keybase/private/bla (conflict 2)'),

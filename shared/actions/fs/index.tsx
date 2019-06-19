@@ -39,25 +39,25 @@ const rpcConflictStateToConflictState = (
   rpcConflictState: RPCTypes.ConflictState | null
 ): Types.ConflictState =>
   rpcConflictState
-    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.serverview
-      ? Constants.makeConflictStateServerView({
+    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview
+      ? Constants.makeConflictStateNormalView({
           localViewTlfPaths: I.List(
-            (rpcConflictState.serverview.localViews || [])
+            (rpcConflictState.normalview.localViews || [])
               .map(p =>
                 p.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(p.kbfs) : Constants.defaultPath
               )
               .filter(p => p !== Constants.defaultPath)
           ),
-          resolvingConflict: rpcConflictState.serverview.resolvingConflict,
-          stuckInConflict: rpcConflictState.serverview.stuckInConflict,
+          resolvingConflict: rpcConflictState.normalview.resolvingConflict,
+          stuckInConflict: rpcConflictState.normalview.stuckInConflict,
         })
       : Constants.makeConflictStateManualResolvingLocalView({
-          serverViewTlfPath:
-            rpcConflictState.manualresolvinglocalview.serverView.PathType === RPCTypes.PathType.kbfs
-              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.serverView.kbfs)
+          normalViewTlfPath:
+            rpcConflictState.manualresolvinglocalview.normalView.PathType === RPCTypes.PathType.kbfs
+              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.normalView.kbfs)
               : Constants.defaultPath,
         })
-    : Constants.tlfServerViewWithNoConflict
+    : Constants.tlfNormalViewWithNoConflict
 
 const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {

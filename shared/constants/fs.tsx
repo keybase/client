@@ -109,24 +109,24 @@ export const makeTlfSyncPartial: I.Record.Factory<Types._TlfSyncPartial> = I.Rec
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeConflictStateServerView: I.Record.Factory<Types._ConflictStateServerView> = I.Record({
+export const makeConflictStateNormalView: I.Record.Factory<Types._ConflictStateNormalView> = I.Record({
   localViewTlfPaths: I.List(),
   resolvingConflict: false,
   stuckInConflict: false,
-  type: Types.ConflictStateType.ServerView,
-} as Types._ConflictStateServerView)
+  type: Types.ConflictStateType.NormalView,
+} as Types._ConflictStateNormalView)
 
-export const tlfServerViewWithNoConflict = makeConflictStateServerView()
+export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
 
 export const makeConflictStateManualResolvingLocalView: I.Record.Factory<
   Types._ConflictStateManualResolvingLocalView
 > = I.Record({
-  serverViewTlfPath: defaultPath,
+  normalViewTlfPath: defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
 
 export const makeTlf: I.Record.Factory<Types._Tlf> = I.Record({
-  conflictState: tlfServerViewWithNoConflict,
+  conflictState: tlfNormalViewWithNoConflict,
   isFavorite: false,
   isIgnored: false,
   isNew: false,

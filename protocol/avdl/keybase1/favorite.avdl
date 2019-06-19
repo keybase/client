@@ -18,11 +18,11 @@ protocol favorite {
 }
 
   enum ConflictStateType {
-    ServerView_1,
+    NormalView_1,
     ManualResolvingLocalView_2
   }
 
-  record FolderServerView {
+  record FolderNormalView {
     // Set to true if we're trying to automatically resolve conflict in this
     // folder. Whether or not there's a local view version of this TLF doesn't
     // affect this.
@@ -35,11 +35,11 @@ protocol favorite {
   }
 
   record FolderConflictManualResolvingLocalView {
-    Path serverView;
+    Path normalView;
   }
 
   variant ConflictState switch (ConflictStateType conflictStateType) {
-    case ServerView: FolderServerView;
+    case NormalView: FolderNormalView;
     case ManualResolvingLocalView: FolderConflictManualResolvingLocalView;
   }
 

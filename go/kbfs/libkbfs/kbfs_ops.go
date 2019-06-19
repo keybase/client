@@ -369,7 +369,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	for _, c := range cleared {
 		cs := keybase1.NewConflictStateWithManualresolvinglocalview(
 			keybase1.FolderConflictManualResolvingLocalView{
-				ServerView: c.ServerViewPath,
+				NormalView: c.ServerViewPath,
 			})
 		favs.FavoriteFolders = append(favs.FavoriteFolders,
 			keybase1.Folder{
@@ -398,7 +398,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 			Type: t,
 		}
 
-		folderServerView := keybase1.FolderServerView{}
+		folderNormalView := keybase1.FolderNormalView{}
 		currentFavFound := false
 
 		// First check for any current automatically-resolving
@@ -412,8 +412,8 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 				return keybase1.FavoritesResult{}, err
 			}
 			if s != keybase1.FolderConflictType_NONE {
-				folderServerView.ResolvingConflict = true
-				folderServerView.StuckInConflict =
+				folderNormalView.ResolvingConflict = true
+				folderNormalView.StuckInConflict =
 					s == keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
 				currentFavFound = true
 			}
@@ -422,13 +422,13 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		p := tlfhandle.BuildProtocolPathForTlfName(t, name)
 		localViews, ok := clearedMap[p.String()]
 		if ok {
-			folderServerView.LocalViews = localViews
+			folderNormalView.LocalViews = localViews
 			currentFavFound = true
 		}
 
 		if currentFavFound {
 			conflictState :=
-				keybase1.NewConflictStateWithServerview(folderServerView)
+				keybase1.NewConflictStateWithNormalview(folderNormalView)
 			favs.FavoriteFolders[i].ConflictState = &conflictState
 			found++
 		}
