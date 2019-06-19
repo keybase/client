@@ -4,7 +4,7 @@ import WhatIsStellarModal from '.'
 
 const load = () => {
   Sb.storiesOf('Wallets', module).add('What is Stellar? Modal', () => (
-    <WhatIsStellarModal onCancel={Sb.action('onClose')} customCancelText="Close" />
+    <WhatIsStellarModal onClose={Sb.action('onClose')} />
   ))
 }
 

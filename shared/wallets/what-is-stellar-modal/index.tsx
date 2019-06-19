@@ -11,6 +11,7 @@ const WhatIsStellarModal = (props: any) => {
           sizeType="Huge"
           color={Styles.globalColors.black}
           boxStyle={styles.stellarIcon}
+          style={styles.stellarIcon}
         />
         <Kb.Text type="Header" style={styles.header}>
           What is Stellar?
@@ -62,8 +63,10 @@ const styles = Styles.styleSheetCreate({
       width: 560,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.mediumLarge,
-      paddingRight: Styles.globalMargins.mediumLarge,
+      marginBottom: Styles.globalMargins.mediumLarge,
+      marginLeft: Styles.globalMargins.mediumLarge,
+      marginRight: Styles.globalMargins.mediumLarge,
+      marginTop: Styles.globalMargins.xsmall,
     },
   }),
   header: {
@@ -80,4 +83,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Kb.HeaderOrPopup(WhatIsStellarModal)
+export default (props: any) => {
+  const Component = Kb.HeaderOrPopup(WhatIsStellarModal)
+  return <Component onCancel={props.onClose} customCancelText="Close" borderless={true} />
+}
