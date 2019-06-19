@@ -18,27 +18,29 @@ protocol favorite {
 }
 
   enum ConflictStateType {
-    AutomaticResolving_0,
-    ManualResolvingServerView_1,
+    NormalView_1,
     ManualResolvingLocalView_2
   }
 
-  record ConflictAutomaticResolving {
-    boolean isStuck;
-  }
-
-  record ConflictManualResolvingServerView {
+  record FolderNormalView {
+    // Set to true if we're trying to automatically resolve conflict in this
+    // folder. Whether or not there's a local view version of this TLF doesn't
+    // affect this.
+    boolean resolvingConflict;
+    // Set to true if we tried to automatically resolve conflict in this folder
+    // and failed. Whether or not there's a local view version of this TLF
+    // doesn't affect this.
+    boolean stuckInConflict;
     array<Path> localViews;
   }
 
-  record ConflictManualResolvingLocalView {
-    Path serverView;
+  record FolderConflictManualResolvingLocalView {
+    Path normalView;
   }
 
   variant ConflictState switch (ConflictStateType conflictStateType) {
-    case AutomaticResolving: ConflictAutomaticResolving;
-    case ManualResolvingServerView: ConflictManualResolvingServerView;
-    case ManualResolvingLocalView: ConflictManualResolvingLocalView;
+    case NormalView: FolderNormalView;
+    case ManualResolvingLocalView: FolderConflictManualResolvingLocalView;
   }
 
   /**

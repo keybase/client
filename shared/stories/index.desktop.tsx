@@ -30,10 +30,12 @@ const rootDecorator = story => (
   </div>
 )
 
+const store = Sb.createStoreWithCommon()
+
 const load = () => {
   initDesktopStyles()
   addDecorator(rootDecorator)
-  addDecorator(Sb.createPropProviderWithCommon())
+  addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
   Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }
 
