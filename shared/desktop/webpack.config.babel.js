@@ -48,7 +48,7 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga|react-gateway))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
@@ -116,6 +116,11 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
+        ...(isHot
+          ? {
+              alias: {'react-dom': '@hot-loader/react-dom'},
+            }
+          : {}),
         extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
       },
       stats: {
