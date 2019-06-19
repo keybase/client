@@ -92,8 +92,9 @@ export const createProvider = store => story => {
   )
 }
 
+// Plumb dispatches through storybook actions panel
 const actionLog = () => next => a => {
-  action()
+  action('ReduxDispatch')(a)
   return next(a)
 }
 
