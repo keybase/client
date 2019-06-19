@@ -5,7 +5,8 @@ import * as Tabs from '../../constants/tabs'
 import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
 import './tab-bar.css'
-
+import flags from '../../util/feature-flags'
+import {asRows as accountSwitcherAsRows} from '../account-switcher/index'
 type Props = {
   badgeNumbers: {[K in string]: number}
   fullname: string
@@ -49,7 +50,7 @@ class TabBar extends React.PureComponent<Props, State> {
     onClick: this.props.onProfileClick,
     title: '',
     view: (
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true}>
+      <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
         <Kb.ConnectedNameWithIcon
           username={this.props.username}
           onClick={() => {
@@ -67,11 +68,32 @@ class TabBar extends React.PureComponent<Props, State> {
   })
   _menuItems = () =>
     [
-      {
-        onClick: this.props.onProfileClick,
-        title: 'View profile',
-      },
-      'Divider',
+      ...(flags.fastAccountSwitch
+        ? accountSwitcherAsRows({
+            // TODO: factor these props up into the container for the tab bar
+            onAddAccount: () => {},
+            onCreateAccount: () => {},
+            onSelectAccount: (user: string) => {},
+            rows: [
+              {
+                realName: 'Jakob Test',
+                signedIn: true,
+                username: 'jakob224',
+              },
+              {
+                realName: 'Livingston Reallylongnameheimer',
+                signedIn: false,
+                username: 'jakob225',
+              },
+            ],
+          })
+        : [
+            {
+              onClick: this.props.onProfileClick,
+              title: 'View profile',
+            },
+            'Divider' as const,
+          ]),
       {
         onClick: this.props.onSettings,
         title: 'Settings',

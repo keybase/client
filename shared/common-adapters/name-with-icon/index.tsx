@@ -26,7 +26,7 @@ export type NameWithIconProps = {
   metaOne?: string | React.ReactNode
   metaStyle?: Styles.StylesCrossPlatform
   metaTwo?: string | React.ReactElement // If components such as metaOne or
-  // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,,
+  // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: () => void
   clickType?: 'tracker' | 'profile'
