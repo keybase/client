@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
+
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -46,7 +48,8 @@ func TestPackager(t *testing.T) {
 	store := attachments.NewStoreTesting(log, nil, tc.G)
 	s3Signer := &ptsigner{}
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
-	packager := NewPackager(tc.G, log, store, s3Signer, ri)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	packager := NewPackager(g, store, s3Signer, ri)
 	clock := clockwork.NewFakeClock()
 	packager.cache.setClock(clock)
 	srvFile := func(w io.Writer, name string) {

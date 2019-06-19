@@ -25,7 +25,10 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	if err != nil {
 		return res, err
 	}
-	mapURL := maps.GetMapURL(ctx, lat, lon)
+	mapURL, err := maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon)
+	if err != nil {
+		return res, err
+	}
 	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
 	desc := "Shared with /location."
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlGenericRaw{

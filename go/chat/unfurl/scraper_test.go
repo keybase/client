@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
+
 	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -88,8 +90,8 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 
 func TestScraper(t *testing.T) {
 	tc := libkb.SetupTest(t, "scraper", 1)
-
-	scraper := NewScraper(tc.G)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -295,8 +297,8 @@ func TestScraper(t *testing.T) {
 
 func TestGiphySearchScrape(t *testing.T) {
 	tc := libkb.SetupTest(t, "giphyScraper", 1)
-
-	scraper := NewScraper(tc.G)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -327,7 +329,8 @@ func TestGiphySearchScrape(t *testing.T) {
 
 func TestMapScraper(t *testing.T) {
 	tc := libkb.SetupTest(t, "mapScraper", 1)
-	scraper := NewScraper(tc.G)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
 	lat := 40.800099
 	lon := -73.969341
 	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f", mapsDomain, lat, lon)

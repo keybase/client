@@ -8,17 +8,22 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context/ctxhttp"
 )
 
-const mapsAPIKey = "AIzaSyAL0pIEYTxyVp6T5aK8eHQclmtNxCDEmZE"
 const MapsProxy = "maps-proxy.core.keybaseapi.com"
 const mapsHost = "maps.googleapis.com"
 
-func GetMapURL(ctx context.Context, lat, lon float64) string {
+func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat, lon float64) (string, error) {
+	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf(
 		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&zoom=15&size=320x200&key=%s",
-		MapsProxy, lat, lon, lat, lon, mapsAPIKey)
+		MapsProxy, lat, lon, lat, lon, key.Googlemaps()), nil
 }
 
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
