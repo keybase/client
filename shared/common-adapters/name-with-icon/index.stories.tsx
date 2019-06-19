@@ -14,7 +14,7 @@ const innerClick = evt => {
 }
 
 const provider = Sb.createPropProviderWithCommon(
-  Sb.PropProviders.Avatar(['chrisnojima'], ['chrisnojima']),
+  Sb.PropProviders.Avatar(['both'], ['both']),
   Sb.PropProviders.Usernames(['cecileb', 'chrisnojima'], 'akalin')
 )
 
@@ -64,20 +64,8 @@ const load = () => {
           metaOne="Miles Steele"
           size="small"
         />
-        <NameWithIcon
-          {...commonProps}
-          username="chrisnojima"
-          metaOne="Chris Nojima"
-          metaTwo="Admin"
-          size="big"
-        />
-        <NameWithIcon
-          {...commonProps}
-          username="chrisnojima"
-          metaOne="Chris Nojima"
-          metaTwo="Admin"
-          size="huge"
-        />
+        <NameWithIcon {...commonProps} username="both" metaOne="Chris Nojima" metaTwo="Admin" size="big" />
+        <NameWithIcon {...commonProps} username="both" metaOne="Chris Nojima" metaTwo="Admin" size="huge" />
       </React.Fragment>
     ))
     .add('Horizontal', () => (

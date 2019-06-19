@@ -149,10 +149,11 @@ const sendMergeProps = (
   }
 }
 
-export const SendPaymentPopup = Container.connect(
+export const SendPaymentPopup = Container.namedConnect(
   sendMapStateToProps,
   sendMapDispatchToProps,
-  sendMergeProps
+  sendMergeProps,
+  'PaymentPopup'
 )(PaymentPopup) as any
 
 // MessageRequestPayment ================================
@@ -242,10 +243,11 @@ const requestMergeProps = (
   }
 }
 
-const RequestPaymentPopup = Container.connect(
+const RequestPaymentPopup = Container.namedConnect(
   requestMapStateToProps,
   requestMapDispatchToProps,
-  requestMergeProps
+  requestMergeProps,
+  'PaymentPopup'
 )(PaymentPopup) as any
 
 // Wrapper ==============================================
