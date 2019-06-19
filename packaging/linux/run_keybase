@@ -120,12 +120,7 @@ start_background() {
 
       echo Launching Keybase GUI...
       gui_log="$logdir/Keybase.app.log"
-      # Allow distributions to change the location of the gui as long as it's in PATH.
-      if command -v Keybase &> /dev/null; then
-          Keybase &>> "$gui_log" &
-      else
-          /opt/keybase/Keybase &>> "$gui_log" &
-      fi
+      "$KEYBASE" &>> "$gui_log" &
   fi
 }
 
@@ -174,6 +169,13 @@ init() {
 
   # Remove legacy envfiles; now stored in config directory by ctl init
   rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
+
+  # Allow distributions to change the location of the gui as long as it's in PATH.
+  if command -v Keybase &> /dev/null; then
+      KEYBASE=Keybase
+  else
+      KEYBASE=/opt/keybase/Keybase
+  fi
 }
 
 check_for_url_scheme_launch() {
@@ -183,13 +185,9 @@ check_for_url_scheme_launch() {
   # by checking argv.
 
   # If Keybase is already running, then pass it the link and exit.
-  if [[ $# -eq 1 && "$1" == web+stellar:* ]]; then
-      if pgrep -u "$USER" 'Keybase$' &> /dev/null; then
-          if command -v Keybase &> /dev/null; then
-              Keybase $1 &
-          else
-              /opt/keybase/Keybase $1 &
-          fi
+  if [[ $# -eq 1 && "$1" =~ ^web+.* ]]; then
+      if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
+          "$KEYBASE" "$1" &
           exit
       fi
   fi
@@ -251,9 +249,12 @@ while getopts "afghk" flag; do
     esac
 done
 
-check_for_url_scheme_launch $@
-
 init
+
+# Exit early if run caused by a URL scheme invocation and Keybase is already
+# running; otherwise fall through to start Keybase.
+check_for_url_scheme_launch "$@"
+
 # Always stop any running services. With systemd, we could've decided to just
 # `start` services and no-op if they're already running, however:
 # 1) We still need to handle the case where services started outside systemd

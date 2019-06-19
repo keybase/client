@@ -73,7 +73,7 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
 
   // The new instance might be due to a URL schema handler launch.
   logger.info('Launched with URL', commandLine)
-  if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
+  if (commandLine.length > 1 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
     sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
   }
 }
@@ -158,7 +158,7 @@ const createMainWindow = () => {
       // stash a startupURL to be dispatched when we're ready for it.
       sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
       startupURL = null
-    } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('web+stellar:')) {
+    } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
       // Windows and Linux instead store a launch URL in argv.
       sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
     }
