@@ -920,7 +920,11 @@ func (p *blockPrefetcher) stopIfNeeded(
 	if hasRoom {
 		db := p.config.GetSettingsDB()
 		if db != nil {
-			if settings, err := db.Settings(ctx); err != nil && req.action.CacheType() == DiskBlockSyncCache && howMuchRoom < settings.SpaceAvailableNotificationThreshold {
+			if settings, err := db.Settings(ctx); err == nil &&
+				req.action.CacheType() == DiskBlockSyncCache &&
+				howMuchRoom < settings.SpaceAvailableNotificationThreshold {
+				// If a notification threshold is configured, we send a
+				// notificaiton here.
 				p.sendOverallSyncStatusNotification()
 			}
 		}
