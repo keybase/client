@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
@@ -8,7 +9,7 @@ import {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/me
 import * as _CopyText from '../common-adapters/copy-text'
 import {NameWithIconProps} from '../common-adapters/name-with-icon'
 import {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
-import {createPropProvider, createProvider, action} from './storybook.shared'
+import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import {unescapePath} from '../constants/fs'
@@ -180,7 +181,18 @@ export const createPropProviderWithCommon = (custom: Object | null) =>
   // @ts-ignore not sure
   createPropProvider({
     ...Common(),
+    ...createStoreWithCommon(),
     ...(custom || {}),
   })
 
-export const createStoreWithCommon = () => rootReducer(undefined, {type: 'ignore'})
+export const createStoreWithCommon = () => {
+  const root = rootReducer(undefined, {type: 'ignore'})
+  return {
+    ...root,
+    config: root.config.merge({
+      followers: I.Set(['max', 'akalin', 'followers', 'both']),
+      following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
+      username: 'ayoubd',
+    }),
+  }
+}

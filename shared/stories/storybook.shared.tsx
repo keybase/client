@@ -9,6 +9,7 @@ import Box from '../common-adapters/box'
 import Text from '../common-adapters/text'
 import ClickableBox from '../common-adapters/clickable-box'
 import RandExp from 'randexp'
+import * as PP from './prop-providers'
 
 export type SelectorMap = {[K in string]: (arg0: any) => any | Object}
 
@@ -45,7 +46,7 @@ class DestBox extends React.Component {
  */
 // Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
 // work around this issue
-// TODO remove this and move to createProvider below
+// TODO remove this and move to use MockStore instead
 let uniqueProviderKey = 1
 const createPropProvider = (...maps: SelectorMap[]) => {
   const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
@@ -74,33 +75,18 @@ const createPropProvider = (...maps: SelectorMap[]) => {
   )
 }
 
-export const createProvider = store => (story): any => (
-  // @ts-ignore
-  <Provider
-    key={`storyprovider:${uniqueProviderKey++}`}
-    store={createStore(state => state, store)}
-    data={store}
-  >
-    <GatewayProvider>
-      <React.Fragment>
-        <StorybookErrorBoundary children={story()} />
-        <GatewayDest component={DestBox} name="popup-root" />
-      </React.Fragment>
-    </GatewayProvider>
-  </Provider>
-)
-
 // Plumb dispatches through storybook actions panel
 const actionLog = () => next => a => {
   action('ReduxDispatch')(a)
   return next(a)
 }
 
+// Includes common old-style propProvider temporarily
 export const MockStore = ({store, children}): any => (
   // @ts-ignore
   <Provider
     key={`storyprovider:${uniqueProviderKey++}`}
-    store={createStore(state => state, store, applyMiddleware(actionLog))}
+    store={createStore(state => state, {...store, ...PP.Common()}, applyMiddleware(actionLog))}
     merged={store}
   >
     <GatewayProvider>

@@ -179,7 +179,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   }
 }
 
-const ConnectedAvatar = Container.namedConnect(
+const ConnectedAvatar = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -234,8 +234,7 @@ const ConnectedAvatar = Container.namedConnect(
       style,
       url,
     }
-  },
-  'Avatar'
+  }
 )(Avatar)
 
 const mockOwnToViewProps = (
