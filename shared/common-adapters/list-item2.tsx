@@ -72,7 +72,7 @@ const ListItem = (props: Props) => (
       {props.statusIcon && (
         <Kb.Box2
           direction="vertical"
-          style={statusIconStyles[props.type === 'Small' ? 'small' : 'large']}
+          style={getStatusIconStyle(props)}
           alignSelf="flex-start"
           alignItems="flex-end"
         >
@@ -82,18 +82,22 @@ const ListItem = (props: Props) => (
       {props.icon && (
         <Kb.Box2
           direction="vertical"
-          style={
-            iconStyles[props.type === 'Small' ? 'small' : 'large'][
-              props.statusIcon ? 'withStatusIcon' : 'noStatusIcon'
-            ]
-          }
+          style={getIconStyle(props)}
           centerChildren={true}
           alignSelf="flex-start"
         >
           {props.icon}
         </Kb.Box2>
       )}
-      <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
+      <Kb.Box2
+        direction="horizontal"
+        style={
+          // If this becomes a problem, memoize different heights we use.
+          props.height
+            ? Styles.collapseStyles([getContainerStyles(props), {minHeight: props.height}])
+            : getContainerStyles(props)
+        }
+      >
         {!props.firstItem && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2 fullHeight={true} direction="horizontal" style={styles.bodyContainer}>
@@ -106,11 +110,7 @@ const ListItem = (props: Props) => (
             fade: props.onlyShowActionOnHover === 'fade',
             grow: props.onlyShowActionOnHover === 'grow',
           })}
-          style={
-            actionStyles[props.type === 'Small' ? 'small' : 'large'][
-              props.onlyShowActionOnHover === 'grow' ? 'isGrowOnHover' : 'notGrowOnHover'
-            ]
-          }
+          style={getActionStyle(props)}
           alignSelf="flex-start"
         >
           {props.action}
@@ -125,7 +125,8 @@ export const largeHeight = Styles.isMobile ? 64 : 56
 const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 const statusIconWidth = Styles.isMobile ? 32 : 32
-const styles = Styles.styleSheetCreate({
+
+const _styles = {
   actionLargeContainer: {
     alignItems: 'center',
     flexGrow: 0,
@@ -133,7 +134,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     marginRight: 8,
     position: 'relative',
-  },
+  } as const,
   actionSmallContainer: {
     alignItems: 'center',
     flexGrow: 0,
@@ -141,7 +142,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     marginRight: 8,
     position: 'relative',
-  },
+  } as const,
   bodyContainer: {
     alignItems: 'center',
     flexGrow: 1,
@@ -149,164 +150,199 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     maxWidth: '100%',
     position: 'relative',
-  },
+  } as const,
   clickableBoxLarge: {
     flexShrink: 0,
     minHeight: largeHeight,
     width: '100%',
-  },
+  } as const,
   clickableBoxSmall: {
     flexShrink: 0,
     minHeight: smallHeight,
     width: '100%',
-  },
+  } as const,
   contentContainer: {
     flexGrow: 1,
     position: 'relative',
-  },
+  } as const,
   divider: {
     left: 0,
     position: 'absolute',
     right: 0,
     top: 0,
-  },
-  heightLarge: {minHeight: largeHeight},
-  heightSmall: {minHeight: smallHeight},
+  } as const,
+  heightLarge: {minHeight: largeHeight} as const,
+  heightSmall: {minHeight: smallHeight} as const,
   icon: {
     position: 'absolute',
-  },
+  } as const,
   iconLarge: {
     minHeight: largeHeight,
     width: Styles.isMobile ? 75 : 72,
-  },
+  } as const,
   iconSmall: {
     minHeight: smallHeight,
     width: Styles.isMobile ? 60 : 56,
-  },
+  } as const,
   rowLarge: {
     alignItems: 'center',
     minHeight: largeHeight,
     position: 'relative',
-  },
+  } as const,
   rowSmall: {
     alignItems: 'center',
     minHeight: smallHeight,
     position: 'relative',
-  },
+  } as const,
   statusIcon: {
     justifyContent: 'center',
     position: 'absolute',
     width: statusIconWidth,
-  },
-})
-
-const statusIconStyles = {
-  large: Styles.collapseStyles([styles.statusIcon, styles.heightLarge]),
-  small: Styles.collapseStyles([styles.statusIcon, styles.heightSmall]),
+  } as const,
 }
 
-const iconStyles = {
-  large: {
-    noStatusIcon: Styles.collapseStyles([styles.icon, styles.iconLarge]),
-    withStatusIcon: Styles.collapseStyles([styles.icon, styles.iconLarge, {left: statusIconWidth}]),
+const _statusIconStyles = {
+  statusIconLarge: {
+    ..._styles.statusIcon,
+    ..._styles.heightLarge,
   },
-  small: {
-    noStatusIcon: Styles.collapseStyles([styles.icon, styles.iconSmall]),
-    withStatusIcon: Styles.collapseStyles([styles.icon, styles.iconSmall, {left: statusIconWidth}]),
+  statusIconSmall: {
+    ..._styles.statusIcon,
+    ..._styles.heightSmall,
+  },
+}
+
+const _iconStyles = {
+  iconLargeWithNoStatusIcon: {
+    ..._styles.icon,
+    ..._styles.iconLarge,
+  },
+  iconLargeWithStatusIcon: {
+    ..._styles.icon,
+    ..._styles.iconLarge,
+    left: statusIconWidth,
+  },
+  iconSmallWithNoStatusIcon: {
+    ..._styles.icon,
+    ..._styles.iconSmall,
+  },
+  iconSmallWithStatusIcon: {
+    ..._styles.icon,
+    ..._styles.iconSmall,
+    left: statusIconWidth,
   },
 }
 
 // Using margin and keeping the icon on the let using absolute is to work around an issue in RN where
 // the nested views won't grow and still retain their widths correctly
-const containerStyles = {
-  large: {
-    noStatusIcon: {
-      noIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightLarge,
-        {marginLeft: Styles.globalMargins.tiny},
-      ]),
-      withIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightLarge,
-        {marginLeft: largeIconWidth},
-      ]),
-    },
-    withStatusIcon: {
-      NoIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightLarge,
-        {marginLeft: statusIconWidth},
-      ]),
-      withIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightLarge,
-        {marginLeft: largeIconWidth + statusIconWidth},
-      ]),
-    },
+const _containerStyles = {
+  containerLargeNoStatusIconNoIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightLarge,
+    marginLeft: Styles.globalMargins.tiny,
   },
-  small: {
-    noStatusIcon: {
-      noIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightSmall,
-        {marginLeft: Styles.globalMargins.tiny},
-      ]),
-      withIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightSmall,
-        {marginLeft: smallIconWidth},
-      ]),
-    },
-    withStatusIcon: {
-      noIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightSmall,
-        {marginLeft: statusIconWidth},
-      ]),
-      withIcon: Styles.collapseStyles([
-        styles.contentContainer,
-        styles.heightSmall,
-        {marginLeft: smallIconWidth + statusIconWidth},
-      ]),
-    },
+  containerLargeNoStatusIconWithIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightLarge,
+    marginLeft: largeIconWidth,
+  },
+  containerLargeWithStatusIconNoIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightLarge,
+    marginLeft: statusIconWidth,
+  },
+  containerLargeWithStatusIconWithIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightLarge,
+    marginLeft: largeIconWidth + statusIconWidth,
+  },
+  containerSmallNoStatusIconNoIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightSmall,
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  containerSmallNoStatusIconWithIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightSmall,
+    marginLeft: smallIconWidth,
+  },
+  containerSmallWithStatusIconNoIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightSmall,
+    marginLeft: statusIconWidth,
+  },
+  containerSmallWithStatusIconWithIcon: {
+    ..._styles.contentContainer,
+    ..._styles.heightSmall,
+    marginLeft: smallIconWidth + statusIconWidth,
   },
 }
 
-const getContainerStyles = (props: Props) => {
-  const beforeHeight =
-    containerStyles[props.type === 'Small' ? 'small' : 'large'][
-      props.statusIcon ? 'withStatusIcon' : 'noStatusIcon'
-    ][props.icon ? 'withIcon' : 'noIcon']
-  // If this becomes a problem, memoize different heights we use.
-  return props.height ? Styles.collapseStyles([beforeHeight, {minHeight: props.height}]) : beforeHeight
+const _actionStyles = {
+  actionLargeIsGrowOnHover: {
+    ..._styles.actionLargeContainer,
+    ..._styles.heightLarge,
+    justifyContent: 'flex-end',
+  } as const,
+  actionLargeNotGrowOnHover: {
+    ..._styles.actionLargeContainer,
+    ..._styles.heightLarge,
+  } as const,
+  actionSmallIsGrowOnHover: {
+    ..._styles.actionSmallContainer,
+    ..._styles.heightSmall,
+    justifyContent: 'flex-end',
+  } as const,
+  actionSmallNotGrowOnHover: {
+    ..._styles.actionSmallContainer,
+    ..._styles.heightSmall,
+  } as const,
 }
 
-const actionStyles = {
-  large: {
-    isGrowOnHover: Styles.collapseStyles([
-      styles.actionLargeContainer,
-      {
-        // This provides the correct behavior for grow where the actions show up
-        // and the content slides left from on top of the actions.
-        justifyContent: 'flex-end',
-      },
-      styles.heightLarge,
-    ]),
-    notGrowOnHover: Styles.collapseStyles([styles.actionLargeContainer, styles.heightLarge]),
-  },
-  small: {
-    isGrowOnHover: Styles.collapseStyles([
-      styles.actionSmallContainer,
-      {
-        // This provides the correct behavior for grow where the actions show up
-        // and the content slides left from on top of the actions.
-        justifyContent: 'flex-end',
-      },
-      styles.heightSmall,
-    ]),
-    notGrowOnHover: Styles.collapseStyles([styles.actionSmallContainer, styles.heightSmall]),
-  },
-}
+const styles = Styles.styleSheetCreate({
+  ..._styles,
+  ..._statusIconStyles,
+  ..._iconStyles,
+  ..._containerStyles,
+  ..._actionStyles,
+})
+
+const getStatusIconStyle = (props: Props) =>
+  props.type === 'Small' ? styles.statusIconSmall : styles.statusIconLarge
+
+const getIconStyle = (props: Props) =>
+  props.type === 'Small'
+    ? props.statusIcon
+      ? styles.iconSmallWithStatusIcon
+      : styles.iconSmallWithNoStatusIcon
+    : props.statusIcon
+    ? styles.iconLargeWithStatusIcon
+    : styles.iconLargeWithNoStatusIcon
+
+const getContainerStyles = (props: Props) =>
+  props.type === 'Small'
+    ? props.statusIcon
+      ? props.icon
+        ? styles.containerSmallWithStatusIconWithIcon
+        : styles.containerSmallWithStatusIconNoIcon
+      : props.icon
+      ? styles.containerSmallNoStatusIconWithIcon
+      : styles.containerSmallNoStatusIconNoIcon
+    : props.statusIcon
+    ? props.icon
+      ? styles.containerLargeWithStatusIconWithIcon
+      : styles.containerLargeWithStatusIconNoIcon
+    : props.icon
+    ? styles.containerLargeNoStatusIconWithIcon
+    : styles.containerLargeNoStatusIconNoIcon
+
+const getActionStyle = (props: Props) =>
+  props.type === 'Small'
+    ? props.onlyShowActionOnHover
+      ? styles.actionSmallIsGrowOnHover
+      : styles.actionSmallNotGrowOnHover
+    : props.onlyShowActionOnHover
+    ? styles.actionLargeIsGrowOnHover
+    : styles.actionLargeNotGrowOnHover
 
 export default ListItem
