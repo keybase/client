@@ -199,7 +199,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 	}
 
-	xprt.Proxy = MakeProxy(env.GetProxyType(), env.GetProxy())
+	xprt.Proxy = MakeProxy(env)
 
 	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {
 		xprt.Proxy = func(req *http.Request) (*url.URL, error) {
