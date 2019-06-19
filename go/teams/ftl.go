@@ -1131,6 +1131,9 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 
 func (f *FastTeamChainLoader) computeSeedChecks(m libkb.MetaContext, state *keybase1.FastTeamData) (err error) {
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
+	if state.SeedChecks == nil {
+		state.SeedChecks = make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamSeedCheck)
+	}
 	return computeSeedChecks(
 		m.Ctx(),
 		state.ID(),
