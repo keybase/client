@@ -53,7 +53,7 @@ export type _Assets = {
   balanceAvailableToSend: string
   balanceTotal: string
   infoUrl: string
-  infoUrlDesc: string
+  infoUrlText: string
   issuerAccountID: string
   issuerName: string
   issuerVerifiedDomain: string

@@ -138,6 +138,7 @@ const emptyAsset = {
   code: '',
   desc: '',
   infoUrl: '',
+  infoUrlText: '',
   issuer: '',
   issuerName: '',
   type: 'native',

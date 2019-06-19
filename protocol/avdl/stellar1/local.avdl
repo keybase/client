@@ -42,8 +42,9 @@ protocol local {
 
     array<AccountReserve> reserves; // only added to native (XLM) asset.
 
-    string desc;    // 'Exchange', 'View details', etc., or empty
-    string infoUrl; // 'https://...' or empty
+    string desc;
+    string infoUrl;                 // 'https://...' or empty
+    string infoUrlText;             // the text to use in the infoUrl link
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 

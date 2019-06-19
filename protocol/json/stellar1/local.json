@@ -115,6 +115,10 @@
         {
           "type": "string",
           "name": "infoUrl"
+        },
+        {
+          "type": "string",
+          "name": "infoUrlText"
         }
       ]
     },

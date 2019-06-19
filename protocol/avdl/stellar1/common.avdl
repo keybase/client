@@ -20,6 +20,7 @@ protocol common {
     string issuerName;     // 'Stronghold' or empty if it didn't exist, XLM, or unverified
     string desc; // 'Worthwhile token' or empty
     string infoUrl; // 'https://...' or empty
+    string infoUrlText; // 'Exchange' for an exchange, 'View details' for anything else
   }
 
   record AssetListResult {

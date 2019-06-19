@@ -22,7 +22,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     code: asset.assetCode,
     equivAvailableToSend: `${asset.availableToSendWorth}`,
     equivBalance: `${asset.worth}`,
-    infoUrlDesc: asset.infoUrlDesc,
+    infoUrlText: asset.infoUrlText,
     issuerAccountID: asset.issuerAccountID,
     issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,

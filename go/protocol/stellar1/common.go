@@ -75,6 +75,7 @@ type Asset struct {
 	IssuerName     string `codec:"issuerName" json:"issuerName"`
 	Desc           string `codec:"desc" json:"desc"`
 	InfoUrl        string `codec:"infoUrl" json:"infoUrl"`
+	InfoUrlText    string `codec:"infoUrlText" json:"infoUrlText"`
 }
 
 func (o Asset) DeepCopy() Asset {
@@ -86,6 +87,7 @@ func (o Asset) DeepCopy() Asset {
 		IssuerName:     o.IssuerName,
 		Desc:           o.Desc,
 		InfoUrl:        o.InfoUrl,
+		InfoUrlText:    o.InfoUrlText,
 	}
 }
 
