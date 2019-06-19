@@ -530,7 +530,13 @@ func (d DummyTeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.U
 type DummyExternalAPIKeySource struct{}
 
 func (d DummyExternalAPIKeySource) GetKey(ctx context.Context, typ chat1.ExternalAPIKeyTyp) (res chat1.ExternalAPIKey, err error) {
-	return res, errors.New("no key available from dummy")
+	switch typ {
+	case chat1.ExternalAPIKeyTyp_GIPHY:
+		return chat1.NewExternalAPIKeyWithGiphy(""), nil
+	case chat1.ExternalAPIKeyTyp_GOOGLEMAPS:
+		return chat1.NewExternalAPIKeyWithGooglemaps(""), nil
+	}
+	return res, errors.New("dummy doesnt know about key typ")
 }
 
 func (d DummyExternalAPIKeySource) GetAllKeys(ctx context.Context) (res []chat1.ExternalAPIKey, err error) {

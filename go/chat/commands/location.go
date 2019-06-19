@@ -39,7 +39,7 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	}
 	if _, err := h.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, tlfName,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:  "_Sharing my location..._",
+			Body:  "_Sharing my location (using /location)..._",
 			Coord: &coord,
 		}), chat1.MessageType_TEXT, nil, replyTo); err != nil {
 		return err
@@ -70,5 +70,5 @@ var locationTitle = `*/location*`
 
 var locationUsage = `Location posts consist of your current location coordinate, and a map rendered through the use of Google Maps. We take care to guard your privacy: https://keybase.io/docs/chat/location
 
-- The location sender obtains the map from Google without using their IP address directly. The map is then sent as an encrypted attachment into the conversation. 
+- The location sender obtains the map from Google without using their IP address directly. The map is then sent as an encrypted attachment into the conversation.
 - Other members in the conversation obtain the map as an encrypted attachment, and never talk to Google at all.`

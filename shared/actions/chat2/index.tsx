@@ -2808,7 +2808,7 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
   })
 }
 
-const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload) => {
+const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload, logger) => {
   const response = action.payload.response
   if (isMobile) {
     navigator.geolocation.getCurrentPosition(
@@ -2818,7 +2818,7 @@ const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordina
       {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
     )
   } else {
-    // desktop doesn't really work, so just stick us in SF
+    // doesn't really work and is disabled in the service, so just stick us in SF
     response.result({
       accuracy: 21.6747,
       lat: 37.785834,

@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 
 	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/libkb"
@@ -90,6 +91,7 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 
 func TestScraper(t *testing.T) {
 	tc := libkb.SetupTest(t, "scraper", 1)
+	defer tc.Cleanup()
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	scraper := NewScraper(g)
 
@@ -297,6 +299,7 @@ func TestScraper(t *testing.T) {
 
 func TestGiphySearchScrape(t *testing.T) {
 	tc := libkb.SetupTest(t, "giphyScraper", 1)
+	defer tc.Cleanup()
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	scraper := NewScraper(g)
 
@@ -329,11 +332,15 @@ func TestGiphySearchScrape(t *testing.T) {
 
 func TestMapScraper(t *testing.T) {
 	tc := libkb.SetupTest(t, "mapScraper", 1)
-	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{
+		ExternalAPIKeySource: types.DummyExternalAPIKeySource{},
+	})
 	scraper := NewScraper(g)
 	lat := 40.800099
 	lon := -73.969341
-	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f", mapsDomain, lat, lon)
+	acc := 65.00
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", mapsDomain, lat, lon, acc)
 	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
 	require.NoError(t, err)
 	typ, err := unfurl.UnfurlType()

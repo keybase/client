@@ -43,6 +43,7 @@ func (p paramsRemote) GetS3Params(ctx context.Context, convID chat1.Conversation
 
 func TestPackager(t *testing.T) {
 	tc := libkb.SetupTest(t, "packager", 1)
+	defer tc.Cleanup()
 
 	log := logger.NewTestLogger(t)
 	store := attachments.NewStoreTesting(log, nil, tc.G)
