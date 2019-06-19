@@ -244,6 +244,9 @@ protocol teams {
     // and Chain.Last.
     boolean frozen;
 
+    // If we decide to make incremental upgrades, we bump this.
+    int subversion;
+
     // If set, cannot be loaded ever again. All other members are invalid.
     boolean tombstoned;
 

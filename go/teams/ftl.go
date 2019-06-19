@@ -56,8 +56,10 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
-		storage:         storage.NewFTLStorage(g),
 	}
+	ret.storage = storage.NewFTLStorage(g, func(mctx libkb.MetaContext, s *keybase1.FastTeamData) (bool, error) {
+		return ret.upgradeStoredState(mctx, s)
+	})
 	return ret
 }
 
@@ -1204,6 +1206,7 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 		return &tmp
 	}
 	return &keybase1.FastTeamData{
+		Subversion:                1,
 		PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
 		SeedChecks:                make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamSeedCheck),
 		ReaderKeyMasks:            make(map[keybase1.TeamApplication](map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)),
@@ -1272,6 +1275,26 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 // updateCache puts the new version of the state into the cache on the team's ID.
 func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.FastTeamData) {
 	f.storage.Put(m, state)
+}
+
+func (f *FastTeamChainLoader) upgradeStoredState(mctx libkb.MetaContext, state *keybase1.FastTeamData) (changed bool, err error) {
+	if state == nil {
+		return false, nil
+	}
+
+	changed = false
+	if state.Subversion == 0 {
+		err = f.computeSeedChecks(mctx, state)
+		if err != nil {
+			mctx.Debug("failed in upgrade of subversion 0->1: %s", err)
+			return false, err
+		}
+		mctx.Debug("Upgrade to subversion 1")
+		state.Subversion = 1
+		changed = true
+	}
+
+	return changed, nil
 }
 
 // loadLocked is the inner loop for loading team. Should be called when holding the lock
