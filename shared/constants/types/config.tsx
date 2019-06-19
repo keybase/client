@@ -1,4 +1,5 @@
 import * as I from 'immutable'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {Tab} from '../tabs'
 import {DeviceID} from './rpc-gen'
@@ -56,5 +57,6 @@ export type _State = {
   uid: string
   userActive: boolean
   username: string
+  userReacjis: RPCTypes.UserReacjis | null
 }
 export type State = I.RecordOf<_State>

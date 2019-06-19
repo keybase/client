@@ -160,6 +160,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         loggedIn: action.payload.loggedIn,
         registered: action.payload.registered,
         uid: action.payload.uid,
+        userReacjis: action.payload.userReacjis,
         username: action.payload.username,
       })
     case ConfigGen.loggedIn:
@@ -245,6 +246,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
+    case ConfigGen.updateUserReacjis:
+      return state.set('userReacjis', action.payload.userReacjis)
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:

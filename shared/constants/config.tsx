@@ -115,5 +115,6 @@ export const makeState = I.Record<Types._State>({
   startupWasFromPush: false,
   uid: '',
   userActive: true,
+  userReacjis: null,
   username: '',
 })

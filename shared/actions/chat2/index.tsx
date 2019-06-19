@@ -550,7 +550,10 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
     targetMsgID: ru.targetMsgID,
   }))
   logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-  return [Chat2Gen.createUpdateReactions({conversationIDKey, updates})]
+  return [
+    Chat2Gen.createUpdateReactions({conversationIDKey, updates}),
+    ConfigGen.createUpdateUserReacjis({userReacjis: info.userReacjis}),
+  ]
 }
 
 const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {

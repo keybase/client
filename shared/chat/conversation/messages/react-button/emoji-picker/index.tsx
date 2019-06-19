@@ -7,11 +7,22 @@ import {chunk} from 'lodash-es'
 import {memoize} from '../../../../../util/memoize'
 
 // defer loading this until we need to, very expensive
-const getData = memoize(() => {
+const getData = memoize((topReacjis: Array<string>) => {
   const {categories, emojiIndex, emojiNameMap} = require('./data')
+  const allCategories =
+    !!topReacjis && topReacjis.length
+      ? [
+          {
+            category: 'Frequently Used',
+            emojis: topReacjis.map(shortName => emojiNameMap[shortName.replace(/:/g, '')]),
+          },
+          ...categories,
+        ]
+      : categories
+
   // SectionList data is mostly static, map categories here
   // and chunk data within component
-  const emojiSections = categories.map(c => ({
+  const emojiSections = allCategories.map(c => ({
     category: c.category,
     data: {emojis: c.emojis, key: ''},
     key: c.category,
@@ -43,9 +54,11 @@ const maxEmojiSearchResults = 50
 // can render a good initial guess
 let cachedWidth = 0
 let cachedSections = null
-const cacheSections = (width: number, sections: Array<Section>) => {
+let cachedTopReacjis = null
+const cacheSections = (width: number, sections: Array<Section>, topReacjis: Array<string> | null) => {
   cachedWidth = width
   cachedSections = sections
+  cachedTopReacjis = topReacjis
 }
 
 type Section = {
@@ -58,6 +71,7 @@ type Section = {
 }
 
 type Props = {
+  topReacjis: Array<string>
   filter?: string
   onChoose: (emoji: EmojiData) => void
   width: number
@@ -75,12 +89,12 @@ class EmojiPicker extends React.Component<Props, State> {
       // Nothing to do if we don't have a width
       return
     }
-    if (this.props.width === cachedWidth) {
+    if (this.props.width === cachedWidth && this.props.topReacjis === cachedTopReacjis) {
       this.setState(s => (s.sections === cachedSections ? null : {sections: cachedSections}))
       return
     }
 
-    const {emojiSections} = getData()
+    const {emojiSections} = getData(this.props.topReacjis)
     // width is different from cached. make new sections & cache for next time
     let sections = []
     const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
@@ -92,7 +106,7 @@ class EmojiPicker extends React.Component<Props, State> {
       })),
       key: c.key,
     }))
-    cacheSections(this.props.width, sections)
+    cacheSections(this.props.width, sections, this.props.topReacjis)
     this.setState({sections})
   }
 
@@ -109,7 +123,7 @@ class EmojiPicker extends React.Component<Props, State> {
   }
 
   render() {
-    const {getFilterResults} = getData()
+    const {getFilterResults} = getData(this.props.topReacjis)
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
     // to render. Render them directly rather than going through _chunkData
     // pipeline for fast list of results. Go through _chunkData only
