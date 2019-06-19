@@ -1024,6 +1024,7 @@ type UserForSignatures struct {
 func (u UserForSignatures) GetUID() keybase1.UID                  { return u.uid }
 func (u UserForSignatures) GetName() string                       { return u.name.String() }
 func (u UserForSignatures) GetEldestKID() keybase1.KID            { return u.eldestKID }
+func (u UserForSignatures) GetEldestSeqno() keybase1.Seqno        { return u.eldestSeqno }
 func (u UserForSignatures) GetNormalizedName() NormalizedUsername { return u.name }
 func (u UserForSignatures) ToUserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: u.eldestSeqno}

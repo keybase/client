@@ -733,7 +733,7 @@ func (u *User) UpdateEmailProof(m MetaContext, key GenericKey, newEmail string) 
 }
 
 type SigMultiItem struct {
-	Sig3       string                  `json:"sig3,omitempty"`
+	Sig3       *Sig3                   `json:"sig3,omitempty"`
 	Sig        string                  `json:"sig,omitempty"`
 	SigningKID keybase1.KID            `json:"signing_kid"`
 	Type       string                  `json:"type"`
@@ -747,6 +747,12 @@ type SigMultiItem struct {
 type SigMultiItemPublicKeys struct {
 	Encryption keybase1.KID `json:"encryption"`
 	Signing    keybase1.KID `json:"signing"`
+}
+
+type Sig3 struct {
+	Inner string `json:"i,omitempty"`
+	Outer string `json:"o,omitempty"`
+	Sig   string `json:"s,omitempty"`
 }
 
 // PerUserKeyProof creates a proof introducing a new per-user-key generation.

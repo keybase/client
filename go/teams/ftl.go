@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	storage "github.com/keybase/client/go/teams/storage"
 )
 
 //
@@ -34,7 +35,7 @@ type FastTeamChainLoader struct {
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
-	storage *FTLStorage
+	storage *storage.FTLStorage
 
 	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
@@ -55,7 +56,7 @@ func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
 		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
-		storage:         NewFTLStorage(g),
+		storage:         storage.NewFTLStorage(g),
 	}
 	return ret
 }
@@ -281,7 +282,12 @@ func (f *FastTeamChainLoader) deriveSeedAtGeneration(m libkb.MetaContext, gen ke
 		return seed, NewFastLoadError(fmt.Sprintf("no per team key public halves at generation %d", gen))
 	}
 
-	km, err := NewTeamKeyManagerWithSecret(tmp, gen)
+	check, ok := state.SeedChecks[gen]
+	if !ok {
+		return seed, NewFastLoadError(fmt.Sprintf("no per team key seed check at %d", gen))
+	}
+
+	km, err := NewTeamKeyManagerWithSecret(state.ID(), tmp, gen, &check)
 	if err != nil {
 		return seed, err
 	}
@@ -484,6 +490,10 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 			shoppingList.generations = append(shoppingList.generations, gen)
 		}
 	}
+
+	// Let's just get all keys from the past, so figure out the minimal seed value that we have.
+	shoppingList.seedLow = computeSeedLow(state)
+
 	return fresh
 }
 
@@ -503,6 +513,23 @@ func stateHasDownPointers(m libkb.MetaContext, shoppingList *shoppingList, arg f
 	return ret
 }
 
+// computeSeedLow computes the value for ftl_seed_low that we're going to send up to the server for fetches.
+func computeSeedLow(state *keybase1.FastTeamData) keybase1.PerTeamKeyGeneration {
+	if state.MaxContinuousPTKGeneration > 0 {
+		return state.MaxContinuousPTKGeneration
+	}
+	var ret keybase1.PerTeamKeyGeneration
+	for i := keybase1.PerTeamKeyGeneration(1); i <= state.LatestKeyGeneration; i++ {
+		_, found := state.PerTeamKeySeedsUnverified[i]
+		if !found {
+			break
+		}
+		ret = i
+	}
+	state.MaxContinuousPTKGeneration = ret
+	return ret
+}
+
 // shoppingList is a list of what we need from the server.
 type shoppingList struct {
 	needMerkleRefresh bool // if we need to refresh the Merkle path for this team
@@ -518,6 +545,7 @@ type shoppingList struct {
 
 	// The generations we care about. We'll always get back the most recent RKMs
 	// if we send a needMerkleRefresh.
+	seedLow     keybase1.PerTeamKeyGeneration
 	generations []keybase1.PerTeamKeyGeneration
 }
 
@@ -627,6 +655,7 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 		"ftl_seqnos":          libkb.S{Val: seqnosToString(s.downPointers)},
 		"ftl_key_generations": libkb.S{Val: generationsToString(s.generations)},
 		"ftl_version":         libkb.I{Val: FTLVersion},
+		"ftl_seed_low":        libkb.I{Val: int(s.seedLow)},
 	}
 	if len(s.applications) > 0 {
 		ret["ftl_include_applications"] = libkb.S{Val: applicationsToString(s.applications)}
@@ -1100,6 +1129,29 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 	return nil
 }
 
+func (f *FastTeamChainLoader) computeSeedChecks(m libkb.MetaContext, state *keybase1.FastTeamData) (err error) {
+	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
+	return computeSeedChecks(
+		m.Ctx(),
+		state.ID(),
+		latestChainGen,
+		func(g keybase1.PerTeamKeyGeneration) (check *keybase1.PerTeamSeedCheck, seed keybase1.PerTeamKeySeed, err error) {
+			seed, ok := state.PerTeamKeySeedsUnverified[g]
+			if !ok {
+				return nil, keybase1.PerTeamKeySeed{}, fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified at %d", g)
+			}
+			tmp, ok := state.SeedChecks[g]
+			if ok {
+				check = &tmp
+			}
+			return check, seed, nil
+		},
+		func(g keybase1.PerTeamKeyGeneration, check keybase1.PerTeamSeedCheck) {
+			state.SeedChecks[g] = check
+		},
+	)
+}
+
 func setCachedAtToNow(m libkb.MetaContext, state *keybase1.FastTeamData) {
 	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
 }
@@ -1131,6 +1183,10 @@ func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, 
 	if err != nil {
 		return err
 	}
+	err = f.computeSeedChecks(m, state)
+	if err != nil {
+		return err
+	}
 	err = f.putMetadata(m, arg, state)
 	if err != nil {
 		return err
@@ -1146,6 +1202,7 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 	}
 	return &keybase1.FastTeamData{
 		PerTeamKeySeedsUnverified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
+		SeedChecks:                make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamSeedCheck),
 		ReaderKeyMasks:            make(map[keybase1.TeamApplication](map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)),
 		Chain: keybase1.FastTeamSigChainState{
 			ID:                      arg.ID,
@@ -1269,14 +1326,14 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 
 // OnLogout is called when the user logs out, which purges the LRU.
 func (f *FastTeamChainLoader) OnLogout(mctx libkb.MetaContext) error {
-	f.storage.clearMem()
+	f.storage.ClearMem()
 	f.featureFlagGate.Clear()
 	return nil
 }
 
 // OnDbNuke is called when the disk cache is cleared, which purges the LRU.
 func (f *FastTeamChainLoader) OnDbNuke(mctx libkb.MetaContext) error {
-	f.storage.clearMem()
+	f.storage.ClearMem()
 	f.featureFlagGate.Clear()
 	return nil
 }

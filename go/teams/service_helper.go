@@ -1277,7 +1277,7 @@ func apiArg(endpoint string) libkb.APIArg {
 }
 
 func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (keybase1.TeamID, error) {
-	team, err := g.GetTeamLoader().Load(ctx, keybase1.LoadTeamArg{
+	team, _, err := g.GetTeamLoader().Load(ctx, keybase1.LoadTeamArg{
 		ID:      id,
 		Public:  id.IsPublic(),
 		StaleOK: true,
