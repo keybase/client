@@ -596,6 +596,11 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 	}
 }
 
+var emptyBadgeCounts = map[keybase1.DeviceType]int{
+	keybase1.DeviceType_DESKTOP: 0,
+	keybase1.DeviceType_MOBILE:  0,
+}
+
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
 	rc, err := s.createInbox().GetConversation(ctx, s.uid, chat1.ConversationID(i.ConvID.Bytes()))
 	if err != nil {
@@ -605,7 +610,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.
 	if rc.IsLocallyRead() {
 		return keybase1.BadgeConversationInfo{
 			ConvID:         i.ConvID,
-			BadgeCounts:    make(map[keybase1.DeviceType]int),
+			BadgeCounts:    emptyBadgeCounts,
 			UnreadMessages: 0,
 		}
 	}

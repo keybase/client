@@ -532,3 +532,9 @@ func isStaleBoxError(err error) bool {
 	_, ok := err.(StaleBoxError)
 	return ok
 }
+
+type NeedHiddenChainRotationError struct{}
+
+func (e NeedHiddenChainRotationError) Error() string {
+	return "need hidden chain rotation"
+}

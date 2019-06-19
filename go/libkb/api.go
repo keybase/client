@@ -432,7 +432,6 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (res *ht
 	}
 
 	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
-
 }
 
 // doTimeout does the http request with a timeout. It returns the response from making the HTTP request,

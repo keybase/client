@@ -11,6 +11,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
+	storage "github.com/keybase/client/go/teams/storage"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -1016,7 +1017,7 @@ func keySetToTeamIDs(dbKeySet libkb.DBKeySet) ([]keybase1.TeamID, error) {
 	seen := make(map[keybase1.TeamID]bool)
 	teamIDs := make([]keybase1.TeamID, 0, len(dbKeySet))
 	for dbKey := range dbKeySet {
-		teamID, err := ParseTeamIDDBKey(dbKey.Key)
+		teamID, err := storage.ParseTeamIDDBKey(dbKey.Key)
 		if err != nil {
 			return nil, err
 		}

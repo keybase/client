@@ -65,22 +65,22 @@ func TestTorMode(t *testing.T) {
 
 	mockedEnv := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
 
-	// Test that when tor mode is enabled, a socks proxy is properly configured
-	require.Equal(t, noProxy, mockedEnv.GetProxyType())
+	// Test that when tor mode is enabled, a Socks proxy is properly configured
+	require.Equal(t, NoProxy, mockedEnv.GetProxyType())
 	require.Equal(t, "", mockedEnv.GetProxy())
 
 	globalTorMode = TorLeaky
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	require.Equal(t, "localhost:9050", mockedEnv.GetProxy())
 
 	globalTorMode = TorStrict
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	require.Equal(t, "localhost:9050", mockedEnv.GetProxy())
 
 	// Test that tor mode overrides proxy settings
 	globalProxyType = "http"
 	globalProxyAddress = "localhost:8080"
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	require.Equal(t, "localhost:9050", mockedEnv.GetProxy())
 }
 
@@ -88,35 +88,35 @@ func TestGetProxyType(t *testing.T) {
 	resetGlobals()
 
 	defaultEnv := NewEnv(nil, nil, makeLogGetter(t))
-	require.Equal(t, noProxy, defaultEnv.GetProxyType())
+	require.Equal(t, NoProxy, defaultEnv.GetProxyType())
 
 	mockedEnv := NewEnv(MockedConfigReader{}, MockedConfigReader{}, makeLogGetter(t))
-	require.Equal(t, noProxy, mockedEnv.GetProxyType())
+	require.Equal(t, NoProxy, mockedEnv.GetProxyType())
 
-	globalProxyType = "socks"
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	globalProxyType = "Socks"
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	globalProxyType = "SOCKS"
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	globalProxyType = "SoCkS"
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 
 	globalProxyType = "http_connect"
-	require.Equal(t, httpConnect, mockedEnv.GetProxyType())
+	require.Equal(t, HTTPConnect, mockedEnv.GetProxyType())
 	globalProxyType = "HTTP_CONNECT"
-	require.Equal(t, httpConnect, mockedEnv.GetProxyType())
+	require.Equal(t, HTTPConnect, mockedEnv.GetProxyType())
 
 	globalProxyType = "BOGUS"
-	require.Equal(t, noProxy, mockedEnv.GetProxyType())
+	require.Equal(t, NoProxy, mockedEnv.GetProxyType())
 
 	resetGlobals()
-	require.Equal(t, noProxy, mockedEnv.GetProxyType())
+	require.Equal(t, NoProxy, mockedEnv.GetProxyType())
 
 	orig := os.Getenv("PROXY_TYPE")
 
 	os.Setenv("PROXY_TYPE", "socks")
-	require.Equal(t, socks, mockedEnv.GetProxyType())
+	require.Equal(t, Socks, mockedEnv.GetProxyType())
 	os.Setenv("PROXY_TYPE", "http_connect")
-	require.Equal(t, httpConnect, mockedEnv.GetProxyType())
+	require.Equal(t, HTTPConnect, mockedEnv.GetProxyType())
 
 	os.Setenv("PROXY_TYPE", orig)
 }

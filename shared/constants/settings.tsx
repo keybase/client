@@ -70,6 +70,7 @@ export const makeState = I.Record<Types._State>({
   allowDeleteAccount: false,
   chat: makeChat(),
   checkPasswordIsCorrect: null,
+  didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),
   invites: makeInvites(),
@@ -77,6 +78,7 @@ export const makeState = I.Record<Types._State>({
   notifications: makeNotifications(),
   password: makePassword(),
   phoneNumbers: makePhoneNumbers(),
+  proxyData: null,
   useNativeFrame: true,
   waitingForResponse: false,
 })

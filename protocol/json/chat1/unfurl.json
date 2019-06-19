@@ -13,7 +13,8 @@
       "symbols": [
         "GENERIC_0",
         "YOUTUBE_1",
-        "GIPHY_2"
+        "GIPHY_2",
+        "MAPS_3"
       ]
     },
     {
@@ -151,6 +152,13 @@
             "def": false
           },
           "body": "UnfurlGiphyRaw"
+        },
+        {
+          "label": {
+            "name": "MAPS",
+            "def": false
+          },
+          "body": "UnfurlGenericRaw"
         }
       ]
     },

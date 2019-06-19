@@ -10,6 +10,7 @@ export const resetStore = 'common:resetStore' // not a part of settings but is h
 export const typePrefix = 'settings:'
 export const addPhoneNumber = 'settings:addPhoneNumber'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
+export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
 export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
@@ -24,11 +25,13 @@ export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
+export const loadProxyData = 'settings:loadProxyData'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedCheckPassword = 'settings:loadedCheckPassword'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
+export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -49,6 +52,7 @@ export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
+export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const stop = 'settings:stop'
@@ -72,6 +76,7 @@ type _AddedPhoneNumberPayload = {
   readonly error?: string
   readonly phoneNumber: string
 }
+type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
@@ -88,11 +93,13 @@ type _InvitesSentPayload = void
 type _InvitesSentPayloadError = {readonly error: Error}
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
+type _LoadProxyDataPayload = void
 type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
 type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect: boolean | null}
 type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
 type _LoadedLockdownModePayload = {readonly status: boolean | null}
+type _LoadedProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _LoadedRememberPasswordPayload = {readonly remember: boolean}
 type _LoadedSettingsPayload = {readonly emails: I.List<Types.EmailRow> | null}
 type _NotificationsRefreshPayload = void
@@ -113,6 +120,7 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
+type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
   readonly feedback: string
   readonly sendLogs: boolean
@@ -200,6 +208,9 @@ export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): Added
 export const createVerifiedPhoneNumber = (
   payload: _VerifiedPhoneNumberPayload
 ): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
+export const createCertificatePinningToggled = (
+  payload: _CertificatePinningToggledPayload
+): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
   type: checkPassword,
@@ -252,6 +263,10 @@ export const createLoadLockdownMode = (payload: _LoadLockdownModePayload): LoadL
   payload,
   type: loadLockdownMode,
 })
+export const createLoadProxyData = (payload: _LoadProxyDataPayload): LoadProxyDataPayload => ({
+  payload,
+  type: loadProxyData,
+})
 export const createLoadRememberPassword = (
   payload: _LoadRememberPasswordPayload
 ): LoadRememberPasswordPayload => ({payload, type: loadRememberPassword})
@@ -269,6 +284,10 @@ export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): Loa
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload): LoadedLockdownModePayload => ({
   payload,
   type: loadedLockdownMode,
+})
+export const createLoadedProxyData = (payload: _LoadedProxyDataPayload): LoadedProxyDataPayload => ({
+  payload,
+  type: loadedProxyData,
 })
 export const createLoadedRememberPassword = (
   payload: _LoadedRememberPasswordPayload
@@ -336,6 +355,10 @@ export const createProcessorProfile = (payload: _ProcessorProfilePayload): Proce
   payload,
   type: processorProfile,
 })
+export const createSaveProxyData = (payload: _SaveProxyDataPayload): SaveProxyDataPayload => ({
+  payload,
+  type: saveProxyData,
+})
 export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackPayload => ({
   payload,
   type: sendFeedback,
@@ -358,6 +381,10 @@ export type AddPhoneNumberPayload = {
 export type AddedPhoneNumberPayload = {
   readonly payload: _AddedPhoneNumberPayload
   readonly type: typeof addedPhoneNumber
+}
+export type CertificatePinningToggledPayload = {
+  readonly payload: _CertificatePinningToggledPayload
+  readonly type: typeof certificatePinningToggled
 }
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
@@ -413,6 +440,10 @@ export type LoadLockdownModePayload = {
   readonly payload: _LoadLockdownModePayload
   readonly type: typeof loadLockdownMode
 }
+export type LoadProxyDataPayload = {
+  readonly payload: _LoadProxyDataPayload
+  readonly type: typeof loadProxyData
+}
 export type LoadRememberPasswordPayload = {
   readonly payload: _LoadRememberPasswordPayload
   readonly type: typeof loadRememberPassword
@@ -429,6 +460,10 @@ export type LoadedHasRandomPwPayload = {
 export type LoadedLockdownModePayload = {
   readonly payload: _LoadedLockdownModePayload
   readonly type: typeof loadedLockdownMode
+}
+export type LoadedProxyDataPayload = {
+  readonly payload: _LoadedProxyDataPayload
+  readonly type: typeof loadedProxyData
 }
 export type LoadedRememberPasswordPayload = {
   readonly payload: _LoadedRememberPasswordPayload
@@ -510,6 +545,10 @@ export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
   readonly type: typeof processorProfile
 }
+export type SaveProxyDataPayload = {
+  readonly payload: _SaveProxyDataPayload
+  readonly type: typeof saveProxyData
+}
 export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
@@ -551,6 +590,7 @@ export type WaitingForResponsePayload = {
 export type Actions =
   | AddPhoneNumberPayload
   | AddedPhoneNumberPayload
+  | CertificatePinningToggledPayload
   | CheckPasswordPayload
   | ClearPhoneNumberVerificationPayload
   | DbNukePayload
@@ -567,11 +607,13 @@ export type Actions =
   | InvitesSentPayloadError
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
+  | LoadProxyDataPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
   | LoadedCheckPasswordPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
+  | LoadedProxyDataPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | NotificationsRefreshPayload
@@ -592,6 +634,7 @@ export type Actions =
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
+  | SaveProxyDataPayload
   | SendFeedbackPayload
   | SetAllowDeleteAccountPayload
   | StopPayload

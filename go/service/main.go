@@ -479,6 +479,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
+	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

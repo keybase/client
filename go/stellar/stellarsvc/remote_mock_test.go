@@ -252,7 +252,7 @@ func (t *txlogger) Pending(ctx context.Context, tc *TestContext, accountID stell
 // Check whether the caller is in the implicit team.
 // By loading the team.
 func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamID) bool {
-	team, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{
 		ID:      teamID,
 		StaleOK: true,
 	})
@@ -570,8 +570,8 @@ func (r *RemoteClientMock) FuzzyAssetSearch(_ libkb.MetaContext, _ stellar1.Fuzz
 	return nil, errors.New("not mocked")
 }
 
-func (r *RemoteClientMock) ListPopularAssets(_ libkb.MetaContext, _ stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
-	return nil, errors.New("not mocked")
+func (r *RemoteClientMock) ListPopularAssets(_ libkb.MetaContext, _ stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
+	return stellar1.AssetListResult{}, errors.New("not mocked")
 }
 
 func (r *RemoteClientMock) PostAnyTransaction(_ libkb.MetaContext, _ string) error {

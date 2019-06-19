@@ -161,7 +161,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	}
 
 	// These boxes will get posted along with the sig below.
-	m, err := NewTeamKeyManager(mctx.G())
+	m, err := NewTeamKeyManager(mctx.G(), teamID)
 	if err != nil {
 		return err
 	}
@@ -537,7 +537,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	// These boxes will get posted along with the sig below.
-	m, err := NewTeamKeyManager(g)
+	m, err := NewTeamKeyManager(g, subteamID)
 	if err != nil {
 		return nil, nil, err
 	}

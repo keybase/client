@@ -1,4 +1,4 @@
-package teams
+package storage
 
 import (
 	"fmt"
@@ -70,8 +70,12 @@ func (s *storageGeneric) get(mctx libkb.MetaContext, teamID keybase1.TeamID, pub
 }
 
 // Clear the in-memory storage.
-func (s *storageGeneric) clearMem() {
+func (s *storageGeneric) ClearMem() {
 	s.mem.clear()
+}
+
+func (s *storageGeneric) MemSize() int {
+	return s.mem.lru.Len()
 }
 
 // --------------------------------------------------

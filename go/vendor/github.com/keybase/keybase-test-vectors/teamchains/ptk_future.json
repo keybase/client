@@ -217,7 +217,7 @@
                 {
                     "force_last_box": true,
                     "error": true,
-                    "error_substr": "wrong latest key generation"
+                    "error_substr": "per-team-key not found for generation"
                 }
             ]
         }

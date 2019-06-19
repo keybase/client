@@ -2,7 +2,8 @@ package unfurl
 
 import (
 	"context"
-	"github.com/keybase/client/go/libkb"
+
+	"github.com/keybase/client/go/chat/globals"
 
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -12,18 +13,18 @@ import (
 const userAgent = "Mozilla/5.0 (compatible; Keybase; +https://keybase.io)"
 
 type Scraper struct {
+	globals.Contextified
 	utils.DebugLabeler
 	cache      *unfurlCache
 	giphyProxy bool
-	libkb.Contextified
 }
 
-func NewScraper(g *libkb.GlobalContext) *Scraper {
+func NewScraper(g *globals.Context) *Scraper {
 	return &Scraper{
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Scraper", false),
 		cache:        newUnfurlCache(),
 		giphyProxy:   true,
-		Contextified: libkb.NewContextified(g),
 	}
 }
 
@@ -68,6 +69,8 @@ func (s *Scraper) Scrape(ctx context.Context, uri string, forceTyp *chat1.Unfurl
 		return s.scrapeGeneric(ctx, uri, domain)
 	case chat1.UnfurlType_GIPHY:
 		return s.scrapeGiphy(ctx, uri)
+	case chat1.UnfurlType_MAPS:
+		return s.scrapeMap(ctx, uri)
 	default:
 		return s.scrapeGeneric(ctx, uri, domain)
 	}

@@ -216,10 +216,10 @@ func (dbcr *DiskBlockCacheRemote) Status(ctx context.Context) map[string]DiskBlo
 // DoesCacheHaveSpace implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) DoesCacheHaveSpace(
-	_ context.Context, _ DiskBlockCacheType) (bool, error) {
+	_ context.Context, _ DiskBlockCacheType) (bool, int64, error) {
 	// We won't be kicking off long syncing prefetching via the remote
 	// cache, so just pretend the cache has space.
-	return true, nil
+	return true, 0, nil
 }
 
 // Mark implements the DiskBlockCache interface for DiskBlockCacheRemote.

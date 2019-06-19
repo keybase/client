@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	storage "github.com/keybase/client/go/teams/storage"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -173,7 +174,7 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 		// Install a loader with a mock interface to the outside world.
 		t.Logf("install mock loader")
 		mock := NewMockLoaderContext(t, tc.G, unit)
-		storage := NewStorage(tc.G)
+		storage := storage.NewStorage(tc.G)
 		loader := NewTeamLoader(tc.G, mock, storage)
 		tc.G.SetTeamLoader(loader)
 

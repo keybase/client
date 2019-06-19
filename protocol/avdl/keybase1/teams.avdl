@@ -41,6 +41,42 @@ protocol teams {
     READER_0
   }
 
+  // We might eventually change the version of seedchecks that we are using.
+  // Old clients will break on new data, but at least they can fail gracefully
+  // rather than failing a check and thinking malice.
+  enum PerTeamSeedCheckVersion {
+    V1_1
+  }
+
+  // Version1 of PerTeamSeedCheck is computed as follows:
+  //
+  //   Let g(key,data) = HMAC-SHA512(key,data)[0:32]
+  //       f(1) = g(s_1, "Kebase-Derived-Team-Seedcheck-1\x00" + teamID)
+  //       f(2) = g(s_2, f(1))
+  //       ...
+  //       f(i) = g(s_i, f(i-1))
+  //
+  record PerTeamSeedCheck {
+     PerTeamSeedCheckVersion version;
+     PerTeamSeedCheckValue value; // f(i) for generation i
+  }
+
+  @typedef("bytes")
+  record PerTeamSeedCheckValue {}
+
+  @typedef("bytes")
+  record PerTeamSeedCheckValuePostImage {}
+
+  // Teamlinks that the server can see don't get PerTeamSeedCheck, since it would allow the
+  // server to fabricate new ones. The server gets to see the postimage of these checks
+  // after a SHA256 one-way function.
+  record PerTeamSeedCheckPostImage {
+     @mpackkey("h") @jsonkey("h")
+     PerTeamSeedCheckValuePostImage value; // SHA256(f(i)) for generation i
+     @mpackkey("v") @jsonkey("v")
+     PerTeamSeedCheckVersion version;
+  }
+
   record TeamApplicationKey {
     TeamApplication application;
     PerTeamKeyGeneration keyGeneration;
@@ -62,9 +98,15 @@ protocol teams {
   @lint("ignore")
   record PerTeamKey {
     PerTeamKeyGeneration gen;
-    Seqno seqno;
+    Seqno seqno; // 0 if in the hidden chain
     KID sigKID;
     KID encKID;
+  }
+
+  @lint("ignore")
+  record PerTeamKeyAndCheck {
+     PerTeamKey ptk;
+     PerTeamSeedCheckPostImage check;
   }
 
   fixed PerTeamKeySeed(32);
@@ -73,7 +115,12 @@ protocol teams {
   record PerTeamKeySeedItem {
     PerTeamKeySeed seed;
     PerTeamKeyGeneration generation;
+
+    // This might be optional, for PTKSeeds that come from the hidden chain
     Seqno seqno;
+
+    // This was added 2019-06, so earlier-cached teams might not have this.
+    union { null, PerTeamSeedCheck } check;
   }
 
   record TeamMember {
@@ -216,6 +263,19 @@ protocol teams {
     @mpackkey("perTeamKeySeeds")
     map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsUnverified;
 
+    // If we're counting up from 1, what's the maximum PTK generation
+    // we get to before we hit a gap. For historical reasons, this might
+    // be a number other than latestKeyGeneration, since we used to be happy
+    // with situations where there were holes. Once this value is set, it shoud
+    // be equivalent to latestKeyGeneration.
+    @lint("ignore")
+    PerTeamKeyGeneration maxContinuousPTKGeneration;
+
+    // A rolling hash of all seeds, so that whoever rekeys needs to prove
+    // knowledge of all keys. Entirely derivable from the above field,
+    // but we cache it here for performance.
+    map<PerTeamKeyGeneration,PerTeamSeedCheck> seedChecks;
+
     PerTeamKeyGeneration latestKeyGeneration;
 
     // application -> generation -> mask
@@ -235,11 +295,32 @@ protocol teams {
     boolean loadedLatest;
   }
 
-  record HiddenTeamChainData {
-    @lint("ignore") TeamID ID;
+  record HiddenTeamChainRatchet{
+    // Ratchets that come as "down pointers" from the main team chean.
+    union { null, LinkTripleAndTime } main;
+
+    // Ratchets that come from the blinded merkle tree for this team.
+    union { null, LinkTripleAndTime } blinded;
+
+    // When we make changes to the hidden chain ourselves, then we bump this
+    // ratchet.
+    union { null, LinkTripleAndTime } self;
+  }
+
+  record HiddenTeamChain {
+    TeamID id;
+
+    int subversion;
+
     boolean public;
+    boolean frozen;
+    boolean tombstoned;
 
     Seqno last;
+
+    // For each PTK type (right now only 'reader'), say where the last seqno of
+    // the type is in the chain.
+    map<PTKType, Seqno> lastPerTeamKeys;
 
     // Chain links based on outer objects.
     map<Seqno, LinkID> outer;
@@ -248,23 +329,14 @@ protocol teams {
     // parent chain pointer info, and also PTK information (inner data);
     map<Seqno, HiddenTeamChainLink> inner;
 
-  }
-
-  // Snapshot of a hidden team load
-  record HiddenTeamChain {
-    @mpackkey("v") @jsonkey("v")
-    int subversion;
-
-    HiddenTeamChainData data;
-
-    // Maps a PTK Generation to the chain seqno it showed up in; more info there as
+    // Maps a Reader PTK Generation to the chain seqno it showed up in; more info there as
     // to what the PTK is, etc.
-    map<PerTeamKeyGeneration, Seqno> perTeamKeys;
+    map<PerTeamKeyGeneration, Seqno> readerPerTeamKeys;
 
     // This is the latest hidden chain tail link known for this team;
     // the existence of a known ratchet means the team better be at least up to this
     // point, and maybe beyond it.
-    union { null, LinkTriple } ratchet;
+    HiddenTeamChainRatchet ratchet;
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
@@ -274,6 +346,11 @@ protocol teams {
     Seqno seqno;
     SeqType seqType;
     LinkID linkID;
+  }
+
+  record LinkTripleAndTime {
+     LinkTriple triple;
+     Time time;
   }
 
   record UpPointer {
@@ -308,9 +385,12 @@ protocol teams {
     @jsonkey("s") @mpackkey("s")
     Signer signer;
 
-    // The PTK that's getting signed in.
+    // The PTK that's getting signed in. In the future we might have non-rotate
+    // links on the hidden chain, in which the PTK map below will be empty.
+    // But for now, there will always be data here, and always under the PTKType_READER
+    // key.
     @jsonkey("k") @mpackkey("k")
-    map<PTKType, PerTeamKey>  ptk;
+    map<PTKType, PerTeamKeyAndCheck> ptk;
   }
 
   // FastTeamSigChainState is the state computed by doing a fast reply of the
@@ -521,6 +601,7 @@ protocol teams {
 
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
+    PerTeamKeyGeneration maxPerTeamKeyGeneration;
 
     // Creation time of latest PerTeamKey, based on CTime from the
     // link key appeared in.
