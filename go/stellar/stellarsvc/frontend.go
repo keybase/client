@@ -168,7 +168,6 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			asset.Reserves = details.Reserves
 			assets = append(assets, asset)
 		} else {
-			s.G().Log.CDebugf(ctx, "non-native asset: %+v", d.Asset)
 			assets = append(assets, stellar1.AccountAssetLocal{
 				Name:                   d.Asset.Code,
 				AssetCode:              d.Asset.Code,
@@ -186,8 +185,6 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			})
 		}
 	}
-
-	s.G().Log.CDebugf(ctx, "GetAccountAssetsLocal result: %+v", assets)
 
 	return assets, nil
 }

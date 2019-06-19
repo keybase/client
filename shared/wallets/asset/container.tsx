@@ -15,7 +15,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const asset = stateProps._asset
-  console.warn('asset:', asset)
   return {
     availableToSend: asset.balanceAvailableToSend,
     balance: asset.balanceTotal,
