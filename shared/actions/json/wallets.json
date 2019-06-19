@@ -279,6 +279,10 @@
       "reason": "'user-selected' | 'auto-selected' | 'from-chat' | 'show-transaction'",
       "show?": "boolean"
     },
+    "setSEP7Tx": {
+      "_description": "Prepare a SEP7 tx to be shown to the user for confirmation",
+      "tx": "I.RecordOf<Types.SEP7ConfirmInfo>"
+    },
     "showTransaction": {
       "_description": "Navigate to the details page for the given transaction.",
       "accountID": "Types.AccountID",

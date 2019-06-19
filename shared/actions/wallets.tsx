@@ -260,7 +260,9 @@ const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
 const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
-  RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link})
+  RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link}).then(tx =>
+    WalletsGen.createSetSEP7Tx({tx: Constants.makeSEP7ConfirmInfo(tx)})
+  )
 
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()

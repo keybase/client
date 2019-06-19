@@ -368,6 +368,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         airdropQualifications: I.List(action.payload.airdropQualifications),
         airdropState: action.payload.airdropState,
       })
+    case WalletsGen.setSEP7Tx:
+      return state.merge({sep7ConfirmInfo: action.payload.tx})
     case WalletsGen.hideAirdropBanner:
       // set this immediately so it goes away immediately
       return state.merge({airdropShowBanner: false})

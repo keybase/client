@@ -103,6 +103,29 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   worthInfo: '',
 })
 
+export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
+  fee: null,
+  memo: '',
+  memoType: '',
+  operations: null,
+  source: '',
+})
+
+export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
+  amount: null,
+  assetCode: '',
+  assetIssuer: '',
+  callbackURL: '',
+  memo: '',
+  memoType: '',
+  message: '',
+  operation: '',
+  originDomain: '',
+  recipient: '',
+  summary: makeSEP7Summary(),
+  xdr: '',
+})
+
 export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   amountErrMsg: '',
   builtBanners: null,
@@ -156,6 +179,7 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep7ConfirmInfo: null,
   unreadPaymentsMap: I.Map(),
 })
 

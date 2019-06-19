@@ -20,6 +20,12 @@ export type _Reserve = {
 }
 export type Reserve = I.RecordOf<_Reserve>
 
+export type _SEP7Summary = StellarRPCTypes.TxDisplaySummary
+export type SEP7Summary = I.RecordOf<_SEP7Summary>
+
+export type _SEP7ConfirmInfo = StellarRPCTypes.ValidateStellarURIResultLocal
+export type SEP7ConfirmInfo = I.RecordOf<_SEP7ConfirmInfo>
+
 export type AccountID = string
 export const stringToAccountID = __DEV__
   ? (s: string): AccountID => {
@@ -317,6 +323,7 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  sep7ConfirmInfo: I.Record<SEP7ConfirmInfo> | null
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>
 }

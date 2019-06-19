@@ -91,6 +91,7 @@ export const setBuildingTo = 'wallets:setBuildingTo'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const setSEP7Tx = 'wallets:setSEP7Tx'
 export const showTransaction = 'wallets:showTransaction'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropDetails = 'wallets:updateAirdropDetails'
@@ -273,6 +274,7 @@ type _SetInflationDestinationPayload = {
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
+type _SetSEP7TxPayload = {readonly tx: I.Record<Types.SEP7ConfirmInfo>}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
@@ -552,6 +554,10 @@ export const createSendPayment = (payload: _SendPaymentPayload): SendPaymentPayl
   payload,
   type: sendPayment,
 })
+/**
+ * Prepare a SEP7 tx to be shown to the user for confirmation
+ */
+export const createSetSEP7Tx = (payload: _SetSEP7TxPayload): SetSEP7TxPayload => ({payload, type: setSEP7Tx})
 /**
  * Received a fresh first page of recent payments
  */
@@ -1235,6 +1241,7 @@ export type SetReadyToReviewPayload = {
   readonly payload: _SetReadyToReviewPayload
   readonly type: typeof setReadyToReview
 }
+export type SetSEP7TxPayload = {readonly payload: _SetSEP7TxPayload; readonly type: typeof setSEP7Tx}
 export type ShowTransactionPayload = {
   readonly payload: _ShowTransactionPayload
   readonly type: typeof showTransaction
@@ -1265,7 +1272,7 @@ export type ValidateAccountNamePayload = {
 }
 export type ValidateSEP7LinkPayload = {
   readonly payload: _ValidateSEP7LinkPayload
-  readonly type: 'wallets:validateSEP7Link'
+  readonly type: typeof validateSEP7Link
 }
 export type ValidateSecretKeyPayload = {
   readonly payload: _ValidateSecretKeyPayload
@@ -1383,6 +1390,7 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | SetSEP7TxPayload
   | ShowTransactionPayload
   | UpdateAirdropBannerStatePayload
   | UpdateAirdropDetailsPayload
