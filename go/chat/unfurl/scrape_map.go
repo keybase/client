@@ -36,7 +36,7 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		return res, err
 	}
 	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
-	desc := fmt.Sprintf("Shared with /location, accurate to %.2fm.", acc)
+	desc := fmt.Sprintf("Accurate to %.2fm.", acc)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlGenericRaw{
 		Title:       "Open this location with Google Maps",
 		Url:         linkURL,
