@@ -74,23 +74,21 @@ const createPropProvider = (...maps: SelectorMap[]) => {
   )
 }
 
-export const createProvider = store => story => {
-  const merged = store
-  return (
-    <Provider
-      key={`storyprovider:${uniqueProviderKey++}`}
-      store={createStore(state => state, merged)}
-      merged={merged}
-    >
-      <GatewayProvider>
-        <React.Fragment>
-          <StorybookErrorBoundary children={story()} />
-          <GatewayDest component={DestBox} name="popup-root" />
-        </React.Fragment>
-      </GatewayProvider>
-    </Provider>
-  )
-}
+export const createProvider = store => (story): any => (
+  // @ts-ignore
+  <Provider
+    key={`storyprovider:${uniqueProviderKey++}`}
+    store={createStore(state => state, store)}
+    data={store}
+  >
+    <GatewayProvider>
+      <React.Fragment>
+        <StorybookErrorBoundary children={story()} />
+        <GatewayDest component={DestBox} name="popup-root" />
+      </React.Fragment>
+    </GatewayProvider>
+  </Provider>
+)
 
 // Plumb dispatches through storybook actions panel
 const actionLog = () => next => a => {
@@ -98,22 +96,21 @@ const actionLog = () => next => a => {
   return next(a)
 }
 
-export const MockStore = ({store, children}) => {
-  return (
-    <Provider
-      key={`storyprovider:${uniqueProviderKey++}`}
-      store={createStore(state => state, store, applyMiddleware(actionLog))}
-      merged={store}
-    >
-      <GatewayProvider>
-        <React.Fragment>
-          <StorybookErrorBoundary children={children} />
-          <GatewayDest component={DestBox} name="popup-root" />
-        </React.Fragment>
-      </GatewayProvider>
-    </Provider>
-  )
-}
+export const MockStore = ({store, children}): any => (
+  // @ts-ignore
+  <Provider
+    key={`storyprovider:${uniqueProviderKey++}`}
+    store={createStore(state => state, store, applyMiddleware(actionLog))}
+    merged={store}
+  >
+    <GatewayProvider>
+      <React.Fragment>
+        <StorybookErrorBoundary children={children} />
+        <GatewayDest component={DestBox} name="popup-root" />
+      </React.Fragment>
+    </GatewayProvider>
+  </Provider>
+)
 export const createNavigator = params => ({
   navigation: {
     getParam: key => params[key],

@@ -2,10 +2,12 @@
 import * as PropProviders from './prop-providers'
 
 const createPropProviderWithCommon = PropProviders.createPropProviderWithCommon
-export {PropProviders, createPropProviderWithCommon}
+const createStoreWithCommon = PropProviders.createStoreWithCommon
+export {PropProviders, createPropProviderWithCommon, createStoreWithCommon}
 export {
   createPropProvider,
   unexpected,
+  MockStore,
   Rnd,
   scrollViewDecorator,
   action,

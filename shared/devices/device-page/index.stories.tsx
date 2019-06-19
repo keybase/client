@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
@@ -21,18 +22,20 @@ const common = Sb.createStoreWithCommon()
 
 const store = {
   ...common,
-  devices: common.devices.mergeDeep({
-    deviceMap: {
-      backup: makeDevice({type: 'backup'}),
-      'backup revoked': makeDevice({revoked: true, type: 'backup'}),
-      desktop: makeDevice({type: 'desktop'}),
-      'desktop current': makeDevice({current: true, type: 'desktop'}),
-      'desktop no last': makeDevice({lastUsed: false, type: 'desktop'}),
-      'desktop revoked': makeDevice({revoked: true, type: 'desktop'}),
-      mobile: makeDevice({type: 'mobile'}),
-      'mobile revoked': makeDevice({revoked: true, type: 'mobile'}),
-    },
-  }),
+  devices: common.devices.mergeDeep(
+    I.Map({
+      deviceMap: {
+        backup: makeDevice({type: 'backup'}),
+        'backup revoked': makeDevice({revoked: true, type: 'backup'}),
+        desktop: makeDevice({type: 'desktop'}),
+        'desktop current': makeDevice({current: true, type: 'desktop'}),
+        'desktop no last': makeDevice({lastUsed: false, type: 'desktop'}),
+        'desktop revoked': makeDevice({revoked: true, type: 'desktop'}),
+        mobile: makeDevice({type: 'mobile'}),
+        'mobile revoked': makeDevice({revoked: true, type: 'mobile'}),
+      },
+    })
+  ),
 }
 
 const load = () => {

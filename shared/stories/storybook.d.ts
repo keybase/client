@@ -24,5 +24,5 @@ export declare class Rnd {
 }
 
 export declare function propOverridesForStory(p: any): {}
-export declare class MockStore extends React.Component<{store: any, children: React.Node}>
+export declare class MockStore extends React.Component<{store: any; children: React.ReactNode}> {}
 export {PropProviders}
