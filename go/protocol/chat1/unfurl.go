@@ -14,6 +14,7 @@ const (
 	UnfurlType_GENERIC UnfurlType = 0
 	UnfurlType_YOUTUBE UnfurlType = 1
 	UnfurlType_GIPHY   UnfurlType = 2
+	UnfurlType_MAPS    UnfurlType = 3
 )
 
 func (o UnfurlType) DeepCopy() UnfurlType { return o }
@@ -22,12 +23,14 @@ var UnfurlTypeMap = map[string]UnfurlType{
 	"GENERIC": 0,
 	"YOUTUBE": 1,
 	"GIPHY":   2,
+	"MAPS":    3,
 }
 
 var UnfurlTypeRevMap = map[UnfurlType]string{
 	0: "GENERIC",
 	1: "YOUTUBE",
 	2: "GIPHY",
+	3: "MAPS",
 }
 
 func (e UnfurlType) String() string {
@@ -151,6 +154,7 @@ type UnfurlRaw struct {
 	Generic__    *UnfurlGenericRaw `codec:"generic,omitempty" json:"generic,omitempty"`
 	Youtube__    *UnfurlYoutubeRaw `codec:"youtube,omitempty" json:"youtube,omitempty"`
 	Giphy__      *UnfurlGiphyRaw   `codec:"giphy,omitempty" json:"giphy,omitempty"`
+	Maps__       *UnfurlGenericRaw `codec:"maps,omitempty" json:"maps,omitempty"`
 }
 
 func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
@@ -168,6 +172,11 @@ func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
 	case UnfurlType_GIPHY:
 		if o.Giphy__ == nil {
 			err = errors.New("unexpected nil value for Giphy__")
+			return ret, err
+		}
+	case UnfurlType_MAPS:
+		if o.Maps__ == nil {
+			err = errors.New("unexpected nil value for Maps__")
 			return ret, err
 		}
 	}
@@ -204,6 +213,16 @@ func (o UnfurlRaw) Giphy() (res UnfurlGiphyRaw) {
 	return *o.Giphy__
 }
 
+func (o UnfurlRaw) Maps() (res UnfurlGenericRaw) {
+	if o.UnfurlType__ != UnfurlType_MAPS {
+		panic("wrong case accessed")
+	}
+	if o.Maps__ == nil {
+		return
+	}
+	return *o.Maps__
+}
+
 func NewUnfurlRawWithGeneric(v UnfurlGenericRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_GENERIC,
@@ -222,6 +241,13 @@ func NewUnfurlRawWithGiphy(v UnfurlGiphyRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_GIPHY,
 		Giphy__:      &v,
+	}
+}
+
+func NewUnfurlRawWithMaps(v UnfurlGenericRaw) UnfurlRaw {
+	return UnfurlRaw{
+		UnfurlType__: UnfurlType_MAPS,
+		Maps__:       &v,
 	}
 }
 
@@ -249,6 +275,13 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Giphy__),
+		Maps__: (func(x *UnfurlGenericRaw) *UnfurlGenericRaw {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Maps__),
 	}
 }
 
