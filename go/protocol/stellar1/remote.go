@@ -1000,8 +1000,9 @@ type NetworkOptionsArg struct {
 }
 
 type DetailsPlusPaymentsArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type AssetSearchArg struct {
@@ -1059,7 +1060,7 @@ type RemoteInterface interface {
 	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
 	AssetSearch(context.Context, AssetSearchArg) ([]Asset, error)
 	FuzzyAssetSearch(context.Context, FuzzyAssetSearchArg) ([]Asset, error)
-	ListPopularAssets(context.Context, keybase1.UserVersion) ([]Asset, error)
+	ListPopularAssets(context.Context, keybase1.UserVersion) (AssetListResult, error)
 	ChangeTrustline(context.Context, ChangeTrustlineArg) error
 	FindPaymentPath(context.Context, FindPaymentPathArg) (PaymentPath, error)
 	PostAnyTransaction(context.Context, PostAnyTransactionArg) error
@@ -1635,7 +1636,7 @@ func (c RemoteClient) FuzzyAssetSearch(ctx context.Context, __arg FuzzyAssetSear
 	return
 }
 
-func (c RemoteClient) ListPopularAssets(ctx context.Context, caller keybase1.UserVersion) (res []Asset, err error) {
+func (c RemoteClient) ListPopularAssets(ctx context.Context, caller keybase1.UserVersion) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsArg{Caller: caller}
 	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []interface{}{__arg}, &res)
 	return

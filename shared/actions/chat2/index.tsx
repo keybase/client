@@ -33,6 +33,7 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
+import {getEngine} from '../../engine/require'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -88,9 +89,7 @@ function* inboxRefresh(
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
     const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
     // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items
-      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-      .filter(Boolean)
+    const metas = items.map(item => Constants.unverifiedInboxUIItemToConversationMeta(item)).filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
       Chat2Gen.createMetasReceived({
@@ -609,10 +608,9 @@ const onChatInboxSynced = (state, action: EngineGen.Chat1NotifyChatChatInboxSync
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
       const selectedConversation = Constants.getSelectedConversation(state)
-      const username = state.config.username
       const items = (syncRes.incremental && syncRes.incremental.items) || []
       const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
         if (meta) {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
@@ -2810,6 +2808,26 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
   })
 }
 
+const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload, logger) => {
+  const response = action.payload.response
+  if (isMobile) {
+    navigator.geolocation.getCurrentPosition(
+      pos =>
+        response.result({accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude}),
+      err => logger.warn(err.message),
+      {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
+    )
+  } else {
+    // doesn't really work and is disabled in the service, so just stick us in SF
+    response.result({
+      accuracy: 21.6747,
+      lat: 37.785834,
+      lon: -122.406417,
+    })
+  }
+  return []
+}
+
 const resolveMaybeMention = (state, action: Chat2Gen.ResolveMaybeMentionPayload) => {
   return RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
@@ -3415,6 +3433,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,
     onChatMaybeMentionUpdate
+  )
+  getEngine().registerCustomResponse('chat.1.chatUi.chatGetCoordinate')
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGetCoordinatePayload>(
+    EngineGen.chat1ChatUiChatGetCoordinate,
+    onChatGetCoordinate,
+    'onChatGetCoordinate'
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)

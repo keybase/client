@@ -77,7 +77,7 @@ protocol local {
     string statusDescription;       // "pending", "completed", "error", "claimable", "canceled"
     string statusDetail;
     boolean showCancel;             // true if cancel is an option for this payment
-    string amountDescription;       // "1,323.1234567 XLM"
+    string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23 CLP", senders intended amount if this was made as a lumens-worth-currency payment
     string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an
@@ -253,7 +253,6 @@ protocol local {
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
   SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
 
-  // Not implemented. CORE-8087
   // Get the non-XLM assets for sending.
   array<SendAssetChoiceLocal> getSendAssetChoicesLocal(
     int sessionID,
@@ -546,7 +545,7 @@ protocol local {
 
   // search by user search string
   array<Asset> fuzzyAssetSearchLocal(int sessionID, string searchString);
-  array<Asset> listPopularAssetsLocal(int sessionID);
+  AssetListResult listPopularAssetsLocal(int sessionID);
 
   // Trustline operations:
   // In addTrustline, limit is optional, if not supplied, max limit will be used.

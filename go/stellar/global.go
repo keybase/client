@@ -442,8 +442,9 @@ func (s *Stellar) startBuildPayment(mctx libkb.MetaContext) (bid stellar1.BuildP
 	s.bids = append(s.bids, newBuildPaymentEntry(bid))
 	const maxConcurrentBuilds = 20
 	if len(s.bids) > maxConcurrentBuilds {
-		// Too many open payment builds. Drop the oldest ones.
-		for i := maxConcurrentBuilds; i < len(s.bids); i++ {
+		// Too many open payment builds. Drop the oldest ones at the beginning of the list.
+		// Leave the newest ones at the end of the list.
+		for i := 0; i < len(s.bids)-maxConcurrentBuilds; i++ {
 			entry := s.bids[i]
 			entry.Slot.Shutdown()
 		}

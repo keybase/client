@@ -9,9 +9,14 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
+
+	"github.com/keybase/client/go/chat/maps"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
@@ -85,7 +90,10 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 }
 
 func TestScraper(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "scraper", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -290,7 +298,10 @@ func TestScraper(t *testing.T) {
 }
 
 func TestGiphySearchScrape(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "giphyScraper", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -317,5 +328,28 @@ func TestGiphySearchScrape(t *testing.T) {
 	require.NotNil(t, res.Giphy().ImageUrl)
 	require.Nil(t, res.Giphy().Video)
 	require.Equal(t, *res.Giphy().ImageUrl, url)
+}
 
+func TestMapScraper(t *testing.T) {
+	tc := libkb.SetupTest(t, "mapScraper", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{
+		ExternalAPIKeySource: types.DummyExternalAPIKeySource{},
+	})
+	scraper := NewScraper(g)
+	lat := 40.800099
+	lon := -73.969341
+	acc := 65.00
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", mapsDomain, lat, lon, acc)
+	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lon)))
+	require.NotNil(t, unfurl.Maps().ImageUrl)
+	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, maps.MapsProxy))
+	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
 }

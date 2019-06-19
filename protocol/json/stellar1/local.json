@@ -2212,10 +2212,7 @@
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "Asset"
-      }
+      "response": "AssetListResult"
     },
     "addTrustlineLocal": {
       "request": [

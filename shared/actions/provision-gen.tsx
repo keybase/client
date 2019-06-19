@@ -46,7 +46,7 @@ type _ShowNewDeviceNamePagePayload = {
 }
 type _ShowPaperkeyPagePayload = {readonly error: HiddenString | null}
 type _ShowPasswordPagePayload = {readonly error: HiddenString | null}
-type _StartProvisionPayload = void
+type _StartProvisionPayload = {readonly initUsername?: string}
 type _SubmitDeviceNamePayload = {readonly name: string}
 type _SubmitDeviceSelectPayload = {readonly name: string}
 type _SubmitGPGMethodPayload = {readonly exportKey: boolean}
@@ -110,10 +110,9 @@ export const createShowPasswordPage = (payload: _ShowPasswordPagePayload): ShowP
   payload,
   type: showPasswordPage,
 })
-export const createStartProvision = (payload: _StartProvisionPayload): StartProvisionPayload => ({
-  payload,
-  type: startProvision,
-})
+export const createStartProvision = (
+  payload: _StartProvisionPayload = Object.freeze({})
+): StartProvisionPayload => ({payload, type: startProvision})
 export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload): SubmitDeviceNamePayload => ({
   payload,
   type: submitDeviceName,

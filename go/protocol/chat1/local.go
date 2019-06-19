@@ -170,12 +170,27 @@ func (o MaybeMention) DeepCopy() MaybeMention {
 	}
 }
 
+type Coordinate struct {
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
+}
+
+func (o Coordinate) DeepCopy() Coordinate {
+	return Coordinate{
+		Lat:      o.Lat,
+		Lon:      o.Lon,
+		Accuracy: o.Accuracy,
+	}
+}
+
 type MessageText struct {
 	Body         string             `codec:"body" json:"body"`
 	Payments     []TextPayment      `codec:"payments" json:"payments"`
 	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	Coord        *Coordinate        `codec:"coord,omitempty" json:"coord,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -221,6 +236,13 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.TeamMentions),
+		Coord: (func(x *Coordinate) *Coordinate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Coord),
 	}
 }
 

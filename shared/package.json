@@ -61,7 +61,7 @@
       "<rootDir>/.tsOut"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es|@react-navigation/.*).+\\.js"
+      "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|lodash-es|@react-navigation/.*).+\\.js"
     ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
@@ -127,6 +127,7 @@
     "exif-js": "2.3.0",
     "expo-sms": "5.0.0",
     "framed-msgpack-rpc": "1.1.18",
+    "google-libphonenumber": "3.2.2",
     "iced-runtime": "1.0.3",
     "immutable": "4.0.0-rc.12",
     "jsc-android": "241213.2.0",
@@ -142,9 +143,9 @@
     "qrcode-generator": "git://github.com/keybase/qrcode-generator#keybase-changes-off-140",
     "react": "16.8.3",
     "react-dom": "16.8.3",
-    "react-gateway": "3.0.0",
+    "react-gateway": "git://github.com/keybase/react-gateway#nojima/keybase-fixes-off-300",
     "react-is": "16.8.6",
-    "react-list": "0.8.11",
+    "react-list": "git://github.com/keybase/react-list#nojima/keybase-fixes-off-0811",
     "react-measure": "2.2.2",
     "react-native": "0.59.8",
     "react-native-camera": "2.0.0",
@@ -166,7 +167,7 @@
     "react-spring": "7.2.0",
     "react-transition-group": "2.5.1",
     "react-virtualized-auto-sizer": "1.0.2",
-    "react-waypoint": "8.1.0",
+    "react-waypoint": "9.0.2",
     "react-window": "1.5.0",
     "recompose": "0.30.0",
     "redux": "4.0.1",
@@ -200,6 +201,7 @@
     "@emotion/core": "10.0.9",
     "@emotion/native": "10.0.9",
     "@emotion/styled": "10.0.9",
+    "@hot-loader/react-dom": "16.8.3",
     "@storybook/addon-actions": "5.0.1",
     "@storybook/addon-storyshots": "5.0.1",
     "@storybook/addons": "5.0.1",
@@ -268,7 +270,7 @@
     "pegjs": "0.10.0",
     "prettier": "1.17.1",
     "randexp": "0.5.3",
-    "react-hot-loader": "4.6.3",
+    "react-hot-loader": "4.11.0",
     "react-test-renderer": "16.8.3",
     "redux-logger": "3.0.6",
     "style-loader": "0.23.1",

@@ -1266,6 +1266,10 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        },
+        {
+          "name": "includeAdvanced",
+          "type": "boolean"
         }
       ],
       "response": "DetailsPlusPayments"
@@ -1309,10 +1313,7 @@
           "type": "keybase1.UserVersion"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "Asset"
-      }
+      "response": "AssetListResult"
     },
     "changeTrustline": {
       "request": [

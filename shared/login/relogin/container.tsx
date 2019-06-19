@@ -27,9 +27,17 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const users = stateProps._users.sort().toArray()
+  let inputError = ''
+  let bannerError = ''
+  if (stateProps.error === 'You are offline.') {
+    bannerError = stateProps.error
+  } else {
+    inputError = stateProps.error
+  }
 
   return {
-    error: stateProps.error,
+    bannerError,
+    inputError,
     onFeedback: dispatchProps.onFeedback,
     onForgotPassword: dispatchProps.onForgotPassword,
     onLogin: dispatchProps.onLogin,
@@ -52,7 +60,8 @@ type Props = {
   onForgotPassword: () => void
   onSignup: () => void
   onSomeoneElse: () => void
-  error: string
+  bannerError: string
+  inputError: string
   selectedUser: string
   onFeedback: () => void
   onLogin: (user: string, password: string) => void
@@ -71,7 +80,7 @@ class LoginWrapper extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Clear the password when there's an error.
-    if (this.props.error !== prevProps.error) {
+    if (this.props.inputError !== prevProps.inputError) {
       this.setState(p => ({inputKey: p.inputKey + 1, password: ''}))
     }
     if (this.props.selectedUser !== prevProps.selectedUser) {
@@ -82,7 +91,8 @@ class LoginWrapper extends React.Component<Props, State> {
   render() {
     return (
       <Login
-        error={this.props.error}
+        bannerError={this.props.bannerError}
+        inputError={this.props.inputError}
         inputKey={String(this.state.inputKey)}
         onFeedback={this.props.onFeedback}
         onForgotPassword={this.props.onForgotPassword}

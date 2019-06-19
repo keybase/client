@@ -14,6 +14,7 @@ export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiCha
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
 export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
+export const chat1ChatUiChatGetCoordinate = 'engine-gen:chat1ChatUiChatGetCoordinate'
 export const chat1ChatUiChatGiphySearchResults = 'engine-gen:chat1ChatUiChatGiphySearchResults'
 export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiChatGiphyToggleResultWindow'
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
@@ -259,6 +260,13 @@ type _Chat1ChatUiChatConfirmChannelDeletePayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatGetCoordinatePayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatGetCoordinate']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatGiphySearchResultsPayload = {
@@ -1656,6 +1664,9 @@ export const createChat1ChatUiChatCommandMarkdown = (
 export const createChat1ChatUiChatConfirmChannelDelete = (
   payload: _Chat1ChatUiChatConfirmChannelDeletePayload
 ): Chat1ChatUiChatConfirmChannelDeletePayload => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
+export const createChat1ChatUiChatGetCoordinate = (
+  payload: _Chat1ChatUiChatGetCoordinatePayload
+): Chat1ChatUiChatGetCoordinatePayload => ({payload, type: chat1ChatUiChatGetCoordinate})
 export const createChat1ChatUiChatGiphySearchResults = (
   payload: _Chat1ChatUiChatGiphySearchResultsPayload
 ): Chat1ChatUiChatGiphySearchResultsPayload => ({payload, type: chat1ChatUiChatGiphySearchResults})
@@ -2297,6 +2308,10 @@ export type Chat1ChatUiChatCommandMarkdownPayload = {
 export type Chat1ChatUiChatConfirmChannelDeletePayload = {
   readonly payload: _Chat1ChatUiChatConfirmChannelDeletePayload
   readonly type: typeof chat1ChatUiChatConfirmChannelDelete
+}
+export type Chat1ChatUiChatGetCoordinatePayload = {
+  readonly payload: _Chat1ChatUiChatGetCoordinatePayload
+  readonly type: typeof chat1ChatUiChatGetCoordinate
 }
 export type Chat1ChatUiChatGiphySearchResultsPayload = {
   readonly payload: _Chat1ChatUiChatGiphySearchResultsPayload
@@ -2990,6 +3005,7 @@ export type Actions =
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload
   | Chat1ChatUiChatConfirmChannelDeletePayload
+  | Chat1ChatUiChatGetCoordinatePayload
   | Chat1ChatUiChatGiphySearchResultsPayload
   | Chat1ChatUiChatGiphyToggleResultWindowPayload
   | Chat1ChatUiChatInboxConversationPayload

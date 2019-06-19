@@ -37,7 +37,10 @@ func (s *SecretStoreMem) ClearSecret(m MetaContext, username NormalizedUsername)
 func (s *SecretStoreMem) GetUsersWithStoredSecrets(m MetaContext) ([]string, error) {
 	var usernames []string
 	for k := range s.secrets {
-		usernames = append(usernames, k.String())
+		uname := k.String()
+		if !isPPSSecretStore(uname) {
+			usernames = append(usernames, uname)
+		}
 	}
 	return usernames, nil
 }

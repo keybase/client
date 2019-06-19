@@ -60,36 +60,13 @@ static char TAG_ACTIVITY_SHOW;
                           progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
                          completed:(nullable SDExternalCompletionBlock)completedBlock
                            context:(nullable NSDictionary<NSString *, id> *)context {
-    SDInternalSetImageBlock internalSetImageBlock;
-    if (setImageBlock) {
-        internalSetImageBlock = ^(UIImage * _Nullable image, NSData * _Nullable imageData, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-            if (setImageBlock) {
-                setImageBlock(image, imageData);
-            }
-        };
-    }
-    [self sd_internalSetImageWithURL:url placeholderImage:placeholder options:options operationKey:operationKey internalSetImageBlock:internalSetImageBlock progress:progressBlock completed:completedBlock context:context];
-}
-
-- (void)sd_internalSetImageWithURL:(nullable NSURL *)url
-                  placeholderImage:(nullable UIImage *)placeholder
-                           options:(SDWebImageOptions)options
-                      operationKey:(nullable NSString *)operationKey
-             internalSetImageBlock:(nullable SDInternalSetImageBlock)setImageBlock
-                          progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
-                         completed:(nullable SDExternalCompletionBlock)completedBlock
-                           context:(nullable NSDictionary<NSString *, id> *)context {
     NSString *validOperationKey = operationKey ?: NSStringFromClass([self class]);
     [self sd_cancelImageLoadOperationWithKey:validOperationKey];
     objc_setAssociatedObject(self, &imageURLKey, url, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     
-    dispatch_group_t group = context[SDWebImageInternalSetImageGroupKey];
     if (!(options & SDWebImageDelayPlaceholder)) {
-        if (group) {
-            dispatch_group_enter(group);
-        }
         dispatch_main_async_safe(^{
-            [self sd_setImage:placeholder imageData:nil basedOnClassOrViaCustomSetImageBlock:setImageBlock cacheType:SDImageCacheTypeNone imageURL:url];
+            [self sd_setImage:placeholder imageData:nil basedOnClassOrViaCustomSetImageBlock:setImageBlock];
         });
     }
     
@@ -105,8 +82,10 @@ static char TAG_ACTIVITY_SHOW;
         self.sd_imageProgress.totalUnitCount = 0;
         self.sd_imageProgress.completedUnitCount = 0;
         
-        SDWebImageManager *manager = [context objectForKey:SDWebImageExternalCustomManagerKey];
-        if (!manager) {
+        SDWebImageManager *manager;
+        if ([context valueForKey:SDWebImageExternalCustomManagerKey]) {
+            manager = (SDWebImageManager *)[context valueForKey:SDWebImageExternalCustomManagerKey];
+        } else {
             manager = [SDWebImageManager sharedManager];
         }
         
@@ -170,25 +149,12 @@ static char TAG_ACTIVITY_SHOW;
             }
 #endif
             dispatch_main_async_safe(^{
-                if (group) {
-                    dispatch_group_enter(group);
-                }
 #if SD_UIKIT || SD_MAC
                 [sself sd_setImage:targetImage imageData:targetData basedOnClassOrViaCustomSetImageBlock:setImageBlock transition:transition cacheType:cacheType imageURL:imageURL];
 #else
-                [sself sd_setImage:targetImage imageData:targetData basedOnClassOrViaCustomSetImageBlock:setImageBlock cacheType:cacheType imageURL:imageURL];
+                [sself sd_setImage:targetImage imageData:targetData basedOnClassOrViaCustomSetImageBlock:setImageBlock];
 #endif
-                if (group) {
-                    // compatible code for FLAnimatedImage, because we assume completedBlock called after image was set. This will be removed in 5.x
-                    BOOL shouldUseGroup = [objc_getAssociatedObject(group, &SDWebImageInternalSetImageGroupKey) boolValue];
-                    if (shouldUseGroup) {
-                        dispatch_group_notify(group, dispatch_get_main_queue(), callCompletedBlockClojure);
-                    } else {
-                        callCompletedBlockClojure();
-                    }
-                } else {
-                    callCompletedBlockClojure();
-                }
+                callCompletedBlockClojure();
             });
         }];
         [self sd_setImageLoadOperation:operation forKey:validOperationKey];
@@ -209,13 +175,13 @@ static char TAG_ACTIVITY_SHOW;
     [self sd_cancelImageLoadOperationWithKey:NSStringFromClass([self class])];
 }
 
-- (void)sd_setImage:(UIImage *)image imageData:(NSData *)imageData basedOnClassOrViaCustomSetImageBlock:(SDInternalSetImageBlock)setImageBlock cacheType:(SDImageCacheType)cacheType imageURL:(NSURL *)imageURL {
+- (void)sd_setImage:(UIImage *)image imageData:(NSData *)imageData basedOnClassOrViaCustomSetImageBlock:(SDSetImageBlock)setImageBlock {
 #if SD_UIKIT || SD_MAC
-    [self sd_setImage:image imageData:imageData basedOnClassOrViaCustomSetImageBlock:setImageBlock transition:nil cacheType:cacheType imageURL:imageURL];
+    [self sd_setImage:image imageData:imageData basedOnClassOrViaCustomSetImageBlock:setImageBlock transition:nil cacheType:0 imageURL:nil];
 #else
     // watchOS does not support view transition. Simplify the logic
     if (setImageBlock) {
-        setImageBlock(image, imageData, cacheType, imageURL);
+        setImageBlock(image, imageData);
     } else if ([self isKindOfClass:[UIImageView class]]) {
         UIImageView *imageView = (UIImageView *)self;
         [imageView setImage:image];
@@ -224,21 +190,21 @@ static char TAG_ACTIVITY_SHOW;
 }
 
 #if SD_UIKIT || SD_MAC
-- (void)sd_setImage:(UIImage *)image imageData:(NSData *)imageData basedOnClassOrViaCustomSetImageBlock:(SDInternalSetImageBlock)setImageBlock transition:(SDWebImageTransition *)transition cacheType:(SDImageCacheType)cacheType imageURL:(NSURL *)imageURL {
+- (void)sd_setImage:(UIImage *)image imageData:(NSData *)imageData basedOnClassOrViaCustomSetImageBlock:(SDSetImageBlock)setImageBlock transition:(SDWebImageTransition *)transition cacheType:(SDImageCacheType)cacheType imageURL:(NSURL *)imageURL {
     UIView *view = self;
-    SDInternalSetImageBlock finalSetImageBlock;
+    SDSetImageBlock finalSetImageBlock;
     if (setImageBlock) {
         finalSetImageBlock = setImageBlock;
     } else if ([view isKindOfClass:[UIImageView class]]) {
         UIImageView *imageView = (UIImageView *)view;
-        finalSetImageBlock = ^(UIImage *setImage, NSData *setImageData, SDImageCacheType setCacheType, NSURL *setImageURL) {
+        finalSetImageBlock = ^(UIImage *setImage, NSData *setImageData) {
             imageView.image = setImage;
         };
     }
 #if SD_UIKIT
     else if ([view isKindOfClass:[UIButton class]]) {
         UIButton *button = (UIButton *)view;
-        finalSetImageBlock = ^(UIImage *setImage, NSData *setImageData, SDImageCacheType setCacheType, NSURL *setImageURL) {
+        finalSetImageBlock = ^(UIImage *setImage, NSData *setImageData){
             [button setImage:setImage forState:UIControlStateNormal];
         };
     }
@@ -254,7 +220,7 @@ static char TAG_ACTIVITY_SHOW;
         } completion:^(BOOL finished) {
             [UIView transitionWithView:view duration:transition.duration options:transition.animationOptions animations:^{
                 if (finalSetImageBlock && !transition.avoidAutoSetImage) {
-                    finalSetImageBlock(image, imageData, cacheType, imageURL);
+                    finalSetImageBlock(image, imageData);
                 }
                 if (transition.animations) {
                     transition.animations(view, image);
@@ -274,7 +240,7 @@ static char TAG_ACTIVITY_SHOW;
                 context.timingFunction = transition.timingFunction;
                 context.allowsImplicitAnimation = (transition.animationOptions & SDWebImageAnimationOptionAllowsImplicitAnimation);
                 if (finalSetImageBlock && !transition.avoidAutoSetImage) {
-                    finalSetImageBlock(image, imageData, cacheType, imageURL);
+                    finalSetImageBlock(image, imageData);
                 }
                 if (transition.animations) {
                     transition.animations(view, image);
@@ -288,7 +254,7 @@ static char TAG_ACTIVITY_SHOW;
 #endif
     } else {
         if (finalSetImageBlock) {
-            finalSetImageBlock(image, imageData, cacheType, imageURL);
+            finalSetImageBlock(image, imageData);
         }
     }
 }

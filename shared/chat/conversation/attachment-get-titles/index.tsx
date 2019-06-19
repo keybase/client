@@ -25,7 +25,6 @@ type State = {
 
 class GetTitles extends React.Component<Props, State> {
   state: State
-  _input: Kb.Input | null
 
   constructor(props: Props) {
     super(props)
@@ -76,18 +75,6 @@ class GetTitles extends React.Component<Props, State> {
     })
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (prevState.index !== this.state.index) {
-      this._input && this._input.select()
-    }
-  }
-
-  componentDidMount() {
-    this._input && this._input.select()
-  }
-
-  _setRef = input => (this._input = input)
-
   render() {
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
@@ -96,89 +83,154 @@ class GetTitles extends React.Component<Props, State> {
     if (!info) return null
 
     return (
-      <Kb.ScrollView style={{height: '100%', width: '100%'}}>
-        <Kb.Box style={Styles.isMobile ? stylesMobile : stylesDesktop}>
-          <Kb.Box style={{...Styles.globalStyles.flexBoxCenter, height: 150, width: 150}}>
+      <Kb.ScrollView style={styles.scrollView}>
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          fullWidth={true}
+          style={styles.container}
+        >
+          <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
             {info.type === 'image' ? (
-              <Kb.OrientedImage
-                src={Styles.isAndroid ? `file://${path}` : path}
-                style={Styles.isMobile ? {height: 150, width: 150} : {maxHeight: '100%', maxWidth: '100%'}}
-              />
+              <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
             ) : (
               <Kb.Icon type="icon-file-uploading-48" />
             )}
-          </Kb.Box>
-          {paths.length > 0 && (
-            <Kb.Box2
-              direction="vertical"
-              style={{
-                alignItems: 'center',
-                marginTop: Styles.globalMargins.xtiny,
-                maxWidth: Styles.isMobile ? 300 : undefined,
-              }}
-            >
-              {!Styles.isMobile && <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>}
+          </Kb.Box2>
+          {paths.length > 0 && !Styles.isMobile && (
+            <Kb.Box2 direction="vertical" style={styles.filename}>
+              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
               <Kb.Text type="BodySmall">
-                {Styles.isMobile ? '' : `${info.filename} `}({this.state.index + 1} of {paths.length})
+                {info.filename} ({this.state.index + 1} of {paths.length})
               </Kb.Text>
             </Kb.Box2>
           )}
-          <Kb.Input
-            style={Styles.isMobile ? stylesInputMobile : stylesInputDesktop}
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={styles.inputContainer}
+          >
+
+          <Kb.PlainInput
+            style={styles.input}
             autoFocus={true}
             autoCorrect={true}
-            floatingHintTextOverride={titleHint}
-            hideLabel={Styles.isMobile}
-            hintText={titleHint}
+            placeholder={titleHint}
+            multiline={true}
+            rowsMin={2}
             value={info.title}
             onEnterKeyDown={this._onNext}
-            ref={this._setRef}
             onChangeText={this._updateTitle}
             selectTextOnFocus={true}
-          />
-          <Kb.ButtonBar style={{flexShrink: 0}}>
-            <Kb.Button type="Dim" onClick={this.props.onCancel} label="Cancel" />
+            />
+          </Kb.Box2>
+          <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
+            {!Styles.isMobile && (
+              <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
+            )}
             {this._isLast() ? (
-              <Kb.WaitingButton waitingKey={null} onClick={this._onNext} label="Send" />
+              <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
             ) : (
-              <Kb.Button onClick={this._onNext} label="Next" />
+              <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
             )}
           </Kb.ButtonBar>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ScrollView>
     )
   }
 }
 
-const stylesDesktop = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'center',
-  marginBottom: 80,
-  marginLeft: 80,
-  marginRight: 80,
-  marginTop: 90,
-}
-
-const stylesInputDesktop = {
-  flexShrink: 0,
-  marginTop: 40,
-  width: 460,
-}
-
-const stylesMobile = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  justifyContent: 'flex-start',
-  marginTop: 4,
-}
-
-const stylesInputMobile = {
-  minWidth: 320,
-  paddingLeft: 20,
-  paddingRight: 20,
-}
+const styles = Styles.styleSheetCreate({
+  buttonContainer: Styles.platformStyles({
+    isElectron: {
+      alignSelf: 'flex-end',
+      backgroundColor: Styles.globalColors.white,
+      borderStyle: 'solid',
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
+      padding: Styles.globalMargins.small,
+    },
+  }),
+  cancelButton: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 560,
+      justifyContent: 'space-between',
+      width: 400,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
+  filename: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      marginBottom: Styles.globalMargins.small,
+    },
+  }),
+  image: Styles.platformStyles({
+    isElectron: {
+      maxHeight: '100%',
+      maxWidth: '100%',
+    },
+    isMobile: {
+      height: 125,
+      marginBottom: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.tiny,
+      width: 150,
+    },
+  }),
+  imageContainer: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+    },
+    isElectron: {
+      height: 325,
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
+      width: 325,
+    },
+    isMobile: {
+      height: 150,
+      width: 150,
+    },
+  }),
+  input: Styles.platformStyles({
+    common: {
+      borderColor: Styles.globalColors.blue,
+      borderRadius: Styles.borderRadius,
+      borderWidth: 1,
+      marginBottom: Styles.globalMargins.tiny,
+      // RN wasn't obeying `padding: Styles.globalMargins.tiny`.
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+    isElectron: {
+      maxHeight: 100,
+    },
+  }),
+  inputContainer: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
+  scrollView: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blueGrey,
+      height: '100%',
+      width: '100%',
+    },
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+    },
+  }),
+})
 
 export default Kb.HeaderOrPopup(GetTitles)

@@ -5,22 +5,20 @@ import EnterPhoneNumber from '.'
 import VerifyPhoneNumber from './verify'
 
 const props = {
-  allowSearch: false,
-  onChangeAllowSearch: Sb.action('onChangeAllowSearch'),
-  onChangePhoneNumber: Sb.action('onChangePhoneNumber'),
-  onChangeValidity: Sb.action('onChangeValidity'),
+  error: '',
   onContinue: Sb.action('onFinish'),
   onSkip: Sb.action('onSkip'),
+  waiting: false,
 }
 
 const verifyProps = {
   error: '',
   onBack: Sb.action('onBack'),
-  onChangeCode: Sb.action('onChangeCode'),
   onContinue: Sb.action('onContinue'),
   onResend: Sb.action('onResend'),
   phoneNumber: '+33 6 76 38 86 97',
   resendWaiting: false,
+  verifyWaiting: false,
 }
 
 const load = () => {

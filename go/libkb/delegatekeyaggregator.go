@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"errors"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -73,6 +74,9 @@ func DelegatorAggregator(m MetaContext, ds []Delegator, extra AggSigProducer,
 	apiArg.uArgs = nil
 	apiArg.Endpoint = "key/multi"
 	apiArg.JSONPayload = payload
+	// It's bad to fail provisioning especially after signup.
+	apiArg.InitialTimeout = 5 * time.Minute
+	apiArg.RetryCount = 10
 
 	_, err = m.G().API.PostJSON(m, apiArg)
 	if err != nil {

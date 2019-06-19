@@ -41,6 +41,7 @@ const (
 	cmdHide
 	cmdJoin
 	cmdLeave
+	cmdLocation
 	cmdMe
 	cmdMsg
 	cmdMute
@@ -58,6 +59,7 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
 	res[cmdLeave] = NewLeave(s.G())
+	res[cmdLocation] = NewLocation(s.G())
 	res[cmdMe] = NewMe(s.G())
 	res[cmdMsg] = NewMsg(s.G())
 	res[cmdMute] = NewMute(s.G())
@@ -80,6 +82,9 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	if s.G().IsMobileAppType() && s.isAdmin() {
+		common = append(common, cmds[cmdLocation])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -183,33 +188,35 @@ func (s *Source) isAdmin() bool {
 }
 
 var admins = map[string]bool{
-	"mikem":        true,
-	"max":          true,
-	"candrencil64": true,
-	"chris":        true,
-	"chrisnojima":  true,
-	"mlsteele":     true,
-	"xgess":        true,
-	"karenm":       true,
-	"kb_monbot":    true,
-	"joshblum":     true,
-	"cjb":          true,
-	"jzila":        true,
-	"patrick":      true,
-	"modalduality": true,
-	"strib":        true,
-	"songgao":      true,
-	"ayoubd":       true,
-	"cecileb":      true,
-	"adamjspooner": true,
-	"akalin":       true,
-	"marcopolo":    true,
-	"aimeedavid":   true,
-	"jinyang":      true,
-	"zapu":         true,
-	"jakob223":     true,
-	"taruti":       true,
-	"pzduniak":     true,
-	"zanderz":      true,
-	"giphy_tester": true,
+	"mikem":         true,
+	"max":           true,
+	"candrencil64":  true,
+	"chris":         true,
+	"chrisnojima":   true,
+	"mlsteele":      true,
+	"xgess":         true,
+	"karenm":        true,
+	"kb_monbot":     true,
+	"joshblum":      true,
+	"cjb":           true,
+	"jzila":         true,
+	"patrick":       true,
+	"modalduality":  true,
+	"strib":         true,
+	"songgao":       true,
+	"ayoubd":        true,
+	"cecileb":       true,
+	"adamjspooner":  true,
+	"akalin":        true,
+	"marcopolo":     true,
+	"aimeedavid":    true,
+	"jinyang":       true,
+	"zapu":          true,
+	"jakob223":      true,
+	"taruti":        true,
+	"pzduniak":      true,
+	"zanderz":       true,
+	"giphy_tester":  true,
+	"candrencil983": true,
+	"candrencil889": true,
 }

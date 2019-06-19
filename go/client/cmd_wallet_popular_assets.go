@@ -49,13 +49,13 @@ func (c *cmdWalletPopularAssets) Run() (err error) {
 		return err
 	}
 
-	assets, err := cli.ListPopularAssetsLocal(context.Background(), 0)
+	assetRes, err := cli.ListPopularAssetsLocal(context.Background(), 0)
 	if err != nil {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("popular assets:\n")
-	for _, asset := range assets {
+	dui.Printf("popular assets from a total of %d:\n", assetRes.TotalCount)
+	for _, asset := range assetRes.Assets {
 		dui.Printf(buildOutputStringForAsset(asset) + "\n")
 	}
 	return nil

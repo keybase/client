@@ -2328,6 +2328,6 @@ func FuzzyAssetSearch(mctx libkb.MetaContext, remoter remote.Remoter, arg stella
 	return remoter.FuzzyAssetSearch(mctx, arg)
 }
 
-func ListPopularAssets(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+func ListPopularAssets(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
 	return remoter.ListPopularAssets(mctx, arg)
 }

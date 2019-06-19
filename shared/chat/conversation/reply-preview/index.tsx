@@ -1,14 +1,19 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 
 export type Props = {
+  imageHeight?: number
+  imageURL?: string
+  imageWidth?: number
   onCancel: () => void
   text: string
   username: string
 }
 
 const ReplyPreview = (props: Props) => {
+  const sizing = props.imageHeight ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80) : null
   return (
     <Kb.Box style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
@@ -23,7 +28,14 @@ const ReplyPreview = (props: Props) => {
                 {props.username}
               </Kb.Text>
             </Kb.Box2>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+              {!!props.imageURL && (
+                <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
+                  <Kb.Box style={{...sizing.margins}}>
+                    <Kb.Image src={props.imageURL} style={{...sizing.dims}} />
+                  </Kb.Box>
+                </Kb.Box2>
+              )}
               <Kb.Text type="BodySmall" style={styles.text} lineClamp={1}>
                 {props.text}
               </Kb.Text>
@@ -68,6 +80,10 @@ const styles = Styles.styleSheetCreate({
   replyContainer: {
     justifyContent: 'space-between',
     padding: Styles.globalMargins.tiny,
+  },
+  replyImageContainer: {
+    overflow: 'hidden',
+    position: 'relative',
   },
   text: Styles.platformStyles({
     isElectron: {

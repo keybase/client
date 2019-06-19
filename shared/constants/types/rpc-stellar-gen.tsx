@@ -317,6 +317,7 @@ export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
 export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String}
 export type AssetCode = String
+export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}
 export type Balance = {readonly asset: Asset; readonly amount: String; readonly limit: String}
 export type BatchPaymentArg = {readonly recipient: String; readonly amount: String; readonly message: String}

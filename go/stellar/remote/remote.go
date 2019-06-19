@@ -354,8 +354,9 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 		Endpoint:    "stellar/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":    libkb.S{Val: string(accountID)},
-			"include_multi": libkb.B{Val: true},
+			"account_id":       libkb.S{Val: string(accountID)},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: true},
 		},
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
@@ -972,7 +973,8 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 		Endpoint:    "stellar/details_plus_payments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id": libkb.S{Val: accountID.String()},
+			"account_id":       libkb.S{Val: accountID.String()},
+			"include_advanced": libkb.B{Val: true},
 		},
 	}
 	var apiRes detailsPlusPaymentsRes
@@ -1136,10 +1138,11 @@ func FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) 
 
 type popularAssetsResult struct {
 	libkb.AppStatusEmbed
-	Assets []stellar1.Asset `json:"assets"`
+	Assets     []stellar1.Asset `json:"assets"`
+	TotalCount int              `json:"totalCount"`
 }
 
-func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/list_popular_assets",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -1147,7 +1150,10 @@ func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg
 	}
 	var apiRes popularAssetsResult
 	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
-		return []stellar1.Asset{}, err
+		return stellar1.AssetListResult{}, err
 	}
-	return apiRes.Assets, nil
+	return stellar1.AssetListResult{
+		Assets:     apiRes.Assets,
+		TotalCount: apiRes.TotalCount,
+	}, nil
 }

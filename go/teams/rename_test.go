@@ -93,7 +93,7 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B1 (will have stubbed link and new name)")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          *subteamID,
 		ForceRepoll: true,
 	})
@@ -104,7 +104,7 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B2.C which will cause it to inflate the new_subteam link in A.B2")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          *subsubteamID,
 		ForceRepoll: true,
 	})
@@ -145,7 +145,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads R")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          parentName.ToPrivateTeamID(),
 		ForceRepoll: true,
 	})
@@ -169,7 +169,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads R")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          parentName.ToPrivateTeamID(),
 		ForceRepoll: true,
 	})

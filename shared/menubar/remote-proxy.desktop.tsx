@@ -87,7 +87,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
         )
       }
     }
-    componentDidUnmount() {
+    componentWillUnmount() {
       if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
         SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
       }
@@ -120,12 +120,12 @@ const mapStateToProps = state => ({
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
   desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
-  diskSpaceBannerHidden: state.fs.overallSyncStatus.diskSpaceBannerHidden,
   diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
+  showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
   userInfo: state.users.infoMap,
   username: state.config.username,
   widgetBadge: state.notifications.get('widgetBadge') || 'regular',
@@ -147,7 +147,6 @@ const mergeProps = stateProps => {
     daemonHandshakeState: stateProps.daemonHandshakeState,
 
     desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
-    diskSpaceBannerHidden: stateProps.diskSpaceBannerHidden,
     diskSpaceStatus: stateProps.diskSpaceStatus,
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
@@ -158,6 +157,7 @@ const mergeProps = stateProps => {
     kbfsEnabled: stateProps.kbfsEnabled,
     loggedIn: stateProps.loggedIn,
     outOfDate: stateProps.outOfDate,
+    showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
     userInfo: stateProps.userInfo,
     username: stateProps.username,
     widgetBadge: stateProps.widgetBadge,

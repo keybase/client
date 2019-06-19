@@ -120,12 +120,7 @@ start_background() {
 
       echo Launching Keybase GUI...
       gui_log="$logdir/Keybase.app.log"
-      # Allow distributions to change the location of the gui as long as it's in PATH.
-      if command -v Keybase &> /dev/null; then
-          Keybase &>> "$gui_log" &
-      else
-          /opt/keybase/Keybase &>> "$gui_log" &
-      fi
+      "$KEYBASE" &>> "$gui_log" &
   fi
 }
 
@@ -143,7 +138,9 @@ warn_if_weird_path() {
 }
 
 show_cryptosquirrel() {
-  [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  if n_colors="$(tput colors 2> /dev/null)" && [ "$n_colors" -gt 2 ]; then
+      [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  fi
 }
 
 warn_if_exists_and_unwritable() {
@@ -174,6 +171,30 @@ init() {
 
   # Remove legacy envfiles; now stored in config directory by ctl init
   rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
+
+  # Allow distributions to change the location of the gui as long as it's in PATH.
+  if command -v Keybase &> /dev/null; then
+      KEYBASE=Keybase
+  else
+      KEYBASE=/opt/keybase/Keybase
+  fi
+}
+
+check_for_url_scheme_launch() {
+  # We set a URL scheme handler on our .desktop file, and since that file
+  # points to this script, that's what gets called with URL links. We can
+  # differentiate between a normal run_keybase invocation and a URL launch
+  # by checking argv.
+
+  # If Keybase is already running, then pass it the link and exit.
+  if [[ $# -eq 1 && "$1" =~ ^web+.* ]]; then
+      if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
+          "$KEYBASE" "$1" &
+          exit
+      fi
+  fi
+
+  # Since we didn't exit, fall through to a normal startup.
 }
 
 startup_all() {
@@ -216,6 +237,7 @@ KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
 KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
+
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
 #   http://keybase.io/docs/linux-user-guide
 while getopts "afghk" flag; do
@@ -230,6 +252,11 @@ while getopts "afghk" flag; do
 done
 
 init
+
+# Exit early if run caused by a URL scheme invocation and Keybase is already
+# running; otherwise fall through to start Keybase.
+check_for_url_scheme_launch "$@"
+
 # Always stop any running services. With systemd, we could've decided to just
 # `start` services and no-op if they're already running, however:
 # 1) We still need to handle the case where services started outside systemd
