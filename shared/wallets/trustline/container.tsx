@@ -15,15 +15,16 @@ type OwnProps = Container.RouteProps<
 >
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
+  accountAssets: Constants.getAssets(
+    state,
+    Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID
+  ),
   trustline: state.wallets.trustline,
   waitingSearch: Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  clearTrustlineModal: () => {
-    dispatch(WalletsGen.createClearTrustlineSearchResults())
-    dispatch(WalletsGen.createSetTrustlineErrorMessage({errorMessage: null}))
-  },
+  clearTrustlineModal: () => dispatch(WalletsGen.createClearTrustlineSearchResults()),
   onDone: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSearchChange: debounce((text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})), 500),
   refresh: () => {
@@ -33,17 +34,24 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
 })
 
+const emptyAccountAsset = Constants.makeAssets()
+
 const mergeProps = (s, d, o: OwnProps) => {
   const accountID = Container.getRouteProps(o, 'accountID') || Types.noAccountID
   const acceptedAssets = s.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
   return {
     acceptedAssets,
     accountID,
+    balanceAvailableToSend: s.accountAssets.find(
+      ({assetCode}) => assetCode === 'XLM',
+      undefined,
+      emptyAccountAsset
+    ).balanceAvailableToSend,
     clearTrustlineModal: d.clearTrustlineModal,
-    errorMessage: s.trustline.errorMessage,
     loaded: s.trustline.loaded,
     popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)),
     searchingAssets: s.trustline.searchingAssets,
+    totalAssetsCount: s.trustline.totalAssetsCount,
     waitingSearch: s.waitingSearch,
     ...d,
   }

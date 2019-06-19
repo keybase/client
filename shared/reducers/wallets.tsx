@@ -411,13 +411,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     case WalletsGen.setTrustlinePopularAssets:
       return state.update('trustline', trustline =>
-        trustline
-          .set(
-            'popularAssets',
-            I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
-          )
-          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
-          .set('loaded', true)
+        trustline.withMutations(trustline =>
+          trustline
+            .set(
+              'popularAssets',
+              I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
+            )
+            .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+            .set('totalAssetsCount', action.payload.totalCount)
+            .set('loaded', true)
+        )
       )
     case WalletsGen.setTrustlineSearchText:
       return action.payload.text
@@ -436,10 +439,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
-    case WalletsGen.setTrustlineErrorMessage:
-      return state.update('trustline', trustline =>
-        trustline.set('errorMessage', action.payload.errorMessage)
-      )
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

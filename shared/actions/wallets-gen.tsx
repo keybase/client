@@ -97,7 +97,6 @@ export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
 export const setTrustlineAcceptedAssets = 'wallets:setTrustlineAcceptedAssets'
-export const setTrustlineErrorMessage = 'wallets:setTrustlineErrorMessage'
 export const setTrustlineExpanded = 'wallets:setTrustlineExpanded'
 export const setTrustlinePopularAssets = 'wallets:setTrustlinePopularAssets'
 export const setTrustlineSearchResults = 'wallets:setTrustlineSearchResults'
@@ -293,9 +292,11 @@ type _SetTrustlineAcceptedAssetsPayload = {
   readonly assets: Array<Types.AssetDescription>
   readonly limits: I.Map<Types.AssetID, number>
 }
-type _SetTrustlineErrorMessagePayload = {readonly errorMessage: string}
 type _SetTrustlineExpandedPayload = {readonly expanded: boolean; readonly assetID: Types.AssetID}
-type _SetTrustlinePopularAssetsPayload = {readonly assets: Array<Types.AssetDescription>}
+type _SetTrustlinePopularAssetsPayload = {
+  readonly assets: Array<Types.AssetDescription>
+  readonly totalCount: number
+}
 type _SetTrustlineSearchResultsPayload = {readonly assets: Array<Types.AssetDescription>}
 type _SetTrustlineSearchTextPayload = {readonly text: string}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
@@ -930,9 +931,6 @@ export const createRefreshTrustlinePopularAssets = (
 export const createSetTrustlineAcceptedAssets = (
   payload: _SetTrustlineAcceptedAssetsPayload
 ): SetTrustlineAcceptedAssetsPayload => ({payload, type: setTrustlineAcceptedAssets})
-export const createSetTrustlineErrorMessage = (
-  payload: _SetTrustlineErrorMessagePayload
-): SetTrustlineErrorMessagePayload => ({payload, type: setTrustlineErrorMessage})
 export const createSetTrustlineExpanded = (
   payload: _SetTrustlineExpandedPayload
 ): SetTrustlineExpandedPayload => ({payload, type: setTrustlineExpanded})
@@ -1308,10 +1306,6 @@ export type SetTrustlineAcceptedAssetsPayload = {
   readonly payload: _SetTrustlineAcceptedAssetsPayload
   readonly type: typeof setTrustlineAcceptedAssets
 }
-export type SetTrustlineErrorMessagePayload = {
-  readonly payload: _SetTrustlineErrorMessagePayload
-  readonly type: typeof setTrustlineErrorMessage
-}
 export type SetTrustlineExpandedPayload = {
   readonly payload: _SetTrustlineExpandedPayload
   readonly type: typeof setTrustlineExpanded
@@ -1478,7 +1472,6 @@ export type Actions =
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
   | SetTrustlineAcceptedAssetsPayload
-  | SetTrustlineErrorMessagePayload
   | SetTrustlineExpandedPayload
   | SetTrustlinePopularAssetsPayload
   | SetTrustlineSearchResultsPayload

@@ -61,6 +61,7 @@ const assets = {
 const commonTrustlineProps = {
   acceptedAssets: I.Map({'issuer1-KEYZ': 10}),
   accountID: Types.noAccountID,
+  balanceAvailableToSend: 2,
   clearTrustlineModal: Sb.action('clearTrustlineModal'),
   loaded: true,
   onDone: Sb.action('onDone'),
@@ -129,12 +130,7 @@ const load = () => {
     .add('Trustline - search', () => (
       <Trustline {...commonTrustlineProps} searchingAssets={I.List(['issuer1-USD', 'issuer2-USD'])} />
     ))
-    .add('Trustline - error', () => (
-      <Trustline
-        {...commonTrustlineProps}
-        errorMessage="Stellar holds 0.5 XLM per trustline, and your Lumens balance is 0.32341567 XLM."
-      />
-    ))
+    .add('Trustline - error', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend={0.2} />)
     .add('Trustline - loading', () => <Trustline {...commonTrustlineProps} loaded={false} />)
 }
 

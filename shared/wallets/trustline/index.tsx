@@ -3,11 +3,14 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
+import {memoize} from '../../util/memoize'
 import Asset from './asset-container'
 
 type _Props = {
   accountID: Types.AccountID
   acceptedAssets: I.Map<Types.AssetID, number>
+  balanceAvailableToSend: number
   clearTrustlineModal: () => void
   errorMessage?: string
   loaded: boolean
@@ -65,6 +68,10 @@ const sectionHeader = section =>
     </Kb.Box2>
   )
 
+const haveEnoughBalanceToAccept = memoize(
+  (props: BodyProps) => props.balanceAvailableToSend >= Constants.trustlineHoldingBalance
+)
+
 const getContent = (props: BodyProps) =>
   props.searchingAssets && !props.searchingAssets.size ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
@@ -78,7 +85,12 @@ const getContent = (props: BodyProps) =>
       key={props.searchingAssets ? 'search-section-list' : 'non-search-section-list'}
       sections={makeSections(props)}
       renderItem={({index, item}) => (
-        <Asset accountID={props.accountID} firstItem={index === 0} assetID={item} />
+        <Asset
+          accountID={props.accountID}
+          firstItem={index === 0}
+          assetID={item}
+          disabled={!haveEnoughBalanceToAccept(props)}
+        />
       )}
       renderSectionHeader={({section}) => sectionHeader(section)}
     />
@@ -104,7 +116,14 @@ const Body = (props: BodyProps) => {
             />
           </Kb.Box2>
           <Kb.Divider />
-          {!!props.errorMessage && <Kb.Banner color="red" text={props.errorMessage} />}
+          {!haveEnoughBalanceToAccept(props) && (
+            <Kb.Banner
+              color="red"
+              text={`Stellar holds ${
+                Constants.trustlineHoldingBalance
+              } XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
+            />
+          )}
           {getContent(props)}
         </>
       ) : (

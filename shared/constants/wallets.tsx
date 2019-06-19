@@ -122,11 +122,11 @@ export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 export const makeTrustline = I.Record<Types._Trustline>({
   acceptedAssets: I.Map(),
   assetMap: I.Map(),
-  errorMessage: undefined,
   expandedAssets: I.Set(),
   loaded: false,
   popularAssets: I.List(),
   searchingAssets: undefined,
+  totalAssetsCount: 0,
 })
 export const emptyTrustline = makeTrustline()
 
@@ -682,3 +682,4 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
+export const trustlineHoldingBalance = 0.5

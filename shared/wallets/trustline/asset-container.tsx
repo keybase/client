@@ -10,6 +10,7 @@ import Asset from './asset'
 type OwnProps = {
   accountID: Types.AccountID
   assetID: Types.AssetID
+  disabled: boolean
   firstItem: boolean
 }
 
@@ -58,6 +59,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (s, d, o: OwnProps) => ({
   code: s.asset.code,
+  disabled: o.disabled,
   expanded: s.expandedAssets.includes(o.assetID),
   firstItem: o.firstItem,
   issuerAccountID: s.asset.issuerAccountID,

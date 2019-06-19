@@ -444,7 +444,8 @@
       "limits": "I.Map<Types.AssetID, number>"
     },
     "setTrustlinePopularAssets": {
-      "assets": "Array<Types.AssetDescription>"
+      "assets": "Array<Types.AssetDescription>",
+      "totalCount": "number"
     },
     "setTrustlineSearchText": {
       "text": "string"
@@ -453,9 +454,6 @@
       "assets": "Array<Types.AssetDescription>"
     },
     "clearTrustlineSearchResults": {},
-    "setTrustlineErrorMessage": {
-      "errorMessage": "string"
-    },
     "setTrustlineExpanded": {
       "expanded": "boolean",
       "assetID": "Types.AssetID"

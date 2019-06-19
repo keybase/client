@@ -289,11 +289,11 @@ export const assetDescriptionToAssetID = (assetDescription: AssetDescription): A
 export type _Trustline = {
   acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
   assetMap: I.Map<AssetID, AssetDescription>
-  errorMessage?: string
   expandedAssets: I.Set<AssetID>
   loaded: boolean
   popularAssets: I.List<AssetID>
   searchingAssets?: I.List<AssetID>
+  totalAssetsCount: number
 }
 export type Trustline = I.RecordOf<_Trustline>
 
