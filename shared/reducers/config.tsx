@@ -1,5 +1,7 @@
+import {store} from 'emoji-mart'
 import logger from '../logger'
 import * as I from 'immutable'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
@@ -12,6 +14,36 @@ import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
+
+// setEmojiMartStoreHandler hooks `userReacjis`, frequently used reactions
+// recorded by the service, into the emoji-mart library. Handler spec is
+// documented at
+// https://github.com/missive/emoji-mart/tree/7c2e2a840bdd48c3c9935dac4208115cbcf6006d#storage
+const setEmojiMartStoreHandler = (userReacjis: RPCTypes.UserReacjis) => {
+  const skin = userReacjis ? userReacjis.skinTone : 1
+
+  // emoji-mart expects a frequency map so we convert the sorted list from the
+  // service into a frequency map that will appease the lib.
+  const topReacjis = userReacjis ? userReacjis.topReacjis : Constants.defaultTopReacjis
+  let i = 0
+  let reacjis = {}
+  topReacjis.forEach(el => {
+    i++
+    reacjis[el] = topReacjis.length - i
+  })
+  store.setHandlers({
+    getter: key => {
+      switch (key) {
+        case 'frequently':
+          return reacjis
+        case 'last':
+          return reacjis[0]
+        case 'skin':
+          return skin
+      }
+    },
+  })
+}
 
 type Actions =
   | ConfigGen.Actions
@@ -149,7 +181,11 @@ export default function(state: Types.State = initialState, action: Actions): Typ
           })
     case ConfigGen.pushLoaded:
       return state.merge({pushLoaded: action.payload.pushLoaded})
+    case ConfigGen.updateUserReacjis:
+      setEmojiMartStoreHandler(action.payload.userReacjis)
+      return state.set('userReacjis', action.payload.userReacjis)
     case ConfigGen.bootstrapStatusLoaded:
+      setEmojiMartStoreHandler(action.payload.userReacjis)
       return state.merge({
         // keep it if we're logged out
         defaultUsername: action.payload.username || state.defaultUsername,
@@ -246,8 +282,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
-    case ConfigGen.updateUserReacjis:
-      return state.set('userReacjis', action.payload.userReacjis)
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:

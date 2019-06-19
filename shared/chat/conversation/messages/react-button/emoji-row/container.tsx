@@ -1,13 +1,9 @@
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Types from '../../../../../constants/types/chat2'
-import getEmojis from './data'
+import {defaultTopReacjis} from '../../../../../constants/config'
 import {StylesCrossPlatform} from '../../../../../styles'
 import EmojiRow from '.'
-
-const hr = 1000 * 60 * 60
-const min = 1000 * 60
-const currentMinute = () => Math.floor((Date.now() % hr) / min)
 
 type OwnProps = {
   className?: string
@@ -17,7 +13,9 @@ type OwnProps = {
   style?: StylesCrossPlatform
 }
 
-const mapStateToProps = () => ({})
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  topReacjis: state.config.userReacjis ? state.config.userReacjis.topReacjis : defaultTopReacjis,
+})
 
 const mapDispatchToProps = dispatch => ({
   _onReact: (emoji, conversationIDKey, ordinal) =>
@@ -28,8 +26,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   className: ownProps.className,
-  // @ts-ignore cache busting that isn't typed
-  emojis: getEmojis(currentMinute()).slice(0, 5),
+  emojis: stateProps.topReacjis.slice(0, 5),
   onReact: emoji => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
   onReply: () => dispatchProps._onReply(ownProps.conversationIDKey, ownProps.ordinal),
   onShowingEmojiPicker: ownProps.onShowingEmojiPicker,

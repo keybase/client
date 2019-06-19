@@ -9,6 +9,7 @@ export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${run
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 export const noKBFSFailReason = "Can't connect to KBFS"
+export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultTeamPrefix = '/team/'
 
 export const privateFolderWithUsers = (users: Array<string>) =>

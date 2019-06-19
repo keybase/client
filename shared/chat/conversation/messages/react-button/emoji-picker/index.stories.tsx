@@ -2,6 +2,7 @@ import * as React from 'react'
 import {Box, Box2, NewInput} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import ChooseEmoji from '.'
+import {defaultTopReacjis} from '../../../../../constants/config'
 
 class WithFilter extends React.Component<
   {topReacjis: Array<string>},
@@ -25,12 +26,13 @@ class WithFilter extends React.Component<
   }
 }
 
-const topReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const load = () =>
   storiesOf('Chat/Emoji picker', module)
     .addDecorator(story => <Box style={{height: 400, overflow: 'hidden', width: 300}}>{story()}</Box>)
-    .add('Default', () => <ChooseEmoji onChoose={action('onChoose')} width={300} topReacjis={topReacjis} />)
-    .add('Custom filter', () => <WithFilter topReacjis={topReacjis} />)
+    .add('Default', () => (
+      <ChooseEmoji onChoose={action('onChoose')} width={300} topReacjis={defaultTopReacjis} />
+    ))
+    .add('Custom filter', () => <WithFilter topReacjis={defaultTopReacjis} />)
     .add('No top reacjis', () => <WithFilter topReacjis={[]} />)
 
 export default load
