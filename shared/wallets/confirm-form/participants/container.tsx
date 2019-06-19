@@ -1,5 +1,5 @@
 import ConfirmSend from '.'
-import {connect} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
@@ -44,8 +44,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({})
 
-export default connect(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConfirmSend'
 )(ConfirmSend)
