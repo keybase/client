@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -88,8 +89,9 @@ func defaultNewFS(ctx context.Context, config libkbfs.Config,
 
 // SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
-	// log for logging - constant, does not need locking.
-	log logger.Logger
+	// logs for logging - constant, do not need locking.
+	log  logger.Logger
+	vlog *libkb.VDebugLog
 	// config for the fs - constant, does not need locking.
 	config libkbfs.Config
 	// The function to call for constructing a new KBFS file system.
@@ -148,6 +150,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		handles:         map[keybase1.OpID]*handle{},
 		inProgress:      map[keybase1.OpID]*inprogress{},
 		log:             log,
+		vlog:            config.MakeVLogger(log),
 		newFS:           defaultNewFS,
 		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
 		localHTTPServer: localHTTPServer,
@@ -450,7 +453,7 @@ func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	k.lock.Unlock()
 	// ignore error, this is just for logging.
 	descBS, _ := json.Marshal(desc)
-	k.log.CDebugf(ctx, "start %X %s", opid, descBS)
+	k.vlog.CLogf(ctx, libkb.VLog1, "start %X %s", opid, descBS)
 	return k.startOpWrapContext(ctx)
 }
 
@@ -1345,7 +1348,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 
 func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
 	ctx = k.makeContext(ctx)
-	k.log.CDebugf(ctx, "start sync %s %v", name, logarg)
+	k.vlog.CLogf(ctx, libkb.VLog1, "start sync %s %v", name, logarg)
 	return k.startOpWrapContext(ctx)
 }
 func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
@@ -1693,11 +1696,10 @@ func (k *SimpleFS) getRevisionsFromPath(
 	os.FileInfo, data.PrevRevisions, error) {
 	fs, finalElem, err := k.getFSIfExists(ctx, path)
 	if err != nil {
-		k.log.CDebugf(ctx, "Trouble getting fs for path %s: %+v", path, err)
+		k.log.CDebugf(ctx, "Trouble getting fs for path: %+v", err)
 		return nil, nil, err
 	}
 	// Use LStat so we don't follow symlinks.
-	k.log.CDebugf(ctx, "About to lstat %s", finalElem)
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
 		return nil, nil, err
@@ -1714,7 +1716,7 @@ func (k *SimpleFS) doGetRevisions(
 	ctx context.Context, opID keybase1.OpID, path keybase1.Path,
 	spanType keybase1.RevisionSpanType) (
 	revs []keybase1.DirentWithRevision, err error) {
-	k.log.CDebugf(ctx, "Getting revisions for path %s, spanType=%s",
+	k.vlog.CLogf(ctx, libkb.VLog1, "Getting revisions for path %s, spanType=%s",
 		path, spanType)
 
 	// Both span types return up to 5 revisions.

@@ -151,7 +151,9 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 				ctx, libkb.VLog1, "FL Lookup set alias: %q -> %q",
 				name, aliasTarget)
 			if !fl.isValidAliasTarget(ctx, aliasTarget) {
-				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", aliasTarget)
+				fl.fs.vlog.CLogf(
+					ctx, libkb.VLog1,
+					"FL Refusing alias to non-valid target %q", aliasTarget)
 				return nil, 0, dokan.ErrObjectNameNotFound
 			}
 			fl.mu.Lock()
@@ -168,7 +170,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			path[0] = aliasTarget
 			continue
 
-		case idutil.NoSuchNameError, idutil.BadTLFNameError:
+		case idutil.NoSuchNameError, idutil.BadTLFNameError,
+			tlf.NoSuchUserError, idutil.NoSuchUserError:
 			return nil, 0, dokan.ErrObjectNameNotFound
 
 		default:

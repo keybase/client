@@ -24,7 +24,6 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
-	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -2825,7 +2824,7 @@ func TestErrorFile(t *testing.T) {
 	}
 
 	// Make sure the root error file reads as expected
-	expectedErr := idutil.NoSuchUserError{Input: "janedoe"}
+	expectedErr := fuse.ENOENT
 
 	// test both the root error file and one in a directory
 	testForErrorText(t, path.Join(mnt.Dir, libkbfs.ErrorFile),
