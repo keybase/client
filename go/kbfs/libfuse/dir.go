@@ -539,11 +539,12 @@ func (d *Dir) makeFile(node libkbfs.Node) (file *File) {
 
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
+	namePPS := d.node.ChildName(req.Name)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Lookup",
-		fmt.Sprintf("%s %s", d.node.GetBasename(), req.Name))
+		fmt.Sprintf("%s %s", d.node.GetBasename(), namePPS))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Lookup %s", req.Name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Lookup %s", namePPS)
 	defer func() { err = d.folder.processError(ctx, libkbfs.ReadMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
@@ -567,7 +568,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(
-		ctx, d.node, d.node.ChildName(req.Name))
+		ctx, d.node, namePPS)
 	if err != nil {
 		if _, ok := err.(idutil.NoSuchNameError); ok {
 			return nil, fuse.ENOENT
@@ -625,17 +626,18 @@ func getEXCLFromCreateRequest(req *fuse.CreateRequest) libkbfs.Excl {
 
 // Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
+	namePPS := d.node.ChildName(req.Name)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Create",
-		fmt.Sprintf("%s %s", d.node.GetBasename(), req.Name))
+		fmt.Sprintf("%s %s", d.node.GetBasename(), namePPS))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Create %s", req.Name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Create %s", namePPS)
 	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
 	excl := getEXCLFromCreateRequest(req)
 	newNode, ei, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.node, d.node.ChildName(req.Name), isExec, excl)
+		ctx, d.node, namePPS, isExec, excl)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -661,11 +663,12 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 // Mkdir implements the fs.NodeMkdirer interface for Dir.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	node fs.Node, err error) {
+	namePPS := d.node.ChildName(req.Name)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Mkdir",
-		fmt.Sprintf("%s %s", d.node.GetBasename(), req.Name))
+		fmt.Sprintf("%s %s", d.node.GetBasename(), namePPS))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Mkdir %s", req.Name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Mkdir %s", namePPS)
 	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
@@ -676,7 +679,7 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	}
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
-		ctx, d.node, d.node.ChildName(req.Name))
+		ctx, d.node, namePPS)
 	if err != nil {
 		return nil, err
 	}
@@ -691,13 +694,14 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 // Symlink implements the fs.NodeSymlinker interface for Dir.
 func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	node fs.Node, err error) {
+	namePPS := d.node.ChildName(req.NewName)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Symlink",
 		fmt.Sprintf("%s %s -> %s", d.node.GetBasename(),
-			req.NewName, req.Target))
+			namePPS, req.Target))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.vlog.CLogf(
-		ctx, libkb.VLog1, "Dir Symlink %s -> %s", req.NewName, req.Target)
+		ctx, libkb.VLog1, "Dir Symlink %s -> %s", namePPS, req.Target)
 	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
@@ -708,7 +712,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	}
 
 	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
-		ctx, d.node, d.node.ChildName(req.NewName), req.Target); err != nil {
+		ctx, d.node, namePPS, req.Target); err != nil {
 		return nil, err
 	}
 
@@ -723,13 +727,18 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 // Rename implements the fs.NodeRenamer interface for Dir.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) (err error) {
+	oldNamePPS := d.node.ChildName(req.OldName)
+	// We need to log the new name before we have the new node, so
+	// just obfuscate it with the old node for now, it's the best we
+	// can do.
+	newNameLoggingPPS := d.node.ChildName(req.NewName)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Rename",
 		fmt.Sprintf("%s %s -> %s", d.node.GetBasename(),
-			req.OldName, req.NewName))
+			oldNamePPS, newNameLoggingPPS))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.vlog.CLogf(
-		ctx, libkb.VLog1, "Dir Rename %s -> %s", req.OldName, req.NewName)
+		ctx, libkb.VLog1, "Dir Rename %s -> %s", oldNamePPS, newNameLoggingPPS)
 	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	var realNewDir *Dir
@@ -755,7 +764,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	}
 
 	err = d.folder.fs.config.KBFSOps().Rename(ctx,
-		d.node, d.node.ChildName(req.OldName), realNewDir.node,
+		d.node, oldNamePPS, realNewDir.node,
 		realNewDir.node.ChildName(req.NewName))
 
 	switch e := err.(type) {
@@ -777,11 +786,12 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 
 // Remove implements the fs.NodeRemover interface for Dir.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
+	namePPS := d.node.ChildName(req.Name)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Remove",
-		fmt.Sprintf("%s %s", d.node.GetBasename(), req.Name))
+		fmt.Sprintf("%s %s", d.node.GetBasename(), namePPS))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Remove %s", req.Name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Remove %s", namePPS)
 	defer func() { err = d.folder.processError(ctx, libkbfs.WriteMode, err) }()
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
@@ -793,7 +803,6 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 
 	// node will be removed from Folder.nodes, if it is there in the
 	// first place, by its Forget
-	namePPS := d.node.ChildName(req.Name)
 	if req.Dir {
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.node, namePPS)
 	} else {

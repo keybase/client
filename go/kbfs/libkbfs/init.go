@@ -660,11 +660,6 @@ func doInit(
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 	config.SetVLogLevel(kbCtx.GetVDebugSetting())
-	if mode == InitConstrained {
-		// Until we have a way to turn on debug logging for mobile,
-		// log everything.
-		config.SetVLogLevel(libkb.VLog1String)
-	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(

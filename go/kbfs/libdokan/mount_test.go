@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
-	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -2159,7 +2158,7 @@ func TestErrorFile(t *testing.T) {
 	}
 
 	// Make sure the root error file reads as expected
-	expectedErr := idutil.NoSuchUserError{Input: "janedoe"}
+	expectedErr := dokan.ErrObjectNameNotFound
 
 	// test both the root error file and one in a directory
 	testForErrorText(t, filepath.Join(mnt.Dir, libkbfs.ErrorFile),
@@ -2172,7 +2171,6 @@ func TestErrorFile(t *testing.T) {
 		expectedErr, "dir")
 	testForErrorText(t, filepath.Join(mnt.Dir, PrivateName, "jdoe", libkbfs.ErrorFile),
 		expectedErr, "dir")
-
 }
 
 type testMountObserver struct {
