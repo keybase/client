@@ -212,20 +212,23 @@ func perUserEncryptionKey(m libkb.MetaContext, userSeqno keybase1.Seqno) (*libkb
 
 func (l *LoaderContextG) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeamWithHidden(l.MetaContext(ctx), teamID, harg)
-	r1, r2, hiddenIsFresh, err = l.processMerkleReply(ctx, teamID, public, leaf, err)
+	if err != nil {
+		return r1, r2, false, err
+	}
+	r1, r2, hiddenIsFresh, err = l.processMerkleReply(ctx, teamID, public, leaf)
 	return r1, r2, hiddenIsFresh, err
 }
 
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeam(l.MetaContext(ctx), teamID)
-	r1, r2, _, err = l.processMerkleReply(ctx, teamID, public, leaf, err)
+	if err != nil {
+		return r1, r2, err
+	}
+	r1, r2, _, err = l.processMerkleReply(ctx, teamID, public, leaf)
 	return r1, r2, err
 }
 
-func (l *LoaderContextG) processMerkleReply(ctx context.Context, teamID keybase1.TeamID, public bool, leaf *libkb.MerkleTeamLeaf, ein error) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
-	if ein != nil {
-		return r1, r2, false, ein
-	}
+func (l *LoaderContextG) processMerkleReply(ctx context.Context, teamID keybase1.TeamID, public bool, leaf *libkb.MerkleTeamLeaf) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
 
 	if !leaf.TeamID.Eq(teamID) {
 		return r1, r2, false, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())

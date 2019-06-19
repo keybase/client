@@ -393,13 +393,12 @@ type load2ArgT struct {
 	needKBFSKeyGeneration                 keybase1.TeamKBFSKeyRefresher
 	// wantMembers here is different from wantMembers on LoadTeamArg:
 	// The EldestSeqno's should not be 0.
-	wantMembers         []keybase1.UserVersion
-	wantMembersRole     keybase1.TeamRole
-	forceFullReload     bool
-	forceRepoll         bool
-	staleOK             bool
-	public              bool
-	rotatingHiddenChain bool
+	wantMembers     []keybase1.UserVersion
+	wantMembersRole keybase1.TeamRole
+	forceFullReload bool
+	forceRepoll     bool
+	staleOK         bool
+	public          bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -566,13 +565,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
-		var hif bool // hidden is fresh
+		var hiddenIsFresh bool
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, hif, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
+		lastSeqno, lastLinkID, hiddenIsFresh, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
 		if err != nil {
 			return nil, err
 		}
-		hiddenPackage.SetIsFresh(hif)
+		hiddenPackage.SetIsFresh(hiddenIsFresh)
 		didRepoll = true
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
@@ -593,7 +592,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("backfill")
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, hiddenPackage.ChainData(), arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
@@ -1030,7 +1029,7 @@ func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1
 
 	var signer *SignerX
 	var err error
-	signer, err = l.verifyLink(ctx, arg.teamID, ret, hidden, arg.me, link, fullVerifyCutoff,
+	signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff,
 		readSubteamID, proofSet, lkc, *parentsCache)
 	if err != nil {
 		return nil, nilPrev, err

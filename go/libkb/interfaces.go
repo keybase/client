@@ -717,11 +717,11 @@ type FastTeamLoader interface {
 }
 
 type HiddenTeamChainManager interface {
-	// We got gossip about what the latest chain-tail should be, so racthet the
+	// We got gossip about what the latest chain-tail should be, so ratchet the
 	// chain forward; the next call to Advance() has to match.
 	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
-	// onto the HiddenTeamChain state. Ensure that the udpated state is at least up to the
+	// onto the HiddenTeamChain state. Ensure that the updated state is at least up to the
 	// given ratchet value.
 	Advance(mctx MetaContext, update keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) error
 	// Access the tail of the HiddenTeamChain, for embedding into gossip vectors.

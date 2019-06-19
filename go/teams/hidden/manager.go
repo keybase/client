@@ -56,7 +56,7 @@ func withLogTag(mctx libkb.MetaContext) libkb.MetaContext {
 	return mctx.WithLogTag("HTCM")
 }
 
-// Load hidden team chain data from storage, either mem or disk. Will not the network.
+// Load hidden team chain data from storage, either mem or disk. Will not hit the network.
 func (m *ChainManager) Load(mctx libkb.MetaContext, id keybase1.TeamID) (ret *keybase1.HiddenTeamChain, err error) {
 	mctx = withLogTag(mctx)
 	ret, err = m.loadAndMutate(mctx, loadArg{id: id})
@@ -230,14 +230,14 @@ func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamCh
 	return nil
 }
 
-func NewChainMananger(g *libkb.GlobalContext) *ChainManager {
+func NewChainManager(g *libkb.GlobalContext) *ChainManager {
 	return &ChainManager{
 		storage: storage.NewHiddenStorage(g),
 	}
 }
 
 func NewChainManagerAndInstall(g *libkb.GlobalContext) *ChainManager {
-	ret := NewChainMananger(g)
+	ret := NewChainManager(g)
 	g.SetHiddenTeamChainManager(ret)
 	g.AddLogoutHook(ret, "HiddenTeamChainManager")
 	g.AddDbNukeHook(ret, "HiddenTeamChainManager")

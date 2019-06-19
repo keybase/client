@@ -2859,7 +2859,7 @@ func (r HiddenTeamChainRatchet) MaxTriple() (ret *LinkTriple) {
 
 func (r *HiddenTeamChainRatchet) Merge(r2 HiddenTeamChainRatchet) (updated bool) {
 	visit := func(l1 **LinkTripleAndTime, l2 *LinkTripleAndTime) {
-		if l2 != nil && (*l1 == nil || (*l1).Triple.Seqno < l2.Triple.Seqno) {
+		if l2 != nil && l2.Triple.SeqType == SeqType_TEAM_PRIVATE_HIDDEN && (*l1 == nil || (*l1).Triple.Seqno < l2.Triple.Seqno) {
 			*l1 = l2
 			updated = true
 		}

@@ -28,6 +28,9 @@ type Generic interface {
 	// enough information to verify.
 	setVerifiedBit()
 	verify() error
+
+	// check this chainlink after parsing for type-specific properties
+	parseCheck() error
 }
 
 // Base struct for sig3 links that contains much of the raw material pulled down or off local storage.
@@ -85,6 +88,10 @@ func (b *Base) setVerifiedBit() {
 	if b.inner != nil && b.sig != nil {
 		b.verified = true
 	}
+}
+
+func (b *Base) parseCheck() error {
+	return nil
 }
 
 // Outer returns a copy of the OuterLink in this base class
@@ -232,10 +239,10 @@ func (s ExportJSON) parseSig() (*Base, error) {
 		return nil, err
 	}
 	out.sig = &Sig{}
-	if len(*out.sig) != len(b) {
-		return nil, newParseError("sig was wrong size (%d != %d)", len(*out.sig), len(b))
+	err = msgpack.Decode(&out.sig, b)
+	if err != nil {
+		return nil, err
 	}
-	copy((*out.sig)[:], b)
 	return &out, nil
 }
 
@@ -262,6 +269,18 @@ func (s ExportJSON) parseOuter(in Base) (*Base, error) {
 		return nil, newSig3Error("can only handle type 17 (team private hidden)")
 	}
 	return &in, nil
+}
+
+func (r *RotateKey) parseCheck() error {
+	m := make(map[keybase1.PTKType]bool)
+	for _, k := range r.rkb().PTKs {
+		typ := k.PTKType
+		if m[typ] {
+			return newParseError("duplicated PTK type: %s", typ)
+		}
+		m[typ] = true
+	}
+	return nil
 }
 
 func (s *ExportJSON) parseInner(in Base) (Generic, error) {
@@ -297,6 +316,12 @@ func (s *ExportJSON) parseInner(in Base) (Generic, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = out.parseCheck()
+	if err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 

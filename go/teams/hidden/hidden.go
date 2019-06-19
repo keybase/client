@@ -75,7 +75,7 @@ type GenerateKeyRotationParams struct {
 }
 
 // GenerateKeyRotation generates and signs a new sig3 KeyRotation. The result can be passed to
-// sig/mutli.json and stored along with other sig1, sig2 or sig3 signatures in an atomic transaction.
+// sig/multi.json and stored along with other sig1, sig2 or sig3 signatures in an atomic transaction.
 func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
 
 	s3, ratchet, err := generateKeyRotationSig3(mctx, p)
@@ -108,13 +108,14 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	outer := sig3.OuterLink{}
 	if p.HiddenPrev != nil {
 		outer.Seqno = p.HiddenPrev.Seqno + 1
-		if !p.HiddenPrev.LinkID.IsNil() {
-			tmp, err := sig3.ImportLinkID(p.HiddenPrev.LinkID)
-			if err != nil {
-				return nil, nil, err
-			}
-			outer.Prev = tmp
+		if p.HiddenPrev.LinkID.IsNil() {
+			return nil, nil, NewGenerateError("unexpected nil prev")
 		}
+		tmp, err := sig3.ImportLinkID(p.HiddenPrev.LinkID)
+		if err != nil {
+			return nil, nil, err
+		}
+		outer.Prev = tmp
 	} else {
 		outer.Seqno = keybase1.Seqno(1)
 	}
@@ -227,7 +228,6 @@ type LoaderPackage struct {
 	lastMainChainGen keybase1.PerTeamKeyGeneration
 	data             *keybase1.HiddenTeamChain
 	newData          *keybase1.HiddenTeamChain
-	links            []sig3.Generic
 	expectedPrev     *keybase1.LinkTriple
 	isFresh          bool
 }
@@ -295,10 +295,10 @@ func (l *LoaderPackage) IsFresh() bool {
 func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (err error) {
 	q := first.Seqno()
 	prev := first.Prev()
-	if q == keybase1.Seqno(1) && prev != nil {
+	if (q == keybase1.Seqno(1)) != (prev == nil) {
 		return NewLoaderError("bad link that had seqno=1 and non=nil prev")
 	}
-	if prev == nil {
+	if q == keybase1.Seqno(1) {
 		return nil
 	}
 	if l.data == nil {
@@ -333,7 +333,7 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 	if len(links) > 0 && links[len(links)-1].Seqno() >= max {
 		return nil
 	}
-	return NewLoaderError("Server promised a hidden chain up to %d, but never recevied; is it withholding?", max)
+	return NewLoaderError("Server promised a hidden chain up to %d, but never received; is it withholding?", max)
 }
 
 func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
@@ -393,7 +393,7 @@ func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.Exp
 	}
 
 	if len(links) == 0 {
-		mctx.Debug("short-circuting since no update")
+		mctx.Debug("short-circuiting since no update")
 		return nil, nil
 	}
 

@@ -24,7 +24,7 @@ import (
 // Does not ask for any links above state's seqno, those will be fetched by getNewLinksFromServer.
 func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 	me keybase1.UserVersion, teamID keybase1.TeamID, state *keybase1.TeamData,
-	hiddenState *keybase1.HiddenTeamChain, needSeqnos []keybase1.Seqno, readSubteamID keybase1.TeamID,
+	needSeqnos []keybase1.Seqno, readSubteamID keybase1.TeamID,
 	proofSet *proofSetT, parentChildOperations []*parentChildOperation, lkc *loadKeyCache) (
 	*keybase1.TeamData, *proofSetT, []*parentChildOperation, error) {
 
@@ -64,7 +64,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 
 		var signer *SignerX
 		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
-		signer, err = l.verifyLink(ctx, teamID, state, hiddenState, me, link, fullVerifyCutoff, readSubteamID,
+		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID,
 			proofSet, lkc, parentsCache)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
@@ -202,7 +202,7 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 // - Check the rest of the format of the inner link
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
-	teamID keybase1.TeamID, state *keybase1.TeamData, hiddenState *keybase1.HiddenTeamChain, me keybase1.UserVersion, link *ChainLinkUnpacked,
+	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *ChainLinkUnpacked,
 	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache,
 	parentsCache parentChainCache) (*SignerX, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)

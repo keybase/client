@@ -182,7 +182,7 @@ func TestBadSig(t *testing.T) {
 	_, ex, _, _, _ := genTest(t, 1)
 	b, err := base64.StdEncoding.DecodeString(ex.Sig)
 	require.NoError(t, err)
-	b[0] ^= 1
+	b[4] ^= 1
 	ex.Sig = base64.StdEncoding.EncodeToString(b)
 	_, err = ex.Import()
 	require.Error(t, err)
