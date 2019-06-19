@@ -91,9 +91,7 @@ const mapDispatchToProps = dispatch => ({
       WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
     )
   },
-  _onWhatIsStellar: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
-  },
+  _onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {

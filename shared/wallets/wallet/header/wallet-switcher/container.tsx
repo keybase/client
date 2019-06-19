@@ -31,9 +31,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
     )
   },
-  onWhatIsStellar: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
-  },
+  onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
 })
 
 export default Container.connect(
