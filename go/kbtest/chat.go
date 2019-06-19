@@ -957,6 +957,10 @@ func (m *ChatRemoteMock) ServerNow(ctx context.Context) (res chat1.ServerNowRes,
 	return res, errors.New("ServerNow not mocked")
 }
 
+func (m *ChatRemoteMock) GetExternalAPIKeys(ctx context.Context, typs []chat1.ExternalAPIKeyTyp) (res []chat1.ExternalAPIKey, err error) {
+	return res, errors.New("GetExternalAPIKeys not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
