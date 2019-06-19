@@ -47,5 +47,5 @@ func TestMakeProxy(t *testing.T) {
 	f = MakeProxy(mockedEnv)
 	retURL, err = f(nil)
 	require.Equal(t, nil, err)
-	require.Equal(t, "localhost:8090", retURL.String())
+	require.Equal(t, "http://localhost:8090", retURL.String())
 }
