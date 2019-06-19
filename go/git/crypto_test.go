@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams/hidden"
 	"github.com/stretchr/testify/require"
 
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
@@ -32,6 +33,7 @@ func setupTest(tb testing.TB, name string) libkb.TestContext {
 	InstallInsecureTriplesec(tc.G)
 	teams.NewTeamLoaderAndInstall(tc.G)
 	teams.NewAuditorAndInstall(tc.G)
+	hidden.NewChainManagerAndInstall(tc.G)
 	return tc
 }
 

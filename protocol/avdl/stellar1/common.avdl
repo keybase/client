@@ -22,6 +22,11 @@ protocol common {
     string infoUrl; // 'https://...' or empty
   }
 
+  record AssetListResult {
+    array<Asset> assets;
+    int totalCount;
+  }
+
   record Balance {
     Asset asset;
     string amount;

@@ -264,12 +264,14 @@ func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
 }
 
 func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
-	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState,
+	me keybase1.UserVersion) (err error) {
 	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me)
 }
 
 func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
-	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
+	me keybase1.UserVersion) (err error) {
 
 	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
 

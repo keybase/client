@@ -1657,7 +1657,7 @@ type LocalInterface interface {
 	AirdropStatusLocal(context.Context, int) (AirdropStatus, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
 	FuzzyAssetSearchLocal(context.Context, FuzzyAssetSearchLocalArg) ([]Asset, error)
-	ListPopularAssetsLocal(context.Context, int) ([]Asset, error)
+	ListPopularAssetsLocal(context.Context, int) (AssetListResult, error)
 	AddTrustlineLocal(context.Context, AddTrustlineLocalArg) error
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
@@ -3055,7 +3055,7 @@ func (c LocalClient) FuzzyAssetSearchLocal(ctx context.Context, __arg FuzzyAsset
 	return
 }
 
-func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []Asset, err error) {
+func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []interface{}{__arg}, &res)
 	return

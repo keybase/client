@@ -1884,9 +1884,6 @@ func (e UserDeletedError) Error() string {
 	return e.Msg
 }
 
-// Keep the previous name around until KBFS revendors and updates.
-type DeletedError = UserDeletedError
-
 //=============================================================================
 
 type DeviceNameInUseError struct{}

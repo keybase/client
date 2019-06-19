@@ -49,5 +49,5 @@ type Remoter interface {
 	FindPaymentPath(mctx libkb.MetaContext, query stellar1.PaymentPathQuery) (stellar1.PaymentPath, error)
 	PostAnyTransaction(mctx libkb.MetaContext, signedTx string) error
 	FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error)
-	ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error)
+	ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error)
 }

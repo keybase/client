@@ -17,6 +17,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"log"
@@ -40,6 +41,7 @@ type Signer interface {
 // The S3 type encapsulates operations with an S3 region.
 type S3 struct {
 	Region
+	libkb.Contextified
 
 	// This is needed for payload construction.  It's
 	// ok for clients to know it.
@@ -133,7 +135,7 @@ var DefaultAttemptStrategy = AttemptStrategy{
 }
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
-func New(signer Signer, region Region, client ...*http.Client) *S3 {
+func New(g *libkb.GlobalContext, signer Signer, region Region, client ...*http.Client) *S3 {
 
 	var httpclient *http.Client
 
@@ -146,6 +148,7 @@ func New(signer Signer, region Region, client ...*http.Client) *S3 {
 		Region:          region,
 		AttemptStrategy: DefaultAttemptStrategy,
 		client:          httpclient,
+		Contextified:    libkb.NewContextified(g),
 	}
 }
 
@@ -974,6 +977,7 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					}
 					return
 				},
+				Proxy: libkb.MakeProxy(s3.G().Env),
 			},
 		}
 	}

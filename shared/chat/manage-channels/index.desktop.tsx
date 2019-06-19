@@ -60,7 +60,9 @@ const Row = (
           >
             #{props.name}
           </Kb.Text>
-          <Kb.Text type="BodySmall">{props.description}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {props.description}
+          </Kb.Text>
           <Kb.Text type="BodySmall">
             {props.numParticipants} {pluralize('member', props.numParticipants)}{' '}
             {props.hasAllMembers ? '(entire team)' : ''} &bull; Last activity {props.mtimeHuman}{' '}

@@ -19,8 +19,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 	"golang.org/x/net/context"
-
-	"h12.me/socks"
 )
 
 type ClientConfig struct {
@@ -82,7 +80,11 @@ func ShortCA(raw string) string {
 // requests
 func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
 	e := g.Env
-	serverURI := e.GetServerURI()
+	serverURI, err := e.GetServerURI()
+
+	if err != nil {
+		return nil, err
+	}
 
 	if e.GetTorMode().Enabled() {
 		serverURI = e.GetTorHiddenAddress()
@@ -137,7 +139,7 @@ func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 	}, nil
 }
 
-func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client {
+func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client, error) {
 	extraLog := func(ctx context.Context, msg string, args ...interface{}) {}
 	if g.Env.GetExtraNetLogging() {
 		extraLog = func(ctx context.Context, msg string, args ...interface{}) {
@@ -162,6 +164,8 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		DualStack: true,
 	}
 	xprt := http.Transport{
+		// Don't change this without re-testing proxy support. Currently the client supports proxies through
+		// environment variables that ProxyFromEnvironment picks up
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&dialer).DialContext,
 		MaxIdleConns:          200,
@@ -191,21 +195,11 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		return c, nil
 	}
 
-	if (config != nil && config.RootCAs != nil) || env.GetTorMode().Enabled() {
-		if config != nil && config.RootCAs != nil {
-			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
-		}
-		if env.GetTorMode().Enabled() {
-			extraLog(nil, "api.Client:%v tor mode enabled", needCookie)
-			// TODO: should we call res_init on DNS errors here as well?
-			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, env.GetTorProxy())
-			xprt.DialContext = func(ctx context.Context, network, addr string) (c net.Conn, err error) {
-				return dialSocksProxy(network, addr)
-			}
-		} else {
-			xprt.Proxy = http.ProxyFromEnvironment
-		}
+	if config != nil && config.RootCAs != nil {
+		xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 	}
+
+	xprt.Proxy = MakeProxy(env)
 
 	if !env.GetTorMode().Enabled() && env.GetRunMode() == DevelRunMode {
 		xprt.Proxy = func(req *http.Request) (*url.URL, error) {
@@ -240,5 +234,24 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) *Client 
 		ret.cli.Jar = jar
 	}
 	ret.cli.Transport = &xprt
-	return ret
+	return ret, nil
+}
+
+func ServerLookup(env *Env, mode RunMode) (string, error) {
+	if mode == DevelRunMode {
+		return DevelServerURI, nil
+	}
+	if mode == StagingRunMode {
+		return StagingServerURI, nil
+	}
+	if mode == ProductionRunMode {
+		if env.IsCertPinningEnabled() {
+			// In order to disable SSL pinning we switch to doing requests against keybase.io which has a TLS
+			// cert signed by a publicly trusted CA (compared to api-0.keybaseapi.com which has a non-trusted but
+			// pinned certificate
+			return ProductionServerURI, nil
+		}
+		return ProductionSiteURI, nil
+	}
+	return "", fmt.Errorf("Did not find a server to use with the current RunMode!")
 }

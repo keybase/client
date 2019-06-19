@@ -1,4 +1,4 @@
-package teams
+package storage
 
 import (
 	"fmt"
@@ -6,9 +6,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+type FTLStorageUpgrader func(mctx libkb.MetaContext, state *keybase1.FastTeamData) (changed bool, err error)
+
 // FTLStorage stores FTL state to disk or memory.
 type FTLStorage struct {
 	*storageGeneric
+	upgrader FTLStorageUpgrader
 }
 
 // Increment to invalidate the disk cache.
@@ -41,9 +44,9 @@ func (d *ftlDiskStorageItem) setValue(v teamDataGeneric) error {
 	return nil
 }
 
-func NewFTLStorage(g *libkb.GlobalContext) *FTLStorage {
+func NewFTLStorage(g *libkb.GlobalContext, upgrader FTLStorageUpgrader) *FTLStorage {
 	s := newStorageGeneric(g, ftlMemCacheLRUSize, ftlDiskStorageVersion, libkb.DBFTLStorage, libkb.EncryptionReasonTeamsFTLLocalStorage, "ftl", func() diskItemGeneric { return &ftlDiskStorageItem{} })
-	return &FTLStorage{s}
+	return &FTLStorage{storageGeneric: s, upgrader: upgrader}
 }
 
 func (s *FTLStorage) Put(mctx libkb.MetaContext, state *keybase1.FastTeamData) {
@@ -59,7 +62,20 @@ func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public 
 	ret, ok := vp.(*keybase1.FastTeamData)
 	if !ok {
 		mctx.Debug("teams.FTLStorage#Get cast error: %T is wrong type", vp)
+		return nil, false, false
 	}
+
+	changed, err := s.upgrader(mctx, ret)
+	if err != nil {
+		mctx.Debug("error in upgrade of stored object: %s", err)
+		return nil, false, false
+	}
+
+	if changed {
+		// Put the upgraded object directly into the store.
+		s.Put(mctx, ret)
+	}
+
 	if ret.Frozen {
 		mctx.Debug("returning frozen fast team data")
 	}

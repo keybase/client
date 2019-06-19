@@ -44,6 +44,8 @@ type WalletState struct {
 	bkgCancelFn   context.CancelFunc
 }
 
+var _ remote.Remoter = (*WalletState)(nil)
+
 // NewWalletState creates a wallet state with a remoter that will be
 // used for any network calls.
 func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
