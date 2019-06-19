@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -17,6 +18,7 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	}
 	slat := puri.Query().Get("lat")
 	slon := puri.Query().Get("lon")
+	sacc := puri.Query().Get("acc")
 	lat, err := strconv.ParseFloat(slat, 64)
 	if err != nil {
 		return res, err
@@ -25,12 +27,16 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	if err != nil {
 		return res, err
 	}
+	acc, err := strconv.ParseFloat(sacc, 64)
+	if err != nil {
+		return res, err
+	}
 	mapURL, err := maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon)
 	if err != nil {
 		return res, err
 	}
 	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
-	desc := "Shared with /location."
+	desc := fmt.Sprintf("Shared with /location, accurate to %.2fm.", acc)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlGenericRaw{
 		Title:       "Open this location with Google Maps",
 		Url:         linkURL,

@@ -171,14 +171,16 @@ func (o MaybeMention) DeepCopy() MaybeMention {
 }
 
 type Coordinate struct {
-	Lat float64 `codec:"lat" json:"lat"`
-	Lon float64 `codec:"lon" json:"lon"`
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
 }
 
 func (o Coordinate) DeepCopy() Coordinate {
 	return Coordinate{
-		Lat: o.Lat,
-		Lon: o.Lon,
+		Lat:      o.Lat,
+		Lon:      o.Lon,
+		Accuracy: o.Accuracy,
 	}
 }
 

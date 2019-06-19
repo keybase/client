@@ -46,6 +46,7 @@ protocol local {
   record Coordinate {
     double lat;
     double lon;
+    double accuracy;
   }
 
   record MessageText {

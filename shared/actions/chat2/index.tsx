@@ -2812,13 +2812,15 @@ const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordina
   const response = action.payload.response
   if (isMobile) {
     navigator.geolocation.getCurrentPosition(
-      pos => response.result({lat: pos.coords.latitude, lon: pos.coords.longitude}),
+      pos =>
+        response.result({accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude}),
       err => logger.warn(err.message),
       {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
     )
   } else {
     // desktop doesn't really work, so just stick us in SF
     response.result({
+      accuracy: 21.6747,
       lat: 37.785834,
       lon: -122.406417,
     })

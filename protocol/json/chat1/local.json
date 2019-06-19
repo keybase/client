@@ -143,6 +143,10 @@
         {
           "type": "double",
           "name": "lon"
+        },
+        {
+          "type": "double",
+          "name": "accuracy"
         }
       ]
     },
