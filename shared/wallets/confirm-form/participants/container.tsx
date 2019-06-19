@@ -48,5 +48,5 @@ export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),
-  'ConfirmSend'
+  'Participants'
 )(ConfirmSend)
