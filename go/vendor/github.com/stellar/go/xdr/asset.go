@@ -10,6 +10,28 @@ import (
 
 // This file contains helpers for working with xdr.Asset structs
 
+// MustNewNativeAsset returns a new native asset, panicking if it can't.
+func MustNewNativeAsset() Asset {
+	a := Asset{}
+	err := a.SetNative()
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
+// MustNewCreditAsset returns a new general asset, panicking if it can't.
+func MustNewCreditAsset(code string, issuer string) Asset {
+	a := Asset{}
+	accountID := AccountId{}
+	accountID.SetAddress(issuer)
+	err := a.SetCredit(code, accountID)
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
 // SetCredit overwrites `a` with a credit asset using `code` and `issuer`.  The
 // asset type (CreditAlphanum4 or CreditAlphanum12) is chosen automatically
 // based upon the length of `code`.
@@ -27,7 +49,7 @@ func (a *Asset) SetCredit(code string, issuer AccountId) error {
 	case length >= 5 && length <= 12:
 		newbody := AssetAlphaNum12{Issuer: issuer}
 		copy(newbody.AssetCode[:], []byte(code)[:length])
-		typ = AssetTypeAssetTypeCreditAlphanum4
+		typ = AssetTypeAssetTypeCreditAlphanum12
 		body = newbody
 	default:
 		return errors.New("Asset code length is invalid")
@@ -49,6 +71,27 @@ func (a *Asset) SetNative() error {
 	}
 	*a = newa
 	return nil
+}
+
+// ToAllowTrustOpAsset for Asset converts the Asset to a corresponding XDR
+// "allow trust" asset, used by the XDR allow trust operation.
+func (a *Asset) ToAllowTrustOpAsset(code string) (AllowTrustOpAsset, error) {
+	length := len(code)
+
+	switch {
+	case length >= 1 && length <= 4:
+		var bytecode [4]byte
+		byteArray := []byte(code)
+		copy(bytecode[:], byteArray[0:length])
+		return NewAllowTrustOpAsset(AssetTypeAssetTypeCreditAlphanum4, bytecode)
+	case length >= 5 && length <= 12:
+		var bytecode [12]byte
+		byteArray := []byte(code)
+		copy(bytecode[:], byteArray[0:length])
+		return NewAllowTrustOpAsset(AssetTypeAssetTypeCreditAlphanum12, bytecode)
+	default:
+		return AllowTrustOpAsset{}, errors.New("Asset code length is invalid")
+	}
 }
 
 // String returns a display friendly form of the asset

@@ -39,8 +39,8 @@ func opBodySummary(op xdr.Operation, pastTense bool) string {
 	case xdr.OperationTypePathPayment:
 		iop := op.Body.MustPathPaymentOp()
 		return fmt.Sprintf("%s %s to account %s using at most %s", tense("Pay", "Paid"), XDRAssetAmountSummary(iop.DestAmount, iop.DestAsset), iop.Destination.Address(), XDRAssetAmountSummary(iop.SendMax, iop.SendAsset))
-	case xdr.OperationTypeManageOffer:
-		iop := op.Body.MustManageOfferOp()
+	case xdr.OperationTypeManageSellOffer:
+		iop := op.Body.MustManageSellOfferOp()
 		switch {
 		case iop.OfferId == 0:
 			return fmt.Sprintf("Create%s offer selling %s for %s to buy %s", past("d"), XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
@@ -49,8 +49,8 @@ func opBodySummary(op xdr.Operation, pastTense bool) string {
 		default:
 			return fmt.Sprintf("Update%s offer selling %s for %s to buy %s (id %d)", past("d"), XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
 		}
-	case xdr.OperationTypeCreatePassiveOffer:
-		iop := op.Body.MustCreatePassiveOfferOp()
+	case xdr.OperationTypeCreatePassiveSellOffer:
+		iop := op.Body.MustCreatePassiveSellOfferOp()
 		if iop.Amount == 0 {
 			return fmt.Sprintf("Remove%s passive offer selling %s for %s to buy %s", past("d"), XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 		}

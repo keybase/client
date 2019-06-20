@@ -533,7 +533,13 @@ func (d *Decoder) decodeUnion(v reflect.Value) (int, error) {
 		return n, err
 	}
 
-	vs.SetInt(int64(i))
+	kind := vs.Kind()
+	if kind == reflect.Uint || kind == reflect.Uint8 || kind == reflect.Uint16 ||
+		kind == reflect.Uint32 || kind == reflect.Uint64 {
+		vs.SetUint(uint64(i))
+	} else {
+		vs.SetInt(int64(i))
+	}
 
 	arm, ok := u.ArmForSwitch(i)
 

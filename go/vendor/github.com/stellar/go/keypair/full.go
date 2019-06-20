@@ -3,9 +3,10 @@ package keypair
 import (
 	"bytes"
 
-	ed25519 "github.com/keybase/stellar-agl-ed25519"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
+
+	"golang.org/x/crypto/ed25519"
 )
 
 type Full struct {
@@ -29,11 +30,7 @@ func (kp *Full) Verify(input []byte, sig []byte) error {
 	if len(sig) != 64 {
 		return ErrInvalidSignature
 	}
-
-	var asig [64]byte
-	copy(asig[:], sig[:])
-
-	if !ed25519.Verify(kp.publicKey(), input, &asig) {
+	if !ed25519.Verify(kp.publicKey(), input, sig) {
 		return ErrInvalidSignature
 	}
 	return nil
@@ -56,12 +53,12 @@ func (kp *Full) SignDecorated(input []byte) (xdr.DecoratedSignature, error) {
 	}, nil
 }
 
-func (kp *Full) publicKey() *[32]byte {
+func (kp *Full) publicKey() ed25519.PublicKey {
 	pub, _ := kp.keys()
 	return pub
 }
 
-func (kp *Full) keys() (*[32]byte, *[64]byte) {
+func (kp *Full) keys() (ed25519.PublicKey, ed25519.PrivateKey) {
 	reader := bytes.NewReader(kp.rawSeed())
 	pub, priv, err := ed25519.GenerateKey(reader)
 	if err != nil {
