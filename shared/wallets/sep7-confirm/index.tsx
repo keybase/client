@@ -141,37 +141,40 @@ type Props = {
 }
 
 type NoteAndMemoProps = {
-  encryptedNote?: string
-  publicMemo?: string
+  message?: string
+  recipient?: string
 }
 
 const NoteAndMemo = (props: NoteAndMemoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {!!props.encryptedNote && (
+    {!!props.message && (
       <React.Fragment>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Encrypted note
+            Message{' '}
           </Kb.Text>
           <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
-            {props.encryptedNote}
+            {props.message}
           </Kb.Text>
         </Kb.Box2>
       </React.Fragment>
     )}
-    {!!props.publicMemo && (
-      <React.Fragment>
+    {!!props.recipient && (
+      <>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Public note
+            Recipient
           </Kb.Text>
-          <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
-            {props.publicMemo}
-          </Kb.Text>
+          <Kb.Box2 direction="horizontal" gap="xtiny">
+            <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
+            <Kb.Text selectable={true} type="BodySemibold" style={styles.stellarAddressConfirmText}>
+              {props.recipient}
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
-      </React.Fragment>
+      </>
     )}
   </Kb.Box2>
 )
@@ -180,6 +183,7 @@ const PaymentsConfirm = (props: Props) => {
   if (props.loading) {
     return <PaymentsConfirmLoading />
   }
+  console.warn(props)
   if (props.error) {
     return (
       <PaymentsConfirmError
@@ -200,8 +204,8 @@ const PaymentsConfirm = (props: Props) => {
           displayAmountFiat={props.displayAmountFiat}
         />
         <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
-          {(!!props.encryptedNote || !!props.publicMemo) && (
-            <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
+          {(!!props.encryptedNote || !!props.publicMemo || !!props.recipient) && (
+            <NoteAndMemo message={props.message} recipient={props.recipient} />
           )}
         </Kb.ScrollView>
         <Kb.Box2
@@ -229,7 +233,7 @@ const PaymentsConfirm = (props: Props) => {
                     color={Styles.globalColors.white}
                   />
                   <Kb.Text type="BodyBig" style={styles.buttonText}>
-                    Send{' '}
+                    Pay{' '}
                     <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
                       {props.displayAmountXLM}
                     </Kb.Text>
@@ -251,7 +255,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {wordBreak: 'break-word'},
   }),
   headingText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.black_50,
     marginBottom: Styles.globalMargins.xtiny,
   },
   memoContainer: {
@@ -369,6 +373,15 @@ const styles = Styles.styleSheetCreate({
   pushDown: Styles.platformStyles({
     isElectron: {flex: 1, justifyContent: 'flex-end'},
   }),
+  stellarAddressConfirmText: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
+  stellarIcon: {
+    alignSelf: 'flex-start',
+    marginRight: Styles.globalMargins.xxtiny,
+  },
   submitButton: Styles.platformStyles({
     common: {
       flex: 1,

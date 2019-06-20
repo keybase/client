@@ -8,26 +8,42 @@ import {namedConnect} from '../../util/container'
 
 type OwnProps = {}
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({loading: !state.wallets.sep7ConfirmInfo})
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const {
+    amount,
+    assetCode,
+    assetIssuer,
+    callbackURL,
+    memo,
+    memoType,
+    message,
+    operation,
+    originDomain,
+    recipient,
+    summary,
+    xdr,
+  } = state.wallets.sep7ConfirmInfo
+  return {
+    amount,
+    assetCode,
+    assetIssuer,
+    callbackURL,
+    loading: !state.wallets.sep7ConfirmInfo,
+    memo,
+    memoType,
+    message: 'test note',
+    operation,
+    originDomain,
+    recipient,
+    xdr,
+  }
+}
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAccept: () => {
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: true}))
   },
-  onCancel: () => {
-    dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
-  },
-  onWallet: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(Chat2Gen.createConfirmScreenResponse({accept: false}))
-    dispatch(
-      WalletsGen.createSelectAccount({
-        accountID: WalletsTypes.noAccountID,
-        reason: 'from-chat',
-        show: true,
-      })
-    )
-  },
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default namedConnect(
