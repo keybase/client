@@ -4,7 +4,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {connect, networkErrorCodes} from '../../util/container'
+import {connect, isNetworkErr} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const users = stateProps._users.sort().toArray()
-  const bannerError = !!stateProps.error && networkErrorCodes.includes(stateProps.error.code)
+  const bannerError = !!stateProps.error && isNetworkErr(stateProps.error.code)
   const inputError = !!stateProps.error && !bannerError
 
   return {

@@ -4,7 +4,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
-import {connect, getRouteProps, networkErrorCodes} from '../../util/container'
+import {connect, getRouteProps, isNetworkErr} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {RouteProps} from '../../route-tree/render-route'
@@ -49,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     error =
       stateProps.error.code === RPCTypes.StatusCode.scgeneric
         ? stateProps.error.desc
-        : networkErrorCodes.includes(stateProps.error.code)
+        : isNetworkErr(stateProps.error.code)
         ? "We're having trouble connecting to the internet. Check your network and try again."
         : "We don't support this type of image, try a different one."
   }

@@ -51,7 +51,7 @@ type _RequestedInvitePayloadError = {
 }
 type _RestartSignupPayload = void
 type _SignedupPayload = void
-type _SignedupPayloadError = {readonly error?: RPCError | null}
+type _SignedupPayloadError = {readonly error: RPCError | null}
 
 // Action Creators
 export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDevicenamePayload => ({

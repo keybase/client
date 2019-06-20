@@ -1,5 +1,5 @@
 import Error from '.'
-import {connect, networkErrorCodes} from '../../../util/container'
+import {connect, isNetworkErr} from '../../../util/container'
 
 import * as SignupGen from '../../../actions/signup-gen'
 
@@ -16,7 +16,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps) => {
   let header = 'Ah Shoot! Something went wrong, try again?'
   let body = stateProps.error ? stateProps.error.desc : ''
-  if (!!stateProps.error && networkErrorCodes.includes(stateProps.error.code)) {
+  if (!!stateProps.error && isNetworkErr(stateProps.error.code)) {
     header = 'Hit an unexpected error; try again?'
     body = 'This might be due to a bad connection.'
   }

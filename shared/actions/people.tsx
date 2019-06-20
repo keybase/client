@@ -6,7 +6,7 @@ import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import {networkErrorCodes} from '../util/container'
+import {isNetworkErr} from '../util/container'
 
 // set this to true to have all todo items show up all the time
 const debugTodo = false
@@ -96,7 +96,7 @@ const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
 
 const markViewed = () =>
   RPCTypes.homeHomeMarkViewedRpcPromise().catch(err => {
-    if (networkErrorCodes.includes(err.code)) {
+    if (isNetworkErr(err.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
       throw err

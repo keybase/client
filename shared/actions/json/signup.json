@@ -50,7 +50,7 @@
     "restartSignup": {},
     "signedup": {
       "canError": {
-        "error?": "RPCError | null",
+        "error": "RPCError | null",
       }
     },
     "checkDevicename": {
