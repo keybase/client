@@ -151,7 +151,6 @@ type httpConnectProxy struct {
 
 func newHTTPConnectProxy(proxyURL *url.URL, forward proxy.Dialer) (proxy.Dialer, error) {
 	s := httpConnectProxy{proxyURL: proxyURL, forward: forward}
-
 	return &s, nil
 }
 
@@ -161,6 +160,7 @@ func (s *httpConnectProxy) Dial(network string, addr string) (net.Conn, error) {
 	if network != "tcp" {
 		return nil, fmt.Errorf("Cannot use proxy Dial with network=%s", network)
 	}
+
 	// Dial a connection to the proxy using s.forward which is our upstream connection
 	// proxyConn is now a TCP connection to the proxy server
 	proxyConn, err := s.forward.Dial("tcp", s.proxyURL.Host)
@@ -168,15 +168,16 @@ func (s *httpConnectProxy) Dial(network string, addr string) (net.Conn, error) {
 		return nil, err
 	}
 
-	// HTTP Connect proxies work via the CONNECT verb which starts a TCP tunnel to the specified address
+	// HTTP Connect proxies work via the CONNECT verb which signals to the proxy server
+	// that it should treat the connection as a raw TCP stream sent to the given address
 	req, err := http.NewRequest("CONNECT", "//"+addr, nil)
 	if err != nil {
 		proxyConn.Close()
 		return nil, err
 	}
 
-	// We also need to set up auth for the proxy which is done via HTTP basic auth on the CONNECT request
-	// we are sending
+	// We also need to set up auth for the proxy which is done via HTTP basic
+	// auth on the CONNECT request we are sending
 	if s.proxyURL.User != nil {
 		password, _ := s.proxyURL.User.Password()
 		req.SetBasicAuth(s.proxyURL.User.Username(), password)
@@ -190,7 +191,8 @@ func (s *httpConnectProxy) Dial(network string, addr string) (net.Conn, error) {
 	}
 
 	// Read a response and confirm that the server replied with HTTP 200 which confirms that we started the
-	// TCP tunnel. Note that we don't expect any additional body to the request.
+	// TCP tunnel. Note that we don't expect any additional body to the request since this is now just an open
+	// TCP tunnel
 	resp, err := http.ReadResponse(bufio.NewReader(proxyConn), req)
 	if err != nil {
 		proxyConn.Close()
@@ -204,7 +206,8 @@ func (s *httpConnectProxy) Dial(network string, addr string) (net.Conn, error) {
 		return nil, err
 	}
 
-	// proxyConn is now a TCP connection to the proxy server which forwards to addr
+	// proxyConn is now a TCP connection to the proxy server which forwards to addr. It is the responsibility
+	// of the caller to Close() proxyConn
 	return proxyConn, nil
 }
 
@@ -214,11 +217,13 @@ func registerHTTPConnectProxies() {
 	proxy.RegisterDialerType("https", newHTTPConnectProxy)
 }
 
+// The equivalent of net.Dial except it uses the proxy configured in Env
 func ProxyDial(env *Env, network string, address string) (net.Conn, error) {
 	// Set the timeout to an exceedingly large number so it never times out
 	return ProxyDialTimeout(env, network, address, 100*365*24*time.Hour)
 }
 
+// The equivalent of net.DialTimeout except it uses the proxy configured in Env
 func ProxyDialTimeout(env *Env, network string, address string, timeout time.Duration) (net.Conn, error) {
 	if env.GetProxyType() == NoProxy {
 		return net.DialTimeout(network, address, timeout)
@@ -237,8 +242,9 @@ func ProxyDialTimeout(env *Env, network string, address string, timeout time.Dur
 	return dialer.Dial(network, address)
 }
 
+// The equivalent of http.Get except it uses the proxy configured in Env
 func ProxyHTTPGet(env *Env, u string) (*http.Response, error) {
 	client := &http.Client{Transport: &http.Transport{Proxy: MakeProxy(env)}}
 
-	return client.Get("http://example.com")
+	return client.Get(u)
 }

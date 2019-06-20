@@ -28,7 +28,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/go-jsonw"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const GregorRequestTimeout time.Duration = 30 * time.Second

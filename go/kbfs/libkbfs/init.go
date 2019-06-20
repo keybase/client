@@ -622,8 +622,6 @@ func doInit(
 	logPrefix string) (Config, error) {
 	ctx = CtxWithRandomIDReplayable(ctx, CtxInitKey, CtxInitID, log)
 
-	kbCtx.GetLogDir()
-
 	mode := InitDefault
 	switch params.Mode {
 	case InitDefaultString:
@@ -757,8 +755,7 @@ func doInit(
 	config.SetCrypto(crypto)
 
 	// Initialize MDServer connection.
-	mdServer, err := makeMDServer(kbCtx,
-		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
+	mdServer, err := makeMDServer(kbCtx, config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}

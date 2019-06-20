@@ -111,7 +111,7 @@ func (c *KBFSContext) GetMountDir() (string, error) {
 	return c.g.Env.GetMountDir()
 }
 
-// GetMountDir returns mount dir
+// GetEnv returns the global Env
 func (c *KBFSContext) GetEnv() *libkb.Env {
 	return c.g.Env
 }
