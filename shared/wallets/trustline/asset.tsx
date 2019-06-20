@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   code: string
-  disabled: boolean
+  cannotAccept: boolean
   expanded: boolean
   firstItem: boolean
   issuerAccountID: string
@@ -103,7 +103,7 @@ const Asset = (props: Props) => (
               small={true}
               label="Accept"
               onClick={stopPropagation(props.onAccept)}
-              disabled={props.disabled || props.waitingRefresh}
+              disabled={props.cannotAccept || props.waitingRefresh}
               waiting={props.waitingAdd}
             />
           )}

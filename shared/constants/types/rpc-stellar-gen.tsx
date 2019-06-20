@@ -153,7 +153,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.listPopularAssetsLocal': {
     inParam: void
-    outParam: Array<Asset> | null
+    outParam: AssetListResult
   }
   'stellar.1.local.makeRequestLocal': {
     inParam: {readonly recipient: String; readonly asset?: Asset | null; readonly currency?: OutsideCurrencyCode | null; readonly amount: String; readonly note: String}

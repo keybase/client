@@ -61,6 +61,14 @@ const makeSections = (props: BodyProps) => [
     : []),
 ]
 
+// hack around the bug where when we change from search mode where there's no
+// section header, into normal mode where there are section headers, first
+// section header doesn't show.
+const getSectionListKey = (props: BodyProps) =>
+  `sl-${props.searchingAssets ? 'sa' : '_'}-${props.acceptedAssets ? 'aa' : '_'}-${
+    props.popularAssets ? 'pa' : '_'
+  }`
+
 const sectionHeader = section =>
   !section.title || (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.sectionHeader}>
@@ -72,29 +80,31 @@ const haveEnoughBalanceToAccept = memoize(
   (props: BodyProps) => props.balanceAvailableToSend >= Constants.trustlineHoldingBalance
 )
 
-const getContent = (props: BodyProps) =>
-  props.searchingAssets && !props.searchingAssets.size ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
-      <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
-    </Kb.Box2>
-  ) : (
+const ListUpdateOnMount = (props: BodyProps) => {
+  // hack to get `ReactList` to render more than one item on initial mount.
+  // Somehow we need two updates here.
+  const [updateCounter, setUpdateCounter] = React.useState(0)
+  React.useEffect(() => setUpdateCounter(updateCounter => (updateCounter > 1 ? 2 : updateCounter + 1)), [
+    updateCounter,
+    setUpdateCounter,
+  ])
+
+  return (
     <Kb.SectionList
-      // hack around the bug where when we change from search mode where
-      // there's no section header, into normal mode where there are
-      // section headers, first section header doesn't show.
-      key={props.searchingAssets ? 'search-section-list' : 'non-search-section-list'}
+      key={getSectionListKey(props)}
       sections={makeSections(props)}
       renderItem={({index, item}) => (
         <Asset
           accountID={props.accountID}
           firstItem={index === 0}
           assetID={item}
-          disabled={!haveEnoughBalanceToAccept(props)}
+          cannotAccept={!haveEnoughBalanceToAccept(props)}
         />
       )}
       renderSectionHeader={({section}) => sectionHeader(section)}
     />
   )
+}
 
 const Body = (props: BodyProps) => {
   React.useEffect(() => props.refresh(), [])
@@ -124,7 +134,13 @@ const Body = (props: BodyProps) => {
               } XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
             />
           )}
-          {getContent(props)}
+          {props.searchingAssets && !props.searchingAssets.size ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
+              <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <ListUpdateOnMount {...props} />
+          )}
         </>
       ) : (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
