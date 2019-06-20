@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -58,7 +57,7 @@ func (p *Packager) assetFilename(url string) string {
 }
 
 func (p *Packager) assetBodyAndLength(ctx context.Context, url string) (body io.ReadCloser, size int64, err error) {
-	resp, err := http.Get(url)
+	resp, err := libkb.ProxyHTTPGet(p.G().Env, url)
 	if err != nil {
 		return body, size, err
 	}
@@ -127,7 +126,7 @@ func (p *Packager) assetFromURLWithBody(ctx context.Context, body io.ReadCloser,
 
 	filename := p.assetFilename(url)
 	src := attachments.NewBufReadResetter(dat)
-	pre, err := attachments.PreprocessAsset(ctx, p.DebugLabeler, src, filename,
+	pre, err := attachments.PreprocessAsset(ctx, p.G(), p.DebugLabeler, src, filename,
 		types.DummyNativeVideoHelper{}, nil)
 	if err != nil {
 		return res, err

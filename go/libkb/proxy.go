@@ -236,3 +236,9 @@ func ProxyDialTimeout(env *Env, network string, address string, timeout time.Dur
 	}
 	return dialer.Dial(network, address)
 }
+
+func ProxyHTTPGet(env *Env, u string) (*http.Response, error) {
+	client := &http.Client{Transport: &http.Transport{Proxy: MakeProxy(env)}}
+
+	return client.Get("http://example.com")
+}

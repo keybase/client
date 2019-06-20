@@ -3,8 +3,8 @@ package unfurl
 import (
 	"context"
 	"errors"
+	"github.com/keybase/client/go/libkb"
 	"io"
-	"net/http"
 	"strings"
 	"time"
 
@@ -98,7 +98,7 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 		s.Debug(ctx, "tryAppleTouchIcon: failed to get Apple touch URL: %s", err)
 		return
 	}
-	resp, err := http.Get(path)
+	resp, err := libkb.ProxyHTTPGet(s.G().Env, path)
 	if err != nil {
 		s.Debug(ctx, "tryAppleTouchIcon: failed to read Apple touch icon: %s", err)
 		return
