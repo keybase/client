@@ -57,7 +57,7 @@ export default class Asset extends React.Component<Props, State> {
                 {this.props.balance} {this.props.code}
               </Kb.Text>
               <Kb.Text type="BodySmall" lineClamp={1} onClick={this.props.openInfoURL}>
-                {this.props.infoUrlText.length > 0 ? this.props.infoUrlText : this.props.equivBalance}
+                {this.props.infoUrlText ? this.props.infoUrlText : this.props.equivBalance}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
