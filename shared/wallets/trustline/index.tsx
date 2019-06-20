@@ -80,13 +80,12 @@ const Body = (props: BodyProps) => (
 
 const TrustlineDesktop = Kb.HeaderOrPopup((props: Props) => {
   const {onDone, ...rest} = props
-  const bodyProps = rest as BodyProps
   return (
     <Kb.Box2 direction="vertical" style={styles.containerDesktop}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.headerDesktop}>
         <Kb.Text type="Header">Trustlines</Kb.Text>
       </Kb.Box2>
-      <Body {...bodyProps} />
+      <Body {...rest} />
       <Kb.Divider />
       <Kb.Button
         type="Default"
@@ -125,7 +124,6 @@ export default Trustline
 const styles = Styles.styleSheetCreate({
   body: {
     ...Styles.globalStyles.flexGrow,
-    // backgroundColor: Styles.globalColors.red,
   },
   containerDesktop: {
     backgroundColor: Styles.globalColors.white,
