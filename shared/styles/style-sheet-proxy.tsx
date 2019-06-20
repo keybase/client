@@ -8,8 +8,8 @@ type Transform = (o: Object) => Object
 
 const styleSheetCreate = (funcOrObj: FuncOrObject, transform: Transform) => {
   if (typeof funcOrObj === 'function') {
-    let lightCached = null //isDarkMode() ? null : transform(funcOrObj())
-    let darkCached = null //isDarkMode() ? transform(funcOrObj()) : null
+    let lightCached = null
+    let darkCached = null
 
     const wrapped = {
       get: function(_: unknown, prop: string) {
