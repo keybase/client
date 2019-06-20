@@ -139,7 +139,7 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
   if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
     return newTlf
   }
-  if (!newTlf.conflict.equals(oldTlf.conflict)) {
+  if (!newTlf.conflictState.equals(oldTlf.conflictState)) {
     return newTlf
   }
   // syncConfig, resetParticipants, and conflict all stayed thte same in value,
@@ -149,7 +149,7 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
       n
         .set('syncConfig', oldTlf.syncConfig)
         .set('resetParticipants', oldTlf.resetParticipants)
-        .set('conflict', oldTlf.conflict)
+        .set('conflictState', oldTlf.conflictState)
     )
   )
 }
@@ -554,14 +554,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
-    case FsGen.tlfCrStatusChanged:
-      const parsedPath = Constants.parsePath(action.payload.tlfPath)
-      const newState = action.payload.status
-      if (parsedPath.kind !== Types.PathKind.TeamTlf && parsedPath.kind !== Types.PathKind.GroupTlf) {
-        // This should not happen.
-        return state
-      }
-      return state.setIn(['tlfs', parsedPath.tlfType, parsedPath.tlfName, 'conflict', 'state'], newState)
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
@@ -588,6 +580,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('settings', s => s.set('isLoading', true))
 
     case FsGen.startManualConflictResolution:
+    case FsGen.finishManualConflictResolution:
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:

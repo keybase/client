@@ -1,4 +1,5 @@
-import * as redux from '../node_modules/react-redux/lib/index'
+import * as RR from 'react-redux'
+import {compose, setDisplayName} from 'recompose'
 
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
@@ -44,7 +45,13 @@ const selectorDelegatorFactory = (dispatch, options) => {
 // and `connect/selectorFactory.js` in
 // https://github.com/reactjs/react-redux/tree/master/src
 // for details on the function chain.
-const connect = (_, __, ___) => redux.connectAdvanced(selectorDelegatorFactory)
-const Provider = redux.Provider
+const mockConnect = () => RR.connectAdvanced(selectorDelegatorFactory)
 
-export {connect, Provider}
+const connect = RR.connect
+
+export const namedConnect = (_: any, __: any, ___: any, displayName: string) =>
+  compose(
+    mockConnect(),
+    setDisplayName(displayName)
+  )
+export default connect
