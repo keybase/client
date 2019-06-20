@@ -113,8 +113,8 @@ class Icon extends Component<Props, void> {
         const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
-        if (!colorName && __DEV__) {
-          throw new Error('Invalid color for icon, needs to be in stylesheet')
+        if (!colorName) {
+          // throw new Error('Invalid color for icon, needs to be in stylesheet')
         }
         colorStyleName = `color_${colorName}`
       }

@@ -18,7 +18,7 @@ import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {isDarwin} from '../../constants/platform'
-import {setIsDarkMode} from '../../styles/colors'
+import {setIsDarkMode} from '../../styles/dark-mode'
 
 // Top level HMR accept
 if (module.hot) {
@@ -153,9 +153,6 @@ const setupDarkMode = () => {
     SafeElectron.getSystemPreferences().subscribeNotification(
       'AppleInterfaceThemeChangedNotification',
       () => {
-        // wipe module level cache!!
-        delete require.cache
-        // kill require cache
         setIsDarkMode(isDarwin && SafeElectron.getSystemPreferences().isDarkMode())
         render()
       }

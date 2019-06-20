@@ -1,4 +1,5 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
+import {isDarkMode} from './dark-mode'
 import {isIOS} from '../constants/platform'
 
 export const colors = {
@@ -183,12 +184,9 @@ export const darkColors = {
   yellowLight: '#fffdcc',
 }
 
-let isDarkMode = false // TODO
-export const setIsDarkMode = (dm: boolean) => (isDarkMode = dm)
-
 const wrapped = {
   get: function(target, prop) {
-    return isDarkMode ? darkColors[prop] : colors[prop]
+    return isDarkMode() ? darkColors[prop] : colors[prop]
   },
 }
 

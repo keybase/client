@@ -134,7 +134,6 @@ export const initDesktopStyles = () => {
 }
 
 export const hairlineWidth = 1
-export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: ReadonlyArray<T.CollapsibleStyle>): Object => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
@@ -173,3 +172,4 @@ export type StylesCrossPlatform = T.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
 export const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
+export {default as styleSheetCreate} from './style-sheet'
