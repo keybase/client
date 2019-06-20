@@ -26,6 +26,28 @@ func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat
 		MapsProxy, lat, lon, lat, lon, key.Googlemaps()), nil
 }
 
+func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, coords []chat1.Coordinate) (string, error) {
+	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
+	if err != nil {
+		return "", err
+	}
+	pathStr := ""
+	startStr := ""
+	centerStr := ""
+	if len(coords) > 1 {
+		pathStr = "color:0xff0000ff|weight:3"
+		for _, c := range coords {
+			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
+		}
+		pathStr += "&"
+		startStr = fmt.Sprintf("markers=color:green%%7C%f,%f&", coords[0].Lat, coords[0].Lon)
+	} else {
+		centerStr = fmt.Sprintf("center=%f,%f&", coords[0].Lat, coords[0].Lon)
+	}
+	return fmt.Sprintf("https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x200&key=%s",
+		MapsProxy, centerStr, startStr, pathStr, coords[0].Lat, coords[0].Lon, key.Googlemaps()), nil
+}
+
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf("https://www.google.com/maps/place/%f,%f/@%f,%f,15z", lat, lon, lat, lon)
 }
