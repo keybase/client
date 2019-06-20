@@ -220,6 +220,11 @@ func ProxyDial(env *Env, network string, address string) (net.Conn, error) {
 }
 
 func ProxyDialTimeout(env *Env, network string, address string, timeout time.Duration) (net.Conn, error) {
+	if env.GetProxyType() == NoProxy {
+		return net.DialTimeout(network, address, timeout)
+	}
+
+	registerHTTPConnectProxies()
 	proxyURLStr := buildProxyAddressWithProtocol(env.GetProxyType(), env.GetProxy())
 	proxyURL, err := url.Parse(proxyURLStr)
 	if err != nil {
