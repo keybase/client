@@ -347,12 +347,6 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.xsmall,
-    // ...(isIOS
-    //   ? {}
-    //   : {
-    //       marginBottom: -4, // android has a bug where the lineheight isn't respected
-    //       marginTop: -4, // android has a bug where the lineheight isn't respected
-    //     }),
   },
   marginRightSmall: {
     marginRight: Styles.globalMargins.small,
