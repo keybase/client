@@ -285,4 +285,20 @@ protocol config {
    you are critically out of date.
    */
   UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version);
+
+  enum ProxyType {
+    No_Proxy_0,
+    HTTP_Connect_1,
+    Socks_2
+  }
+
+  record ProxyData {
+    string addressWithPort;
+    ProxyType proxyType;
+    boolean certPinning;
+  }
+
+  void setProxyData(ProxyData proxyData);
+
+  ProxyData getProxyData();
 }

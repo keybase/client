@@ -1,6 +1,7 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
@@ -8,7 +9,12 @@ import {actionHasError} from '../util/container'
 
 const initialState: Types.State = Constants.makeState()
 
-function reducer(state: Types.State = initialState, action: SettingsGen.Actions): Types.State {
+type Actions =
+  | SettingsGen.Actions
+  | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
+  | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+
+function reducer(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
     case SettingsGen.resetStore:
       return initialState
@@ -79,7 +85,19 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.invitesClearError:
       return state.update('invites', invites => invites.merge({error: null}))
     case SettingsGen.loadedSettings:
-      return state.set('email', Constants.makeEmail({emails: action.payload.emails}))
+      return state
+        .setIn(['email', 'emails'], action.payload.emails)
+        .setIn(['phoneNumbers', 'phones'], action.payload.phones)
+    case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
+      return state.setIn(
+        ['email', 'emails'],
+        I.Map((action.payload.params.list || []).map(row => [row.email, Constants.makeEmailRow(row)]))
+      )
+    case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
+      return state.setIn(
+        ['phone', 'phones'],
+        I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
+      )
     case SettingsGen.loadedRememberPassword:
     case SettingsGen.onChangeRememberPassword:
       return state.update('password', password => password.merge({rememberPassword: action.payload.remember}))
@@ -89,6 +107,10 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
       )
     case SettingsGen.loadedLockdownMode:
       return state.merge({lockdownModeEnabled: action.payload.status})
+    case SettingsGen.loadedProxyData:
+      return state.merge({proxyData: action.payload.proxyData})
+    case SettingsGen.certificatePinningToggled:
+      return state.merge({didToggleCertificatePinning: action.payload.toggled})
     case SettingsGen.onChangeNewPasswordConfirm:
       return state.update('password', password =>
         password.merge({error: null, newPasswordConfirm: action.payload.password})
@@ -168,6 +190,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
+    case SettingsGen.editEmail:
+    case SettingsGen.editPhone:
     case SettingsGen.invitesReclaim:
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
@@ -188,6 +212,8 @@ function reducer(state: Types.State = initialState, action: SettingsGen.Actions)
     case SettingsGen.loadHasRandomPw:
     case SettingsGen.addPhoneNumber:
     case SettingsGen.verifyPhoneNumber:
+    case SettingsGen.loadProxyData:
+    case SettingsGen.saveProxyData:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

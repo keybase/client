@@ -17,8 +17,17 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	hidden "github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
+
+// Teamer is an interface that can fit a materialized Team (just below) or intermediary temporary products
+// that are available during the team load process. It has access to both the main and hidden chain data
+// so that we can ask questions like "what is the maximal on-chain PTK generation."
+type Teamer interface {
+	MainChain() *keybase1.TeamData
+	HiddenChain() *keybase1.HiddenTeamChain
+}
 
 // A snapshot of a team's state.
 // Not threadsafe.
@@ -35,13 +44,18 @@ type Team struct {
 	rotated bool
 }
 
-func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData) *Team {
-	chain := TeamSigChainState{teamData.Chain}
+func (t *Team) MainChain() *keybase1.TeamData          { return t.Data }
+func (t *Team) HiddenChain() *keybase1.HiddenTeamChain { return t.Hidden }
+
+var _ Teamer = (*Team)(nil)
+
+func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.TeamData, hidden *keybase1.HiddenTeamChain) *Team {
 	return &Team{
 		Contextified: libkb.NewContextified(g),
 
-		ID:   chain.GetID(),
-		Data: teamData,
+		ID:     teamData.ID(),
+		Data:   teamData,
+		Hidden: hidden,
 	}
 }
 
@@ -82,7 +96,7 @@ func (t *Team) CanSkipKeyRotation() bool {
 }
 
 func (t *Team) chain() *TeamSigChainState {
-	return &TeamSigChainState{inner: t.Data.Chain}
+	return &TeamSigChainState{inner: t.Data.Chain, hidden: t.Hidden}
 }
 
 func (t *Team) Name() keybase1.TeamName {
@@ -132,11 +146,11 @@ func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplicati
 func (t *Team) getKeyManager(ctx context.Context) (km *TeamKeyManager, err error) {
 	if t.keyManager == nil {
 		gen := t.chain().GetLatestGeneration()
-		item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t.Data, gen)
+		item, err := GetAndVerifyPerTeamKey(t.MetaContext(ctx), t, gen)
 		if err != nil {
 			return nil, err
 		}
-		t.keyManager, err = NewTeamKeyManagerWithSecret(item.Seed, gen)
+		t.keyManager, err = NewTeamKeyManagerWithSeedItem(t.ID, item)
 		if err != nil {
 			return nil, err
 		}
@@ -198,11 +212,11 @@ func (t *Team) EncryptionKey(ctx context.Context) (key libkb.NaclDHKeyPair, err 
 }
 
 func (t *Team) encryptionKeyAtGen(ctx context.Context, gen keybase1.PerTeamKeyGeneration) (key libkb.NaclDHKeyPair, err error) {
-	item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t.Data, gen)
+	item, err := GetAndVerifyPerTeamKey(libkb.NewMetaContext(ctx, t.G()), t, gen)
 	if err != nil {
 		return key, err
 	}
-	keyManager, err := NewTeamKeyManagerWithSecret(item.Seed, gen)
+	keyManager, err := NewTeamKeyManagerWithSeedItem(t.ID, item)
 	if err != nil {
 		return key, err
 	}
@@ -426,11 +440,11 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	return AllApplicationKeys(t.MetaContext(ctx), t.Data, application, t.chain().GetLatestGeneration())
+	return AllApplicationKeys(t.MetaContext(ctx), t, application, t.chain().GetLatestGeneration())
 }
 
 func (t *Team) AllApplicationKeysWithKBFS(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t.Data, application,
+	return AllApplicationKeysWithKBFS(t.MetaContext(ctx), t, application,
 		t.chain().GetLatestGeneration())
 }
 
@@ -442,12 +456,12 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 
 func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
+	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t, application, generation)
 }
 
 func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
-	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
+	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t, application, generation)
 }
 
 func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) error {
@@ -467,14 +481,27 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 	return t.rotate(ctx, false /* hidden */)
 }
 
-func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
+func (t *Team) RotateHidden(ctx context.Context) (err error) {
+	return t.rotate(ctx, true)
+}
+
+func (t *Team) rotate(ctx context.Context, isHidden bool) (err error) {
+	mctx := t.MetaContext(ctx).WithLogTag("ROT")
+	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%v)", t.ID, isHidden), func() error { return err })()
+
+	if isHidden {
+		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
+		if err != nil {
+			return err
+		}
+	}
 
 	// initialize key manager
-	if _, err := t.SharedSecret(ctx); err != nil {
+	if _, err := t.SharedSecret(mctx.Ctx()); err != nil {
 		return err
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(mctx, libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
@@ -484,13 +511,13 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 
 	// Try to get the admin perms if they are available, if not, proceed anyway
 	var admin *SCTeamAdmin
-	admin, err = t.getAdminPermission(ctx)
+	admin, err = t.getAdminPermission(mctx.Ctx())
 	if err != nil {
-		t.G().Log.CDebugf(ctx, "Rotate: unable to get admin permission: %v, attempting without admin section", err)
+		mctx.Debug("Rotate: unable to get admin permission: %v, attempting without admin section", err)
 		admin = nil
 	}
 
-	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
+	if err := t.ForceMerkleRootUpdate(mctx.Ctx()); err != nil {
 		return err
 	}
 
@@ -508,7 +535,7 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 	}
 
 	// rotate the team key for all current members
-	secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(ctx, memSet)
+	secretBoxes, perTeamKeySection, teamEKPayload, err := t.rotateBoxes(mctx.Ctx(), memSet)
 	if err != nil {
 		return err
 	}
@@ -525,16 +552,16 @@ func (t *Team) rotate(ctx context.Context, hidden bool) (err error) {
 		teamEKPayload: teamEKPayload,
 	}
 
-	if !hidden {
-		err = t.rotatePostVisible(ctx, section, mr, payloadArgs)
+	if !isHidden {
+		err = t.rotatePostVisible(mctx.Ctx(), section, mr, payloadArgs)
 	} else {
-		err = t.rotatePostHidden(ctx, section, mr, payloadArgs)
+		err = t.rotatePostHidden(mctx.Ctx(), section, mr, payloadArgs)
 	}
 	if err != nil {
 		return err
 	}
 
-	t.storeTeamEKPayload(ctx, teamEKPayload)
+	t.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
 
 	return nil
 }
@@ -549,7 +576,90 @@ func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr 
 }
 
 func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
-	return errors.New("Team@rotatePostHidden unimplemented")
+	mctx := libkb.NewMetaContext(ctx, t.G())
+
+	// Generate a "sig multi item" that we POST up to the API endpoint
+	smi, ratchet, err := t.rotateHiddenGenerateSigMultiItem(mctx, section, mr)
+	if err != nil {
+		return err
+	}
+
+	links := []libkb.SigMultiItem{*smi}
+
+	err = t.precheckLinksToPost(ctx, links)
+	if err != nil {
+		return err
+	}
+
+	// Combine the "sig multi item" above with the various off-chain items, like boxes.
+	payload := t.sigPayload(links, payloadArgs)
+
+	// Post the changes up to the server
+	err = t.postMulti(mctx, payload)
+	if err != nil {
+		return err
+	}
+
+	// Inform local caching that we've ratcheted forward the hidden chain with a change
+	// that we made.
+	tmp := mctx.G().GetHiddenTeamChainManager().Ratchet(mctx, t.ID, *ratchet)
+	if tmp != nil {
+		mctx.Warning("Failed to ratchet forward team chain: %s", tmp.Error())
+	}
+
+	return err
+}
+
+func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
+
+	currentSeqno := t.CurrentSeqno()
+	lastLinkID := t.chain().GetLatestLinkID()
+
+	mainChainPrev := keybase1.LinkTriple{
+		Seqno:   currentSeqno,
+		SeqType: keybase1.SeqType_SEMIPRIVATE,
+		LinkID:  lastLinkID,
+	}
+
+	me, err := loadMeForSignatures(mctx.Ctx(), mctx.G())
+	if err != nil {
+		return nil, nil, err
+	}
+	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
+	if err != nil {
+		return nil, nil, err
+	}
+	hiddenPrev, err := t.G().GetHiddenTeamChainManager().Tail(mctx, t.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sk, err := t.keyManager.SigningKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ek, err := t.keyManager.EncryptionKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ret, ratchet, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
+		TeamID:           t.ID,
+		IsPublic:         t.IsPublic(),
+		IsImplicit:       t.IsImplicit(),
+		MerkleRoot:       mr,
+		Me:               me,
+		SigningKey:       deviceSigningKey,
+		MainPrev:         mainChainPrev,
+		HiddenPrev:       hiddenPrev,
+		Gen:              t.keyManager.Generation(),
+		NewSigningKey:    sk,
+		NewEncryptionKey: ek,
+		Check:            t.keyManager.Check(),
+	})
+
+	return ret, ratchet, err
 }
 
 func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
@@ -2174,4 +2284,21 @@ func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 		mctx.Debug("error tombstoning in fast team cache: %v", err2)
 	}
 	return libkb.CombineErrors(err1, err2)
+}
+
+type TeamShim struct {
+	Data   *keybase1.TeamData
+	Hidden *keybase1.HiddenTeamChain
+}
+
+func (t *TeamShim) MainChain() *keybase1.TeamData          { return t.Data }
+func (t *TeamShim) HiddenChain() *keybase1.HiddenTeamChain { return t.Hidden }
+
+var _ Teamer = (*TeamShim)(nil)
+
+func KeySummary(t Teamer) string {
+	if t == nil {
+		return "Ø"
+	}
+	return fmt.Sprintf("{main:%s, hidden:%s}", t.MainChain().KeySummary(), t.HiddenChain().KeySummary())
 }

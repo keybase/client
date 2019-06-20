@@ -10,10 +10,12 @@ export type Props = {
   equivAvailableToSend: string // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string // non-empty only if native currency
   expanded?: boolean // for testing
+  infoUrlText: string
   issuerName: string // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string // issuing public key
   name: string // Asset code or 'Lumens'
   reserves: Array<Types.Reserve> // non-empty only if native currency
+  openInfoURL?: () => void
   openStellarURL: () => void
 }
 
@@ -28,6 +30,11 @@ export default class Asset extends React.Component<Props, State> {
     this.setState(prevProps => ({
       expanded: !prevProps.expanded,
     }))
+  }
+
+  _openInfoURL = e => {
+    e.stopPropagation()
+    this.props.openInfoURL()
   }
 
   render() {
@@ -54,8 +61,12 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
               </Kb.Text>
-              <Kb.Text type="BodySmall" lineClamp={1}>
-                {this.props.equivBalance}
+              <Kb.Text
+                type="BodySmall"
+                lineClamp={1}
+                onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
+              >
+                {this.props.infoUrlText || this.props.equivBalance}
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>

@@ -8,7 +8,7 @@ const defaultProps = {
   logoutInProgress: false,
   onLogout: action('onlogout'),
   onTabChange: action('ontabchange'),
-  selectedTab: 'settingsTabs.landingTab' as 'settingsTabs.landingTab',
+  selectedTab: 'settingsTabs.accountTab' as 'settingsTabs.accountTab',
 }
 
 const load = () => {

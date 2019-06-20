@@ -50,6 +50,9 @@ type AccountAssetLocal struct {
 	Worth                  string           `codec:"worth" json:"worth"`
 	AvailableToSendWorth   string           `codec:"availableToSendWorth" json:"availableToSendWorth"`
 	Reserves               []AccountReserve `codec:"reserves" json:"reserves"`
+	Desc                   string           `codec:"desc" json:"desc"`
+	InfoUrl                string           `codec:"infoUrl" json:"infoUrl"`
+	InfoUrlText            string           `codec:"infoUrlText" json:"infoUrlText"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
@@ -75,6 +78,9 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 			}
 			return ret
 		})(o.Reserves),
+		Desc:        o.Desc,
+		InfoUrl:     o.InfoUrl,
+		InfoUrlText: o.InfoUrlText,
 	}
 }
 
@@ -1657,7 +1663,7 @@ type LocalInterface interface {
 	AirdropStatusLocal(context.Context, int) (AirdropStatus, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
 	FuzzyAssetSearchLocal(context.Context, FuzzyAssetSearchLocalArg) ([]Asset, error)
-	ListPopularAssetsLocal(context.Context, int) ([]Asset, error)
+	ListPopularAssetsLocal(context.Context, int) (AssetListResult, error)
 	AddTrustlineLocal(context.Context, AddTrustlineLocalArg) error
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
@@ -3055,7 +3061,7 @@ func (c LocalClient) FuzzyAssetSearchLocal(ctx context.Context, __arg FuzzyAsset
 	return
 }
 
-func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []Asset, err error) {
+func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []interface{}{__arg}, &res)
 	return

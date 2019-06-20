@@ -18,7 +18,6 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
-const apiKey = "ZsqoY64vpeo53oZH5ShgywcjLu1W8rIe"
 const APIHost = "api.giphy.com"
 const MediaHost = "media.giphy.com"
 const Host = "giphy.com"
@@ -112,7 +111,7 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 	xprt.TLSClientConfig = tlsConfig
 
 	env := mctx.G().Env
-	xprt.Proxy = libkb.MakeProxy(env.GetProxyType(), env.GetProxy())
+	xprt.Proxy = libkb.MakeProxy(env)
 
 	return &http.Client{
 		Transport: &xprt,
@@ -181,13 +180,18 @@ func Asset(mctx libkb.MetaContext, sourceURL string) (res io.ReadCloser, length 
 	return resp.Body, resp.ContentLength, nil
 }
 
-func Search(mctx libkb.MetaContext, query *string, limit int, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+func Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource, query *string, limit int,
+	srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
 	var endpoint string
+	apiKey, err := apiKeySource.GetKey(mctx.Ctx(), chat1.ExternalAPIKeyTyp_GIPHY)
+	if err != nil {
+		return res, err
+	}
 	if query == nil {
 		// grab trending with no query
-		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s&limit=%d", giphyProxy, apiKey, limit)
+		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s&limit=%d", giphyProxy, apiKey.Giphy(), limit)
 	} else {
-		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s&limit=%d", giphyProxy, apiKey,
+		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s&limit=%d", giphyProxy, apiKey.Giphy(),
 			url.QueryEscape(*query), limit)
 	}
 	return runAPICall(mctx, endpoint, srv)

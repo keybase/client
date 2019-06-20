@@ -567,13 +567,24 @@ func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
 		return err
 	}
 	for _, rec := range recs {
+		shouldRemove := false
 		if _, err := s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
 			ConversationID: rec.ConvID,
 			MsgID:          rec.MsgID,
 		}); err != nil {
 			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: convID: %s msgID: %s err: %s",
 				rec.ConvID, rec.MsgID, err)
+			// check for an immediate failure from the server, and get the attempt out if it fails
+			if berr, ok := err.(DelivererInfoError); ok {
+				if _, ok := berr.IsImmediateFail(); ok {
+					s.Debug(ctx, "markAsReadDeliver: error is an immediate failure, not retrying")
+					shouldRemove = true
+				}
+			}
 		} else {
+			shouldRemove = true
+		}
+		if shouldRemove {
 			if err := s.readOutbox.RemoveRecord(ctx, rec.ID); err != nil {
 				s.Debug(ctx, "markAsReadDeliver: failed to remove record: %s", err)
 			}
@@ -596,6 +607,11 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 	}
 }
 
+var emptyBadgeCounts = map[keybase1.DeviceType]int{
+	keybase1.DeviceType_DESKTOP: 0,
+	keybase1.DeviceType_MOBILE:  0,
+}
+
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
 	rc, err := s.createInbox().GetConversation(ctx, s.uid, chat1.ConversationID(i.ConvID.Bytes()))
 	if err != nil {
@@ -605,7 +621,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.
 	if rc.IsLocallyRead() {
 		return keybase1.BadgeConversationInfo{
 			ConvID:         i.ConvID,
-			BadgeCounts:    make(map[keybase1.DeviceType]int),
+			BadgeCounts:    emptyBadgeCounts,
 			UnreadMessages: 0,
 		}
 	}

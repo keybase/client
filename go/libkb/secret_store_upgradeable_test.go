@@ -39,7 +39,7 @@ func newSecretStoreUpgForTest() *secretStoreUpgForTest {
 		return store.shouldFallback
 	}
 
-	store.store = NewSecretStoreUpgradeable(store.memA, store.memB,
+	store.store = NewSecretStoreUpgradeable(store.memA, store.memB, "memory primary", "memory secondary",
 		shouldUpgradeOpportunistically, shouldStoreInFallback)
 	return &store
 }
@@ -215,7 +215,7 @@ func TestUSSFallback(t *testing.T) {
 		return behavior
 	}
 
-	store := NewSecretStoreUpgradeable(failA, memB,
+	store := NewSecretStoreUpgradeable(failA, memB, "failure primary", "memory secondary",
 		shouldUpgradeOpportunistically, shouldStoreInFallback)
 
 	m := NewMetaContextForTest(tc)
@@ -275,7 +275,7 @@ func TestUSSBothFail(t *testing.T) {
 		return SecretStoreFallbackBehaviorOnError
 	}
 
-	store := NewSecretStoreUpgradeable(failA, failB,
+	store := NewSecretStoreUpgradeable(failA, failB, "fail primary", "fail secondary",
 		shouldUpgradeOpportunistically, shouldStoreInFallback)
 
 	m := NewMetaContextForTest(tc)

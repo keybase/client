@@ -49,16 +49,18 @@ export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
 export type _Assets = {
   assetCode: string
+  availableToSendWorth: string
   balanceAvailableToSend: string
   balanceTotal: string
+  infoUrl: string
+  infoUrlText: string
   issuerAccountID: string
   issuerName: string
   issuerVerifiedDomain: string
   name: string
+  reserves: I.List<Reserve>
   worth: string
   worthCurrency: string
-  availableToSendWorth: string
-  reserves: I.List<Reserve>
 }
 
 export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode

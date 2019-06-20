@@ -1,49 +1,54 @@
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as Sb from '../../stories/storybook'
-import DevicePageReal from './container'
+import DevicePage from './container'
 
-type Props = {
-  _revoked?: boolean
-  _type?: 'mobile' | 'desktop' | 'backup'
-  _current?: boolean
-  _lastUsed?: boolean
-  _revokedAt?: Date | null
+const makeDevice = (options: any) => {
+  const {revoked, type, current, lastUsed = true} = options
+  return Constants.makeDevice({
+    created: new Date('2002-10-09T01:23:45').getTime(),
+    currentDevice: !!current,
+    deviceID: Types.stringToDeviceID('123'),
+    lastUsed: lastUsed ? new Date('2002-10-10T01:23:45').getTime() : 0,
+    name: `My ${type}`,
+    revokedAt: revoked ? new Date('2002-10-11T01:23:45').getTime() : null,
+    type,
+  })
 }
 
-const DevicePage = (props: Props) => {
-  const p: any = props
-  return <DevicePageReal {...p} />
-}
+const common = Sb.createStoreWithCommon()
 
-const provider = Sb.createPropProviderWithCommon({
-  DevicePage: ({_revoked, _type, _current, _lastUsed = true, _revokedAt = true}) => ({
-    device: Constants.makeDevice({
-      created: new Date('2002-10-09T01:23:45').getTime(),
-      currentDevice: !!_current,
-      deviceID: Types.stringToDeviceID('123'),
-      lastUsed: _lastUsed ? new Date('2002-10-10T01:23:45').getTime() : 0,
-      name: `My ${_type}`,
-      revokedAt: _revokedAt && _revoked ? new Date('2002-10-11T01:23:45').getTime() : null,
-      type: _type,
-    }),
-    onBack: Sb.action('onback'),
-    showRevokeDevicePage: _revoked ? null : Sb.action('showRevokeDevicePage'),
-  }),
-})
+const store = {
+  ...common,
+  devices: common.devices.mergeDeep(
+    I.Map({
+      deviceMap: {
+        backup: makeDevice({type: 'backup'}),
+        'backup revoked': makeDevice({revoked: true, type: 'backup'}),
+        desktop: makeDevice({type: 'desktop'}),
+        'desktop current': makeDevice({current: true, type: 'desktop'}),
+        'desktop no last': makeDevice({lastUsed: false, type: 'desktop'}),
+        'desktop revoked': makeDevice({revoked: true, type: 'desktop'}),
+        mobile: makeDevice({type: 'mobile'}),
+        'mobile revoked': makeDevice({revoked: true, type: 'mobile'}),
+      },
+    })
+  ),
+}
 
 const load = () => {
   Sb.storiesOf('Devices/Device', module)
-    .addDecorator(provider)
-    .add('Desktop', () => <DevicePage _type="desktop" />)
-    .add('Desktop no last used', () => <DevicePage _type="desktop" _lastUsed={false} />)
-    .add('Desktop current', () => <DevicePage _type="desktop" _current={true} />)
-    .add('Desktop Revoked', () => <DevicePage _type="desktop" _revoked={true} />)
-    .add('Mobile', () => <DevicePage _type="mobile" />)
-    .add('Mobile Revoked', () => <DevicePage _type="mobile" _revoked={true} />)
-    .add('Paper key', () => <DevicePage _type="backup" />)
-    .add('Paper key Revoked', () => <DevicePage _type="backup" _revoked={true} />)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Desktop', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop'})} />)
+    .add('Desktop no last used', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop no last'})} />)
+    .add('Desktop current', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop current'})} />)
+    .add('Desktop Revoked', () => <DevicePage {...Sb.createNavigator({deviceID: 'desktop revoked'})} />)
+    .add('Mobile', () => <DevicePage {...Sb.createNavigator({deviceID: 'mobile'})} />)
+    .add('Mobile Revoked', () => <DevicePage {...Sb.createNavigator({deviceID: 'mobile revoked'})} />)
+    .add('Paper key', () => <DevicePage {...Sb.createNavigator({deviceID: 'backup'})} />)
+    .add('Paper key Revoked', () => <DevicePage {...Sb.createNavigator({deviceID: 'backup revoked'})} />)
 }
 
 export default load

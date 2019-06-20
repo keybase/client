@@ -18,4 +18,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
-export default Container.remoteConnect(s => s, mapDispatchToProps, mergeProps)(Bio)
+// Just to get the stories working short term. TODO remove and use newer story wrapper
+const ConnectedBio = __STORYBOOK__
+  ? Container.namedConnect(s => s, mapDispatchToProps, mergeProps, 'Bio')(Bio)
+  : Container.remoteConnect(s => s, mapDispatchToProps, mergeProps)(Bio)
+export default ConnectedBio

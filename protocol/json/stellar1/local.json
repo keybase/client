@@ -107,6 +107,18 @@
             "items": "AccountReserve"
           },
           "name": "reserves"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": "string",
+          "name": "infoUrl"
+        },
+        {
+          "type": "string",
+          "name": "infoUrlText"
         }
       ]
     },
@@ -2212,10 +2224,7 @@
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "Asset"
-      }
+      "response": "AssetListResult"
     },
     "addTrustlineLocal": {
       "request": [

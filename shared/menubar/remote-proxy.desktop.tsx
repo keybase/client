@@ -87,7 +87,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
         )
       }
     }
-    componentDidUnmount() {
+    componentWillUnmount() {
       if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
         SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
       }

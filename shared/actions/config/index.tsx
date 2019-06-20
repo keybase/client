@@ -51,6 +51,8 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
+// set to true so we reget status when we're reachable again
+let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
   state,
   action:
@@ -62,6 +64,10 @@ function* loadDaemonBootstrapStatus(
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
   if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
     return
+  }
+
+  if (action.type === GregorGen.updateReachable && action.payload.reachable === RPCTypes.Reachable.no) {
+    wasUnreachable = true
   }
 
   function* makeCall() {
@@ -114,7 +120,8 @@ function* loadDaemonBootstrapStatus(
       )
       break
     case GregorGen.updateReachable:
-      if (action.payload.reachable) {
+      if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
+        wasUnreachable = false // reset it
         yield* makeCall()
       }
       break
@@ -382,12 +389,16 @@ const routeToInitialScreen = state => {
 
 const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
-  const username = Constants.urlToUsername(url)
-  if (username) {
-    return [
-      RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
-      ProfileGen.createShowUserProfile({username}),
-    ]
+  if (action.payload.link.startsWith('web+stellar:')) {
+    console.warn('Got SEP7 link:', action.payload.link)
+  } else {
+    const username = Constants.urlToUsername(url)
+    if (username) {
+      return [
+        RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
+        ProfileGen.createShowUserProfile({username}),
+      ]
+    }
   }
 }
 

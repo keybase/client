@@ -493,6 +493,11 @@ type TeamMentionLoader interface {
 		maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool
 }
 
+type ExternalAPIKeySource interface {
+	GetKey(ctx context.Context, typ chat1.ExternalAPIKeyTyp) (chat1.ExternalAPIKey, error)
+	GetAllKeys(ctx context.Context) ([]chat1.ExternalAPIKey, error)
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string
