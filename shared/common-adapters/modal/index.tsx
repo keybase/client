@@ -31,7 +31,7 @@ type FooterProps = {
 }
 
 type Props = {
-  banners?: React.ReactNode
+  banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
   onClose: () => void
@@ -39,17 +39,25 @@ type Props = {
   mode: Mode
 }
 
-const Modal = (props: Props) => (
-  <PopupDialog
-    onClose={props.onClose}
-    styleClipContainer={props.mode === Mode.Default ? styles.modeDefault : styles.modeWide}
-    styleCover={styles.nativeCoverStyleOverrides}
-  >
+const ModalInner = (props: Props) => (
+  <>
     {!!props.header && <Header {...props.header} />}
-    <Kb.ScrollView>{props.children}</Kb.ScrollView>
+    {!!props.banners && props.banners}
+    <Kb.ScrollView alwaysBounceVertical={false}>{props.children}</Kb.ScrollView>
     {!!props.footer && <Footer {...props.footer} />}
-  </PopupDialog>
+  </>
 )
+const Modal = (props: Props) =>
+  Styles.isMobile ? (
+    <ModalInner {...props} />
+  ) : (
+    <PopupDialog
+      onClose={props.onClose}
+      styleClipContainer={props.mode === Mode.Default ? styles.modeDefault : styles.modeWide}
+    >
+      <ModalInner {...props} />
+    </PopupDialog>
+  )
 Modal.defaultProps = {
   mode: Mode.Default,
 }
@@ -82,8 +90,8 @@ const Footer = (props: FooterProps) => (
 
 const headerCommon = {
   borderBottomColor: Styles.globalColors.black_10,
-  borderBottomStyle: 'solid',
   borderBottomWidth: 1,
+  borderStyle: 'solid' as const,
 }
 
 const styles = Styles.styleSheetCreate({
@@ -99,8 +107,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   footerBorder: {
+    borderStyle: 'solid',
     borderTopColor: Styles.globalColors.black_10,
-    borderTopStyle: 'solid',
     borderTopWidth: 1,
   },
   header: {

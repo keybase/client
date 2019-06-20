@@ -34,7 +34,13 @@ const load = () => {
       <Modal onClose={onClose}>
         <Kb.Box2
           direction="vertical"
-          style={{...Styles.globalStyles.flexBoxColumn, ...padding, backgroundColor: 'pink', height: 700}}
+          style={{
+            ...Styles.globalStyles.flexBoxColumn,
+            ...padding,
+            backgroundColor: 'pink',
+            height: 1400,
+            width: '100%',
+          }}
         >
           <Kb.Text type="HeaderBig">If your content is too big you'll scroll.</Kb.Text>
         </Kb.Box2>
@@ -111,7 +117,7 @@ const load = () => {
           style: {backgroundColor: Styles.globalColors.blueGrey},
         }}
       >
-        <Kb.Box2 direction="vertical" style={padding}>
+        <Kb.Box2 direction="vertical" style={padding} fullWidth={true}>
           {range(0, 64).map(r => (
             <Kb.Box2
               direction="horizontal"
@@ -123,6 +129,11 @@ const load = () => {
             </Kb.Box2>
           ))}
         </Kb.Box2>
+      </Modal>
+    ))
+    .add('Banner', () => (
+      <Modal onClose={onClose} banners={[<Kb.Banner key="red" color="red" text="hey" />]}>
+        {filler}
       </Modal>
     ))
 }
