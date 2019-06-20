@@ -1,12 +1,12 @@
 import * as React from 'react'
 import PeopleItem from '../item'
-import {Box, Button, Icon, Text, IconType} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import PeopleSearch from '../../profile/search/bar-container'
 import * as Styles from '../../styles'
 
 export type Props = {
   badged: boolean
-  icon: IconType
+  icon: Kb.IconType
   instructions: string
   confirmLabel: string
   dismissable: boolean
@@ -16,15 +16,15 @@ export type Props = {
 }
 
 export const Task = (props: Props) => (
-  <PeopleItem format="multi" badged={props.badged} icon={<Icon type={props.icon} />}>
-    <Text type="Body" style={styles.instructions}>
+  <PeopleItem format="multi" badged={props.badged} icon={<Kb.Icon type={props.icon} />}>
+    <Kb.Text type="Body" style={styles.instructions}>
       {props.instructions}
-    </Text>
-    <Box style={styles.actionContainer}>
+    </Kb.Text>
+    <Kb.Box style={styles.actionContainer}>
       {props.showSearchBar ? (
         <PeopleSearch style={styles.search} />
       ) : (
-        <Button
+        <Kb.Button
           small={true}
           label={props.confirmLabel}
           onClick={props.onConfirm}
@@ -32,11 +32,9 @@ export const Task = (props: Props) => (
         />
       )}
       {props.dismissable && (
-        <Text type="BodyPrimaryLink" onClick={props.onDismiss}>
-          Later
-        </Text>
+        <Kb.Button small={true} label="Follow later" mode="Secondary" onClick={props.onDismiss} />
       )}
-    </Box>
+    </Kb.Box>
   </PeopleItem>
 )
 
@@ -53,5 +51,7 @@ const styles = Styles.styleSheetCreate({
   search: {
     alignSelf: undefined,
     flexGrow: 0,
+    marginBottom: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xsmall,
   },
 })
