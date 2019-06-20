@@ -99,6 +99,30 @@ func TestPathPartStringEquality(t *testing.T) {
 
 }
 
+func TestPathPartStringPrefix(t *testing.T) {
+	secret := NodeObfuscatorSecret([]byte{1, 2, 3, 4})
+	no := NewNodeObfuscator(secret)
+
+	t.Log("Check that special .kbfs_ files are ignored")
+	status := ".kbfs_status"
+	pps1 := NewPathPartString(status, no)
+	ob1 := pps1.String()
+	require.Equal(t, status, ob1)
+
+	t.Log("Check that .kbfs_fileinfo files are still partially obfuscated")
+	fileinfo := ".kbfs_fileinfo_test.txt"
+	pps2 := NewPathPartString(fileinfo, no)
+	ob2 := pps2.String()
+	require.True(t, strings.HasPrefix(ob2, ".kbfs_fileinfo_"))
+	require.True(t, strings.HasSuffix(ob2, ".txt"))
+	words2 := strings.Split(
+		strings.TrimSuffix(strings.TrimPrefix(ob2, ".kbfs_fileinfo_"), ".txt"),
+		separator)
+	require.Len(t, words2, 2)
+	require.True(t, libkb.ValidSecWord(words2[0]), words2[0])
+	require.True(t, libkb.ValidSecWord(words2[1]), words2[1])
+}
+
 func TestPathPartStringMarshal(t *testing.T) {
 	secret := NodeObfuscatorSecret([]byte{1, 2, 3, 4})
 	no := NewNodeObfuscator(secret)
