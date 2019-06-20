@@ -28,7 +28,7 @@ const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) =
       showTlfTypeIcon && (
         <Icon
           type={getIcon(pathElements[1])}
-          color={globalColors.blue}
+          color={globalColors.blueDark}
           style={stylesIconFolderType}
           key="icon"
         />

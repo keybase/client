@@ -175,7 +175,7 @@ const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.fontTerminalSemibold,
-      color: Styles.globalColors.blue,
+      color: Styles.globalColors.blueDark,
       flexShrink: 1,
       fontSize: Styles.isMobile ? 15 : 13,
       marginBottom: Styles.globalMargins.xsmall / 2,

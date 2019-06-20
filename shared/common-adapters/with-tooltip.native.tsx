@@ -140,7 +140,7 @@ export default hOCTimers(WithTooltip)
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black_60,
     borderRadius: Styles.borderRadius,
     maxWidth: 280,
     padding: Styles.globalMargins.xtiny,

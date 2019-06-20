@@ -138,7 +138,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   marginTopXtiny: {marginTop: Styles.globalMargins.xtiny},
-  textUnknown: {color: Styles.globalColors.red},
+  textUnknown: {color: Styles.globalColors.redDark},
   viewDetails: Styles.platformStyles({
     isElectron: {
       width: 107,

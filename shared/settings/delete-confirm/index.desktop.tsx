@@ -20,7 +20,7 @@ function DeleteConfirm(props: Props) {
       </Avatar>
       <Text
         type="BodySemibold"
-        style={{...globalStyles.italic, color: globalColors.red, textDecorationLine: 'line-through'}}
+        style={{...globalStyles.italic, color: globalColors.redDark, textDecorationLine: 'line-through'}}
       >
         {props.username}
       </Text>

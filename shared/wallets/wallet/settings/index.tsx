@@ -337,7 +337,7 @@ const styles = Styles.styleSheetCreate({
   },
   partnerIcon: {flexShrink: 0, height: 32, width: 32},
   partnerLink: {color: Styles.globalColors.black},
-  red: {color: Styles.globalColors.red},
+  red: {color: Styles.globalColors.redDark},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

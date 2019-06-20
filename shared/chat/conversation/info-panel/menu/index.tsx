@@ -273,7 +273,7 @@ const styles = Styles.styleSheetCreate({
   },
   text: Styles.platformStyles({
     isMobile: {
-      color: Styles.globalColors.blue,
+      color: Styles.globalColors.blueDark,
     },
   }),
 })

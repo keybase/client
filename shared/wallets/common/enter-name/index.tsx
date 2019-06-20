@@ -28,7 +28,7 @@ const EnterName = (props: EnterNameProps) => {
         </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blueDark}}>
           Account name
         </Kb.Text>
         <Kb.NewInput
@@ -60,7 +60,7 @@ const EnterName = (props: EnterNameProps) => {
 const styles = Styles.styleSheetCreate({
   error: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.red,
+      color: Styles.globalColors.redDark,
       textAlign: 'left',
       width: '100%',
     },

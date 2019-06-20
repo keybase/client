@@ -67,10 +67,10 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.medium,
   },
   menuRowText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   menuRowTextDisabled: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     opacity: 0.6,
   },
   progressIndicator: {

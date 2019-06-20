@@ -280,7 +280,7 @@ const metaData: {[K in TextType]: MetaType} = {
   },
   Terminal: {
     colorForBackground: {
-      negative: globalColors.darkBlue,
+      negative: globalColors.blueDarker,
       positive: globalColors.blueLighter,
     },
     fontSize: 15,
@@ -314,8 +314,8 @@ const metaData: {[K in TextType]: MetaType} = {
   },
   TerminalInline: {
     colorForBackground: {
-      negative: globalColors.darkBlue,
-      positive: globalColors.darkBlue,
+      negative: globalColors.blueDarker,
+      positive: globalColors.blueDarker,
     },
     fontSize: 15,
     styleOverride: {

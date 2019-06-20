@@ -104,7 +104,7 @@ const codeSnippetStyle = Styles.platformStyles({
     ...Styles.globalStyles.fontTerminal,
     ...Styles.globalStyles.rounded,
     backgroundColor: Styles.globalColors.redLighter,
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
   },

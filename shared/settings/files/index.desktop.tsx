@@ -131,7 +131,7 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.medium,
   },
   actionNeededText: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   contentHeader: {
     paddingBottom: Styles.globalMargins.tiny,

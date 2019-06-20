@@ -146,7 +146,7 @@ const styles = Styles.styleSheetCreate({
   }),
   timestamp: {
     backgroundColor: Styles.globalColors.fastBlank,
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   unreadDotStyle: {
     backgroundColor: Styles.globalColors.orange,

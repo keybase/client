@@ -292,7 +292,7 @@ const metaData: {[K in TextType]: MetaType} = {
     },
   },
   TerminalInline: {
-    colorForBackground: {...whiteNegative, positive: globalColors.darkBlue},
+    colorForBackground: {...whiteNegative, positive: globalColors.blueDarker},
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,

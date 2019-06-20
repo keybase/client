@@ -58,7 +58,7 @@ const load = () => {
           body={body1}
           type="Small"
           action={
-            <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
+            <Text style={{color: globalColors.redDark}} type={'BodySmall'} onClick={Sb.action('text action')}>
               Action Jack
             </Text>
           }

@@ -223,10 +223,10 @@ export default (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   menuRowText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   menuRowTextDisabled: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     opacity: 0.6,
   },
   progressIndicator: {

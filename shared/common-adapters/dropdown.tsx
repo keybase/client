@@ -215,7 +215,7 @@ const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inlin
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {
-        ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blue},
+        ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blueDark},
         cursor: 'pointer',
       }
     : {}),

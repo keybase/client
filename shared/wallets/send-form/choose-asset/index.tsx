@@ -281,7 +281,7 @@ const OtherChoice = (props: OtherChoiceProps) => (
 
 const styles = Styles.styleSheetCreate({
   blue: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   checkIcon: Styles.platformStyles({
     isElectron: {display: 'inline-flex'},

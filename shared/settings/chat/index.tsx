@@ -158,7 +158,7 @@ const styles = Styles.styleSheetCreate({
     height: Styles.globalMargins.xxtiny,
   },
   error: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   save: {
     marginTop: Styles.globalMargins.tiny,

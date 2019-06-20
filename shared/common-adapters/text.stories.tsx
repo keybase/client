@@ -28,11 +28,11 @@ const SecondaryColorBox = () => (
       height: 30,
     }}
   >
-    <Box style={{backgroundColor: globalColors.darkBlue3, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.blueDarker2, flex: 1}} />
     <Box style={{backgroundColor: globalColors.blue, flex: 1}} />
     <Box style={{backgroundColor: globalColors.red, flex: 1}} />
     <Box style={{backgroundColor: globalColors.green, flex: 1}} />
-    <Box style={{backgroundColor: globalColors.darkBlue, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.blueDarker, flex: 1}} />
   </Box>
 )
 
