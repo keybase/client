@@ -50,7 +50,6 @@ protocol local {
   }
 
   record LiveLocation {
-    LocationWatchID watchID;
     gregor1.Time endTime;
   }
 
@@ -60,7 +59,6 @@ protocol local {
     union { null, MessageID } replyTo;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
-    union { null, Coordinate } coord;
     union { null, LiveLocation } liveLocation;
   }
 

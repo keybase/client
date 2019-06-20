@@ -430,7 +430,6 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatGetCoordinate(context.Context) (chat1.Coordinate, error)
 	ChatWatchPosition(context.Context) (chat1.LocationWatchID, error)
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 }

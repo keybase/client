@@ -501,8 +501,8 @@ type ExternalAPIKeySource interface {
 
 type LiveLocationTracker interface {
 	Resumable
-	StartTracking(ctx context.Context, convID chat1.ConversationID,
-		msgID chat1.MessageID, coord chat1.Coordinate, watchID chat1.LocationWatchID, endTime time.Time)
+	GetCurrentPosition(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID)
+	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
 	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
 	GetCoordinates(ctx context.Context, watchID chat1.LocationWatchID) []chat1.Coordinate
 }

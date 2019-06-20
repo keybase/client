@@ -177,10 +177,6 @@ func (r *RemoteChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessa
 	})
 }
 
-func (r *RemoteChatUI) ChatGetCoordinate(ctx context.Context) (chat1.Coordinate, error) {
-	return r.cli.ChatGetCoordinate(ctx, r.sessionID)
-}
-
 func (r *RemoteChatUI) ChatWatchPosition(ctx context.Context) (chat1.LocationWatchID, error) {
 	return r.cli.ChatWatchPosition(ctx, r.sessionID)
 }

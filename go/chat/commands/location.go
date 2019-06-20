@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -24,10 +23,6 @@ func NewLocation(g *globals.Context) *Location {
 	return &Location{
 		baseCommand: newBaseCommand(g, "location", "", "Post your current location", true),
 	}
-}
-
-func (n nullChatUI) ChatGetCoordinate(ctx context.Context) (chat1.Coordinate, error) {
-	return chat1.Coordinate{}, errors.New("no UI available")
 }
 
 func (h *Location) parseLiveLocation(text string) *gregor1.Time {
@@ -52,29 +47,17 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	coord, err := h.getChatUI().ChatGetCoordinate(ctx)
-	if err != nil {
-		return err
-	}
 	liveLocationEndTime := h.parseLiveLocation(text)
 	liveStr := ""
-	var liveLocation *chat1.LiveLocation
+	var liveLocation chat1.LiveLocation
 	if liveLocationEndTime != nil {
 		liveStr = "live "
-		locationWatchID, err := h.getChatUI().ChatWatchPosition(ctx)
-		if err != nil {
-			return err
-		}
-		liveLocation = &chat1.LiveLocation{
-			WatchID: locationWatchID,
-			EndTime: *liveLocationEndTime,
-		}
+		liveLocation.EndTime = *liveLocationEndTime
 	}
 	if _, err := h.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, tlfName,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body:         fmt.Sprintf("_Sharing my %slocation (using /location)..._", liveStr),
-			Coord:        &coord,
-			LiveLocation: liveLocation,
+			LiveLocation: &liveLocation,
 		}), chat1.MessageType_TEXT, nil, replyTo); err != nil {
 		return err
 	}

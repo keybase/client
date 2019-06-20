@@ -1033,13 +1033,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			convID, unboxedMsg)
 		// Start tracking any live location sends
 		if unboxedMsg.IsValid() && unboxedMsg.GetMessageType() == chat1.MessageType_TEXT &&
-			unboxedMsg.Valid().MessageBody.Text().Coord != nil &&
 			unboxedMsg.Valid().MessageBody.Text().LiveLocation != nil {
-			s.G().LiveLocationTracker.StartTracking(ctx, conv.GetConvID(), unboxedMsg.GetMessageID(),
-				*unboxedMsg.Valid().MessageBody.Text().Coord,
-				unboxedMsg.Valid().MessageBody.Text().LiveLocation.WatchID,
-				gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
-
+			if unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime.IsZero() {
+				s.G().LiveLocationTracker.GetCurrentPosition(ctx, conv.GetConvID(),
+					unboxedMsg.GetMessageID())
+			} else {
+				s.G().LiveLocationTracker.StartTracking(ctx, conv.GetConvID(), unboxedMsg.GetMessageID(),
+					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
+			}
 		}
 	}
 	return nil, boxed, nil

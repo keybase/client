@@ -1921,15 +1921,6 @@
       ],
       "response": null
     },
-    "chatGetCoordinate": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": "Coordinate"
-    },
     "chatWatchPosition": {
       "request": [
         {

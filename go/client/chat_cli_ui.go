@@ -360,10 +360,6 @@ func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGa
 	return nil
 }
 
-func (c *ChatCLIUI) ChatGetCoordinate(ctx context.Context, sessionID int) (chat1.Coordinate, error) {
-	return chat1.Coordinate{}, nil
-}
-
 func (c *ChatCLIUI) ChatWatchPosition(context.Context, int) (chat1.LocationWatchID, error) {
 	return chat1.LocationWatchID(0), nil
 }

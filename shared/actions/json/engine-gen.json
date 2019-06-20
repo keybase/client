@@ -88,9 +88,6 @@
         "chat1ChatUiChatLoadGalleryHit": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}"
         },
-        "chat1ChatUiChatGetCoordinate": {
-            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatGetCoordinate']['outParam']) => void}"
-        },
         "chat1ChatUiChatWatchPosition": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void}"
         },

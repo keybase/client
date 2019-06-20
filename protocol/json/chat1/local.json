@@ -155,10 +155,6 @@
       "name": "LiveLocation",
       "fields": [
         {
-          "type": "LocationWatchID",
-          "name": "watchID"
-        },
-        {
           "type": "gregor1.Time",
           "name": "endTime"
         }
@@ -199,13 +195,6 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
-        },
-        {
-          "type": [
-            null,
-            "Coordinate"
-          ],
-          "name": "coord"
         },
         {
           "type": [

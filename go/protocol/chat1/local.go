@@ -185,13 +185,11 @@ func (o Coordinate) DeepCopy() Coordinate {
 }
 
 type LiveLocation struct {
-	WatchID LocationWatchID `codec:"watchID" json:"watchID"`
-	EndTime gregor1.Time    `codec:"endTime" json:"endTime"`
+	EndTime gregor1.Time `codec:"endTime" json:"endTime"`
 }
 
 func (o LiveLocation) DeepCopy() LiveLocation {
 	return LiveLocation{
-		WatchID: o.WatchID.DeepCopy(),
 		EndTime: o.EndTime.DeepCopy(),
 	}
 }
@@ -202,7 +200,6 @@ type MessageText struct {
 	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
-	Coord        *Coordinate        `codec:"coord,omitempty" json:"coord,omitempty"`
 	LiveLocation *LiveLocation      `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
 }
 
@@ -249,13 +246,6 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.TeamMentions),
-		Coord: (func(x *Coordinate) *Coordinate {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Coord),
 		LiveLocation: (func(x *LiveLocation) *LiveLocation {
 			if x == nil {
 				return nil

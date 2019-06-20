@@ -1184,10 +1184,6 @@ func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) er
 	return nil
 }
 
-func (c *ChatUI) ChatGetCoordinate(ctx context.Context) (chat1.Coordinate, error) {
-	return chat1.Coordinate{}, nil
-}
-
 func (c *ChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
 	return chat1.LocationWatchID(0), nil
 }
