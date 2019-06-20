@@ -21,14 +21,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   ),
   asset: state.wallets.trustline.assetMap.get(ownProps.assetID, Constants.emptyAssetDescription),
   expandedAssets: state.wallets.trustline.expandedAssets,
-  waitingAdd: Waiting.anyWaiting(
-    state,
-    Constants.addTrustlineWaitingKey(ownProps.accountID, ownProps.assetID)
-  ),
-  waitingDelete: Waiting.anyWaiting(
-    state,
-    Constants.deleteTrustlineWaitingKey(ownProps.accountID, ownProps.assetID)
-  ),
   waitingRefresh: Waiting.anyWaiting(
     state,
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID)
@@ -72,6 +64,8 @@ const mergeProps = (s, d, o: OwnProps) => ({
   trusted: !!s.acceptedAssets.get(o.assetID, 0),
   waitingAdd: s.waitingAdd,
   waitingDelete: s.waitingDelete,
+  waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
+  waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
   waitingRefresh: s.waitingRefresh,
 })
 

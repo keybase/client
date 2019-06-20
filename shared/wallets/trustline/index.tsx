@@ -9,15 +9,15 @@ import Asset from './asset-container'
 
 type _Props = {
   accountID: Types.AccountID
-  acceptedAssets: I.Map<Types.AssetID, number>
+  acceptedAssets: Array<Types.AssetID>
   balanceAvailableToSend: number
   clearTrustlineModal: () => void
   errorMessage?: string
   loaded: boolean
   onSearchChange: (text: string) => void
-  popularAssets: I.List<Types.AssetID>
+  popularAssets: Array<Types.AssetID>
   refresh: () => void
-  searchingAssets?: I.List<Types.AssetID>
+  searchingAssets?: Array<Types.AssetID>
   totalAssetsCount?: number
   waitingSearch: boolean
 }
@@ -32,27 +32,27 @@ const makeSections = (props: BodyProps) => [
   ...(props.searchingAssets
     ? [
         {
-          data: props.searchingAssets.toArray(),
+          data: props.searchingAssets,
           key: 'section-search',
           keyExtractor: item => `search-item:${item}`,
           title: '',
         },
       ]
     : []),
-  ...(!props.searchingAssets && props.acceptedAssets.size
+  ...(!props.searchingAssets && props.acceptedAssets.length
     ? [
         {
-          data: props.acceptedAssets.keySeq().toArray(),
+          data: props.acceptedAssets,
           key: 'section-accepted',
           keyExtractor: item => `accepted-item:${item}`,
           title: 'Accepted assets',
         },
       ]
     : []),
-  ...(!props.searchingAssets && props.popularAssets.size
+  ...(!props.searchingAssets && props.popularAssets.length
     ? [
         {
-          data: props.popularAssets.toArray(),
+          data: props.popularAssets,
           key: 'section-popular',
           keyExtractor: item => `popular-item:${item}`,
           title: 'Popular assets',
@@ -65,8 +65,8 @@ const makeSections = (props: BodyProps) => [
 // section header, into normal mode where there are section headers, first
 // section header doesn't show.
 const getSectionListKey = (props: BodyProps) =>
-  `sl-${props.searchingAssets ? 'sa' : '_'}-${props.acceptedAssets ? 'aa' : '_'}-${
-    props.popularAssets ? 'pa' : '_'
+  `sl-${props.searchingAssets ? 'sa' : '_'}-${props.acceptedAssets.length ? 'aa' : '_'}-${
+    props.popularAssets.length ? 'pa' : '_'
   }`
 
 const sectionHeader = section =>
@@ -107,8 +107,10 @@ const ListUpdateOnMount = (props: BodyProps) => {
 }
 
 const Body = (props: BodyProps) => {
-  React.useEffect(() => props.refresh(), [])
-  React.useEffect(() => () => props.clearTrustlineModal(), [])
+  React.useEffect(() => {
+    props.refresh()
+    return () => props.clearTrustlineModal()
+  }, [])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
       {props.loaded ? (
@@ -134,7 +136,7 @@ const Body = (props: BodyProps) => {
               } XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
             />
           )}
-          {props.searchingAssets && !props.searchingAssets.size ? (
+          {props.searchingAssets && !props.searchingAssets.length ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
               <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
             </Kb.Box2>

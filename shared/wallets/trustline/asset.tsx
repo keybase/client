@@ -17,8 +17,8 @@ export type Props = {
   onRemove: () => void
   onViewDetails: () => void
 
-  waitingAdd: boolean
-  waitingDelete: boolean
+  waitingKeyAdd: string
+  waitingKeyDelete: string
   waitingRefresh: boolean
 }
 
@@ -87,24 +87,24 @@ const Asset = (props: Props) => (
         {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
         <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
           {props.trusted ? (
-            <Kb.Button
+            <Kb.WaitingButton
               mode="Secondary"
               type="Danger"
               small={true}
               label="Remove"
               onClick={stopPropagation(props.onRemove)}
               disabled={props.waitingRefresh}
-              waiting={props.waitingDelete}
+              waitingKey={props.waitingKeyDelete}
             />
           ) : (
-            <Kb.Button
+            <Kb.WaitingButton
               mode="Primary"
               type="Success"
               small={true}
               label="Accept"
               onClick={stopPropagation(props.onAccept)}
               disabled={props.cannotAccept || props.waitingRefresh}
-              waiting={props.waitingAdd}
+              waitingKey={props.waitingKeyAdd}
             />
           )}
         </Kb.Box2>

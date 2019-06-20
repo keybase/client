@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../../common-adapters'
@@ -59,14 +58,14 @@ const assets = {
 }
 
 const commonTrustlineProps = {
-  acceptedAssets: I.Map({'issuer1-KEYZ': 10}),
+  acceptedAssets: ['issuer1-KEYZ'],
   accountID: Types.noAccountID,
   balanceAvailableToSend: 2,
   clearTrustlineModal: Sb.action('clearTrustlineModal'),
   loaded: true,
   onDone: Sb.action('onDone'),
   onSearchChange: Sb.action('onSearchChange'),
-  popularAssets: I.List(['issuer1-USD', 'issuer2-USD', 'issuer2-KEYZ', 'issuer2-PINGPONG']),
+  popularAssets: ['issuer1-USD', 'issuer2-USD', 'issuer2-KEYZ', 'issuer2-PINGPONG'],
   refresh: Sb.action('refresh'),
   totalAssetsCount: Object.keys(assets).length,
   waitingSearch: false,
@@ -128,7 +127,7 @@ const load = () => {
     .addDecorator(provider)
     .add('Trustline', () => <Trustline {...commonTrustlineProps} />)
     .add('Trustline - search', () => (
-      <Trustline {...commonTrustlineProps} searchingAssets={I.List(['issuer1-USD', 'issuer2-USD'])} />
+      <Trustline {...commonTrustlineProps} searchingAssets={['issuer1-USD', 'issuer2-USD']} />
     ))
     .add('Trustline - error', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend={0.2} />)
     .add('Trustline - loading', () => <Trustline {...commonTrustlineProps} loaded={false} />)

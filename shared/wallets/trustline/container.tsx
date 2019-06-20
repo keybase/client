@@ -40,7 +40,7 @@ const mergeProps = (s, d, o: OwnProps) => {
   const accountID = Container.getRouteProps(o, 'accountID') || Types.noAccountID
   const acceptedAssets = s.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
   return {
-    acceptedAssets,
+    acceptedAssets: acceptedAssets.keySeq().toArray(),
     accountID,
     balanceAvailableToSend: s.accountAssets.find(
       ({assetCode}) => assetCode === 'XLM',
@@ -49,8 +49,8 @@ const mergeProps = (s, d, o: OwnProps) => {
     ).balanceAvailableToSend,
     clearTrustlineModal: d.clearTrustlineModal,
     loaded: s.trustline.loaded,
-    popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)),
-    searchingAssets: s.trustline.searchingAssets,
+    popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)).toArray(),
+    searchingAssets: s.trustline.searchingAssets && s.trustline.searchingAssets.toArray(),
     totalAssetsCount: s.trustline.totalAssetsCount,
     waitingSearch: s.waitingSearch,
     ...d,
