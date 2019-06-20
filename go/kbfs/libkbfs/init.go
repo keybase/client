@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode:                           InitDefaultString,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -376,7 +376,7 @@ func parseRootDir(addr string) (string, bool) {
 	return serverRootDir, true
 }
 
-func makeMDServer(config Config, mdserverAddr string,
+func makeMDServer(kbCtx Context, config Config, mdserverAddr string,
 	rpcLogFactory rpc.LogFactory, log logger.Logger) (
 	MDServer, error) {
 	if mdserverAddr == memoryAddr {
@@ -403,7 +403,7 @@ func makeMDServer(config Config, mdserverAddr string,
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
 	log.Debug("Using remote mdserver %s", remote)
-	mdServer := NewMDServerRemote(config, remote, rpcLogFactory)
+	mdServer := NewMDServerRemote(kbCtx, config, remote, rpcLogFactory)
 	return mdServer, nil
 }
 
@@ -616,11 +616,14 @@ func Init(
 		ctx, kbCtx, params, keybaseServiceCn, onInterruptFn, log, "kbfs")
 }
 
+// TODO: Keep on searching up for an env
 func doInit(
 	ctx context.Context, kbCtx Context, params InitParams,
 	keybaseServiceCn KeybaseServiceCn, log logger.Logger,
 	logPrefix string) (Config, error) {
 	ctx = CtxWithRandomIDReplayable(ctx, CtxInitKey, CtxInitID, log)
+
+	kbCtx.GetLogDir()
 
 	mode := InitDefault
 	switch params.Mode {
@@ -755,7 +758,7 @@ func doInit(
 	config.SetCrypto(crypto)
 
 	// Initialize MDServer connection.
-	mdServer, err := makeMDServer(
+	mdServer, err := makeMDServer(kbCtx,
 		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)

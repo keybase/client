@@ -42,9 +42,16 @@ the client and the Keybase servers.
 package libkb
 
 import (
+	"bufio"
+	"crypto/tls"
+	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
+
+	"golang.org/x/net/proxy"
 )
 
 // Represents the different types of supported proxies
@@ -79,13 +86,7 @@ func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 			// No proxy so returning nil tells it not to use a proxy
 			return nil, nil
 		}
-		realProxyAddress := proxyAddress
-		if proxyType == Socks {
-			realProxyAddress = "socks5://" + proxyAddress
-		} else if proxyType == HTTPConnect && !strings.Contains(proxyAddress, "http://") && !strings.Contains(proxyAddress, "https://") {
-			// If they don't specify a protocol, default to http:// since it is the most common
-			realProxyAddress = "http://" + proxyAddress
-		}
+		realProxyAddress := buildProxyAddressWithProtocol(proxyType, proxyAddress)
 
 		realProxyURL, err := url.Parse(realProxyAddress)
 		if err != nil {
@@ -94,4 +95,139 @@ func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 
 		return realProxyURL, nil
 	}
+}
+
+// Get a string that represents a proxy including the protocol needed for the proxy
+func buildProxyAddressWithProtocol(proxyType ProxyType, proxyAddress string) string {
+	realProxyAddress := proxyAddress
+	if proxyType == Socks {
+		realProxyAddress = "socks5://" + proxyAddress
+	} else if proxyType == HTTPConnect && !strings.Contains(proxyAddress, "http://") && !strings.Contains(proxyAddress, "https://") {
+		// If they don't specify a protocol, default to http:// since it is the most common
+		realProxyAddress = "http://" + proxyAddress
+	}
+	return realProxyAddress
+}
+
+// A net.Dialer that dials via TLS
+type httpsDialer struct {
+	timeout time.Duration
+}
+
+func (d httpsDialer) Dial(network string, addr string) (net.Conn, error) {
+	conn, err := net.DialTimeout("tcp", addr, d.timeout)
+	if err != nil {
+		return nil, err
+	}
+	return tls.Client(conn, &tls.Config{}), err
+}
+
+// A net.Dialer that dials via just the standard net.Dial
+type directDialer struct {
+	timeout time.Duration
+}
+
+func (d directDialer) Dial(network string, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, d.timeout)
+}
+
+// Get the correct upstream dialer to use for the given proxyURL
+func getUpstreamDialer(proxyURL *url.URL, timeout time.Duration) proxy.Dialer {
+	switch proxyURL.Scheme {
+	case "https":
+		return httpsDialer{timeout: timeout}
+	case "http":
+		fallthrough
+	default:
+		return directDialer{timeout: timeout}
+	}
+}
+
+// A net.Dialer that dials via a HTTP Connect proxy over the given forward dialer
+type httpConnectProxy struct {
+	proxyURL *url.URL
+	forward  proxy.Dialer
+}
+
+func newHTTPConnectProxy(proxyURL *url.URL, forward proxy.Dialer) (proxy.Dialer, error) {
+	s := httpConnectProxy{proxyURL: proxyURL, forward: forward}
+
+	return &s, nil
+}
+
+// Dial a TCP connection to the given addr (network must be TCP) via s.proxyURL
+func (s *httpConnectProxy) Dial(network string, addr string) (net.Conn, error) {
+	// We only can do TCP proxies with this function (not UDP and definitely not unix)
+	if network != "tcp" {
+		return nil, fmt.Errorf("Cannot use proxy Dial with network=%s", network)
+	}
+	// Dial a connection to the proxy using s.forward which is our upstream connection
+	// proxyConn is now a TCP connection to the proxy server
+	proxyConn, err := s.forward.Dial("tcp", s.proxyURL.Host)
+	if err != nil {
+		return nil, err
+	}
+
+	// HTTP Connect proxies work via the CONNECT verb which starts a TCP tunnel to the specified address
+	req, err := http.NewRequest("CONNECT", "//"+addr, nil)
+	if err != nil {
+		proxyConn.Close()
+		return nil, err
+	}
+
+	// We also need to set up auth for the proxy which is done via HTTP basic auth on the CONNECT request
+	// we are sending
+	if s.proxyURL.User != nil {
+		password, _ := s.proxyURL.User.Password()
+		req.SetBasicAuth(s.proxyURL.User.Username(), password)
+	}
+
+	// Send the HTTP request to the proxy server in order to start the TCP tunnel
+	err = req.Write(proxyConn)
+	if err != nil {
+		proxyConn.Close()
+		return nil, err
+	}
+
+	// Read a response and confirm that the server replied with HTTP 200 which confirms that we started the
+	// TCP tunnel. Note that we don't expect any additional body to the request.
+	resp, err := http.ReadResponse(bufio.NewReader(proxyConn), req)
+	if err != nil {
+		proxyConn.Close()
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		proxyConn.Close()
+		err = fmt.Errorf("Failed to connect to proxy server, status code: %d", resp.StatusCode)
+		return nil, err
+	}
+
+	// proxyConn is now a TCP connection to the proxy server which forwards to addr
+	return proxyConn, nil
+}
+
+// Must be called in order for the proxy library to support HTTP connect proxies
+func registerHTTPConnectProxies() {
+	proxy.RegisterDialerType("http", newHTTPConnectProxy)
+	proxy.RegisterDialerType("https", newHTTPConnectProxy)
+}
+
+func ProxyDial(env *Env, network string, address string) (net.Conn, error) {
+	// Set the timeout to an exceedingly large number so it never times out
+	return ProxyDialTimeout(env, network, address, 100*365*24*time.Hour)
+}
+
+func ProxyDialTimeout(env *Env, network string, address string, timeout time.Duration) (net.Conn, error) {
+	proxyURLStr := buildProxyAddressWithProtocol(env.GetProxyType(), env.GetProxy())
+	proxyURL, err := url.Parse(proxyURLStr)
+	if err != nil {
+		return nil, err
+	}
+	dialer, err := proxy.FromURL(proxyURL, getUpstreamDialer(proxyURL, timeout))
+	if err != nil {
+		return nil, err
+	}
+	return dialer.Dial(network, address)
 }

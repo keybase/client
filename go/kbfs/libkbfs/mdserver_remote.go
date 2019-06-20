@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"net"
 	"sync"
 	"time"
 
@@ -48,6 +47,7 @@ const (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
+	kbCtx         Context
 	config        Config
 	log           traceLogger
 	deferLog      traceLogger
@@ -94,11 +94,12 @@ var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(config Config, srvRemote rpc.Remote,
+func NewMDServerRemote(kbCtx Context, config Config, srvRemote rpc.Remote,
 	rpcLogFactory rpc.LogFactory) *MDServerRemote {
 	log := config.MakeLogger("")
 	deferLog := log.CloneWithAddedDepth(1)
 	mdServer := &MDServerRemote{
+		kbCtx:         kbCtx,
 		config:        config,
 		observers:     make(map[tlf.ID]chan<- error),
 		log:           traceLogger{log},
@@ -467,7 +468,7 @@ func (md *MDServerRemote) ShouldRetryOnConnect(err error) bool {
 
 // CheckReachability implements the MDServer interface.
 func (md *MDServerRemote) CheckReachability(ctx context.Context) {
-	conn, err := net.DialTimeout("tcp",
+	conn, err := libkb.ProxyDialTimeout(md.kbCtx.GetEnv(), "tcp",
 		// The peeked address is the top choice in most cases.
 		md.mdSrvRemote.Peek(), MdServerPingTimeout)
 	if err != nil {

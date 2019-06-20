@@ -192,7 +192,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 			t.Fatal(err)
 		}
 		// connect to server
-		mdServer = NewMDServerRemote(config, remote, newTestRPCLogFactory(t))
+		mdServer = NewMDServerRemote(config.kbCtx, config, remote, newTestRPCLogFactory(t))
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 
@@ -308,7 +308,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 			panic(err)
 		}
 		// connect to server
-		mdServer = NewMDServerRemote(c, remote, s.rpcLogFactory)
+		mdServer = NewMDServerRemote(c.kbCtx, c, remote, s.rpcLogFactory)
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {

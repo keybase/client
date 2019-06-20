@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
 	"sync"
 	"time"
@@ -29,7 +28,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	jsonw "github.com/keybase/go-jsonw"
+	"github.com/keybase/go-jsonw"
 )
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
@@ -1365,7 +1364,7 @@ func (g *gregorHandler) isReachable() bool {
 	}
 
 	// If we currently think we are online, then make sure
-	conn, err := net.DialTimeout("tcp", url.Host, timeout)
+	conn, err := libkb.ProxyDialTimeout(g.G().Env, "tcp", url.Host, timeout)
 	if conn != nil {
 		conn.Close()
 		return true
