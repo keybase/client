@@ -336,7 +336,7 @@ func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
 	return res
 }
 
-func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1.PerTeamKey, error) {
 	var hk *keybase1.PerTeamKey
 	if t.hidden != nil {
 		hk = t.hidden.MaxReaderPerTeamKey()
@@ -351,7 +351,11 @@ func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	}
 	if !ok && hk == nil {
 		// if this happens it's a programming error
-		return res, errors.New("per-team-key not found")
+		mctx.Debug("PTK not found error debug dump: inner %+v", t.inner)
+		if t.hidden != nil {
+			mctx.Debug("PTK not found error debug dump: hidden: %+v", *t.hidden)
+		}
+		return res, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
 	}
 	if hk.Gen > res.Gen {
 		return *hk, nil
@@ -1225,7 +1229,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
 		if team.PerTeamKey != nil {
-			lastKey, err := res.newState.GetLatestPerTeamKey()
+			lastKey, err := res.newState.GetLatestPerTeamKey(mctx)
 			if err != nil {
 				return res, fmt.Errorf("getting previous per-team-key: %s", err)
 			}
@@ -1264,7 +1268,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 		}
 
-		lastKey, err := prevState.GetLatestPerTeamKey()
+		lastKey, err := prevState.GetLatestPerTeamKey(mctx)
 		if err != nil {
 			return res, fmt.Errorf("getting previous per-team-key: %s", err)
 		}
@@ -1668,7 +1672,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		// When team is changed from open to closed, per-team-key should be rotated. But
 		// this is not enforced.
 		if team.PerTeamKey != nil {
-			lastKey, err := res.newState.GetLatestPerTeamKey()
+			lastKey, err := res.newState.GetLatestPerTeamKey(mctx)
 			if err != nil {
 				return res, fmt.Errorf("getting previous per-team-key: %s", err)
 			}

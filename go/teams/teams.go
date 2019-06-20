@@ -584,8 +584,15 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		return err
 	}
 
+	links := []libkb.SigMultiItem{*smi}
+
+	err = t.precheckLinksToPost(ctx, links)
+	if err != nil {
+		return err
+	}
+
 	// Combine the "sig multi item" above with the various off-chain items, like boxes.
-	payload := t.sigPayload([]libkb.SigMultiItem{*smi}, payloadArgs)
+	payload := t.sigPayload(links, payloadArgs)
 
 	// Post the changes up to the server
 	err = t.postMulti(mctx, payload)
