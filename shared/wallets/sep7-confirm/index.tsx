@@ -147,18 +147,32 @@ type NoteAndMemoProps = {
 
 const NoteAndMemo = (props: NoteAndMemoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {!!props.message && (
-      <React.Fragment>
+    {!!props.amount && (
+      <>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Message{' '}
+            Amount
+          </Kb.Text>
+          <Kb.Text type="HeaderBigExtrabold" style={{color: Styles.globalColors.purple}}>
+            {props.amount} XLM
+          </Kb.Text>
+        </Kb.Box2>
+      </>
+    )}
+
+    {!!props.message && (
+      <>
+        <Kb.Divider />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
+          <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+            Message
           </Kb.Text>
           <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.message}
           </Kb.Text>
         </Kb.Box2>
-      </React.Fragment>
+      </>
     )}
     {!!props.recipient && (
       <>
@@ -204,8 +218,8 @@ const PaymentsConfirm = (props: Props) => {
           displayAmountFiat={props.displayAmountFiat}
         />
         <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
-          {(!!props.encryptedNote || !!props.publicMemo || !!props.recipient) && (
-            <NoteAndMemo message={props.message} recipient={props.recipient} />
+          {(!!props.amount || !!props.message || !!props.recipient) && (
+            <NoteAndMemo amount={props.amount} message={props.message} recipient={props.recipient} />
           )}
         </Kb.ScrollView>
         <Kb.Box2

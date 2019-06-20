@@ -43,7 +43,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAccept: () => {
     dispatch(Chat2Gen.createConfirmScreenResponse({accept: true}))
   },
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default namedConnect(
