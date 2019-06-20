@@ -327,7 +327,6 @@ const styles = Styles.styleSheetCreate({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
-    minHeight: 48,
     overflow: 'hidden',
     paddingRight: containerPadding,
   },
