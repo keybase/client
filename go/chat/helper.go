@@ -99,6 +99,21 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 	return outboxID, err
 }
 
+func (h *Helper) DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	msgID chat1.MessageID) error {
+	boxer := NewBoxer(h.G())
+	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), boxer, h.ri))
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			TlfName:     tlfName,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  msgID,
+		},
+	}
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil, nil)
+	return err
+}
+
 func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
 	boxer := NewBoxer(h.G())

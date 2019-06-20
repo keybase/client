@@ -340,7 +340,7 @@ func TestMapScraper(t *testing.T) {
 	lat := 40.800099
 	lon := -73.969341
 	acc := 65.00
-	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", mapsDomain, lat, lon, acc)
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", types.MapsDomain, lat, lon, acc)
 	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
 	require.NoError(t, err)
 	typ, err := unfurl.UnfurlType()

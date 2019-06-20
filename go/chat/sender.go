@@ -1029,8 +1029,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender, convID,
-			unboxedMsg)
+		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender,
+			convID, unboxedMsg)
 	}
 	return nil, boxed, nil
 }

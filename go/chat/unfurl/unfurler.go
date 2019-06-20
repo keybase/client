@@ -155,7 +155,7 @@ func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat
 		// check for coordinate message
 		if body.Text().Coord != nil {
 			return []ExtractorHit{ExtractorHit{
-				URL: fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", mapsDomain, body.Text().Coord.Lat,
+				URL: fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", types.MapsDomain, body.Text().Coord.Lat,
 					body.Text().Coord.Lon, body.Text().Coord.Accuracy),
 				Typ: ExtractorHitUnfurl,
 			}}
