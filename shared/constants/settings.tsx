@@ -4,7 +4,7 @@ import {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
-
+import * as RPCTypes from './types/rpc-gen'
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
   unsubscribedFromAll: false,
@@ -39,11 +39,11 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
 })
 
 export const makePhoneRow = I.Record<Types._PhoneRow>({
-  phoneNumber: '',
-  verified: false,
-  visibility: 0,
-  superseded: false,
   ctime: 0,
+  phoneNumber: '',
+  superseded: false,
+  verified: false,
+  visibility: RPCTypes.IdentityVisibility.private,
 })
 
 export const makeFeedback = I.Record<Types._FeedbackState>({
