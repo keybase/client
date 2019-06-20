@@ -3,7 +3,10 @@ package commands
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -27,6 +30,22 @@ func (n nullChatUI) ChatGetCoordinate(ctx context.Context) (chat1.Coordinate, er
 	return chat1.Coordinate{}, errors.New("no UI available")
 }
 
+func (h *Location) parseLiveLocation(text string) *gregor1.Time {
+	toks := strings.Split(text, " ")
+	if len(toks) != 3 {
+		return nil
+	}
+	if toks[1] != "live" {
+		return nil
+	}
+	dur, err := time.ParseDuration(toks[2])
+	if err != nil {
+		return nil
+	}
+	rtime := gregor1.ToTime(time.Now().Add(dur))
+	return &rtime
+}
+
 func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "Location")()
@@ -37,10 +56,25 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if err != nil {
 		return err
 	}
+	liveLocationEndTime := h.parseLiveLocation(text)
+	liveStr := ""
+	var liveLocation *chat1.LiveLocation
+	if liveLocationEndTime != nil {
+		liveStr = "live "
+		locationWatchID, err := h.getChatUI().ChatWatchPosition(ctx)
+		if err != nil {
+			return err
+		}
+		liveLocation = &chat1.LiveLocation{
+			WatchID: locationWatchID,
+			EndTime: *liveLocationEndTime,
+		}
+	}
 	if _, err := h.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, tlfName,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:  "_Sharing my location (using /location)..._",
-			Coord: &coord,
+			Body:         fmt.Sprintf("_Sharing my %slocation (using /location)..._", liveStr),
+			Coord:        &coord,
+			LiveLocation: liveLocation,
 		}), chat1.MessageType_TEXT, nil, replyTo); err != nil {
 		return err
 	}

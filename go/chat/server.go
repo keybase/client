@@ -2974,3 +2974,14 @@ func (h *Server) LoadFlip(ctx context.Context, arg chat1.LoadFlipArg) (res chat1
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }
+
+func (h *Server) LocationUpdate(ctx context.Context, arg chat1.Coordinate) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LocationUpdate")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return nil
+}

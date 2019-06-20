@@ -431,6 +431,8 @@ type ChatUI interface {
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
 	ChatGetCoordinate(context.Context) (chat1.Coordinate, error)
+	ChatWatchPosition(context.Context) (chat1.LocationWatchID, error)
+	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 }
 
 type PromptDefault int

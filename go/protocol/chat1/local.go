@@ -184,6 +184,18 @@ func (o Coordinate) DeepCopy() Coordinate {
 	}
 }
 
+type LiveLocation struct {
+	WatchID LocationWatchID `codec:"watchID" json:"watchID"`
+	EndTime gregor1.Time    `codec:"endTime" json:"endTime"`
+}
+
+func (o LiveLocation) DeepCopy() LiveLocation {
+	return LiveLocation{
+		WatchID: o.WatchID.DeepCopy(),
+		EndTime: o.EndTime.DeepCopy(),
+	}
+}
+
 type MessageText struct {
 	Body         string             `codec:"body" json:"body"`
 	Payments     []TextPayment      `codec:"payments" json:"payments"`
@@ -191,6 +203,7 @@ type MessageText struct {
 	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 	Coord        *Coordinate        `codec:"coord,omitempty" json:"coord,omitempty"`
+	LiveLocation *LiveLocation      `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -243,6 +256,13 @@ func (o MessageText) DeepCopy() MessageText {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Coord),
+		LiveLocation: (func(x *LiveLocation) *LiveLocation {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LiveLocation),
 	}
 }
 
@@ -5601,6 +5621,10 @@ type LoadFlipArg struct {
 	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
 }
 
+type LocationUpdateArg struct {
+	Coord Coordinate `codec:"coord" json:"coord"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5673,6 +5697,7 @@ type LocalInterface interface {
 	ResolveMaybeMention(context.Context, MaybeMention) error
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
 	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
+	LocationUpdate(context.Context, Coordinate) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6714,6 +6739,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"locationUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]LocationUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LocationUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LocationUpdateArg)(nil), args)
+						return
+					}
+					err = i.LocationUpdate(ctx, typedArgs[0].Coord)
+					return
+				},
+			},
 		},
 	}
 }
@@ -7086,5 +7126,11 @@ func (c LocalClient) LoadGallery(ctx context.Context, __arg LoadGalleryArg) (res
 
 func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadFlipRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.loadFlip", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err error) {
+	__arg := LocationUpdateArg{Coord: coord}
+	err = c.Cli.Call(ctx, "chat.1.local.locationUpdate", []interface{}{__arg}, nil)
 	return
 }

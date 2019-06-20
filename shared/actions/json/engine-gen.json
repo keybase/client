@@ -91,6 +91,12 @@
         "chat1ChatUiChatGetCoordinate": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatGetCoordinate']['outParam']) => void}"
         },
+        "chat1ChatUiChatWatchPosition": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void}"
+        },
+        "chat1ChatUiChatClearWatch": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}"
+        },
         "chat1NotifyChatNewChatActivity": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}"
         },

@@ -123,6 +123,14 @@ func (r DummyChatUI) ChatGetCoordinate(ctx context.Context, sessionID int) (chat
 	return chat1.Coordinate{}, nil
 }
 
+func (r DummyChatUI) ChatWatchPosition(context.Context, int) (chat1.LocationWatchID, error) {
+	return chat1.LocationWatchID(0), nil
+}
+
+func (r DummyChatUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

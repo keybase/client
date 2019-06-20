@@ -426,5 +426,10 @@ protocol chatUi {
 
   void chatLoadGalleryHit(int sessionID, UIMessage message);
 
+  // Location support
+  @typedef("uint64") @lint("ignore") record LocationWatchID {}
   Coordinate chatGetCoordinate(int sessionID);
+  LocationWatchID chatWatchPosition(int sessionID);
+  void chatClearWatch(int sessionID, LocationWatchID id);
+
 }

@@ -152,6 +152,20 @@
     },
     {
       "type": "record",
+      "name": "LiveLocation",
+      "fields": [
+        {
+          "type": "LocationWatchID",
+          "name": "watchID"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "endTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -192,6 +206,13 @@
             "Coordinate"
           ],
           "name": "coord"
+        },
+        {
+          "type": [
+            null,
+            "LiveLocation"
+          ],
+          "name": "liveLocation"
         }
       ]
     },
@@ -4609,6 +4630,15 @@
         }
       ],
       "response": "LoadFlipRes"
+    },
+    "locationUpdate": {
+      "request": [
+        {
+          "name": "coord",
+          "type": "Coordinate"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

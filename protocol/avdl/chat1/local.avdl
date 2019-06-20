@@ -49,6 +49,11 @@ protocol local {
     double accuracy;
   }
 
+  record LiveLocation {
+    LocationWatchID watchID;
+    gregor1.Time endTime;
+  }
+
   record MessageText {
     string body;
     array<TextPayment> payments;
@@ -56,6 +61,7 @@ protocol local {
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
     union { null, Coordinate } coord;
+    union { null, LiveLocation } liveLocation;
   }
 
   record MessageConversationMetadata {
@@ -1077,4 +1083,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
   LoadFlipRes loadFlip(ConversationID hostConvID, MessageID hostMsgID, ConversationID flipConvID, FlipGameID gameID);
+
+  // Location updates
+  void locationUpdate(Coordinate coord);
 }

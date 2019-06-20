@@ -127,6 +127,10 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'chat.1.chatUi.chatClearWatch': {
+    inParam: {readonly id: LocationWatchID}
+    outParam: void
+  }
   'chat.1.chatUi.chatCoinFlipStatus': {
     inParam: {readonly statuses?: Array<UICoinFlipStatus> | null}
     outParam: void
@@ -226,6 +230,10 @@ export type MessageTypes = {
   'chat.1.chatUi.chatThreadFull': {
     inParam: {readonly thread: String}
     outParam: void
+  }
+  'chat.1.chatUi.chatWatchPosition': {
+    inParam: void
+    outParam: LocationWatchID
   }
   'chat.1.local.CancelPost': {
     inParam: {readonly outboxID: OutboxID}
@@ -930,9 +938,11 @@ export type JoinLeaveConversationRemoteRes = {readonly rateLimit?: RateLimit | n
 export type KBFSImpteamUpgradeUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers; readonly topicType: TopicType}
 export type KnownTeamMention = {readonly name: String; readonly channel: String}
 export type KnownUserMention = {readonly text: String; readonly uid: Gregor1.UID}
+export type LiveLocation = {readonly watchID: LocationWatchID; readonly endTime: Gregor1.Time}
 export type LoadFlipRes = {readonly status: UICoinFlipStatus; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type LoadGalleryRes = {readonly messages?: Array<UIMessage> | null; readonly last: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type LocalConversationVers = Uint64
+export type LocationWatchID = Uint64
 export type MakePreviewRes = {readonly mimeType: String; readonly previewMimeType?: String | null; readonly location?: PreviewLocation | null; readonly metadata?: AssetMetadata | null; readonly baseMetadata?: AssetMetadata | null}
 export type MarkAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type MarkAsReadRes = {readonly rateLimit?: RateLimit | null}
@@ -972,7 +982,7 @@ export type MessageSystemComplexTeam = {readonly team: String}
 export type MessageSystemCreateTeam = {readonly team: String; readonly creator: String}
 export type MessageSystemGitPush = {readonly team: String; readonly pusher: String; readonly repoName: String; readonly repoID: Keybase1.RepoID; readonly refs?: Array<Keybase1.GitRefMetadata> | null; readonly pushType: Keybase1.GitPushType; readonly previousRepoName: String}
 export type MessageSystemInviteAddedToTeam = {readonly team: String; readonly inviter: String; readonly invitee: String; readonly adder: String; readonly inviteType: Keybase1.TeamInviteCategory}
-export type MessageText = {readonly body: String; readonly payments?: Array<TextPayment> | null; readonly replyTo?: MessageID | null; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null; readonly coord?: Coordinate | null}
+export type MessageText = {readonly body: String; readonly payments?: Array<TextPayment> | null; readonly replyTo?: MessageID | null; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null; readonly coord?: Coordinate | null; readonly liveLocation?: LiveLocation | null}
 export type MessageUnboxed = {state: MessageUnboxedState.valid; valid: MessageUnboxedValid | null} | {state: MessageUnboxedState.error; error: MessageUnboxedError | null} | {state: MessageUnboxedState.outbox; outbox: OutboxRecord | null} | {state: MessageUnboxedState.placeholder; placeholder: MessageUnboxedPlaceholder | null}
 export type MessageUnboxedError = {readonly errType: MessageUnboxedErrorType; readonly errMsg: String; readonly internalErrMsg: String; readonly versionKind: VersionKind; readonly versionNumber: Int; readonly isCritical: Boolean; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: String; readonly messageID: MessageID; readonly messageType: MessageType; readonly ctime: Gregor1.Time; readonly isEphemeral: Boolean; readonly isEphemeralExpired: Boolean; readonly etime: Gregor1.Time}
 export type MessageUnboxedPlaceholder = {readonly messageID: MessageID; readonly hidden: Boolean}
@@ -1143,6 +1153,8 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatGetCoordinate'?: (params: MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.NewChatActivity'?: (params: MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1196,6 +1208,8 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatGetCoordinate'?: (params: MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatGetCoordinate']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}) => IncomingReturn
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1281,6 +1295,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatMaybeMentionUpdate'
 // 'chat.1.chatUi.chatLoadGalleryHit'
 // 'chat.1.chatUi.chatGetCoordinate'
+// 'chat.1.chatUi.chatWatchPosition'
+// 'chat.1.chatUi.chatClearWatch'
 // 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'
@@ -1298,6 +1314,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
 // 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
+// 'chat.1.local.locationUpdate'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
