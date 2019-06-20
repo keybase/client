@@ -322,3 +322,7 @@ body {
   max-height: 999px;
   opacity: 1;
 }
+
+.darkMode {
+  background-color: black;
+}

@@ -171,7 +171,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     this.props.toggleShowingMenu()
   }
 
-  render = () => {
+  render() {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
       hintText = 'Write an exploding message'
@@ -331,7 +331,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -476,7 +476,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 6,
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {

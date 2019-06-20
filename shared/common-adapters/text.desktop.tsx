@@ -33,7 +33,7 @@ class Text extends React.Component<Props> {
   }
 
   _className(props: Props) {
-    const meta = metaData[props.type]
+    const meta = metaData()[props.type]
     return Styles.classNames(`text_${props.type}`, props.className, {
       underline: props.underline,
       // eslint-disable-next-line sort-keys
@@ -88,7 +88,7 @@ function fastGetStyle(
   lineClampNum?: number | null,
   clickable?: boolean | null
 ) {
-  const meta = metaData[type]
+  const meta = metaData()[type]
   // positive color is in css
   const colorStyle = negative ? {color: Styles.globalColors.white} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
@@ -118,7 +118,7 @@ function externalGetStyle(
   clickable?: boolean | null,
   selectable?: boolean | null
 ) {
-  const meta = metaData[type]
+  const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   // pipe positive color through because caller probably isn't using class
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}

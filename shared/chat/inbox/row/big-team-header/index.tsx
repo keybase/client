@@ -63,7 +63,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
 const BigTeamHeader = Kb.OverlayParentHOC(_BigTeamHeader)
 const iconFontSize = Styles.isMobile ? 20 : 14
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     height: 8,
     position: 'absolute',
@@ -108,6 +108,6 @@ const styles = Styles.styleSheetCreate({
       height: '100%',
     },
   }),
-})
+}))
 
 export {BigTeamHeader}

@@ -162,11 +162,9 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   containerFiltering: Styles.platformStyles({
-    common: {
-      position: 'relative',
-    },
+    common: {position: 'relative'},
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
       ...Styles.padding(0, Styles.globalMargins.small),
@@ -246,20 +244,14 @@ const styles = Styles.styleSheetCreate({
       marginRight: Styles.globalMargins.xtiny,
       position: 'relative',
     },
-    isElectron: {
-      top: 0,
-    },
-    isMobile: {
-      top: 1,
-    },
+    isElectron: {top: 0},
+    isMobile: {top: 1},
   }),
   textFaint: {
     color: Styles.globalColors.black_35,
     position: 'relative',
   },
-  whiteBg: {
-    backgroundColor: Styles.globalColors.white,
-  },
-})
+  whiteBg: {backgroundColor: Styles.globalColors.white},
+}))
 
 export default ConversationFilterInput

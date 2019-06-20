@@ -211,7 +211,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -227,11 +227,9 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: 'purple',
     overflow: 'hidden',
   },
-  hover: {
-    backgroundColor: Styles.globalColors.blueGreyDark,
-  },
+  hover: {backgroundColor: Styles.globalColors.blueGreyDark},
   list: {flex: 1},
-})
+}))
 
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall

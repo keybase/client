@@ -140,6 +140,7 @@ export const initDesktopStyles = () => {
 }
 
 export const styleSheetCreate = obj => styleSheeCreateProxy(obj, o => o)
+// export const className = (name: string) => (name ? `${name}${isDarkMode() ? '_dark' : ''}` : name)
 export const hairlineWidth = 1
 export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object => {
   // fast path for a single style that passes. Often we do stuff like

@@ -81,6 +81,8 @@ export declare function backgroundURL(...path: Array<string>): string
 export declare function styleSheetCreate<T extends {[K in string]: CSS.StylesCrossPlatform}>(
   map: T | (() => T)
 ): T
+// dark mode aware classname
+export declare const className: (name: string) => string
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
