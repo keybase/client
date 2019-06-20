@@ -154,6 +154,7 @@ const pieSlices = [0, 20, 90, 179, 180, 181, 270, 359, 360]
 class PieSliceWrapper extends React.PureComponent<
   {
     initialDegrees: number
+    darkBackground?: boolean
   },
   {
     degrees: number
@@ -163,10 +164,30 @@ class PieSliceWrapper extends React.PureComponent<
   _onClick = () => this.setState(({degrees}) => ({degrees: (degrees + 72) % 361}))
   render() {
     return (
-      <Kb.Box2 direction="horizontal" gap="small">
-        <Kb.Text type="Header">{this.state.degrees} degrees: </Kb.Text>
-        <PieSlice degrees={this.state.degrees} animated={true} />
-        <Kb.Button onClick={this._onClick} label="Add progress" />
+      <Kb.Box2
+        direction="horizontal"
+        gap="small"
+        style={{
+          backgroundColor: this.props.darkBackground ? Styles.globalColors.blue : Styles.globalColors.white,
+        }}
+      >
+        <Kb.Text
+          type="Header"
+          style={{
+            color: this.props.darkBackground ? Styles.globalColors.white : Styles.globalColors.black,
+            margin: Styles.globalMargins.xsmall,
+            minWidth: 120,
+          }}
+        >
+          {this.state.degrees} degrees:{' '}
+        </Kb.Text>
+        <PieSlice degrees={this.state.degrees} animated={true} style={{margin: Styles.globalMargins.small}} />
+        <Kb.Button
+          onClick={this._onClick}
+          label="Add progress"
+          mode={this.props.darkBackground ? 'Secondary' : 'Primary'}
+          style={{margin: Styles.globalMargins.tiny}}
+        />
       </Kb.Box2>
     )
   }
@@ -312,10 +333,15 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('Pie Loaders', () => (
-      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
-        {pieSlices.map(deg => (
-          <PieSliceWrapper initialDegrees={deg} key={deg} />
-        ))}
+      <Kb.Box2 direction="vertical" fullWidth={false} alignItems={'center'}>
+        <Kb.ScrollView>
+          {pieSlices.map(deg => (
+            <PieSliceWrapper initialDegrees={deg} key={deg} />
+          ))}
+          {pieSlices.map(deg => (
+            <PieSliceWrapper initialDegrees={deg} key={deg} darkBackground={true} />
+          ))}
+        </Kb.ScrollView>
       </Kb.Box2>
     ))
     .add('ConfirmDelete', () => (

@@ -5,6 +5,7 @@ import * as Styles from '../../styles/index'
 type Props = {
   degrees: number
   animated?: boolean
+  style?: Styles.StylesCrossPlatform
 }
 
 const PieSliceDefault = (props: Props) => {
@@ -12,7 +13,7 @@ const PieSliceDefault = (props: Props) => {
     ? {transform: [{rotate: props.degrees + 'deg'}]}
     : {transform: 'rotate(' + props.degrees + 'deg)'}
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box style={Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
       <Kb.Box style={styles.wholeGrey} />
       <Kb.Box style={Styles.collapseStyles([styles.rotateContainer, styleRotate])}>
         <Kb.Box style={styles.leftBlue} />
@@ -25,10 +26,10 @@ const PieSliceDefault = (props: Props) => {
 const PieSlice = (props: Props) => {
   return props.animated ? (
     <Kb.Animated to={{degrees: props.degrees}}>
-      {({degrees}: Props) => <PieSliceDefault degrees={degrees} />}
+      {({degrees}: Props) => <PieSliceDefault degrees={degrees} style={props.style} />}
     </Kb.Animated>
   ) : (
-    <PieSliceDefault degrees={props.degrees} />
+    <PieSliceDefault degrees={props.degrees} style={props.style} />
   )
 }
 const pieSize = Styles.isMobile ? 16 : 12
