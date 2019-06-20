@@ -33,7 +33,7 @@ func NewSecretStoreFile(dir string) *SecretStoreFile {
 func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUsername) (secret LKSecFullSecret, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("SecretStoreFile.RetrieveSecret(%s)", username), func() error { return err })()
 	mctx.Debug("Retrieving secret V2 from file")
-	secret, err = s.retrieveSecretV2(username)
+	secret, err = s.retrieveSecretV2(mctx, username)
 	switch err.(type) {
 	case nil:
 		return secret, nil
@@ -44,7 +44,7 @@ func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUs
 
 	// check for v1
 	mctx.Debug("Retrieving secret V1 from file")
-	secret, err = s.retrieveSecretV1(username)
+	secret, err = s.retrieveSecretV1(mctx, username)
 	if err != nil {
 		return LKSecFullSecret{}, err
 	}
@@ -59,8 +59,10 @@ func (s *SecretStoreFile) RetrieveSecret(mctx MetaContext, username NormalizedUs
 	return secret, nil
 }
 
-func (s *SecretStoreFile) retrieveSecretV1(username NormalizedUsername) (LKSecFullSecret, error) {
-	secret, err := ioutil.ReadFile(s.userpath(username))
+func (s *SecretStoreFile) retrieveSecretV1(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
+	userpath := s.userpath(username)
+	mctx.Debug("SecretStoreFile.retrieveSecretV1: checking path: %s", userpath)
+	secret, err := ioutil.ReadFile(userpath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
@@ -72,8 +74,10 @@ func (s *SecretStoreFile) retrieveSecretV1(username NormalizedUsername) (LKSecFu
 	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) retrieveSecretV2(username NormalizedUsername) (LKSecFullSecret, error) {
-	xor, err := ioutil.ReadFile(s.userpathV2(username))
+func (s *SecretStoreFile) retrieveSecretV2(mctx MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
+	userpath := s.userpathV2(username)
+	mctx.Debug("SecretStoreFile.retrieveSecretV2: checking path: %s", userpath)
+	xor, err := ioutil.ReadFile(userpath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
