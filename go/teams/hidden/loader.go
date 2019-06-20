@@ -33,6 +33,14 @@ func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() 
 	return ret, nil
 }
 
+func NewLoaderPackageForPrecheck(mctx libkb.MetaContext, id keybase1.TeamID, data *keybase1.HiddenTeamChain) *LoaderPackage {
+	return &LoaderPackage{
+		id:      id,
+		data:    data,
+		isFresh: true,
+	}
+}
+
 // newLoaderPackage creates an object used to load the hidden team chain along with the
 // slow or fast team loader. It manages internal state during the loading process. Pass an
 // encryption KID from the main chain for authentication purposes, that we can prove to the server
@@ -97,7 +105,7 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 	q := first.Seqno()
 	prev := first.Prev()
 	if (q == keybase1.Seqno(1)) != (prev == nil) {
- 		return NewLoaderError("bad link; seqno=%d, prev=%v (want 1 and nil or >1 and non-nil)", q, prev)
+		return NewLoaderError("bad link; seqno=%d, prev=%v (want 1 and nil or >1 and non-nil)", q, prev)
 	}
 	if q == keybase1.Seqno(1) {
 		return nil
