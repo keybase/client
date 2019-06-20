@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-
-interface WhatIsStellarModalProps {
-  onClose: () => void
-}
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 const WhatIsStellarModalBody = () => (
   <Kb.ScrollView>
@@ -58,9 +56,11 @@ Here’s everything that makes Stellar powerful:`}
   </Kb.ScrollView>
 )
 
-const WhatIsStellarModal = (props: WhatIsStellarModalProps) => {
+const WhatIsStellarModal = () => {
   const Body = Kb.HeaderOrPopup(WhatIsStellarModalBody)
-  return <Body onCancel={props.onClose} customCancelText="Close" borderless={true} />
+  const dispatch = Container.useDispatch()
+  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
+  return <Body onCancel={onClose} customCancelText="Close" borderless={true} />
 }
 
 const styles = Styles.styleSheetCreate({
