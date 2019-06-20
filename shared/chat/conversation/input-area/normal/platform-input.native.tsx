@@ -203,7 +203,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             ref={this._inputSetRef}
             style={styles.input}
             textType="Body"
-            rowsMax={3}
+            rowsMax={Styles.dimensionHeight < 600 ? 5 : 9}
             rowsMin={1}
           />
           {!this.props.cannotWrite && (
@@ -343,14 +343,16 @@ const styles = Styles.styleSheetCreate({
   input: {
     flex: 1,
     fontSize: 17, // Override Body's font size with BodyBig.
+    marginBottom: Styles.globalMargins.xsmall,
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
-    ...(isIOS
-      ? {}
-      : {
-          marginBottom: -4, // android has a bug where the lineheight isn't respected
-          marginTop: -4, // android has a bug where the lineheight isn't respected
-        }),
+    marginTop: Styles.globalMargins.xsmall,
+    // ...(isIOS
+    //   ? {}
+    //   : {
+    //       marginBottom: -4, // android has a bug where the lineheight isn't respected
+    //       marginTop: -4, // android has a bug where the lineheight isn't respected
+    //     }),
   },
   marginRightSmall: {
     marginRight: Styles.globalMargins.small,
