@@ -6,7 +6,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   badged: boolean
-  icon: IconType
+  icon: Kb.IconType
   instructions: string
   confirmLabel: string
   dismissable: boolean
