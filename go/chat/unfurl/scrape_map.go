@@ -42,7 +42,10 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		if mapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
 			return res, err
 		}
-		linkURL = maps.GetExternalMapURL(ctx, lat, lon)
+		if len(coords) > 0 {
+			last := coords[len(coords)-1]
+			linkURL = maps.GetExternalMapURL(ctx, last.Lat, last.Lon)
+		}
 	} else {
 		if mapURL, err = maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon); err != nil {
 			return res, err

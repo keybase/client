@@ -234,6 +234,7 @@ func (u *Unfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID ch
 	defer u.Trace(ctx, func() error { return nil }, "UnfurlAndSend")()
 	// early out for errors
 	if !msg.IsValid() {
+		u.Debug(ctx, "UnfurlAndSend: skipping invalid")
 		return
 	}
 	// get URL hits

@@ -401,6 +401,7 @@ func (d *Service) startChatModules() {
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 		g.CoinFlipManager.Start(context.Background(), uid)
 		g.TeamMentionLoader.Start(context.Background(), uid)
+		g.LiveLocationTracker.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -414,6 +415,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().Indexer.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
 	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
+	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
 	return nil
 }
 

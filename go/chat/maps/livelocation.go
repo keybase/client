@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -93,14 +94,15 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 		if err := l.G().ChatHelper.DeleteMsgNonblock(ctx, convID, conv.Info.TlfName, unfurlMsgID); err != nil {
 			return err
 		}
-		// put in a fake new message with the first coord and a pointer to get all coords from here
-		mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d", types.MapsDomain, first.Lat,
-				first.Lon, first.Accuracy, watchID),
-		})
-		go l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, chat1.NewMessageUnboxedWithValid(mvalid))
 		break
 	}
+	// put in a fake new message with the first coord and a pointer to get all coords from here
+	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&cb=%s", types.MapsDomain,
+		first.Lat, first.Lon, first.Accuracy, watchID, libkb.RandStringB64(3))
+	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: body,
+	})
+	go l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, chat1.NewMessageUnboxedWithValid(mvalid))
 	return nil
 }
 
@@ -137,6 +139,7 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 		msgID:    msgID,
 		watchID:  watchID,
 		endTime:  endTime,
+		coords:   []chat1.Coordinate{coord},
 	}
 	l.trackers[watchID] = t
 	l.eg.Go(func() error { return l.tracker(t) })

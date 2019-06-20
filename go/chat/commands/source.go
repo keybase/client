@@ -83,7 +83,7 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
 	}
-	if s.G().IsMobileAppType() && s.isAdmin() {
+	if s.G().IsMobileAppType() || s.isAdmin() {
 		common = append(common, cmds[cmdLocation])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
