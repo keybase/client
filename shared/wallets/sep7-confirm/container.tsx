@@ -27,7 +27,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     amount,
     assetCode,
     assetIssuer,
-    callbackURL,
+    callbackURL: 'callbackurl.com',
     loading: !state.wallets.sep7ConfirmInfo,
     memo,
     memoType,

@@ -14,18 +14,26 @@ type HeaderProps = {
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
-      <Kb.Icon
-        type={
-          Styles.isMobile
-            ? 'icon-fancy-stellar-sending-mobile-149-129'
-            : 'icon-fancy-stellar-sending-desktop-98-86'
-        }
-        style={Kb.iconCastPlatformStyles(styles.headerIcon)}
-      />
-      <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-        {(props.sendingIntentionXLM ? 'Sending' : 'Sending Lumens worth').toUpperCase()}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
+      <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" />
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        fullWidth={true}
+        style={{marginTop: Styles.globalMargins.xlarge}}
+      >
+        <Kb.Text selectable={true} type="BodyBig" negative={true} style={styles.headerText}>
+          {props.originDomain}
+        </Kb.Text>
+        <Kb.Icon style={{marginLeft: Styles.globalMargins.tiny}} type="icon-proof-success" />
+      </Kb.Box2>
+      <Kb.Text style={styles.headerText} negative={true} type="BodyBig">
+        is requesting a payment.
       </Kb.Text>
+      <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
+        Keybase verified the request's signature.
+      </Kb.Text>
+
       <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
         {props.sendingIntentionXLM ? props.displayAmountXLM : props.displayAmountFiat}
       </Kb.Text>
@@ -212,11 +220,24 @@ const PaymentsConfirm = (props: Props) => {
     <Kb.MaybePopup onClose={props.onClose}>
       <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
         <Header
+          originDomain={props.originDomain}
           onBack={props.onBack}
           sendingIntentionXLM={props.sendingIntentionXLM}
           displayAmountXLM={props.displayAmountXLM}
           displayAmountFiat={props.displayAmountFiat}
         />
+        {!!props.callbackURL && (
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            centerChildren={true}
+            style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.tiny}}
+          >
+            <Kb.Text type="BodySemibold" negative={true}>
+              The payment will be sent to {props.callbackURL}.
+            </Kb.Text>
+          </Kb.Box2>
+        )}
         <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
           {(!!props.amount || !!props.message || !!props.recipient) && (
             <NoteAndMemo amount={props.amount} message={props.message} recipient={props.recipient} />
@@ -264,19 +285,14 @@ const PaymentsConfirm = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   bodyText: Styles.platformStyles({
     common: {color: Styles.globalColors.black},
     isElectron: {wordBreak: 'break-word'},
   }),
-  headingText: {
-    color: Styles.globalColors.black_50,
-    marginBottom: Styles.globalMargins.xtiny,
-  },
-  memoContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
+  button: {
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
   },
   buttonBar: Styles.platformStyles({
     common: {
@@ -297,6 +313,10 @@ const styles = Styles.styleSheetCreate({
       borderTopWidth: 1,
     },
   }),
+  buttonIcon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
+  buttonText: {color: Styles.globalColors.white},
   cancelButton: Styles.platformStyles({
     isElectron: {
       height: Styles.globalMargins.large,
@@ -343,25 +363,26 @@ const styles = Styles.styleSheetCreate({
       minHeight: 250,
     },
   }),
-  headerContent: Styles.platformStyles({
-    isElectron: {
-      marginTop: -20,
-    },
-  }),
-  headerIcon: {
-    marginBottom: Styles.globalMargins.small,
+  headerContent: {
+    alignItems: 'center',
+    marginTop: Styles.globalMargins.tiny,
   },
-  headerText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-    },
-  }),
+  headingText: {
+    color: Styles.globalColors.black_50,
+    marginBottom: Styles.globalMargins.xtiny,
+  },
   icon: Styles.platformStyles({
     isElectron: {
       marginBottom: Styles.globalMargins.small,
       marginTop: 35,
     },
   }),
+  memoContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+  },
   paymentContainer: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.greyLight,
@@ -387,6 +408,11 @@ const styles = Styles.styleSheetCreate({
   pushDown: Styles.platformStyles({
     isElectron: {flex: 1, justifyContent: 'flex-end'},
   }),
+  scrollView: {
+    flexBasis: 'auto',
+    flexGrow: 0,
+    flexShrink: 1,
+  },
   stellarAddressConfirmText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
@@ -395,6 +421,10 @@ const styles = Styles.styleSheetCreate({
   stellarIcon: {
     alignSelf: 'flex-start',
     marginRight: Styles.globalMargins.xxtiny,
+  },
+  subHeaderText: {
+    color: Styles.globalColors.white_75,
+    paddingTop: Styles.globalMargins.tiny,
   },
   submitButton: Styles.platformStyles({
     common: {
@@ -424,21 +454,6 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.white,
     },
   }),
-
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
-  button: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-  },
-  buttonIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  buttonText: {color: Styles.globalColors.white},
-  scrollView: {
-    flexBasis: 'auto',
-    flexGrow: 0,
-    flexShrink: 1,
-  },
 })
 
 export default PaymentsConfirm
