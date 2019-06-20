@@ -14,9 +14,10 @@ const Wrapper = ({children}) => (
 export const Provider = Sb.createPropProviderWithCommon({
   ...makeResultsListSelectorMap(),
   ...makeUserInputSelectorMap([]),
-  PeopleTabSearch: {
+  PeopleTabSearch: (props: any) => ({
+    ...props,
     onSearch: Sb.action('onSearch'),
-  },
+  }),
 })
 
 const load = () => {
