@@ -1,129 +1,199 @@
 import * as React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
-import {Task} from '.'
+import {Task, TaskButton} from '.'
 import {Provider as SearchBarProvider} from '../../profile/search/index.stories'
+import {
+  todoTypes,
+  todoTypeToConfirmLabel,
+  todoTypeToIcon,
+  makeDescriptionForTodoItem,
+} from '../../constants/people'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
-const actionProps = {
-  onConfirm: action('onConfirm'),
-  onDismiss: action('onDismiss'),
-} as const
+const defaultButtons = (label, dismissLabel?) => {
+  const ret = [
+    {
+      label: label,
+      onClick: action('onConfirm'),
+    },
+  ] as Array<TaskButton>
+  if (dismissLabel) {
+    ret.push({
+      label: dismissLabel,
+      mode: 'Secondary',
+      onClick: action('onDismiss'),
+    })
+  }
+  return ret
+}
 
 const avatarTeamTaskProps = {
   badged: true,
-  confirmLabel: 'Edit team avatar',
-  dismissable: false,
-  icon: 'icon-onboarding-team-avatar-32',
+  buttons: defaultButtons('Edit team avatar'),
+  icon: 'icon-onboarding-team-avatar-48',
   instructions: 'NEW! Change your team’s avatar from within the Keybase app.',
-  ...actionProps,
 } as const
 
 const avatarUserTaskProps = {
   badged: true,
-  confirmLabel: 'Edit avatar',
-  dismissable: false,
-  icon: 'icon-onboarding-user-avatar-32',
+  buttons: defaultButtons('Edit avatar'),
+  icon: 'icon-onboarding-user-avatar-48',
   instructions: 'NEW! Change your photo from within the Keybase app.',
-  ...actionProps,
 } as const
 
 const bioTaskProps = {
   badged: true,
-  confirmLabel: 'Edit profile',
-  dismissable: false,
-  icon: 'icon-onboarding-user-info-32',
+  buttons: defaultButtons('Edit profile'),
+  icon: 'icon-onboarding-user-info-48',
   instructions: 'Add your name, bio, and location to complete your profile.',
-  ...actionProps,
 } as const
 
 const proofTaskProps = {
   badged: true,
-  confirmLabel: 'Prove your identities',
-  dismissable: true,
-  icon: 'icon-onboarding-proofs-32',
+  buttons: defaultButtons('Prove your identities', 'Later'),
+  icon: 'icon-onboarding-proofs-48',
   instructions:
     'Add some proofs to your profile. The more you have, the stronger your cryptographic identity.',
-  ...actionProps,
 } as const
 
 const installTaskProps = {
   badged: true,
-  confirmLabel: 'Get the download link',
-  dismissable: true,
-  icon: 'icon-onboarding-phone-32',
+  buttons: defaultButtons('Get the download link', 'Later'),
+  icon: 'icon-onboarding-phone-48',
   instructions: 'Install Keybase on your phone. Until you have at least 2 devices, you risk losing data.',
-  ...actionProps,
 } as const
 
 const followTaskProps = {
   badged: true,
-  confirmLabel: 'Browse people',
-  dismissable: true,
-  icon: 'icon-onboarding-follow-32',
+  buttons: [
+    {
+      label: 'Follow later',
+      mode: 'Secondary',
+      onClick: action('onDismiss'),
+    },
+  ] as Array<TaskButton>,
+  icon: 'icon-onboarding-follow-48',
   instructions:
     'Follow at least one person on Keybase. A "follow" is a signed snapshot of someone. It strengthens Keybase and your own security.',
-  ...actionProps,
 } as const
 
 const chatTaskProps = {
   badged: true,
-  confirmLabel: 'Start a chat',
-  dismissable: true,
-  icon: 'icon-onboarding-chat-32',
+  buttons: defaultButtons('Start a chat', 'Later'),
+  icon: 'icon-onboarding-chat-48',
   instructions: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
-  ...actionProps,
 } as const
 
 const paperKeyTaskProps = {
   badged: true,
-  confirmLabel: 'Create a paper key',
-  dismissable: false,
-  icon: 'icon-onboarding-paper-key-32',
+  buttons: defaultButtons('Create a paper key'),
+  icon: 'icon-onboarding-paper-key-48',
   instructions:
     'Please make a paper key. Unlike your account password, paper keys can provision new devices and recover data, for ultimate safety.',
-  ...actionProps,
 } as const
 
 const teamTaskProps = {
   badged: true,
-  confirmLabel: 'Create a team',
-  dismissable: true,
-  icon: 'icon-onboarding-team-32',
+  buttons: defaultButtons('Create a team', 'Later'),
+  icon: 'icon-onboarding-team-48',
   instructions:
     'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
-  ...actionProps,
 } as const
 
 const folderTaskProps = {
   badged: true,
-  confirmLabel: 'Open a private folder',
-  dismissable: true,
-  icon: 'icon-onboarding-folder-32',
+  buttons: defaultButtons('Open a private folder', 'Later'),
+  icon: 'icon-onboarding-folder-48',
   instructions:
     'Open an encrypted private folder with someone! They’ll only get notified once you drop files in it.',
-  ...actionProps,
 } as const
 
 const gitTaskProps = {
   badged: true,
-  confirmLabel: 'Create a personal git repo',
-  dismissable: true,
-  icon: 'icon-onboarding-git-32',
+  buttons: [
+    {
+      label: 'Create a personal repo',
+      onClick: action('onPersonalRepo'),
+    },
+    {
+      label: 'Create a team repo',
+      onClick: action('onTeamRepo'),
+    },
+    {
+      label: 'Later',
+      mode: 'Secondary',
+      onClick: action('onDismiss'),
+    },
+  ] as Array<TaskButton>,
+  icon: 'icon-onboarding-git-48',
   instructions:
-    'Create an encrypted Git repository! Only you will be able to decrypt any of it. And it’s so easy!',
-  ...actionProps,
+    'Create an encrypted Git repository! Only you (and teammates) will be able to decrypt any of it. And it’s so easy!',
 } as const
 
 const publicityTaskProps = {
   badged: true,
-  confirmLabel: 'Set publicity settings',
-  dismissable: true,
-  icon: 'icon-onboarding-team-publicity-32',
+  buttons: defaultButtons('Set publicity settings', 'Later'),
+  icon: 'icon-onboarding-team-publicity-48',
   instructions: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out “Publicity settings" on any team you manage.`,
-  ...actionProps,
+} as const
+
+const verifyEmailProps = {
+  badged: true,
+  buttons: [
+    {
+      label: 'Verify',
+      onClick: action('onConfirm'),
+      type: 'Success',
+    },
+    {
+      label: 'Manage emails',
+      mode: 'Secondary',
+      onClick: action('onManage'),
+    },
+  ] as Array<TaskButton>,
+  icon: 'icon-onboarding-email-verify-48',
+  instructions: `Your email address *test@example.com* is unverified.`,
+} as const
+
+const verifyPhoneNumberProps = {
+  badged: true,
+  buttons: [
+    {
+      label: 'Verify',
+      onClick: action('onConfirm'),
+      type: 'Success',
+    },
+    {
+      label: 'Manage numbers',
+      mode: 'Secondary',
+      onClick: action('onManage'),
+    },
+  ] as Array<TaskButton>,
+  icon: 'icon-onboarding-number-verify-48',
+  instructions: `Your number *+1555000111* is unverified.`,
+} as const
+
+const legacyEmailVisibilityProps = {
+  badged: true,
+  buttons: [
+    {
+      label: 'Make searchable',
+      onClick: action('onConfirm'),
+      type: 'Success',
+    },
+    {
+      label: 'No',
+      mode: 'Secondary',
+      onClick: action('onDismiss'),
+    },
+  ] as Array<TaskButton>,
+  icon: 'icon-onboarding-email-searchable-48',
+  instructions: `Allow friends to find you using *test@example.com*`,
+  subText: 'Your email will never appear on your public profile.',
 } as const
 
 const load = () => {
-  storiesOf('People/Todos', module)
+  const stories = storiesOf('People/Todos', module)
     .addDecorator(SearchBarProvider)
     .add('Edit team avatar', () => <Task {...avatarTeamTaskProps} />)
     .add('Edit avatar', () => <Task {...avatarUserTaskProps} />)
@@ -138,6 +208,9 @@ const load = () => {
     .add('Make a folder', () => <Task {...folderTaskProps} />)
     .add('Make a git', () => <Task {...gitTaskProps} />)
     .add('Set publicity', () => <Task {...publicityTaskProps} />)
+    .add('Verify phone number', () => <Task {...verifyPhoneNumberProps} />)
+    .add('Verify email', () => <Task {...verifyEmailProps} />)
+    .add('Legacy email discoverability', () => <Task {...legacyEmailVisibilityProps} />)
 }
 
 export default load

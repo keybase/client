@@ -1449,6 +1449,11 @@ export enum HomeScreenTodoType {
   teamShowcase = 10,
   avatarUser = 11,
   avatarTeam = 12,
+  addPhoneNumber = 13,
+  verifyAllPhoneNumber = 14,
+  verifyAllEmail = 15,
+  legacyEmailVisibility = 16,
+  addEmail = 17,
   annoncementPlaceholder = 10000,
 }
 
@@ -2286,7 +2291,7 @@ export type HomeScreenItemID = String
 export type HomeScreenPeopleNotification = {t: HomeScreenPeopleNotificationType.followed; followed: HomeScreenPeopleNotificationFollowed | null} | {t: HomeScreenPeopleNotificationType.followedMulti; followedMulti: HomeScreenPeopleNotificationFollowedMulti | null}
 export type HomeScreenPeopleNotificationFollowed = {readonly followTime: Time; readonly followedBack: Boolean; readonly user: UserSummary}
 export type HomeScreenPeopleNotificationFollowedMulti = {readonly followers?: Array<HomeScreenPeopleNotificationFollowed> | null; readonly numOthers: Int}
-export type HomeScreenTodo = void
+export type HomeScreenTodo = {t: HomeScreenTodoType.verifyAllPhoneNumber; verifyAllPhoneNumber: PhoneNumber | null} | {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: EmailAddress | null} | {t: HomeScreenTodoType.legacyEmailVisibility; legacyEmailVisibility: EmailAddress | null}
 export type HomeUserSummary = {readonly uid: UID; readonly username: String; readonly bio: String; readonly fullName: String; readonly pics?: Pics | null}
 export type Identify2Res = {readonly upk: UserPlusKeys; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
 export type Identify2ResUPK2 = {readonly upk: UserPlusKeysV2AllIncarnations; readonly identifiedAt: Time; readonly trackBreaks?: IdentifyTrackBreaks | null}
