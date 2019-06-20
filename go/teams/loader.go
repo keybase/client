@@ -358,7 +358,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		mctx.Debug("Box auditor feature flagged off; not checking jail during team load...")
 	}
 
-	return &ret.team, &ret.hidden, nil
+	return &ret.team, ret.hidden, nil
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
@@ -415,12 +415,12 @@ type load2ArgT struct {
 
 type load2ResT struct {
 	team      keybase1.TeamData
-	hidden    keybase1.HiddenTeamChain
+	hidden    *keybase1.HiddenTeamChain
 	didRepoll bool
 }
 
 func (l load2ResT) teamShim() *TeamShim {
-	return &TeamShim{Data: &l.team, Hidden: &l.hidden}
+	return &TeamShim{Data: &l.team, Hidden: l.hidden}
 }
 
 // Load2 does the rest of the work loading a team.
@@ -895,7 +895,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	if hd := hiddenPackage.ChainData(); hd != nil {
-		load2res.hidden = *hd
+		load2res.hidden = hd
 	}
 
 	return &load2res, nil
