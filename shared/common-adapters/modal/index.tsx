@@ -3,9 +3,11 @@ import * as Styles from '../../styles'
 import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
 import {Box2} from '../box'
+import BoxGrow from '../box-grow'
 
 const Kb = {
   Box2,
+  BoxGrow,
   ScrollView,
 }
 
@@ -19,7 +21,13 @@ type HeaderProps = {
   icon?: React.ReactNode // above center
   leftButton?: React.ReactNode
   rightButton?: React.ReactNode
-  title?: React.ReactNode // center
+  title?: React.ReactNode // center; be sure to lineClamp any long / dynamic strings
+}
+
+type FooterProps = {
+  children: React.ReactNode
+  hideBorder?: boolean
+  style?: Styles.StylesCrossPlatform
 }
 
 type Props = {
@@ -27,7 +35,7 @@ type Props = {
   children: React.ReactNode
   header?: HeaderProps
   onClose: () => void
-  footer?: React.ReactNode
+  footer?: FooterProps
   mode: Mode
 }
 
@@ -38,8 +46,8 @@ const Modal = (props: Props) => (
     styleCover={styles.nativeCoverStyleOverrides}
   >
     {!!props.header && <Header {...props.header} />}
-    {/* TODO fix scrolling with small content */}
     <Kb.ScrollView>{props.children}</Kb.ScrollView>
+    {!!props.footer && <Footer {...props.footer} />}
   </PopupDialog>
 )
 Modal.defaultProps = {
@@ -62,6 +70,16 @@ const Header = (props: HeaderProps) => (
   </Kb.Box2>
 )
 
+const Footer = (props: FooterProps) => (
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.footer, !props.hideBorder && styles.footerBorder, props.style])}
+  >
+    {props.children}
+  </Kb.Box2>
+)
+
 const headerCommon = {
   borderBottomColor: Styles.globalColors.black_10,
   borderBottomStyle: 'solid',
@@ -69,6 +87,22 @@ const headerCommon = {
 }
 
 const styles = Styles.styleSheetCreate({
+  footer: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+      minHeight: 56,
+    },
+    isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
+      overflow: 'hidden',
+    },
+  }),
+  footerBorder: {
+    borderTopColor: Styles.globalColors.black_10,
+    borderTopStyle: 'solid',
+    borderTopWidth: 1,
+  },
   header: {
     ...headerCommon,
     minHeight: 48,
