@@ -73,7 +73,7 @@ func (e MobileNetworkState) String() string {
 }
 
 type UpdateMobileNetStateArg struct {
-	State MobileNetworkState `codec:"state" json:"state"`
+	State string `codec:"state" json:"state"`
 }
 
 type PowerMonitorEventArg struct {
@@ -81,7 +81,7 @@ type PowerMonitorEventArg struct {
 }
 
 type AppStateInterface interface {
-	UpdateMobileNetState(context.Context, MobileNetworkState) error
+	UpdateMobileNetState(context.Context, string) error
 	PowerMonitorEvent(context.Context, string) error
 }
 
@@ -127,7 +127,7 @@ type AppStateClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state MobileNetworkState) (err error) {
+func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state string) (err error) {
 	__arg := UpdateMobileNetStateArg{State: state}
 	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []interface{}{__arg}, nil)
 	return

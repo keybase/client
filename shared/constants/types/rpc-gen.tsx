@@ -320,7 +320,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.appState.updateMobileNetState': {
-    inParam: {readonly state: MobileNetworkState}
+    inParam: {readonly state: String}
     outParam: void
   }
   'keybase.1.avatars.loadTeamAvatars': {

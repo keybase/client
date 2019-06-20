@@ -17,7 +17,7 @@ protocol appState {
 
   // gui -> service
   // mobile only
-  void updateMobileNetState(MobileNetworkState state);
+  void updateMobileNetState(string state);
 
   // gui -> service
   // desktop only

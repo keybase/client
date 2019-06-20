@@ -28,7 +28,7 @@
       "request": [
         {
           "name": "state",
-          "type": "MobileNetworkState"
+          "type": "string"
         }
       ],
       "response": null
