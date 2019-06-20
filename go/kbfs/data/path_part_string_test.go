@@ -61,8 +61,8 @@ func TestPathPartStringBasic(t *testing.T) {
 	require.True(t, strings.HasSuffix(ob5, cSuffix))
 	words5 := strings.Split(strings.Replace(ob5, cSuffix, "", 1), separator)
 	require.Len(t, words5, 2)
-	require.True(t, libkb.ValidSecWord(words5[0]), words5[0])
-	require.True(t, libkb.ValidSecWord(words5[1]), words5[1])
+	require.Equal(t, words2[0], words5[0])
+	require.Equal(t, words2[1], words5[1])
 }
 
 func TestPathPartStringEquality(t *testing.T) {
@@ -96,7 +96,6 @@ func TestPathPartStringEquality(t *testing.T) {
 	pps1 = NewPathPartString("test", no)
 	pps2 = NewPathPartString("test", no2)
 	require.False(t, pps1 == pps2)
-
 }
 
 func TestPathPartStringPrefix(t *testing.T) {
@@ -121,6 +120,19 @@ func TestPathPartStringPrefix(t *testing.T) {
 	require.Len(t, words2, 2)
 	require.True(t, libkb.ValidSecWord(words2[0]), words2[0])
 	require.True(t, libkb.ValidSecWord(words2[1]), words2[1])
+
+	t.Log("Check file info with a conflicted suffix")
+	cSuffix := ".conflicted (alice's device copy 2019-06-10).txt"
+	pps3 := NewPathPartString(".kbfs_fileinfo_test"+cSuffix, no)
+	ob3 := pps3.String()
+	require.True(t, strings.HasPrefix(ob3, ".kbfs_fileinfo_"))
+	require.True(t, strings.HasSuffix(ob3, cSuffix))
+	words3 := strings.Split(
+		strings.TrimSuffix(strings.TrimPrefix(ob3, ".kbfs_fileinfo_"), cSuffix),
+		separator)
+	require.Len(t, words3, 2)
+	require.Equal(t, words2[0], words3[0])
+	require.Equal(t, words2[1], words3[1])
 }
 
 func TestPathPartStringMarshal(t *testing.T) {

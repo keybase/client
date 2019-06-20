@@ -14,6 +14,7 @@ import (
 const (
 	prefixToSkipObfsucation = ".kbfs_"
 	prefixFileInfo          = ".kbfs_fileinfo_"
+	suffixConflictStart     = ".conflicted ("
 	tarGzSuffix             = ".tar.gz"
 
 	// extRestoreMaxLen specifies the max length of an extension, such
@@ -28,9 +29,10 @@ const (
 // plaintext data, created using the same `Obfuscator`, should pass
 // equality checks.
 type PathPartString struct {
-	plaintext  string
-	ext        string
-	obfuscator Obfuscator
+	plaintext   string
+	toObfuscate string // if different from `plaintext`
+	ext         string
+	obfuscator  Obfuscator
 }
 
 var _ fmt.Stringer = PathPartString{}
@@ -40,6 +42,7 @@ var _ fmt.Stringer = PathPartString{}
 // `Obfuscator`.
 func NewPathPartString(
 	plaintext string, obfuscator Obfuscator) PathPartString {
+	var toObfuscate string
 	_, ext := SplitFileExtension(plaintext)
 	// Treat the long tarball suffix specially, since it's already
 	// parsed specially by `SplitFileExtension`.  Otherwise, strictly
@@ -49,27 +52,47 @@ func NewPathPartString(
 	if len(ext) > extRestoreMaxLen && ext != tarGzSuffix {
 		ext = ""
 	}
-	conflictedIndex := strings.LastIndex(plaintext, ".conflicted (")
+
+	if strings.HasPrefix(plaintext, prefixFileInfo) {
+		toObfuscate = strings.TrimPrefix(plaintext, prefixFileInfo)
+	}
+
+	conflictedIndex := strings.LastIndex(plaintext, suffixConflictStart)
 	if conflictedIndex > 0 {
+		// If this is a conflict file, we should obfuscate everything
+		// besides the conflict part, to get a string that matches the
+		// non-conflict portion.  (Also continue to ignore any file
+		// info prefix when obfuscating, as above.)
+		if len(toObfuscate) == 0 {
+			toObfuscate = plaintext
+		}
+		toObfuscate = toObfuscate[:strings.LastIndex(
+			toObfuscate, suffixConflictStart)] + ext
 		ext = plaintext[conflictedIndex:]
 	}
-	return PathPartString{plaintext, ext, obfuscator}
+	return PathPartString{plaintext, toObfuscate, ext, obfuscator}
 }
 
 func (pps PathPartString) String() string {
-	prefix := ""
-	p := pps.plaintext
 	if pps.obfuscator == nil {
-		return p
-	} else if strings.HasPrefix(p, prefixFileInfo) {
-		// Obfuscate the suffix part for fileInfo paths.
-		prefix = prefixFileInfo
-		p = strings.TrimPrefix(p, prefix)
-	} else if strings.HasPrefix(p, prefixToSkipObfsucation) {
-		return p
+		return pps.plaintext
 	}
 
-	ob := pps.obfuscator.Obfuscate(p)
+	var prefix string
+	if strings.HasPrefix(pps.plaintext, prefixFileInfo) {
+		// Preserve the fileinfo prefix.
+		prefix = prefixFileInfo
+	} else if strings.HasPrefix(pps.plaintext, prefixToSkipObfsucation) {
+		// Ignore any other .kbfs_ prefixed files.
+		return pps.plaintext
+	}
+
+	toObfuscate := pps.plaintext
+	if len(pps.toObfuscate) > 0 {
+		toObfuscate = pps.toObfuscate
+	}
+
+	ob := pps.obfuscator.Obfuscate(toObfuscate)
 	return prefix + ob + pps.ext
 }
 
