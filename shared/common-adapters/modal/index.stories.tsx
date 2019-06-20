@@ -11,6 +11,11 @@ const filler = (
   </Kb.Box2>
 )
 
+const leftButton = <Kb.Icon type="iconfont-arrow-left" onClick={Sb.action('onBack')} />
+const rightButton = (
+  <Kb.Button small={true} mode="Secondary" onClick={Sb.action('onClickMe')} label="Click me" />
+)
+
 const onClose = Sb.action('onClose')
 
 const load = () => {
@@ -35,14 +40,31 @@ const load = () => {
       <Modal
         onClose={onClose}
         header={{
-          rightButton: (
-            <Kb.Button small={true} mode="Secondary" onClick={Sb.action('onClickMe')} label="Click me" />
-          ),
+          leftButton,
+          rightButton,
           title: (
             <Kb.Box2 direction="vertical" alignItems="center">
-              <Kb.Text type="Header">Title</Kb.Text>
+              <Kb.Text type="Header" lineClamp={1}>
+                Title
+              </Kb.Text>
               <Kb.Text type="BodyTiny">Subtitle</Kb.Text>
             </Kb.Box2>
+          ),
+        }}
+      >
+        {filler}
+      </Modal>
+    ))
+    .add('Long title', () => (
+      <Modal
+        onClose={onClose}
+        header={{
+          leftButton,
+          rightButton,
+          title: (
+            <Kb.Text type="Header" lineClamp={1}>
+              I am a really long title, you might not see all of me.
+            </Kb.Text>
           ),
         }}
       >

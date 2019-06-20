@@ -39,7 +39,7 @@ const Modal = (props: Props) => (
   >
     {!!props.header && <Header {...props.header} />}
     {/* TODO fix scrolling with small content */}
-    <Kb.ScrollView contentContainerStyle={styles.body}>{props.children}</Kb.ScrollView>
+    <Kb.ScrollView>{props.children}</Kb.ScrollView>
   </PopupDialog>
 )
 Modal.defaultProps = {
@@ -69,10 +69,6 @@ const headerCommon = {
 }
 
 const styles = Styles.styleSheetCreate({
-  body: {
-    ...Styles.globalStyles.flexBoxColumn,
-    height: '100%',
-  },
   header: {
     ...headerCommon,
     minHeight: 48,
@@ -81,10 +77,12 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     justifyContent: 'flex-start',
     paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
   headerRight: {
     flex: 1,
     justifyContent: 'flex-end',
+    paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
   headerWithIcon: {
