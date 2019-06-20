@@ -2,8 +2,12 @@ import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS} from '../constants/platform'
 import globalColors from './colors'
-import {CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
+
+type _Elem = Object | null | false | void
+// CollapsibleStyle is a generic version of ?StylesMobile and family,
+// slightly extended to support "isFoo && myStyle".
+export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
 
 const font = isIOS
   ? {

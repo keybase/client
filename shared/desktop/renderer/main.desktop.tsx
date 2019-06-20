@@ -149,6 +149,7 @@ const setupHMR = store => {
 }
 
 const setupDarkMode = () => {
+  setIsDarkMode(isDarwin && SafeElectron.getSystemPreferences().isDarkMode())
   if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
     SafeElectron.getSystemPreferences().subscribeNotification(
       'AppleInterfaceThemeChangedNotification',

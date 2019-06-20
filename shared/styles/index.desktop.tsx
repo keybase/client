@@ -3,9 +3,15 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {isDarwin} from '../constants/platform'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
-import * as T from './index.types'
 import * as Shared from './shared'
 import {isEmpty} from 'lodash-es'
+import styleSheeCreateProxy from './style-sheet-proxy'
+import * as CSS from './css'
+
+type _Elem = Object | null | false | void
+// CollapsibleStyle is a generic version of ?StylesMobile and family,
+// slightly extended to support "isFoo && myStyle".
+type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -133,8 +139,9 @@ export const initDesktopStyles = () => {
   head.appendChild(style)
 }
 
+export const styleSheetCreate = obj => styleSheeCreateProxy(obj, o => o)
 export const hairlineWidth = 1
-export const collapseStyles = (styles: ReadonlyArray<T.CollapsibleStyle>): Object => {
+export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
@@ -147,7 +154,7 @@ export const collapseStyles = (styles: ReadonlyArray<T.CollapsibleStyle>): Objec
   }
 
   const flattenedStyles = styles.reduce(
-    (a: Array<T.CollapsibleStyle>, e: T.CollapsibleStyle) => a.concat(e),
+    (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
     []
   ) as Array<Object | null | false>
   const style = flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
@@ -168,8 +175,7 @@ export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4
 export {default as classNames} from 'classnames'
-export type StylesCrossPlatform = T.StylesCrossPlatform
+export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
 export const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
-export {default as styleSheetCreate} from './style-sheet'

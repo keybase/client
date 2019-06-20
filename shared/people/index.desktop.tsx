@@ -18,19 +18,22 @@ const People = (props: Props) => (
   </Kb.ScrollView>
 )
 
-const styles = Styles.styleSheetCreate({
-  container: {...Styles.globalStyles.fullHeight, backgroundColor: Styles.globalColors.black},
-  header: {flexGrow: 1},
-  progress: {
-    height: 18,
-    left: 40,
-    position: 'absolute',
-    top: 9,
-    width: 18,
-    zIndex: 2,
-  },
-  searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
-  sectionTitle: {flexGrow: 1},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {...Styles.globalStyles.fullHeight},
+      header: {flexGrow: 1},
+      progress: {
+        height: 18,
+        left: 40,
+        position: 'absolute',
+        top: 9,
+        width: 18,
+        zIndex: 2,
+      },
+      searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
+      sectionTitle: {flexGrow: 1},
+    } as const)
+)
 
 export default People

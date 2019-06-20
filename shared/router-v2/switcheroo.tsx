@@ -11,6 +11,7 @@ type OwnProps = {
 type Props = {
   updateNavigator: (arg0: any) => void
   persistRoute: (arg0: any) => void
+  isDarkMode: boolean
 }
 
 // TODO remove this class

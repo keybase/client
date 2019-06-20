@@ -34,7 +34,7 @@ export default (props: Props) => (
   </Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     paddingTop: Styles.globalMargins.tiny,
@@ -65,14 +65,8 @@ const styles = Styles.styleSheetCreate({
     width: 112,
   },
   text: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
+    common: {marginBottom: Styles.globalMargins.tiny},
+    isElectron: {marginLeft: Styles.globalMargins.small},
+    isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
-})
+}))
