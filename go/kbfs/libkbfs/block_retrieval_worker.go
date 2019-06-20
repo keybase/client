@@ -91,7 +91,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	if action.StopIfFull() {
 		dbc := brw.queue.config.DiskBlockCache()
 		if dbc != nil {
-			hasRoom, err := dbc.DoesCacheHaveSpace(
+			hasRoom, _, err := dbc.DoesCacheHaveSpace(
 				retrieval.ctx, action.CacheType())
 			if err != nil {
 				return err

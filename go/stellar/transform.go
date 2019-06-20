@@ -105,10 +105,30 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 }
 
 // transformPaymentStellar converts a stellar1.PaymentSummaryStellar into a stellar1.PaymentLocal.
-func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
-	if err != nil {
-		return nil, err
+func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (res *stellar1.PaymentLocal, err error) {
+	loc := stellar1.NewPaymentLocal(p.TxID, p.Ctime)
+	if p.IsAdvanced {
+		if len(p.Amount) > 0 {
+			// It is expected that there is no amount.
+			// But might as well future proof it so that if an amount shows up it gets formatted.
+			loc.AmountDescription, err = FormatAmountDescriptionAsset(mctx, p.Amount, p.Asset)
+			if err != nil {
+				loc.AmountDescription = ""
+			}
+		}
+
+		if p.Asset.IsEmpty() && !p.Asset.IsNativeXLM() {
+			// Asset is also expected to be missing.
+			loc.IssuerDescription = FormatAssetIssuerString(p.Asset)
+			issuerAcc := stellar1.AccountID(p.Asset.Issuer)
+			loc.IssuerAccountID = &issuerAcc
+		}
+
+	} else {
+		loc, err = newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	isSender := p.From.Eq(acctID)

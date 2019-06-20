@@ -1913,6 +1913,15 @@
         }
       ],
       "response": null
+    },
+    "chatGetCoordinate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "Coordinate"
     }
   },
   "namespace": "chat.1"

@@ -3,13 +3,13 @@ import * as React from 'react'
 import {HOCTimers, PropsWithTimer} from '../../common-adapters'
 import Feedback from './index'
 import logSend from '../../native/log-send'
-import {compose, connect, RouteProps} from '../../util/container'
+import {compose, connect, RouteProps, getRouteProps} from '../../util/container'
 import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps<{feedback: string}, {}>
 
 export type State = {
   sentFeedback: boolean
@@ -48,7 +48,7 @@ class FeedbackContainer extends React.Component<Props, State> {
     this.mounted = true
   }
 
-  _onSendFeedback = (feedback: string, sendLogs: boolean) => {
+  _onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
     this.setState({sending: true, sentFeedback: false})
 
     this.props.setTimeout(() => {
@@ -64,7 +64,15 @@ class FeedbackContainer extends React.Component<Props, State> {
             : this.props.status
           const traceDir = pprofDir
           const cpuProfileDir = traceDir
-          return logSend(JSON.stringify(extra), feedback || '', sendLogs, logPath, traceDir, cpuProfileDir)
+          return logSend(
+            JSON.stringify(extra),
+            feedback || '',
+            sendLogs,
+            sendMaxBytes,
+            logPath,
+            traceDir,
+            cpuProfileDir
+          )
         })
         .then(logSendId => {
           logger.info('logSendId is', logSendId)
@@ -125,11 +133,17 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   title: 'Feedback',
 })
 
+const mergeProps = (s, d, o: OwnProps) => ({
+  ...s,
+  ...d,
+  feedback: getRouteProps(o, 'feedback') || '',
+})
+
 const connected = compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...s, ...d})
+    mergeProps
   ),
   HOCTimers
 )(FeedbackContainer)

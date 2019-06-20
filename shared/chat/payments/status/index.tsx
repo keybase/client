@@ -21,7 +21,7 @@ type State = {
   showPopup: boolean
 }
 
-type Props = {
+export type Props = {
   allowFontScaling?: boolean | null
   allowPopup: boolean
   errorDetail?: string

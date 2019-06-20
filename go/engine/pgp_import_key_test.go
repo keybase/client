@@ -89,8 +89,8 @@ func TestPGPImportAndExport(t *testing.T) {
 	}
 }
 
-// TestPGPImportPrivImport - import the same key twice, only importing the private key
-// the second time / on the second device (CORE-10562).
+// TestPGPImportPrivImport - import the same key twice, only importing the
+// private key the second time / on the second device (CORE-10562).
 func TestPGPImportPrivImport(t *testing.T) {
 	user, dev1, dev2, cleanup := SetupTwoDevices(t, "login")
 	defer cleanup()
@@ -186,6 +186,52 @@ func TestPGPImportPrivImport(t *testing.T) {
 	if len(xe.Results()) != 1 {
 		t.Fatalf("Expected 1 key back out")
 	}
+}
+
+func TestPGPImportLocalPrivateThenServer(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpsave")
+	defer tc.Cleanup()
+
+	user := CreateAndSignupFakeUser(tc, "login")
+	secui := &libkb.TestSecretUI{Passphrase: user.Passphrase}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+
+	_, _, key := genPGPKeyAndArmor(t, tc, user.Email)
+
+	// Import a private key locally first.
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false /* pushSecret*/)
+	require.NoError(t, err)
+	mctx := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
+	// Can we import locally twice?
+	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false /* pushSecret*/)
+	require.NoError(t, err)
+	mctx = NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
+	kid := eng.GetKID()
+
+	ss, err := mctx.ActiveDevice().SyncSecretsForce(mctx)
+	require.NoError(t, err)
+	_, ok := ss.FindPrivateKey(kid.String())
+	require.False(t, ok)
+
+	// Try to import with push secret afterwards - user also wants
+	// to have this key available online.
+	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true /* pushSecret*/)
+	require.NoError(t, err)
+	mctx = NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
+	ss, err = mctx.ActiveDevice().SyncSecretsForce(mctx)
+	require.NoError(t, err)
+	privKey, ok := ss.FindPrivateKey(kid.String())
+	require.True(t, ok)
+	require.NotEmpty(t, privKey.Bundle)
 }
 
 // Test for issue 325.

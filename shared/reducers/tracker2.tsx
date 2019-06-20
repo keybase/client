@@ -51,6 +51,7 @@ export default function(
         usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
           old.merge({
             bio: action.payload.bio,
+            blocked: action.payload.blocked,
             followersCount: action.payload.followersCount,
             followingCount: action.payload.followingCount,
             fullname: action.payload.fullname,

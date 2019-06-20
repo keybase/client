@@ -148,17 +148,22 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
-	merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
-	if err != nil {
-		mctx.Debug("Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
-		merkleRootPtr = &libkb.MerkleRoot{}
-	}
 	for tries := 0; tries < maxRetries; tries++ {
+		mctx.Debug("keygenIfNeeded attempt #%d: %v", tries, err)
+		merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
+		if err != nil {
+			mctx.Debug("Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
+			merkleRootPtr = &libkb.MerkleRoot{}
+		}
 		if err = e.keygenIfNeeded(mctx, *merkleRootPtr, true /* shouldCleanup */); err == nil {
 			return nil
 		}
-		time.Sleep(200 * time.Millisecond)
-		mctx.Debug("KeygenIfNeeded retrying attempt #%d: %v", tries, err)
+		select {
+		case <-mctx.Ctx().Done():
+			mctx.Debug("aborting KeygenIfNeeded, context cancelled")
+			return err
+		case <-time.After(20 * time.Millisecond):
+		}
 	}
 	return err
 }

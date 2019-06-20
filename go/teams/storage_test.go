@@ -7,10 +7,11 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	storage "github.com/keybase/client/go/teams/storage"
 	"github.com/stretchr/testify/require"
 )
 
-func getStorageFromG(g *libkb.GlobalContext) *Storage {
+func getStorageFromG(g *libkb.GlobalContext) *storage.Storage {
 	tl := g.GetTeamLoader().(*TeamLoader)
 	return tl.storage
 }
@@ -66,7 +67,7 @@ func TestStorageDisk(t *testing.T) {
 		require.Nil(t, res)
 		st.Put(mctx, &obj)
 		t.Logf("throwing out mem storage")
-		st.mem.lru.Purge()
+		st.ClearMem()
 		res, _, _ = st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
 		require.False(t, res == &obj, "should be the a different object read from disk")
@@ -101,7 +102,7 @@ func TestStorageLogout(t *testing.T) {
 		t.Logf("logout")
 		tc.G.Logout(context.TODO())
 
-		require.Equal(t, 0, st.mem.lru.Len(), "mem cache still populated")
+		require.Equal(t, 0, st.MemSize(), "mem cache still populated")
 
 		res, _, _ = st.Get(mctx, teamID, public)
 		require.Nil(t, res, "got from cache, but should be gone")

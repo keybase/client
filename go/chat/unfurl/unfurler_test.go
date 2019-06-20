@@ -73,7 +73,7 @@ func TestUnfurler(t *testing.T) {
 	defer tc.Cleanup()
 
 	log := logger.NewTestLogger(t)
-	store := attachments.NewStoreTesting(log, nil)
+	store := attachments.NewStoreTesting(log, nil, tc.G)
 	s3signer := &ptsigner{}
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	notifier := makeDummyActivityNotifier()
@@ -174,4 +174,5 @@ func TestUnfurler(t *testing.T) {
 	status, _, err = unfurler.Status(context.TODO(), outboxID)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+	require.Equal(t, types.UnfurlerTaskStatusFailed, status)
 }

@@ -22,6 +22,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         passwordError: new HiddenString(''),
         signupError: new HiddenString(''),
         usernameError: '',
+        usernameTaken: '',
       })
     case SignupGen.requestedAutoInvite:
       return state.merge({inviteCode: actionHasError(action) ? '' : action.payload.inviteCode})
@@ -31,19 +32,20 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       return action.payload.inviteCode === state.inviteCode
         ? state.merge({inviteCodeError: actionHasError(action) ? action.payload.error : ''})
         : state
-    case SignupGen.checkUsernameEmail: {
-      const {email, username} = action.payload
-      const emailError = isValidEmail(email)
+    case SignupGen.checkUsername: {
+      const {username} = action.payload
       const usernameError = isValidUsername(username)
-      return state.merge({email, emailError, username, usernameError})
+      return state.merge({username, usernameError, usernameTaken: ''})
     }
-    case SignupGen.checkedUsernameEmail:
-      return action.payload.email === state.email && action.payload.username === state.username
-        ? state.merge({
-            emailError: actionHasError(action) ? action.payload.emailError : '',
-            usernameError: actionHasError(action) ? action.payload.usernameError : '',
-          })
-        : state
+    case SignupGen.checkedUsername: {
+      const {username, usernameTaken = '', error: usernameError} = action.payload
+      return username === state.username ? state.merge({usernameError, usernameTaken}) : state
+    }
+    case SignupGen.checkEmail: {
+      const {email} = action.payload
+      const emailError = isValidEmail(email)
+      return state.merge({email, emailError})
+    }
     case SignupGen.requestInvite: {
       const {email, name} = action.payload
       const emailError = isValidEmail(email)

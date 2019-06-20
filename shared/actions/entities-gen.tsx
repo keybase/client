@@ -1,9 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Constants from '../constants/entities'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of entities but is handled by every reducer. NEVER dispatch this
@@ -41,21 +37,15 @@ export const createSubtractEntity = (payload: _SubtractEntityPayload): SubtractE
 })
 
 // Action Payloads
-export type DeleteEntityPayload = {
-  readonly payload: _DeleteEntityPayload
-  readonly type: 'entities:deleteEntity'
-}
-export type MergeEntityPayload = {
-  readonly payload: _MergeEntityPayload
-  readonly type: 'entities:mergeEntity'
-}
+export type DeleteEntityPayload = {readonly payload: _DeleteEntityPayload; readonly type: typeof deleteEntity}
+export type MergeEntityPayload = {readonly payload: _MergeEntityPayload; readonly type: typeof mergeEntity}
 export type ReplaceEntityPayload = {
   readonly payload: _ReplaceEntityPayload
-  readonly type: 'entities:replaceEntity'
+  readonly type: typeof replaceEntity
 }
 export type SubtractEntityPayload = {
   readonly payload: _SubtractEntityPayload
-  readonly type: 'entities:subtractEntity'
+  readonly type: typeof subtractEntity
 }
 
 // All Actions

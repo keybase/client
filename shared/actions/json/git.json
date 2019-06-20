@@ -1,6 +1,5 @@
 {
   "prelude": [
-    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'",
     "import * as Types from '../constants/types/git'"
   ],
   "actions": {

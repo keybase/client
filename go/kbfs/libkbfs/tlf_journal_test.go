@@ -532,6 +532,8 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
 	err = tlfJournal.doOnMDFlushAndRemoveFlushedMDEntry(
 		ctx, kbfsmd.ID{}, &RootMetadataSigned{RootMetadataSigned: kbfsmd.RootMetadataSigned{MD: md.bareMd}})
+	require.Error(t, err)
+	require.Equal(t, "mdJournal unexpectedly empty", err.Error())
 
 	select {
 	case err := <-errCh:
@@ -572,6 +574,8 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
 	err = tlfJournal.doOnMDFlushAndRemoveFlushedMDEntry(
 		ctx, kbfsmd.ID{}, &RootMetadataSigned{RootMetadataSigned: kbfsmd.RootMetadataSigned{MD: md.bareMd}})
+	require.Error(t, err)
+	require.Equal(t, "mdJournal unexpectedly empty", err.Error())
 
 	select {
 	case err := <-errCh:

@@ -17,7 +17,8 @@ target 'Keybase' do
     'RCTLinkingIOS',
     'RCTPushNotification',
     'RCTSettings',
-    'RCTCameraRoll'
+    'RCTCameraRoll',
+    'RCTGeolocation',
   ]
 
   # Do not leave dependencies commented out here - it messes with `react-native link/unlink` behavior

@@ -322,4 +322,15 @@ protocol remote {
     gregor1.Time now;
   }
   ServerNowRes serverNow();
+
+  // Support for receiving third party API keys from the server
+  enum ExternalAPIKeyTyp {
+    GOOGLEMAPS_0,
+    GIPHY_1
+  }
+  variant ExternalAPIKey switch(ExternalAPIKeyTyp typ) {
+  case GOOGLEMAPS: string;
+  case GIPHY: string;
+  }
+  array<ExternalAPIKey> getExternalAPIKeys(array<ExternalAPIKeyTyp> typs);
 }

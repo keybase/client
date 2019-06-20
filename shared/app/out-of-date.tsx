@@ -41,13 +41,16 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   message: state.config.appOutOfDateMessage,
   status: state.config.appOutOfDateStatus,
 })
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onOpenAppStore: () => dispatch(ConfigGen.createOpenAppStore()),
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps})
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(OutOfDate)
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => ({...stateProps, ...dispatchProps})
+)(OutOfDate)

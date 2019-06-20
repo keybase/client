@@ -94,6 +94,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	require.NoError(t, signup.Run())
 
 	cli, xp, err := client.GetRPCClientWithContext(tc1.G)
+	require.NoError(t, err)
 	srv := rpc.NewServer(xp, nil)
 	em := newElectronMock(tc.G)
 	err = srv.Register(keybase1.GregorUIProtocol(em))

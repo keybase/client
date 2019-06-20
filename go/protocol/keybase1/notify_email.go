@@ -12,8 +12,15 @@ type EmailAddressVerifiedArg struct {
 	EmailAddress EmailAddress `codec:"emailAddress" json:"emailAddress"`
 }
 
+type EmailsChangedArg struct {
+	List     []Email      `codec:"list" json:"list"`
+	Category string       `codec:"category" json:"category"`
+	Email    EmailAddress `codec:"email" json:"email"`
+}
+
 type NotifyEmailAddressInterface interface {
 	EmailAddressVerified(context.Context, EmailAddress) error
+	EmailsChanged(context.Context, EmailsChangedArg) error
 }
 
 func NotifyEmailAddressProtocol(i NotifyEmailAddressInterface) rpc.Protocol {
@@ -35,6 +42,21 @@ func NotifyEmailAddressProtocol(i NotifyEmailAddressInterface) rpc.Protocol {
 					return
 				},
 			},
+			"emailsChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]EmailsChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EmailsChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EmailsChangedArg)(nil), args)
+						return
+					}
+					err = i.EmailsChanged(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -46,5 +68,10 @@ type NotifyEmailAddressClient struct {
 func (c NotifyEmailAddressClient) EmailAddressVerified(ctx context.Context, emailAddress EmailAddress) (err error) {
 	__arg := EmailAddressVerifiedArg{EmailAddress: emailAddress}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailAddressVerified", []interface{}{__arg})
+	return
+}
+
+func (c NotifyEmailAddressClient) EmailsChanged(ctx context.Context, __arg EmailsChangedArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailsChanged", []interface{}{__arg})
 	return
 }

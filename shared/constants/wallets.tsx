@@ -136,6 +136,7 @@ export const makeState = I.Record<Types._State>({
   currencies: I.List(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
+  externalPartners: I.List(),
   inflationDestinationError: '',
   inflationDestinationMap: I.Map(),
   inflationDestinations: I.List(),
@@ -165,7 +166,7 @@ export const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLoca
     builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
-    from: Types.stringToAccountID(b.from),
+    from: b.from ? Types.stringToAccountID(b.from) : Types.noAccountID,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToReview: b.readyToReview,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
@@ -244,10 +245,12 @@ const _defaultPaymentCommon = {
   delta: 'none' as Types.PaymentDelta,
   error: '',
   id: Types.noPaymentID,
+  isAdvanced: false,
   issuerAccountID: null,
   issuerDescription: '',
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
+  operations: [],
   showCancel: false,
   source: '',
   sourceAccountID: '',
@@ -257,6 +260,7 @@ const _defaultPaymentCommon = {
   statusDescription: '',
   statusDetail: '',
   statusSimplified: 'none' as Types.StatusSimplified,
+  summaryAdvanced: '',
   target: '',
   targetAccountID: '',
   targetType: '',
@@ -376,10 +380,12 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     delta: balanceDeltaToString[p.delta],
     error: '',
     id: Types.rpcPaymentIDToPaymentID(p.id),
+    isAdvanced: p.isAdvanced,
     issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
     issuerDescription: p.issuerDescription,
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
+    operations: p.operations,
     showCancel: p.showCancel,
     source,
     sourceAccountID: p.fromAccountID,
@@ -389,6 +395,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
     statusSimplified: serviceStatusSimplfied,
+    summaryAdvanced: p.summaryAdvanced,
     target,
     targetAccountID: p.toAccountID,
     targetType,
@@ -449,7 +456,12 @@ export const paymentToYourInfoAndCounterparty = (
       //
       // Also, they may be blank when p is the empty value.
       if (p.source !== p.target) {
-        throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
+        return {
+          counterparty: '',
+          counterpartyType: 'stellarPublicKey',
+          yourAccountName: '',
+          yourRole: 'none',
+        }
       }
       return {
         counterparty: p.source,
@@ -457,7 +469,6 @@ export const paymentToYourInfoAndCounterparty = (
         yourAccountName: p.source,
         yourRole: 'senderAndReceiver',
       }
-
     case 'increase':
       return {
         counterparty: p.source,
@@ -472,7 +483,6 @@ export const paymentToYourInfoAndCounterparty = (
         yourAccountName: p.sourceType === 'ownaccount' ? p.source : '',
         yourRole: 'senderOnly',
       }
-
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(p.delta)
       throw new Error(`Unexpected delta ${p.delta}`)
@@ -577,6 +587,9 @@ export const getDefaultAccountID = (state: TypedState) => {
 
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
+
+export const getExternalPartners = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.externalPartners
 
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())

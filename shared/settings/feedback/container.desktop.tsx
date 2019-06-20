@@ -1,11 +1,11 @@
 import Feedback from './index'
-import {namedConnect} from '../../util/container'
+import {namedConnect, RouteProps, getRouteProps} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {anyWaiting} from '../../constants/waiting'
 import * as Constants from '../../constants/settings'
 
-type OwnProps = {}
+type OwnProps = RouteProps<{feedback: string}, {}>
 
 const mapStateToProps = state => ({
   loggedOut: !state.config.loggedIn,
@@ -15,12 +15,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSendFeedback: (feedback, sendLogs) => dispatch(SettingsGen.createSendFeedback({feedback, sendLogs})),
+  onSendFeedback: (feedback, sendLogs, sendMaxBytes) =>
+    dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
 })
 
-const mergeProps = (s, d, o) => ({
+const mergeProps = (s, d, o: OwnProps) => ({
   ...s,
   ...d,
+  feedback: getRouteProps(o, 'feedback') || '',
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Feedback')(Feedback)

@@ -1,9 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/gregor'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
@@ -48,17 +45,17 @@ export const createUpdateReachable = (payload: _UpdateReachablePayload): UpdateR
 // Action Payloads
 export type CheckReachabilityPayload = {
   readonly payload: _CheckReachabilityPayload
-  readonly type: 'gregor:checkReachability'
+  readonly type: typeof checkReachability
 }
-export type PushOOBMPayload = {readonly payload: _PushOOBMPayload; readonly type: 'gregor:pushOOBM'}
-export type PushStatePayload = {readonly payload: _PushStatePayload; readonly type: 'gregor:pushState'}
+export type PushOOBMPayload = {readonly payload: _PushOOBMPayload; readonly type: typeof pushOOBM}
+export type PushStatePayload = {readonly payload: _PushStatePayload; readonly type: typeof pushState}
 export type UpdateCategoryPayload = {
   readonly payload: _UpdateCategoryPayload
-  readonly type: 'gregor:updateCategory'
+  readonly type: typeof updateCategory
 }
 export type UpdateReachablePayload = {
   readonly payload: _UpdateReachablePayload
-  readonly type: 'gregor:updateReachable'
+  readonly type: typeof updateReachable
 }
 
 // All Actions

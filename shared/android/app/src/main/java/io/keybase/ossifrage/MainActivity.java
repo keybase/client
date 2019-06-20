@@ -79,8 +79,9 @@ public class MainActivity extends ReactFragmentActivity {
         }
 
         createDummyFile();
+        String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
         initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher(), new VideoHelper());
+                new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
 
         super.onCreate(null);
 

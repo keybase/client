@@ -2,13 +2,15 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import participants from './participants/index.stories'
 import Participants from './participants/container'
-import ConfirmSend from '.'
+import _ConfirmSend from '.'
 
+const ConfirmSend: any = _ConfirmSend
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
 // good level of connected granularity while implementing
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
+  ConfirmSend: props => props,
   Participants: props => ({
     fromAccountAssets: '280.0871234 XLM',
     fromAccountName: '2nd',

@@ -109,13 +109,24 @@ export const makeTlfSyncPartial: I.Record.Factory<Types._TlfSyncPartial> = I.Rec
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeTlfConflict: I.Record.Factory<Types._TlfConflict> = I.Record({
-  branch: '',
-  state: Types.ConflictState.None,
-} as Types._TlfConflict)
+export const makeConflictStateNormalView: I.Record.Factory<Types._ConflictStateNormalView> = I.Record({
+  localViewTlfPaths: I.List(),
+  resolvingConflict: false,
+  stuckInConflict: false,
+  type: Types.ConflictStateType.NormalView,
+} as Types._ConflictStateNormalView)
+
+export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
+
+export const makeConflictStateManualResolvingLocalView: I.Record.Factory<
+  Types._ConflictStateManualResolvingLocalView
+> = I.Record({
+  normalViewTlfPath: defaultPath,
+  type: Types.ConflictStateType.ManualResolvingLocalView,
+})
 
 export const makeTlf: I.Record.Factory<Types._Tlf> = I.Record({
-  conflict: makeTlfConflict(),
+  conflictState: tlfNormalViewWithNoConflict,
   isFavorite: false,
   isIgnored: false,
   isNew: false,
@@ -139,8 +150,8 @@ export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersP
 } as Types._SyncingFoldersProgress)
 
 export const makeOverallSyncStatus: I.Record.Factory<Types._OverallSyncStatus> = I.Record({
-  diskSpaceBannerHidden: false,
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
+  showingBanner: false,
   syncingFoldersProgress: makeSyncingFoldersProgress(),
 } as Types._OverallSyncStatus)
 
@@ -315,7 +326,6 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   folderViewFilter: '',
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
   lastPublicBannerClosedTlf: '',
-  loadingPaths: I.Map(),
   localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
   pathItemActionMenu: makePathItemActionMenu(),
@@ -512,13 +522,12 @@ export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.Loc
 
 export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
-export const folderRPCFromPath = (path: Types.Path): RPCTypes.Folder | null => {
+export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
   const pathElems = Types.getPathElements(path)
   if (pathElems.length === 0) return null
 
   const visibility = Types.getVisibilityFromElems(pathElems)
   if (visibility === null) return null
-  const isPrivate = visibility === Types.TlfType.Private || visibility === Types.TlfType.Team
 
   const name = Types.getPathNameFromElems(pathElems)
   if (name === '') return null
@@ -527,7 +536,6 @@ export const folderRPCFromPath = (path: Types.Path): RPCTypes.Folder | null => {
     created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
-    private: isPrivate,
   }
 }
 
@@ -805,6 +813,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
   }
 }
 
+export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Path) =>
+  Types.pathConcat(
+    newTlfPath,
+    Types.getPathElements(path)
+      .slice(3)
+      .join('/')
+  )
+
 export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
   switch (parsedPath.kind) {
     case Types.PathKind.Root:
@@ -952,13 +968,13 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  routePath?: I.List<string> | null
+  navigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
     path,
   }),
-  RouteTreeGen.createNavigateAppend({
+  navigateAppend({
     path: [{props: {index}, selected: 'destinationPicker'}],
   }),
 ]
@@ -971,9 +987,6 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
-
-// TODO(KBFS-4155): implement this
-export const isUnmergedView = (path: Types.Path): boolean => false
 
 export const makeActionsForShowSendLinkToChat = (
   path: Types.Path,

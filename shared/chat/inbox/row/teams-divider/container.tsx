@@ -1,5 +1,5 @@
 import {TeamsDivider} from '.'
-import {connect} from '../../../../util/container'
+import {namedConnect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import {StylesCrossPlatform} from '../../../../styles'
 import {RowItem} from '../../index.types'
@@ -75,8 +75,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  () => ({}),
-  mergeProps
-)(TeamsDivider)
+export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'TeamsDivider')(TeamsDivider)

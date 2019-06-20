@@ -1,13 +1,14 @@
 import * as React from 'react'
+import * as DevicesGen from '../../actions/devices-gen'
 import * as Types from '../../constants/types/devices'
+import * as Constants from '../../constants/devices'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../../util/timestamp'
 
 type Props = {
-  device: Types.Device
-  onBack: () => void
-  showRevokeDevicePage: () => void
+  id: Types.DeviceID
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
@@ -83,30 +84,36 @@ const Timeline = ({device}) => {
 }
 
 const DevicePage = (props: Props) => {
-  let metaOne
-  if (props.device.currentDevice) {
-    metaOne = 'Current device'
-  } else if (props.device.revokedAt) {
-    metaOne = <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
-  }
+  const device = Container.useSelector(state => Constants.getDevice(state, props.id))
+  const dispatch = Container.useDispatch()
+  const showRevokeDevicePage = React.useCallback(
+    () => dispatch(DevicesGen.createShowRevokePage({deviceID: props.id})),
+    [dispatch, props.id]
+  )
+
+  const metaOne = device.currentDevice ? (
+    'Current device'
+  ) : device.revokedAt ? (
+    <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
+  ) : null
 
   const icon: Kb.IconType = ({
     backup: 'icon-paper-key-96',
     desktop: 'icon-computer-96',
     mobile: 'icon-phone-96',
-  } as const)[props.device.type]
+  } as const)[device.type]
 
   const revokeName = {
     backup: 'paper key',
     desktop: 'computer',
     mobile: 'phone',
-  }[props.device.type]
+  }[device.type]
 
   const metaTwo = {
     backup: 'Paper key',
     desktop: 'Computer',
     mobile: 'Phone',
-  }[props.device.type]
+  }[device.type]
 
   return (
     <Kb.Box2
@@ -118,10 +125,10 @@ const DevicePage = (props: Props) => {
       fullWidth={true}
       fullHeight={true}
     >
-      <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
-      <Timeline device={props.device} />
-      {!props.device.revokedAt && (
-        <Kb.Button type="Danger" label={`Revoke this ${revokeName}`} onClick={props.showRevokeDevicePage} />
+      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Timeline device={device} />
+      {!device.revokedAt && (
+        <Kb.Button type="Danger" label={`Revoke this ${revokeName}`} onClick={showRevokeDevicePage} />
       )}
     </Kb.Box2>
   )

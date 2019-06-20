@@ -5,41 +5,63 @@ import {SignupScreen} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
-type Props = {
-  allowSearch: boolean
-  onChangeAllowSearch: (arg0: boolean) => void
-  onChangePhoneNumber: (arg0: string) => void
-  onChangeValidity: (arg0: boolean) => void
-  onContinue: () => void
+export type Props = {
+  error: string
+  onContinue: (phoneNumber: string, allowSearch: boolean) => void
   onSkip: () => void
+  waiting: boolean
 }
 
-const EnterPhoneNumber = (props: Props) => (
-  <SignupScreen
-    buttons={[
-      {label: 'Continue', onClick: props.onContinue, type: 'Success' as ButtonType},
-      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
-    ]}
-    rightActionLabel="Skip"
-    onRightAction={props.onSkip}
-    title="Your phone number"
-  >
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile}>
-      <PhoneInput
-        style={styles.input}
-        onChangeNumber={props.onChangePhoneNumber}
-        onChangeValidity={props.onChangeValidity}
-        error=""
-      />
-      <Kb.Checkbox
-        label="Allow friends to find you by this phone number"
-        checked={props.allowSearch}
-        onCheck={props.onChangeAllowSearch}
-        style={styles.checkbox}
-      />
-    </Kb.Box2>
-  </SignupScreen>
-)
+const EnterPhoneNumber = (props: Props) => {
+  const [phoneNumber, onChangePhoneNumber] = React.useState('')
+  const [valid, onChangeValidity] = React.useState(false)
+  const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  const disabled = !valid
+  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(phoneNumber, allowSearch))
+  return (
+    <SignupScreen
+      buttons={[
+        {
+          disabled,
+          label: 'Continue',
+          onClick: onContinue,
+          type: 'Success' as ButtonType,
+          waiting: props.waiting,
+        },
+        ...(Styles.isMobile
+          ? []
+          : [
+              {
+                disabled: props.waiting,
+                label: 'Skip for now',
+                onClick: props.onSkip,
+                type: 'Dim' as ButtonType,
+              },
+            ]),
+      ]}
+      rightActionLabel="Skip"
+      onRightAction={props.onSkip}
+      title="Your phone number"
+      showHeaderInfoicon={true}
+    >
+      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+        <PhoneInput
+          style={styles.input}
+          onChangeNumber={onChangePhoneNumber}
+          onChangeValidity={onChangeValidity}
+          onEnterKeyDown={onContinue}
+        />
+        <Kb.Checkbox
+          label="Allow friends to find you by this phone number"
+          checked={allowSearch}
+          onCheck={onChangeAllowSearch}
+          style={styles.checkbox}
+        />
+        {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+      </Kb.Box2>
+    </SignupScreen>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
@@ -50,6 +72,13 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       height: 48,
+      width: '100%',
+    },
+  }),
+  inputBox: Styles.platformStyles({
+    isElectron: {
+      // need to set width so subtext will wrap
+      width: 368,
     },
   }),
 })

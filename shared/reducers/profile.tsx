@@ -49,6 +49,10 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       return updateUsername(state)
     case ProfileGen.revokeFinish:
       return state.merge({revokeError: actionHasError(action) ? action.payload.error : ''})
+    case ProfileGen.submitBlockUser:
+      return state.merge({blockUserModal: 'waiting'})
+    case ProfileGen.finishBlockUser:
+      return state.merge({blockUserModal: actionHasError(action) ? {error: action.payload.error} : null})
     case ProfileGen.updateProofText:
       return state.merge({proofText: action.payload.proof})
     case ProfileGen.updateProofStatus:
@@ -78,7 +82,7 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
       return state.merge({promptShouldStoreKeyOnServer: action.payload.promptShouldStoreKeyOnServer})
     case ProfileGen.addProof: {
       const platform = action.payload.platform
-      const maybeNotGeneric = More.isPlatformsExpandedType(platform)
+      const maybeNotGeneric = More.asPlatformsExpandedType(platform)
       return updateUsername(
         state.merge({
           errorCode: null,

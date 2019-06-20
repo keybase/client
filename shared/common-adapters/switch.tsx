@@ -21,6 +21,7 @@ type Props = {
   color?: 'blue' | 'green' | null // default to 'blue',
   disabled?: boolean | null
   gapInBetween?: boolean | null // inserts flex:1 gap between toggle and text,
+  gapSize?: number | null // inserts a gap of N pixels between toggle and text
   label: string | React.ReactNode
   labelSubtitle?: string | null // only effective when label is a string,
   labelTooltip?: string | null // only effective when label is a string,
@@ -58,6 +59,7 @@ const getContent = (props, ref) => (
       />
     </Kb.ClickableBox>
     {!!props.gapInBetween && <Kb.Box style={styles.gap} />}
+    {!!props.gapSize && <Kb.Box style={{width: props.gapSize}} />}
     {typeof props.label === 'string' ? (
       <LabelContainer {...props}>
         <Kb.Text type="BodySemibold">{props.label}</Kb.Text>

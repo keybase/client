@@ -241,18 +241,16 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
+const initOsNetworkStatus = (state, action) =>
+  NetInfo.getConnectionInfo().then(({type}) =>
+    ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
+  )
+
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
     NetInfo.addEventListener('connectionChange', ({type}) => emitter(type === 'none' ? 'offline' : 'online'))
     return () => {}
   }, Saga.buffers.sliding(1))
-
-  const toPut = yield Saga.callUntyped(() =>
-    NetInfo.getConnectionInfo().then(({type}) =>
-      ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
-    )
-  )
-  yield Saga.put(toPut)
 
   while (true) {
     const status = yield Saga.take(channel)
@@ -399,6 +397,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.OpenAppStorePayload>(ConfigGen.openAppStore, openAppStore)
   yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
   yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)

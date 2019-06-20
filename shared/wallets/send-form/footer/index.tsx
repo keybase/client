@@ -6,8 +6,8 @@ import * as Styles from '../../../styles'
 type Props = {
   calculating: boolean
   disabled?: boolean
-  onClickRequest?: Function
-  onClickSend?: Function
+  onClickRequest?: () => void
+  onClickSend?: () => void
   thisDeviceIsLockedOut: boolean
   waitingKey: string
   worthDescription?: string

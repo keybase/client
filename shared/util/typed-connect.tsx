@@ -1,23 +1,16 @@
-import {
-  connect,
-  MapStateToProps,
-  MapDispatchToProps,
-  MergeProps,
-  Options,
-  InferableComponentEnhancerWithProps,
-  ResolveThunks,
-} from 'react-redux'
-import {setDisplayName, compose} from 'recompose'
-export default connect
+import * as RR from 'react-redux'
+import {compose, setDisplayName} from 'recompose'
+import {TypedState} from '../constants/reducer'
 
-export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps, State>(
-  mapStateToProps: MapStateToProps<TStateProps, TOwnProps, State>,
-  mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
-  mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
+const connect = RR.connect
+
+export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
+  mapStateToProps: RR.MapStateToProps<TStateProps, TOwnProps>,
+  mapDispatchToProps: RR.MapDispatchToProps<TDispatchProps, TOwnProps>,
+  mergeProps: RR.MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
   displayName: string,
-  options?: Options<State, TStateProps, TOwnProps, TMergedProps>
-): InferableComponentEnhancerWithProps<TMergedProps, TOwnProps> =>
-  // @ts-ignore
+  options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+) =>
   compose(
     connect(
       mapStateToProps,
@@ -26,4 +19,6 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
       options
     ),
     setDisplayName(displayName)
-  )
+  ) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
+
+export default connect

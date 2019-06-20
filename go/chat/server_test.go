@@ -2011,6 +2011,7 @@ type serverChatListener struct {
 	ephemeralPurge          chan chat1.EphemeralPurgeNotifInfo
 	reactionUpdate          chan chat1.ReactionUpdateNotif
 	messagesUpdated         chan chat1.MessagesUpdated
+	readMessage             chan chat1.ReadMessageInfo
 
 	threadsStale     chan []chat1.ConversationStaleUpdate
 	inboxStale       chan struct{}
@@ -2058,6 +2059,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		case chat1.ChatActivitySource_REMOTE:
 			n.newMessageRemote <- activity.IncomingMessage()
 		}
+	case chat1.ChatActivityType_READ_MESSAGE:
+		n.readMessage <- activity.ReadMessage()
 	case chat1.ChatActivityType_NEW_CONVERSATION:
 		n.newConversation <- activity.NewConversation()
 	case chat1.ChatActivityType_MEMBERS_UPDATE:
@@ -2120,6 +2123,7 @@ func newServerChatListener() *serverChatListener {
 		newMessageLocal:         make(chan chat1.IncomingMessage, buf),
 		newMessageRemote:        make(chan chat1.IncomingMessage, buf),
 		newConversation:         make(chan chat1.NewConversationInfo, buf),
+		readMessage:             make(chan chat1.ReadMessageInfo, buf),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, buf),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
@@ -5094,6 +5098,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
+		require.NoError(t, err)
 		channelInfo := channel.Conv.Info
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeNewConversation(t, listener1, channelInfo.Id)

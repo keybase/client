@@ -24,8 +24,8 @@ module.exports = (storybookBaseConfig, configType) => {
       'process.platform': JSON.stringify('darwin'),
     }),
     new webpack.NormalModuleReplacementPlugin(
-      /^react-redux$/,
-      path.join(__dirname, '/../__mocks__/react-redux.js')
+      /typed-connect/,
+      path.join(__dirname, '/../util/__mocks__/typed-connect.tsx')
     ),
     new webpack.NormalModuleReplacementPlugin(
       /^electron$/,

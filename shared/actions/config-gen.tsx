@@ -1,9 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/config'
+
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -88,7 +85,7 @@ type _LinkPayload = {readonly link: string}
 type _LoadAvatarsPayload = {readonly usernames: Array<string>}
 type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
 type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
-type _LoggedInPayload = {readonly causedByStartup: boolean}
+type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
 type _LogoutHandshakePayload = {readonly version: number}
 type _LogoutHandshakeWaitPayload = {
@@ -314,129 +311,114 @@ export const createUpdateNow = (payload: _UpdateNowPayload): UpdateNowPayload =>
 // Action Payloads
 export type BootstrapStatusLoadedPayload = {
   readonly payload: _BootstrapStatusLoadedPayload
-  readonly type: 'config:bootstrapStatusLoaded'
+  readonly type: typeof bootstrapStatusLoaded
 }
 export type ChangedActivePayload = {
   readonly payload: _ChangedActivePayload
-  readonly type: 'config:changedActive'
+  readonly type: typeof changedActive
 }
-export type ChangedFocusPayload = {
-  readonly payload: _ChangedFocusPayload
-  readonly type: 'config:changedFocus'
-}
+export type ChangedFocusPayload = {readonly payload: _ChangedFocusPayload; readonly type: typeof changedFocus}
 export type CheckForUpdatePayload = {
   readonly payload: _CheckForUpdatePayload
-  readonly type: 'config:checkForUpdate'
+  readonly type: typeof checkForUpdate
 }
 export type CopyToClipboardPayload = {
   readonly payload: _CopyToClipboardPayload
-  readonly type: 'config:copyToClipboard'
+  readonly type: typeof copyToClipboard
 }
-export type DaemonErrorPayload = {readonly payload: _DaemonErrorPayload; readonly type: 'config:daemonError'}
+export type DaemonErrorPayload = {readonly payload: _DaemonErrorPayload; readonly type: typeof daemonError}
 export type DaemonHandshakeDonePayload = {
   readonly payload: _DaemonHandshakeDonePayload
-  readonly type: 'config:daemonHandshakeDone'
+  readonly type: typeof daemonHandshakeDone
 }
 export type DaemonHandshakePayload = {
   readonly payload: _DaemonHandshakePayload
-  readonly type: 'config:daemonHandshake'
+  readonly type: typeof daemonHandshake
 }
 export type DaemonHandshakeWaitPayload = {
   readonly payload: _DaemonHandshakeWaitPayload
-  readonly type: 'config:daemonHandshakeWait'
+  readonly type: typeof daemonHandshakeWait
 }
-export type DumpLogsPayload = {readonly payload: _DumpLogsPayload; readonly type: 'config:dumpLogs'}
+export type DumpLogsPayload = {readonly payload: _DumpLogsPayload; readonly type: typeof dumpLogs}
 export type FilePickerErrorPayload = {
   readonly payload: _FilePickerErrorPayload
-  readonly type: 'config:filePickerError'
+  readonly type: typeof filePickerError
 }
-export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: 'config:globalError'}
-export type InstallerRanPayload = {
-  readonly payload: _InstallerRanPayload
-  readonly type: 'config:installerRan'
-}
-export type LinkPayload = {readonly payload: _LinkPayload; readonly type: 'config:link'}
-export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: 'config:loadAvatars'}
+export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
+export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
+export type LinkPayload = {readonly payload: _LinkPayload; readonly type: typeof link}
+export type LoadAvatarsPayload = {readonly payload: _LoadAvatarsPayload; readonly type: typeof loadAvatars}
 export type LoadTeamAvatarsPayload = {
   readonly payload: _LoadTeamAvatarsPayload
-  readonly type: 'config:loadTeamAvatars'
+  readonly type: typeof loadTeamAvatars
 }
 export type LoadedAvatarsPayload = {
   readonly payload: _LoadedAvatarsPayload
-  readonly type: 'config:loadedAvatars'
+  readonly type: typeof loadedAvatars
 }
-export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: 'config:loggedIn'}
-export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: 'config:loggedOut'}
+export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
+export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
 export type LogoutHandshakePayload = {
   readonly payload: _LogoutHandshakePayload
-  readonly type: 'config:logoutHandshake'
+  readonly type: typeof logoutHandshake
 }
 export type LogoutHandshakeWaitPayload = {
   readonly payload: _LogoutHandshakeWaitPayload
-  readonly type: 'config:logoutHandshakeWait'
+  readonly type: typeof logoutHandshakeWait
 }
-export type LogoutPayload = {readonly payload: _LogoutPayload; readonly type: 'config:logout'}
+export type LogoutPayload = {readonly payload: _LogoutPayload; readonly type: typeof logout}
 export type MobileAppStatePayload = {
   readonly payload: _MobileAppStatePayload
-  readonly type: 'config:mobileAppState'
+  readonly type: typeof mobileAppState
 }
 export type OpenAppSettingsPayload = {
   readonly payload: _OpenAppSettingsPayload
-  readonly type: 'config:openAppSettings'
+  readonly type: typeof openAppSettings
 }
-export type OpenAppStorePayload = {
-  readonly payload: _OpenAppStorePayload
-  readonly type: 'config:openAppStore'
-}
+export type OpenAppStorePayload = {readonly payload: _OpenAppStorePayload; readonly type: typeof openAppStore}
 export type OsNetworkStatusChangedPayload = {
   readonly payload: _OsNetworkStatusChangedPayload
-  readonly type: 'config:osNetworkStatusChanged'
+  readonly type: typeof osNetworkStatusChanged
 }
-export type PersistRoutePayload = {
-  readonly payload: _PersistRoutePayload
-  readonly type: 'config:persistRoute'
-}
-export type PushLoadedPayload = {readonly payload: _PushLoadedPayload; readonly type: 'config:pushLoaded'}
+export type PersistRoutePayload = {readonly payload: _PersistRoutePayload; readonly type: typeof persistRoute}
+export type PushLoadedPayload = {readonly payload: _PushLoadedPayload; readonly type: typeof pushLoaded}
 export type RestartHandshakePayload = {
   readonly payload: _RestartHandshakePayload
-  readonly type: 'config:restartHandshake'
+  readonly type: typeof restartHandshake
 }
-export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: 'config:setAccounts'}
+export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: typeof setAccounts}
 export type SetDeletedSelfPayload = {
   readonly payload: _SetDeletedSelfPayload
-  readonly type: 'config:setDeletedSelf'
+  readonly type: typeof setDeletedSelf
 }
-export type SetNavigatorPayload = {
-  readonly payload: _SetNavigatorPayload
-  readonly type: 'config:setNavigator'
-}
+export type SetNavigatorPayload = {readonly payload: _SetNavigatorPayload; readonly type: typeof setNavigator}
 export type SetNotifySoundPayload = {
   readonly payload: _SetNotifySoundPayload
-  readonly type: 'config:setNotifySound'
+  readonly type: typeof setNotifySound
 }
 export type SetOpenAtLoginPayload = {
   readonly payload: _SetOpenAtLoginPayload
-  readonly type: 'config:setOpenAtLogin'
+  readonly type: typeof setOpenAtLogin
 }
 export type SetStartupDetailsPayload = {
   readonly payload: _SetStartupDetailsPayload
-  readonly type: 'config:setStartupDetails'
+  readonly type: typeof setStartupDetails
 }
-export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: 'config:showMain'}
+export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
-  readonly type: 'config:startHandshake'
+  readonly type: typeof startHandshake
 }
 export type UpdateCriticalCheckStatusPayload = {
   readonly payload: _UpdateCriticalCheckStatusPayload
-  readonly type: 'config:updateCriticalCheckStatus'
+  readonly type: typeof updateCriticalCheckStatus
 }
-export type UpdateInfoPayload = {readonly payload: _UpdateInfoPayload; readonly type: 'config:updateInfo'}
+export type UpdateInfoPayload = {readonly payload: _UpdateInfoPayload; readonly type: typeof updateInfo}
 export type UpdateMenubarWindowIDPayload = {
   readonly payload: _UpdateMenubarWindowIDPayload
-  readonly type: 'config:updateMenubarWindowID'
+  readonly type: typeof updateMenubarWindowID
 }
-export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: 'config:updateNow'}
+export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
 
 // All Actions
 // prettier-ignore

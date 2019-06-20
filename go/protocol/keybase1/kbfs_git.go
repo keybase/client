@@ -25,19 +25,19 @@ func (o GcOptions) DeepCopy() GcOptions {
 }
 
 type CreateRepoArg struct {
-	Folder Folder      `codec:"folder" json:"folder"`
-	Name   GitRepoName `codec:"name" json:"name"`
+	Folder FolderHandle `codec:"folder" json:"folder"`
+	Name   GitRepoName  `codec:"name" json:"name"`
 }
 
 type DeleteRepoArg struct {
-	Folder Folder      `codec:"folder" json:"folder"`
-	Name   GitRepoName `codec:"name" json:"name"`
+	Folder FolderHandle `codec:"folder" json:"folder"`
+	Name   GitRepoName  `codec:"name" json:"name"`
 }
 
 type GcArg struct {
-	Folder  Folder      `codec:"folder" json:"folder"`
-	Name    GitRepoName `codec:"name" json:"name"`
-	Options GcOptions   `codec:"options" json:"options"`
+	Folder  FolderHandle `codec:"folder" json:"folder"`
+	Name    GitRepoName  `codec:"name" json:"name"`
+	Options GcOptions    `codec:"options" json:"options"`
 }
 
 type KBFSGitInterface interface {

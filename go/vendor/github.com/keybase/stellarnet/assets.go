@@ -2,6 +2,7 @@ package stellarnet
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/stellar/go/xdr"
@@ -186,6 +187,58 @@ func AssetSearch(arg AssetSearchArg) (res []AssetSummary, err error) {
 	}
 
 	return summaries, nil
+}
+
+// AssetList returns a list of assets from horizon (max 200 at a time). Order should be asc or desc. Continue
+// calling this with the same order and the previous cursor to fetch all of them.
+func AssetList(cursor string, limit int, order string) (res []AssetSummary, nextCursor string, err error) {
+	if limit < 1 || limit > 200 {
+		limit = 200
+	}
+	u, err := url.Parse(Client().URL + "/assets")
+	if err != nil {
+		return nil, "", errMap(err)
+	}
+	q := u.Query()
+	q.Set("limit", fmt.Sprintf("%d", limit))
+	q.Set("order", order)
+	q.Set("cursor", cursor)
+	u.RawQuery = q.Encode()
+
+	var page AssetsPage
+	err = getDecodeJSONStrict(u.String(), Client().HTTP.Get, &page)
+	if err != nil {
+		return nil, "", errMap(err)
+	}
+
+	parsedNextLink, err := url.Parse(page.Links.Next.Href)
+	if err != nil {
+		return nil, "", errMap(err)
+	}
+	queryParams, err := url.ParseQuery(parsedNextLink.RawQuery)
+	if err != nil {
+		return nil, "", errMap(err)
+	}
+	cursorParam, ok := queryParams["cursor"]
+	if !ok {
+		err = errors.New("no next cursor in asset list")
+		return nil, "", errMap(err)
+	}
+	nextCursor = cursorParam[0]
+
+	assets := make([]AssetSummary, len(page.Embedded.Records))
+	for i, r := range page.Embedded.Records {
+		assets[i] = AssetSummary{
+			UnverifiedWellKnownLink: r.Links.WellKnown.Href,
+			AssetType:               r.AssetType,
+			AssetCode:               r.AssetCode,
+			AssetIssuer:             r.AssetIssuer,
+			Amount:                  r.Amount,
+			NumAccounts:             r.NumAccounts,
+		}
+	}
+
+	return assets, nextCursor, nil
 }
 
 func makeXDRAsset(assetCode string, issuerID AddressStr) (xdr.Asset, error) {

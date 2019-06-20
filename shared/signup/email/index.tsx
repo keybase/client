@@ -1,45 +1,68 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 import {ButtonType} from '../../common-adapters/button'
 
 type Props = {
   allowSearch: boolean
-  onChangeAllowSearch: (arg0: boolean) => void
-  onChangeEmail: (arg0: string) => void
-  onFinish: () => void
-  onSkip: () => void
+  error: string
+  initialEmail?: string
+  onBack?: () => void
+  onChangeAllowSearch?: (allow: boolean) => void
+  onFinish: (email: string) => void
+  onSkip?: () => void
 }
 
-const EnterEmail = (props: Props) => (
-  <SignupScreen
-    buttons={[
-      {label: 'Finish', onClick: props.onFinish, type: 'Success'},
-      ...(Styles.isMobile ? [] : [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
-    ]}
-    rightActionLabel="Skip"
-    onRightAction={props.onSkip}
-    title="Your email address"
-  >
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile}>
-      <Kb.NewInput
-        autoFocus={true}
-        containerStyle={styles.input}
-        keyboardType="email-address"
-        placeholder="Email address"
-        onChangeText={props.onChangeEmail}
-        textContentType="emailAddress"
-      />
-      <Kb.Checkbox
-        label="Allow friends to find you by this email address"
-        checked={props.allowSearch}
-        onCheck={props.onChangeAllowSearch}
-        style={styles.checkbox}
-      />
-    </Kb.Box2>
-  </SignupScreen>
-)
+// Parts that are commented out allow skipping entering an email, we don't want
+// to allow skipping for now. TODO Y2K-57 allow skipping.
+const EnterEmail = (props: Props) => {
+  const [email, onChangeEmail] = React.useState(props.initialEmail || '')
+  const disabled = !email
+  const onContinue = () => (disabled ? {} : props.onFinish(email))
+  return (
+    <SignupScreen
+      banners={errorBanner(props.error)}
+      buttons={[
+        {disabled, label: 'Continue', onClick: onContinue, type: 'Success'},
+        ...(Styles.isMobile ? [] : []), // [{label: 'Skip for now', onClick: props.onSkip, type: 'Dim' as ButtonType}]),
+      ]}
+      rightActionLabel="Skip"
+      onBack={props.onBack}
+      // onRightAction={props.onSkip}
+      title="Your email address"
+    >
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        gap={Styles.isMobile ? 'small' : 'medium'}
+        fullWidth={true}
+        style={Styles.globalStyles.flexOne}
+      >
+        <Kb.Icon type="icon-email-add-96" />
+        <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+          <Kb.NewInput
+            autoFocus={true}
+            containerStyle={styles.input}
+            keyboardType="email-address"
+            placeholder="Email address"
+            onChangeText={onChangeEmail}
+            onEnterKeyDown={onContinue}
+            textContentType="emailAddress"
+            value={email}
+          />
+          {/* TODO hook in to "add an email" settings
+          <Kb.Checkbox
+          label="Allow friends to find you by this email address"
+          checked={props.allowSearch}
+          onCheck={props.onChangeAllowSearch}
+          style={styles.checkbox}
+        /> */}
+        </Kb.Box2>
+      </Kb.Box2>
+    </SignupScreen>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
@@ -53,6 +76,12 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small),
       height: 48,
+    },
+  }),
+  inputBox: Styles.platformStyles({
+    isElectron: {
+      // need to set width so subtext will wrap
+      width: 368,
     },
   }),
 })

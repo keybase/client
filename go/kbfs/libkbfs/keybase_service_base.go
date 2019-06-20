@@ -335,8 +335,8 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
-func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
-	k.log.CDebugf(ctx, "Current session logged in: %s", name)
+func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, arg keybase1.LoggedInArg) error {
+	k.log.CDebugf(ctx, "Current session logged in: %s, signedUp: %t", arg.Username, arg.SignedUp)
 	// Since we don't have the whole session, just clear the cache and
 	// repopulate it.  The `CurrentSession` call executes the "logged
 	// in" flow.
@@ -346,7 +346,7 @@ func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
 	if err != nil {
 		k.log.CDebugf(ctx, "Getting current session failed when %s is logged "+
 			"in, so pretending user has logged out: %v",
-			name, err)
+			arg.Username, err)
 		if k.config != nil {
 			serviceLoggedOut(ctx, k.config)
 		}
@@ -1135,12 +1135,12 @@ func (k *KeybaseServiceBase) CurrentSession(
 }
 
 // FavoriteAdd implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseServiceBase) FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.favoriteClient.FavoriteAdd(ctx, keybase1.FavoriteAddArg{Folder: folder})
 }
 
 // FavoriteDelete implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.favoriteClient.FavoriteIgnore(ctx,
 		keybase1.FavoriteIgnoreArg{Folder: folder})
 }
@@ -1532,7 +1532,7 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 // PutGitMetadata implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) PutGitMetadata(
-	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) error {
 	return k.gitClient.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
 		Folder:   folder,

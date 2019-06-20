@@ -87,6 +87,10 @@ export type MessageTypes = {
     inParam: {readonly accountID: AccountID}
     outParam: InflationDestinationResultLocal
   }
+  'stellar.1.local.getPartnerUrlsLocal': {
+    inParam: void
+    outParam: Array<PartnerUrl> | null
+  }
   'stellar.1.local.getPaymentDetailsLocal': {
     inParam: {readonly accountID: AccountID; readonly id: PaymentID}
     outParam: PaymentDetailsLocal
@@ -313,6 +317,7 @@ export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}
 export type Asset = {readonly type: String; readonly code: String; readonly issuer: String; readonly verifiedDomain: String; readonly issuerName: String; readonly desc: String; readonly infoUrl: String}
 export type AssetCode = String
+export type AssetListResult = {readonly assets?: Array<Asset> | null; readonly totalCount: Int}
 export type AutoClaim = {readonly kbTxID: KeybaseTransactionID}
 export type Balance = {readonly asset: Asset; readonly amount: String; readonly limit: String}
 export type BatchPaymentArg = {readonly recipient: String; readonly amount: String; readonly message: String}
@@ -436,6 +441,7 @@ export const localGetAccountAssetsLocalRpcPromise = (params: MessageTypes['stell
 export const localGetDisplayCurrenciesLocalRpcPromise = (params: MessageTypes['stellar.1.local.getDisplayCurrenciesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getDisplayCurrenciesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getDisplayCurrenciesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetDisplayCurrencyLocalRpcPromise = (params: MessageTypes['stellar.1.local.getDisplayCurrencyLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getDisplayCurrencyLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getDisplayCurrencyLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInflationDestinationLocalRpcPromise = (params: MessageTypes['stellar.1.local.getInflationDestinationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getInflationDestinationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getInflationDestinationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetPartnerUrlsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPartnerUrlsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPartnerUrlsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPartnerUrlsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPaymentDetailsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPaymentDetailsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPaymentDetailsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPaymentDetailsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPaymentsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPaymentsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPaymentsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPaymentsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPendingPaymentsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPendingPaymentsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPendingPaymentsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPendingPaymentsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -465,6 +471,8 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.getWalletAccountPublicKeyLocal'
 // 'stellar.1.local.sendPathLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
+// 'stellar.1.local.fuzzyAssetSearchLocal'
+// 'stellar.1.local.listPopularAssetsLocal'
 // 'stellar.1.local.addTrustlineLocal'
 // 'stellar.1.local.deleteTrustlineLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
@@ -493,7 +501,6 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.approveTxURILocal'
 // 'stellar.1.local.approvePayURILocal'
 // 'stellar.1.local.approvePathURILocal'
-// 'stellar.1.local.getPartnerUrlsLocal'
 // 'stellar.1.local.signTransactionXdrLocal'
 // 'stellar.1.notify.paymentNotification'
 // 'stellar.1.notify.paymentStatusNotification'
@@ -526,6 +533,8 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.remote.networkOptions'
 // 'stellar.1.remote.detailsPlusPayments'
 // 'stellar.1.remote.assetSearch'
+// 'stellar.1.remote.fuzzyAssetSearch'
+// 'stellar.1.remote.listPopularAssets'
 // 'stellar.1.remote.changeTrustline'
 // 'stellar.1.remote.findPaymentPath'
 // 'stellar.1.remote.postAnyTransaction'

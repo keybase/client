@@ -153,7 +153,7 @@ func addfav(name string, folderType keybase1.FolderType, created bool, idUI libk
 		IdentifyUI: idUI,
 	}
 	arg := keybase1.FavoriteAddArg{
-		Folder: keybase1.Folder{Name: name, FolderType: folderType, Created: created},
+		Folder: keybase1.FolderHandle{Name: name, FolderType: folderType, Created: created},
 	}
 	eng := NewFavoriteAdd(tc.G, &arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
@@ -169,7 +169,7 @@ func addfav(name string, folderType keybase1.FolderType, created bool, idUI libk
 
 func rmfav(name string, folderType keybase1.FolderType, tc libkb.TestContext, expectedFaves *favorites) {
 	arg := keybase1.FavoriteIgnoreArg{
-		Folder: keybase1.Folder{Name: name, FolderType: folderType},
+		Folder: keybase1.FolderHandle{Name: name, FolderType: folderType},
 	}
 	eng := NewFavoriteIgnore(tc.G, &arg)
 	m := libkb.NewMetaContextForTest(tc)

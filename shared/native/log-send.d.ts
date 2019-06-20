@@ -1,7 +1,8 @@
 declare function logSend(
   status: string,
   feedback: string,
-  includeLogs: boolean,
+  sendLogs: boolean,
+  sendMaxBytes: boolean,
   path: string,
   traceDir: string,
   cpuProfileDir: string

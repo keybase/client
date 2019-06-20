@@ -359,3 +359,7 @@ func (c *ChatCLIUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMa
 func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatGetCoordinate(ctx context.Context, sessionID int) (chat1.Coordinate, error) {
+	return chat1.Coordinate{}, nil
+}

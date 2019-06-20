@@ -76,22 +76,19 @@ func (e FolderConflictType) String() string {
 type ConflictStateType int
 
 const (
-	ConflictStateType_AutomaticResolving        ConflictStateType = 0
-	ConflictStateType_ManualResolvingServerView ConflictStateType = 1
-	ConflictStateType_ManualResolvingLocalView  ConflictStateType = 2
+	ConflictStateType_NormalView               ConflictStateType = 1
+	ConflictStateType_ManualResolvingLocalView ConflictStateType = 2
 )
 
 func (o ConflictStateType) DeepCopy() ConflictStateType { return o }
 
 var ConflictStateTypeMap = map[string]ConflictStateType{
-	"AutomaticResolving":        0,
-	"ManualResolvingServerView": 1,
-	"ManualResolvingLocalView":  2,
+	"NormalView":               1,
+	"ManualResolvingLocalView": 2,
 }
 
 var ConflictStateTypeRevMap = map[ConflictStateType]string{
-	0: "AutomaticResolving",
-	1: "ManualResolvingServerView",
+	1: "NormalView",
 	2: "ManualResolvingLocalView",
 }
 
@@ -102,22 +99,16 @@ func (e ConflictStateType) String() string {
 	return ""
 }
 
-type ConflictAutomaticResolving struct {
-	IsStuck bool `codec:"isStuck" json:"isStuck"`
+type FolderNormalView struct {
+	ResolvingConflict bool   `codec:"resolvingConflict" json:"resolvingConflict"`
+	StuckInConflict   bool   `codec:"stuckInConflict" json:"stuckInConflict"`
+	LocalViews        []Path `codec:"localViews" json:"localViews"`
 }
 
-func (o ConflictAutomaticResolving) DeepCopy() ConflictAutomaticResolving {
-	return ConflictAutomaticResolving{
-		IsStuck: o.IsStuck,
-	}
-}
-
-type ConflictManualResolvingServerView struct {
-	LocalViews []Path `codec:"localViews" json:"localViews"`
-}
-
-func (o ConflictManualResolvingServerView) DeepCopy() ConflictManualResolvingServerView {
-	return ConflictManualResolvingServerView{
+func (o FolderNormalView) DeepCopy() FolderNormalView {
+	return FolderNormalView{
+		ResolvingConflict: o.ResolvingConflict,
+		StuckInConflict:   o.StuckInConflict,
 		LocalViews: (func(x []Path) []Path {
 			if x == nil {
 				return nil
@@ -132,33 +123,27 @@ func (o ConflictManualResolvingServerView) DeepCopy() ConflictManualResolvingSer
 	}
 }
 
-type ConflictManualResolvingLocalView struct {
-	ServerView Path `codec:"serverView" json:"serverView"`
+type FolderConflictManualResolvingLocalView struct {
+	NormalView Path `codec:"normalView" json:"normalView"`
 }
 
-func (o ConflictManualResolvingLocalView) DeepCopy() ConflictManualResolvingLocalView {
-	return ConflictManualResolvingLocalView{
-		ServerView: o.ServerView.DeepCopy(),
+func (o FolderConflictManualResolvingLocalView) DeepCopy() FolderConflictManualResolvingLocalView {
+	return FolderConflictManualResolvingLocalView{
+		NormalView: o.NormalView.DeepCopy(),
 	}
 }
 
 type ConflictState struct {
-	ConflictStateType__         ConflictStateType                  `codec:"conflictStateType" json:"conflictStateType"`
-	Automaticresolving__        *ConflictAutomaticResolving        `codec:"automaticresolving,omitempty" json:"automaticresolving,omitempty"`
-	Manualresolvingserverview__ *ConflictManualResolvingServerView `codec:"manualresolvingserverview,omitempty" json:"manualresolvingserverview,omitempty"`
-	Manualresolvinglocalview__  *ConflictManualResolvingLocalView  `codec:"manualresolvinglocalview,omitempty" json:"manualresolvinglocalview,omitempty"`
+	ConflictStateType__        ConflictStateType                       `codec:"conflictStateType" json:"conflictStateType"`
+	Normalview__               *FolderNormalView                       `codec:"normalview,omitempty" json:"normalview,omitempty"`
+	Manualresolvinglocalview__ *FolderConflictManualResolvingLocalView `codec:"manualresolvinglocalview,omitempty" json:"manualresolvinglocalview,omitempty"`
 }
 
 func (o *ConflictState) ConflictStateType() (ret ConflictStateType, err error) {
 	switch o.ConflictStateType__ {
-	case ConflictStateType_AutomaticResolving:
-		if o.Automaticresolving__ == nil {
-			err = errors.New("unexpected nil value for Automaticresolving__")
-			return ret, err
-		}
-	case ConflictStateType_ManualResolvingServerView:
-		if o.Manualresolvingserverview__ == nil {
-			err = errors.New("unexpected nil value for Manualresolvingserverview__")
+	case ConflictStateType_NormalView:
+		if o.Normalview__ == nil {
+			err = errors.New("unexpected nil value for Normalview__")
 			return ret, err
 		}
 	case ConflictStateType_ManualResolvingLocalView:
@@ -170,27 +155,17 @@ func (o *ConflictState) ConflictStateType() (ret ConflictStateType, err error) {
 	return o.ConflictStateType__, nil
 }
 
-func (o ConflictState) Automaticresolving() (res ConflictAutomaticResolving) {
-	if o.ConflictStateType__ != ConflictStateType_AutomaticResolving {
+func (o ConflictState) Normalview() (res FolderNormalView) {
+	if o.ConflictStateType__ != ConflictStateType_NormalView {
 		panic("wrong case accessed")
 	}
-	if o.Automaticresolving__ == nil {
+	if o.Normalview__ == nil {
 		return
 	}
-	return *o.Automaticresolving__
+	return *o.Normalview__
 }
 
-func (o ConflictState) Manualresolvingserverview() (res ConflictManualResolvingServerView) {
-	if o.ConflictStateType__ != ConflictStateType_ManualResolvingServerView {
-		panic("wrong case accessed")
-	}
-	if o.Manualresolvingserverview__ == nil {
-		return
-	}
-	return *o.Manualresolvingserverview__
-}
-
-func (o ConflictState) Manualresolvinglocalview() (res ConflictManualResolvingLocalView) {
+func (o ConflictState) Manualresolvinglocalview() (res FolderConflictManualResolvingLocalView) {
 	if o.ConflictStateType__ != ConflictStateType_ManualResolvingLocalView {
 		panic("wrong case accessed")
 	}
@@ -200,21 +175,14 @@ func (o ConflictState) Manualresolvinglocalview() (res ConflictManualResolvingLo
 	return *o.Manualresolvinglocalview__
 }
 
-func NewConflictStateWithAutomaticresolving(v ConflictAutomaticResolving) ConflictState {
+func NewConflictStateWithNormalview(v FolderNormalView) ConflictState {
 	return ConflictState{
-		ConflictStateType__:  ConflictStateType_AutomaticResolving,
-		Automaticresolving__: &v,
+		ConflictStateType__: ConflictStateType_NormalView,
+		Normalview__:        &v,
 	}
 }
 
-func NewConflictStateWithManualresolvingserverview(v ConflictManualResolvingServerView) ConflictState {
-	return ConflictState{
-		ConflictStateType__:         ConflictStateType_ManualResolvingServerView,
-		Manualresolvingserverview__: &v,
-	}
-}
-
-func NewConflictStateWithManualresolvinglocalview(v ConflictManualResolvingLocalView) ConflictState {
+func NewConflictStateWithManualresolvinglocalview(v FolderConflictManualResolvingLocalView) ConflictState {
 	return ConflictState{
 		ConflictStateType__:        ConflictStateType_ManualResolvingLocalView,
 		Manualresolvinglocalview__: &v,
@@ -224,21 +192,14 @@ func NewConflictStateWithManualresolvinglocalview(v ConflictManualResolvingLocal
 func (o ConflictState) DeepCopy() ConflictState {
 	return ConflictState{
 		ConflictStateType__: o.ConflictStateType__.DeepCopy(),
-		Automaticresolving__: (func(x *ConflictAutomaticResolving) *ConflictAutomaticResolving {
+		Normalview__: (func(x *FolderNormalView) *FolderNormalView {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Automaticresolving__),
-		Manualresolvingserverview__: (func(x *ConflictManualResolvingServerView) *ConflictManualResolvingServerView {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Manualresolvingserverview__),
-		Manualresolvinglocalview__: (func(x *ConflictManualResolvingLocalView) *ConflictManualResolvingLocalView {
+		})(o.Normalview__),
+		Manualresolvinglocalview__: (func(x *FolderConflictManualResolvingLocalView) *FolderConflictManualResolvingLocalView {
 			if x == nil {
 				return nil
 			}
@@ -311,6 +272,20 @@ func (o Folder) DeepCopy() Folder {
 	}
 }
 
+type FolderHandle struct {
+	Name       string     `codec:"name" json:"name"`
+	FolderType FolderType `codec:"folderType" json:"folderType"`
+	Created    bool       `codec:"created" json:"created"`
+}
+
+func (o FolderHandle) DeepCopy() FolderHandle {
+	return FolderHandle{
+		Name:       o.Name,
+		FolderType: o.FolderType.DeepCopy(),
+		Created:    o.Created,
+	}
+}
+
 type FavoritesResult struct {
 	FavoriteFolders []Folder `codec:"favoriteFolders" json:"favoriteFolders"`
 	IgnoredFolders  []Folder `codec:"ignoredFolders" json:"ignoredFolders"`
@@ -356,13 +331,13 @@ func (o FavoritesResult) DeepCopy() FavoritesResult {
 }
 
 type FavoriteAddArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Folder    Folder `codec:"folder" json:"folder"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Folder    FolderHandle `codec:"folder" json:"folder"`
 }
 
 type FavoriteIgnoreArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Folder    Folder `codec:"folder" json:"folder"`
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Folder    FolderHandle `codec:"folder" json:"folder"`
 }
 
 type GetFavoritesArg struct {

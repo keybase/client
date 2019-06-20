@@ -19,19 +19,16 @@
       "pass1": "HiddenString",
       "pass2": "HiddenString"
     },
-    "checkUsernameEmail": {
-      "username": "string",
-      "email": "string"
+    "checkUsername": {
+      "username": "string"
     },
-    "checkedUsernameEmail": {
+    "checkedUsername": {
       "username": "string",
-      "email": "string",
-      "canError": {
-        "emailError": "string",
-        "usernameError": "string",
-        "email": "string",
-        "username": "string"
-      }
+      "usernameTaken?": "string",
+      "error": "string"
+    },
+    "checkEmail": {
+      "email": "string"
     },
     "requestInvite": {
       "email": "string",

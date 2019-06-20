@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -93,8 +95,8 @@ func TestSignEncrypter(t *testing.T) {
 	}
 }
 
-func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *S3Store {
-	return NewStoreTesting(logger.NewTestLogger(t), kt)
+func makeTestStore(t *testing.T, kt func(enc, sig []byte), g *libkb.GlobalContext) *S3Store {
+	return NewStoreTesting(logger.NewTestLogger(t), kt, g)
 }
 
 func testStoreMultis(t *testing.T, s *S3Store) []*s3.MemMulti {
@@ -198,7 +200,10 @@ func makeUploadTask(t *testing.T, size int64) (plaintext []byte, task *UploadTas
 }
 
 func TestUploadAssetSmall(t *testing.T) {
-	s := makeTestStore(t, nil)
+	etc := externalstest.SetupTest(t, "chat_store", 1)
+	defer etc.Cleanup()
+
+	s := makeTestStore(t, nil, etc.G)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
 	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
@@ -219,7 +224,10 @@ func TestUploadAssetSmall(t *testing.T) {
 }
 
 func TestUploadAssetLarge(t *testing.T) {
-	s := makeTestStore(t, nil)
+	etc := externalstest.SetupTest(t, "chat_store", 1)
+	defer etc.Cleanup()
+
+	s := makeTestStore(t, nil, etc.G)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
 	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
@@ -257,7 +265,10 @@ func newDumbBuffer() *dumbBuffer {
 }
 
 func TestStreamAsset(t *testing.T) {
-	s := makeTestStore(t, nil)
+	etc := externalstest.SetupTest(t, "chat_store", 1)
+	defer etc.Cleanup()
+
+	s := makeTestStore(t, nil, etc.G)
 	ctx := context.Background()
 
 	testCase := func(mb, kb int64) {
@@ -328,9 +339,9 @@ type uploader struct {
 	fullSigKey    []byte
 }
 
-func newUploader(t *testing.T, size int64) *uploader {
+func newUploader(t *testing.T, size int64, g *libkb.GlobalContext) *uploader {
 	u := &uploader{t: t}
-	u.s = makeTestStore(t, u.keyTracker)
+	u.s = makeTestStore(t, u.keyTracker, g)
 	u.plaintext, u.task = makeUploadTask(t, size)
 	return u
 }
@@ -439,7 +450,10 @@ func (u *uploader) AssertNumAborts(n int) {
 // Test uploading part of an asset, then resuming at a later point in time.
 // The asset does not change between the attempts.
 func TestUploadAssetResumeOK(t *testing.T) {
-	u := newUploader(t, 12*MB)
+	etc := externalstest.SetupTest(t, "chat_store", 1)
+	defer etc.Cleanup()
+
+	u := newUploader(t, 12*MB, etc.G)
 
 	// upload 2 parts of the asset
 	u.UploadPartial(2)
@@ -468,8 +482,11 @@ func TestUploadAssetResumeOK(t *testing.T) {
 // Test uploading part of an asset, then resuming at a later point in time.
 // The asset changes between the attempts.
 func TestUploadAssetResumeChange(t *testing.T) {
+	etc := externalstest.SetupTest(t, "chat_store", 1)
+	defer etc.Cleanup()
+
 	size := 12 * MB
-	u := newUploader(t, size)
+	u := newUploader(t, size, etc.G)
 
 	// upload 2 parts of the asset
 	u.UploadPartial(2)
@@ -498,7 +515,10 @@ func TestUploadAssetResumeChange(t *testing.T) {
 // Test uploading part of an asset, then resuming at a later point in time.
 // The asset changes after the plaintext hash is calculated in the resume attempt.
 func TestUploadAssetResumeRestart(t *testing.T) {
-	u := newUploader(t, 12*MB)
+	etc := externalstest.SetupTest(t, "chat_store", 1)
+	defer etc.Cleanup()
+
+	u := newUploader(t, 12*MB, etc.G)
 
 	// upload 2 parts of the asset
 	u.UploadPartial(2)

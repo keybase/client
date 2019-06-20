@@ -7,6 +7,7 @@ import {newRoutes as _loggedOutRoutes} from '../login/routes'
 import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
+import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import {isMobile} from '../constants/platform'
@@ -66,8 +67,9 @@ export const modalRoutes = {
   ...peopleNewModalRoutes,
   ...profileNewModalRoutes,
   ...settingsNewModalRoutes,
+  ...signupNewModalRoutes,
   ...teamsNewModalRoutes,
   ...walletsNewModalRoutes,
 }
 
-export const loggedOutRoutes = _loggedOutRoutes
+export const loggedOutRoutes = {..._loggedOutRoutes, ...signupNewRoutes}

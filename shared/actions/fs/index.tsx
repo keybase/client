@@ -25,15 +25,39 @@ import {NotifyPopup} from '../../native/notifications'
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
     case RPCTypes.FolderType.private:
-      return 'private'
+      return Types.TlfType.Private
     case RPCTypes.FolderType.public:
-      return 'public'
+      return Types.TlfType.Public
     case RPCTypes.FolderType.team:
-      return 'team'
+      return Types.TlfType.Team
     default:
       return null
   }
 }
+
+const rpcConflictStateToConflictState = (
+  rpcConflictState: RPCTypes.ConflictState | null
+): Types.ConflictState =>
+  rpcConflictState
+    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview
+      ? Constants.makeConflictStateNormalView({
+          localViewTlfPaths: I.List(
+            (rpcConflictState.normalview.localViews || [])
+              .map(p =>
+                p.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(p.kbfs) : Constants.defaultPath
+              )
+              .filter(p => p !== Constants.defaultPath)
+          ),
+          resolvingConflict: rpcConflictState.normalview.resolvingConflict,
+          stuckInConflict: rpcConflictState.normalview.stuckInConflict,
+        })
+      : Constants.makeConflictStateManualResolvingLocalView({
+          normalViewTlfPath:
+            rpcConflictState.manualresolvinglocalview.normalView.PathType === RPCTypes.PathType.kbfs
+              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.normalView.kbfs)
+              : Constants.defaultPath,
+        })
+    : Constants.tlfNormalViewWithNoConflict
 
 const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
@@ -52,7 +76,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
         folders.reduce((mutablePayload, folder) => {
           const tlfType = rpcFolderTypeToTlfType(folder.folderType)
           const tlfName =
-            tlfType === 'private' || tlfType === 'public'
+            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
               ? tlfToPreferredOrder(folder.name, state.config.username)
               : folder.name
           return !tlfType
@@ -62,11 +86,13 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
                 [tlfType]: mutablePayload[tlfType].set(
                   tlfName,
                   Constants.makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState),
                     isFavorite,
                     isIgnored,
                     isNew,
                     name: tlfName,
                     resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig),
                     teamId: folder.team_id || '',
                     tlfMtime: folder.mtime || 0,
                   })
@@ -89,7 +115,14 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
     })
   })
 
-const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfig): Types.TlfSyncConfig => {
+const getSyncConfigFromRPC = (
+  tlfName: string,
+  tlfType: Types.TlfType,
+  config: RPCTypes.FolderSyncConfig | null
+): Types.TlfSyncConfig => {
+  if (!config) {
+    return Constants.tlfSyncDisabled
+  }
   switch (config.mode) {
     case RPCTypes.FolderSyncMode.disabled:
       return Constants.tlfSyncDisabled
@@ -106,40 +139,6 @@ const getSyncConfigFromRPC = (tlfName, tlfType, config: RPCTypes.FolderSyncConfi
       return Constants.tlfSyncDisabled
   }
 }
-
-// TODO: perhaps favoritesLoad's response should just include these from the Go
-// side -- when we move it to a SimpleFS RPC.
-const loadSyncConfigForAllTlfs = (state, action: FsGen.FavoritesLoadedPayload) =>
-  RPCTypes.SimpleFSSimpleFSSyncConfigAndStatusRpcPromise().then(({folders}) => {
-    if (!folders) {
-      return null
-    }
-    const payloadMutable = folders.reduce(
-      (payloadMutable, {folder, config}) => {
-        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-        const tlfName = tlfToPreferredOrder(folder.name, state.config.username)
-        return tlfType
-          ? {
-              ...payloadMutable,
-              [tlfType]: payloadMutable[tlfType].set(tlfName, getSyncConfigFromRPC(tlfName, tlfType, config)),
-            }
-          : payloadMutable
-      },
-      {
-        private: I.Map().asMutable(),
-        public: I.Map().asMutable(),
-        team: I.Map().asMutable(),
-      }
-    )
-    return FsGen.createTlfSyncConfigsForAllSyncEnabledTlfsLoaded({
-      // @ts-ignore asImmutable returns a weak type
-      private: payloadMutable.private.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      public: payloadMutable.public.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      team: payloadMutable.team.asImmutable(),
-    })
-  })
 
 const loadTlfSyncConfig = (state, action: FsGen.LoadTlfSyncConfigPayload) => {
   // @ts-ignore probably a real issue
@@ -259,7 +258,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     action.type === FsGen.editSuccess
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
-  const loadingPathID = Constants.makeUUID()
 
   if (refreshTag) {
     if (folderListRefreshTags.get(refreshTag) === rootPath) {
@@ -271,8 +269,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
   }
 
   try {
-    yield Saga.put(FsGen.createLoadingPath({done: false, id: loadingPathID, path: rootPath}))
-
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
@@ -355,8 +351,6 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     }
   } catch (error) {
     yield makeRetriableErrorHandler(action, rootPath)(error).map(action => Saga.put(action))
-  } finally {
-    yield Saga.put(FsGen.createLoadingPath({done: true, id: loadingPathID, path: rootPath}))
   }
 }
 
@@ -942,7 +936,10 @@ const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload) => {
+const waitForKbfsDaemon = (
+  state,
+  action: ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+) => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
@@ -968,12 +965,12 @@ const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.
 const startManualCR = (state, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
-  }).then(() =>
-    FsGen.createTlfCrStatusChanged({
-      status: Types.ConflictState.InManualResolution,
-      tlfPath: action.payload.tlfPath,
-    })
-  ) // TODO: deal with errors
+  }).then(() => FsGen.createFavoritesLoad())
+
+const finishManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
+  }).then(() => FsGen.createFavoritesLoad())
 
 const updateKbfsDaemonOnlineStatus = (
   state,
@@ -996,42 +993,59 @@ const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkS
 const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
-const onFSOverallSyncSyncStatusChanged = (
+const onNotifyFSOverallSyncSyncStatusChanged = (
   state,
   action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) =>
-  FsGen.createOverallSyncStatusChanged({
-    outOfSpace: action.payload.params.status.outOfSyncSpace,
-    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
-  })
-
-const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
-  switch (diskSpaceStatus) {
-    case Types.DiskSpaceStatus.Error:
-      NotifyPopup('Sync Error', {
-        body: 'You are out of disk space. Some folders could not be synced.',
-        sound: true,
-      })
-      break
-    case Types.DiskSpaceStatus.Warning:
-      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
-      break
-    case Types.DiskSpaceStatus.Ok:
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+) => {
+  const diskSpaceStatus = action.payload.params.status.outOfSyncSpace
+    ? Types.DiskSpaceStatus.Error
+    : action.payload.params.status.localDiskBytesAvailable <
+      state.fs.settings.spaceAvailableNotificationThreshold
+    ? Types.DiskSpaceStatus.Warning
+    : Types.DiskSpaceStatus.Ok
+  // We need to type this separately since otherwise we can't concat to it.
+  let actions: Array<
+    | NotificationsGen.BadgeAppPayload
+    | FsGen.OverallSyncStatusChangedPayload
+    | FsGen.ShowHideDiskSpaceBannerPayload
+  > = [
+    FsGen.createOverallSyncStatusChanged({
+      diskSpaceStatus,
+      progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+    }),
+  ]
+  // Only notify about the disk space status if it has changed.
+  if (diskSpaceStatus !== state.fs.overallSyncStatus.diskSpaceStatus) {
+    switch (diskSpaceStatus) {
+      case Types.DiskSpaceStatus.Error:
+        NotifyPopup('Sync Error', {
+          body: 'You are out of disk space. Some folders could not be synced.',
+          sound: true,
+        })
+        return actions.concat([
+          NotificationsGen.createBadgeApp({
+            key: 'outOfSpace',
+            on: action.payload.params.status.outOfSyncSpace,
+          }),
+        ])
+      case Types.DiskSpaceStatus.Warning:
+        const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
+        NotifyPopup('Disk Space Low', {
+          body: `You have less than ${threshold} of storage space left.`,
+        })
+        // Only show the banner if the previous state was OK and the new state
+        // is warning. Otherwise we rely on the previous state of the banner.
+        if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
+          return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+        }
+        break
+      case Types.DiskSpaceStatus.Ok:
+        break
+      default:
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+    }
   }
-}
-
-let prevOutOfSpace = false
-const updateMenubarIconOnStuckSync = (state, action) => {
-  const outOfSpace = action.payload.params.status.outOfSyncSpace
-  if (outOfSpace !== prevOutOfSpace) {
-    prevOutOfSpace = outOfSpace
-    // TODO once go side sends info: low on space warning
-    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
-    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
-  }
+  return actions
 }
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
@@ -1084,12 +1098,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.kbfsDaemonRpcStatusChanged,
     clearRefreshTags
   )
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
-    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
-    waitForKbfsDaemon
-  )
+  yield* Saga.chainAction<
+    ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+  >([ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon], waitForKbfsDaemon)
   if (flags.kbfsOfflineMode) {
-    yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, loadSyncConfigForAllTlfs)
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
     yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
       [FsGen.loadTlfSyncConfig, FsGen.loadPathMetadata],
@@ -1108,11 +1120,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     )
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      onFSOverallSyncSyncStatusChanged
-    )
-    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
-      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      updateMenubarIconOnStuckSync
+      onNotifyFSOverallSyncSyncStatusChanged
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
@@ -1124,6 +1132,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
       FsGen.startManualConflictResolution,
       startManualCR
+    )
+    yield* Saga.chainAction<FsGen.FinishManualConflictResolutionPayload>(
+      FsGen.finishManualConflictResolution,
+      finishManualCR
     )
   }
 

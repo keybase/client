@@ -8,23 +8,20 @@ import git from './git'
 import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
-import provision from './provision'
 import people from './people'
 import pinentry from './pinentry'
 import profile from './profile'
-import tracker2 from './tracker2'
+import provision from './provision'
 import push from './push'
 import settings from './settings'
 import signup from './signup'
 import teams from './teams'
+import tracker2 from './tracker2'
 import unlockFolders from './unlock-folders'
 import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
 import {combineReducers} from 'redux'
-import {reducerTimer} from '../util/user-timings'
-
-import {TypedState} from '../constants/reducer'
 
 const reducers = {
   chat2,
@@ -52,9 +49,9 @@ const reducers = {
   wallets,
 }
 
-const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)
+const rootReducer = combineReducers(reducers)
+export type TypedState = ReturnType<typeof rootReducer>
 
-export default function(state: TypedState | void, action: any): TypedState {
-  // @ts-ignore codemod issue
-  return reducer(state, action)
+export default function(state: TypedState, action: any): TypedState {
+  return rootReducer(state, action)
 }

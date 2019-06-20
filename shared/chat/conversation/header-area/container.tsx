@@ -27,14 +27,14 @@ class HeaderArea extends React.PureComponent<Props> {
 }
 
 // for now this is just the info button always in the new routing scheme
-const mapStateToProps = state => ({
-  infoPanelOpen: Constants.isInfoPanelOpen(state),
+const mapStateToProps = () => ({
+  infoPanelOpen: Constants.isInfoPanelOpen(),
 })
 
 const Connected = connect(
   mapStateToProps,
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(HeaderArea)
 
 const Empty = () => null

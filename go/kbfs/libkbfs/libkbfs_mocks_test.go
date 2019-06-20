@@ -1710,7 +1710,7 @@ func (mr *MockKBPKIMockRecorder) CreateTeamTLF(arg0, arg1, arg2 interface{}) *go
 }
 
 // FavoriteAdd mocks base method
-func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1724,7 +1724,7 @@ func (mr *MockKBPKIMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // FavoriteDelete mocks base method
-func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1978,7 +1978,7 @@ func (mr *MockKBPKIMockRecorder) NotifyPathUpdated(arg0, arg1 interface{}) *gomo
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.Folder, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
+func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -2176,7 +2176,7 @@ func (mr *MockKeybaseServiceMockRecorder) EstablishMountDir(arg0 interface{}) *g
 }
 
 // FavoriteAdd mocks base method
-func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2190,7 +2190,7 @@ func (mr *MockKeybaseServiceMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *g
 }
 
 // FavoriteDelete mocks base method
-func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2407,7 +2407,7 @@ func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.Folder, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
+func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -2565,6 +2565,21 @@ func NewMockKeyManager(ctrl *gomock.Controller) *MockKeyManager {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockKeyManager) EXPECT() *MockKeyManagerMockRecorder {
 	return m.recorder
+}
+
+// GetFirstTLFCryptKey mocks base method
+func (m *MockKeyManager) GetFirstTLFCryptKey(arg0 context.Context, arg1 libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFirstTLFCryptKey", arg0, arg1)
+	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFirstTLFCryptKey indicates an expected call of GetFirstTLFCryptKey
+func (mr *MockKeyManagerMockRecorder) GetFirstTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstTLFCryptKey", reflect.TypeOf((*MockKeyManager)(nil).GetFirstTLFCryptKey), arg0, arg1)
 }
 
 // GetTLFCryptKeyForBlockDecryption mocks base method
@@ -3517,6 +3532,20 @@ func (mr *MockNodeMockRecorder) GetID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockNode)(nil).GetID))
 }
 
+// Obfuscator mocks base method
+func (m *MockNode) Obfuscator() data.Obfuscator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Obfuscator")
+	ret0, _ := ret[0].(data.Obfuscator)
+	return ret0
+}
+
+// Obfuscator indicates an expected call of Obfuscator
+func (mr *MockNodeMockRecorder) Obfuscator() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Obfuscator", reflect.TypeOf((*MockNode)(nil).Obfuscator))
+}
+
 // Readonly mocks base method
 func (m *MockNode) Readonly(arg0 context.Context) bool {
 	m.ctrl.T.Helper()
@@ -3727,6 +3756,20 @@ func (mr *MockNodeCacheMockRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockNodeCache)(nil).Move), arg0, arg1, arg2)
 }
 
+// ObfuscatorMaker mocks base method
+func (m *MockNodeCache) ObfuscatorMaker() func() data.Obfuscator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ObfuscatorMaker")
+	ret0, _ := ret[0].(func() data.Obfuscator)
+	return ret0
+}
+
+// ObfuscatorMaker indicates an expected call of ObfuscatorMaker
+func (mr *MockNodeCacheMockRecorder) ObfuscatorMaker() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ObfuscatorMaker", reflect.TypeOf((*MockNodeCache)(nil).ObfuscatorMaker))
+}
+
 // PathFromNode mocks base method
 func (m *MockNodeCache) PathFromNode(arg0 Node) data.Path {
 	m.ctrl.T.Helper()
@@ -3739,6 +3782,18 @@ func (m *MockNodeCache) PathFromNode(arg0 Node) data.Path {
 func (mr *MockNodeCacheMockRecorder) PathFromNode(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PathFromNode", reflect.TypeOf((*MockNodeCache)(nil).PathFromNode), arg0)
+}
+
+// SetObfuscatorMaker mocks base method
+func (m *MockNodeCache) SetObfuscatorMaker(arg0 func() data.Obfuscator) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetObfuscatorMaker", arg0)
+}
+
+// SetObfuscatorMaker indicates an expected call of SetObfuscatorMaker
+func (mr *MockNodeCacheMockRecorder) SetObfuscatorMaker(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetObfuscatorMaker", reflect.TypeOf((*MockNodeCache)(nil).SetObfuscatorMaker), arg0)
 }
 
 // Unlink mocks base method

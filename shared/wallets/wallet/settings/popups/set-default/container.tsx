@@ -6,14 +6,9 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import SetDefaultAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID')
 
   return {
@@ -23,7 +18,7 @@ const mapStateToProps = (state, ownProps) => {
     waiting: anyWaiting(state, Constants.setAccountAsDefaultWaitingKey),
   }
 }
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAccept: (accountID: Types.AccountID) =>
     dispatch(
       WalletsGen.createSetAccountAsDefault({
@@ -32,17 +27,16 @@ const mapDispatchToProps = dispatch => ({
     ),
   _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  accountName: stateProps.accountName,
-  onAccept: () => dispatchProps._onAccept(stateProps.accountID),
-  onClose: () => dispatchProps._onClose(),
-  username: stateProps.username,
-  waiting: stateProps.waiting,
-})
 
 export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps,
+  (stateProps, dispatchProps) => ({
+    accountName: stateProps.accountName,
+    onAccept: () => dispatchProps._onAccept(stateProps.accountID),
+    onClose: () => dispatchProps._onClose(),
+    username: stateProps.username,
+    waiting: stateProps.waiting,
+  }),
   'SetDefaultAccountPopup'
 )(SetDefaultAccountPopup)

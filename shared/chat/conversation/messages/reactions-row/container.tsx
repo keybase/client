@@ -9,9 +9,9 @@ const getOrderedReactions = (reactions: Types.Reactions | null) => {
     return []
   }
   const mins = reactions
-    .map((value, key) => {
-      return value.reduce((minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp), Infinity)
-    })
+    .map(value =>
+      value.reduce((minTimestamp, reaction) => Math.min(minTimestamp, reaction.timestamp), Infinity)
+    )
     .sort()
   return mins.keySeq().toArray()
 }
@@ -23,20 +23,21 @@ export type OwnProps = {
   ordinal: Types.Ordinal
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-  if (!message || message.type === 'placeholder' || message.type === 'deleted') {
-    // nothing to see here
-    return {_reactions: null}
-  }
-  return {
-    _reactions: message.reactions,
-  }
-}
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  emojis: getOrderedReactions(stateProps._reactions),
-})
-
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'ReactionsRow')(ReactionsRow)
+export default namedConnect(
+  (state, ownProps: OwnProps) => {
+    const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
+    if (!message || message.type === 'placeholder' || message.type === 'deleted') {
+      // nothing to see here
+      return {_reactions: null}
+    }
+    return {
+      _reactions: message.reactions,
+    }
+  },
+  () => ({}),
+  (stateProps, _, ownProps: OwnProps) => ({
+    ...ownProps,
+    emojis: getOrderedReactions(stateProps._reactions),
+  }),
+  'ReactionsRow'
+)(ReactionsRow)

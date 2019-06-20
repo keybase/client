@@ -19,6 +19,16 @@ import (
 	"golang.org/x/net/context"
 )
 
+type LocalChatState interface {
+	ApplyLocalChatState(context.Context, keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo
+}
+
+type dummyLocalChatState struct{}
+
+func (d dummyLocalChatState) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
+	return i
+}
+
 // BadgeState represents the number of badges on the app. It's threadsafe.
 // Useable from both the client service and gregor server.
 // See service:Badger for the service part that owns this.
@@ -26,8 +36,9 @@ type BadgeState struct {
 	sync.Mutex
 	libkb.Contextified
 
-	log   logger.Logger
-	state keybase1.BadgeState
+	localChatState LocalChatState
+	log            logger.Logger
+	state          keybase1.BadgeState
 
 	inboxVers chat1.InboxVers
 	// Map from ConversationID.String to BadgeConversationInfo.
@@ -43,17 +54,22 @@ func NewBadgeState(g *libkb.GlobalContext) *BadgeState {
 		inboxVers:       chat1.InboxVers(0),
 		chatUnreadMap:   make(map[string]keybase1.BadgeConversationInfo),
 		walletUnreadMap: make(map[stellar1.AccountID]int),
+		localChatState:  dummyLocalChatState{},
 	}
 }
 
+func (b *BadgeState) SetLocalChatState(s LocalChatState) {
+	b.localChatState = s
+}
+
 // Exports the state summary
-func (b *BadgeState) Export() (keybase1.BadgeState, error) {
+func (b *BadgeState) Export(ctx context.Context) (keybase1.BadgeState, error) {
 	b.Lock()
 	defer b.Unlock()
 
 	b.state.Conversations = []keybase1.BadgeConversationInfo{}
 	for _, info := range b.chatUnreadMap {
-		b.state.Conversations = append(b.state.Conversations, info)
+		b.state.Conversations = append(b.state.Conversations, b.localChatState.ApplyLocalChatState(ctx, info))
 	}
 	b.state.InboxVers = int(b.inboxVers)
 

@@ -119,6 +119,10 @@ func (r DummyChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadG
 	return nil
 }
 
+func (r DummyChatUI) ChatGetCoordinate(ctx context.Context, sessionID int) (chat1.Coordinate, error) {
+	return chat1.Coordinate{}, nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

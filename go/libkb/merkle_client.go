@@ -268,6 +268,9 @@ type MerkleTeamLeaf struct {
 	TeamID  keybase1.TeamID
 	Public  *MerkleTriple
 	Private *MerkleTriple
+	// If we passed through a linkID for the last known hidden chain link, here we pass back
+	// if it's the freshest.
+	HiddenIsFresh bool
 }
 
 type MerkleGenericLeaf struct {
@@ -1767,8 +1770,23 @@ func (mc *MerkleClient) lookupLeafHistorical(m MetaContext, leafID keybase1.User
 	return leaf, path.root, nil
 }
 
+type LookupTeamHiddenArg struct {
+	LastKnownHidden  keybase1.LinkID
+	PTKEncryptionKID keybase1.KID
+	PTKGeneration    keybase1.PerTeamKeyGeneration
+}
+
+func (mc *MerkleClient) LookupTeamWithHidden(m MetaContext, teamID keybase1.TeamID, harg *LookupTeamHiddenArg) (leaf *MerkleTeamLeaf, err error) {
+	// Copied from LookupUser. These methods should be kept relatively in sync.
+	return mc.lookupTeam(m, teamID, harg)
+}
+
 func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
+	return mc.lookupTeam(m, teamID, nil)
+}
+
+func (mc *MerkleClient) lookupTeam(m MetaContext, teamID keybase1.TeamID, harg *LookupTeamHiddenArg) (leaf *MerkleTeamLeaf, err error) {
 
 	m.VLogf(VLog0, "+ MerkleClient.LookupTeam(%v)", teamID)
 
@@ -1790,6 +1808,15 @@ func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf 
 
 	q := NewHTTPArgs()
 	q.Add("leaf_id", S{Val: teamID.String()})
+	if harg != nil {
+		if !harg.LastKnownHidden.IsNil() {
+			q.Add("last_hidden_link_id", S{Val: harg.LastKnownHidden.String()})
+		}
+		if !harg.PTKEncryptionKID.IsNil() {
+			q.Add("chhtc_kid", S{Val: harg.PTKEncryptionKID.String()})
+			q.Add("chhtc_gen", I{Val: int(harg.PTKGeneration)})
+		}
+	}
 
 	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(m, q, rootBeforeCall, opts); err != nil {
 		return nil, err
@@ -1801,6 +1828,27 @@ func (mc *MerkleClient) LookupTeam(m MetaContext, teamID keybase1.TeamID) (leaf 
 
 	if leaf, err = path.verifyTeam(m, teamID); err != nil {
 		return nil, err
+	}
+
+	if harg != nil {
+		var tmp error
+		var b bool
+		if !harg.LastKnownHidden.IsNil() {
+			b, tmp = apiRes.Body.AtKey("is_last_hidden_link").GetBool()
+			if tmp != nil {
+				m.Debug("Bad is_last_hidden_link: %s", tmp.Error())
+			} else if b {
+				leaf.HiddenIsFresh = true
+			}
+		}
+		if !harg.PTKEncryptionKID.IsNil() {
+			b, tmp = apiRes.Body.AtKey("chhtc").GetBool()
+			if tmp != nil {
+				m.Debug("Bad chhtc: %s", tmp.Error())
+			} else if !b {
+				leaf.HiddenIsFresh = true
+			}
+		}
 	}
 
 	m.VLogf(VLog0, "- MerkleClient.LookupTeam(%v) -> OK", teamID)
