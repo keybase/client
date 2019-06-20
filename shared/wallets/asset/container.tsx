@@ -25,12 +25,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     issuerAccountID: asset.issuerAccountID,
     issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,
-    openInfoURL: asset.infoUrl
-      ? e => {
-          e.stopPropagation()
-          openURL(asset.infoUrl)
-        }
-      : undefined,
+    openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
     openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
     reserves: asset.reserves.toArray(),
   }

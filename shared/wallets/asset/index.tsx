@@ -32,6 +32,11 @@ export default class Asset extends React.Component<Props, State> {
     }))
   }
 
+  _openInfoURL = e => {
+    e.stopPropagation()
+    this.props.openInfoURL()
+  }
+
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -56,7 +61,11 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
               </Kb.Text>
-              <Kb.Text type="BodySmall" lineClamp={1} onClick={this.props.openInfoURL}>
+              <Kb.Text
+                type="BodySmall"
+                lineClamp={1}
+                onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
+              >
                 {this.props.infoUrlText ? this.props.infoUrlText : this.props.equivBalance}
               </Kb.Text>
             </Kb.Box2>
