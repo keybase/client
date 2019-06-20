@@ -905,7 +905,7 @@ func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, t
 	var encKID keybase1.KID
 	var gen keybase1.PerTeamKeyGeneration
 	if team != nil {
-		ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey()
+		ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey(mctx)
 		if err != nil {
 			return nil, err
 		}
@@ -1394,7 +1394,7 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(mctx libkb.MetaContext, needKeyG
 	if state == nil {
 		return fmt.Errorf("nil team does not contain key generation: %v", needKeyGeneration)
 	}
-	key, err := newTeamSigChainState(state).GetLatestPerTeamKey()
+	key, err := newTeamSigChainState(state).GetLatestPerTeamKey(mctx)
 	if err != nil {
 		return err
 	}

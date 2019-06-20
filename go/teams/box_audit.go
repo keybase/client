@@ -1001,7 +1001,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 
 // merkleSeqnoAtGenerationInception assumes TeamSigChainState.MerkleRoots is populated
 func merkleSeqnoAtGenerationInception(mctx libkb.MetaContext, teamchain *TeamSigChainState) (merkleSeqno keybase1.Seqno, err error) {
-	ptk, err := teamchain.GetLatestPerTeamKey()
+	ptk, err := teamchain.GetLatestPerTeamKey(mctx)
 	if err != nil {
 		return 0, err
 	}

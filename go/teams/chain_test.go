@@ -207,6 +207,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 	}
 
 	// Check once before and after serializing and deserializing
+	mctx := libkb.NewMetaContextForTest(tc)
 	for i := 0; i < 2; i++ {
 		if i == 0 {
 			t.Logf("testing fresh")
@@ -216,7 +217,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 
 		require.Equal(t, "t_9d6d1e37", string(state.LatestLastNamePart()))
 		require.False(t, state.IsSubteam())
-		ptk, err := state.GetLatestPerTeamKey()
+		ptk, err := state.GetLatestPerTeamKey(mctx)
 		require.NoError(t, err)
 		require.Equal(t, keybase1.PerTeamKeyGeneration(2), ptk.Gen)
 		require.Equal(t, keybase1.Seqno(3), ptk.Seqno)
@@ -292,11 +293,13 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	}
 	require.NoError(t, err)
 
+	mctx := libkb.NewMetaContextForTest(tc)
+
 	// Check once before and after serializing and deserializing
 	for i := 0; i < 2; i++ {
 		require.Equal(t, "t_bfaadb41", string(state.LatestLastNamePart()))
 		require.False(t, state.IsSubteam())
-		ptk, err := state.GetLatestPerTeamKey()
+		ptk, err := state.GetLatestPerTeamKey(mctx)
 		require.NoError(t, err)
 		require.Equal(t, keybase1.PerTeamKeyGeneration(1), ptk.Gen)
 		require.Equal(t, keybase1.Seqno(1), ptk.Seqno)
