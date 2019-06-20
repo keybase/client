@@ -1027,10 +1027,20 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)
 	}
-	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
+		// Unfurl
 		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender,
 			convID, unboxedMsg)
+		// Start tracking any live location sends
+		if unboxedMsg.IsValid() && unboxedMsg.GetMessageType() == chat1.MessageType_TEXT &&
+			unboxedMsg.Valid().MessageBody.Text().Coord != nil &&
+			unboxedMsg.Valid().MessageBody.Text().LiveLocation != nil {
+			s.G().LiveLocationTracker.StartTracking(ctx, conv.GetConvID(), unboxedMsg.GetMessageID(),
+				*unboxedMsg.Valid().MessageBody.Text().Coord,
+				unboxedMsg.Valid().MessageBody.Text().LiveLocation.WatchID,
+				gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
+
+		}
 	}
 	return nil, boxed, nil
 }

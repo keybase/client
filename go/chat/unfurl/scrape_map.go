@@ -31,11 +31,24 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	if err != nil {
 		return res, err
 	}
-	mapURL, err := maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon)
-	if err != nil {
-		return res, err
+	sid := puri.Query().Get("watchID")
+	var mapURL, linkURL string
+	if len(sid) > 0 {
+		watchID, err := strconv.ParseUint(sid, 0, 0)
+		if err != nil {
+			return res, err
+		}
+		coords := s.G().LiveLocationTracker.GetCoordinates(ctx, chat1.LocationWatchID(watchID))
+		if mapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
+			return res, err
+		}
+		linkURL = maps.GetExternalMapURL(ctx, lat, lon)
+	} else {
+		if mapURL, err = maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon); err != nil {
+			return res, err
+		}
+		linkURL = maps.GetExternalMapURL(ctx, lat, lon)
 	}
-	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
 	desc := fmt.Sprintf("Accurate to %dm.", int(acc))
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlGenericRaw{
 		Title:       "Open this location with Google Maps",

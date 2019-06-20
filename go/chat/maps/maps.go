@@ -3,6 +3,7 @@ package maps
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,6 +28,9 @@ func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat
 }
 
 func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, coords []chat1.Coordinate) (string, error) {
+	if len(coords) == 0 {
+		return "", errors.New("empty coords")
+	}
 	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
 	if err != nil {
 		return "", err
@@ -34,18 +38,20 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	pathStr := ""
 	startStr := ""
 	centerStr := ""
+	first := coords[0]
+	last := coords[len(coords)-1]
 	if len(coords) > 1 {
-		pathStr = "color:0xff0000ff|weight:3"
+		pathStr = "path=color:0xff0000ff|weight:3"
 		for _, c := range coords {
 			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
 		}
 		pathStr += "&"
-		startStr = fmt.Sprintf("markers=color:green%%7C%f,%f&", coords[0].Lat, coords[0].Lon)
+		startStr = fmt.Sprintf("markers=color:green%%7C%f,%f&", first.Lat, first.Lon)
 	} else {
-		centerStr = fmt.Sprintf("center=%f,%f&", coords[0].Lat, coords[0].Lon)
+		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
 	return fmt.Sprintf("https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x200&key=%s",
-		MapsProxy, centerStr, startStr, pathStr, coords[0].Lat, coords[0].Lon, key.Googlemaps()), nil
+		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, key.Googlemaps()), nil
 }
 
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
