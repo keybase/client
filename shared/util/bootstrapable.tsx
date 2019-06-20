@@ -12,7 +12,9 @@ export type BootstrapableProp<P extends Object> =
       originalProps: P
     }
 
-export default function Bootstrapable<P extends Object>(ComposedComponent: React.ComponentType<P>): any {
+export default function Bootstrapable<P extends Object>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentClass<BootstrapableProp<P>, void> {
   return class extends React.Component<BootstrapableProp<P>, void> {
     componentDidMount() {
       // @ts-ignore codemod-issue

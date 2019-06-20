@@ -62,9 +62,9 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
-        ? 'Disallow friends to find you by this email.'
-        : `${Styles.isMobile ? '' : '(Recommended) '}Allow friends to find you by this email.`,
-      title: props.searchable ? "Don't make searchable" : 'Make searchable',
+        ? "Don't let friends find you by this email."
+        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this email.`,
+      title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
   menuItems.push('Divider', {danger: true, onClick: props.onDelete, title: 'Delete'})

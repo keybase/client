@@ -4,9 +4,9 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as I from 'immutable'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import Bootstrapable from '../../util/bootstrapable'
+import Bootstrapable, {BootstrapableProp} from '../../util/bootstrapable'
 import {connect, compose, TypedState, TypedDispatch} from '../../util/container'
-import AccountSettings from '.'
+import AccountSettings, {Props} from '.'
 import {isMobile} from '../../styles'
 
 type OwnProps = {}
@@ -32,27 +32,27 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
       RouteTreeGen.createNavigateAppend({path: isMobile ? [Constants.passwordTab] : ['changePassword']})
     ),
 })
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (stateProps, dispatchProps, o) => {
-      if (!stateProps.bootstrapDone) {
-        return {
-          bootstrapDone: false,
-          onBootstrap: dispatchProps.onBootstrap,
-        }
-      }
+
+// because for some reason I can't pass a generic parameter to Bootstrapable when it's in a compose
+const bootstrapped = Bootstrapable<Props>(AccountSettings)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, o): BootstrapableProp<Props> => {
+    if (!stateProps.bootstrapDone) {
       return {
-        bootstrapDone: true,
-        originalProps: {
-          ...dispatchProps,
-          contactKeys: I.List([...stateProps._emails.keys(), ...stateProps._phones.keys()]),
-          hasPassword: stateProps.hasPassword,
-          title: 'Account',
-        },
+        bootstrapDone: false,
+        onBootstrap: dispatchProps.onBootstrap,
       }
     }
-  ),
-  Bootstrapable
-)(AccountSettings)
+    return {
+      bootstrapDone: true,
+      originalProps: {
+        ...dispatchProps,
+        contactKeys: I.List([...stateProps._emails.keys(), ...stateProps._phones.keys()]),
+        hasPassword: stateProps.hasPassword,
+        title: 'Account',
+      },
+    }
+  }
+)(bootstrapped)

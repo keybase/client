@@ -3,17 +3,18 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
+import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
-type Props = {
-  contactKeys: Array<string>
+export type Props = {
+  contactKeys: I.List<string>
   hasPassword: boolean
   onAddEmail: () => void
   onAddPhone: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
-}
+} & HeaderHocProps
 
-const EmailPhone = props => (
+const EmailPhone = (props: Props) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Email & phone</Kb.Text>
@@ -36,7 +37,7 @@ const EmailPhone = props => (
   </Kb.Box2>
 )
 
-const Password = props => {
+const Password = (props: Props) => {
   let passwordLabel
   if (props.hasPassword) {
     passwordLabel = Styles.isMobile ? 'Change' : 'Change password'
@@ -65,7 +66,7 @@ const Password = props => {
   )
 }
 
-const DeleteAccount = props => (
+const DeleteAccount = (props: Props) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Delete account</Kb.Text>
