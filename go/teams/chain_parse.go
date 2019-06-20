@@ -89,6 +89,7 @@ type SCPerTeamKey struct {
 	EncKID     keybase1.KID                  `json:"encryption_kid"`
 	SigKID     keybase1.KID                  `json:"signing_kid"`
 	ReverseSig string                        `json:"reverse_sig"`
+	SeedCheck  string                        `json:"seed_check,omitempty"`
 }
 
 type SCTeamSettings struct {

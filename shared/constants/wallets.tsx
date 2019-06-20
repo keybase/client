@@ -166,7 +166,7 @@ export const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLoca
     builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
-    from: Types.stringToAccountID(b.from),
+    from: b.from ? Types.stringToAccountID(b.from) : Types.noAccountID,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToReview: b.readyToReview,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),

@@ -45,3 +45,4 @@ export type RouteProps<P, S> = _RouteProps<P, S>
 export type TypedActions = TypedActions
 export type TypedState = TypedState
 export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>
+export {useSelector, useDispatch} from 'react-redux'

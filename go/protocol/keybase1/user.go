@@ -137,7 +137,8 @@ func (o Email) DeepCopy() Email {
 }
 
 type UserSettings struct {
-	Emails []Email `codec:"emails" json:"emails"`
+	Emails       []Email           `codec:"emails" json:"emails"`
+	PhoneNumbers []UserPhoneNumber `codec:"phoneNumbers" json:"phoneNumbers"`
 }
 
 func (o UserSettings) DeepCopy() UserSettings {
@@ -153,6 +154,17 @@ func (o UserSettings) DeepCopy() UserSettings {
 			}
 			return ret
 		})(o.Emails),
+		PhoneNumbers: (func(x []UserPhoneNumber) []UserPhoneNumber {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserPhoneNumber, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PhoneNumbers),
 	}
 }
 

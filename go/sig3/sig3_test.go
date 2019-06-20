@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"github.com/keybase/client/go/msgpack"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -37,9 +36,7 @@ func makeKID(key []byte, typ byte) KID {
 }
 
 func randomBytes(t *testing.T, i int) []byte {
-	ret := make([]byte, i, i)
-	n, err := rand.Reader.Read(ret[:])
-	require.Equal(t, n, i)
+	ret, err := genRandomBytes(i)
 	require.NoError(t, err)
 	return ret
 }
@@ -65,16 +62,17 @@ func randomLinkIDPointer(t *testing.T) *LinkID {
 	return &ret
 }
 
-func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex Sig3ExportJSON, rk *RotateKey, outerKey KeyPair, innerKey []KeyPair) {
+func genTest(t *testing.T, n int) (bun *Sig3Bundle, ex ExportJSON, rk *RotateKey, outerKey KeyPair, innerKey []KeyPair) {
+	now := TimeSec(time.Now().Unix())
 	inner := InnerLink{
-		Ctime:   keybase1.ToTime(time.Now()),
+		Ctime:   now,
 		Entropy: randomBytes(t, 16),
 		ClientInfo: &ClientInfo{
 			Desc:    "foo",
 			Version: "1.0.0-1",
 		},
-		MerkleRoot: &MerkleRoot{
-			Ctime: keybase1.ToTime(time.Now()),
+		MerkleRoot: MerkleRoot{
+			Ctime: now,
 			Seqno: 100,
 			Hash:  randomBytes(t, 32),
 		},
@@ -184,7 +182,7 @@ func TestBadSig(t *testing.T) {
 	_, ex, _, _, _ := genTest(t, 1)
 	b, err := base64.StdEncoding.DecodeString(ex.Sig)
 	require.NoError(t, err)
-	b[0] ^= 1
+	b[4] ^= 1
 	ex.Sig = base64.StdEncoding.EncodeToString(b)
 	_, err = ex.Import()
 	require.Error(t, err)

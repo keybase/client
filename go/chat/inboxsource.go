@@ -567,13 +567,24 @@ func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
 		return err
 	}
 	for _, rec := range recs {
+		shouldRemove := false
 		if _, err := s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
 			ConversationID: rec.ConvID,
 			MsgID:          rec.MsgID,
 		}); err != nil {
 			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: convID: %s msgID: %s err: %s",
 				rec.ConvID, rec.MsgID, err)
+			// check for an immediate failure from the server, and get the attempt out if it fails
+			if berr, ok := err.(DelivererInfoError); ok {
+				if _, ok := berr.IsImmediateFail(); ok {
+					s.Debug(ctx, "markAsReadDeliver: error is an immediate failure, not retrying")
+					shouldRemove = true
+				}
+			}
 		} else {
+			shouldRemove = true
+		}
+		if shouldRemove {
 			if err := s.readOutbox.RemoveRecord(ctx, rec.ID); err != nil {
 				s.Debug(ctx, "markAsReadDeliver: failed to remove record: %s", err)
 			}

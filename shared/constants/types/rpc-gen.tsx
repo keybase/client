@@ -1257,8 +1257,7 @@ export enum ClientType {
 }
 
 export enum ConflictStateType {
-  automaticresolving = 0,
-  manualresolvingserverview = 1,
+  normalview = 1,
   manualresolvinglocalview = 2,
 }
 
@@ -1562,6 +1561,10 @@ export enum PathType {
   kbfsArchived = 2,
 }
 
+export enum PerTeamSeedCheckVersion {
+  v1 = 1,
+}
+
 export enum PrefetchStatus {
   notStarted = 0,
   inProgress = 1,
@@ -1740,6 +1743,8 @@ export enum SeqType {
   public = 1,
   private = 2,
   semiprivate = 3,
+  userPrivateHidden = 16,
+  teamPrivateHidden = 17,
 }
 
 export enum SignMode {
@@ -2096,6 +2101,7 @@ export type AvatarUrl = String
 export type BadgeConversationInfo = {readonly convID: ChatConversationID; readonly badgeCounts: {[key: string]: Int}; readonly unreadMessages: Int}
 export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeamNames?: Array<String> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly newTeamAccessRequests?: Array<String> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly resetState: ResetState}
 export type BinaryKID = Bytes
+export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
 export type BlockIdCount = {readonly id: BlockIdCombo; readonly liveCount: Int}
 export type BlockPingResponse = {}
@@ -2125,11 +2131,8 @@ export type Config = {readonly serverURI: String; readonly socketFile: String; r
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly s?: String | null; readonly o?: String | null}
 export type ConfiguredAccount = {readonly username: String; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}
 export type ConfirmResult = {readonly identityConfirmed: Boolean; readonly remoteConfirmed: Boolean; readonly expiringLocal: Boolean; readonly autoConfirmed: Boolean}
-export type ConflictAutomaticResolving = {readonly isStuck: Boolean}
 export type ConflictGeneration = Int
-export type ConflictManualResolvingLocalView = {readonly serverView: Path}
-export type ConflictManualResolvingServerView = {readonly localViews?: Array<Path> | null}
-export type ConflictState = {conflictStateType: ConflictStateType.automaticresolving; automaticresolving: ConflictAutomaticResolving | null} | {conflictStateType: ConflictStateType.manualresolvingserverview; manualresolvingserverview: ConflictManualResolvingServerView | null} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: ConflictManualResolvingLocalView | null}
+export type ConflictState = {conflictStateType: ConflictStateType.normalview; normalview: FolderNormalView | null} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: FolderConflictManualResolvingLocalView | null}
 export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
@@ -2177,7 +2180,7 @@ export type FSPathSyncStatus = {readonly folderType: FolderType; readonly path: 
 export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64}
 export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
-export type FastTeamData = {readonly frozen: Boolean; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
+export type FastTeamData = {readonly frozen: Boolean; readonly subversion: Int; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly maxContinuousPTKGeneration: PerTeamKeyGeneration; readonly seedChecks: {[key: string]: PerTeamSeedCheck}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
 export type FastTeamLoadArg = {readonly ID: TeamID; readonly public: Boolean; readonly assertTeamName?: TeamName | null; readonly applications?: Array<TeamApplication> | null; readonly keyGenerationsNeeded?: Array<PerTeamKeyGeneration> | null; readonly needLatestKey: Boolean; readonly forceRefresh: Boolean}
 export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly last?: LinkTriple | null; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}; readonly downPointers: {[key: string]: DownPointer}; readonly lastUpPointer?: UpPointer | null; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly merkleInfo: {[key: string]: MerkleRootV2}}
@@ -2189,7 +2192,9 @@ export type FileDescriptor = {readonly name: String; readonly type: FileType}
 export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
 export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
+export type FolderConflictManualResolvingLocalView = {readonly normalView: Path}
 export type FolderHandle = {readonly name: String; readonly folderType: FolderType; readonly created: Boolean}
+export type FolderNormalView = {readonly resolvingConflict: Boolean; readonly stuckInConflict: Boolean; readonly localViews?: Array<Path> | null}
 export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
@@ -2224,9 +2229,9 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
-export type HiddenTeamChain = {readonly v: /* subversion */ Int; readonly data: HiddenTeamChainData; readonly perTeamKeys: {[key: string]: Seqno}; readonly ratchet?: LinkTriple | null; readonly cachedAt: Time}
-export type HiddenTeamChainData = {readonly ID: TeamID; readonly public: Boolean; readonly last: Seqno; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}}
-export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKey}}
+export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchet: HiddenTeamChainRatchet; readonly cachedAt: Time}
+export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKeyAndCheck}}
+export type HiddenTeamChainRatchet = {readonly main?: LinkTripleAndTime | null; readonly blinded?: LinkTripleAndTime | null; readonly self?: LinkTripleAndTime | null}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
 export type HomeScreenAnnouncement = {readonly id: HomeScreenAnnouncementID; readonly version: HomeScreenAnnouncementVersion; readonly appLink: AppLinkType; readonly confirmLabel: String; readonly dismissable: Boolean; readonly iconUrl: String; readonly text: String; readonly url: String}
 export type HomeScreenAnnouncementID = Int
@@ -2279,6 +2284,7 @@ export type LeaseID = String
 export type LinkCheckResult = {readonly proofId: Int; readonly proofResult: ProofResult; readonly snoozedResult: ProofResult; readonly torWarning: Boolean; readonly tmpTrackExpireTime: Time; readonly cached?: CheckResult | null; readonly diff?: TrackDiff | null; readonly remoteDiff?: TrackDiff | null; readonly hint?: SigHint | null; readonly breaksTracking: Boolean}
 export type LinkID = String
 export type LinkTriple = {readonly seqno: Seqno; readonly seqType: SeqType; readonly linkID: LinkID}
+export type LinkTripleAndTime = {readonly triple: LinkTriple; readonly time: Time}
 export type ListArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter}
 export type ListResult = {readonly files?: Array<File> | null}
 export type ListToDepthArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly depth: Int}
@@ -2332,9 +2338,14 @@ export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; 
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
 export type Path = {PathType: PathType.local; local: String | null} | {PathType: PathType.kbfs; kbfs: String | null} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath | null}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
+export type PerTeamKeyAndCheck = {readonly ptk: PerTeamKey; readonly check: PerTeamSeedCheckPostImage}
 export type PerTeamKeyGeneration = Int
 export type PerTeamKeySeed = string | null
-export type PerTeamKeySeedItem = {readonly seed: PerTeamKeySeed; readonly generation: PerTeamKeyGeneration; readonly seqno: Seqno}
+export type PerTeamKeySeedItem = {readonly seed: PerTeamKeySeed; readonly generation: PerTeamKeyGeneration; readonly seqno: Seqno; readonly check?: PerTeamSeedCheck | null}
+export type PerTeamSeedCheck = {readonly version: PerTeamSeedCheckVersion; readonly value: PerTeamSeedCheckValue}
+export type PerTeamSeedCheckPostImage = {readonly h: /* value */ PerTeamSeedCheckValuePostImage; readonly v: /* version */ PerTeamSeedCheckVersion}
+export type PerTeamSeedCheckValue = Bytes
+export type PerTeamSeedCheckValuePostImage = Bytes
 export type PerUserKey = {readonly gen: Int; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID; readonly signedByKID: KID}
 export type PerUserKeyBox = {readonly generation: PerUserKeyGeneration; readonly box: String; readonly receiverKID: KID}
 export type PerUserKeyGeneration = Int
@@ -2507,7 +2518,7 @@ export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<T
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
 export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
-export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
+export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
 export type Test = {readonly reply: String}
@@ -2548,7 +2559,7 @@ export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; read
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion}
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole}
-export type UserSettings = {readonly emails?: Array<Email> | null}
+export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}
 export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}
 export type UserSummary2Set = {readonly users?: Array<UserSummary2> | null; readonly time: Time; readonly version: Int}

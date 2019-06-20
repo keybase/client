@@ -2,7 +2,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
-import {connect, isMobile} from '../../../../util/container'
+import {namedConnect, isMobile} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -82,8 +82,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(SmallTeam)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SmallTeam')(SmallTeam)

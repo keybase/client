@@ -139,6 +139,10 @@ export type MessageTypes = {
     inParam: {readonly channel: String}
     outParam: Boolean
   }
+  'chat.1.chatUi.chatGetCoordinate': {
+    inParam: void
+    outParam: Coordinate
+  }
   'chat.1.chatUi.chatGiphySearchResults': {
     inParam: {readonly convID: String; readonly results: GiphySearchResults}
     outParam: void
@@ -812,6 +816,7 @@ export enum UnfurlType {
   generic = 0,
   youtube = 1,
   giphy = 2,
+  maps = 3,
 }
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
@@ -864,6 +869,7 @@ export type ConversationSettingsLocal = {readonly minWriterRoleInfo?: Conversati
 export type ConversationStaleUpdate = {readonly convID: ConversationID; readonly updateType: StaleUpdateType}
 export type ConversationUpdate = {readonly convID: ConversationID; readonly existence: ConversationExistence}
 export type ConversationVers = Uint64
+export type Coordinate = {readonly lat: Double; readonly lon: Double; readonly accuracy: Double}
 export type DeleteConversationLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type DeleteConversationRemoteRes = {readonly rateLimit?: RateLimit | null}
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -966,7 +972,7 @@ export type MessageSystemComplexTeam = {readonly team: String}
 export type MessageSystemCreateTeam = {readonly team: String; readonly creator: String}
 export type MessageSystemGitPush = {readonly team: String; readonly pusher: String; readonly repoName: String; readonly repoID: Keybase1.RepoID; readonly refs?: Array<Keybase1.GitRefMetadata> | null; readonly pushType: Keybase1.GitPushType; readonly previousRepoName: String}
 export type MessageSystemInviteAddedToTeam = {readonly team: String; readonly inviter: String; readonly invitee: String; readonly adder: String; readonly inviteType: Keybase1.TeamInviteCategory}
-export type MessageText = {readonly body: String; readonly payments?: Array<TextPayment> | null; readonly replyTo?: MessageID | null; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null}
+export type MessageText = {readonly body: String; readonly payments?: Array<TextPayment> | null; readonly replyTo?: MessageID | null; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null; readonly coord?: Coordinate | null}
 export type MessageUnboxed = {state: MessageUnboxedState.valid; valid: MessageUnboxedValid | null} | {state: MessageUnboxedState.error; error: MessageUnboxedError | null} | {state: MessageUnboxedState.outbox; outbox: OutboxRecord | null} | {state: MessageUnboxedState.placeholder; placeholder: MessageUnboxedPlaceholder | null}
 export type MessageUnboxedError = {readonly errType: MessageUnboxedErrorType; readonly errMsg: String; readonly internalErrMsg: String; readonly versionKind: VersionKind; readonly versionNumber: Int; readonly isCritical: Boolean; readonly senderUsername: String; readonly senderDeviceName: String; readonly senderDeviceType: String; readonly messageID: MessageID; readonly messageType: MessageType; readonly ctime: Gregor1.Time; readonly isEphemeral: Boolean; readonly isEphemeralExpired: Boolean; readonly etime: Gregor1.Time}
 export type MessageUnboxedPlaceholder = {readonly messageID: MessageID; readonly hidden: Boolean}
@@ -1089,7 +1095,7 @@ export type UnfurlGiphyDisplay = {readonly favicon?: UnfurlImageDisplay | null; 
 export type UnfurlGiphyRaw = {readonly imageUrl?: String | null; readonly video?: UnfurlVideo | null; readonly faviconUrl?: String | null}
 export type UnfurlImageDisplay = {readonly url: String; readonly height: Int; readonly width: Int; readonly isVideo: Boolean}
 export type UnfurlPromptResult = {actionType: UnfurlPromptAction.always} | {actionType: UnfurlPromptAction.never} | {actionType: UnfurlPromptAction.notnow} | {actionType: UnfurlPromptAction.accept; accept: String | null} | {actionType: UnfurlPromptAction.onetime; onetime: String | null}
-export type UnfurlRaw = {unfurlType: UnfurlType.generic; generic: UnfurlGenericRaw | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeRaw | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyRaw | null}
+export type UnfurlRaw = {unfurlType: UnfurlType.generic; generic: UnfurlGenericRaw | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeRaw | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyRaw | null} | {unfurlType: UnfurlType.maps; maps: UnfurlGenericRaw | null}
 export type UnfurlResult = {readonly unfurl: Unfurl; readonly url: String}
 export type UnfurlSettings = {readonly mode: UnfurlMode; readonly whitelist: {[key: string]: Boolean}}
 export type UnfurlSettingsDisplay = {readonly mode: UnfurlMode; readonly whitelist?: Array<String> | null}
@@ -1136,6 +1142,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatGetCoordinate'?: (params: MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.NewChatActivity'?: (params: MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1188,6 +1195,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatGetCoordinate'?: (params: MessageTypes['chat.1.chatUi.chatGetCoordinate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatGetCoordinate']['outParam']) => void}) => IncomingReturn
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1272,6 +1280,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatCommandMarkdown'
 // 'chat.1.chatUi.chatMaybeMentionUpdate'
 // 'chat.1.chatUi.chatLoadGalleryHit'
+// 'chat.1.chatUi.chatGetCoordinate'
 // 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'

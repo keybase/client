@@ -43,6 +43,7 @@ protocol user {
 
   record UserSettings {
     array<Email> emails;
+    array<UserPhoneNumber> phoneNumbers;
   }
 
   /**

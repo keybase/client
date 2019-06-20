@@ -17,21 +17,19 @@ import (
 )
 
 // Get a PTK seed and verify against the sigchain that is the correct key.
-func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, teamData *keybase1.TeamData,
-	gen keybase1.PerTeamKeyGeneration) (ret keybase1.PerTeamKeySeedItem, err error) {
+func GetAndVerifyPerTeamKey(mctx libkb.MetaContext, team Teamer, gen keybase1.PerTeamKeyGeneration) (ret keybase1.PerTeamKeySeedItem, err error) {
 
-	ret, ok := teamData.PerTeamKeySeedsUnverified[gen]
+	ret, ok := team.MainChain().PerTeamKeySeedsUnverified[gen]
 	if !ok {
 		return ret, libkb.NotFoundError{
 			Msg: fmt.Sprintf("no team secret found at generation %v", gen)}
 	}
-
-	km, err := NewTeamKeyManagerWithSecret(ret.Seed, gen)
+	km, err := NewTeamKeyManagerWithSeedItem(team.MainChain().ID(), ret)
 	if err != nil {
 		return ret, err
 	}
 
-	chainKey, err := TeamSigChainState{inner: teamData.Chain}.GetPerTeamKeyAtGeneration(gen)
+	chainKey, err := newTeamSigChainState(team).GetPerTeamKeyAtGeneration(gen)
 	if err != nil {
 		return ret, err
 	}
@@ -82,23 +80,38 @@ type PerTeamSharedSecretBox struct {
 type TeamKeyManager struct {
 	sharedSecret keybase1.PerTeamKeySeed
 	generation   keybase1.PerTeamKeyGeneration
+	check        keybase1.PerTeamSeedCheck
+	id           keybase1.TeamID
 
 	encryptionKey *libkb.NaclDHKeyPair
 	signingKey    *libkb.NaclSigningKeyPair
 }
 
-func NewTeamKeyManager(g *libkb.GlobalContext) (*TeamKeyManager, error) {
+func NewTeamKeyManager(g *libkb.GlobalContext, id keybase1.TeamID) (*TeamKeyManager, error) {
 	sharedSecret, err := newSharedSecret()
 	if err != nil {
 		return nil, err
 	}
-	return NewTeamKeyManagerWithSecret(sharedSecret, 1)
+	check, err := computeSeedCheck(id, sharedSecret, nil)
+	if err != nil {
+		return nil, err
+	}
+	return NewTeamKeyManagerWithSecret(id, sharedSecret, 1, check)
 }
 
-func NewTeamKeyManagerWithSecret(secret keybase1.PerTeamKeySeed, generation keybase1.PerTeamKeyGeneration) (*TeamKeyManager, error) {
+func NewTeamKeyManagerWithSeedItem(id keybase1.TeamID, si keybase1.PerTeamKeySeedItem) (*TeamKeyManager, error) {
+	return NewTeamKeyManagerWithSecret(id, si.Seed, si.Generation, si.Check)
+}
+
+func NewTeamKeyManagerWithSecret(id keybase1.TeamID, secret keybase1.PerTeamKeySeed, generation keybase1.PerTeamKeyGeneration, check *keybase1.PerTeamSeedCheck) (*TeamKeyManager, error) {
+	if check == nil {
+		return nil, fmt.Errorf("unexpected nil check item")
+	}
 	return &TeamKeyManager{
 		sharedSecret: secret,
 		generation:   generation,
+		check:        *check,
+		id:           id,
 	}, nil
 }
 
@@ -117,6 +130,14 @@ func (t *TeamKeyManager) SigningKey() (libkb.NaclSigningKeyPair, error) {
 		t.signingKey = &key
 	}
 	return *t.signingKey, nil
+}
+
+func (t *TeamKeyManager) Check() keybase1.PerTeamSeedCheck {
+	return t.check
+}
+
+func (t *TeamKeyManager) Generation() keybase1.PerTeamKeyGeneration {
+	return t.generation
 }
 
 // EncryptionKey returns the derived NaclDHKeyPair from the team's shared secret.
@@ -182,7 +203,10 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(mctx libkb.MetaContext, senderK
 	}
 
 	// make the recipient boxes with the new secret and the incrementing nonce24
-	t.setNextSharedSecret(mctx, nextSecret)
+	err = t.setNextSharedSecret(mctx, nextSecret)
+	if err != nil {
+		return nil, nil, err
+	}
 	boxes, err = t.sharedBoxes(t.sharedSecret, t.generation, nonce, senderKey, recipients)
 	if err != nil {
 		return nil, nil, err
@@ -283,8 +307,15 @@ func (t *TeamKeyManager) perTeamKeySection() (*SCPerTeamKey, error) {
 	}, nil
 }
 
-func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keybase1.PerTeamKeySeed) {
+func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keybase1.PerTeamKeySeed) (err error) {
+
+	check, err := computeSeedCheck(t.id, secret, &t.check)
+	if err != nil {
+		return err
+	}
+
 	t.sharedSecret = secret
+	t.check = *check
 
 	// bump generation number
 	t.generation = t.generation + 1
@@ -294,6 +325,8 @@ func (t *TeamKeyManager) setNextSharedSecret(mctx libkb.MetaContext, secret keyb
 	t.encryptionKey = nil
 
 	mctx.Debug("TeamKeyManager: set next shared secret, generation %d", t.generation)
+
+	return nil
 }
 
 type prevKeySealedDecoded struct {
@@ -380,4 +413,89 @@ func decryptPrevSingle(ctx context.Context,
 	}
 	ret, err := keybase1.PerTeamKeySeedFromBytes(opened)
 	return &ret, err
+}
+
+func computeSeedCheck(id keybase1.TeamID, seed keybase1.PerTeamKeySeed, prev *keybase1.PerTeamSeedCheck) (*keybase1.PerTeamSeedCheck, error) {
+
+	var prevValue keybase1.PerTeamSeedCheckValue
+	switch {
+	case prev == nil:
+		tmp := []byte(libkb.TeamKeySeedCheckDerivationString)
+		tmp = append(tmp, byte(0))
+		tmp = append(tmp, id.ToBytes()...)
+		prevValue = keybase1.PerTeamSeedCheckValue(tmp)
+	case prev != nil && prev.Version != keybase1.PerTeamSeedCheckVersion_V1:
+		return nil, fmt.Errorf("cannot handle PerTeamSeedCheck version > 1")
+	case prev != nil && prev.Version == keybase1.PerTeamSeedCheckVersion_V1:
+		prevValue = prev.Value
+	}
+
+	g := func(seed keybase1.PerTeamKeySeed, prev keybase1.PerTeamSeedCheckValue) keybase1.PerTeamSeedCheckValue {
+		digest := hmac.New(sha512.New, seed[:])
+		digest.Write([]byte(prev))
+		return keybase1.PerTeamSeedCheckValue(digest.Sum(nil)[:32])
+	}
+
+	return &keybase1.PerTeamSeedCheck{
+		Version: keybase1.PerTeamSeedCheckVersion_V1,
+		Value:   g(seed, prevValue),
+	}, nil
+}
+
+// computeSeedChecks looks at a sequence of checks, newest to oldest, trying to find the first nil. Once it finds
+// such a nil, it goes forward and fills in the checks, based on the current seeds. There's an unfortunately level
+// of indirection since we need the same code to work over slow and fast team loading; thus we have setters and getters
+// as functions. But the idea is the same in both cases. Not that we're assuming there aren't "holes". That the nils
+// are at the back of the sequence and not interspersed throughout. This is valid so long as we always compute
+// these checks on load of new links.
+func computeSeedChecks(ctx context.Context, teamID keybase1.TeamID, latestChainGen keybase1.PerTeamKeyGeneration, getter func(g keybase1.PerTeamKeyGeneration) (*keybase1.PerTeamSeedCheck, keybase1.PerTeamKeySeed, error), setter func(g keybase1.PerTeamKeyGeneration, c keybase1.PerTeamSeedCheck)) error {
+
+	var firstNonNilCheck keybase1.PerTeamKeyGeneration
+	var foundLinkToUpdate bool
+
+	for i := latestChainGen; i >= 1; i-- {
+		check, _, err := getter(i)
+		if err != nil {
+			return err
+		}
+		if check != nil {
+			firstNonNilCheck = i
+			break
+		}
+		foundLinkToUpdate = true
+	}
+
+	if !foundLinkToUpdate {
+		// NoOp, we're all up-to-date
+		return nil
+	}
+
+	var prev *keybase1.PerTeamSeedCheck
+
+	if firstNonNilCheck > keybase1.PerTeamKeyGeneration(0) {
+		var err error
+		prev, _, err = getter(firstNonNilCheck)
+		if err != nil {
+			return err
+		}
+		if prev == nil {
+			return fmt.Errorf("unexpected nil PerTeamKeySeedsUnverified.Check at %d", firstNonNilCheck)
+		}
+	}
+
+	start := firstNonNilCheck + keybase1.PerTeamKeyGeneration(1)
+
+	for i := start; i <= latestChainGen; i++ {
+		_, seed, err := getter(i)
+		if err != nil {
+			return err
+		}
+		check, err := computeSeedCheck(teamID, seed, prev)
+		if err != nil {
+			return err
+		}
+		setter(i, *check)
+		prev = check
+	}
+	return nil
 }

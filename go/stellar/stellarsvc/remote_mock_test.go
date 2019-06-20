@@ -252,7 +252,7 @@ func (t *txlogger) Pending(ctx context.Context, tc *TestContext, accountID stell
 // Check whether the caller is in the implicit team.
 // By loading the team.
 func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamID) bool {
-	team, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{
 		ID:      teamID,
 		StaleOK: true,
 	})

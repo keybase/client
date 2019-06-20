@@ -33,6 +33,13 @@ func (r *RemoteExternalAPIKeySource) GetKey(ctx context.Context, typ chat1.Exter
 	if len(keys) != 1 {
 		return res, fmt.Errorf("wrong number of keys returned: %d", len(keys))
 	}
+	rtyp, err := keys[0].Typ()
+	if err != nil {
+		return res, err
+	}
+	if rtyp != typ {
+		return res, fmt.Errorf("server returned wrong key: %v != %v", typ, rtyp)
+	}
 	return keys[0], nil
 }
 
