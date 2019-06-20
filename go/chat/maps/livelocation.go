@@ -160,6 +160,7 @@ func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, watchID chat1.
 	l.Lock()
 	defer l.Unlock()
 	if t, ok := l.trackers[watchID]; ok {
+		// TODO: sample these
 		return t.coords
 	}
 	return nil
