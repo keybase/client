@@ -56,6 +56,6 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 		return SecretStoreFallbackBehaviorOnError
 
 	}
-	return NewSecretStoreUpgradeable(secAndroid, secFile,
+	return NewSecretStoreUpgradeable(secAndroid, secFile, "android secret store", "file-based secret store",
 		shouldUpgradeOpportunistically, shouldStoreInFallback)
 }
