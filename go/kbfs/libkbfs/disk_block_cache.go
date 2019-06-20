@@ -1270,7 +1270,7 @@ func (cache *DiskBlockCacheLocal) Status(
 // DoesCacheHaveSpace returns true if we have more than 1% of space
 // left in the cache.
 func (cache *DiskBlockCacheLocal) DoesCacheHaveSpace(
-	ctx context.Context) bool {
+	ctx context.Context) (hasSpace bool, howMuch int64, err error) {
 	limiterStatus := cache.config.DiskLimiter().getStatus(
 		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	switch cache.cacheType {
@@ -1279,11 +1279,13 @@ func (cache *DiskBlockCacheLocal) DoesCacheHaveSpace(
 		// want to throttle it, so rely on our local byte usage count
 		// instead of the fraction returned by the tracker.
 		limit := float64(limiterStatus.SyncCacheByteStatus.Max)
-		return float64(cache.getCurrBytes())/limit <= .99
+		return float64(cache.getCurrBytes())/limit <= .99,
+			limiterStatus.DiskCacheByteStatus.Free, nil
 	case workingSetCacheLimitTrackerType:
-		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99
+		return limiterStatus.DiskCacheByteStatus.UsedFrac <= .99,
+			limiterStatus.DiskCacheByteStatus.Free, nil
 	case crDirtyBlockCacheLimitTrackerType:
-		return true
+		return true, 0, nil
 	default:
 		panic(fmt.Sprintf("Unknown cache type: %d", cache.cacheType))
 	}

@@ -255,8 +255,8 @@ const styles = Styles.styleSheetCreate({
   buttonBarWarning: {backgroundColor: Styles.globalColors.yellow},
   buttonBig: {flex: 2.5},
   buttonSmall: {flex: 1},
-  colorBlue: {color: Styles.globalColors.blue},
-  colorRed: {color: Styles.globalColors.red},
+  colorBlue: {color: Styles.globalColors.blueDark},
+  colorRed: {color: Styles.globalColors.redDark},
   container: Styles.platformStyles({isElectron: {height: 485, width: 560}}),
   flexOne: {flex: 1},
   inlineIcon: {
@@ -308,7 +308,7 @@ const styles = Styles.styleSheetCreate({
   },
   paddingRightTiny: {paddingRight: Styles.globalMargins.tiny},
   placeholder: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_35,
   },
   placeholderService: {
     color: Styles.globalColors.black_20,
@@ -343,7 +343,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {width: 360},
   }),
   unreachablePlaceholder: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_40},
+    common: {color: Styles.globalColors.black_35},
     isElectron: {
       wordBreak: 'break-all',
     },

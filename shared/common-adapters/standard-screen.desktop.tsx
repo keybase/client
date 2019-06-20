@@ -47,7 +47,7 @@ const styleTopStack = {
 
 const backgroundColorThemed = {
   dark: {
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.blueDarker2,
   },
   light: {
     backgroundColor: globalColors.white,

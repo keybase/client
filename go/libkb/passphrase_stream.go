@@ -93,6 +93,20 @@ func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 	ps.gen = gen
 }
 
+type passphraseStreamPWHash [pwhLen]byte
+type passphraseSteramEdDSASeed [eddsaLen]byte
+
+func newPassphraseStreamFromPwhAndEddsa(pwhash passphraseStreamPWHash, eddsa passphraseSteramEdDSASeed) *PassphraseStream {
+	stream := make([]byte, extraLen)
+	copy(stream[pwhIndex:eddsaIndex], pwhash[:])
+	copy(stream[eddsaIndex:dhIndex], eddsa[:])
+	ps := &PassphraseStream{
+		stream: stream,
+		gen:    PassphraseGeneration(0),
+	}
+	return ps
+}
+
 func (ps PassphraseStream) PWHash() []byte {
 	return ps.stream[pwhIndex:eddsaIndex]
 }

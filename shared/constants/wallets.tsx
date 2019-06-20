@@ -2,6 +2,7 @@ import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
+import {AllowedColors} from '../common-adapters/text'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
@@ -166,7 +167,7 @@ export const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLoca
     builtBanners: b.banners,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
-    from: Types.stringToAccountID(b.from),
+    from: b.from ? Types.stringToAccountID(b.from) : Types.noAccountID,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToReview: b.readyToReview,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
@@ -209,6 +210,8 @@ export const makeAssets = I.Record<Types._Assets>({
   availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
+  infoUrl: '',
+  infoUrlText: '',
   issuerAccountID: '',
   issuerName: '',
   issuerVerifiedDomain: '',
@@ -224,6 +227,8 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    infoUrl: w.infoUrl,
+    infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
     issuerVerifiedDomain: w.issuerVerifiedDomain,
@@ -633,10 +638,10 @@ export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 
 export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
 
-export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
-  let balanceChangeColor = Styles.globalColors.black
+export const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+  let balanceChangeColor: AllowedColors = Styles.globalColors.black
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purpleDark
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.greenDark : Styles.globalColors.purpleDark
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20

@@ -128,6 +128,10 @@ func (config testBlockOpsConfig) Reporter() Reporter {
 	return config.reporter
 }
 
+func (config testBlockOpsConfig) GetSettingsDB() *SettingsDB {
+	return nil
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
 	codecGetter := newTestCodecGetter()

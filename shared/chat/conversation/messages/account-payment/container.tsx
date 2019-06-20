@@ -78,7 +78,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChange: completed
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`
           : '',
-        balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
+        balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
         cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
         cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
         canceled,
@@ -161,7 +161,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showCoinsIcon: stateProps.showCoinsIcon,
 })
 
-const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  AccountPayment
-)
+const ConnectedAccountPayment = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(AccountPayment)
 export default ConnectedAccountPayment

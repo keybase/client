@@ -275,7 +275,7 @@ const styles = Styles.styleSheetCreate({
   }),
   errorText: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.red,
+      color: Styles.globalColors.redDark,
       width: '100%',
     },
     isElectron: {

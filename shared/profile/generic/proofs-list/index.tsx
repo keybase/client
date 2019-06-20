@@ -180,11 +180,11 @@ const styles = Styles.styleSheetCreate({
   },
   footerText: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_60,
+    color: Styles.globalColors.black_50,
     marginLeft: Styles.globalMargins.tiny,
   },
   header: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
     marginTop: Styles.globalMargins.tiny,
   },
   icon: {
@@ -230,7 +230,7 @@ const styles = Styles.styleSheetCreate({
   },
   title: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
 })
 

@@ -70,6 +70,10 @@ func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 	return c.bg
 }
 
+func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
+	return nil
+}
+
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
 	id, err := kbfsblock.MakeFakeID()
 	require.NoError(t, err)

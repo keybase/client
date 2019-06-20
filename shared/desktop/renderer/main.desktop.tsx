@@ -1,6 +1,7 @@
 // Entry point to the chrome part of the app
 import '../../util/user-timings'
 import Main from '../../app/main.desktop'
+// order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
@@ -88,6 +89,9 @@ function setupApp(store, runSagas) {
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
+
+  // Check for a startup URL
+  SafeElectron.getIpcRenderer().send('reduxLaunched')
 }
 
 const FontLoader = () => (

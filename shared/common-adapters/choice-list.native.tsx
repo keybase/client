@@ -89,7 +89,7 @@ const styleInfoContainer = {
 }
 
 const styleInfoTitle = {
-  color: globalColors.blue,
+  color: globalColors.blueDark,
 }
 
 export default ChoiceList

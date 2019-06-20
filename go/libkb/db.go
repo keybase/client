@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBHiddenChainStorage             = 0xb9
 	DBContactResolution              = 0xba
 	DBBoxAuditorPermanent            = 0xbb
 	DBBoxAuditor                     = 0xbc

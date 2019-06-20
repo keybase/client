@@ -62,7 +62,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   labelText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   linkText: {
     color: Styles.globalColors.white,

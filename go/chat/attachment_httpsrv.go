@@ -706,13 +706,21 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 	return os.OpenFile(path, os.O_RDWR, os.ModeAppend)
 }
 
+// normalizeFilenameFromCache substitutes the existing cache dir value into the
+// file path since it's possible for the path to the cache dir to change,
+// especially on mobile.
+func (c *CachingAttachmentFetcher) normalizeFilenameFromCache(file string) string {
+	file = filepath.Base(file)
+	return filepath.Join(c.getCacheDir(), file)
+}
+
 func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {
 	found, entry, err := c.diskLRU.Get(ctx, c.G(), c.cacheKey(asset))
 	if err != nil {
 		return found, path, err
 	}
 	if found {
-		path = entry.Value.(string)
+		path = c.normalizeFilenameFromCache(entry.Value.(string))
 	}
 	return found, path, nil
 }
@@ -791,7 +799,7 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 		return err
 	}
 	if evicted != nil {
-		path := evicted.Value.(string)
+		path := c.normalizeFilenameFromCache(evicted.Value.(string))
 		os.Remove(path)
 	}
 	return nil

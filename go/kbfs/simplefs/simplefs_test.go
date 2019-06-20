@@ -1425,9 +1425,10 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.NotNil(t, f.ConflictState)
 			conflictStateType, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
-			require.Equal(t, keybase1.ConflictStateType_AutomaticResolving,
+			require.Equal(t, keybase1.ConflictStateType_NormalView,
 				conflictStateType)
-			require.True(t, f.ConflictState.Automaticresolving().IsStuck)
+			require.True(t, f.ConflictState.Normalview().ResolvingConflict)
+			require.True(t, f.ConflictState.Normalview().StuckInConflict)
 			stuck++
 		} else {
 			require.Nil(t, f.ConflictState)
@@ -1453,17 +1454,19 @@ func TestFavoriteConflicts(t *testing.T) {
 			require.Equal(
 				t, keybase1.ConflictStateType_ManualResolvingLocalView, ct)
 			mrlv := f.ConflictState.Manualresolvinglocalview()
-			require.Equal(t, pathPub.String(), mrlv.ServerView.String())
+			require.Equal(t, pathPub.String(), mrlv.NormalView.String())
 			pathConflict = keybase1.NewPathWithKbfs("/public/" + f.Name)
 		} else if f.Name == "jdoe" && f.FolderType == keybase1.FolderType_PUBLIC {
 			require.NotNil(t, f.ConflictState)
 			ct, err := f.ConflictState.ConflictStateType()
 			require.NoError(t, err)
 			require.Equal(
-				t, keybase1.ConflictStateType_ManualResolvingServerView, ct)
-			mrsv := f.ConflictState.Manualresolvingserverview()
-			require.Len(t, mrsv.LocalViews, 1)
-			pathLocalView = mrsv.LocalViews[0]
+				t, keybase1.ConflictStateType_NormalView, ct)
+			sv := f.ConflictState.Normalview()
+			require.False(t, sv.ResolvingConflict)
+			require.False(t, sv.StuckInConflict)
+			require.Len(t, sv.LocalViews, 1)
+			pathLocalView = sv.LocalViews[0]
 		} else {
 			require.Nil(t, f.ConflictState)
 		}

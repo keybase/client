@@ -2815,6 +2815,13 @@ func TestManageTrustlines(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
+	otherAccountID, _ := randomStellarKeypair()
+	trustlines, err := tcs[0].Srv.GetTrustlinesLocal(context.Background(), stellar1.GetTrustlinesLocalArg{
+		AccountID: otherAccountID,
+	})
+	require.NoError(t, err)
+	require.Len(t, trustlines, 0)
+
 	acceptDisclaimer(tcs[0])
 	accounts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
 

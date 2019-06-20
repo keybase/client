@@ -1068,19 +1068,23 @@ func (e *Env) GetSkipLogoutIfRevokedCheck() bool {
 func (e *Env) GetProxyType() ProxyType {
 	if e.GetTorMode() != TorNone {
 		// Tor mode is enabled. Tor mode is implemented via a socks proxy
-		return socks
+		return Socks
 	}
 	var proxyTypeStr = e.GetString(
 		func() string { return e.cmd.GetProxyType() },
 		func() string { return os.Getenv("PROXY_TYPE") },
 		func() string { return e.GetConfig().GetProxyType() },
 	)
+	return ProxyTypeStrToEnumFunc(proxyTypeStr)
+}
+
+func ProxyTypeStrToEnumFunc(proxyTypeStr string) ProxyType {
 	proxyType, ok := ProxyTypeStrToEnum[strings.ToLower(proxyTypeStr)]
 	if ok {
 		return proxyType
 	}
 	// If they give us a bogus proxy type we just don't enable a proxy
-	return noProxy
+	return NoProxy
 }
 
 // Get the address (optionally including a port) of the currently configured proxy. Returns an empty string if no proxy

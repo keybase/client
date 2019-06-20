@@ -80,7 +80,7 @@ class DeleteRepo extends React.Component<Props, State> {
             )}
             <Kb.Text
               type="BodySemibold"
-              style={{color: Styles.globalColors.red, textDecorationLine: 'line-through'}}
+              style={{color: Styles.globalColors.redDark, textDecorationLine: 'line-through'}}
             >
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Kb.Text>

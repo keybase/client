@@ -180,7 +180,7 @@ class SaveIndicator extends React.Component<Props, State> {
         return (
           <React.Fragment>
             <Icon type="iconfont-check" color={globalColors.green} />
-            <Text type="BodySmall" style={{color: globalColors.green}}>
+            <Text type="BodySmall" style={{color: globalColors.greenDark}}>
               &nbsp; Saved
             </Text>
           </React.Fragment>

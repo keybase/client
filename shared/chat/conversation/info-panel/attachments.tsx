@@ -359,7 +359,7 @@ export class LinkView {
           <Kb.Text
             type="BodySmallPrimaryLink"
             onClickURL={item.url}
-            style={Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blue}])}
+            style={Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}])}
           >
             {item.title}
           </Kb.Text>
@@ -396,7 +396,7 @@ export class AttachmentTypeSelector extends React.Component<SelectorProps> {
   _getColor = typ => {
     return typ === this.props.selectedView
       ? {color: Styles.globalColors.white}
-      : {color: Styles.globalColors.blue}
+      : {color: Styles.globalColors.blueDark}
   }
   render() {
     return (
@@ -567,5 +567,5 @@ const styles = Styles.styleSheetCreate({
 })
 
 const linkStyleOverride = {
-  link: Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blue}]),
+  link: Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}]),
 }

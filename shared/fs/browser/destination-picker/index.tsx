@@ -144,7 +144,7 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
   },
   actionText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   anotherHeader: {
     height: 48,
@@ -188,7 +188,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
   },
   newFolderText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     marginLeft: Styles.globalMargins.tiny,
   },
   rowsContainer: {

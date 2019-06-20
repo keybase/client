@@ -105,7 +105,7 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.blue,
     position: 'relative',
   },
-  headerText: {color: Styles.globalColors.darkBlue},
+  headerText: {color: Styles.globalColors.blueDark},
   iconVerticalAlign: Styles.platformStyles({
     isElectron: {
       position: 'relative',

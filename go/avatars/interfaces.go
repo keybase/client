@@ -28,7 +28,7 @@ func CreateSourceFromEnvAndInstall(g *libkb.GlobalContext) (s Source) {
 		s = NewURLCachingSource(time.Hour /* staleThreshold */, 20000)
 	case "full":
 		maxSize := 10000
-		if g.GetAppType() == libkb.MobileAppType {
+		if g.IsMobileAppType() {
 			maxSize = 2000
 		}
 		// When changing staleThreshold here, serverside avatar change

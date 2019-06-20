@@ -366,7 +366,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.fontTerminalSemibold,
       backgroundColor: Styles.globalColors.white,
       borderRadius: 4,
-      color: Styles.globalColors.green,
+      color: Styles.globalColors.greenDark,
       paddingBottom: 15,
       paddingLeft: 20,
       paddingRight: 20,

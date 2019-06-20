@@ -58,7 +58,7 @@ const stylesRowContainer = {
   transition: 'background 0.1s ease-out',
 } as any
 const stylesHeader = {
-  color: globalColors.blue,
+  color: globalColors.blueDark,
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxRow,

@@ -7,7 +7,7 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import Measure from 'react-measure'
-import Waypoint from 'react-waypoint'
+import {Waypoint} from 'react-waypoint'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'

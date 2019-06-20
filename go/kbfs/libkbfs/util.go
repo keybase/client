@@ -370,7 +370,7 @@ func FillInDiskSpaceStatus(
 		return
 	}
 
-	hasRoom, err := dbc.DoesCacheHaveSpace(
+	hasRoom, _, err := dbc.DoesCacheHaveSpace(
 		context.Background(), DiskBlockSyncCache)
 	if err != nil {
 		return

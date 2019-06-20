@@ -2,6 +2,7 @@ import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 import {allTextTypes} from './text.shared'
 import * as CSS from '../styles/css'
+import colors from '../styles/colors'
 
 type Background =
   | 'Announcements'
@@ -11,7 +12,35 @@ type Background =
   | 'Normal'
   | 'Success'
   | 'Terminal'
+
 type TextType = keyof typeof allTextTypes
+
+// Talk to design before adding a color here - these should cover all cases.
+export type AllowedColors = Values<
+  Pick<
+    typeof colors,
+    | 'blueDark'
+    | 'blueLighter' // for terminal background only
+    | 'greenDark'
+    | 'redDark'
+    | 'purpleDark'
+    | 'black'
+    | 'black_on_white'
+    | 'black_50'
+    | 'black_50_on_white'
+    | 'black_35'
+    | 'black_20'
+    | 'black_20_on_white'
+    | 'white'
+    | 'white_75'
+    | 'white_40'
+    | 'brown_75'
+    | 'orange'
+    | 'transparent'
+  >
+>
+
+export type StylesTextCrossPlatform = StylesCrossPlatform & {color?: AllowedColors}
 
 type Props = {
   allowFontScaling?: boolean
@@ -29,7 +58,7 @@ type Props = {
   onPress?: void
   plainText?: boolean
   selectable?: boolean
-  style?: StylesCrossPlatform
+  style?: StylesTextCrossPlatform
   textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
   title?: string | null
   type: TextType

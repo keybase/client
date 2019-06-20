@@ -21,9 +21,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     code: asset.assetCode,
     equivAvailableToSend: `${asset.availableToSendWorth}`,
     equivBalance: `${asset.worth}`,
+    infoUrlText: asset.infoUrlText,
     issuerAccountID: asset.issuerAccountID,
     issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,
+    openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
     openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
     reserves: asset.reserves.toArray(),
   }
