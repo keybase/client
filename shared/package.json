@@ -130,7 +130,7 @@
     "google-libphonenumber": "3.2.2",
     "iced-runtime": "1.0.3",
     "immutable": "4.0.0-rc.12",
-    "jsc-android": "241213.2.0",
+    "@kudo-ci/jsc-android": "245459-fix-clear-cache-no-dfg",
     "lodash-es": "4.17.11",
     "lottie-react-native": "2.6.1",
     "lottie-react-web": "2.1.4",
