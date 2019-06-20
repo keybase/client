@@ -13,6 +13,7 @@ import (
 
 const (
 	prefixToSkipObfsucation = ".kbfs_"
+	prefixFileInfo          = ".kbfs_fileinfo_"
 	tarGzSuffix             = ".tar.gz"
 
 	// extRestoreMaxLen specifies the max length of an extension, such
@@ -56,13 +57,20 @@ func NewPathPartString(
 }
 
 func (pps PathPartString) String() string {
-	if strings.HasPrefix(pps.plaintext, prefixToSkipObfsucation) ||
-		pps.obfuscator == nil {
-		return pps.plaintext
+	prefix := ""
+	p := pps.plaintext
+	if pps.obfuscator == nil {
+		return p
+	} else if strings.HasPrefix(p, prefixFileInfo) {
+		// Obfuscate the suffix part for fileInfo paths.
+		prefix = prefixFileInfo
+		p = strings.TrimPrefix(p, prefix)
+	} else if strings.HasPrefix(p, prefixToSkipObfsucation) {
+		return p
 	}
 
-	ob := pps.obfuscator.Obfuscate(pps.plaintext)
-	return ob + pps.ext
+	ob := pps.obfuscator.Obfuscate(p)
+	return prefix + ob + pps.ext
 }
 
 // Plaintext returns the plaintext underlying this string part.
