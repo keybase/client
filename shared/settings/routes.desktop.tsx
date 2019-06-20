@@ -56,6 +56,8 @@ export const newRoutes = {
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+  addEmail: {getScreen: () => require('./account/add-modals').Email},
+  addPhone: {getScreen: () => require('./account/add-modals').Phone},
   changePassword: {getScreen: () => require('./password/container').default},
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
 }

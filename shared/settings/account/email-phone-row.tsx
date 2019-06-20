@@ -149,7 +149,7 @@ export type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   _emailRow: state.settings.email.emails.get(ownProps.contactKey) || null,
-  _phoneRow: state.settings.phone.phones.get(ownProps.contactKey) || null,
+  _phoneRow: state.settings.phoneNumbers.phones.get(ownProps.contactKey) || null,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({

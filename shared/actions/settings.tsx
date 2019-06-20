@@ -429,7 +429,7 @@ const editPhone = (state, action: SettingsGen.EditPhonePayload, logger) => {
     return RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
   }
   if (action.payload.toggleSearchable) {
-    const currentSettings = state.settings.phone.phones.get(action.payload.phone)
+    const currentSettings = state.settings.phoneNumbers.phones.get(action.payload.phone)
     const newVisibility = currentSettings
       ? flipVis(currentSettings.visibility)
       : ChatTypes.Keybase1.IdentityVisibility.private

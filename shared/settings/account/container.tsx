@@ -12,8 +12,8 @@ import {isMobile} from '../../styles'
 type OwnProps = {}
 const mapStateToProps = (state: TypedState, o: OwnProps) => ({
   _emails: state.settings.email.emails,
-  _phones: state.settings.phone.phones,
-  bootstrapDone: state.settings.email.emails !== null && state.settings.phone.phones !== null,
+  _phones: state.settings.phoneNumbers.phones,
+  bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
   hasPassword: !state.settings.password.randomPW,
 })
 

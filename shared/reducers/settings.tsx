@@ -86,8 +86,8 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('invites', invites => invites.merge({error: null}))
     case SettingsGen.loadedSettings:
       return state
-        .set('email', Constants.makeEmail({emails: action.payload.emails}))
-        .set('phone', Constants.makePhone({phones: action.payload.phones}))
+        .setIn(['email', 'emails'], action.payload.emails)
+        .setIn(['phoneNumbers', 'phones'], action.payload.phones)
     case EngineGen.keybase1NotifyEmailAddressEmailsChanged:
       return state.setIn(
         ['email', 'emails'],
@@ -190,6 +190,8 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
+    case SettingsGen.editEmail:
+    case SettingsGen.editPhone:
     case SettingsGen.invitesReclaim:
     case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
