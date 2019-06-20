@@ -11,14 +11,17 @@ const Wrapper = ({children}) => (
   </Box2>
 )
 
-const provider = Sb.createPropProviderWithCommon({
+export const Provider = Sb.createPropProviderWithCommon({
   ...makeResultsListSelectorMap(),
   ...makeUserInputSelectorMap([]),
+  PeopleTabSearch: {
+    onSearch: Sb.action('onSearch'),
+  },
 })
 
 const load = () => {
   Sb.storiesOf('Profile/Search', module)
-    .addDecorator(provider)
+    .addDecorator(Provider)
     .add('Normal', () => (
       <Wrapper>
         <Search onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />
