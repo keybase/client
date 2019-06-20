@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -92,6 +93,52 @@ func (l *LiveLocationTracker) getChatUI(ctx context.Context) libkb.ChatUI {
 	return ui
 }
 
+type unfurlNotifyListener struct {
+	globals.Contextified
+	utils.DebugLabeler
+	libkb.NoopNotifyListener
+
+	outboxID chat1.OutboxID
+	doneCh   chan struct{}
+}
+
+func newUnfurlNotifyListener(g *globals.Context, outboxID chat1.OutboxID, doneCh chan struct{}) *unfurlNotifyListener {
+	return &unfurlNotifyListener{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "maps.unfurlNotifyListener", false),
+		outboxID:     outboxID,
+		doneCh:       doneCh,
+	}
+}
+
+func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
+	ctx := context.Background()
+	st, err := activity.ActivityType()
+	if err != nil {
+		n.Debug(ctx, "NewChatActivity: failed to get type: %s", err)
+		return
+	}
+	switch st {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
+		msg := activity.IncomingMessage().Message
+		if msg.IsOutbox() {
+			return
+		}
+		if n.outboxID.Eq(msg.GetOutboxID()) {
+			close(n.doneCh)
+		}
+	case chat1.ChatActivityType_FAILED_MESSAGE:
+		recs := activity.FailedMessage().OutboxRecords
+		for _, r := range recs {
+			if n.outboxID.Eq(&r.OutboxID) {
+				close(n.doneCh)
+				break
+			}
+		}
+	}
+}
+
 func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.ConversationID,
 	msgID chat1.MessageID, watchID chat1.LocationWatchID, coords []chat1.Coordinate) (err error) {
 	ctx = globals.ChatCtx(ctx, l.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
@@ -132,7 +179,13 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: body,
 	})
-	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, chat1.NewMessageUnboxedWithValid(mvalid))
+	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+	unfurlDoneCh := make(chan struct{})
+	outboxID := storage.GetOutboxIDFromURL(body, convID, newMsg)
+	listenerID := l.G().NotifyRouter.AddListener(newUnfurlNotifyListener(l.G(), outboxID, unfurlDoneCh))
+	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, newMsg)
+	<-unfurlDoneCh
+	l.G().NotifyRouter.RemoveListener(listenerID)
 	return nil
 }
 
