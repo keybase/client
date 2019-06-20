@@ -2,6 +2,7 @@ import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS} from '../constants/platform'
 import globalColors from './colors'
+import styleSheeCreateProxy from './style-sheet-proxy'
 import * as Shared from './shared'
 
 type _Elem = Object | null | false | void
@@ -53,7 +54,8 @@ export const globalStyles = {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
-export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
+export const styleSheetCreate = obj => styleSheeCreateProxy(obj, o => StyleSheet.create(obj))
+export const isDarkMode = () => true // TEMP
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {

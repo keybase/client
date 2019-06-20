@@ -10,9 +10,9 @@ const StyledText = Styles.styled(NativeText)({}, (props: any) => props.style)
 
 const modes = ['positive', 'negative']
 
-const styleMap = Object.keys(metaData).reduce(
+const styleMap = Object.keys(metaData()).reduce(
   (map, type: TextType) => {
-    const meta = metaData[type]
+    const meta = metaData()[type]
     modes.forEach(mode => {
       map[`${type}:${mode}`] = {
         ...fontSizeToSizeStyle(meta.fontSize),
@@ -27,6 +27,7 @@ const styleMap = Object.keys(metaData).reduce(
   }
 )
 
+// TODO fix dark mode
 const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
@@ -143,7 +144,7 @@ function _getStyle(
     return forceUnderline ? {textDecorationLine: 'underline'} : {}
   }
   // negative === true
-  const meta = metaData[type]
+  const meta = metaData()[type]
   const colorStyle = {color: meta.colorForBackground.negative}
   const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
 
@@ -158,7 +159,7 @@ function getStyle(
   lineClampNum?: number | null,
   clickable?: boolean | null
 ) {
-  const meta = metaData[type]
+  const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
   const textDecoration = meta.isLink && negative ? {textDecorationLine: 'underline'} : {}
