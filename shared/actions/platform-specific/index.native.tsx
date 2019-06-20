@@ -241,20 +241,29 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
+const updateMobileNetState = (type: string) => {
+  const state = RPCTypes.MobileNetworkState[type] || RPCTypes.MobileNetworkState.unknown
+  RPCTypes.appStateUpdateMobileNetStateRpcPromise({state}).catch(err => {
+    console.warn('Error sending mobileNetStateUpdate', err)
+  })
+}
+
 const initOsNetworkStatus = (state, action) =>
-  NetInfo.getConnectionInfo().then(({type}) =>
+  NetInfo.getConnectionInfo().then(({type}) => {
     ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
-  )
+    updateMobileNetState(type)
+  })
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type === 'none' ? 'offline' : 'online'))
+    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type))
     return () => {}
   }, Saga.buffers.sliding(1))
 
   while (true) {
     const status = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))
+    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status !== 'none'}))
+    updateMobileNetState(status)
   }
 }
 

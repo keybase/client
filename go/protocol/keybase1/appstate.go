@@ -40,11 +40,48 @@ func (e MobileAppState) String() string {
 	return ""
 }
 
+type MobileNetworkState int
+
+const (
+	MobileNetworkState_NONE    MobileNetworkState = 0
+	MobileNetworkState_WIFI    MobileNetworkState = 1
+	MobileNetworkState_CELLUAR MobileNetworkState = 2
+	MobileNetworkState_UNKNOWN MobileNetworkState = 3
+)
+
+func (o MobileNetworkState) DeepCopy() MobileNetworkState { return o }
+
+var MobileNetworkStateMap = map[string]MobileNetworkState{
+	"NONE":    0,
+	"WIFI":    1,
+	"CELLUAR": 2,
+	"UNKNOWN": 3,
+}
+
+var MobileNetworkStateRevMap = map[MobileNetworkState]string{
+	0: "NONE",
+	1: "WIFI",
+	2: "CELLUAR",
+	3: "UNKNOWN",
+}
+
+func (e MobileNetworkState) String() string {
+	if v, ok := MobileNetworkStateRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UpdateMobileNetStateArg struct {
+	State MobileNetworkState `codec:"state" json:"state"`
+}
+
 type PowerMonitorEventArg struct {
 	Event string `codec:"event" json:"event"`
 }
 
 type AppStateInterface interface {
+	UpdateMobileNetState(context.Context, MobileNetworkState) error
 	PowerMonitorEvent(context.Context, string) error
 }
 
@@ -52,6 +89,21 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.appState",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"updateMobileNetState": {
+				MakeArg: func() interface{} {
+					var ret [1]UpdateMobileNetStateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UpdateMobileNetStateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UpdateMobileNetStateArg)(nil), args)
+						return
+					}
+					err = i.UpdateMobileNetState(ctx, typedArgs[0].State)
+					return
+				},
+			},
 			"powerMonitorEvent": {
 				MakeArg: func() interface{} {
 					var ret [1]PowerMonitorEventArg
@@ -73,6 +125,12 @@ func AppStateProtocol(i AppStateInterface) rpc.Protocol {
 
 type AppStateClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state MobileNetworkState) (err error) {
+	__arg := UpdateMobileNetStateArg{State: state}
+	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []interface{}{__arg}, nil)
+	return
 }
 
 func (c AppStateClient) PowerMonitorEvent(ctx context.Context, event string) (err error) {

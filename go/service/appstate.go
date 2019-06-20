@@ -36,6 +36,12 @@ func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.Mob
 	return nil
 }
 
+func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, state keybase1.MobileNetworkState) (err error) {
+	a.G().Log.CDebugf(ctx, "UpdateMobileNetState(%v)", state)
+	a.G().MobileNetState.Update(state)
+	return nil
+}
+
 func (a *appStateHandler) PowerMonitorEvent(ctx context.Context, event string) (err error) {
 	a.G().Log.CDebugf(ctx, "PowerMonitorEvent(%v)", event)
 	a.G().DesktopAppState.Update(a.MetaContext(ctx), event, a.xp)

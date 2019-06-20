@@ -319,6 +319,10 @@ export type MessageTypes = {
     inParam: {readonly event: String}
     outParam: void
   }
+  'keybase.1.appState.updateMobileNetState': {
+    inParam: {readonly state: MobileNetworkState}
+    outParam: void
+  }
   'keybase.1.avatars.loadTeamAvatars': {
     inParam: {readonly names?: Array<String> | null; readonly formats?: Array<AvatarFormat> | null}
     outParam: LoadAvatarsRes
@@ -1546,6 +1550,13 @@ export enum MobileAppState {
   background = 1,
   inactive = 2,
   backgroundactive = 3,
+}
+
+export enum MobileNetworkState {
+  none = 0,
+  wifi = 1,
+  celluar = 2,
+  unknown = 3,
 }
 
 export enum OfflineAvailability {
@@ -2871,6 +2882,7 @@ export const apiserverGetWithSessionRpcPromise = (params: MessageTypes['keybase.
 export const apiserverPostJSONRpcPromise = (params: MessageTypes['keybase.1.apiserver.PostJSON']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.PostJSON']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.PostJSON', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverPostRpcPromise = (params: MessageTypes['keybase.1.apiserver.Post']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Post']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Post', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const appStatePowerMonitorEventRpcPromise = (params: MessageTypes['keybase.1.appState.powerMonitorEvent']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.appState.powerMonitorEvent']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.appState.powerMonitorEvent', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const appStateUpdateMobileNetStateRpcPromise = (params: MessageTypes['keybase.1.appState.updateMobileNetState']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.appState.updateMobileNetState']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.appState.updateMobileNetState', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const avatarsLoadTeamAvatarsRpcPromise = (params: MessageTypes['keybase.1.avatars.loadTeamAvatars']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.avatars.loadTeamAvatars']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.avatars.loadTeamAvatars', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const avatarsLoadUserAvatarsRpcPromise = (params: MessageTypes['keybase.1.avatars.loadUserAvatars']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.avatars.loadUserAvatars']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.avatars.loadUserAvatars', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetAllProvisionedUsernamesRpcPromise = (params: MessageTypes['keybase.1.config.getAllProvisionedUsernames']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getAllProvisionedUsernames']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getAllProvisionedUsernames', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
