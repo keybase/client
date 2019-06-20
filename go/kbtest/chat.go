@@ -1303,6 +1303,11 @@ func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	return chat1.OutboxID{}, nil
 }
 
+func (m *MockChatHelper) DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	msgID chat1.MessageID) error {
+	return nil
+}
+
 func (m *MockChatHelper) DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
 	msgID chat1.MessageID) error {
 	return nil

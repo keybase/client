@@ -107,6 +107,13 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 	if len(mvalid.Unfurls) > 1 {
 		return fmt.Errorf("wrong number of unfurls: %d", len(mvalid.Unfurls))
 	}
+	if len(coords) == 0 {
+		if !l.lastCoord.IsZero() {
+			coords = append(coords, l.lastCoord)
+		} else {
+			return errors.New("no coordinates")
+		}
+	}
 	first := coords[0]
 	conv, err := utils.GetVerifiedConv(ctx, l.G(), l.uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
@@ -114,7 +121,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 	}
 	for unfurlMsgID := range mvalid.Unfurls {
 		// delete the old unfurl first to make way for the new
-		if err := l.G().ChatHelper.DeleteMsgNonblock(ctx, convID, conv.Info.TlfName, unfurlMsgID); err != nil {
+		if err := l.G().ChatHelper.DeleteMsg(ctx, convID, conv.Info.TlfName, unfurlMsgID); err != nil {
 			return err
 		}
 		break
@@ -125,17 +132,24 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: body,
 	})
-	go l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, chat1.NewMessageUnboxedWithValid(mvalid))
+	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, chat1.NewMessageUnboxedWithValid(mvalid))
 	return nil
 }
 
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
+	ctx := context.Background()
 	defer func() {
+		l.getChatUI(ctx).ChatClearWatch(ctx, t.watchID)
 		l.Lock()
 		defer l.Unlock()
 		delete(l.trackers, t.watchID)
 	}()
-	ctx := context.Background()
+	if !t.getCurrentPosition {
+		if !l.lastCoord.IsZero() {
+			t.coords = append(t.coords, l.lastCoord)
+		}
+		l.updateMapUnfurl(ctx, t.convID, t.msgID, t.watchID, t.coords)
+	}
 	for {
 		select {
 		case coord := <-t.updateCh:
@@ -190,7 +204,7 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	defer l.Unlock()
 	t := &locationTrack{
 		stopCh:   make(chan struct{}),
-		updateCh: make(chan chat1.Coordinate, 10),
+		updateCh: make(chan chat1.Coordinate, 50),
 		convID:   convID,
 		msgID:    msgID,
 		watchID:  watchID,
@@ -204,6 +218,10 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, func() error { return nil }, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
+	if l.lastCoord.Eq(coord) {
+		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
+		return
+	}
 	l.lastCoord = coord
 	for _, t := range l.trackers {
 		select {
