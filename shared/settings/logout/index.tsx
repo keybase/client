@@ -109,6 +109,7 @@ class LogOut extends React.Component<Props> {
           <Kb.ProgressIndicator />
         ) : this.props.hasRandomPW ? (
           <UpdatePassword
+            hasRandomPW={this.props.hasRandomPW}
             onSave={this.props.onSavePassword}
             saveLabel="Sign out"
             waitingForResponse={this.props.waitingForResponse}

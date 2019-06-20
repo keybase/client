@@ -10,10 +10,9 @@ const settingsSubRoutes = {
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
-  [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
+  [Constants.accountTab]: {getScreen: () => require('./account/container').default},
   [Constants.feedbackTab]: {getScreen: () => require('./feedback/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
-  changeEmail: {getScreen: () => require('./email/container').default},
   dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
@@ -44,7 +43,7 @@ class SettingsSubNav extends React.PureComponent<any> {
 }
 const SettingsSubNavigator = createNavigator(
   SettingsSubNav,
-  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.landingTab}),
+  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.accountTab}),
   {}
 )
 
@@ -57,6 +56,8 @@ export const newRoutes = {
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+  addEmail: {getScreen: () => require('./account/add-modals').Email},
+  addPhone: {getScreen: () => require('./account/add-modals').Phone},
   changePassword: {getScreen: () => require('./password/container').default},
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
 }

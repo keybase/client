@@ -52,6 +52,10 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
+              onClick: () => props.onTabChange(Constants.accountTab),
+              text: 'Account',
+            },
+            {
               onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',
             },
@@ -63,10 +67,6 @@ function SettingsNav(props: Props) {
               badgeNumber: props.badgeNotifications ? 1 : 0,
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
-            },
-            {
-              onClick: () => props.onTabChange(Constants.passwordTab),
-              text: props.hasRandomPW ? 'Set a password' : 'Change password',
             },
             {
               ...(isAndroid
