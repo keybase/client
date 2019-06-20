@@ -1,7 +1,7 @@
 import * as I from 'immutable'
 import {ConversationIDKey} from './chat2'
 import {Tab} from '../tabs'
-import {DeviceID} from './rpc-gen'
+import * as RPCTypes from './rpc-gen'
 import {RPCError} from '../../util/errors'
 import {LocalPath} from '../../constants/types/fs'
 
@@ -13,14 +13,18 @@ export type _OutOfDate = {
 export type OutOfDate = I.RecordOf<_OutOfDate>
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
-
+export type _ConfiguredAccount = {
+  hasStoredSecret: boolean
+  username: string
+}
+export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
 export type _State = {
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
   avatars: I.Map<string, I.Map<number, string>>
-  configuredAccounts: I.List<string>
+  configuredAccounts: I.List<ConfiguredAccount>
   daemonError: Error | null
   daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
@@ -29,7 +33,7 @@ export type _State = {
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
   debugDump: Array<string>
-  deviceID: DeviceID
+  deviceID: RPCTypes.DeviceID
   deviceName: string | null
   defaultUsername: string
   followers: I.Set<string>

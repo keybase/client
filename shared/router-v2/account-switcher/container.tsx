@@ -1,0 +1,72 @@
+import * as LoginGen from '../../actions/login-gen'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsConstants from '../../constants/settings'
+import * as TrackerConstants from '../../constants/tracker2'
+import AccountSwitcher, {Props} from './index'
+import {connect, TypedState, TypedDispatch} from '../../util/container'
+import {memoize} from '../../util/memoize'
+import * as ConfigGen from '../../actions/config-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
+import * as SignupGen from '../../actions/signup-gen'
+import * as Constants from '../../constants/config'
+
+type OwnProps = {}
+
+const mapStateToProps = (state: TypedState) => ({
+  _fullnames: state.users.infoMap,
+  accountRows: state.config.configuredAccounts,
+  fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
+  username: state.config.username,
+})
+
+const mapDispatchToProps = (dispatch: TypedDispatch) => ({
+  _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile(username)),
+  onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
+  onSelectAccountLoggedIn: username => dispatch(LoginGen.createLogin({password: null, username})),
+  onSelectAccountLoggedOut: username => {
+    dispatch(ConfigGen.createSetDefaultUsername({username}))
+    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: false, path: ''}))
+  },
+  onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps: ReturnType<typeof mapStateToProps>, dispatchProps, ownProps: OwnProps): Props => {
+    const accountRows = Constants.prepareAccountRows(stateProps.accountRows, stateProps.username)
+    return {
+      accountRows: accountRows
+        .map(account => ({
+          account: account,
+          fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
+        }))
+        .toArray(),
+      fullname: stateProps.fullname,
+      onAddAccount: dispatchProps.onAddAccount,
+      onCancel: dispatchProps.onCancel,
+      onCreateAccount: dispatchProps.onCreateAccount,
+      onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
+      onSelectAccount: (username: string) => {
+        const rows = accountRows.filter(account => account.username === username)
+        const loggedIn = rows.first({hasStoredSecret: false}).hasStoredSecret
+        return loggedIn
+          ? dispatchProps.onSelectAccountLoggedIn(username)
+          : dispatchProps.onSelectAccountLoggedOut(username)
+      },
+      rightActions: [
+        {
+          // TODO: color: 'red',
+          label: 'Sign out',
+          onPress: dispatchProps.onSignOut,
+        },
+      ],
+
+      title: '',
+      username: stateProps.username,
+    }
+  }
+)(AccountSwitcher)

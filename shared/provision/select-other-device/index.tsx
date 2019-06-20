@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/provision'
-import {ListItem2, Box2, List, Text, Icon} from '../../common-adapters'
+import {ListItem2, Box2, List, Text, Icon, Button} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
 
 type Props = {
@@ -77,6 +77,12 @@ class SelectOtherDevice extends React.Component<Props> {
             fixedHeight={isMobile ? 48 : 40}
           />
         </Box2>
+        {this.props.onBack && (
+          <Box2 direction="horizontal">
+            <Button label="Back to my existing account" onClick={this.props.onBack} />
+          </Box2>
+        )}
+        }
       </Box2>
     )
   }

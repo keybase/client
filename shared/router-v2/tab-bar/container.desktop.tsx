@@ -1,13 +1,14 @@
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
+import * as LoginGen from '../../actions/login-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
-import TabBar from './index.desktop'
-import {connect} from '../../util/container'
+import TabBar, {Props} from './index.desktop'
+import {connect, TypedState} from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
@@ -15,15 +16,20 @@ import {quit, hideWindow} from '../../util/quit-helper'
 import {tabRoots} from '../routes'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
+import * as SignupGen from '../../actions/signup-gen'
+import * as Constants from '../../constants/config'
 
 type OwnProps = {
   navigation: any
   selectedTab: Tabs.AppTab
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
+  _fullnames: state.users.infoMap,
   _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
+  configuredAccounts: state.config.configuredAccounts,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
   uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
@@ -50,6 +56,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ownProps.navigation.navigate(tab)
     }
   },
+  onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
+  onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()), // TODO make this route
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {
     if (!__DEV__) {
@@ -65,29 +73,47 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       quit('quitButton')
     }, 2000)
   },
+  onSelectAccountLoggedIn: username => dispatch(LoginGen.createLogin({password: null, username})),
+  onSelectAccountLoggedOut: username => {
+    dispatch(ConfigGen.createSetDefaultUsername({username}))
+    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: false, path: ''}))
+  },
   onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
 const getBadges = memoize(b => b.toObject())
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  badgeNumbers: getBadges(stateProps._badgeNumbers),
-  fullname: stateProps.fullname,
-  isWalletsNew: stateProps.isWalletsNew,
-  onHelp: dispatchProps.onHelp,
-  onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
-  onQuit: dispatchProps.onQuit,
-  onSettings: dispatchProps.onSettings,
-  onSignOut: dispatchProps.onSignOut,
-  onTabClick: (tab: Tabs.AppTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
-  selectedTab: ownProps.selectedTab,
-  uploading: stateProps.uploading,
-  username: stateProps.username,
-})
-
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  (stateProps, dispatchProps, ownProps): Props => ({
+    accountRows: Constants.prepareAccountRows(stateProps.configuredAccounts, stateProps.username)
+      .map(account => ({
+        account: account,
+        fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
+      }))
+      .toArray(),
+    badgeNumbers: getBadges(stateProps._badgeNumbers),
+    fullname: stateProps.fullname,
+    isWalletsNew: stateProps.isWalletsNew,
+    onAddAccount: dispatchProps.onAddAccount,
+    onCreateAccount: dispatchProps.onCreateAccount,
+    onHelp: dispatchProps.onHelp,
+    onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
+    onQuit: dispatchProps.onQuit,
+    onSelectAccount: (username: string) => {
+      const rows = stateProps.configuredAccounts.filter(account => account.username === username)
+      const loggedIn = rows.first({hasStoredSecret: false}).hasStoredSecret
+      return loggedIn
+        ? dispatchProps.onSelectAccountLoggedIn(username)
+        : dispatchProps.onSelectAccountLoggedOut(username)
+    },
+    onSettings: dispatchProps.onSettings,
+    onSignOut: dispatchProps.onSignOut,
+    onTabClick: (tab: Tabs.AppTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
+    selectedTab: ownProps.selectedTab,
+    uploading: stateProps.uploading,
+    username: stateProps.username,
+  })
 )(TabBar)

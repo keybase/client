@@ -1,9 +1,9 @@
 import * as React from 'react'
-import {connect, RouteProps} from '../util/container'
+import {connect, RouteProps, TypedState} from '../util/container'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: TypedState) => {
   const showLoading = state.config.daemonHandshakeState !== 'done'
   const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
   return {showLoading, showRelogin}

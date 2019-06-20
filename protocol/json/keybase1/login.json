@@ -16,6 +16,10 @@
           "name": "username"
         },
         {
+          "type": "FullName",
+          "name": "fullname"
+        },
+        {
           "type": "boolean",
           "name": "hasStoredSecret"
         },

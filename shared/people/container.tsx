@@ -9,6 +9,7 @@ import {connect, RouteProps, isMobile} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -18,6 +19,7 @@ const mapStateToPropsHeader = state => ({
 
 const mapDispatchToPropsHeader = dispatch => ({
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
+  onOpenAccountSwitcher: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
 })
 
 const mergePropsHeader = (stateProps, dispatchProps) => ({
@@ -36,6 +38,7 @@ type Props = {
   followSuggestions: I.List<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
+  onOpenAccountSwitcher: () => void
   showAirdrop: boolean
   myUsername: string
   waiting: boolean

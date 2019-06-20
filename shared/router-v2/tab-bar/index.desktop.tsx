@@ -6,8 +6,8 @@ import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
-import {asRows as accountSwitcherAsRows} from '../account-switcher/index'
-type Props = {
+import {asRows as accountSwitcherAsRows, RowsProps as AccountSwitcherProps} from '../account-switcher/index'
+export type Props = {
   badgeNumbers: {[K in string]: number}
   fullname: string
   isWalletsNew?: boolean
@@ -20,7 +20,7 @@ type Props = {
   selectedTab: Tabs.Tab
   uploading: boolean
   username: string
-}
+} & AccountSwitcherProps
 
 const data = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
@@ -46,47 +46,31 @@ class TabBar extends React.PureComponent<Props, State> {
   _getAttachmentRef = () => this._attachmentRef.current
   _showMenu = () => this.setState({showingMenu: true})
   _hideMenu = () => this.setState({showingMenu: false})
+  _onClickWrapper = () => {
+    this._hideMenu()
+    this.props.onProfileClick()
+  }
   _menuHeader = () => ({
     onClick: this.props.onProfileClick,
     title: '',
     view: (
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
+      <Kb.ClickableBox onClick={this._onClickWrapper} style={styles.headerBox}>
         <Kb.ConnectedNameWithIcon
           username={this.props.username}
-          onClick={() => {
-            this._hideMenu()
-            this.props.onProfileClick()
-          }}
+          onClick={this._onClickWrapper}
           metaTwo={
-            <Kb.Text type="BodySmall" lineClamp={1}>
+            <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
               {this.props.fullname}
             </Kb.Text>
           }
         />
-      </Kb.Box2>
+      </Kb.ClickableBox>
     ),
   })
   _menuItems = () =>
     [
       ...(flags.fastAccountSwitch
-        ? accountSwitcherAsRows({
-            // TODO: factor these props up into the container for the tab bar
-            onAddAccount: () => {},
-            onCreateAccount: () => {},
-            onSelectAccount: (user: string) => {},
-            rows: [
-              {
-                realName: 'Jakob Test',
-                signedIn: true,
-                username: 'jakob224',
-              },
-              {
-                realName: 'Livingston Reallylongnameheimer',
-                signedIn: false,
-                username: 'jakob225',
-              },
-            ],
-          })
+        ? accountSwitcherAsRows(this.props)
         : [
             {
               onClick: this.props.onProfileClick,
@@ -205,7 +189,11 @@ const styles = Styles.styleSheetCreate({
   },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
+  fullname: {maxWidth: 180},
   header: {height: 80, marginBottom: 20},
+  headerBox: {
+    paddingTop: Styles.globalMargins.small,
+  },
   iconBox: {
     justifyContent: 'flex-end',
     position: 'relative',

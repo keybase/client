@@ -6,6 +6,7 @@ protocol login {
 
   record ConfiguredAccount {
     string username;
+    FullName fullname;
     boolean hasStoredSecret;
     boolean isCurrent;
   }

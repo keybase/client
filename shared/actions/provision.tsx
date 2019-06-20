@@ -397,6 +397,7 @@ function* startProvisioning(state) {
         clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
         deviceType: isMobile ? 'mobile' : 'desktop',
+        doUserSwitch: true, // TODO: maybe this should be false sometimes
         paperKey: '',
         username: username,
       },

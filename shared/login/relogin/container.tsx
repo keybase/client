@@ -4,19 +4,19 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {connect, isNetworkErr} from '../../util/container'
+import {connect, TypedState, TypedDispatch, isNetworkErr} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: TypedState) => ({
   _users: state.config.configuredAccounts,
   error: state.login.error,
   selectedUser: state.config.defaultUsername,
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
   onFeedback: () => dispatch(ownProps.navigateAppend(['feedback'])),
   onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onLogin: (username: string, password: string) =>
@@ -25,8 +25,11 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const users = stateProps._users.sort().toArray()
+const mergeProps = (stateProps: ReturnType<typeof mapStateToProps>, dispatchProps) => {
+  const users = stateProps._users
+    .map(account => account.username)
+    .sort()
+    .toArray()
   const bannerError = !!stateProps.error && isNetworkErr(stateProps.error.code)
   const inputError = !!stateProps.error && !bannerError
 
@@ -34,6 +37,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     bannerError,
     error: stateProps.error ? stateProps.error.desc : '',
     inputError,
+    loggedInMap: new Map<string, boolean>(
+      stateProps._users.map(account => [account.username, account.hasStoredSecret])
+    ),
     onFeedback: dispatchProps.onFeedback,
     onForgotPassword: dispatchProps.onForgotPassword,
     onLogin: dispatchProps.onLogin,
@@ -52,16 +58,17 @@ type State = {
 }
 
 type Props = {
-  users: Array<string>
-  onForgotPassword: () => void
-  onSignup: () => void
-  onSomeoneElse: () => void
   bannerError: boolean
   inputError: boolean
   error: string
-  selectedUser: string
+  loggedInMap: Map<string, boolean>
   onFeedback: () => void
+  onForgotPassword: () => void
   onLogin: (user: string, password: string) => void
+  onSignup: () => void
+  onSomeoneElse: () => void
+  selectedUser: string
+  users: Array<string>
 }
 
 class LoginWrapper extends React.Component<Props, State> {
@@ -72,6 +79,13 @@ class LoginWrapper extends React.Component<Props, State> {
       password: '',
       selectedUser: props.selectedUser,
       showTyping: false,
+    }
+  }
+
+  _selectedUserChange = (selectedUser: string) => {
+    this.setState({selectedUser})
+    if (this.props.loggedInMap.get(selectedUser)) {
+      this.props.onLogin(selectedUser, '')
     }
   }
 
@@ -101,7 +115,7 @@ class LoginWrapper extends React.Component<Props, State> {
         password={this.state.password}
         passwordChange={password => this.setState({password})}
         selectedUser={this.state.selectedUser}
-        selectedUserChange={selectedUser => this.setState({selectedUser})}
+        selectedUserChange={this._selectedUserChange}
         showTypingChange={showTyping => this.setState({showTyping})}
         showTyping={this.state.showTyping}
         users={this.props.users}

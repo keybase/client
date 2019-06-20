@@ -111,24 +111,56 @@ func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 }
 
 func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
-
 	currentUsername, allUsernames, err := GetAllProvisionedUsernames(m)
 	if err != nil {
 		return nil, err
 	}
-
 	if !currentUsername.IsNil() {
 		allUsernames = append(allUsernames, currentUsername)
 	}
 
 	accounts := make(map[NormalizedUsername]keybase1.ConfiguredAccount)
-
 	for _, username := range allUsernames {
 		accounts[username] = keybase1.ConfiguredAccount{
 			Username:  username.String(),
 			IsCurrent: username.Eq(currentUsername),
 		}
 	}
+
+	// Get the full names
+
+	uids := make([]keybase1.UID, 0, len(allUsernames))
+	uidMapper := m.G().UIDMapper
+	for _, username := range allUsernames {
+		uid := uidMapper.MapHardcodedUsernameToUID(username)
+		if !uid.Exists() {
+			uid = UsernameToUIDPreserveCase(username.String())
+		}
+		uids = append(uids, uid)
+	}
+	usernamePackages, err := uidMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
+		uids, time.Hour*24, time.Second*10, false)
+	if err != nil {
+		if usernamePackages != nil {
+			// If data is returned, interpret the error as a warning
+			m.G().Log.CInfof(m.Ctx(),
+				"error while retrieving full names: %+v", err)
+		} else {
+			return nil, err
+		}
+	}
+	for _, uPackage := range usernamePackages {
+		if uPackage.FullName == nil {
+			continue
+		}
+		if account, ok := accounts[uPackage.NormalizedUsername]; ok {
+			account.Fullname = uPackage.FullName.FullName
+			accounts[uPackage.NormalizedUsername] = account
+		}
+	}
+
+	// Check for secrets
+
 	var storedSecretUsernames []string
 	if s != nil {
 		storedSecretUsernames, err = s.GetUsersWithStoredSecrets(m)

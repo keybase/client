@@ -1,6 +1,6 @@
 import * as Constants from '../../constants/provision'
 import * as React from 'react'
-import {Input, Box2, WaitingButton, Text, Icon} from '../../common-adapters'
+import {Input, Box2, WaitingButton, Text, Icon, Button} from '../../common-adapters'
 import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
 
 type Props = {
@@ -33,6 +33,7 @@ const SetPublicName = (props: Props) => {
           onClick={props.onSubmit}
           waitingKey={Constants.waitingKey}
         />
+        {props.onBack && <Button label="Back to my existing account" onClick={props.onBack} />}
       </Box2>
     </Box2>
   )

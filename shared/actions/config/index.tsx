@@ -24,6 +24,7 @@ import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import * as I from 'immutable'
 
 const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -177,7 +178,11 @@ const getAccountsWaitKey = 'config.getAccounts'
 
 function* loadDaemonAccounts(
   state,
-  action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
+  action:
+    | DevicesGen.RevokedPayload
+    | ConfigGen.DaemonHandshakePayload
+    | ConfigGen.LoggedOutPayload
+    | ConfigGen.LoggedInPayload
 ) {
   let handshakeWait = false
   let handshakeVersion = 0
@@ -201,11 +206,11 @@ function* loadDaemonAccounts(
       )
     }
 
-    const result = yield* Saga.callPromise(RPCTypes.configGetAllProvisionedUsernamesRpcPromise)
-    let usernames = result.provisionedUsernames || []
-    let defaultUsername = result.defaultUsername
-    usernames = usernames.sort()
-    const loadedAction = ConfigGen.createSetAccounts({defaultUsername, usernames})
+    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield* Saga.callPromise(
+      RPCTypes.loginGetConfiguredAccountsRpcPromise
+    )
+
+    const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
     yield Saga.put(loadedAction)
     if (handshakeWait) {
       // someone dismissed this already?
@@ -526,8 +531,14 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   >([ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
-    DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
-  >([DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut], loadDaemonAccounts)
+    | DevicesGen.RevokedPayload
+    | ConfigGen.DaemonHandshakePayload
+    | ConfigGen.LoggedOutPayload
+    | ConfigGen.LoggedInPayload
+  >(
+    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
+    loadDaemonAccounts
+  )
   // Switch between login or app routes
   yield* Saga.chainAction<ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload>(
     [ConfigGen.loggedIn, ConfigGen.loggedOut],

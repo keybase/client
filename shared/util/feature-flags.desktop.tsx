@@ -31,6 +31,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   airdrop: true,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
+  fastAccountSwitch: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,

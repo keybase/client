@@ -1,35 +1,36 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import AccountSwitcherMobile from '.'
+import AccountSwitcherMobile, {Props} from '.'
+import * as ConfigConstants from '../../constants/config'
 
-const props = {
+const props: Props = {
+  accountRows: [
+    {
+      account: ConfigConstants.makeConfiguredAccount({
+        hasStoredSecret: true,
+        username: 'jakob224',
+      }),
+      fullName: 'Jakob Test',
+    },
+    {
+      account: ConfigConstants.makeConfiguredAccount({
+        hasStoredSecret: false,
+        username: 'jakob225',
+      }),
+      fullName: 'Livingston Reallyveryquitelongnameheimer',
+    },
+  ],
   fullname: 'Alice Keybaseuser',
   onAddAccount: Sb.action('onAddAccount'),
   onCancel: Sb.action('onCancel'),
   onCreateAccount: Sb.action('onCreateAccount'),
-  onHelp: Sb.action('onHelp'),
   onProfileClick: Sb.action('onProfileClick'),
-  onQuit: Sb.action('onQuit'),
   onSelectAccount: Sb.action('onSelectAccount'),
-  onSettings: Sb.action('onSettings'),
-  onSignOut: Sb.action('onSignOut'),
   rightActions: [
     {
-      color: 'red',
+      // TODO: color: 'red',
       label: 'Sign out',
       onPress: Sb.action('onSignOut'),
-    },
-  ],
-  rows: [
-    {
-      realName: 'Jakob Test',
-      signedIn: true,
-      username: 'jakob224',
-    },
-    {
-      realName: 'Livingston Reallyveryquitelongnameheimer',
-      signedIn: false,
-      username: 'jakob225',
     },
   ],
   username: 'alice',

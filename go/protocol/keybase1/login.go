@@ -9,14 +9,16 @@ import (
 )
 
 type ConfiguredAccount struct {
-	Username        string `codec:"username" json:"username"`
-	HasStoredSecret bool   `codec:"hasStoredSecret" json:"hasStoredSecret"`
-	IsCurrent       bool   `codec:"isCurrent" json:"isCurrent"`
+	Username        string   `codec:"username" json:"username"`
+	Fullname        FullName `codec:"fullname" json:"fullname"`
+	HasStoredSecret bool     `codec:"hasStoredSecret" json:"hasStoredSecret"`
+	IsCurrent       bool     `codec:"isCurrent" json:"isCurrent"`
 }
 
 func (o ConfiguredAccount) DeepCopy() ConfiguredAccount {
 	return ConfiguredAccount{
 		Username:        o.Username,
+		Fullname:        o.Fullname.DeepCopy(),
 		HasStoredSecret: o.HasStoredSecret,
 		IsCurrent:       o.IsCurrent,
 	}
