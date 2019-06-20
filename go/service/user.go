@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
+	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -145,14 +146,19 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 	return ret, err
 }
 
-func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
+func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (res keybase1.UserSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	emails, err := libkb.LoadUserEmails(mctx)
 	if err != nil {
-		return
+		return res, err
 	}
-	us.Emails = emails
-	return
+	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		return res, err
+	}
+	res.Emails = emails
+	res.PhoneNumbers = phoneNumbers
+	return res, nil
 }
 
 func (h *UserHandler) LoadPublicKeys(ctx context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
