@@ -24,7 +24,6 @@ import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
-import {store} from 'emoji-mart'
 
 const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -509,37 +508,6 @@ function* criticalOutOfDateCheck() {
   }
 }
 
-// onUpdateUserReacjis hooks `userReacjis`, frequently used reactions
-// recorded by the service, into the emoji-mart library. Handler spec is
-// documented at
-// https://github.com/missive/emoji-mart/tree/7c2e2a840bdd48c3c9935dac4208115cbcf6006d#storage
-const onUpdateUserReacjis = state => {
-  if (isMobile) {
-    return
-  }
-  const userReacjis = state.config.userReacjis
-  // emoji-mart expects a frequency map so we convert the sorted list from the
-  // service into a frequency map that will appease the lib.
-  let i = 0
-  let reacjis = {}
-  userReacjis.topReacjis.forEach(el => {
-    i++
-    reacjis[el] = userReacjis.topReacjis.length - i
-  })
-  store.setHandlers({
-    getter: key => {
-      switch (key) {
-        case 'frequently':
-          return reacjis
-        case 'last':
-          return reacjis[0]
-        case 'skin':
-          return userReacjis.skinTone
-      }
-    },
-  })
-}
-
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
@@ -630,10 +598,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
-  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload | ConfigGen.UpdateUserReacjisPayload>(
-    [ConfigGen.bootstrapStatusLoaded, ConfigGen.updateUserReacjis],
-    onUpdateUserReacjis
-  )
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

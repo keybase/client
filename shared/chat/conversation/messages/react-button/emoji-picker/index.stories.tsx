@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box, Box2, NewInput} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import ChooseEmoji from '.'
-import {defaultTopReacjis} from '../../../../../constants/config'
+import {defaultTopReacjis} from '../../../../../constants/chat2'
 
 class WithFilter extends React.Component<
   {topReacjis: Array<string>},

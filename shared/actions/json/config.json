@@ -70,10 +70,7 @@
       "registered": "boolean",
       "uid": "string",
       "username": "string",
-      "userReacjis?": "RPCTypes.UserReacjis | null"
-    },
-    "updateUserReacjis": {
-      "userReacjis?": "RPCTypes.UserReacjis | null"
+      "userReacjis": "RPCTypes.UserReacjis | null"
     },
     "daemonError": {"daemonError": "Error | null"},
     "setAccounts": {

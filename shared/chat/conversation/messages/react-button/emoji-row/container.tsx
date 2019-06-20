@@ -13,7 +13,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
-  topReacjis: state.config.userReacjis.topReacjis,
+  topReacjis: state.chat2.userReacjis.topReacjis,
 })
 
 const mapDispatchToProps = dispatch => ({

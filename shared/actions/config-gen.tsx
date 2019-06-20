@@ -50,7 +50,6 @@ export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
-export const updateUserReacjis = 'config:updateUserReacjis'
 
 // Payload Types
 type _BootstrapStatusLoadedPayload = {
@@ -63,7 +62,7 @@ type _BootstrapStatusLoadedPayload = {
   readonly registered: boolean
   readonly uid: string
   readonly username: string
-  readonly userReacjis?: RPCTypes.UserReacjis | null
+  readonly userReacjis: RPCTypes.UserReacjis | null
 }
 type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}
@@ -129,7 +128,6 @@ type _UpdateInfoPayload = {
 }
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
 type _UpdateNowPayload = void
-type _UpdateUserReacjisPayload = {readonly userReacjis?: RPCTypes.UserReacjis | null}
 
 // Action Creators
 /**
@@ -310,9 +308,6 @@ export const createUpdateMenubarWindowID = (
   payload: _UpdateMenubarWindowIDPayload
 ): UpdateMenubarWindowIDPayload => ({payload, type: updateMenubarWindowID})
 export const createUpdateNow = (payload: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
-export const createUpdateUserReacjis = (
-  payload: _UpdateUserReacjisPayload = Object.freeze({})
-): UpdateUserReacjisPayload => ({payload, type: updateUserReacjis})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = {
@@ -425,10 +420,6 @@ export type UpdateMenubarWindowIDPayload = {
   readonly type: typeof updateMenubarWindowID
 }
 export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
-export type UpdateUserReacjisPayload = {
-  readonly payload: _UpdateUserReacjisPayload
-  readonly type: typeof updateUserReacjis
-}
 
 // All Actions
 // prettier-ignore
@@ -474,5 +465,4 @@ export type Actions =
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
-  | UpdateUserReacjisPayload
   | {type: 'common:resetStore', payload: null}

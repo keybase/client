@@ -1,6 +1,5 @@
 import logger from '../logger'
 import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
@@ -150,8 +149,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
           })
     case ConfigGen.pushLoaded:
       return state.merge({pushLoaded: action.payload.pushLoaded})
-    case ConfigGen.updateUserReacjis:
-      return state.set('userReacjis', action.payload.userReacjis)
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
         // keep it if we're logged out
@@ -163,7 +160,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         loggedIn: action.payload.loggedIn,
         registered: action.payload.registered,
         uid: action.payload.uid,
-        userReacjis: action.payload.userReacjis,
         username: action.payload.username,
       })
     case ConfigGen.loggedIn:

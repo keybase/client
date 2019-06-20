@@ -10,8 +10,6 @@ export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 export const noKBFSFailReason = "Can't connect to KBFS"
 const defaultTeamPrefix = '/team/'
-export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
-const defaultSkinTone = 1
 
 export const privateFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
@@ -117,6 +115,5 @@ export const makeState = I.Record<Types._State>({
   startupWasFromPush: false,
   uid: '',
   userActive: true,
-  userReacjis: {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis},
   username: '',
 })
