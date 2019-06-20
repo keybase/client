@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode: InitDefaultString,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -616,7 +616,6 @@ func Init(
 		ctx, kbCtx, params, keybaseServiceCn, onInterruptFn, log, "kbfs")
 }
 
-// TODO: Keep on searching up for an env
 func doInit(
 	ctx context.Context, kbCtx Context, params InitParams,
 	keybaseServiceCn KeybaseServiceCn, log logger.Logger,
