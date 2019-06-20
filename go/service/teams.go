@@ -622,10 +622,10 @@ func (h *TeamsHandler) CanUserPerform(ctx context.Context, teamname string) (ret
 	return ret, err
 }
 
-func (h *TeamsHandler) TeamRotateKey(ctx context.Context, teamID keybase1.TeamID) (err error) {
+func (h *TeamsHandler) TeamRotateKey(ctx context.Context, arg keybase1.TeamRotateKeyArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", teamID), func() error { return err })()
-	return teams.RotateKey(ctx, h.G().ExternalG(), teamID)
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRotateKey(%v)", arg.TeamID), func() error { return err })()
+	return teams.RotateKeyWithHiddenBool(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {

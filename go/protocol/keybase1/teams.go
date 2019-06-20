@@ -861,6 +861,7 @@ type HiddenTeamChain struct {
 	Frozen            bool                           `codec:"frozen" json:"frozen"`
 	Tombstoned        bool                           `codec:"tombstoned" json:"tombstoned"`
 	Last              Seqno                          `codec:"last" json:"last"`
+	LatestSeqnoHint   Seqno                          `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	LastPerTeamKeys   map[PTKType]Seqno              `codec:"lastPerTeamKeys" json:"lastPerTeamKeys"`
 	Outer             map[Seqno]LinkID               `codec:"outer" json:"outer"`
 	Inner             map[Seqno]HiddenTeamChainLink  `codec:"inner" json:"inner"`
@@ -871,12 +872,13 @@ type HiddenTeamChain struct {
 
 func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 	return HiddenTeamChain{
-		Id:         o.Id.DeepCopy(),
-		Subversion: o.Subversion,
-		Public:     o.Public,
-		Frozen:     o.Frozen,
-		Tombstoned: o.Tombstoned,
-		Last:       o.Last.DeepCopy(),
+		Id:              o.Id.DeepCopy(),
+		Subversion:      o.Subversion,
+		Public:          o.Public,
+		Frozen:          o.Frozen,
+		Tombstoned:      o.Tombstoned,
+		Last:            o.Last.DeepCopy(),
+		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		LastPerTeamKeys: (func(x map[PTKType]Seqno) map[PTKType]Seqno {
 			if x == nil {
 				return nil
@@ -1849,6 +1851,7 @@ type TeamChangeRow struct {
 	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
 	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
 	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+	LatestHiddenSeqno Seqno  `codec:"latestHiddenSeqno" json:"latest_hidden_seqno"`
 	ImplicitTeam      bool   `codec:"implicitTeam" json:"implicit_team"`
 	Misc              bool   `codec:"misc" json:"misc"`
 	RemovedResetUsers bool   `codec:"removedResetUsers" json:"removed_reset_users"`
@@ -1861,6 +1864,7 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 		KeyRotated:        o.KeyRotated,
 		MembershipChanged: o.MembershipChanged,
 		LatestSeqno:       o.LatestSeqno.DeepCopy(),
+		LatestHiddenSeqno: o.LatestHiddenSeqno.DeepCopy(),
 		ImplicitTeam:      o.ImplicitTeam,
 		Misc:              o.Misc,
 		RemovedResetUsers: o.RemovedResetUsers,
@@ -3256,6 +3260,7 @@ type CanUserPerformArg struct {
 
 type TeamRotateKeyArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
+	Hidden bool   `codec:"hidden" json:"hidden"`
 }
 
 type TeamDebugArg struct {
@@ -3365,7 +3370,7 @@ type TeamsInterface interface {
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 	CanUserPerform(context.Context, string) (TeamOperation, error)
-	TeamRotateKey(context.Context, TeamID) error
+	TeamRotateKey(context.Context, TeamRotateKeyArg) error
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
 	GetTarsDisabled(context.Context, string) (bool, error)
 	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
@@ -4005,7 +4010,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]TeamRotateKeyArg)(nil), args)
 						return
 					}
-					err = i.TeamRotateKey(ctx, typedArgs[0].TeamID)
+					err = i.TeamRotateKey(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4391,8 +4396,7 @@ func (c TeamsClient) CanUserPerform(ctx context.Context, name string) (res TeamO
 	return
 }
 
-func (c TeamsClient) TeamRotateKey(ctx context.Context, teamID TeamID) (err error) {
-	__arg := TeamRotateKeyArg{TeamID: teamID}
+func (c TeamsClient) TeamRotateKey(ctx context.Context, __arg TeamRotateKeyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil)
 	return
 }

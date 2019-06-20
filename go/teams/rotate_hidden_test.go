@@ -127,13 +127,13 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 		keyGen++
 	}
 
-	checkForUser := func(i int) {
-		mctx := libkb.NewMetaContextForTest(*tcs[i])
+	checkForUser := func(i int, forceRefresh bool) {
+		mctx := libkb.NewMetaContext(ctx, tcs[i].G)
 		arg := keybase1.FastTeamLoadArg{
 			ID:            teamID,
 			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 			NeedLatestKey: true,
-			ForceRefresh:  true,
+			ForceRefresh:  forceRefresh,
 		}
 		team, err := mctx.G().GetFastTeamLoader().Load(mctx, arg)
 		require.NoError(t, err)
@@ -142,12 +142,17 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 	}
 
 	check := func() {
-		checkForUser(0)
-		checkForUser(1)
+		checkForUser(0, true)
+		checkForUser(1, true)
 	}
 
 	for i := 0; i < 5; i++ {
 		rotate(i%2 == 0)
 		check()
 	}
+
+	// Also test the gregor-powered refresh mechanism. We're going to mock out the gregor message for now.
+	rotate(true)
+	tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(libkb.NewMetaContext(ctx, tcs[1].G), teamID, keybase1.Seqno(4))
+	checkForUser(1, false)
 }

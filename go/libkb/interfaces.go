@@ -733,6 +733,8 @@ type HiddenTeamChainManager interface {
 	Freeze(MetaContext, keybase1.TeamID) error
 	// See comment in TeamLoader#Tombstone.
 	Tombstone(MetaContext, keybase1.TeamID) error
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 }
 
 type TeamAuditor interface {

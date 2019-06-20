@@ -64,6 +64,60 @@ func TestTeamBustCache(t *testing.T) {
 	})
 }
 
+func TestHiddenRotateGregor(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("onr")
+	tt.addUser("adm")
+
+	id, name := tt.users[0].createTeam2()
+	tt.users[0].addTeamMember(name.String(), tt.users[1].username, keybase1.TeamRole_ADMIN)
+
+	assertGen := func(g keybase1.PerTeamKeyGeneration) bool {
+		team, err := teams.Load(context.TODO(), tt.users[1].tc.G, keybase1.LoadTeamArg{
+			Name:    name.String(),
+			StaleOK: true,
+		})
+		require.NoError(t, err)
+		key, err := team.ApplicationKey(context.TODO(), keybase1.TeamApplication_CHAT)
+		require.NoError(t, err)
+		return (key.KeyGeneration == g)
+	}
+	assertGenFTL := func(g keybase1.PerTeamKeyGeneration) bool {
+		mctx := libkb.NewMetaContextForTest(*tt.users[1].tc)
+		team, err := mctx.G().GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
+			ID:            id,
+			NeedLatestKey: true,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(team.ApplicationKeys))
+		return (team.ApplicationKeys[0].KeyGeneration == g)
+	}
+	// Prime user 1's cache
+	ok := assertGen(keybase1.PerTeamKeyGeneration(1))
+	require.True(t, ok)
+	ok = assertGenFTL(keybase1.PerTeamKeyGeneration(1))
+	require.True(t, ok)
+
+	err := teams.RotateKeyWithHiddenBool(context.TODO(), tt.users[0].tc.G, keybase1.TeamRotateKeyArg{TeamID: id, Hidden: true})
+	require.NoError(t, err)
+
+	// Poll for an update, user 1 should get it as soon as gregor tells us to bust our cache.
+	pollForTrue(t, tt.users[1].tc.G, func(i int) bool {
+		return assertGen(keybase1.PerTeamKeyGeneration(2))
+	})
+
+	err = teams.RotateKeyWithHiddenBool(context.TODO(), tt.users[0].tc.G, keybase1.TeamRotateKeyArg{TeamID: id, Hidden: true})
+	require.NoError(t, err)
+
+	// Poll for an update to FTL, user 1 should get it as soon as gregor tells us to bust our cache.
+	pollForTrue(t, tt.users[1].tc.G, func(i int) bool {
+		return assertGenFTL(keybase1.PerTeamKeyGeneration(3))
+	})
+}
+
 func TestTeamRotateOnRevoke(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()

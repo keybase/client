@@ -481,6 +481,10 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 	return t.rotate(ctx, false /* hidden */)
 }
 
+func (t *Team) RotateWithHiddenBool(ctx context.Context, h bool) (err error) {
+	return t.rotate(ctx, h)
+}
+
 func (t *Team) RotateHidden(ctx context.Context) (err error) {
 	return t.rotate(ctx, true)
 }
@@ -2183,6 +2187,14 @@ func HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, n keybase1.Seqno) 
 		return err
 	}
 	return e2
+}
+
+func HintLatestHiddenSeqno(m libkb.MetaContext, id keybase1.TeamID, n keybase1.Seqno) error {
+	err := m.G().GetHiddenTeamChainManager().HintLatestSeqno(m, id, n)
+	if err != nil {
+		m.Warning("error in HintLatestHiddenSeqno: %v", err)
+	}
+	return err
 }
 
 func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {

@@ -677,6 +677,10 @@
           "name": "last"
         },
         {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
           "type": {
             "type": "map",
             "values": "Seqno",
@@ -1578,6 +1582,11 @@
           "type": "Seqno",
           "name": "latestSeqno",
           "jsonkey": "latest_seqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestHiddenSeqno",
+          "jsonkey": "latest_hidden_seqno"
         },
         {
           "type": "boolean",
@@ -3426,6 +3435,10 @@
         {
           "name": "teamID",
           "type": "TeamID"
+        },
+        {
+          "name": "hidden",
+          "type": "boolean"
         }
       ],
       "response": null

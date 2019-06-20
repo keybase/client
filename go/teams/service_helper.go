@@ -1631,7 +1631,8 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	return ret, err
 }
 
-func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (err error) {
+func RotateKeyWithHiddenBool(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamRotateKeyArg) (err error) {
+	teamID := arg.TeamID
 	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%v)", teamID), func() error { return err })()
 	return RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
@@ -1642,9 +1643,12 @@ func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Team
 		if err != nil {
 			return err
 		}
-
-		return team.Rotate(ctx)
+		return team.RotateWithHiddenBool(ctx, arg.Hidden)
 	})
+}
+
+func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (err error) {
+	return RotateKeyWithHiddenBool(ctx, g, keybase1.TeamRotateKeyArg{TeamID: teamID, Hidden: false})
 }
 
 func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {

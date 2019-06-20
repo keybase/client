@@ -15,6 +15,7 @@ import (
 type CmdTeamRotateKey struct {
 	libkb.Contextified
 	TeamID keybase1.TeamID
+	Hidden bool
 }
 
 func newCmdTeamRotateKey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -26,7 +27,12 @@ func newCmdTeamRotateKey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			cmd := NewCmdTeamRotateKeyRunner(g)
 			cl.ChooseCommand(cmd, "team-rotate-key", c)
 		},
-		Flags: []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "h, hidden",
+				Usage: "hidden rotation (dev-only)",
+			},
+		},
 	}
 }
 
@@ -40,7 +46,7 @@ func (c *CmdTeamRotateKey) ParseArgv(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
+	c.Hidden = ctx.Bool("hidden")
 	return nil
 }
 
@@ -49,8 +55,7 @@ func (c *CmdTeamRotateKey) Run() error {
 	if err != nil {
 		return err
 	}
-
-	return cli.TeamRotateKey(context.Background(), c.TeamID)
+	return cli.TeamRotateKey(context.Background(), keybase1.TeamRotateKeyArg{TeamID: c.TeamID, Hidden: c.Hidden})
 }
 
 func (c *CmdTeamRotateKey) GetUsage() libkb.Usage {
