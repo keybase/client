@@ -247,10 +247,72 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 const pathMetadataRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+let lastSubscribedTlf = ''
 
 const clearRefreshTags = () => {
   folderListRefreshTags.clear()
   pathMetadataRefreshTags.clear()
+}
+
+const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
+  folderListRefreshTags.delete(action.payload.refreshTag)
+  pathMetadataRefreshTags.delete(action.payload.refreshTag)
+}
+
+type RefreshTagContext = {
+  skipRpc: boolean
+  refreshSubscription: boolean
+}
+// refreshTagRpc is a helper function for dealing with notifications from KBFS.
+// Some background:
+//
+// In some SimpleFS RPCs, we can specify refreshSubscription to signal that we
+// want to subscribe to any pathItem related changes (doesn't get triggered for
+// syncState changes) and get notifications for them. However, the subscription
+// is not based on a path, but at TLF level. In other words, whenever we
+// refreshSubscription, we are actually asking KBFS to give us notifications
+// for its TLF.
+//
+// We have refreshTags in the frontend to track different "sources" that need
+// such information, each of which can have a different path. This way when we
+// get a notification, we know which path needs an update, and we'd call RPCs
+// to refresh for those paths.
+const refreshTagRpc = (
+  path: Types.Path,
+  refreshTag: Types.RefreshTag | null,
+  opType: 'folderList' | 'pathMetadata'
+): RefreshTagContext => {
+  // If we don't have the refreshTag or we are dealing with a special file,
+  // don't skip and don't attempt to subscribe. For example,
+  // /keybase/.kbfs_status can't be subscribed.
+  if (!refreshTag || Constants.hasSpecialFileElement(path)) {
+    return {
+      refreshSubscription: false,
+      skipRpc: false,
+    }
+  }
+
+  // We've got a refreshTag. Set it regardless.
+  const tags = opType === 'folderList' ? folderListRefreshTags : pathMetadataRefreshTags
+  tags.set(refreshTag, path)
+
+  // If we are subscribed to the same TLF, just skip. When we have
+  // notifications coming in, we'll know to trigger RPCs for the right paths.
+  const tlfPath = Constants.getTlfPath(path)
+  if (tlfPath === lastSubscribedTlf) {
+    return {
+      refreshSubscription: false,
+      skipRpc: true,
+    }
+  }
+
+  // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
+  // want to refresh subscription to this TLF.
+  lastSubscribedTlf = tlfPath
+  return {
+    refreshSubscription: true,
+    skipRpc: false,
+  }
 }
 
 function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
@@ -259,13 +321,10 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
 
-  if (refreshTag) {
-    if (folderListRefreshTags.get(refreshTag) === rootPath) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
+  const {skipRpc, refreshSubscription} = refreshTagRpc(rootPath, refreshTag, 'folderList')
 
-    folderListRefreshTags.set(refreshTag, rootPath)
+  if (skipRpc) {
+    return
   }
 
   try {
@@ -276,7 +335,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: !!refreshTag,
+        refreshSubscription,
       })
     } else {
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
@@ -284,7 +343,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: !!refreshTag,
+        refreshSubscription,
       })
     }
 
@@ -710,23 +769,15 @@ const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeA
 function* loadPathMetadata(state, action: FsGen.LoadPathMetadataPayload) {
   const {path, refreshTag} = action.payload
 
-  if (Types.getPathLevel(path) < 3) {
+  const {skipRpc, refreshSubscription} = refreshTagRpc(path, refreshTag, 'pathMetadata')
+  if (skipRpc) {
     return
-  }
-
-  if (refreshTag) {
-    if (pathMetadataRefreshTags.get(refreshTag) === path) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
-
-    pathMetadataRefreshTags.set(refreshTag, path)
   }
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
       path: Constants.pathToRPCPath(path),
-      refreshSubscription: !!refreshTag,
+      refreshSubscription,
     })
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
@@ -926,11 +977,6 @@ const triggerSendLinkToChat = (state, action: FsGen.TriggerSendLinkToChatPayload
       ChatConstants.waitingKeyPost
     ).then(result => FsGen.createSentLinkToChat({convID: conversationIDKey}))
   )
-}
-
-const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
-  folderListRefreshTags.delete(action.payload.refreshTag)
-  pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
 
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by

@@ -8,14 +8,13 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"io"
 	"net/http"
 	"path"
 	"strings"
 	"sync"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -94,7 +93,7 @@ func (s *Server) getHTTPFileSystem(ctx context.Context, requestPath string) (
 	toStrip string, fs http.FileSystem, err error) {
 	fields := strings.Split(requestPath, "/")
 	if len(fields) < 2 {
-		return "", nil, errors.New("bad path")
+		return "", libfs.NewRootFS(s.config).ToHTTPFileSystem(ctx), nil
 	}
 
 	tlfType, err := tlf.ParseTlfTypeFromPath(fields[0])

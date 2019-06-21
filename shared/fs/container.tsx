@@ -35,7 +35,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const path = getRouteProps(ownProps, 'path') || Constants.defaultPath
-  const isDefinitelyFolder = Types.getPathElements(path).length <= 3
+  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
     kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
