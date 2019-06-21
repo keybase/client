@@ -98,6 +98,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       marginBottom: Styles.globalMargins.small,
     },
+    isElectron: {
+      marginRight: Styles.globalMargins.large,
+    },
   }),
 })
 
