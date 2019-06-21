@@ -22,6 +22,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
+  sbsContacts: false,
   stellarExternalPartners: false,
 }
 
@@ -33,6 +34,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
+  sbsContacts: true,
   stellarExternalPartners: true,
 }
 
