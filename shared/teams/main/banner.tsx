@@ -12,14 +12,14 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
     <Kb.Icon type={Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'} />
     <Kb.Box style={styles.containerHeader}>
       <Kb.Text negative={true} type="Header" style={styles.header}>
-        Now supporting teams!
+        Create a team on Keybase
       </Kb.Text>
       <Kb.Text center={Styles.isMobile} negative={true} type="BodySmallSemibold" style={styles.text}>
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
         large communities.
       </Kb.Text>
       <Kb.Text negative={true} type="BodySmallSemiboldPrimaryLink" className="underline" onClick={onReadMore}>
-        Read our announcement
+        Read more
       </Kb.Text>
     </Kb.Box>
     <Kb.Box style={styles.closeIconContainer}>
@@ -56,16 +56,18 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       backgroundColor: Styles.globalColors.blue,
       flexShrink: 0,
-      justifyContent: 'center',
       position: 'relative',
       width: '100%',
     },
     isElectron: {
       ...Styles.globalStyles.flexBoxRow,
       height: 212,
+      justifyContent: 'flex-start',
+      paddingLeft: 48,
     },
     isMobile: {
       ...Styles.globalStyles.flexBoxColumn,
+      justifyContent: 'center',
       padding: 24,
     },
   }),
