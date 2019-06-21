@@ -26,6 +26,7 @@ const ff: FeatureFlags = {
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
+  airdrop: true,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
   kbfsOfflineMode: true,
