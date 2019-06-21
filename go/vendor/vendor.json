@@ -1107,6 +1107,13 @@
 			"revisionTime": "2019-06-20T21:01:22Z"
 		},
 		{
+			"checksumSHA1": "j8dB+W4hSZ0S1XM2YqCDMYAlZMQ=",
+			"origin": "github.com/keybase/stellar-org/support/render/httpjson",
+			"path": "github.com/stellar/go/support/render/httpjson",
+			"revision": "1f0360911a792e7d8c09277676f4b19d1b8739c9",
+			"revisionTime": "2019-06-20T21:01:22Z"
+		},
+		{
 			"checksumSHA1": "j8VjSLgDZVHs1N76pPzCjBkri3o=",
 			"origin": "github.com/keybase/stellar-org/support/render/problem",
 			"path": "github.com/stellar/go/support/render/problem",
