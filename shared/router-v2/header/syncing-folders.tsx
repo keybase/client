@@ -4,12 +4,15 @@ import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/typed-connect'
 import PieSlice from '../../fs/common/pie-slice'
 
+type OwnProps = {
+  negative?: boolean
+}
+
 type Props = {
   progress: number
   show: boolean
   tooltip: string
-  negative?: boolean
-}
+} & OwnProps
 
 const SyncingFolders = (props: Props) =>
   props.show && props.progress !== 1.0 ? (
@@ -30,11 +33,12 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-const mergeProps = (s, d) => {
+const mergeProps = (s, d, o: OwnProps) => {
   if (s._syncingFoldersProgress.bytesTotal === 0) {
     return {progress: 0, show: false, tooltip: ''}
   }
   return {
+    ...o,
     progress: s._syncingFoldersProgress.bytesFetched / s._syncingFoldersProgress.bytesTotal,
     show: s.online,
     tooltip: Constants.humanizeBytesOfTotal(
@@ -43,7 +47,5 @@ const mergeProps = (s, d) => {
     ),
   }
 }
-
-type OwnProps = {}
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SyncingFolders')(SyncingFolders)
