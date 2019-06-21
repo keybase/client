@@ -1506,11 +1506,12 @@ func (g *gregorHandler) connectTLS() error {
 		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
-	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+	g.conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		g, libkb.NewRPCLogFactory(g.G().ExternalG()),
 		logger.LogOutputWithDepthAdder{Logger: g.G().Log},
-		rpc.DefaultMaxFrameLength, opts)
+		rpc.DefaultMaxFrameLength, opts,
+		libkb.NewProxyDialable(g.G().Env))
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not

@@ -43,8 +43,10 @@ package libkb
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"net"
 	"net/http"
 	"net/url"
@@ -248,3 +250,26 @@ func ProxyHTTPGet(env *Env, u string) (*http.Response, error) {
 
 	return client.Get(u)
 }
+
+type ProxyDialable struct {
+	env       *Env
+	Timeout   time.Duration
+	KeepAlive time.Duration
+}
+
+func NewProxyDialable(env *Env) *ProxyDialable {
+	return &ProxyDialable{env: env}
+}
+
+func (pd *ProxyDialable) SetOpts(timeout time.Duration, keepAlive time.Duration) {
+	pd.Timeout = timeout
+	pd.KeepAlive = keepAlive
+}
+
+func (pd *ProxyDialable) Dial(ctx context.Context, network string, addr string) (net.Conn, error) {
+	// TODO: Do something with keepAlive and context
+	return ProxyDialTimeout(pd.env, network, addr, pd.Timeout)
+}
+
+// Test that ProxyDialable implements rpc.Dialable
+var _ rpc.Dialable = (*ProxyDialable)(nil)
