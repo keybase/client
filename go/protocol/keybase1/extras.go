@@ -2933,6 +2933,34 @@ func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 	}
 }
 
+func (h *HiddenTeamChain) Tombstone() (changed bool) {
+	if h.Tombstoned {
+		return false
+	}
+	h.LastPerTeamKeys = make(map[PTKType]Seqno)
+	h.ReaderPerTeamKeys = make(map[PerTeamKeyGeneration]Seqno)
+	h.Outer = make(map[Seqno]LinkID)
+	h.Inner = make(map[Seqno]HiddenTeamChainLink)
+	h.Tombstoned = true
+	return true
+}
+
+func (h *HiddenTeamChain) Freeze() (changed bool) {
+	if h.Frozen {
+		return false
+	}
+	h.LastPerTeamKeys = make(map[PTKType]Seqno)
+	h.ReaderPerTeamKeys = make(map[PerTeamKeyGeneration]Seqno)
+	h.Inner = make(map[Seqno]HiddenTeamChainLink)
+	newOuter := make(map[Seqno]LinkID)
+	if h.Last != Seqno(0) {
+		newOuter[h.Last] = h.Outer[h.Last]
+	}
+	h.Outer = newOuter
+	h.Frozen = true
+	return true
+}
+
 func (h HiddenTeamChain) LastReaderPerTeamKeyLinkID() (ret LinkID) {
 	seqno, ok := h.LastPerTeamKeys[PTKType_READER]
 	if !ok {

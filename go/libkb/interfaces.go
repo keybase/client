@@ -729,6 +729,10 @@ type HiddenTeamChainManager interface {
 	Tail(MetaContext, keybase1.TeamID) (*keybase1.LinkTriple, error)
 	// Load the latest data for the given team ID, and just return it wholesale.
 	Load(MetaContext, keybase1.TeamID) (dat *keybase1.HiddenTeamChain, err error)
+	// See comment in TeamLoader#Freeze.
+	Freeze(MetaContext, keybase1.TeamID) error
+	// See comment in TeamLoader#Tombstone.
+	Tombstone(MetaContext, keybase1.TeamID) error
 }
 
 type TeamAuditor interface {

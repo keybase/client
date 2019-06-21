@@ -41,15 +41,12 @@ func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybas
 	return state.Ratchet.MaxTriple(), nil
 }
 
-func (m *ChainManager) loadLocked(mctx libkb.MetaContext, arg loadArg) (ret *keybase1.HiddenTeamChain, err error) {
+func (m *ChainManager) loadLocked(mctx libkb.MetaContext, arg loadArg) (ret *keybase1.HiddenTeamChain, frozen bool, err error) {
 	state, frozen, tombstoned := m.storage.Get(mctx, arg.id, arg.id.IsPublic())
-	if frozen {
-		return nil, NewManagerError("cannot load hidden chain for frozen team")
-	}
 	if tombstoned {
-		return nil, NewManagerError("cannot load hidden chain for tombstoned team")
+		return nil, false, NewManagerError("cannot load hidden chain for tombstoned team")
 	}
-	return state, nil
+	return state, frozen, nil
 }
 
 func withLogTag(mctx libkb.MetaContext) libkb.MetaContext {
@@ -63,30 +60,65 @@ func (m *ChainManager) Load(mctx libkb.MetaContext, id keybase1.TeamID) (ret *ke
 	return ret, err
 }
 
+func (m *ChainManager) checkFrozen(mctx libkb.MetaContext, newState *keybase1.HiddenTeamChain, frozenState *keybase1.HiddenTeamChain) (err error) {
+	if frozenState == nil || frozenState.Last == keybase1.Seqno(0) {
+		return nil
+	}
+	if newState == nil {
+		return NewManagerError("previously frozen state was non-nil, but this state is nil")
+	}
+	link, ok := frozenState.Outer[frozenState.Last]
+	if !ok {
+		return NewManagerError("bad frozen state, couldn't find link for %d", frozenState.Last)
+	}
+	newLink, ok := newState.Outer[frozenState.Last]
+	if !ok {
+		return NewManagerError("On thaw, new state is missing link at %d", frozenState.Last)
+	}
+	if !newLink.Eq(link) {
+		return NewManagerError("On thaw, hash mismatch at link %d (%s != %s)", frozenState.Last, newLink, link)
+	}
+	return nil
+}
+
 func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state *keybase1.HiddenTeamChain, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("ChainManager#load(%+v)", arg), func() error { return err })()
 	lock := m.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), arg.id.String())
 	defer lock.Release(mctx.Ctx())
 
-	state, err = m.loadLocked(mctx, arg)
+	var frozenState *keybase1.HiddenTeamChain
+	var frozen bool
+	frozenState, frozen, err = m.loadLocked(mctx, arg)
 	if err != nil {
 		return nil, err
 	}
+	if !frozen {
+		state = frozenState
+	}
 
-	if arg.mutate != nil {
-		var changed bool
-		if state == nil {
-			state = keybase1.NewHiddenTeamChain(arg.id)
-		}
-		changed, err = arg.mutate(mctx, state)
+	if arg.mutate == nil {
+		return state, nil
+	}
+
+	var changed bool
+	if state == nil {
+		state = keybase1.NewHiddenTeamChain(arg.id)
+	}
+	changed, err = arg.mutate(mctx, state)
+	if err != nil {
+		return nil, err
+	}
+	if !changed {
+		return state, nil
+	}
+	if frozen {
+		err = m.checkFrozen(mctx, state, frozenState)
 		if err != nil {
 			return nil, err
 		}
-		if changed {
-			state.CachedAt = keybase1.ToTime(mctx.G().Clock().Now())
-			m.storage.Put(mctx, state)
-		}
 	}
+	state.CachedAt = keybase1.ToTime(mctx.G().Clock().Now())
+	m.storage.Put(mctx, state)
 
 	return state, nil
 }
@@ -254,4 +286,30 @@ func (m *ChainManager) OnLogout(mctx libkb.MetaContext) error {
 func (m *ChainManager) OnDbNuke(mctx libkb.MetaContext) error {
 	m.storage.ClearMem()
 	return nil
+}
+
+func (m *ChainManager) Tombstone(mctx libkb.MetaContext, id keybase1.TeamID) (err error) {
+	mctx = withLogTag(mctx)
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Tombstone(%s)", id), func() error { return err })()
+	arg := loadArg{
+		id: id,
+		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
+			return state.Tombstone(), nil
+		},
+	}
+	_, err = m.loadAndMutate(mctx, arg)
+	return err
+}
+
+func (m *ChainManager) Freeze(mctx libkb.MetaContext, id keybase1.TeamID) (err error) {
+	mctx = withLogTag(mctx)
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Freeze(%s)", id), func() error { return err })()
+	arg := loadArg{
+		id: id,
+		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
+			return state.Freeze(), nil
+		},
+	}
+	_, err = m.loadAndMutate(mctx, arg)
+	return err
 }
