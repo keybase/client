@@ -59,7 +59,11 @@ func testQuotaReclamation(ctx context.Context, t *testing.T, config Config,
 	require.NoError(t, err, "Couldn't sync from server: %+v", err)
 
 	// Make sure no blocks are deleted before there's a new-enough update.
-	bserverLocal, ok := config.BlockServer().(blockServerLocal)
+	bserver := config.BlockServer()
+	if jbserver, ok := bserver.(journalBlockServer); ok {
+		bserver = jbserver.BlockServer
+	}
+	bserverLocal, ok := bserver.(blockServerLocal)
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
@@ -103,7 +107,11 @@ func ensureFewerBlocksPostQR(
 	err := ops.fbm.waitForQuotaReclamations(ctx)
 	require.NoError(t, err, "Couldn't wait for QR: %+v", err)
 
-	bserverLocal, ok := config.BlockServer().(blockServerLocal)
+	bserver := config.BlockServer()
+	if jbserver, ok := bserver.(journalBlockServer); ok {
+		bserver = jbserver.BlockServer
+	}
+	bserverLocal, ok := bserver.(blockServerLocal)
 	require.True(t, ok)
 
 	postBlocks, err := bserverLocal.getAllRefsForTest(ctx, ops.id())
@@ -174,6 +182,43 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	if md.data.cachedChanges.Info.BlockPointer == data.ZeroPtr {
 		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
 	}
+}
+
+// Just like the simple case, except tests that it unembeds large sets
+// of pointers correctly.
+func TestQuotaReclamationUnembeddedJournal(t *testing.T) {
+	var userName kbname.NormalizedUsername = "test_user"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	require.NoError(t, err)
+	defer ioutil.RemoveAll(tempdir)
+
+	config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	config.bsplit.(*data.BlockSplitterSimple).
+		SetBlockChangeEmbedMaxSizeForTesting(32)
+
+	rootNode := GetRootNodeOrBust(
+		ctx, t, config, userName.String(), tlf.Private)
+	jManager, err := GetJournalManager(config)
+	require.NoError(t, err)
+	jManager.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
+
+	ops, _ := testQuotaReclamation(ctx, t, config, userName)
+
+	t.Log("Check that the latest merged revision didn't get updated")
+	rev := ops.getLatestMergedRevision(makeFBOLockState())
+	require.Equal(t, kbfsmd.RevisionInitial, rev)
+
+	jManager.ResumeBackgroundWork(ctx, ops.id())
+	err = jManager.Wait(ctx, ops.id())
+	require.NoError(t, err)
 }
 
 // Test that a single quota reclamation run doesn't try to reclaim too
