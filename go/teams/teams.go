@@ -607,6 +607,9 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		mctx.Warning("Failed to ratchet forward team chain: %s", tmp.Error())
 	}
 
+	// We rotated the key but didn't change the visibile chain
+	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{KeyRotated: true})
+
 	return err
 }
 
