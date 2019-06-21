@@ -1948,7 +1948,7 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{},
 			libkb.NewProxyDialable(g.Env))
 	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength)
+		t := rpc.NewConnectionTransportWithDialable(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength, libkb.NewProxyDialable(g.GetEnv()))
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
 			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})

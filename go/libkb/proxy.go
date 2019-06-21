@@ -88,7 +88,7 @@ func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 			// No proxy so returning nil tells it not to use a proxy
 			return nil, nil
 		}
-		realProxyAddress := buildProxyAddressWithProtocol(proxyType, proxyAddress)
+		realProxyAddress := BuildProxyAddressWithProtocol(proxyType, proxyAddress)
 
 		realProxyURL, err := url.Parse(realProxyAddress)
 		if err != nil {
@@ -100,7 +100,7 @@ func MakeProxy(e *Env) func(r *http.Request) (*url.URL, error) {
 }
 
 // Get a string that represents a proxy including the protocol needed for the proxy
-func buildProxyAddressWithProtocol(proxyType ProxyType, proxyAddress string) string {
+func BuildProxyAddressWithProtocol(proxyType ProxyType, proxyAddress string) string {
 	realProxyAddress := proxyAddress
 	if proxyType == Socks {
 		realProxyAddress = "socks5://" + proxyAddress
@@ -250,7 +250,7 @@ func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address st
 		return dialer.DialContext(ctx, network, address)
 	}
 	registerHTTPConnectProxies()
-	proxyURLStr := buildProxyAddressWithProtocol(env.GetProxyType(), env.GetProxy())
+	proxyURLStr := BuildProxyAddressWithProtocol(env.GetProxyType(), env.GetProxy())
 	proxyURL, err := url.Parse(proxyURLStr)
 	if err != nil {
 		return nil, err
