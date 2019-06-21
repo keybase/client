@@ -66,6 +66,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       height: 212,
       justifyContent: 'flex-start',
+      paddingRight: Styles.globalMargins.large,
     },
     isMobile: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -97,9 +98,6 @@ const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     common: {
       marginBottom: Styles.globalMargins.small,
-    },
-    isElectron: {
-      marginRight: Styles.globalMargins.large,
     },
   }),
 })
