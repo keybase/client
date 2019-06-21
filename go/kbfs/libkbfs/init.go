@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode:                           InitDefaultString,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -437,7 +437,7 @@ func makeKeyServer(
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, bserverAddr string,
+func makeBlockServer(kbCtx Context, config Config, bserverAddr string,
 	rpcLogFactory rpc.LogFactory,
 	log logger.Logger) (BlockServer, error) {
 	if bserverAddr == memoryAddr {
@@ -465,7 +465,7 @@ func makeBlockServer(config Config, bserverAddr string,
 		return nil, err
 	}
 	log.Debug("Using remote bserver %s", remote)
-	return NewBlockServerRemote(config, remote, rpcLogFactory), nil
+	return NewBlockServerRemote(kbCtx, config, remote, rpcLogFactory), nil
 }
 
 // InitLogWithPrefix sets up logging switching to a log file if
@@ -778,7 +778,7 @@ func doInit(
 
 	// Initialize BlockServer connection.
 	bserv, err := makeBlockServer(
-		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
+		kbCtx, config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}

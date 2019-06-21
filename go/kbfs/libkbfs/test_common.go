@@ -73,7 +73,7 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 
 // MakeTestBlockServerOrBust makes a block server from the given
 // arguments and environment variables.
-func MakeTestBlockServerOrBust(t logger.TestLogBackend,
+func MakeTestBlockServerOrBust(t logger.TestLogBackend, c *ConfigLocal,
 	config blockServerRemoteConfig,
 	rpcLogFactory rpc.LogFactory) BlockServer {
 	// see if a local remote server is specified
@@ -92,7 +92,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 		if err != nil {
 			t.Fatal(err)
 		}
-		return NewBlockServerRemote(config, remote, rpcLogFactory)
+		return NewBlockServerRemote(c.kbCtx, config, remote, rpcLogFactory)
 
 	default:
 		return NewBlockServerMemory(config.MakeLogger(""))
@@ -165,7 +165,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	config.SetCrypto(crypto)
 
 	blockServer := MakeTestBlockServerOrBust(
-		t, config, newTestRPCLogFactory(t))
+		t, config, config, newTestRPCLogFactory(t))
 	config.SetBlockServer(blockServer)
 
 	// see if a local remote server is specified
@@ -288,7 +288,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 		if err != nil {
 			panic(err)
 		}
-		blockServer := NewBlockServerRemote(c, remote, s.putConn.rpcLogFactory)
+		blockServer := NewBlockServerRemote(c.kbCtx, c, remote, s.putConn.rpcLogFactory)
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())

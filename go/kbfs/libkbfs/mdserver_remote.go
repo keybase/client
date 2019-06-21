@@ -159,11 +159,12 @@ func (md *MDServerRemote) initNewConnection() {
 		md.conn.Shutdown()
 	}
 
-	md.conn = rpc.NewTLSConnection(md.mdSrvRemote, kbfscrypto.GetRootCerts(
+	md.conn = rpc.NewTLSConnectionWithDialable(md.mdSrvRemote, kbfscrypto.GetRootCerts(
 		md.mdSrvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
 		logger.LogOutputWithDepthAdder{Logger: md.config.MakeLogger("")},
-		rpc.DefaultMaxFrameLength, md.connOpts)
+		rpc.DefaultMaxFrameLength, md.connOpts,
+		libkb.NewProxyDialable(md.kbCtx.GetEnv()))
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 

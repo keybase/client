@@ -113,11 +113,13 @@ func buildProxyAddressWithProtocol(proxyType ProxyType, proxyAddress string) str
 
 // A net.Dialer that dials via TLS
 type httpsDialer struct {
-	timeout time.Duration
+	opts *ProxyDialOpts
 }
 
 func (d httpsDialer) Dial(network string, addr string) (net.Conn, error) {
-	conn, err := net.DialTimeout("tcp", addr, d.timeout)
+	// Start by making a direct dialer and dialing and then wrap TLS around it
+	dd := directDialer{opts: d.opts}
+	conn, err := dd.Dial(network, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -126,22 +128,26 @@ func (d httpsDialer) Dial(network string, addr string) (net.Conn, error) {
 
 // A net.Dialer that dials via just the standard net.Dial
 type directDialer struct {
-	timeout time.Duration
+	opts *ProxyDialOpts
 }
 
 func (d directDialer) Dial(network string, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, d.timeout)
+	dialer := &net.Dialer{
+		Timeout:   d.opts.Timeout,
+		KeepAlive: d.opts.KeepAlive,
+	}
+	return dialer.Dial(network, addr)
 }
 
 // Get the correct upstream dialer to use for the given proxyURL
-func getUpstreamDialer(proxyURL *url.URL, timeout time.Duration) proxy.Dialer {
+func getUpstreamDialer(proxyURL *url.URL, opts *ProxyDialOpts) proxy.Dialer {
 	switch proxyURL.Scheme {
 	case "https":
-		return httpsDialer{timeout: timeout}
+		return httpsDialer{opts: opts}
 	case "http":
 		fallthrough
 	default:
-		return directDialer{timeout: timeout}
+		return directDialer{opts: opts}
 	}
 }
 
@@ -219,6 +225,11 @@ func registerHTTPConnectProxies() {
 	proxy.RegisterDialerType("https", newHTTPConnectProxy)
 }
 
+type ProxyDialOpts struct {
+	Timeout   time.Duration
+	KeepAlive time.Duration
+}
+
 // The equivalent of net.Dial except it uses the proxy configured in Env
 func ProxyDial(env *Env, network string, address string) (net.Conn, error) {
 	// Set the timeout to an exceedingly large number so it never times out
@@ -227,20 +238,31 @@ func ProxyDial(env *Env, network string, address string) (net.Conn, error) {
 
 // The equivalent of net.DialTimeout except it uses the proxy configured in Env
 func ProxyDialTimeout(env *Env, network string, address string, timeout time.Duration) (net.Conn, error) {
-	if env.GetProxyType() == NoProxy {
-		return net.DialTimeout(network, address, timeout)
-	}
+	return ProxyDialWithOpts(context.TODO(), env, network, address, &ProxyDialOpts{Timeout: timeout})
+}
 
+func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address string, opts *ProxyDialOpts) (net.Conn, error) {
+	if env.GetProxyType() == NoProxy {
+		dialer := &net.Dialer{
+			Timeout:   opts.Timeout,
+			KeepAlive: opts.KeepAlive,
+		}
+		return dialer.DialContext(ctx, network, address)
+	}
 	registerHTTPConnectProxies()
 	proxyURLStr := buildProxyAddressWithProtocol(env.GetProxyType(), env.GetProxy())
 	proxyURL, err := url.Parse(proxyURLStr)
 	if err != nil {
 		return nil, err
 	}
-	dialer, err := proxy.FromURL(proxyURL, getUpstreamDialer(proxyURL, timeout))
+	dialer, err := proxy.FromURL(proxyURL, getUpstreamDialer(proxyURL, opts))
 	if err != nil {
 		return nil, err
 	}
+
+	// Currently proxy.Dialer does not support DialContext. This is being actively worked on and will probably
+	// land in the next release, but for now we are just dropping the context on the floor
+	// See: https://github.com/golang/go/issues/17759
 	return dialer.Dial(network, address)
 }
 
@@ -251,6 +273,7 @@ func ProxyHTTPGet(env *Env, u string) (*http.Response, error) {
 	return client.Get(u)
 }
 
+// A struct that implements rpc.Dialable from go-framed-msgpack-rpc
 type ProxyDialable struct {
 	env       *Env
 	Timeout   time.Duration
@@ -267,7 +290,6 @@ func (pd *ProxyDialable) SetOpts(timeout time.Duration, keepAlive time.Duration)
 }
 
 func (pd *ProxyDialable) Dial(ctx context.Context, network string, addr string) (net.Conn, error) {
-	// TODO: Do something with keepAlive and context
 	return ProxyDialTimeout(pd.env, network, addr, pd.Timeout)
 }
 
