@@ -3,13 +3,35 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletBackButton} from '../common'
 
+type Props = {
+  loading: boolean
+  onAccept: () => void
+  onCancel: () => void
+}
+
 type LoadingProps = {}
+
+type CallbackURLBannerProps = {
+  callbackURL: string
+}
+const CallbackURLBanner = (props: CallbackURLBannerProps) => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    centerChildren={true}
+    style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.tiny}}
+  >
+    <Kb.Text type="BodySemibold" negative={true}>
+      The payment will be sent to {props.callbackURL}.
+    </Kb.Text>
+  </Kb.Box2>
+)
 
 type InfoRowProps = {
   bodyText: string
   headerText: string
+  showStellarIcon?: boolean
 }
-
 const InfoRow = (props: InfoRowProps) => (
   <>
     <Kb.Divider />
@@ -17,9 +39,18 @@ const InfoRow = (props: InfoRowProps) => (
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         {props.headerText}
       </Kb.Text>
-      <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
-        {props.bodyText}
-      </Kb.Text>
+      {props.showStellarIcon ? (
+        <Kb.Box2 direction="horizontal" gap="xtiny">
+          <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
+          <Kb.Text selectable={true} type="Body" style={styles.stellarAddressConfirmText}>
+            {props.bodyText}
+          </Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
+          {props.bodyText}
+        </Kb.Text>
+      )}
     </Kb.Box2>
   </>
 )
@@ -29,7 +60,6 @@ type HeaderProps = {
   originDomain: string
   isPayment: boolean
 }
-
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
@@ -69,34 +99,13 @@ const PaymentsConfirmLoading = Kb.HeaderOrPopup((props: LoadingProps) => (
   </Kb.Box2>
 ))
 
-type PaymentProps = {
-  readonly displayAmount?: string | null
-  readonly error?: string | null
-  readonly fullName: string
-  readonly username: string
-  readonly xlmAmount: string
+type PaymentInfoProps = {
+  amount: string
+  memo: string | null
+  message: string | null
+  recipient: string
 }
-
-type Props = {
-  displayTotal: string
-  error?: string
-  errorIsNoWallet?: boolean
-  loading: boolean
-  onAccept: () => void
-  onCancel: () => void
-  onWallet: () => void
-  payments: Array<PaymentProps>
-  xlmTotal: string
-}
-
-type NoteAndMemoProps = {
-  amount?: string
-  memo?: string
-  message?: string
-  recipient?: string
-}
-
-const NoteAndMemo = (props: NoteAndMemoProps) => (
+const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {!!props.amount && (
       <>
@@ -116,24 +125,28 @@ const NoteAndMemo = (props: NoteAndMemoProps) => (
 
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
 
-    {!!props.fee && <InfoRow headerText="Fee" bodyText="{props.fee} stroops" />}
+    {!!props.recipient && <InfoRow headerText="Recipient" bodyText={props.recipient} showStellarIcon={true} />}
+  </Kb.Box2>
+)
 
-    {!!props.recipient && (
-      <>
-        <Kb.Divider />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
-          <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Recipient
-          </Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="xtiny">
-            <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
-            <Kb.Text selectable={true} type="BodySemibold" style={styles.stellarAddressConfirmText}>
-              {props.recipient}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.Box2>
-      </>
-    )}
+type TxInfoProps = {
+  operations: Array<string>
+  fee: string
+  memo: string | null
+  source: string
+}
+const TxInfo = (props: TxInfoProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    {props.operations.length > 0 &&
+      props.operations.map((op, idx) => (
+        <InfoRow key={idx + 1} headerText={`Operation ${idx + 1}`} bodyText={op} />
+      ))}
+
+    {!!props.fee && <InfoRow headerText="Fee" bodyText={props.fee + ' stroops'} />}
+
+    {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
+
+    {!!props.source && <InfoRow headerText="Source account" bodyText={props.source} showStellarIcon={true} />}
   </Kb.Box2>
 )
 
@@ -147,29 +160,23 @@ const PaymentsConfirm = (props: Props) =>
           isPayment={props.operation === 'pay'}
           originDomain={props.originDomain}
           onBack={props.onBack}
-          sendingIntentionXLM={props.sendingIntentionXLM}
-          displayAmountXLM={props.displayAmountXLM}
-          displayAmountFiat={props.displayAmountFiat}
         />
-        {!!props.callbackURL && (
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            centerChildren={true}
-            style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.tiny}}
-          >
-            <Kb.Text type="BodySemibold" negative={true}>
-              The payment will be sent to {props.callbackURL}.
-            </Kb.Text>
-          </Kb.Box2>
-        )}
+        {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
-          <NoteAndMemo
-            amount={props.amount}
-            memo={props.memo}
-            message={props.message}
-            recipient={props.recipient}
-          />
+          {props.operation === 'pay' ? (
+            <PaymentInfo
+              amount={props.amount}
+              memo={props.memo}
+              message={props.message}
+              recipient={props.recipient}
+            />
+          ) : (
+            <TxInfo
+              fee={props.summary.fee}
+              source={props.summary.source}
+              operations={props.summary.operations}
+            />
+          )}
         </Kb.ScrollView>
         <Kb.Box2
           direction="horizontal"
