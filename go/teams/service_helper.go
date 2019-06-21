@@ -1323,7 +1323,7 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 	}
 	if rotateKey {
 		g.Log.CDebugf(ctx, "ChangeTeamSettings will rotate key after posting settings (team ID: %s)", teamID)
-		err = RotateKey(ctx, g, teamID)
+		err = RotateKey(ctx, g, keybase1.TeamRotateKeyArg{TeamID: teamID, Rt: keybase1.RotationType_VISIBLE})
 	}
 	return err
 }
@@ -1631,9 +1631,9 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	return ret, err
 }
 
-func RotateKeyWithHiddenBool(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamRotateKeyArg) (err error) {
+func RotateKey(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamRotateKeyArg) (err error) {
 	teamID := arg.TeamID
-	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%v)", teamID), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("RotateKey(%+v)", arg), func() error { return err })()
 	return RetryIfPossible(ctx, g, func(ctx context.Context, attempt int) error {
 		team, err := Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
@@ -1643,12 +1643,12 @@ func RotateKeyWithHiddenBool(ctx context.Context, g *libkb.GlobalContext, arg ke
 		if err != nil {
 			return err
 		}
-		return team.RotateWithHiddenBool(ctx, arg.Hidden)
+		return team.Rotate(ctx, arg.Rt)
 	})
 }
 
-func RotateKey(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (err error) {
-	return RotateKeyWithHiddenBool(ctx, g, keybase1.TeamRotateKeyArg{TeamID: teamID, Hidden: false})
+func RotateKeyVisible(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) error {
+	return RotateKey(ctx, g, keybase1.TeamRotateKeyArg{TeamID: id, Rt: keybase1.RotationType_VISIBLE})
 }
 
 func TeamDebug(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (res keybase1.TeamDebugRes, err error) {

@@ -156,7 +156,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 
 	t.Logf("rotating keys...")
 	// Rotated keys do not create high links.
-	err = RotateKey(ctx, tc.G, *teamID)
+	err = RotateKey(ctx, tc.G, keybase1.TeamRotateKeyArg{TeamID: *teamID, Rt: keybase1.RotationType_VISIBLE})
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 7)
 	assertHighSeqForTeam(t, tc, subteamID, 2)

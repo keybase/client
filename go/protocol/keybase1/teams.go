@@ -3000,6 +3000,32 @@ func (o ProfileTeamLoadRes) DeepCopy() ProfileTeamLoadRes {
 	}
 }
 
+type RotationType int
+
+const (
+	RotationType_VISIBLE RotationType = 0
+	RotationType_HIDDEN  RotationType = 1
+)
+
+func (o RotationType) DeepCopy() RotationType { return o }
+
+var RotationTypeMap = map[string]RotationType{
+	"VISIBLE": 0,
+	"HIDDEN":  1,
+}
+
+var RotationTypeRevMap = map[RotationType]string{
+	0: "VISIBLE",
+	1: "HIDDEN",
+}
+
+func (e RotationType) String() string {
+	if v, ok := RotationTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type TeamDebugRes struct {
 	Chain TeamSigChainState `codec:"chain" json:"chain"`
 }
@@ -3259,8 +3285,8 @@ type CanUserPerformArg struct {
 }
 
 type TeamRotateKeyArg struct {
-	TeamID TeamID `codec:"teamID" json:"teamID"`
-	Hidden bool   `codec:"hidden" json:"hidden"`
+	TeamID TeamID       `codec:"teamID" json:"teamID"`
+	Rt     RotationType `codec:"rt" json:"rt"`
 }
 
 type TeamDebugArg struct {

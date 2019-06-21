@@ -101,7 +101,7 @@ func TestHiddenRotateGregor(t *testing.T) {
 	ok = assertGenFTL(keybase1.PerTeamKeyGeneration(1))
 	require.True(t, ok)
 
-	err := teams.RotateKeyWithHiddenBool(context.TODO(), tt.users[0].tc.G, keybase1.TeamRotateKeyArg{TeamID: id, Hidden: true})
+	err := teams.RotateKey(context.TODO(), tt.users[0].tc.G, keybase1.TeamRotateKeyArg{TeamID: id, Rt: keybase1.RotationType_HIDDEN})
 	require.NoError(t, err)
 
 	// Poll for an update, user 1 should get it as soon as gregor tells us to bust our cache.
@@ -109,7 +109,7 @@ func TestHiddenRotateGregor(t *testing.T) {
 		return assertGen(keybase1.PerTeamKeyGeneration(2))
 	})
 
-	err = teams.RotateKeyWithHiddenBool(context.TODO(), tt.users[0].tc.G, keybase1.TeamRotateKeyArg{TeamID: id, Hidden: true})
+	err = teams.RotateKey(context.TODO(), tt.users[0].tc.G, keybase1.TeamRotateKeyArg{TeamID: id, Rt: keybase1.RotationType_HIDDEN})
 	require.NoError(t, err)
 
 	// Poll for an update to FTL, user 1 should get it as soon as gregor tells us to bust our cache.

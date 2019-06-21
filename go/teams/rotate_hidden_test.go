@@ -24,7 +24,7 @@ func TestRotateHiddenSelf(t *testing.T) {
 	require.Equal(t, len(keys1), 1)
 	require.Equal(t, keys1[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 
-	err = team.Rotate(context.TODO())
+	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
@@ -43,11 +43,11 @@ func TestRotateHiddenSelf(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 		require.NoError(t, err)
-		err = team.RotateHidden(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
 		require.NoError(t, err)
 		team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 		require.NoError(t, err)
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 	}
 
@@ -79,7 +79,11 @@ func TestRotateHiddenOther(t *testing.T) {
 		g := tcs[0].G
 		team, err := GetForTestByID(ctx, g, teamID)
 		require.NoError(t, err)
-		err = team.rotate(ctx, h)
+		typ := keybase1.RotationType_VISIBLE
+		if h {
+			typ = keybase1.RotationType_HIDDEN
+		}
+		err = team.rotate(ctx, typ)
 		require.NoError(t, err)
 		numKeys++
 	}
@@ -122,7 +126,11 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 		g := tcs[0].G
 		team, err := GetForTestByID(ctx, g, teamID)
 		require.NoError(t, err)
-		err = team.rotate(ctx, h)
+		typ := keybase1.RotationType_VISIBLE
+		if h {
+			typ = keybase1.RotationType_HIDDEN
+		}
+		err = team.rotate(ctx, typ)
 		require.NoError(t, err)
 		keyGen++
 	}

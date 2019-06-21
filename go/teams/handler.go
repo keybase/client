@@ -78,7 +78,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		}
 
 		g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name(), teamID)
-		if err := team.Rotate(ctx); err != nil {
+		if err := team.Rotate(ctx, keybase1.RotationType_VISIBLE); err != nil {
 			g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name(), teamID, err)
 			return err
 		}

@@ -477,23 +477,15 @@ func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) err
 	return nil
 }
 
-func (t *Team) Rotate(ctx context.Context) (err error) {
-	return t.rotate(ctx, false /* hidden */)
+func (t *Team) Rotate(ctx context.Context, rt keybase1.RotationType) (err error) {
+	return t.rotate(ctx, rt)
 }
 
-func (t *Team) RotateWithHiddenBool(ctx context.Context, h bool) (err error) {
-	return t.rotate(ctx, h)
-}
-
-func (t *Team) RotateHidden(ctx context.Context) (err error) {
-	return t.rotate(ctx, true)
-}
-
-func (t *Team) rotate(ctx context.Context, isHidden bool) (err error) {
+func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error) {
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
-	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%v)", t.ID, isHidden), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
 
-	if isHidden {
+	if rt == keybase1.RotationType_HIDDEN {
 		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
 		if err != nil {
 			return err
@@ -556,7 +548,7 @@ func (t *Team) rotate(ctx context.Context, isHidden bool) (err error) {
 		teamEKPayload: teamEKPayload,
 	}
 
-	if !isHidden {
+	if rt == keybase1.RotationType_VISIBLE {
 		err = t.rotatePostVisible(mctx.Ctx(), section, mr, payloadArgs)
 	} else {
 		err = t.rotatePostHidden(mctx.Ctx(), section, mr, payloadArgs)

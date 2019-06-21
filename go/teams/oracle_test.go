@@ -36,8 +36,8 @@ func TestTeamUnboxOracle(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, RotateKey(context.Background(), tc.G, team.ID))
-	require.NoError(t, RotateKey(context.Background(), tc.G, team.ID))
+	require.NoError(t, RotateKey(context.Background(), tc.G, keybase1.TeamRotateKeyArg{TeamID: team.ID, Rt: keybase1.RotationType_VISIBLE}))
+	require.NoError(t, RotateKey(context.Background(), tc.G, keybase1.TeamRotateKeyArg{TeamID: team.ID, Rt: keybase1.RotationType_VISIBLE}))
 
 	team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{
 		Name:        teamname,
@@ -94,7 +94,7 @@ func TestTeamOracleRepolling(t *testing.T) {
 	require.NoError(t, err)
 
 	// Rotate team as user 0 and encrypt with key 2.
-	require.NoError(t, RotateKey(context.Background(), tcs[0].G, teamID))
+	require.NoError(t, RotateKey(context.Background(), tcs[0].G, keybase1.TeamRotateKeyArg{TeamID: teamID, Rt: keybase1.RotationType_VISIBLE}))
 	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
 		Name:        teamName.String(),
 		ForceRepoll: true,

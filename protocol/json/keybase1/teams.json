@@ -2711,6 +2711,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "RotationType",
+      "symbols": [
+        "VISIBLE_0",
+        "HIDDEN_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamDebugRes",
       "fields": [
@@ -3437,8 +3445,8 @@
           "type": "TeamID"
         },
         {
-          "name": "hidden",
-          "type": "boolean"
+          "name": "rt",
+          "type": "RotationType"
         }
       ],
       "response": null

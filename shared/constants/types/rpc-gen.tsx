@@ -1739,6 +1739,11 @@ export enum RevisionSpanType {
   lastFive = 1,
 }
 
+export enum RotationType {
+  visible = 0,
+  hidden = 1,
+}
+
 export enum RuntimeGroup {
   unknown = 0,
   linuxlike = 1,

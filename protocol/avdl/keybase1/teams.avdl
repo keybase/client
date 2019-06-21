@@ -1262,7 +1262,12 @@ protocol teams {
 
   TeamOperation canUserPerform(string name);
 
-  void teamRotateKey(TeamID teamID, boolean hidden);
+  enum RotationType {
+    VISIBLE_0,
+    HIDDEN_1
+  }
+
+  void teamRotateKey(TeamID teamID, RotationType rt);
 
   TeamDebugRes teamDebug(TeamID teamID);
   record TeamDebugRes {
