@@ -1,5 +1,8 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
+import * as Constants from '../../constants/wallets'
+import * as WaitingConstants from '../../constants/waiting'
 import SEP7Confirm from '.'
 import {namedConnect} from '../../util/container'
 
@@ -33,14 +36,15 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     originDomain,
     recipient,
     summary,
+    waiting: WaitingConstants.anyWaiting(state, Constants.sep7WaitingKey),
+    waitingKey: Constants.sep7WaitingKey,
     xdr,
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onAccept: () => {
-    dispatch(Chat2Gen.createConfirmScreenResponse({accept: true}))
-  },
+  onAcceptPay: () => dispatch(WalletsGen.createAcceptSEP7Pay()),
+  onAcceptTx: () => dispatch(WalletsGen.createAcceptSEP7Tx()),
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 

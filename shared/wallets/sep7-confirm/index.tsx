@@ -3,10 +3,29 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletBackButton} from '../common'
 
+type Summary = {
+  fee: string
+  memo: string
+  memoType: string
+  operations: Array<string>
+  source: string
+}
+
 type Props = {
+  amount: string | null
+  callbackURL: string | null
   loading: boolean
+  memo: string | null
+  memoType: string | null
+  message: string | null
   onAccept: () => void
   onCancel: () => void
+  operation: 'pay' | 'tx'
+  originDomain: string
+  recipient: string | null
+  summary: Summary
+  waiting: boolean
+  waitingKey: string
 }
 
 type LoadingProps = {}
@@ -173,6 +192,7 @@ const PaymentsConfirm = (props: Props) =>
           ) : (
             <TxInfo
               fee={props.summary.fee}
+              memo={props.summary.memo}
               source={props.summary.source}
               operations={props.summary.operations}
             />
@@ -185,19 +205,15 @@ const PaymentsConfirm = (props: Props) =>
           gap="small"
           style={styles.buttonContainer}
         >
-          {props.readyToSend === 'spinning' ? (
-            <Kb.Button type="Success" fullWidth={true} style={styles.button} waiting={true} />
-          ) : (
             <Kb.WaitingButton
               type="Success"
-              disabled={props.sendFailed || props.readyToSend === 'disabled'}
-              onClick={props.onSendClick}
+              disabled={props.waiting}
+              onClick={props.onAccept}
               waitingKey={props.waitingKey}
               fullWidth={true}
               style={styles.button}
               label={props.operation === 'pay' ? 'Pay' : 'Sign'}
             />
-          )}
         </Kb.Box2>
       </Kb.Box2>
       <Kb.SafeAreaView />

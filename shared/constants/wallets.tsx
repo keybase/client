@@ -180,6 +180,7 @@ export const makeState = I.Record<Types._State>({
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
   sep7ConfirmInfo: null,
+  sep7ConfirmURI: '',
   unreadPaymentsMap: I.Map(),
 })
 
@@ -554,6 +555,7 @@ export const requestPaymentWaitingKey = 'wallets:requestPayment'
 export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
+export const sep7WaitingKey = 'wallets:sep7'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 export const loadAccountsWaitingKey = 'wallets:loadAccounts'
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>

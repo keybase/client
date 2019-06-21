@@ -261,10 +261,17 @@ const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
 
 const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
   RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link}).then(tx => [
-    WalletsGen.createSetSEP7Tx({tx: Constants.makeSEP7ConfirmInfo(tx)}),
+    WalletsGen.createSetSEP7Tx({inputURI: action.payload.link, tx: Constants.makeSEP7ConfirmInfo(tx)}),
     RouteTreeGen.createClearModals(),
     RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
   ])
+
+const acceptSEP7Tx = (state, action: WalletsGen.AcceptSEP7TxPayload) => RPCStellarTypes.localApproveTxURILocal({
+  inputURI: state.wallets.sep7ConfirmURI,
+}).then(_ => RouteTreeGen.createClearModals())
+
+const acceptSEP7Pay = (state, action: WalletsGen.AcceptSEP7PayPayload) => RPCStellarTypes.localApprovePayURILocal({inputURI: state.wallets.sep7ConfirmURI,
+}).then(_ => RouteTreeGen.createClearModals())
 
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()
@@ -1449,6 +1456,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     validateSEP7Link,
     'validateSEP7Link'
   )
+
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7PayPayload>(WalletsGen.acceptSEP7Pay, acceptSEP7Pay, 'acceptSEP7Pay')
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7TxPayload>(WalletsGen.acceptSEP7Tx, acceptSEP7Tx, 'acceptSEP7Tx')
 
   if (flags.airdrop) {
     yield* Saga.chainAction<GregorGen.PushStatePayload>(

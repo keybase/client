@@ -11,6 +11,8 @@ export const resetStore = 'common:resetStore' // not a part of wallets but is ha
 export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
+export const acceptSEP7Pay = 'wallets:acceptSEP7Pay'
+export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addNewPayment = 'wallets:addNewPayment'
@@ -108,6 +110,8 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 // Payload Types
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
+type _AcceptSEP7PayPayload = {readonly inputURI: string}
+type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
 type _AddNewPaymentPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
@@ -323,6 +327,20 @@ export const createChangedAccountNameError = (
 export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload): AcceptDisclaimerPayload => ({
   payload,
   type: acceptDisclaimer,
+})
+/**
+ * Accept the prepared SEP7 payment
+ */
+export const createAcceptSEP7Pay = (payload: _AcceptSEP7PayPayload): AcceptSEP7PayPayload => ({
+  payload,
+  type: acceptSEP7Pay,
+})
+/**
+ * Accept the prepared SEP7 tx
+ */
+export const createAcceptSEP7Tx = (payload: _AcceptSEP7TxPayload): AcceptSEP7TxPayload => ({
+  payload,
+  type: acceptSEP7Tx,
 })
 /**
  * Add a new wallet to your account
@@ -925,6 +943,11 @@ export type AcceptDisclaimerPayload = {
   readonly payload: _AcceptDisclaimerPayload
   readonly type: typeof acceptDisclaimer
 }
+export type AcceptSEP7PayPayload = {
+  readonly payload: _AcceptSEP7PayPayload
+  readonly type: typeof acceptSEP7Pay
+}
+export type AcceptSEP7TxPayload = {readonly payload: _AcceptSEP7TxPayload; readonly type: typeof acceptSEP7Tx}
 export type AccountUpdateReceivedPayload = {
   readonly payload: _AccountUpdateReceivedPayload
   readonly type: typeof accountUpdateReceived
@@ -1306,6 +1329,8 @@ export type WalletDisclaimerReceivedPayload = {
 export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
+  | AcceptSEP7PayPayload
+  | AcceptSEP7TxPayload
   | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddNewPaymentPayload

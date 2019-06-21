@@ -324,6 +324,7 @@ export type _State = {
   selectedAccount: AccountID
   sentPaymentError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmURI: string
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>
 }
