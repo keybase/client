@@ -48,6 +48,7 @@ class List extends PureComponent<Props<any>> {
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
             keyExtractor={this._keyExtractor}
             keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
+            ListItemComponent={this.props.ListItemComponent}
             onEndReached={this.props.onEndReached}
             windowSize={this.props.windowSize || 10}
             debug={false /* set to true to debug the list */}
