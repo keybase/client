@@ -197,19 +197,6 @@ check_for_url_scheme_launch() {
   # Since we didn't exit, fall through to a normal startup.
 }
 
-check_for_deeplink() {
-  # We set a URL schema handler on our .desktop file, and since that file
-  # points to this script, that's what gets called with URL links. We can
-  # differentiate between a normal run_keybase invocation and a deeplink
-  # by checking argv.
-
-  # if command -v Keybase &> /dev/null; then
-  #     Keybase $1 &
-  # else
-  #     /opt/keybase/Keybase $1 &
-  # fi
-}
-
 startup_all() {
   # There is a race condition where if we try to start the keybase service before
   # the previous process has died, we might fail to lock the pid file and error
@@ -264,7 +251,6 @@ while getopts "afghk" flag; do
     esac
 done
 
-check_for_deeplink
 init
 
 # Exit early if run caused by a URL scheme invocation and Keybase is already
