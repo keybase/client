@@ -36,7 +36,9 @@ func (s *Scraper) makeCollector() *colly.Collector {
 		r.Headers.Set("connection", "keep-alive")
 		r.Headers.Set("upgrade-insecure-requests", "1")
 	})
-	c.SetProxy(libkb.BuildProxyAddressWithProtocol(s.G().Env.GetProxyType(), s.G().Env.GetProxy()))
+	if s.G().Env.GetProxyType() != libkb.NoProxy {
+		c.SetProxy(libkb.BuildProxyAddressWithProtocol(s.G().Env.GetProxyType(), s.G().Env.GetProxy()))
+	}
 	return c
 }
 
