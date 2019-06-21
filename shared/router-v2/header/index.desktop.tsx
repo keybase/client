@@ -180,7 +180,7 @@ class Header extends React.PureComponent<Props> {
               />
             )}
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
-              {flags.kbfsOfflineMode && <SyncingFolders />}
+              {flags.kbfsOfflineMode && <SyncingFolders negative={true} />}
               {!title && rightActions}
               {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
             </Kb.Box2>
