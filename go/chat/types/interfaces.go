@@ -499,12 +499,14 @@ type ExternalAPIKeySource interface {
 	GetAllKeys(ctx context.Context) ([]chat1.ExternalAPIKey, error)
 }
 
+type LiveLocationKey string
+
 type LiveLocationTracker interface {
 	Resumable
 	GetCurrentPosition(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID)
 	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
 	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
-	GetCoordinates(ctx context.Context, watchID chat1.LocationWatchID) []chat1.Coordinate
+	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
 }
 
 type InternalError interface {

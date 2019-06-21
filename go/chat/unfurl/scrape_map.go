@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/keybase/client/go/chat/maps"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -31,14 +32,11 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	if err != nil {
 		return res, err
 	}
-	sid := puri.Query().Get("watchID")
+	skey := puri.Query().Get("livekey")
 	var mapURL, linkURL string
-	if len(sid) > 0 {
-		watchID, err := strconv.ParseUint(sid, 0, 0)
-		if err != nil {
-			return res, err
-		}
-		coords := s.G().LiveLocationTracker.GetCoordinates(ctx, chat1.LocationWatchID(watchID))
+	if len(skey) > 0 {
+		key := types.LiveLocationKey(skey)
+		coords := s.G().LiveLocationTracker.GetCoordinates(ctx, key)
 		if mapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
 			return res, err
 		}

@@ -50,7 +50,8 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	} else {
 		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
-	return fmt.Sprintf("https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x200&key=%s",
+	return fmt.Sprintf(
+		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x200&scale=2&key=%s",
 		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, key.Googlemaps()), nil
 }
 

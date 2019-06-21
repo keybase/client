@@ -368,15 +368,18 @@ func (t *testingLiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 }
 
 func (t *testingLiveLocationTracker) StartTracking(ctx context.Context, convID chat1.ConversationID,
-	msgID chat1.MessageID, coord chat1.Coordinate, watchID chat1.LocationWatchID, endTime time.Time) {
+	msgID chat1.MessageID, endTime time.Time) {
+}
 
+func (t *testingLiveLocationTracker) GetCurrentPosition(ctx context.Context, convID chat1.ConversationID,
+	msgID chat1.MessageID) {
 }
 
 func (t *testingLiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Coordinate) {
 	t.coords = append(t.coords, coord)
 }
 
-func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, watchID chat1.LocationWatchID) []chat1.Coordinate {
+func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key types.LiveLocationKey) []chat1.Coordinate {
 	return t.coords
 }
 

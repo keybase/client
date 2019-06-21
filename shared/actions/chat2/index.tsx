@@ -2823,14 +2823,14 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
   } else {
     setTimeout(() => {
       RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.856325, lon: -73.992533},
+        coord: {accuracy: 65, lat: 40.80424, lon: -73.962962},
       })
     }, 1000)
     setTimeout(() => {
       RPCChatTypes.localLocationUpdateRpcPromise({
         coord: {accuracy: 65, lat: 40.756325, lon: -73.992533},
       })
-    }, 5000)
+    }, 6000)
     setTimeout(() => {
       RPCChatTypes.localLocationUpdateRpcPromise({
         coord: {accuracy: 65, lat: 40.704454, lon: -74.010893},

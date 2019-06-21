@@ -2,6 +2,8 @@ package maps
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -25,10 +27,53 @@ type locationTrack struct {
 
 	convID             chat1.ConversationID
 	msgID              chat1.MessageID
-	watchID            chat1.LocationWatchID
 	endTime            time.Time
 	coords             []chat1.Coordinate
 	getCurrentPosition bool
+}
+
+func (t *locationTrack) drain() {
+	for {
+		select {
+		case coord := <-t.updateCh:
+			t.coords = append(t.coords, coord)
+		default:
+			return
+		}
+	}
+}
+
+func (t *locationTrack) key() types.LiveLocationKey {
+	hash := sha1.Sum([]byte(fmt.Sprintf("%s:%d", t.convID, t.msgID)))
+	return types.LiveLocationKey(hex.EncodeToString(hash[:]))
+}
+
+func (t *locationTrack) toDisk() diskLocationTrack {
+	return diskLocationTrack{
+		ConvID:             t.convID,
+		MsgID:              t.msgID,
+		EndTime:            t.endTime,
+		Coords:             t.coords,
+		GetCurrentPosition: t.getCurrentPosition,
+	}
+}
+
+func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
+	endTime time.Time, getCurrentPosition bool) *locationTrack {
+	return &locationTrack{
+		stopCh:             make(chan struct{}),
+		updateCh:           make(chan chat1.Coordinate, 50),
+		convID:             convID,
+		msgID:              msgID,
+		endTime:            endTime,
+		getCurrentPosition: getCurrentPosition,
+	}
+}
+
+func newLocationTrackFromDisk(d diskLocationTrack) *locationTrack {
+	t := newLocationTrack(d.ConvID, d.MsgID, d.EndTime, d.GetCurrentPosition)
+	t.coords = d.Coords
+	return t
 }
 
 type LiveLocationTracker struct {
@@ -36,9 +81,10 @@ type LiveLocationTracker struct {
 	utils.DebugLabeler
 	sync.Mutex
 
+	storage   *trackStorage
 	uid       gregor1.UID
 	eg        errgroup.Group
-	trackers  map[chat1.LocationWatchID]*locationTrack
+	trackers  map[types.LiveLocationKey]*locationTrack
 	lastCoord chat1.Coordinate
 }
 
@@ -46,15 +92,18 @@ func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
 	return &LiveLocationTracker{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "LiveLocationTracker", false),
-		trackers:     make(map[chat1.LocationWatchID]*locationTrack),
+
+		storage:  newTrackStorage(g),
+		trackers: make(map[types.LiveLocationKey]*locationTrack),
 	}
 }
 
 func (l *LiveLocationTracker) Start(ctx context.Context, uid gregor1.UID) {
-	defer l.Trace(ctx, func() error { return nil }, "Stop")()
+	defer l.Trace(ctx, func() error { return nil }, "Start")()
 	l.Lock()
 	defer l.Unlock()
 	l.uid = uid
+	l.restoreLocked(ctx)
 }
 
 func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
@@ -70,6 +119,28 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 		close(ch)
 	}()
 	return ch
+}
+
+func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
+	var trackers []*locationTrack
+	for _, t := range l.trackers {
+		trackers = append(trackers, t)
+	}
+	if err := l.storage.Save(ctx, trackers); err != nil {
+		l.Debug(ctx, "save: failed to save: %s", err)
+	}
+}
+
+func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
+	trackers, err := l.storage.Restore(ctx)
+	if err != nil {
+		l.Debug(ctx, "restoreLocked: failed to read, skipping: %s", err)
+		return
+	}
+	for _, t := range trackers {
+		l.trackers[t.key()] = t
+		l.eg.Go(func() error { return l.tracker(t) })
+	}
 }
 
 type nullChatUI struct {
@@ -139,11 +210,10 @@ func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.
 	}
 }
 
-func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.ConversationID,
-	msgID chat1.MessageID, watchID chat1.LocationWatchID, coords []chat1.Coordinate) (err error) {
+func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTrack) (err error) {
 	ctx = globals.ChatCtx(ctx, l.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
-	defer l.Trace(ctx, func() error { return err }, "updateMapUnfurl: watchID: %d", watchID)()
-	msg, err := l.G().ChatHelper.GetMessage(ctx, l.uid, convID, msgID, true, nil)
+	defer l.Trace(ctx, func() error { return err }, "updateMapUnfurl")()
+	msg, err := l.G().ChatHelper.GetMessage(ctx, l.uid, t.convID, t.msgID, true, nil)
 	if err != nil {
 		return err
 	}
@@ -154,36 +224,39 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 	if len(mvalid.Unfurls) > 1 {
 		return fmt.Errorf("wrong number of unfurls: %d", len(mvalid.Unfurls))
 	}
-	if len(coords) == 0 {
+	var coords []chat1.Coordinate
+	if len(t.coords) == 0 {
 		if !l.lastCoord.IsZero() {
-			coords = append(coords, l.lastCoord)
+			coords = []chat1.Coordinate{l.lastCoord}
 		} else {
 			return errors.New("no coordinates")
 		}
+	} else {
+		coords = t.coords
 	}
 	first := coords[0]
-	conv, err := utils.GetVerifiedConv(ctx, l.G(), l.uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, l.G(), l.uid, t.convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
 	for unfurlMsgID := range mvalid.Unfurls {
 		// delete the old unfurl first to make way for the new
-		if err := l.G().ChatHelper.DeleteMsg(ctx, convID, conv.Info.TlfName, unfurlMsgID); err != nil {
+		if err := l.G().ChatHelper.DeleteMsg(ctx, t.convID, conv.Info.TlfName, unfurlMsgID); err != nil {
 			return err
 		}
 		break
 	}
 	// put in a fake new message with the first coord and a pointer to get all coords from here
-	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&cb=%s", types.MapsDomain,
-		first.Lat, first.Lon, first.Accuracy, watchID, libkb.RandStringB64(3))
+	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&livekey=%s&cb=%s", types.MapsDomain,
+		first.Lat, first.Lon, first.Accuracy, t.key(), libkb.RandStringB64(3))
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: body,
 	})
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	unfurlDoneCh := make(chan struct{})
-	outboxID := storage.GetOutboxIDFromURL(body, convID, newMsg)
+	outboxID := storage.GetOutboxIDFromURL(body, t.convID, newMsg)
 	listenerID := l.G().NotifyRouter.AddListener(newUnfurlNotifyListener(l.G(), outboxID, unfurlDoneCh))
-	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, convID, newMsg)
+	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, t.convID, newMsg)
 	<-unfurlDoneCh
 	l.G().NotifyRouter.RemoveListener(listenerID)
 	return nil
@@ -191,29 +264,41 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, convID chat1.
 
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
+	watchID, err := l.getChatUI(ctx).ChatWatchPosition(ctx)
+	if err != nil {
+		l.Debug(ctx, "tracker: unable to watch position: %s", err)
+		return err
+	}
 	defer func() {
-		l.getChatUI(ctx).ChatClearWatch(ctx, t.watchID)
+		l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
 		l.Lock()
 		defer l.Unlock()
-		delete(l.trackers, t.watchID)
+		delete(l.trackers, t.key())
+		l.saveLocked(ctx)
 	}()
 	if !t.getCurrentPosition {
 		if !l.lastCoord.IsZero() {
 			t.coords = append(t.coords, l.lastCoord)
 		}
-		l.updateMapUnfurl(ctx, t.convID, t.msgID, t.watchID, t.coords)
+		l.updateMapUnfurl(ctx, t)
 	}
 	for {
 		select {
 		case coord := <-t.updateCh:
-			t.coords = append(t.coords, coord)
 			if !t.getCurrentPosition {
-				l.updateMapUnfurl(ctx, t.convID, t.msgID, t.watchID, t.coords)
+				t.coords = append(t.coords, coord)
+				t.drain()
+				l.updateMapUnfurl(ctx, t)
+			} else {
+				t.coords = []chat1.Coordinate{coord}
 			}
+			l.Lock()
+			l.saveLocked(ctx)
+			l.Unlock()
 		case <-l.G().Clock().AfterTime(t.endTime):
-			l.Debug(ctx, "tracker: live location complete: watchID: %s", t.watchID)
+			l.Debug(ctx, "tracker: live location complete: watchID: %s", watchID)
 			if t.getCurrentPosition {
-				l.updateMapUnfurl(ctx, t.convID, t.msgID, t.watchID, t.coords)
+				l.updateMapUnfurl(ctx, t)
 			}
 			return nil
 		case <-t.stopCh:
@@ -225,45 +310,22 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID chat1.ConversationID,
 	msgID chat1.MessageID) {
 	defer l.Trace(ctx, func() error { return nil }, "GetCurrentPosition")()
-	watchID, err := l.getChatUI(ctx).ChatWatchPosition(ctx)
-	if err != nil {
-		l.Debug(ctx, "GetCurrentPosition: unable to watch position: %s", err)
-		return
-	}
 	l.Lock()
 	defer l.Unlock()
-	t := &locationTrack{
-		stopCh:             make(chan struct{}),
-		updateCh:           make(chan chat1.Coordinate, 10),
-		convID:             convID,
-		msgID:              msgID,
-		watchID:            watchID,
-		endTime:            time.Now().Add(5 * time.Second),
-		getCurrentPosition: true,
-	}
-	l.trackers[watchID] = t
+	t := newLocationTrack(convID, msgID, time.Now().Add(5*time.Second), true)
+	l.trackers[t.key()] = t
+	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
 }
 
 func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.ConversationID,
 	msgID chat1.MessageID, endTime time.Time) {
 	defer l.Trace(ctx, func() error { return nil }, "StartTracking")()
-	watchID, err := l.getChatUI(ctx).ChatWatchPosition(ctx)
-	if err != nil {
-		l.Debug(ctx, "StartTracking: unable to watch position: %s", err)
-		return
-	}
 	l.Lock()
 	defer l.Unlock()
-	t := &locationTrack{
-		stopCh:   make(chan struct{}),
-		updateCh: make(chan chat1.Coordinate, 50),
-		convID:   convID,
-		msgID:    msgID,
-		watchID:  watchID,
-		endTime:  endTime,
-	}
-	l.trackers[watchID] = t
+	t := newLocationTrack(convID, msgID, endTime, false)
+	l.trackers[t.key()] = t
+	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
 }
 
@@ -285,11 +347,11 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	}
 }
 
-func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, watchID chat1.LocationWatchID) (res []chat1.Coordinate) {
+func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, key types.LiveLocationKey) (res []chat1.Coordinate) {
 	defer l.Trace(ctx, func() error { return nil }, "GetCoordinates")()
 	l.Lock()
 	defer l.Unlock()
-	if t, ok := l.trackers[watchID]; ok {
+	if t, ok := l.trackers[key]; ok {
 		// TODO: sample these
 		res = t.coords
 	}
