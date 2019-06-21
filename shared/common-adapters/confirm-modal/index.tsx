@@ -7,6 +7,7 @@ import Banner from '../banner'
 import Icon from '../icon'
 import ScrollView from '../scroll-view'
 import Text from '../text'
+import Modal from '../modal'
 import * as Styles from '../../styles'
 import {IconType} from '../icon.constants'
 
@@ -24,125 +25,104 @@ export type Props = {
   waitingKey?: string
 }
 
-class _ConfirmModal extends React.PureComponent<Props> {
+class ConfirmModal extends React.PureComponent<Props> {
   render() {
-    const iconType = this.props.icon || 'iconfont-wrenches' // for flow
     return (
-      <Box style={styles.mobileFlex}>
-        <Box2 direction="vertical" style={styles.container}>
-          {this.props.error && <Banner color="red" text={this.props.error} />}
-          <Box2 direction="vertical" style={styles.container2}>
-            <ScrollView contentContainerStyle={{flexGrow: 1}}>
-              <Box2
-                alignItems="center"
-                direction="vertical"
-                centerChildren={true}
-                fullWidth={true}
-                fullHeight={true}
-                style={styles.inner}
-              >
-                {this.props.icon && (
-                  <Icon
-                    boxStyle={styles.icon}
-                    color={Styles.globalColors.black_50}
-                    fontSize={Styles.isMobile ? 64 : 48}
-                    style={styles.icon}
-                    type={iconType}
-                  />
-                )}
-                {this.props.header && (
-                  <Box2 alignItems="center" direction="vertical" style={styles.icon}>
-                    {this.props.header}
-                  </Box2>
-                )}
-                <Text center={true} style={styles.text} type="HeaderBig">
-                  {this.props.prompt}
-                </Text>
-                <Text center={true} style={styles.text} type="Body">
-                  {this.props.description}
-                </Text>
-                {this.props.content}
-              </Box2>
-            </ScrollView>
-          </Box2>
-        </Box2>
-        <Box2 direction="horizontal" style={styles.buttonBox}>
-          <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            {!Styles.isMobile && (
+      <Modal
+        header={
+          Styles.isMobile
+            ? {
+                leftButton: (
+                  <Text type="BodyBigLink" onClick={this.props.onCancel}>
+                    Cancel
+                  </Text>
+                ),
+              }
+            : undefined
+        }
+        banners={this.props.error ? [<Banner key="error" color="red" text={this.props.error} />] : []}
+        footer={{
+          children: (
+            <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+              {!Styles.isMobile && (
+                <WaitingButton
+                  key="cancel"
+                  disabled={!this.props.onCancel}
+                  type="Dim"
+                  label="Cancel"
+                  onClick={this.props.onCancel}
+                  style={styles.button}
+                  waitingKey={this.props.waitingKey}
+                />
+              )}
               <WaitingButton
-                disabled={!this.props.onCancel}
-                type="Dim"
-                label="Cancel"
-                onClick={this.props.onCancel}
+                key="confirm"
+                disabled={!this.props.onConfirm}
+                type="Danger"
+                label={this.props.confirmText || 'Confirm'}
+                onClick={this.props.onConfirm}
                 style={styles.button}
                 waitingKey={this.props.waitingKey}
               />
-            )}
-            <WaitingButton
-              disabled={!this.props.onConfirm}
-              type="Danger"
-              label={this.props.confirmText || 'Confirm'}
-              onClick={this.props.onConfirm}
-              style={styles.button}
-              waitingKey={this.props.waitingKey}
+            </ButtonBar>
+          ),
+          hideBorder: true,
+        }}
+        onClose={this.props.onCancel}
+        mode="Wide"
+      >
+        <Box2
+          alignItems="center"
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.container}
+        >
+          {this.props.icon && (
+            <Icon
+              boxStyle={styles.icon}
+              color={Styles.globalColors.black_50}
+              fontSize={Styles.isMobile ? 64 : 48}
+              style={styles.icon}
+              type={this.props.icon}
             />
-          </ButtonBar>
+          )}
+          {this.props.header && (
+            <Box2 alignItems="center" direction="vertical" style={styles.icon}>
+              {this.props.header}
+            </Box2>
+          )}
+          <Text center={true} style={styles.text} type="HeaderBig">
+            {this.props.prompt}
+          </Text>
+          <Text center={true} style={styles.text} type="Body">
+            {this.props.description}
+          </Text>
+          {this.props.content}
         </Box2>
-      </Box>
+      </Modal>
     )
   }
 }
-const ConfirmModal = HeaderOrPopup(_ConfirmModal)
 
 const styles = Styles.styleSheetCreate({
   button: {
     flex: 1,
   },
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      minHeight: 40,
-    },
-  }),
-  buttonBox: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      padding: Styles.globalMargins.xsmall,
-    },
-    isElectron: {
-      borderRadius: 4,
-    },
-  }),
+  buttonBar: {
+    minHeight: undefined,
+  },
   container: Styles.platformStyles({
     isElectron: {
-      borderRadius: 4,
-      overflow: 'hidden',
-      padding: 0,
-      width: 560,
-    },
-    isMobile: {
+      ...Styles.padding(0, Styles.globalMargins.xlarge),
       flex: 1,
-      width: '100%',
     },
   }),
-  container2: Styles.platformStyles({
-    isElectron: {
-      padding: 64,
-    },
-  }),
-  errorBannerText: {
-    color: Styles.globalColors.white,
-    maxWidth: 512,
-  },
   icon: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },
-  inner: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  mobileFlex: Styles.platformStyles({
-    isMobile: {flex: 1},
-  }),
   text: {
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,

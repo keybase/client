@@ -37,8 +37,10 @@ const ModalInner = (props: Props) => (
   <>
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
-    <Kb.ScrollView alwaysBounceVertical={false}>{props.children}</Kb.ScrollView>
-    {!!props.footer && <Footer {...props.footer} />}
+    <Kb.ScrollView alwaysBounceVertical={false} {...(props.mode === 'Wide' ? wideScrollStyles : {})}>
+      {props.children}
+    </Kb.ScrollView>
+    {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
   </>
 )
 const Modal = (props: Props) =>
@@ -73,11 +75,16 @@ const Header = (props: HeaderProps) => (
   </Kb.Box2>
 )
 
-const Footer = (props: FooterProps) => (
+const Footer = (props: FooterProps & {wide: boolean}) => (
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.footer, !props.hideBorder && styles.footerBorder, props.style])}
+    style={Styles.collapseStyles([
+      styles.footer,
+      props.wide && styles.footerWide,
+      !props.hideBorder && styles.footerBorder,
+      props.style,
+    ])}
   >
     {props.children}
   </Kb.Box2>
@@ -106,6 +113,9 @@ const styles = Styles.styleSheetCreate({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
   },
+  footerWide: {
+    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
+  },
   header: {
     ...headerCommon,
     minHeight: 48,
@@ -131,12 +141,14 @@ const styles = Styles.styleSheetCreate({
   modeDefault: Styles.platformStyles({
     isElectron: {
       maxHeight: 560,
+      overflow: 'hidden',
       width: 400,
     },
   }),
   modeWide: Styles.platformStyles({
     isElectron: {
       height: 400,
+      overflow: 'hidden',
       width: 560,
     },
   }),
@@ -145,6 +157,14 @@ const styles = Styles.styleSheetCreate({
       ...Styles.padding(0),
     },
   }),
+  scrollWide: {flex: 1},
+  scrollWideContentContainer: {height: '100%', width: '100%'},
 })
+
+// Since height is fixed in Wide mode, make scrollview expand to fill height
+const wideScrollStyles = {
+  contentContainerStyle: styles.scrollWideContentContainer,
+  style: styles.scrollWide,
+}
 
 export default Modal
