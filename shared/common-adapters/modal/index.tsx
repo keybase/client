@@ -49,7 +49,9 @@ const ModalInner = (props: Props) => (
 )
 const Modal = (props: Props) =>
   Styles.isMobile ? (
-    <ModalInner {...props} />
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <ModalInner {...props} />
+    </Kb.Box2>
   ) : (
     <PopupDialog
       onClose={props.onClose}
@@ -156,7 +158,7 @@ const styles = Styles.styleSheetCreate({
       width: 560,
     },
   }),
-  scrollContentContainer: {position: 'relative', width: '100%'},
+  scrollContentContainer: {flexGrow: 1, width: '100%'},
   scrollWide: Styles.platformStyles({
     isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
   }),
