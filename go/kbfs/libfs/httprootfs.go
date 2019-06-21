@@ -1,3 +1,7 @@
+// Copyright 2019 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package libfs
 
 import (
@@ -31,9 +35,7 @@ func (fo fileOnly) Stat() (os.FileInfo, error) {
 }
 
 func (hrfs httpRootFileSystem) Open(filename string) (entry http.File, err error) {
-	hrfs.rfs.log.CDebugf(hrfs.rfs.ctx, "hfs.Open %s", filename)
 	defer func() {
-		hrfs.rfs.log.CDebugf(hrfs.rfs.ctx, "hfs.Open done: %+v", err)
 		if err != nil {
 			err = translateErr(err)
 		}
