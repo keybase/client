@@ -1060,6 +1060,13 @@
 			"revisionTime": "2019-06-17T20:45:08Z"
 		},
 		{
+			"checksumSHA1": "1J1gt9bAORNtJZcK2yPlB/q0ACk=",
+			"origin": "github.com/keybase/stellar-org/support/app",
+			"path": "github.com/stellar/go/support/app",
+			"revision": "d3ec94054b465b384d6f6871798e31ee9890ae04",
+			"revisionTime": "2019-06-17T20:44:11Z"
+		},
+		{
 			"checksumSHA1": "RYWv9kXP4XcsZ1oMsJmXf8bWpYs=",
 			"origin": "github.com/keybase/stellar-org/support/errors",
 			"path": "github.com/stellar/go/support/errors",
