@@ -41,6 +41,10 @@ protocol local {
     string availableToSendWorth;
 
     array<AccountReserve> reserves; // only added to native (XLM) asset.
+
+    string desc;
+    string infoUrl;                 // 'https://...' or empty
+    string infoUrlText;             // the text to use in the infoUrl link
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
@@ -253,7 +257,6 @@ protocol local {
   string getWalletAccountPublicKeyLocal(int sessionID, AccountID accountID);
   SecretKey getWalletAccountSecretKeyLocal(int sessionID, AccountID accountID);
 
-  // Not implemented. CORE-8087
   // Get the non-XLM assets for sending.
   array<SendAssetChoiceLocal> getSendAssetChoicesLocal(
     int sessionID,
@@ -546,7 +549,7 @@ protocol local {
 
   // search by user search string
   array<Asset> fuzzyAssetSearchLocal(int sessionID, string searchString);
-  array<Asset> listPopularAssetsLocal(int sessionID);
+  AssetListResult listPopularAssetsLocal(int sessionID);
 
   // Trustline operations:
   // In addTrustline, limit is optional, if not supplied, max limit will be used.

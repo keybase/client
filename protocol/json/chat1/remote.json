@@ -626,6 +626,38 @@
           "name": "now"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "ExternalAPIKeyTyp",
+      "symbols": [
+        "GOOGLEMAPS_0",
+        "GIPHY_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ExternalAPIKey",
+      "switch": {
+        "type": "ExternalAPIKeyTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "GOOGLEMAPS",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1247,6 +1279,21 @@
     "serverNow": {
       "request": [],
       "response": "ServerNowRes"
+    },
+    "getExternalAPIKeys": {
+      "request": [
+        {
+          "name": "typs",
+          "type": {
+            "type": "array",
+            "items": "ExternalAPIKeyTyp"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ExternalAPIKey"
+      }
     }
   },
   "namespace": "chat.1",

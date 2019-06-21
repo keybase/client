@@ -957,6 +957,10 @@ func (m *ChatRemoteMock) ServerNow(ctx context.Context) (res chat1.ServerNowRes,
 	return res, errors.New("ServerNow not mocked")
 }
 
+func (m *ChatRemoteMock) GetExternalAPIKeys(ctx context.Context, typs []chat1.ExternalAPIKeyTyp) (res []chat1.ExternalAPIKey, err error) {
+	return res, errors.New("GetExternalAPIKeys not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -1178,6 +1182,10 @@ func (c *ChatUI) ChatMaybeMentionUpdate(ctx context.Context, teamName, channel s
 
 func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) error {
 	return nil
+}
+
+func (c *ChatUI) ChatGetCoordinate(ctx context.Context) (chat1.Coordinate, error) {
+	return chat1.Coordinate{}, nil
 }
 
 type DummyAssetDeleter struct{}

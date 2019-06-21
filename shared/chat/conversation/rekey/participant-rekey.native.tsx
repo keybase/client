@@ -52,7 +52,7 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: globalColors.darkBlue3,
+  backgroundColor: globalColors.blueDarker2,
   flex: 1,
   justifyContent: 'flex-start',
 }

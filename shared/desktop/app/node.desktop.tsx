@@ -14,6 +14,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
 
 let mainWindow = null
+let reduxLaunched = false
 let startupURL = null
 
 const installCrashReporter = () => {
@@ -70,9 +71,9 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
     mainWindow.window && mainWindow.window.focus()
   }
 
-  // The new instance might be due to a deeplink launch.
-  logger.info('Launched with deeplink', commandLine)
-  if (commandLine.length > 0 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
+  // The new instance might be due to a URL schema handler launch.
+  logger.info('Launched with URL', commandLine)
+  if (commandLine.length > 1 && commandLine[1] && commandLine[1].startsWith('web+stellar:')) {
     sendToMainWindow('dispatchAction', {payload: {link: commandLine[1]}, type: ConfigGen.link})
   }
 }
@@ -150,13 +151,14 @@ const createMainWindow = () => {
     mainWindow && mainWindow.window.webContents.send('remoteWindowWantsProps', windowComponent, windowParam)
   })
 
-  SafeElectron.getIpcMain().on('launchStartupURLIfPresent', () => {
+  SafeElectron.getIpcMain().on('reduxLaunched', () => {
+    reduxLaunched = true
     if (startupURL) {
       // Mac calls open-url for a launch URL before redux is up, so we
       // stash a startupURL to be dispatched when we're ready for it.
       sendToMainWindow('dispatchAction', {payload: {link: startupURL}, type: ConfigGen.link})
       startupURL = null
-    } else if (!isDarwin && process.argv.length > 0 && process.argv[1].startsWith('web+stellar:')) {
+    } else if (!isDarwin && process.argv.length > 1 && process.argv[1].startsWith('web+stellar:')) {
       // Windows and Linux instead store a launch URL in argv.
       sendToMainWindow('dispatchAction', {payload: {link: process.argv[1]}, type: ConfigGen.link})
     }
@@ -199,10 +201,11 @@ const handleQuitting = event => {
 const willFinishLaunching = () => {
   SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
-    if (!startupURL && link) {
+    if (!reduxLaunched) {
       startupURL = link
+    } else {
+      sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
     }
-    sendToMainWindow('dispatchAction', {payload: {link}, type: ConfigGen.link})
   })
 }
 

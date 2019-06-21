@@ -41,7 +41,7 @@ class InviteGeneratedRender extends Component<Props> {
             style={{height: 14, marginRight: globalMargins.tiny}}
             color={globalColors.black_10}
           />
-          <Text type="BodySemibold" selectable={true} style={{color: globalColors.green}}>
+          <Text type="BodySemibold" selectable={true} style={{color: globalColors.greenDark}}>
             {this.props.link}
           </Text>
         </Box>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box from './box'
 import {NativeTextInput, NativeStyleSheet} from './native-wrappers.native'
 import {backgroundModeToColor, globalColors, globalMargins, globalStyles} from '../styles'
-import Text, {getStyle, TextType, Background} from './text'
+import Text, {getStyle, TextType, Background, StylesTextCrossPlatform} from './text'
 import {_StylesCrossPlatform} from '../styles/css'
 
 export type Props = {
@@ -152,9 +152,9 @@ const containerStyle = NativeStyleSheet.create({
   },
 })
 
-const smallLabelStyle: _StylesCrossPlatform = {
+const smallLabelStyle: StylesTextCrossPlatform = {
   backgroundColor: globalColors.transparent,
-  color: globalColors.blue,
+  color: globalColors.blueDark,
   fontSize: 11,
   left: globalMargins.small,
   position: 'absolute',

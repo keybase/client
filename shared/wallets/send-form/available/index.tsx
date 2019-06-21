@@ -31,7 +31,7 @@ const Available = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   text: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
 })
 

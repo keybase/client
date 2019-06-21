@@ -552,10 +552,16 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err == nil {
-		currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(details.DisplayCurrency))
-		if ok {
-			acct.CurrencyLocal = currency
+		for _, currency := range []string{details.DisplayCurrency, DefaultCurrencySetting} {
+			currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(currency))
+			if ok {
+				acct.CurrencyLocal = currency
+				break
+			}
 		}
+	}
+	if acct.CurrencyLocal.Code == "" {
+		mctx.Debug("warning: AccountDetails for %v has empty currency code", details.AccountID)
 	}
 
 	return acct, nil

@@ -2,6 +2,7 @@ import * as React from 'react'
 import {namedConnect} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 
 type OwnProps = {
   path: Types.Path
@@ -55,14 +56,11 @@ type Props = {
 class LoadFilesWhenNeeded extends React.PureComponent<Props> {
   _load = withRefreshTag => {
     const pathLevel = Types.getPathLevel(this.props.path)
-    if (pathLevel < 2) {
-      return
-    }
-    pathLevel > 2
+    pathLevel > 2 || Constants.hasSpecialFileElement(this.props.path)
       ? withRefreshTag
         ? this.props.loadFolderListWithRefreshTag()
         : this.props.loadFolderListWithoutRefreshTag()
-      : this.props.loadFavorites()
+      : pathLevel === 2 && this.props.loadFavorites()
   }
   componentDidMount() {
     this._load(true)
@@ -89,9 +87,6 @@ class LoadFilesWhenNeeded extends React.PureComponent<Props> {
   }
 }
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'LoadFilesWhenNeeded'
-)(LoadFilesWhenNeeded) as any
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'LoadFilesWhenNeeded')(
+  LoadFilesWhenNeeded
+) as any

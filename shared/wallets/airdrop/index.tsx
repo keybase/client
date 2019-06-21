@@ -265,7 +265,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   leaveButtonBar: {marginBottom: Styles.globalMargins.small},
-  link: {color: Styles.globalColors.purple, fontWeight: '600'},
+  link: {color: Styles.globalColors.purpleDark, fontWeight: '600'},
   progress: {
     height: 20,
     width: 20,
@@ -292,7 +292,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {alignItems: 'flex-start'},
   }),
   yourIn: {
-    color: Styles.globalColors.green2,
+    color: Styles.globalColors.greenDark,
     flexShrink: 1,
   },
 })

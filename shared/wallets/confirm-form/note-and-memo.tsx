@@ -44,7 +44,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {wordBreak: 'break-word'},
   }),
   headingText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     marginBottom: Styles.globalMargins.xtiny,
   },
   memoContainer: {

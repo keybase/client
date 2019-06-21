@@ -4,6 +4,7 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -84,7 +85,6 @@ type ConversationSource interface {
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
-	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
@@ -145,6 +145,7 @@ type InboxSource interface {
 	Offlinable
 	Resumable
 	Suspendable
+	badges.LocalChatState
 
 	Clear(ctx context.Context, uid gregor1.UID) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp,
@@ -157,6 +158,7 @@ type InboxSource interface {
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
+	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -489,6 +491,11 @@ type TeamMentionLoader interface {
 		forceRemote bool) error
 	IsTeamMention(ctx context.Context, uid gregor1.UID,
 		maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool
+}
+
+type ExternalAPIKeySource interface {
+	GetKey(ctx context.Context, typ chat1.ExternalAPIKeyTyp) (chat1.ExternalAPIKey, error)
+	GetAllKeys(ctx context.Context) ([]chat1.ExternalAPIKey, error)
 }
 
 type InternalError interface {

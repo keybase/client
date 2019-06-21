@@ -108,7 +108,12 @@ func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) 
 }
 
 func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
-	c.debug(m, "monitorAppState: starting up")
+	size, err := c.diskLRU.Size(m.Ctx(), m.G())
+	if err != nil {
+		c.debug(m, "unable to get diskLRU size: %v", err)
+	}
+	c.debug(m, "monitorAppState: starting up, lru current size: %d,  max size: %d",
+		size, c.diskLRU.MaxSize())
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		state = <-m.G().MobileAppState.NextUpdate(&state)
@@ -135,7 +140,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 
 			// If we found something in the index, let's make sure we have it on the disk as well.
 			if found {
-				lp.path = entry.Value.(string)
+				lp.path = c.normalizeFilenameFromCache(m, entry.Value.(string))
 				var file *os.File
 				if file, err = os.Open(lp.path); err != nil {
 					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
@@ -169,6 +174,14 @@ func (c *FullCachingSource) getCacheDir(m libkb.MetaContext) string {
 
 func (c *FullCachingSource) getFullFilename(fileName string) string {
 	return fileName + ".avatar"
+}
+
+// normalizeFilenameFromCache substitutes the existing cache dir value into the
+// file path since it's possible for the path to the cache dir to change,
+// especially on mobile.
+func (c *FullCachingSource) normalizeFilenameFromCache(mctx libkb.MetaContext, file string) string {
+	file = filepath.Base(file)
+	return filepath.Join(c.getCacheDir(mctx), file)
 }
 
 func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.ReadCloser, previousPath string) (path string, err error) {
@@ -212,7 +225,7 @@ func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.Read
 
 func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntry) {
 	if ent != nil {
-		file := ent.Value.(string)
+		file := c.normalizeFilenameFromCache(m, ent.Value.(string))
 		if err := os.Remove(file); err != nil {
 			c.debug(m, "removeFile: failed to remove: file: %s err: %s", file, err)
 		} else {
@@ -241,7 +254,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 			continue
 		}
 		if found {
-			previousPath = ent.Value.(string)
+			previousPath = c.normalizeFilenameFromCache(m, ent.Value.(string))
 		}
 
 		// Save to disk

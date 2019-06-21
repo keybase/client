@@ -783,6 +783,49 @@ func (o UpdateInfo2) DeepCopy() UpdateInfo2 {
 	}
 }
 
+type ProxyType int
+
+const (
+	ProxyType_No_Proxy     ProxyType = 0
+	ProxyType_HTTP_Connect ProxyType = 1
+	ProxyType_Socks        ProxyType = 2
+)
+
+func (o ProxyType) DeepCopy() ProxyType { return o }
+
+var ProxyTypeMap = map[string]ProxyType{
+	"No_Proxy":     0,
+	"HTTP_Connect": 1,
+	"Socks":        2,
+}
+
+var ProxyTypeRevMap = map[ProxyType]string{
+	0: "No_Proxy",
+	1: "HTTP_Connect",
+	2: "Socks",
+}
+
+func (e ProxyType) String() string {
+	if v, ok := ProxyTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type ProxyData struct {
+	AddressWithPort string    `codec:"addressWithPort" json:"addressWithPort"`
+	ProxyType       ProxyType `codec:"proxyType" json:"proxyType"`
+	CertPinning     bool      `codec:"certPinning" json:"certPinning"`
+}
+
+func (o ProxyData) DeepCopy() ProxyData {
+	return ProxyData{
+		AddressWithPort: o.AddressWithPort,
+		ProxyType:       o.ProxyType.DeepCopy(),
+		CertPinning:     o.CertPinning,
+	}
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -872,6 +915,13 @@ type GetUpdateInfo2Arg struct {
 	Version  *string `codec:"version,omitempty" json:"version,omitempty"`
 }
 
+type SetProxyDataArg struct {
+	ProxyData ProxyData `codec:"proxyData" json:"proxyData"`
+}
+
+type GetProxyDataArg struct {
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
@@ -900,6 +950,8 @@ type ConfigInterface interface {
 	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
 	// you are critically out of date.
 	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
+	SetProxyData(context.Context, ProxyData) error
+	GetProxyData(context.Context) (ProxyData, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1191,6 +1243,31 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setProxyData": {
+				MakeArg: func() interface{} {
+					var ret [1]SetProxyDataArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetProxyDataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetProxyDataArg)(nil), args)
+						return
+					}
+					err = i.SetProxyData(ctx, typedArgs[0].ProxyData)
+					return
+				},
+			},
+			"getProxyData": {
+				MakeArg: func() interface{} {
+					var ret [1]GetProxyDataArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetProxyData(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1313,5 +1390,16 @@ func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememb
 // you are critically out of date.
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) SetProxyData(ctx context.Context, proxyData ProxyData) (err error) {
+	__arg := SetProxyDataArg{ProxyData: proxyData}
+	err = c.Cli.Call(ctx, "keybase.1.config.setProxyData", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []interface{}{GetProxyDataArg{}}, &res)
 	return
 }

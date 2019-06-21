@@ -1,5 +1,5 @@
 import {WalletRow, Props} from '.'
-import {connect, isMobile} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -58,8 +58,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   unreadPayments: stateProps.unreadPayments,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(WalletRow)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'WalletRow')(WalletRow)

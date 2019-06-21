@@ -39,7 +39,7 @@ const styleBody = {
 const styleTerminal = {
   ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  backgroundColor: Styles.globalColors.darkBlue3,
+  backgroundColor: Styles.globalColors.blueDarker2,
   borderRadius: 4,
   boxSizing: 'content-box',
   color: Styles.globalColors.white,

@@ -78,7 +78,7 @@ const styles = Styles.styleSheetCreate({
   intro: {textAlign: 'center'},
   keyBox: {
     backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.darkBlue,
+    borderColor: Styles.globalColors.blueDarker,
     borderRadius: borderWidth,
     borderStyle: 'solid',
     borderWidth,
@@ -93,7 +93,7 @@ const styles = Styles.styleSheetCreate({
   },
   text: {
     ...Styles.globalStyles.fontTerminal,
-    color: Styles.globalColors.darkBlue,
+    color: Styles.globalColors.blueDark,
   },
 })
 

@@ -7,6 +7,7 @@ package libfs
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"time"
@@ -26,7 +27,10 @@ type RootFS struct {
 
 // NewRootFS creates a new RootFS instance.
 func NewRootFS(config libkbfs.Config) *RootFS {
-	return &RootFS{config, config.MakeLogger("")}
+	return &RootFS{
+		config: config,
+		log:    config.MakeLogger(""),
+	}
 }
 
 var _ billy.Filesystem = (*RootFS)(nil)
@@ -172,4 +176,14 @@ func (rfs *RootFS) MkdirAll(_ string, _ os.FileMode) (err error) {
 // Symlink implements the billy.Filesystem interface for RootFS.
 func (rfs *RootFS) Symlink(_, _ string) (err error) {
 	return errors.New("RootFS cannot make symlinks")
+}
+
+// ToHTTPFileSystem calls fs.WithCtx with ctx to create a *RootFS with the new
+// ctx, and returns a wrapper around it that satisfies the http.FileSystem
+// interface. ctx is ignored here.
+func (rfs *RootFS) ToHTTPFileSystem(ctx context.Context) http.FileSystem {
+	return httpRootFileSystem{rfs: &RootFS{
+		config: rfs.config,
+		log:    rfs.log,
+	}}
 }

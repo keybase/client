@@ -3,9 +3,10 @@ import * as Sb from '../../stories/storybook'
 import {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
 import AccountSettings from '.'
 import ConfirmDelete from './confirm-delete'
+import * as I from 'immutable'
 
 const props = {
-  contactKeys: [],
+  contactKeys: I.List(),
   hasPassword: false,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
@@ -47,7 +48,7 @@ const load = () => {
     .addDecorator(provider)
     .add('Empty', () => <AccountSettings {...props} />)
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
-    .add('With email/phone', () => <AccountSettings {...props} contactKeys={Object.keys(contacts)} />)
+    .add('With email/phone', () => <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />)
     .add('Confirm delete email', () => (
       <ConfirmDelete {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
     ))

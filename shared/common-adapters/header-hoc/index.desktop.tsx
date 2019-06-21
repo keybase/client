@@ -90,7 +90,7 @@ const _headerStyle = {
 
 const _headerStyleThemed = {
   dark: {
-    backgroundColor: Styles.globalColors.darkBlue3,
+    backgroundColor: Styles.globalColors.blueDarker2,
   },
   light: {
     backgroundColor: Styles.globalColors.white,

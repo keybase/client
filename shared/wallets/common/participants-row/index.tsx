@@ -74,7 +74,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   headingText: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     marginRight: Styles.globalMargins.tiny,
   },
   row: {

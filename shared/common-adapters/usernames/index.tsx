@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Text, {TextType, Background} from '../text'
+import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
@@ -29,7 +29,7 @@ export type BaseUsernamesProps = {
   redColor?: string
   selectable?: boolean
   showAnd?: boolean
-  style?: Styles.StylesCrossPlatform
+  style?: StylesTextCrossPlatform
   suffix?: string | null
   title?: string
   type: TextType
@@ -63,12 +63,12 @@ function UsernameText(props: Props) {
             ...(props.colorFollowing && !u.you
               ? {
                   color: u.following
-                    ? Styles.globalColors.green
-                    : props.notFollowingColorOverride || Styles.globalColors.blue,
+                    ? Styles.globalColors.greenDark
+                    : props.notFollowingColorOverride || Styles.globalColors.blueDark,
                 }
               : null),
             ...(props.colorBroken && u.broken && !u.you
-              ? {color: props.redColor || Styles.globalColors.red}
+              ? {color: props.redColor || Styles.globalColors.redDark}
               : null),
             ...(props.colorYou && u.you
               ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black}

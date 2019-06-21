@@ -179,6 +179,9 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				WorthCurrency:          "",
 				Worth:                  "",
 				AvailableToSendWorth:   "",
+				Desc:                   d.Asset.Desc,
+				InfoUrl:                d.Asset.InfoUrl,
+				InfoUrlText:            d.Asset.InfoUrlText,
 			})
 		}
 	}
@@ -1188,6 +1191,10 @@ func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustli
 	if err != nil {
 		return ret, err
 	}
+	if len(balances) == 0 {
+		// Account is not on the network - no balances means no trustlines.
+		return ret, nil
+	}
 	ret = make([]stellar1.Balance, 0, len(balances)-1)
 	for _, balance := range balances {
 		if !balance.Asset.IsNativeXLM() {
@@ -1237,7 +1244,7 @@ func (s *Server) FuzzyAssetSearchLocal(ctx context.Context, arg stellar1.FuzzyAs
 	return stellar.FuzzyAssetSearch(mctx, s.remoter, remoteArg)
 }
 
-func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res []stellar1.Asset, err error) {
+func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res stellar1.AssetListResult, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ListPopularAssetsLocal",
 		Err:           &err,

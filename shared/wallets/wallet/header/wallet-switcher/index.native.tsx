@@ -57,7 +57,7 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
         <Row isLast={isLast} key={item.key} onPress={onPress}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
             <Kb.Icon type="icon-airdrop-star-32" />
-            <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blue}}>
+            <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blueDark}}>
               {item.title}
             </Kb.Text>
           </Kb.Box2>
@@ -71,7 +71,7 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
       }
       return (
         <Row isLast={isLast} key={item.key} onPress={onPress}>
-          <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blue}}>
+          <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blueDark}}>
             {item.title}
           </Kb.Text>
         </Row>
@@ -169,7 +169,7 @@ export const WalletSwitcher = (props: Props) => {
         />
         <Kb.Divider style={styles.divider} />
         <Row onPress={props.hideMenu} style={styles.cancelRow}>
-          <Kb.Text center={true} type={'BodyBig'} style={{color: Styles.globalColors.blue}}>
+          <Kb.Text center={true} type={'BodyBig'} style={{color: Styles.globalColors.blueDark}}>
             Cancel
           </Kb.Text>
         </Row>
@@ -194,8 +194,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: bottomPadding,
   },
   infoText: {
-    color: Styles.globalColors.black_60,
-    fontSize: 14,
+    color: Styles.globalColors.black_50,
     paddingLeft: Styles.globalMargins.tiny,
   },
   infoTextRow: {

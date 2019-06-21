@@ -133,7 +133,7 @@ const PaymentInfo = (props: PaymentInfoProps) => (
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
             Amount
           </Kb.Text>
-          <Kb.Text type="HeaderBigExtrabold" style={{color: Styles.globalColors.purple}}>
+          <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
             {props.amount} XLM
           </Kb.Text>
         </Kb.Box2>
@@ -288,6 +288,9 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
+  purpleText: Styles.platformStyles({
+    common: {color: Styles.globalColors.purple},
+  }),
   scrollView: {
     flexBasis: 'auto',
     flexGrow: 0,

@@ -133,7 +133,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           ) : props.tlfType === 'public' ? (
             <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
               {props.participants.join(',')}
-              <Kb.Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
+              <Kb.Meta backgroundColor={Styles.globalColors.green} size="Small" title="PUBLIC" />
             </Kb.Box2>
           ) : (
             `${props.participants.join(',')}`

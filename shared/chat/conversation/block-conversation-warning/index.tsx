@@ -38,7 +38,7 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
         </Text>
         <Box
           style={{
-            backgroundColor: globalColors.darkBlue,
+            backgroundColor: globalColors.blueDarker,
             marginBottom: globalMargins.small,
             marginTop: globalMargins.small,
             padding: globalMargins.tiny,

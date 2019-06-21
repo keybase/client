@@ -1,9 +1,10 @@
 import * as React from 'react'
 import {toUpper, upperFirst} from 'lodash-es'
 import * as Styles from '../../../../../styles'
+
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {Box2} from '../../../../../common-adapters/box'
-import Text from '../../../../../common-adapters/text'
+import Text, {AllowedColors} from '../../../../../common-adapters/text'
 import Icon, {castPlatformStyles as iconCastPlatformStyles} from '../../../../../common-adapters/icon'
 import Avatar from '../../../../../common-adapters/avatar'
 import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
@@ -38,7 +39,7 @@ type HeaderProps = {
   amountNominal: string
   approxWorth: string
   balanceChange: string
-  balanceChangeColor: string
+  balanceChangeColor: AllowedColors | null
   bottomLine: string
   errorDetails: string
   icon: 'sending' | 'receiving'

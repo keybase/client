@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 
 // props exported for stories
 export type Props = {
@@ -60,9 +62,9 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
-        ? 'Disallow friends to find you by this email.'
-        : `${Styles.isMobile ? '' : '(Recommended) '}Allow friends to find you by this email.`,
-      title: props.searchable ? "Don't make searchable" : 'Make searchable',
+        ? "Don't let friends find you by this email."
+        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this email.`,
+      title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
   menuItems.push('Divider', {danger: true, onClick: props.onDelete, title: 'Delete'})
@@ -145,26 +147,65 @@ export type OwnProps = {
   contactKey: string
 }
 
-// TODO mocked for now
-const mapStateToProps = (state, ownProps) => ({})
-const mapDispatchToProps = dispatch => ({})
-const mergeProps = (stateProps, dispatchProps, ownProps) =>
-  ({
-    address: '',
-    onDelete: () => {},
-    onMakePrimary: () => {},
-    onToggleSearchable: () => {},
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+  _emailRow: state.settings.email.emails.get(ownProps.contactKey) || null,
+  _phoneRow: state.settings.phoneNumbers.phones.get(ownProps.contactKey) || null,
+})
+
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  email: {
+    onDelete: () => dispatch(SettingsGen.createEditEmail({delete: true, email: ownProps.contactKey})),
+    onMakePrimary: () =>
+      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
+    onToggleSearchable: () =>
+      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, toggleSearchable: true})),
+    onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
+  },
+  phone: {
+    onDelete: () => dispatch(SettingsGen.createEditPhone({delete: true, phone: ownProps.contactKey})),
+    onMakePrimary: () => {}, // this is not a supported phone action
+    onToggleSearchable: () =>
+      dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
+    // TODO: this requires popping up a thing and also sending an RPC, waiting on Danny's existing flow from another PR
     onVerify: () => {},
-    primary: false,
-    searchable: false,
-    type: 'phone',
-    verified: false,
-  } as const)
+  },
+})
 
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    if (stateProps._phoneRow) {
+      return {
+        ...dispatchProps.phone,
+        address: stateProps._phoneRow.phoneNumber,
+        primary: false,
+        searchable: stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public,
+        type: 'phone' as const,
+        verified: stateProps._phoneRow.verified,
+      }
+    } else if (stateProps._emailRow) {
+      return {
+        ...dispatchProps.email,
+        address: stateProps._emailRow.email,
+        primary: stateProps._emailRow.isPrimary,
+        searchable: stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public,
+        type: 'email' as const,
+        verified: stateProps._emailRow.isVerified,
+      }
+    } else
+      return {
+        address: '',
+        onDelete: () => {},
+        onMakePrimary: () => {},
+        onToggleSearchable: () => {},
+        onVerify: () => {},
+        primary: false,
+        searchable: false,
+        type: 'phone' as const,
+        verified: false,
+      }
+  },
   'ConnectedEmailPhoneRow'
 )(EmailPhoneRow)
 

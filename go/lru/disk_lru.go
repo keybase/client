@@ -149,6 +149,12 @@ func NewDiskLRU(name string, version, maxSize int) *DiskLRU {
 	}
 }
 
+func (d *DiskLRU) MaxSize() int {
+	d.Lock()
+	defer d.Unlock()
+	return d.maxSize
+}
+
 func (d *DiskLRU) debug(ctx context.Context, lctx libkb.LRUContext, msg string, args ...interface{}) {
 	lctx.GetLog().CDebugf(ctx, fmt.Sprintf("DiskLRU: %s(%d): ", d.name, d.version)+msg, args...)
 }

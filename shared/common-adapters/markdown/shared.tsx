@@ -16,7 +16,8 @@ function createKbfsPathRegex(): RegExp | null {
   const tlfType = `/(?:private|public|team)`
   const tlf = `/(?:(?:private|public)/${usernames}(#${usernames})?|team/${teamName})`
   const inTlf = `/(?:\\\\\\\\|\\\\ |\\S)+`
-  return new RegExp(`^(/keybase(?:(?:${tlf}(${inTlf})?)|(?:${tlfType}))?/?)(?=\\s|$)`)
+  const specialFiles = `/(?:.kbfs_.+)`
+  return new RegExp(`^(/keybase(?:(?:${tlf}(${inTlf})?)|(?:${tlfType})|(?:${specialFiles}))?/?)(?=\\s|$)`)
 }
 
 const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())

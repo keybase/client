@@ -7,6 +7,9 @@ const commasToPeriods = s => s.replace(/,/, '.')
 
 const isValidAmount = (amt, numDecimalsAllowed) => {
   if (!isNaN(Number(amt)) || amt === '.') {
+    if (amt && amt.startsWith && amt.startsWith('-')) {
+      return false
+    }
     // This is a valid number. Now check the number of decimal places
     const split = amt.split('.')
     if (split.length === 1) {
@@ -114,7 +117,7 @@ class AssetInput extends React.Component<Props> {
         {!!this.props.warningPayee && (
           <Kb.Text type="BodySmallError">
             {this.props.warningPayee} doesn't accept{' '}
-            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
+            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.redDark}}>
               {this.props.warningAsset}
             </Kb.Text>
             . Please pick another asset.
@@ -160,9 +163,9 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 0,
   },
   labelMargin: {marginLeft: 1},
-  topLabel: {color: Styles.globalColors.blue},
+  topLabel: {color: Styles.globalColors.blueDark},
   unit: {
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
 })
 

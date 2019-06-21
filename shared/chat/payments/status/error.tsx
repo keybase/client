@@ -53,7 +53,7 @@ const PaymentStatusError = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   bodyError: Styles.platformStyles({
-    common: {color: Styles.globalColors.red, textAlign: 'center'},
+    common: {color: Styles.globalColors.redDark, textAlign: 'center'},
     isElectron: {
       wordBreak: 'break-word',
     },
@@ -69,7 +69,7 @@ const styles = Styles.styleSheetCreate({
   }),
   headerError: {
     alignSelf: 'center',
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
     padding: Styles.globalMargins.tiny,
   },
 })

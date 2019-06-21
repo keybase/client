@@ -8,6 +8,7 @@ import {
   WaitingButton,
   IconType,
 } from '../../../../common-adapters'
+import {AllowedColors} from '../../../../common-adapters/text'
 import {
   collapseStyles,
   globalColors,
@@ -23,7 +24,7 @@ export type Props = {
   approxWorth: string
   amount: string
   balanceChange: string
-  balanceChangeColor: string
+  balanceChangeColor: AllowedColors
   cancelButtonInfo: string
   cancelButtonLabel: string
   canceled: boolean
@@ -168,7 +169,7 @@ const styles = styleSheetCreate({
       width: 22,
     },
   }),
-  purple: {color: globalColors.purple},
+  purple: {color: globalColors.purpleDark},
   tooltipText: platformStyles({
     isElectron: {wordBreak: 'normal'},
   }),

@@ -150,6 +150,6 @@ func (r *RemoteNet) FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyA
 	return FuzzyAssetSearch(mctx, arg)
 }
 
-func (r *RemoteNet) ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) ([]stellar1.Asset, error) {
+func (r *RemoteNet) ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
 	return ListPopularAssets(mctx, arg)
 }
