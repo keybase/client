@@ -1,13 +1,13 @@
 import * as React from 'react'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import {StylesTextCrossPlatform} from '../../common-adapters/text'
 
 type TextType = any
 // TODO: import { TextType } from '../../common-adapters/text';
 
 export type Props = {
   name: string
-  elementStyle?: Styles.StylesCrossPlatform | null
+  elementStyle?: StylesTextCrossPlatform
   type: TextType
   selectable?: boolean
 }

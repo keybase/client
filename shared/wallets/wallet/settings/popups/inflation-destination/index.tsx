@@ -227,7 +227,7 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
   },
   specify: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
 })
 

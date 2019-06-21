@@ -26,7 +26,7 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean; onClick: () => void
       onClick={onClick}
       labelStyle={{color: globalColors.white}}
       style={{
-        backgroundColor: isPublic ? globalColors.yellowGreen : globalColors.blueDark,
+        backgroundColor: globalColors.blue,
       }}
       label={isPublic ? 'Open public folder' : 'New private folder'}
     />
@@ -53,7 +53,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
       <Input
         small={true}
         smallLabel={isPublic || !username ? '' : `${username},`}
-        smallLabelStyle={{color: globalColors.darkBlue, marginRight: 0}}
+        smallLabelStyle={{color: globalColors.blueDarker, marginRight: 0}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
@@ -74,7 +74,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
         style={platformStyles({
           isElectron: desktopStyles.clickable,
         })}
-        color={isPublic ? globalColors.yellowGreen : globalColors.blueDark}
+        color={globalColors.blue}
       />
     </Box>
   )

@@ -64,7 +64,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
                 <Kb.Text
                   onClick={onManageChannels}
                   type="BodySmallSemiboldSecondaryLink"
-                  style={{color: globalColors.blue}}
+                  style={{color: globalColors.blueDark}}
                 >
                   Browse other channels
                 </Kb.Text>

@@ -11,8 +11,8 @@ function SettingsNav(props: Props) {
     <Box style={styles.container}>
       <SettingsItem
         text="Your account"
-        selected={props.selectedTab === Constants.landingTab}
-        onClick={() => props.onTabChange(Constants.landingTab)}
+        selected={props.selectedTab === Constants.accountTab}
+        onClick={() => props.onTabChange(Constants.accountTab)}
       />
       <SettingsItem
         text="Chat"
@@ -43,11 +43,6 @@ function SettingsNav(props: Props) {
         text="Advanced"
         selected={props.selectedTab === Constants.advancedTab}
         onClick={() => props.onTabChange(Constants.advancedTab)}
-      />
-      <SettingsItem
-        text="Delete me"
-        selected={props.selectedTab === Constants.deleteMeTab}
-        onClick={() => props.onTabChange(Constants.deleteMeTab)}
       />
       {/* TODO: Do something with logoutInProgress once Offline is
         removed from the settings page. */}

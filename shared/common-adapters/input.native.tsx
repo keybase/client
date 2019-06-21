@@ -402,7 +402,7 @@ const _bodyErrorTextStyle: any = getTextStyle('BodySmallError')
 const styles = styleSheetCreate({
   error: {minHeight: _bodyErrorTextStyle.lineHeight},
   floating: {
-    color: globalColors.blue,
+    color: globalColors.blueDark,
     marginBottom: 9,
     minHeight: _bodySmallTextStyle.lineHeight,
   },
@@ -413,7 +413,7 @@ const styles = styleSheetCreate({
   },
   smallLabel: {
     ...globalStyles.fontSemibold,
-    color: globalColors.blue,
+    color: globalColors.blueDark,
     fontSize: _headerTextStyle.fontSize,
     marginRight: 8,
   },

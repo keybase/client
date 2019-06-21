@@ -63,7 +63,7 @@ const styles = Styles.styleSheetCreate({
   },
   iconCompose: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.blue,
+      color: Styles.globalColors.blueDark,
     },
     isElectron: {
       fontSize: 16,

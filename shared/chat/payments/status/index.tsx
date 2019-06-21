@@ -122,10 +122,10 @@ const styles = Styles.styleSheetCreate({
   completed: {
     backgroundColor: Styles.globalColors.purple_10,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
   completedIcon: {
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
   container: Styles.platformStyles({
     isElectron: {
@@ -135,10 +135,10 @@ const styles = Styles.styleSheetCreate({
   error: {
     backgroundColor: Styles.globalColors.red_10,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   errorIcon: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   iconBoxStyle: Styles.platformStyles({
     isElectron: {

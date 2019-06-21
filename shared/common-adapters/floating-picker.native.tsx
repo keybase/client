@@ -51,7 +51,7 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   link: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
     fontSize: 17,
     padding: Styles.globalMargins.small,
   },

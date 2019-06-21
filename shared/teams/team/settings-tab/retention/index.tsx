@@ -124,7 +124,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
                   <Kb.Icon type="iconfont-timer" />
                   <Kb.Text
                     type={Styles.isMobile ? 'BodyBig' : 'Body'}
-                    style={Styles.isMobile ? {color: Styles.globalColors.blue} : null}
+                    style={Styles.isMobile ? {color: Styles.globalColors.blueDark} : null}
                   >
                     {policy.title}
                   </Kb.Text>

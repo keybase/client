@@ -301,7 +301,7 @@ export default ThreadSearch(Styles.isMobile ? ThreadSearchMobile : ThreadSearchD
 
 const styles = Styles.styleSheetCreate({
   done: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   doneContainer: {
     flexShrink: 0,
@@ -363,7 +363,7 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   results: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   resultsContainer: {
     flexShrink: 0,
