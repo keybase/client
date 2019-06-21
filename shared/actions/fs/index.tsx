@@ -1125,7 +1125,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     // trigger this when overall sync status changes. This is because sync
     // status changes don't trigger updates for individual pathItems. So just
     // treat the overall status update as a hint that currently subscribed
-    // itmes might have been changed too.
+    // items might have been changed too.
   >([FsGen.notifyTlfUpdate, EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged], onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
