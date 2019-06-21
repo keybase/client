@@ -20,7 +20,7 @@ type Props = {
   message: string | null
   onAcceptPay: (amount: string) => void
   onAcceptTx: () => void
-  onCancel: () => void
+  onBack: () => void
   operation: 'pay' | 'tx'
   originDomain: string
   recipient: string | null
@@ -28,8 +28,6 @@ type Props = {
   waiting: boolean
   waitingKey: string
 }
-
-type LoadingProps = {}
 
 type CallbackURLBannerProps = {
   callbackURL: string
@@ -46,6 +44,15 @@ const CallbackURLBanner = (props: CallbackURLBannerProps) => (
     </Kb.Text>
   </Kb.Box2>
 )
+
+type LoadingProps = {}
+const Loading = Kb.HeaderOrPopup((props: LoadingProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+      <Kb.ProgressIndicator />
+    </Kb.Box2>
+  </Kb.Box2>
+))
 
 type InfoRowProps = {
   bodyText: string
@@ -111,14 +118,6 @@ const Header = (props: HeaderProps) => (
   </Kb.Box2>
 )
 
-const PaymentsConfirmLoading = Kb.HeaderOrPopup((props: LoadingProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
-      <Kb.ProgressIndicator />
-    </Kb.Box2>
-  </Kb.Box2>
-))
-
 type PaymentInfoProps = {
   amount: string
   memo: string | null
@@ -172,11 +171,11 @@ const TxInfo = (props: TxInfoProps) => (
   </Kb.Box2>
 )
 
-const PaymentsConfirm = (props: Props) =>
+const SEP7Confirm = (props: Props) =>
   props.loading ? (
-    <PaymentsConfirmLoading />
+    <Loading />
   ) : (
-    <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.MaybePopup onClose={props.onBack}>
       <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
         <Header
           isPayment={props.operation === 'pay'}
@@ -224,7 +223,6 @@ const PaymentsConfirm = (props: Props) =>
   )
 
 const styles = Styles.styleSheetCreate({
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   bodyText: Styles.platformStyles({
     common: {color: Styles.globalColors.black},
     isElectron: {wordBreak: 'break-word'},
@@ -233,12 +231,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },
-  buttonBar: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
   buttonContainer: Styles.platformStyles({
     common: {
       ...Styles.padding(0, Styles.globalMargins.small),
@@ -250,15 +242,6 @@ const styles = Styles.styleSheetCreate({
       borderTopColor: Styles.globalColors.black_10,
       borderTopStyle: 'solid',
       borderTopWidth: 1,
-    },
-  }),
-  buttonIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  buttonText: {color: Styles.globalColors.white},
-  cancelButton: Styles.platformStyles({
-    isElectron: {
-      height: Styles.globalMargins.large,
     },
   }),
   container: Styles.platformStyles({
@@ -274,17 +257,6 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 1,
       maxHeight: '100%',
       width: '100%',
-    },
-  }),
-  errorClose: {
-    padding: Styles.globalMargins.tiny,
-  },
-  errorText: {
-    color: Styles.globalColors.red,
-  },
-  fullErrorContainer: Styles.platformStyles({
-    isElectron: {
-      padding: 20,
     },
   }),
   header: Styles.platformStyles({
@@ -310,43 +282,12 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_50,
     marginBottom: Styles.globalMargins.xtiny,
   },
-  icon: Styles.platformStyles({
-    isElectron: {
-      marginBottom: Styles.globalMargins.small,
-      marginTop: 35,
-    },
-  }),
   memoContainer: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-  paymentContainer: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.greyLight,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      justifyContent: 'space-between',
-      padding: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      marginBottom: -1,
-    },
-  }),
-  paymentTotalsContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-end',
-    },
-  }),
-  paymentsContainer: Styles.platformStyles({
-    isElectron: {
-      height: 150,
-    },
-  }),
-  pushDown: Styles.platformStyles({
-    isElectron: {flex: 1, justifyContent: 'flex-end'},
-  }),
   scrollView: {
     flexBasis: 'auto',
     flexGrow: 0,
@@ -365,39 +306,11 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white_75,
     paddingTop: Styles.globalMargins.tiny,
   },
-  submitButton: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-    isElectron: {
-      height: Styles.globalMargins.large,
-    },
-  }),
-  submitIcon: Styles.platformStyles({
-    isElectron: {
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  totalContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.purpleDark,
-      paddingBottom: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      paddingBottom: 50,
-    },
-  }),
   verifiedIcon: Styles.platformStyles({
     common: {
       color: Styles.globalColors.green,
     },
   }),
-  xlmTotal: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-    },
-  }),
 })
 
-export default PaymentsConfirm
+export default SEP7Confirm

@@ -2,89 +2,55 @@ import * as React from 'react'
 import {Box} from '../../common-adapters/index'
 import * as Sb from '../../stories/storybook'
 
-import PaymentsConfirm from '.'
+import SEP7Confirm from '.'
 
-const props = {
-  displayTotal: '$8.94 USD',
+const commonProps = {
+  callbackURL: null,
   loading: false,
-  onAccept: Sb.action('onAccept'),
-  onCancel: Sb.action('onCancel'),
-  onWallet: Sb.action('onWallet'),
-  payments: [
-    {
-      displayAmount: '$1.00 USD',
-      fullName: 'Cécile Boucheron',
-      username: 'cecileb',
-      xlmAmount: '4.4811371 XLM',
-    },
-    {
-      fullName: 'Patrick Crosby',
-      username: 'patrick',
-      xlmAmount: '10 XLM',
-    },
-    {
-      displayAmount: '5,00 € EUR',
-      fullName: 'Mike Maxim',
-      username: 'mikem',
-      xlmAmount: '25.5818284 XLM',
-    },
-    {
-      error: 'Failed!',
-      fullName: 'Max Krohn',
-      username: 'max',
-      xlmAmount: '',
-    },
-    {
-      fullName: 'Karen Maxim',
-      username: 'karenm',
-      xlmAmount: '3 XLM',
-    },
-  ],
-  xlmTotal: '40.0629655 XLM',
+  memo: '',
+  memoType: 'MEMO_NONE',
+  onAcceptPay: Sb.action('onAcceptPay'),
+  onAcceptTx: Sb.action('onAcceptTx'),
+  onBack: Sb.action('onBack'),
+  waiting: false,
+  waitingKey: 'false',
 }
 
-const loadingProps = {
-  ...props,
-  loading: true,
+const payProps = {
+  amount: '10',
+  message: 'test message',
+  operation: 'pay' as const,
+  originDomain: 'blog.stathat.com',
+  recipient: 'GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB',
+  summary: {
+    fee: '',
+    memo: '',
+    memoType: 'MEMO_NONE',
+    operations: [],
+    source: '',
+  },
 }
 
-const errorProps = {
-  ...props,
-  error: 'Failed!',
-}
-
-const errorNoWalletProps = {
-  ...props,
-  error: 'Wallet needed to send money in chat',
-  errorIsNoWallet: true,
-}
-
-const smallProps = {
-  ...props,
-  xlmTotal: '1 XLM',
-}
-
-const onePaymentProps = {
-  ...props,
-  payments: [
-    {
-      displayAmount: '$1.00 USD',
-      fullName: 'Cécile Boucheron',
-      username: 'cecileb',
-      xlmAmount: '4.4811371 XLM',
-    },
-  ],
+const txProps = {
+  amount: '',
+  message: '',
+  operation: 'tx' as const,
+  originDomain: 'stathat.com',
+  recipient: '',
+  summary: {
+    fee: '100',
+    memo: 'test memo',
+    memoType: 'MEMO_TEXT',
+    operations: ['Establish trust line to WHAT/GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB'],
+    source: 'GBZX4364PEPQTDICMIQDZ56K4T75QZCR4NBEYKO6PDRJAHZKGUOJPCXB',
+  },
 }
 
 const load = () => {
-  Sb.storiesOf('Chat/Wallet/Confirm', module)
+  Sb.storiesOf('Wallets/SEP7ConfirmForm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
-    .add('Loaded', () => <PaymentsConfirm {...props} />)
-    .add('Loaded (one)', () => <PaymentsConfirm {...onePaymentProps} />)
-    .add('Loaded (small total)', () => <PaymentsConfirm {...smallProps} />)
-    .add('Loading', () => <PaymentsConfirm {...loadingProps} />)
-    .add('Error', () => <PaymentsConfirm {...errorProps} />)
-    .add('Error (no wallet)', () => <PaymentsConfirm {...errorNoWalletProps} />)
+    .add('Pay', () => <SEP7Confirm {...commonProps} {...payProps} />)
+    .add('Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
 }
 
 export default load

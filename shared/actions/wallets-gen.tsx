@@ -110,7 +110,7 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 // Payload Types
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
-type _AcceptSEP7PayPayload = {readonly inputURI: string}
+type _AcceptSEP7PayPayload = {readonly amount: string; readonly inputURI: string}
 type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
@@ -278,7 +278,7 @@ type _SetInflationDestinationPayload = {
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
-type _SetSEP7TxPayload = {readonly tx: Types.SEP7ConfirmInfo}
+type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7ConfirmInfo}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void

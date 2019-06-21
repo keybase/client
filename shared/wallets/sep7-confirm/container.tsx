@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
@@ -58,7 +57,7 @@ export default namedConnect(
     ...stateProps,
     onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
     onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
-    onClose: dispatchProps.onClose,
+    onBack: dispatchProps.onClose,
   }),
   'SEP7Confirm'
 )(SEP7Confirm)
