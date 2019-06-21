@@ -919,6 +919,18 @@
 			"revisionTime": "2018-12-31T15:08:26Z"
 		},
 		{
+			"checksumSHA1": "21NFVni33seBMHDwvbp+nvwJq+c=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "2a22dbedbad1fd454910cd1f44f210ef90c28464",
+			"revisionTime": "2019-05-18T13:52:02Z"
+		},
+		{
+			"checksumSHA1": "KW0/P62Hm8oTOljdBqNWTyX5MEk=",
+			"path": "github.com/sirupsen/logrus/hooks/test",
+			"revision": "2a22dbedbad1fd454910cd1f44f210ef90c28464",
+			"revisionTime": "2019-05-18T13:52:02Z"
+		},
+		{
 			"checksumSHA1": "8QeSG127zQqbA+YfkO1WkKx/iUI=",
 			"path": "github.com/src-d/gcfg",
 			"revision": "f187355171c936ac84a82793659ebb4936bc1c23",
