@@ -1,9 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WalletsGen from '../../actions/wallets-gen'
-import * as WalletsTypes from '../../constants/types/wallets'
-import PaymentsConfirm from '.'
+import SEP7Confirm from '.'
 import {namedConnect} from '../../util/container'
 
 type OwnProps = {}
@@ -27,14 +24,15 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     amount,
     assetCode,
     assetIssuer,
-    callbackURL: 'callbackurl.com',
+    callbackURL,
     loading: !state.wallets.sep7ConfirmInfo,
     memo,
     memoType,
-    message: 'test note',
+    message,
     operation,
     originDomain,
     recipient,
+    summary,
     xdr,
   }
 }
@@ -50,5 +48,5 @@ export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),
-  'PaymentsConfirm'
-)(PaymentsConfirm)
+  'SEP7Confirm'
+)(SEP7Confirm)

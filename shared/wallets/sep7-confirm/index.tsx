@@ -5,43 +5,57 @@ import {WalletBackButton} from '../common'
 
 type LoadingProps = {}
 
+type InfoRowProps = {
+  bodyText: string
+  headerText: string
+}
+
+const InfoRow = (props: InfoRowProps) => (
+  <>
+    <Kb.Divider />
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
+      <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+        {props.headerText}
+      </Kb.Text>
+      <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
+        {props.bodyText}
+      </Kb.Text>
+    </Kb.Box2>
+  </>
+)
+
 type HeaderProps = {
   onBack: () => void
-  sendingIntentionXLM: boolean
-  displayAmountXLM: string
-  displayAmountFiat: string
+  originDomain: string
+  isPayment: boolean
 }
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
-      <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" />
+      {!!props.isPayment && <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" />}
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
         fullWidth={true}
         style={{marginTop: Styles.globalMargins.xlarge}}
       >
-        <Kb.Text selectable={true} type="BodyBig" negative={true} style={styles.headerText}>
+        <Kb.Text selectable={true} type="BodyBig" negative={true}>
           {props.originDomain}
         </Kb.Text>
-        <Kb.Icon style={{marginLeft: Styles.globalMargins.tiny}} type="icon-proof-success" />
+        <Kb.Box2
+          direction="horizontal"
+          style={{backgroundColor: Styles.globalColors.transparent, marginLeft: Styles.globalMargins.xtiny}}
+        >
+          <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
+        </Kb.Box2>
       </Kb.Box2>
-      <Kb.Text style={styles.headerText} negative={true} type="BodyBig">
-        is requesting a payment.
+      <Kb.Text negative={true} type="BodyBig">
+        is requesting a {props.isPayment ? 'a payment' : ' you to sign a transaction'}.
       </Kb.Text>
       <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
         Keybase verified the request's signature.
       </Kb.Text>
-
-      <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
-        {props.sendingIntentionXLM ? props.displayAmountXLM : props.displayAmountFiat}
-      </Kb.Text>
-      {props.sendingIntentionXLM && !!props.displayAmountFiat && (
-        <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
-          {'(APPROXIMATELY ' + props.displayAmountFiat + ')'}
-        </Kb.Text>
-      )}
     </Kb.Box2>
     <WalletBackButton onBack={props.onBack} />
   </Kb.Box2>
@@ -55,61 +69,6 @@ const PaymentsConfirmLoading = Kb.HeaderOrPopup((props: LoadingProps) => (
   </Kb.Box2>
 ))
 
-type ErrorProps = {
-  error: string
-  errorIsNoWallet: boolean
-  onCancel: () => void
-  onWallet: () => void
-}
-
-const _PaymentsConfirmError = (props: ErrorProps) => {
-  if (props.errorIsNoWallet) {
-    return _PaymentsConfirmErrorNoWallet(props)
-  } else {
-    return _PaymentsConfirmErrorMisc(props)
-  }
-}
-
-const _PaymentsConfirmErrorMisc = (props: ErrorProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2
-      direction="vertical"
-      centerChildren={true}
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.fullErrorContainer}
-    >
-      <Kb.Text type="BodyExtrabold" style={styles.errorText}>
-        {props.error}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.Box2>
-)
-
-const _PaymentsConfirmErrorNoWallet = (props: ErrorProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2
-      direction="vertical"
-      centerChildren={true}
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.fullErrorContainer}
-    >
-      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true} centerChildren={true}>
-        <Kb.Text type="BodyExtrabold">{props.error}</Kb.Text>
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.pushDown} fullWidth={true}>
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button type="Dim" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-          <Kb.Button style={styles.submitButton} onClick={props.onWallet} label="Set up wallet" />
-        </Kb.ButtonBar>
-      </Kb.Box2>
-    </Kb.Box2>
-  </Kb.Box2>
-)
-
-const PaymentsConfirmError = Kb.HeaderOrPopup(_PaymentsConfirmError)
-
 type PaymentProps = {
   readonly displayAmount?: string | null
   readonly error?: string | null
@@ -117,24 +76,6 @@ type PaymentProps = {
   readonly username: string
   readonly xlmAmount: string
 }
-
-const PaymentRow = (props: PaymentProps) => (
-  <React.Fragment>
-    <Kb.NameWithIcon horizontal={true} username={props.username} metaOne={props.fullName} />
-    <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
-      {!!props.displayAmount && <Kb.Text type="BodyExtrabold">{props.displayAmount}</Kb.Text>}
-      {props.error ? (
-        <Kb.Text type="BodySmallSemibold" style={styles.errorText}>
-          ERROR WILL NOT SEND
-        </Kb.Text>
-      ) : (
-        <Kb.Text type={props.displayAmount ? 'BodySmallSemibold' : 'BodyExtrabold'}>
-          {props.xlmAmount}
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  </React.Fragment>
-)
 
 type Props = {
   displayTotal: string
@@ -149,6 +90,8 @@ type Props = {
 }
 
 type NoteAndMemoProps = {
+  amount?: string
+  memo?: string
   message?: string
   recipient?: string
 }
@@ -169,19 +112,12 @@ const NoteAndMemo = (props: NoteAndMemoProps) => (
       </>
     )}
 
-    {!!props.message && (
-      <>
-        <Kb.Divider />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
-          <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Message
-          </Kb.Text>
-          <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
-            {props.message}
-          </Kb.Text>
-        </Kb.Box2>
-      </>
-    )}
+    {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
+
+    {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
+
+    {!!props.fee && <InfoRow headerText="Fee" bodyText="{props.fee} stroops" />}
+
     {!!props.recipient && (
       <>
         <Kb.Divider />
@@ -201,25 +137,14 @@ const NoteAndMemo = (props: NoteAndMemoProps) => (
   </Kb.Box2>
 )
 
-const PaymentsConfirm = (props: Props) => {
-  if (props.loading) {
-    return <PaymentsConfirmLoading />
-  }
-  console.warn(props)
-  if (props.error) {
-    return (
-      <PaymentsConfirmError
-        error={props.error}
-        errorIsNoWallet={props.errorIsNoWallet || false}
-        onCancel={props.onCancel}
-        onWallet={props.onWallet}
-      />
-    )
-  }
-  return (
+const PaymentsConfirm = (props: Props) =>
+  props.loading ? (
+    <PaymentsConfirmLoading />
+  ) : (
     <Kb.MaybePopup onClose={props.onClose}>
       <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
         <Header
+          isPayment={props.operation === 'pay'}
           originDomain={props.originDomain}
           onBack={props.onBack}
           sendingIntentionXLM={props.sendingIntentionXLM}
@@ -239,9 +164,12 @@ const PaymentsConfirm = (props: Props) => {
           </Kb.Box2>
         )}
         <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
-          {(!!props.amount || !!props.message || !!props.recipient) && (
-            <NoteAndMemo amount={props.amount} message={props.message} recipient={props.recipient} />
-          )}
+          <NoteAndMemo
+            amount={props.amount}
+            memo={props.memo}
+            message={props.message}
+            recipient={props.recipient}
+          />
         </Kb.ScrollView>
         <Kb.Box2
           direction="horizontal"
@@ -260,21 +188,7 @@ const PaymentsConfirm = (props: Props) => {
               waitingKey={props.waitingKey}
               fullWidth={true}
               style={styles.button}
-              children={
-                <React.Fragment>
-                  <Kb.Icon
-                    type="iconfont-stellar-send"
-                    style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
-                    color={Styles.globalColors.white}
-                  />
-                  <Kb.Text type="BodyBig" style={styles.buttonText}>
-                    Pay{' '}
-                    <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                      {props.displayAmountXLM}
-                    </Kb.Text>
-                  </Kb.Text>
-                </React.Fragment>
-              }
+              label={props.operation === 'pay' ? 'Pay' : 'Sign'}
             />
           )}
         </Kb.Box2>
@@ -282,7 +196,6 @@ const PaymentsConfirm = (props: Props) => {
       <Kb.SafeAreaView />
     </Kb.MaybePopup>
   )
-}
 
 const styles = Styles.styleSheetCreate({
   backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
@@ -447,6 +360,11 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       paddingBottom: 50,
+    },
+  }),
+  verifiedIcon: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.green,
     },
   }),
   xlmTotal: Styles.platformStyles({
