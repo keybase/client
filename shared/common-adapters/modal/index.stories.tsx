@@ -131,6 +131,38 @@ const load = () => {
         </Kb.Box2>
       </Modal>
     ))
+    .add('Wide/Header + Footer + Tall content', () => (
+      <Modal
+        onClose={onClose}
+        header={{
+          leftButton,
+          rightButton,
+          title: (
+            <Kb.Text type="Header" lineClamp={1}>
+              Some kind of title
+            </Kb.Text>
+          ),
+        }}
+        footer={{
+          children: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
+          style: {backgroundColor: Styles.globalColors.blueGrey},
+        }}
+        mode="Wide"
+      >
+        <Kb.Box2 direction="vertical" style={padding} fullWidth={true}>
+          {range(0, 64).map(r => (
+            <Kb.Box2
+              direction="horizontal"
+              key={r}
+              fullWidth={true}
+              style={{backgroundColor: generateColorFromSeed(r)}}
+            >
+              <Kb.Text type="Body">{r}</Kb.Text>
+            </Kb.Box2>
+          ))}
+        </Kb.Box2>
+      </Modal>
+    ))
     .add('Banner', () => (
       <Modal onClose={onClose} banners={[<Kb.Banner key="red" color="red" text="hey" />]}>
         {filler}

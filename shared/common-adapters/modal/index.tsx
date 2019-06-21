@@ -11,12 +11,6 @@ const Kb = {
   ScrollView,
 }
 
-// hmm, maybe string literals would be less of a pain
-enum Mode {
-  Default,
-  Wide,
-}
-
 type HeaderProps = {
   icon?: React.ReactNode // above center
   leftButton?: React.ReactNode
@@ -36,7 +30,7 @@ type Props = {
   header?: HeaderProps
   onClose: () => void
   footer?: FooterProps
-  mode: Mode
+  mode: 'Default' | 'Wide'
 }
 
 const ModalInner = (props: Props) => (
@@ -53,15 +47,16 @@ const Modal = (props: Props) =>
   ) : (
     <PopupDialog
       onClose={props.onClose}
-      styleClipContainer={props.mode === Mode.Default ? styles.modeDefault : styles.modeWide}
+      styleClipContainer={props.mode === 'Default' ? styles.modeDefault : styles.modeWide}
     >
       <ModalInner {...props} />
     </PopupDialog>
   )
 Modal.defaultProps = {
-  mode: Mode.Default,
+  mode: 'Default',
 }
 
+// TODO centering title on mobile, maybe make a separate component? might be hard to do cross platform.
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="vertical" style={props.icon ? styles.headerWithIcon : styles.header} fullWidth={true}>
     {!!props.icon && props.icon}
@@ -117,12 +112,14 @@ const styles = Styles.styleSheetCreate({
   },
   headerLeft: {
     flex: 1,
+    flexShrink: 0,
     justifyContent: 'flex-start',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
   },
   headerRight: {
     flex: 1,
+    flexShrink: 0,
     justifyContent: 'flex-end',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
