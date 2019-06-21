@@ -390,7 +390,7 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
 		require.NoError(t, err)
 	}
-	err = RotateKey(m[0].Ctx(), tcs[0].G, keybase1.TeamRotateKeyArg{TeamID: teamID, Rt: keybase1.RotationType_VISIBLE})
+	err = RotateKeyVisible(m[0].Ctx(), tcs[0].G, teamID)
 	require.NoError(t, err)
 
 	loadTeam(*subteamID, true)
