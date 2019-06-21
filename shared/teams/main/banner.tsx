@@ -9,7 +9,10 @@ export type Props = {
 
 const Banner = ({onReadMore, onHideChatBanner}: Props) => (
   <Kb.Box style={styles.containerBanner}>
-    <Kb.Icon type={Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'} />
+    <Kb.Icon
+      style={styles.illustration}
+      type={Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'}
+    />
     <Kb.Box style={styles.containerHeader}>
       <Kb.Text negative={true} type="Header" style={styles.header}>
         Create a team on Keybase
@@ -63,7 +66,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       height: 212,
       justifyContent: 'flex-start',
-      paddingLeft: 48,
     },
     isMobile: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -76,8 +78,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
     },
     isElectron: {
-      marginLeft: Styles.globalMargins.medium,
-      maxWidth: 330,
+      maxWidth: 360,
     },
     isMobile: {
       alignItems: 'center',
@@ -87,6 +88,12 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 15,
     marginTop: 15,
   },
+  illustration: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.large,
+      paddingRight: Styles.globalMargins.large,
+    },
+  }),
   text: Styles.platformStyles({
     common: {
       marginBottom: Styles.globalMargins.small,
