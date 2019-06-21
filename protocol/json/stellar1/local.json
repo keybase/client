@@ -207,47 +207,6 @@
       "name": "PaymentLocal",
       "fields": [
         {
-          "type": "PaymentCommonLocal",
-          "name": "common"
-        },
-        {
-          "type": "boolean",
-          "name": "unread"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PaymentDetailsLocal",
-      "fields": [
-        {
-          "type": "PaymentCommonLocal",
-          "name": "common"
-        },
-        {
-          "type": "string",
-          "name": "publicNote"
-        },
-        {
-          "type": "string",
-          "name": "publicNoteType"
-        },
-        {
-          "type": "string",
-          "name": "externalTxURL",
-          "lint": "ignore"
-        },
-        {
-          "type": "string",
-          "name": "feeChargedDescription"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PaymentCommonLocal",
-      "fields": [
-        {
           "type": "PaymentID",
           "name": "id"
         },
@@ -381,6 +340,10 @@
           "name": "operations"
         },
         {
+          "type": "boolean",
+          "name": "unread"
+        },
+        {
           "type": "string",
           "name": "batchID"
         },
@@ -398,6 +361,43 @@
             "string"
           ],
           "name": "inflationSource"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentDetailsLocal",
+      "fields": [
+        {
+          "type": "PaymentLocal",
+          "name": "summary"
+        },
+        {
+          "type": "PaymentDetailsOnlyLocal",
+          "name": "details"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentDetailsOnlyLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "publicNote"
+        },
+        {
+          "type": "string",
+          "name": "publicNoteType"
+        },
+        {
+          "type": "string",
+          "name": "externalTxURL",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "feeChargedDescription"
         }
       ]
     },

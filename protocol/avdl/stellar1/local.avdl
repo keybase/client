@@ -92,23 +92,6 @@ protocol local {
 
   // Summary of a payment.
   record PaymentLocal {
-    PaymentCommonLocal common;
-    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
-  }
-
-  // Details of a payment.
-  record PaymentDetailsLocal {
-    PaymentCommonLocal common;
-    string publicNote;              // public memo for the payment
-    string publicNoteType;          // public memo type: "text", "id", "hash", "return"
-
-    @lint("ignore")
-    string externalTxURL;           // link to external web page with tx details
-    string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
-  }
-
-  // Common fields of PaymentDetailsLocal and PaymentLocal
-  record PaymentCommonLocal {
     PaymentID id;
     TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
@@ -154,10 +137,27 @@ protocol local {
     string summaryAdvanced;         // if isAdvanced is true, just show this string
     array<string> operations;       // string summary of each operation in the transaction
 
+    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
+
     string batchID;                 // if payment sent via batch, will contain the batch id
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
     boolean isInflation;            // true if payment from known inflation source
     union { null, string } inflationSource; // name of inflation source
+  }
+
+  // Details of a payment.
+  record PaymentDetailsLocal {
+    PaymentLocal summary;
+    PaymentDetailsOnlyLocal details;
+  }
+
+  record PaymentDetailsOnlyLocal {
+    string publicNote;              // public memo for the payment
+    string publicNoteType;          // public memo type: "text", "id", "hash", "return"
+
+    @lint("ignore")
+    string externalTxURL;           // link to external web page with tx details
+    string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
   }
 
   // accountID should be the accountID that you want the details for.

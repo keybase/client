@@ -271,8 +271,8 @@ func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 	return status, detail
 }
 
-func NewPaymentCommonLocal(txid TransactionID, ctime TimeMs) *PaymentCommonLocal {
-	return &PaymentCommonLocal{
+func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
+	return &PaymentLocal{
 		Id:   NewPaymentID(txid),
 		Time: ctime,
 	}

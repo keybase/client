@@ -250,36 +250,6 @@ func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
 }
 
 type PaymentLocal struct {
-	Common PaymentCommonLocal `codec:"common" json:"common"`
-	Unread bool               `codec:"unread" json:"unread"`
-}
-
-func (o PaymentLocal) DeepCopy() PaymentLocal {
-	return PaymentLocal{
-		Common: o.Common.DeepCopy(),
-		Unread: o.Unread,
-	}
-}
-
-type PaymentDetailsLocal struct {
-	Common                PaymentCommonLocal `codec:"common" json:"common"`
-	PublicNote            string             `codec:"publicNote" json:"publicNote"`
-	PublicNoteType        string             `codec:"publicNoteType" json:"publicNoteType"`
-	ExternalTxURL         string             `codec:"externalTxURL" json:"externalTxURL"`
-	FeeChargedDescription string             `codec:"feeChargedDescription" json:"feeChargedDescription"`
-}
-
-func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
-	return PaymentDetailsLocal{
-		Common:                o.Common.DeepCopy(),
-		PublicNote:            o.PublicNote,
-		PublicNoteType:        o.PublicNoteType,
-		ExternalTxURL:         o.ExternalTxURL,
-		FeeChargedDescription: o.FeeChargedDescription,
-	}
-}
-
-type PaymentCommonLocal struct {
 	Id                  PaymentID       `codec:"id" json:"id"`
 	TxID                TransactionID   `codec:"txID" json:"txID"`
 	Time                TimeMs          `codec:"time" json:"time"`
@@ -311,14 +281,15 @@ type PaymentCommonLocal struct {
 	IsAdvanced          bool            `codec:"isAdvanced" json:"isAdvanced"`
 	SummaryAdvanced     string          `codec:"summaryAdvanced" json:"summaryAdvanced"`
 	Operations          []string        `codec:"operations" json:"operations"`
+	Unread              bool            `codec:"unread" json:"unread"`
 	BatchID             string          `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
 	IsInflation         bool            `codec:"isInflation" json:"isInflation"`
 	InflationSource     *string         `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 }
 
-func (o PaymentCommonLocal) DeepCopy() PaymentCommonLocal {
-	return PaymentCommonLocal{
+func (o PaymentLocal) DeepCopy() PaymentLocal {
+	return PaymentLocal{
 		Id:                o.Id.DeepCopy(),
 		TxID:              o.TxID.DeepCopy(),
 		Time:              o.Time.DeepCopy(),
@@ -372,6 +343,7 @@ func (o PaymentCommonLocal) DeepCopy() PaymentCommonLocal {
 			}
 			return ret
 		})(o.Operations),
+		Unread:      o.Unread,
 		BatchID:     o.BatchID,
 		FromAirdrop: o.FromAirdrop,
 		IsInflation: o.IsInflation,
@@ -382,6 +354,34 @@ func (o PaymentCommonLocal) DeepCopy() PaymentCommonLocal {
 			tmp := (*x)
 			return &tmp
 		})(o.InflationSource),
+	}
+}
+
+type PaymentDetailsLocal struct {
+	Summary PaymentLocal            `codec:"summary" json:"summary"`
+	Details PaymentDetailsOnlyLocal `codec:"details" json:"details"`
+}
+
+func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
+	return PaymentDetailsLocal{
+		Summary: o.Summary.DeepCopy(),
+		Details: o.Details.DeepCopy(),
+	}
+}
+
+type PaymentDetailsOnlyLocal struct {
+	PublicNote            string `codec:"publicNote" json:"publicNote"`
+	PublicNoteType        string `codec:"publicNoteType" json:"publicNoteType"`
+	ExternalTxURL         string `codec:"externalTxURL" json:"externalTxURL"`
+	FeeChargedDescription string `codec:"feeChargedDescription" json:"feeChargedDescription"`
+}
+
+func (o PaymentDetailsOnlyLocal) DeepCopy() PaymentDetailsOnlyLocal {
+	return PaymentDetailsOnlyLocal{
+		PublicNote:            o.PublicNote,
+		PublicNoteType:        o.PublicNoteType,
+		ExternalTxURL:         o.ExternalTxURL,
+		FeeChargedDescription: o.FeeChargedDescription,
 	}
 }
 
