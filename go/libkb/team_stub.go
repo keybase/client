@@ -172,6 +172,12 @@ func (n nullHiddenTeamChainManager) Advance(MetaContext, keybase1.HiddenTeamChai
 func (n nullHiddenTeamChainManager) Load(MetaContext, keybase1.TeamID) (*keybase1.HiddenTeamChain, error) {
 	return nil, fmt.Errorf("null hidden team chain manager")
 }
+func (n nullHiddenTeamChainManager) Tombstone(MetaContext, keybase1.TeamID) error {
+	return nil
+}
+func (n nullHiddenTeamChainManager) Freeze(MetaContext, keybase1.TeamID) error {
+	return nil
+}
 
 func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}
