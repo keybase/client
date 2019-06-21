@@ -485,9 +485,7 @@ func (d *Decoder) decodeArray(v reflect.Value, ignoreOpaque bool, maxSize int) (
 	if v.Cap() < sliceLen {
 		v.Set(reflect.MakeSlice(v.Type(), sliceLen, sliceLen))
 	}
-	if v.Len() < sliceLen {
-		v.SetLen(sliceLen)
-	}
+	v.SetLen(sliceLen)
 
 	// Treat []byte (byte is alias for uint8) as opaque data unless ignored.
 	if !ignoreOpaque && v.Type().Elem().Kind() == reflect.Uint8 {
@@ -533,7 +531,13 @@ func (d *Decoder) decodeUnion(v reflect.Value) (int, error) {
 		return n, err
 	}
 
-	vs.SetInt(int64(i))
+	kind := vs.Kind()
+	if kind == reflect.Uint || kind == reflect.Uint8 || kind == reflect.Uint16 ||
+		kind == reflect.Uint32 || kind == reflect.Uint64 {
+		vs.SetUint(uint64(i))
+	} else {
+		vs.SetInt(int64(i))
+	}
 
 	arm, ok := u.ArmForSwitch(i)
 
