@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/stellar/go/support/errors"
-	"github.com/stellar/go/support/log"
 )
 
 var (
@@ -103,7 +102,6 @@ func Render(ctx context.Context, w http.ResponseWriter, err error) {
 		// If this error is not a registered error
 		// log it and replace it with a 500 error
 		if !ok {
-			log.Ctx(ctx).WithStack(err).Error(err)
 			problem = ServerError
 		}
 	}
@@ -121,7 +119,6 @@ func renderProblem(ctx context.Context, w http.ResponseWriter, p P) {
 	js, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		err = errors.Wrap(err, "failed to encode problem")
-		log.Ctx(ctx).WithStack(err).Error(err)
 		http.Error(w, "error rendering problem", http.StatusInternalServerError)
 		return
 	}
