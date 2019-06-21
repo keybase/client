@@ -8,7 +8,7 @@ import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
 import Browser from './browser/container'
 import {NormalPreview} from './filepreview'
-import {LoadPathMetadataWhenNeeded} from './common'
+import {useFsLoadEffect} from './common'
 import * as SimpleScreens from './simple-screens'
 import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './nav-header'
 
@@ -70,59 +70,50 @@ const useBare = isMobile
       return false
     }
 
-class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
-  waitForKbfsDaemonIfNeeded() {
-    if (this.props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-      // Always triggers whenever something changes if we are not connected.
-      // Saga deduplicates redundant checks.
-      this.props.waitForKbfsDaemon()
-    }
-  }
-  componentDidMount() {
-    if (useBare(this.props.mimeType)) {
-      this.props.emitBarePreview()
-    }
-    this.waitForKbfsDaemonIfNeeded()
-  }
-  componentDidUpdate(prevProps) {
-    if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
-      this.props.emitBarePreview()
-    }
-    this.waitForKbfsDaemonIfNeeded()
+const ChooseComponent = (props: ChooseComponentProps) => {
+  const {emitBarePreview, waitForKbfsDaemon} = props
+
+  const bare = useBare(props.mimeType)
+  React.useEffect(() => {
+    bare && emitBarePreview()
+  }, [bare, emitBarePreview])
+
+  const isOnline = props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
+  React.useEffect(() => {
+    // Always triggers whenever something changes if we are not connected.
+    // Saga deduplicates redundant checks.
+    isOnline && waitForKbfsDaemon()
+  }, [isOnline, waitForKbfsDaemon])
+
+  useFsLoadEffect({
+    path: props.path,
+    refreshTag: Types.RefreshTag.Main,
+    wantPathMetadata: true,
+  })
+
+  if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+    return <SimpleScreens.Loading path={props.path} />
   }
 
-  getContent() {
-    if (this.props.softError) {
-      return <SimpleScreens.Oops path={this.props.path} reason={this.props.softError} />
-    }
-    switch (this.props.pathType) {
-      case Types.PathType.Folder:
-        return <Browser path={this.props.path} routePath={this.props.routePath} />
-      case Types.PathType.Unknown:
-        return <SimpleScreens.Loading path={this.props.path} />
-      default:
-        if (!this.props.mimeType) {
-          // We don't have it yet, so don't render.
-          return <SimpleScreens.Loading path={this.props.path} />
-        }
-        return useBare(this.props.mimeType) ? (
-          // doesn't matter here as we do a navigateAppend for bare views
-          <SimpleScreens.Loading path={this.props.path} />
-        ) : (
-          <NormalPreview path={this.props.path} routePath={this.props.routePath} />
-        )
-    }
+  if (props.softError) {
+    return <SimpleScreens.Oops path={props.path} reason={props.softError} />
   }
-  render() {
-    if (this.props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-      return <SimpleScreens.Loading path={this.props.path} />
-    }
-    return (
-      <>
-        <LoadPathMetadataWhenNeeded path={this.props.path} refreshTag={Types.RefreshTag.Main} />
-        {this.getContent()}
-      </>
-    )
+  switch (props.pathType) {
+    case Types.PathType.Folder:
+      return <Browser path={props.path} routePath={props.routePath} />
+    case Types.PathType.Unknown:
+      return <SimpleScreens.Loading path={props.path} />
+    default:
+      if (!props.mimeType) {
+        // We don't have it yet, so don't render.
+        return <SimpleScreens.Loading path={props.path} />
+      }
+      return bare ? (
+        // doesn't matter here as we do a navigateAppend for bare views
+        <SimpleScreens.Loading path={props.path} />
+      ) : (
+        <NormalPreview path={props.path} routePath={props.routePath} />
+      )
   }
 }
 

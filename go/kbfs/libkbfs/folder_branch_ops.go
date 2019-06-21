@@ -8995,6 +8995,12 @@ func (fbo *folderBranchOps) SetSyncConfig(
 			}}
 	}
 
+	defer func() {
+		if err == nil {
+			fbo.config.Reporter().NotifyFavoritesChanged(ctx)
+		}
+	}()
+
 	lState := makeFBOLockState()
 	md, err := fbo.getLatestMergedMD(ctx, lState)
 	if err != nil {
