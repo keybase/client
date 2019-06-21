@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
+import {AllowedColors} from '../../../../common-adapters/text'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
@@ -26,7 +27,7 @@ export type Props = {
   showBold: boolean
   snippet: string
   snippetDecoration: string
-  subColor: string
+  subColor: AllowedColors
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   timestamp: string

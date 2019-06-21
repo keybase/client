@@ -584,8 +584,15 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 		return err
 	}
 
+	links := []libkb.SigMultiItem{*smi}
+
+	err = t.precheckLinksToPost(ctx, links)
+	if err != nil {
+		return err
+	}
+
 	// Combine the "sig multi item" above with the various off-chain items, like boxes.
-	payload := t.sigPayload([]libkb.SigMultiItem{*smi}, payloadArgs)
+	payload := t.sigPayload(links, payloadArgs)
 
 	// Post the changes up to the server
 	err = t.postMulti(mctx, payload)
@@ -599,6 +606,9 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	if tmp != nil {
 		mctx.Warning("Failed to ratchet forward team chain: %s", tmp.Error())
 	}
+
+	// We rotated the key but didn't change the visibile chain
+	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{KeyRotated: true})
 
 	return err
 }
@@ -2264,7 +2274,11 @@ func FreezeTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	if err2 != nil {
 		mctx.Debug("error freezing in fast team cache: %v", err2)
 	}
-	return libkb.CombineErrors(err1, err2)
+	err3 := mctx.G().GetHiddenTeamChainManager().Freeze(mctx, teamID)
+	if err3 != nil {
+		mctx.Debug("error freezing in hidden team chain manager: %v", err3)
+	}
+	return libkb.CombineErrors(err1, err2, err3)
 }
 
 func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
@@ -2276,7 +2290,11 @@ func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	if err2 != nil {
 		mctx.Debug("error tombstoning in fast team cache: %v", err2)
 	}
-	return libkb.CombineErrors(err1, err2)
+	err3 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
+	if err3 != nil {
+		mctx.Debug("error tombstoning in hidden team chain manager: %v", err3)
+	}
+	return libkb.CombineErrors(err1, err2, err3)
 }
 
 type TeamShim struct {

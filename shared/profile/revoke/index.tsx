@@ -97,7 +97,7 @@ const styles = Styles.styleSheetCreate({
   },
   platformUsername: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.red,
+      color: Styles.globalColors.redDark,
       textDecorationLine: 'line-through',
     },
     isElectron: {

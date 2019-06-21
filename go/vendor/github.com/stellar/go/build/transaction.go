@@ -2,6 +2,7 @@ package build
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/errors"
@@ -31,6 +32,7 @@ type TransactionMutator interface {
 }
 
 // TransactionBuilder represents a Transaction that is being constructed.
+// Deprecated use txnbuild.Transaction instead
 type TransactionBuilder struct {
 	TX                *xdr.Transaction
 	NetworkPassphrase string
@@ -43,10 +45,10 @@ func (b *TransactionBuilder) Mutate(muts ...TransactionMutator) error {
 		b.TX = &xdr.Transaction{}
 	}
 
-	for _, m := range muts {
+	for i, m := range muts {
 		err := m.MutateTransaction(b)
 		if err != nil {
-			return err
+			return errors.Wrap(err, fmt.Sprintf("mutator:%d failed", i))
 		}
 	}
 
@@ -86,6 +88,19 @@ func (b *TransactionBuilder) Sign(signers ...string) (TransactionEnvelopeBuilder
 	}
 
 	return result, nil
+}
+
+// Envelope returns a new TransactionEnvelopeBuilder using this
+// builder's transaction as the basis and with the provided
+// mutators applied.
+func (b *TransactionBuilder) Envelope(muts ...TransactionEnvelopeMutator) (TransactionEnvelopeBuilder, error) {
+	var teb TransactionEnvelopeBuilder
+	err := teb.Mutate(b)
+	if err != nil {
+		return teb, err
+	}
+	err = teb.Mutate(muts...)
+	return teb, err
 }
 
 // ------------------------------------------------------------
@@ -130,11 +145,23 @@ func (m AutoSequence) MutateTransaction(o *TransactionBuilder) error {
 
 	seq, err := m.SequenceForAccount(source.Address())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "couldn't load account for auto sequence")
 	}
 
 	o.TX.SeqNum = seq + 1
 	return nil
+}
+
+// MutateTransaction for BumpSequenceBuilder causes the underylying BumpSequenceOp
+// to be added to the operation list for the provided transaction
+func (m BumpSequenceBuilder) MutateTransaction(o *TransactionBuilder) error {
+	if m.Err != nil {
+		return m.Err
+	}
+
+	m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeBumpSequence, m.BS)
+	o.TX.Operations = append(o.TX.Operations, m.O)
+	return m.Err
 }
 
 // MutateTransaction for ChangeTrustBuilder causes the underylying
@@ -217,10 +244,10 @@ func (m ManageOfferBuilder) MutateTransaction(o *TransactionBuilder) error {
 	}
 
 	if m.PassiveOffer {
-		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeCreatePassiveOffer, m.PO)
+		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeCreatePassiveSellOffer, m.PO)
 		o.TX.Operations = append(o.TX.Operations, m.O)
 	} else {
-		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeManageOffer, m.MO)
+		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypeManageSellOffer, m.MO)
 		o.TX.Operations = append(o.TX.Operations, m.O)
 	}
 	return m.Err
@@ -257,8 +284,8 @@ func (m MemoText) MutateTransaction(o *TransactionBuilder) (err error) {
 }
 
 func (m Timebounds) MutateTransaction(o *TransactionBuilder) error {
-    o.TX.TimeBounds = &xdr.TimeBounds{MinTime: xdr.Uint64(m.MinTime), MaxTime: xdr.Uint64(m.MaxTime)}
-    return nil
+	o.TX.TimeBounds = &xdr.TimeBounds{MinTime: xdr.TimePoint(m.MinTime), MaxTime: xdr.TimePoint(m.MaxTime)}
+	return nil
 }
 
 // MutateTransaction for Network sets the Network ID to use when signing this transaction

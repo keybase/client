@@ -2,7 +2,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {BigTeamChannel} from '.'
-import {connect, isMobile} from '../../../../util/container'
+import {namedConnect, isMobile} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -36,8 +36,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showBold: Constants.getRowStyles(stateProps._meta, false, false).showBold,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(BigTeamChannel)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'BigTeamChannel')(BigTeamChannel)

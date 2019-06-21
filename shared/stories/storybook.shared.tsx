@@ -2,13 +2,14 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {Provider} from 'react-redux'
-import {createStore} from 'redux'
+import {createStore, applyMiddleware} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
 import {action} from '@storybook/addon-actions'
 import Box from '../common-adapters/box'
 import Text from '../common-adapters/text'
 import ClickableBox from '../common-adapters/clickable-box'
 import RandExp from 'randexp'
+import * as PP from './prop-providers'
 
 export type SelectorMap = {[K in string]: (arg0: any) => any | Object}
 
@@ -45,6 +46,7 @@ class DestBox extends React.Component {
  */
 // Redux doesn't allow swapping the store given a single provider so we use a new key to force a new provider to
 // work around this issue
+// TODO remove this and move to use MockStore instead
 let uniqueProviderKey = 1
 const createPropProvider = (...maps: SelectorMap[]) => {
   const merged: SelectorMap = maps.reduce((obj, merged) => ({...obj, ...merged}), {})
@@ -72,6 +74,34 @@ const createPropProvider = (...maps: SelectorMap[]) => {
     </Provider>
   )
 }
+
+// Plumb dispatches through storybook actions panel
+const actionLog = () => next => a => {
+  action('ReduxDispatch')(a)
+  return next(a)
+}
+
+// Includes common old-style propProvider temporarily
+export const MockStore = ({store, children}): any => (
+  // @ts-ignore
+  <Provider
+    key={`storyprovider:${uniqueProviderKey++}`}
+    store={createStore(state => state, {...store, ...PP.Common()}, applyMiddleware(actionLog))}
+    merged={store}
+  >
+    <GatewayProvider>
+      <React.Fragment>
+        <StorybookErrorBoundary children={children} />
+        <GatewayDest component={DestBox} name="popup-root" />
+      </React.Fragment>
+    </GatewayProvider>
+  </Provider>
+)
+export const createNavigator = params => ({
+  navigation: {
+    getParam: key => params[key],
+  },
+})
 
 class StorybookErrorBoundary extends React.Component<
   any,
@@ -120,7 +150,7 @@ class StorybookErrorBoundary extends React.Component<
           <Kb.Box
             style={{
               ...Styles.globalStyles.flexBoxColumn,
-              backgroundColor: Styles.globalColors.darkBlue3,
+              backgroundColor: Styles.globalColors.blueDarker2,
               borderRadius: Styles.borderRadius,
               padding: 10,
               whiteSpace: 'pre-line',

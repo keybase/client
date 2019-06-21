@@ -32,6 +32,19 @@
     },
     "dbNuke": {},
     "deleteAccountForever": {},
+    "editEmail": {
+      "email": "string",
+      "delete?": "boolean",
+      "makePrimary?": "boolean",
+      "toggleSearchable?": "boolean",
+      "verify?": "boolean"
+    },
+    "editPhone": {
+      "phone": "string",
+      "delete?": "boolean",
+      "toggleSearchable?": "boolean",
+      "verify?": "boolean"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
@@ -60,7 +73,8 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "I.List<Types.EmailRow> | null"
+      "emails": "I.Map<string, Types.EmailRow> | null",
+      "phones": "I.Map<string, Types.PhoneRow> | null"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {

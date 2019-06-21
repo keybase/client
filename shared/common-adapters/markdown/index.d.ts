@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
+import {StylesTextCrossPlatform} from '../../common-adapters/text'
 import {MessageText} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
@@ -30,16 +31,16 @@ export type MarkdownMeta = {
 }
 
 export type StyleOverride = {
-  paragraph?: Styles.StylesCrossPlatform
-  fence?: Styles.StylesCrossPlatform
-  inlineCode?: Styles.StylesCrossPlatform
-  strong?: Styles.StylesCrossPlatform
-  em?: Styles.StylesCrossPlatform
-  del?: Styles.StylesCrossPlatform
-  link?: Styles.StylesCrossPlatform
-  mailto?: Styles.StylesCrossPlatform
-  preview?: Styles.StylesCrossPlatform
-  kbfsPath?: Styles.StylesCrossPlatform
+  paragraph?: StylesTextCrossPlatform
+  fence?: StylesTextCrossPlatform
+  inlineCode?: StylesTextCrossPlatform
+  strong?: StylesTextCrossPlatform
+  em?: StylesTextCrossPlatform
+  del?: StylesTextCrossPlatform
+  link?: StylesTextCrossPlatform
+  mailto?: StylesTextCrossPlatform
+  preview?: StylesTextCrossPlatform
+  kbfsPath?: StylesTextCrossPlatform
 }
 
 export type Props = {

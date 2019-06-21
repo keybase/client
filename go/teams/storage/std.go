@@ -62,15 +62,17 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 	ret, ok := vp.(*keybase1.TeamData)
 	if !ok {
 		mctx.Debug("teams.Storage#Get cast error: %T is wrong type", vp)
+		return nil, false, false
 	}
 
-	if ret != nil && diskStorageVersion == 10 && ret.Subversion == 0 {
+	if diskStorageVersion == 10 && ret.Subversion == 0 {
 		migrateInvites(mctx, ret.ID(), ret.Chain.ActiveInvites)
 		migrateInvites(mctx, ret.ID(), ret.Chain.ObsoleteInvites)
 		ret.Subversion = 1
 	}
 
-	if ret != nil && diskStorageVersion == 10 && ret.Subversion == 1 {
+	if diskStorageVersion == 10 && (ret.Subversion == 1 || ret.Chain.MaxPerTeamKeyGeneration == keybase1.PerTeamKeyGeneration(0)) {
+		prior := ret.Chain.MaxPerTeamKeyGeneration
 		// 2019-06: We added MaxPerTeamKeyGeneration and can hot-patch existing structures
 		// pretty easily, so do that rather than blasting away the cache.
 		for k := range ret.Chain.PerTeamKeys {
@@ -78,7 +80,7 @@ func (s *Storage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public boo
 				ret.Chain.MaxPerTeamKeyGeneration = k
 			}
 		}
-		mctx.Debug("Upgraded MaxPerTeamKeyGeneration to %d in version 10.2", ret.Chain.MaxPerTeamKeyGeneration)
+		mctx.Debug("Upgraded MaxPerTeamKeyGeneration to %d in version 10.2 (prior: %d, %d)", ret.Chain.MaxPerTeamKeyGeneration, ret.Subversion, prior)
 		ret.Subversion = 2
 	}
 

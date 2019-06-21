@@ -381,7 +381,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   error: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   expandedProxyContainer: {
     marginTop: Styles.globalMargins.small,

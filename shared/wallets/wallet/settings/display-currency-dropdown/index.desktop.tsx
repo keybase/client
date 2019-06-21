@@ -64,7 +64,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xtiny,
   },
   dropdownHeader: {padding: Styles.globalMargins.xsmall},
-  itemSelected: {color: Styles.globalColors.blue},
+  itemSelected: {color: Styles.globalColors.blueDark},
   progressIndicator: {
     height: 17,
     width: 17,

@@ -8,7 +8,7 @@ import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
 import Channel from '../channel-container'
 import MaybeMention from '../../chat/conversation/maybe-mention'
-import Text from '../text'
+import Text, {StylesTextCrossPlatform} from '../text'
 import {StyleOverride} from '.'
 
 export type Props = {
@@ -17,7 +17,7 @@ export type Props = {
   allowFontScaling?: boolean | null
   message?: Types.MessageText
   styleOverride: StyleOverride
-  styles: {[K in string]: Styles.StylesCrossPlatform}
+  styles: {[K in string]: StylesTextCrossPlatform}
 }
 
 const ServiceDecoration = (props: Props) => {

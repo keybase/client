@@ -554,6 +554,10 @@
           "name": "frozen"
         },
         {
+          "type": "int",
+          "name": "subversion"
+        },
+        {
           "type": "boolean",
           "name": "tombstoned"
         },

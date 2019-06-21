@@ -101,7 +101,7 @@ const styles = Styles.styleSheetCreate({
   },
   scroll: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.darkBlue3,
+      backgroundColor: Styles.globalColors.blueDarker2,
       borderRadius: Styles.borderRadius,
     },
     isElectron: {

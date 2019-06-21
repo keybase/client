@@ -33,7 +33,7 @@ const load = () => {
         icon={<Box style={{backgroundColor: globalColors.black_20, height: 32, width: 32}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={
-          <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
+          <Text style={{color: globalColors.redDark}} type={'BodySmall'} onClick={Sb.action('text action')}>
             Action Jack
           </Text>
         }
@@ -56,7 +56,7 @@ const load = () => {
         icon={<Box style={{backgroundColor: globalColors.black_20, height: 48, width: 48}} />}
         body={<Box style={{backgroundColor: globalColors.black_20, flex: 1}} />}
         action={
-          <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
+          <Text style={{color: globalColors.redDark}} type={'BodySmall'} onClick={Sb.action('text action')}>
             Action Jack
           </Text>
         }

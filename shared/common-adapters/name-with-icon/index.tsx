@@ -4,7 +4,7 @@ import Avatar, {AvatarSize} from '../avatar'
 import Box from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, IconType} from '../icon'
-import Text, {TextType} from '../text'
+import Text, {TextType, StylesTextCrossPlatform} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
@@ -37,7 +37,7 @@ export type NameWithIconProps = {
   channelname?: string
   // for non-users
   title?: string | React.ReactNode
-  titleStyle?: Styles.StylesCrossPlatform
+  titleStyle?: StylesTextCrossPlatform
   underline?: boolean
   username?: string
 }
@@ -185,7 +185,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
 const TextOrComponent = (props: {
   val: string | React.ReactNode
   textType: TextType
-  style?: Styles.StylesCrossPlatform
+  style?: StylesTextCrossPlatform
 }): React.ReactElement => {
   if (typeof props.val === 'string') {
     return (

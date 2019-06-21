@@ -29,7 +29,7 @@ const styles = Styles.styleSheetCreate({
   follow: {
     backgroundColor: Styles.globalColors.greenLighter,
     borderRadius: 2,
-    color: Styles.globalColors.green,
+    color: Styles.globalColors.greenDark,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellow,
@@ -38,7 +38,7 @@ const styles = Styles.styleSheetCreate({
   nonFollow: {
     backgroundColor: Styles.globalColors.blueLighter2,
     borderRadius: 2,
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   none: {
     borderRadius: 2,

@@ -100,6 +100,7 @@ a = 1
       /keybaseprivate
       /keybaseprivate/team
       /keybase/teamaa/keybase
+      /keybase/.kbfs_status
       /foo
       /keybase`,
   nonemoji: `:party-parrot:`,

@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
@@ -13,6 +14,7 @@ import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import {unescapePath} from '../constants/fs'
 import {OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
+import rootReducer from '../reducers'
 
 /*
  * Some common prop factory creators.
@@ -179,5 +181,18 @@ export const createPropProviderWithCommon = (custom: Object | null) =>
   // @ts-ignore not sure
   createPropProvider({
     ...Common(),
+    ...createStoreWithCommon(),
     ...(custom || {}),
   })
+
+export const createStoreWithCommon = () => {
+  const root = rootReducer(undefined, {type: 'ignore'})
+  return {
+    ...root,
+    config: root.config.merge({
+      followers: I.Set(['max', 'akalin', 'followers', 'both']),
+      following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
+      username: 'ayoubd',
+    }),
+  }
+}

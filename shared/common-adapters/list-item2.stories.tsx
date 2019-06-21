@@ -35,6 +35,7 @@ const load = () => {
           Small
         </Text>
         <ListItem firstItem={true} type="Small" icon={icon1} body={body1} />
+        <ListItem firstItem={false} type="Small" body={body1} />
         <ListItem firstItem={false} type="Small" icon={icon1} body={body1} statusIcon={icon3} />
         <ListItem firstItem={false} type="Small" icon={icon1} body={body2} />
         <ListItem firstItem={false} type="Small" icon={icon1} body={body3} />
@@ -45,11 +46,19 @@ const load = () => {
         <ListItem firstItem={false} type="Small" icon={icon1} body={body1} action={actionButton} />
         <ListItem
           firstItem={false}
+          type="Small"
+          icon={icon1}
+          body={body1}
+          action={actionButton}
+          height={120}
+        />
+        <ListItem
+          firstItem={false}
           icon={icon1}
           body={body1}
           type="Small"
           action={
-            <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={Sb.action('text action')}>
+            <Text style={{color: globalColors.redDark}} type={'BodySmall'} onClick={Sb.action('text action')}>
               Action Jack
             </Text>
           }
@@ -57,10 +66,19 @@ const load = () => {
         <Text type="Header" style={{margin: 20}}>
           Large
         </Text>
+        <ListItem firstItem={true} type="Large" body={body1} />
+        <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
+        <ListItem firstItem={false} type="Large" icon={icon1} body={body1} statusIcon={icon3} />
         <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
         <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
-        <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
-        <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
+        <ListItem
+          firstItem={false}
+          type="Large"
+          icon={icon2}
+          body={body1}
+          action={actionButton}
+          height={120}
+        />
         <ListItem firstItem={false} type="Large" icon={icon2} body={body1} action={actionButton} />
         <ListItem firstItem={false} type="Large" icon={icon1} body={body1} action={actionButton} />
       </Box2>

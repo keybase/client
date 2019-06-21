@@ -69,7 +69,7 @@ const bioProps = {
   backgroundColorType: 'green' as BackgroundColorType,
   notAUser: false,
   onAddIdentity: Sb.action('onAddIdentity'),
-  onEditAvatar: Sb.action('onEditAvatarClick'),
+  onEditAvatar: null,
   reason: 'storybook',
   suggestionKeys: [],
   username: 'Chris',

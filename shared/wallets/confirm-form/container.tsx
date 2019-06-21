@@ -6,7 +6,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Participants from './participants/container'
 import {anyWaiting} from '../../constants/waiting'
-import {connect, isMobile, RouteProps} from '../../util/container'
+import {namedConnect, isMobile, RouteProps} from '../../util/container'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -45,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
-export default connect(
+export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps) => {
@@ -93,5 +93,6 @@ export default connect(
       sendingIntentionXLM: stateProps.sendingIntentionXLM,
       waitingKey: stateProps.waitingKey,
     }
-  }
+  },
+  'ConfirmSend'
 )(ConfirmSend)

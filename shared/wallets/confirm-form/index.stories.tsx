@@ -10,6 +10,7 @@ const ConfirmSend: any = _ConfirmSend
 // good level of connected granularity while implementing
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
+  ConfirmSend: props => props,
   Participants: props => ({
     fromAccountAssets: '280.0871234 XLM',
     fromAccountName: '2nd',

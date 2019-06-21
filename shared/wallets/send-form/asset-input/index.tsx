@@ -117,7 +117,7 @@ class AssetInput extends React.Component<Props> {
         {!!this.props.warningPayee && (
           <Kb.Text type="BodySmallError">
             {this.props.warningPayee} doesn't accept{' '}
-            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
+            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.redDark}}>
               {this.props.warningAsset}
             </Kb.Text>
             . Please pick another asset.
@@ -163,9 +163,9 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 0,
   },
   labelMargin: {marginLeft: 1},
-  topLabel: {color: Styles.globalColors.blue},
+  topLabel: {color: Styles.globalColors.blueDark},
   unit: {
-    color: Styles.globalColors.purple,
+    color: Styles.globalColors.purpleDark,
   },
 })
 

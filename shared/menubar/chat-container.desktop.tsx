@@ -21,13 +21,15 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  convRows: stateProps.conversations
-    .slice(0, ownProps.convLimit ? ownProps.convLimit : stateProps.conversations.length)
-    .map(c => ({
-      conversationIDKey: c.conversationIDKey,
-      onSelectConversation: () => dispatchProps._onSelectConversation(c.conversationIDKey),
-      ...c,
-    })),
+  convRows: __STORYBOOK__
+    ? []
+    : stateProps.conversations
+        .slice(0, ownProps.convLimit ? ownProps.convLimit : stateProps.conversations.length)
+        .map(c => ({
+          conversationIDKey: c.conversationIDKey,
+          onSelectConversation: () => dispatchProps._onSelectConversation(c.conversationIDKey),
+          ...c,
+        })),
   onViewAll: dispatchProps.onViewAll,
 })
 
