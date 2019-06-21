@@ -37,7 +37,11 @@ const ModalInner = (props: Props) => (
   <>
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
-    <Kb.ScrollView alwaysBounceVertical={false} {...(props.mode === 'Wide' ? wideScrollStyles : {})}>
+    <Kb.ScrollView
+      alwaysBounceVertical={false}
+      style={props.mode === 'Wide' ? styles.scrollWide : undefined}
+      contentContainerStyle={styles.scrollContentContainer}
+    >
       {props.children}
     </Kb.ScrollView>
     {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
@@ -152,19 +156,10 @@ const styles = Styles.styleSheetCreate({
       width: 560,
     },
   }),
-  nativeCoverStyleOverrides: Styles.platformStyles({
-    isMobile: {
-      ...Styles.padding(0),
-    },
+  scrollContentContainer: {position: 'relative', width: '100%'},
+  scrollWide: Styles.platformStyles({
+    isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
   }),
-  scrollWide: {flex: 1},
-  scrollWideContentContainer: {height: '100%', width: '100%'},
 })
-
-// Since height is fixed in Wide mode, make scrollview expand to fill height
-const wideScrollStyles = {
-  contentContainerStyle: styles.scrollWideContentContainer,
-  style: styles.scrollWide,
-}
 
 export default Modal

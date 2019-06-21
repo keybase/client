@@ -76,8 +76,8 @@ class ConfirmModal extends React.PureComponent<Props> {
           direction="vertical"
           centerChildren={true}
           fullWidth={true}
-          fullHeight={true}
           style={styles.container}
+          noShrink={true}
         >
           {this.props.icon && (
             <Icon
@@ -89,7 +89,7 @@ class ConfirmModal extends React.PureComponent<Props> {
             />
           )}
           {this.props.header && (
-            <Box2 alignItems="center" direction="vertical" style={styles.icon}>
+            <Box2 alignItems="center" direction="vertical" style={styles.icon} noShrink={true}>
               {this.props.header}
             </Box2>
           )}
