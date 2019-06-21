@@ -18,7 +18,8 @@ type Props = {
   memo: string | null
   memoType: string | null
   message: string | null
-  onAccept: () => void
+  onAcceptPay: (amount: string) => void
+  onAcceptTx: () => void
   onCancel: () => void
   operation: 'pay' | 'tx'
   originDomain: string
@@ -100,7 +101,7 @@ const Header = (props: HeaderProps) => (
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text negative={true} type="BodyBig">
-        is requesting a {props.isPayment ? 'a payment' : ' you to sign a transaction'}.
+        is requesting {props.isPayment ? 'a payment' : 'you to sign a transaction'}.
       </Kb.Text>
       <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
         Keybase verified the request's signature.
@@ -144,7 +145,9 @@ const PaymentInfo = (props: PaymentInfoProps) => (
 
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
 
-    {!!props.recipient && <InfoRow headerText="Recipient" bodyText={props.recipient} showStellarIcon={true} />}
+    {!!props.recipient && (
+      <InfoRow headerText="Recipient" bodyText={props.recipient} showStellarIcon={true} />
+    )}
   </Kb.Box2>
 )
 
@@ -185,7 +188,7 @@ const PaymentsConfirm = (props: Props) =>
           {props.operation === 'pay' ? (
             <PaymentInfo
               amount={props.amount}
-              memo={props.memo}
+              memo={props.memoType === 'MEMO_TEXT' && props.memo}
               message={props.message}
               recipient={props.recipient}
             />
@@ -205,15 +208,15 @@ const PaymentsConfirm = (props: Props) =>
           gap="small"
           style={styles.buttonContainer}
         >
-            <Kb.WaitingButton
-              type="Success"
-              disabled={props.waiting}
-              onClick={props.onAccept}
-              waitingKey={props.waitingKey}
-              fullWidth={true}
-              style={styles.button}
-              label={props.operation === 'pay' ? 'Pay' : 'Sign'}
-            />
+          <Kb.WaitingButton
+            type="Success"
+            disabled={props.waiting}
+            onClick={props.operation === 'pay' ? () => props.onAcceptPay(props.amount) : props.onAcceptTx}
+            waitingKey={props.waitingKey}
+            fullWidth={true}
+            style={styles.button}
+            label={props.operation === 'pay' ? 'Pay' : 'Sign'}
+          />
         </Kb.Box2>
       </Kb.Box2>
       <Kb.SafeAreaView />

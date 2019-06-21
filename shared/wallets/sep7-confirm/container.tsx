@@ -28,6 +28,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     assetCode,
     assetIssuer,
     callbackURL,
+    inputURI: state.wallets.sep7ConfirmURI,
     loading: !state.wallets.sep7ConfirmInfo,
     memo,
     memoType,
@@ -43,14 +44,21 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onAcceptPay: () => dispatch(WalletsGen.createAcceptSEP7Pay()),
-  onAcceptTx: () => dispatch(WalletsGen.createAcceptSEP7Tx()),
+  _onAcceptPay: (inputURI: string, amount: string) =>
+    dispatch(WalletsGen.createAcceptSEP7Pay({amount, inputURI})),
+  _onAcceptTx: (inputURI: string) => dispatch(WalletsGen.createAcceptSEP7Tx({inputURI})),
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    ...stateProps,
+    onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
+    onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
+    onClose: dispatchProps.onClose,
+  }),
   'SEP7Confirm'
 )(SEP7Confirm)

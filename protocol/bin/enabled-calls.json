@@ -223,6 +223,8 @@
   "keybase.1.user.blockUser": {"promise": true},
   "keybase.1.user.unblockUser": {"promise": true},
   "stellar.1.local.acceptDisclaimerLocal": {"promise": true},
+  "stellar.1.local.approvePayURILocal": {"promise": true},
+  "stellar.1.local.approveTxURILocal": {"promise": true},
   "stellar.1.local.airdropDetailsLocal": {"promise": true},
   "stellar.1.local.airdropRegisterLocal": {"promise": true},
   "stellar.1.local.airdropStatusLocal": {"promise": true},
