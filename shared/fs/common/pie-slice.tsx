@@ -5,20 +5,27 @@ import * as Styles from '../../styles/index'
 type Props = {
   degrees: number
   animated?: boolean
+  negative?: boolean
   style?: Styles.StylesCrossPlatform
 }
 
 const PieSliceDefault = (props: Props) => {
+  const styleFilled = props.negative ? styles.filledNegative : styles.filledPositive
+  const styleUnfilled = props.negative ? styles.unfilledNegative : styles.unfilledPositive
   const styleRotate = Styles.isMobile
     ? {transform: [{rotate: props.degrees + 'deg'}]}
     : {transform: 'rotate(' + props.degrees + 'deg)'}
   return (
     <Kb.Box style={Styles.collapseStyles([styles.container, ...(props.style ? [props.style] : [])])}>
-      <Kb.Box style={styles.wholeGrey} />
+      <Kb.Box style={Styles.collapseStyles([styles.wholeUnfilled, styleUnfilled])} />
       <Kb.Box style={Styles.collapseStyles([styles.rotateContainer, styleRotate])}>
-        <Kb.Box style={styles.leftBlue} />
+        <Kb.Box style={Styles.collapseStyles([styles.leftFilled, styleFilled])} />
       </Kb.Box>
-      {props.degrees <= 180 ? <Kb.Box style={styles.leftGrey} /> : <Kb.Box style={styles.rightBlue} />}
+      <Kb.Box
+        style={Styles.collapseStyles(
+          props.degrees <= 180 ? [styles.leftUnfilled, styleUnfilled] : [styles.rightFilled, styleFilled]
+        )}
+      />
     </Kb.Box>
   )
 }
@@ -26,10 +33,12 @@ const PieSliceDefault = (props: Props) => {
 const PieSlice = (props: Props) => {
   return props.animated ? (
     <Kb.Animated to={{degrees: props.degrees}}>
-      {({degrees}: Props) => <PieSliceDefault degrees={degrees} style={props.style} />}
+      {({degrees}: Props) => (
+        <PieSliceDefault degrees={degrees} style={props.style} negative={props.negative} />
+      )}
     </Kb.Animated>
   ) : (
-    <PieSliceDefault degrees={props.degrees} style={props.style} />
+    <PieSliceDefault degrees={props.degrees} style={props.style} negative={props.negative} />
   )
 }
 const pieSize = Styles.isMobile ? 16 : 12
@@ -50,25 +59,28 @@ const styles = Styles.styleSheetCreate({
     position: 'relative' as 'relative',
     width: pieSize,
   },
-  leftBlue: {
-    ...stylePieHalf,
+  filledNegative: {
+    backgroundColor: Styles.globalColors.greyLight,
+  },
+  filledPositive: {
     backgroundColor: Styles.globalColors.blue,
+  },
+  leftFilled: {
+    ...stylePieHalf,
     borderBottomLeftRadius: pieHalfSize,
     borderTopLeftRadius: pieHalfSize,
     left: 0,
   },
-  leftGrey: {
+  leftUnfilled: {
     ...stylePieHalf,
-    backgroundColor: Styles.globalColors.greyLight,
-    // -1 is a workaround for a rendering issue where the blue part of the
-    // pie is not entirely hidden by the white part
+    // -1 is a workaround for a rendering issue where the filled part of the
+    // pie is not entirely hidden by the unfilled part
     borderBottomLeftRadius: pieHalfSize - 1,
     borderTopLeftRadius: pieHalfSize - 1,
     left: 0,
   },
-  rightBlue: {
+  rightFilled: {
     ...stylePieHalf,
-    backgroundColor: Styles.globalColors.blue,
     borderBottomRightRadius: pieHalfSize,
     borderTopRightRadius: pieHalfSize,
     left: pieHalfSize,
@@ -77,11 +89,16 @@ const styles = Styles.styleSheetCreate({
     ...stylePieWhole,
     left: 0,
   },
-  wholeGrey: {
-    ...stylePieWhole,
+  unfilledNegative: {
+    backgroundColor: Styles.globalColors.blueDark,
+  },
+  unfilledPositive: {
     backgroundColor: Styles.globalColors.greyLight,
-    // -1 is a workaround for a rendering issue where the blue part of the
-    // pie is not entirely hidden by the white part
+  },
+  wholeUnfilled: {
+    ...stylePieWhole,
+    // -1 is a workaround for a rendering issue where the filled part of the
+    // pie is not entirely hidden by the unfilled part
     borderRadius: pieHalfSize - 1,
   },
 })

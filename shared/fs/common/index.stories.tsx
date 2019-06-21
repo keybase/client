@@ -181,7 +181,12 @@ class PieSliceWrapper extends React.PureComponent<
         >
           {this.state.degrees} degrees:{' '}
         </Kb.Text>
-        <PieSlice degrees={this.state.degrees} animated={true} style={{margin: Styles.globalMargins.small}} />
+        <PieSlice
+          degrees={this.state.degrees}
+          animated={true}
+          style={{margin: Styles.globalMargins.small}}
+          negative={this.props.darkBackground}
+        />
         <Kb.Button
           onClick={this._onClick}
           label="Add progress"

@@ -8,6 +8,7 @@ type Props = {
   progress: number
   show: boolean
   tooltip: string
+  darkBackground?: boolean
 }
 
 const SyncingFolders = (props: Props) =>
@@ -15,7 +16,7 @@ const SyncingFolders = (props: Props) =>
     <Kb.WithTooltip text={props.tooltip}>
       <Kb.Box2 direction="horizontal" alignItems="center">
         <PieSlice degrees={props.progress * 360} animated={true} />
-        <Kb.Text type="BodyTiny" style={{marginLeft: 5}}>
+        <Kb.Text type="BodyTiny" negative={!!props.darkBackground} style={{marginLeft: 5}}>
           Syncing folders...
         </Kb.Text>
       </Kb.Box2>
