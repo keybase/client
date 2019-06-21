@@ -555,6 +555,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("merkle")
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
+	var hiddenIsFresh bool
 
 	if (ret == nil) || repoll {
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
@@ -565,17 +566,16 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
-		var hiddenIsFresh bool
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
 		lastSeqno, lastLinkID, hiddenIsFresh, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
 		if err != nil {
 			return nil, err
 		}
-		hiddenPackage.SetIsFresh(hiddenIsFresh)
 		didRepoll = true
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
 		lastLinkID = ret.Chain.LastLinkID
+		hiddenIsFresh = true
 	}
 
 	// For child calls to load2, the subteam reader ID is carried up
@@ -608,7 +608,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		mctx.Debug("TeamLoader fetching: chain update")
 		// The cache is definitely behind
 		fetchLinksAndOrSecrets = true
-	} else if !hiddenPackage.IsFresh() {
+	} else if !hiddenIsFresh {
 		mctx.Debug("TeamLoader fetching: hidden chain wasn't fresh")
 		fetchLinksAndOrSecrets = true
 	} else if !l.hasSyncedSecrets(mctx, teamShim()) {
@@ -1131,6 +1131,11 @@ func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fr
 	// Repoll if the server has previously hinted that the team has new links.
 	if fromCache != nil && fromCache.MainChain() != nil && fromCache.MainChain().Chain.LastSeqno < fromCache.MainChain().LatestSeqnoHint {
 		reason = "behind seqno hint"
+		return false, true
+	}
+
+	if fromCache != nil && fromCache.HiddenChain() != nil && fromCache.HiddenChain().IsStale() {
+		reason = "behind hidden seqno hint"
 		return false, true
 	}
 

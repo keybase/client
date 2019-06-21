@@ -339,7 +339,7 @@ func TestImplicitTeamRotate(t *testing.T) {
 		require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
 
 		t.Logf("rotate the key")
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 
 		t.Logf("load as other member")
