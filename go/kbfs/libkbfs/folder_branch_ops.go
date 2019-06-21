@@ -907,7 +907,7 @@ var errNoMergedRevWhileStaged = errors.New(
 	"Cannot find most recent merged revision while staged")
 
 func (fbo *folderBranchOps) getJournalRevisions(ctx context.Context) (
-	kbfsmd.Revision, kbfsmd.Revision, error) {
+	predRev, journalEndRev kbfsmd.Revision, err error) {
 	jManager, err := GetJournalManager(fbo.config)
 	if err != nil {
 		// Journaling is disabled entirely.
