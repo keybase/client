@@ -45,18 +45,18 @@ const pieSize = Styles.isMobile ? 16 : 12
 const pieHalfSize = Styles.isMobile ? 8 : 6
 const stylePieHalf = {
   height: pieSize,
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
   width: pieHalfSize,
 }
 const stylePieWhole = {
   height: pieSize,
-  position: 'absolute' as 'absolute',
+  position: 'absolute' as const,
   width: pieSize,
 }
 const styles = Styles.styleSheetCreate({
   container: {
     height: pieSize,
-    position: 'relative' as 'relative',
+    position: 'relative' as const,
     width: pieSize,
   },
   filledNegative: {
@@ -73,10 +73,8 @@ const styles = Styles.styleSheetCreate({
   },
   leftUnfilled: {
     ...stylePieHalf,
-    // -1 is a workaround for a rendering issue where the filled part of the
-    // pie is not entirely hidden by the unfilled part
-    borderBottomLeftRadius: pieHalfSize - 1,
-    borderTopLeftRadius: pieHalfSize - 1,
+    borderBottomLeftRadius: pieHalfSize,
+    borderTopLeftRadius: pieHalfSize,
     left: 0,
   },
   rightFilled: {
@@ -97,9 +95,7 @@ const styles = Styles.styleSheetCreate({
   },
   wholeUnfilled: {
     ...stylePieWhole,
-    // -1 is a workaround for a rendering issue where the filled part of the
-    // pie is not entirely hidden by the unfilled part
-    borderRadius: pieHalfSize - 1,
+    borderRadius: pieHalfSize,
   },
 })
 
