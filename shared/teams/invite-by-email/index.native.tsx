@@ -199,7 +199,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             keyProperty="id"
             items={filteredContactRows}
             fixedHeight={56}
-            ListItemComponent={
+            ListHeaderComponent={
               <ClickableBox
                 onClick={() => this.onOpenRolePicker()}
                 style={{
