@@ -1086,6 +1086,13 @@
 			"revisionTime": "2019-06-20T21:01:22Z"
 		},
 		{
+			"checksumSHA1": "qg2VHBkWHGciYOWc88kUOImyjLE=",
+			"origin": "github.com/keybase/stellar-org/support/http/mutil",
+			"path": "github.com/stellar/go/support/http/mutil",
+			"revision": "1f0360911a792e7d8c09277676f4b19d1b8739c9",
+			"revisionTime": "2019-06-20T21:01:22Z"
+		},
+		{
 			"checksumSHA1": "ZKza7UafFwx4iwPBpyEHYSXwrUk=",
 			"origin": "github.com/keybase/stellar-org/support/log",
 			"path": "github.com/stellar/go/support/log",
