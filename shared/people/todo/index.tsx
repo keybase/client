@@ -32,7 +32,7 @@ export const Task = (props: Props) => (
         />
       )}
       {props.dismissable && (
-        <Kb.Button small={true} label="Follow later" mode="Secondary" onClick={props.onDismiss} />
+        <Kb.Button small={true} label="Later" mode="Secondary" onClick={props.onDismiss} />
       )}
     </Kb.Box>
   </PeopleItem>
