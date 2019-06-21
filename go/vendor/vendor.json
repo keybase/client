@@ -841,12 +841,6 @@
 			"revisionTime": "2016-07-24T20:39:20Z"
 		},
 		{
-			"checksumSHA1": "ey0M/IUb5rRhdKvNBQhkEXPjivc=",
-			"path": "github.com/nullstyle/go-xdr/xdr3",
-			"revision": "f4c839f750778158541decf4c318fc7625ec066b",
-			"revisionTime": "2018-07-26T16:54:26Z"
-		},
-		{
 			"checksumSHA1": "Gbehm4yQRkqSwF3yI/ytorJG3kI=",
 			"path": "github.com/pelletier/go-buffruneio",
 			"revision": "25c428535bd3f55a16f149a9daebd3fa4c5a562b",
@@ -1070,20 +1064,6 @@
 			"checksumSHA1": "RYWv9kXP4XcsZ1oMsJmXf8bWpYs=",
 			"origin": "github.com/keybase/stellar-org/support/errors",
 			"path": "github.com/stellar/go/support/errors",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
-		},
-		{
-			"checksumSHA1": "qg2VHBkWHGciYOWc88kUOImyjLE=",
-			"origin": "github.com/keybase/stellar-org/support/http/mutil",
-			"path": "github.com/stellar/go/support/http/mutil",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
-		},
-		{
-			"checksumSHA1": "ZKza7UafFwx4iwPBpyEHYSXwrUk=",
-			"origin": "github.com/keybase/stellar-org/support/log",
-			"path": "github.com/stellar/go/support/log",
 			"revision": "e43266cae98f292a11218decae91a277a8489da2",
 			"revisionTime": "2019-06-21T18:08:33Z"
 		},
