@@ -205,13 +205,13 @@ func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.
 			return
 		}
 		if n.outboxID.Eq(msg.GetOutboxID()) {
-			close(n.doneCh)
+			n.doneCh <- struct{}{}
 		}
 	case chat1.ChatActivityType_FAILED_MESSAGE:
 		recs := activity.FailedMessage().OutboxRecords
 		for _, r := range recs {
 			if n.outboxID.Eq(&r.OutboxID) {
-				close(n.doneCh)
+				n.doneCh <- struct{}{}
 				break
 			}
 		}
@@ -229,9 +229,6 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 		return errors.New("invalid message")
 	}
 	mvalid := msg.Valid()
-	if len(mvalid.Unfurls) > 1 {
-		return fmt.Errorf("wrong number of unfurls: %d", len(mvalid.Unfurls))
-	}
 	var coords []chat1.Coordinate
 	if len(t.coords) == 0 {
 		if !l.lastCoord.IsZero() {
@@ -252,7 +249,6 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 		if err := l.G().ChatHelper.DeleteMsg(ctx, t.convID, conv.Info.TlfName, unfurlMsgID); err != nil {
 			return err
 		}
-		break
 	}
 	// put in a fake new message with the first coord and a pointer to get all coords from here
 	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&livekey=%s&cb=%s", types.MapsDomain,
@@ -261,11 +257,15 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 		Body: body,
 	})
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-	unfurlDoneCh := make(chan struct{})
+	unfurlDoneCh := make(chan struct{}, 10)
 	outboxID := storage.GetOutboxIDFromURL(body, t.convID, newMsg)
 	listenerID := l.G().NotifyRouter.AddListener(newUnfurlNotifyListener(l.G(), outboxID, unfurlDoneCh))
 	l.G().Unfurler.UnfurlAndSend(ctx, l.uid, t.convID, newMsg)
-	<-unfurlDoneCh
+	select {
+	case <-unfurlDoneCh:
+	case <-time.After(time.Minute):
+		l.Debug(ctx, "updateMapUnfurl: timed out waiting for unfurl callbaack, charging...")
+	}
 	l.G().NotifyRouter.RemoveListener(listenerID)
 	return nil
 }
