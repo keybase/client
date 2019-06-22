@@ -199,8 +199,6 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 		}
 		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
 			// need local metadata for channel names, so skip if we don't have it
-			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, big team missing local metadata",
-				rc.GetConvID())
 			continue
 		}
 		name := rc.GetName()
