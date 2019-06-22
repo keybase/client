@@ -363,6 +363,15 @@ func (l *LiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Co
 	defer l.Trace(ctx, func() error { return nil }, "LocationUpdate")()
 	l.Lock()
 	defer l.Unlock()
+	if l.G().IsMobileAppType() {
+		// if the app is woken up as the result of a location update, and we think we are currently
+		// backgrounded, then go ahead and mark us as background active so that we can get
+		// location updates out
+		l.G().MobileAppState.UpdateWithCheck(keybase1.MobileAppState_BACKGROUNDACTIVE,
+			func(curState keybase1.MobileAppState) bool {
+				return curState == keybase1.MobileAppState_BACKGROUND
+			})
+	}
 	if l.lastCoord.Eq(coord) {
 		l.Debug(ctx, "LocationUpdate: ignoring dup coordinate")
 		return
