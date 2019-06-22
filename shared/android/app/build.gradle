@@ -223,7 +223,7 @@ play {
 
 dependencies {
     // Make sure to put android-jsc at the the first
-    implementation "org.webkit:android-jsc:r241213"
+    implementation "org.webkit:android-jsc:r245459"
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"

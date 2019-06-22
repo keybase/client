@@ -1101,6 +1101,9 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
   return tlfPath ? softErrors.tlfErrors.get(tlfPath) : null
 }
 
+export const hasSpecialFileElement = (path: Types.Path): boolean =>
+  Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
+
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline
   // scenarios, but we still need to keep this timeout check here in case we
