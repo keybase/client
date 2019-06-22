@@ -244,15 +244,23 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	if err != nil {
 		return err
 	}
+
+	// Prefetch the next unfurl, and then delete any others. We do the prefetch so that there isn't
+	// a large lag after we delete the unfurl and when we post the next one. We link back to the
+	// tracker in the URL so we can get all the coordinates in the scraper. The cb param
+	// makes it so the unfurler doesn't think it has already unfurled this URL and skips it.
+	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&livekey=%s&cb=%s", types.MapsDomain,
+		first.Lat, first.Lon, first.Accuracy, t.key(), libkb.RandStringB64(3))
+	l.G().Unfurler.Prefetch(ctx, l.uid, t.convID, body)
 	for unfurlMsgID := range mvalid.Unfurls {
 		// delete the old unfurl first to make way for the new
 		if err := l.G().ChatHelper.DeleteMsg(ctx, t.convID, conv.Info.TlfName, unfurlMsgID); err != nil {
 			return err
 		}
 	}
-	// put in a fake new message with the first coord and a pointer to get all coords from here
-	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&livekey=%s&cb=%s", types.MapsDomain,
-		first.Lat, first.Lon, first.Accuracy, t.key(), libkb.RandStringB64(3))
+
+	// Create a new unfurl on the new URL, and wait for it to complete before charging forward. This way
+	// we won't get into a state with multiple unfurls in the thread
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: body,
 	})
