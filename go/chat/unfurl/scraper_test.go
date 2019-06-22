@@ -383,6 +383,10 @@ func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key typ
 	return t.coords
 }
 
+func (t *testingLiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
+	return false
+}
+
 func TestLiveMapScraper(t *testing.T) {
 	tc := libkb.SetupTest(t, "liveMapScraper", 1)
 	defer tc.Cleanup()

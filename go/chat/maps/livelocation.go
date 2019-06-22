@@ -81,11 +81,12 @@ type LiveLocationTracker struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	storage   *trackStorage
-	uid       gregor1.UID
-	eg        errgroup.Group
-	trackers  map[types.LiveLocationKey]*locationTrack
-	lastCoord chat1.Coordinate
+	storage        *trackStorage
+	updateInterval time.Duration
+	uid            gregor1.UID
+	eg             errgroup.Group
+	trackers       map[types.LiveLocationKey]*locationTrack
+	lastCoord      chat1.Coordinate
 }
 
 func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
@@ -93,8 +94,9 @@ func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "LiveLocationTracker", false),
 
-		storage:  newTrackStorage(g),
-		trackers: make(map[types.LiveLocationKey]*locationTrack),
+		storage:        newTrackStorage(g),
+		trackers:       make(map[types.LiveLocationKey]*locationTrack),
+		updateInterval: 30 * time.Second,
 	}
 }
 
@@ -119,6 +121,12 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 		close(ch)
 	}()
 	return ch
+}
+
+func (l *LiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
+	l.Lock()
+	defer l.Unlock()
+	return len(l.trackers) > 0
 }
 
 func (l *LiveLocationTracker) saveLocked(ctx context.Context) {
@@ -282,22 +290,36 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		}
 		l.updateMapUnfurl(ctx, t)
 	}
+
+	firstUpdate := true
+	shouldUpdate := false
+	nextUpdate := l.G().Clock().Now().Add(l.updateInterval)
 	for {
 		select {
 		case coord := <-t.updateCh:
 			if !t.getCurrentPosition {
 				t.coords = append(t.coords, coord)
 				t.drain()
-				l.updateMapUnfurl(ctx, t)
+				shouldUpdate = true
+				if firstUpdate {
+					l.updateMapUnfurl(ctx, t)
+				}
+				firstUpdate = false
 			} else {
 				t.coords = []chat1.Coordinate{coord}
 			}
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
+		case <-l.G().Clock().AfterTime(nextUpdate):
+			if shouldUpdate {
+				l.updateMapUnfurl(ctx, t)
+				shouldUpdate = false
+			}
+			nextUpdate = l.G().Clock().Now().Add(l.updateInterval)
 		case <-l.G().Clock().AfterTime(t.endTime):
 			l.Debug(ctx, "tracker: live location complete: watchID: %s", watchID)
-			if t.getCurrentPosition {
+			if t.getCurrentPosition || shouldUpdate {
 				l.updateMapUnfurl(ctx, t)
 			}
 			return nil

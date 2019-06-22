@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -47,16 +46,14 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	liveLocationEndTime := h.parseLiveLocation(text)
-	liveStr := ""
 	var liveLocation chat1.LiveLocation
+	liveLocationEndTime := h.parseLiveLocation(text)
 	if liveLocationEndTime != nil {
-		liveStr = "live "
 		liveLocation.EndTime = *liveLocationEndTime
 	}
 	if _, err := h.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, tlfName,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:         fmt.Sprintf("_Sharing my %slocation (using /location)..._", liveStr),
+			Body:         text,
 			LiveLocation: &liveLocation,
 		}), chat1.MessageType_TEXT, nil, replyTo); err != nil {
 		return err
