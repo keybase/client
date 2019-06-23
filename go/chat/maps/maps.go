@@ -1,11 +1,16 @@
 package maps
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -23,7 +28,7 @@ func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat
 		return "", err
 	}
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&zoom=15&size=320x200&key=%s",
+		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&size=320x200&scale=2&key=%s",
 		MapsProxy, lat, lon, lat, lon, key.Googlemaps()), nil
 }
 
@@ -51,8 +56,36 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x200&scale=2&key=%s",
+		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x100&scale=2&key=%s",
 		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, key.Googlemaps()), nil
+}
+
+func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.ReadCloser, length int64, err error) {
+	locPng, err := png.Decode(locReader)
+	if err != nil {
+		return res, length, err
+	}
+	livePng, err := png.Decode(liveReader)
+	if err != nil {
+		return res, length, err
+	}
+	combined := image.NewRGBA(image.Rect(0, 0, 640, 600))
+	for x := 0; x < locPng.Bounds().Dx(); x++ {
+		for y := 0; y < locPng.Bounds().Dy(); y++ {
+			combined.Set(x, y, locPng.At(x, y))
+		}
+	}
+	for x := 0; x < locPng.Bounds().Dx(); x++ {
+		combined.Set(x, 400, color.RGBA{0, 0, 0, 0})
+	}
+	for x := 0; x < livePng.Bounds().Dx(); x++ {
+		for y := 0; y < livePng.Bounds().Dy(); y++ {
+			combined.Set(x, y+401, livePng.At(x, y))
+		}
+	}
+	var buf bytes.Buffer
+	png.Encode(&buf, combined)
+	return ioutil.NopCloser(bytes.NewReader(buf.Bytes())), int64(buf.Len()), nil
 }
 
 func GetExternalMapURL(ctx context.Context, lat, lon float64) string {

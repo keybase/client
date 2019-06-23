@@ -239,7 +239,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	} else {
 		coords = t.coords
 	}
-	first := coords[0]
+	last := coords[len(coords)-1]
 	conv, err := utils.GetVerifiedConv(ctx, l.G(), l.uid, t.convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
@@ -249,8 +249,11 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	// a large lag after we delete the unfurl and when we post the next one. We link back to the
 	// tracker in the URL so we can get all the coordinates in the scraper. The cb param
 	// makes it so the unfurler doesn't think it has already unfurled this URL and skips it.
-	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&livekey=%s&cb=%s", types.MapsDomain,
-		first.Lat, first.Lon, first.Accuracy, t.key(), libkb.RandStringB64(3))
+	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&cb=%s", types.MapsDomain,
+		last.Lat, last.Lon, last.Accuracy, libkb.RandStringB64(3))
+	if !t.getCurrentPosition {
+		body += fmt.Sprintf("&livekey=%s", t.key())
+	}
 	l.G().Unfurler.Prefetch(ctx, l.uid, t.convID, body)
 	for unfurlMsgID := range mvalid.Unfurls {
 		// delete the old unfurl first to make way for the new

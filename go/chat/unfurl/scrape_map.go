@@ -33,29 +33,27 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		return res, err
 	}
 	skey := puri.Query().Get("livekey")
-	var mapURL, linkURL string
+	var liveMapURL *string
+	mapURL, err := maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon)
+	if err != nil {
+		return res, err
+	}
+	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
 	if len(skey) > 0 {
 		key := types.LiveLocationKey(skey)
 		coords := s.G().LiveLocationTracker.GetCoordinates(ctx, key)
-		if mapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
+		liveMapURL = new(string)
+		if *liveMapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
 			return res, err
 		}
-		if len(coords) > 0 {
-			last := coords[len(coords)-1]
-			linkURL = maps.GetExternalMapURL(ctx, last.Lat, last.Lon)
-		}
-	} else {
-		if mapURL, err = maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon); err != nil {
-			return res, err
-		}
-		linkURL = maps.GetExternalMapURL(ctx, lat, lon)
 	}
 	desc := fmt.Sprintf("Accurate to %dm.", int(acc))
-	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlGenericRaw{
-		Title:       "Open this location with Google Maps",
-		Url:         linkURL,
-		SiteName:    "Location Share",
-		ImageUrl:    &mapURL,
-		Description: &desc,
+	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
+		Title:           "Open this location with Google Maps",
+		Url:             linkURL,
+		SiteName:        "Location Share",
+		ImageUrl:        mapURL,
+		Description:     desc,
+		HistoryImageUrl: liveMapURL,
 	}), nil
 }

@@ -351,9 +351,9 @@ func TestMapScraper(t *testing.T) {
 	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lat)))
 	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lon)))
 	require.NotNil(t, unfurl.Maps().ImageUrl)
-	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, maps.MapsProxy))
-	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
-	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, maps.MapsProxy))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
 }
 
 type testingLiveLocationTracker struct {
@@ -419,7 +419,5 @@ func TestLiveMapScraper(t *testing.T) {
 	typ, err := unfurl.UnfurlType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlType_MAPS, typ)
-	require.NotNil(t, unfurl.Maps().ImageUrl)
-
-	t.Log(*unfurl.Maps().ImageUrl)
+	require.NotZero(t, len(unfurl.Maps().ImageUrl))
 }
