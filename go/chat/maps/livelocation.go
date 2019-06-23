@@ -52,7 +52,7 @@ func (t *locationTrack) toDisk() diskLocationTrack {
 	return diskLocationTrack{
 		ConvID:             t.convID,
 		MsgID:              t.msgID,
-		EndTime:            t.endTime,
+		EndTime:            gregor1.ToTime(t.endTime),
 		Coords:             t.coords,
 		GetCurrentPosition: t.getCurrentPosition,
 	}
@@ -71,7 +71,7 @@ func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
 }
 
 func newLocationTrackFromDisk(d diskLocationTrack) *locationTrack {
-	t := newLocationTrack(d.ConvID, d.MsgID, d.EndTime, d.GetCurrentPosition)
+	t := newLocationTrack(d.ConvID, d.MsgID, gregor1.FromTime(d.EndTime), d.GetCurrentPosition)
 	t.coords = d.Coords
 	return t
 }

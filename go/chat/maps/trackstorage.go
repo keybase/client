@@ -2,21 +2,28 @@ package maps
 
 import (
 	"context"
-	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 )
+
+const diskTrackStorageVersion = 1
 
 type diskLocationTrack struct {
 	ConvID             chat1.ConversationID `codec:"C"`
 	MsgID              chat1.MessageID      `codec:"M"`
-	EndTime            time.Time            `codec:"E"`
+	EndTime            gregor1.Time         `codec:"E"`
 	Coords             []chat1.Coordinate   `codec:"O"`
 	GetCurrentPosition bool                 `codec:"P"`
+}
+
+type diskTrackStorage struct {
+	Version  int                 `codec:"V"`
+	Trackers []diskLocationTrack `codec:"T"`
 }
 
 type trackStorage struct {
@@ -49,19 +56,25 @@ func (t *trackStorage) Save(ctx context.Context, trackers []*locationTrack) erro
 	for _, t := range trackers {
 		dat = append(dat, t.toDisk())
 	}
-	return t.encryptedDB.Put(ctx, t.dbKey(), dat)
+	return t.encryptedDB.Put(ctx, t.dbKey(), diskTrackStorage{
+		Version:  diskTrackStorageVersion,
+		Trackers: dat,
+	})
 }
 
 func (t *trackStorage) Restore(ctx context.Context) (res []*locationTrack, err error) {
-	var dat []diskLocationTrack
-	found, err := t.encryptedDB.Get(ctx, t.dbKey(), dat)
+	var dat diskTrackStorage
+	found, err := t.encryptedDB.Get(ctx, t.dbKey(), &dat)
 	if err != nil {
 		return res, err
 	}
 	if !found {
 		return nil, nil
 	}
-	for _, dt := range dat {
+	if dat.Version != diskTrackStorageVersion {
+		return nil, nil
+	}
+	for _, dt := range dat.Trackers {
 		res = append(res, newLocationTrackFromDisk(dt))
 	}
 	return res, nil
