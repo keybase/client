@@ -36,6 +36,7 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	skey := puri.Query().Get("livekey")
 	var liveMapURL *string
 	var timeStr string
+	siteName := "Location Share"
 	mapURL, err := maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon)
 	if err != nil {
 		return res, err
@@ -49,12 +50,13 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 			return res, err
 		}
 		timeStr = fmt.Sprintf("Posted %s.", time.Now().Format("15:04:05 MST"))
+		siteName = "Live Location Share"
 	}
 	desc := fmt.Sprintf("Accurate to %dm. %s", int(acc), timeStr)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
 		Title:           "Open this location with Google Maps",
 		Url:             linkURL,
-		SiteName:        "Location Share",
+		SiteName:        siteName,
 		ImageUrl:        mapURL,
 		Description:     desc,
 		HistoryImageUrl: liveMapURL,
