@@ -69,18 +69,20 @@ func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.R
 	if err != nil {
 		return res, length, err
 	}
-	combined := image.NewRGBA(image.Rect(0, 0, 640, 600))
+	combined := image.NewRGBA(image.Rect(0, 0, 640, 603))
 	for x := 0; x < locPng.Bounds().Dx(); x++ {
 		for y := 0; y < locPng.Bounds().Dy(); y++ {
 			combined.Set(x, y, locPng.At(x, y))
 		}
 	}
 	for x := 0; x < locPng.Bounds().Dx(); x++ {
-		combined.Set(x, 400, color.RGBA{0, 0, 0, 0})
+		for y := 0; y < 3; y++ {
+			combined.Set(x, 400+y, color.Black)
+		}
 	}
 	for x := 0; x < livePng.Bounds().Dx(); x++ {
 		for y := 0; y < livePng.Bounds().Dy(); y++ {
-			combined.Set(x, y+401, livePng.At(x, y))
+			combined.Set(x, y+403, livePng.At(x, y))
 		}
 	}
 	var buf bytes.Buffer
