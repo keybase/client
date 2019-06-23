@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -24,8 +25,7 @@ func NewLocation(g *globals.Context) *Location {
 	}
 }
 
-func (h *Location) parseLiveLocation(text string) *gregor1.Time {
-	toks := strings.Split(text, " ")
+func (h *Location) isLiveLocation(toks []string) *gregor1.Time {
 	if len(toks) != 3 {
 		return nil
 	}
@@ -40,14 +40,26 @@ func (h *Location) parseLiveLocation(text string) *gregor1.Time {
 	return &rtime
 }
 
+func (h *Location) isStop(toks []string) bool {
+	if len(toks) != 2 {
+		return false
+	}
+	return toks[1] == "stop"
+}
+
 func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "Location")()
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
+	toks := strings.Split(text, " ")
+	if h.isStop(toks) {
+		h.G().LiveLocationTracker.StopAllTracking(ctx)
+		return nil
+	}
 	var liveLocation chat1.LiveLocation
-	liveLocationEndTime := h.parseLiveLocation(text)
+	liveLocationEndTime := h.isLiveLocation(toks)
 	if liveLocationEndTime != nil {
 		liveLocation.EndTime = *liveLocationEndTime
 	}
@@ -73,8 +85,9 @@ func (h *Location) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		}
 		return
 	}
+	usage := fmt.Sprintf(locationUsage, "```", "```")
 	h.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
-		Body:  utils.DecorateWithLinks(ctx, utils.EscapeForDecorate(ctx, locationUsage)),
+		Body:  utils.DecorateWithLinks(ctx, utils.EscapeForDecorate(ctx, usage)),
 		Title: &locationTitle,
 	})
 	h.displayed = true
@@ -82,7 +95,9 @@ func (h *Location) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Co
 
 var locationTitle = `*/location*`
 
-var locationUsage = `Location posts consist of your current location coordinate, and a map rendered through the use of Google Maps. We take care to guard your privacy: https://keybase.io/docs/chat/location
-
+var locationUsage = `Location posts consist of your current location coordinate, and a map rendered through the use of Google Maps. We take care to guard your privacy: https://keybase.io/docs/chat/location. Variations: %s
+/location          # post your current location
+/location live 1h  # post your live location for the next hour
+/location stop     # stop posting live location%s
 - The location sender obtains the map from Google without using their IP address directly. The map is then sent as an encrypted attachment into the conversation.
 - Other members in the conversation obtain the map as an encrypted attachment, and never talk to Google at all.`

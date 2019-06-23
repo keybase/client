@@ -387,6 +387,8 @@ func (t *testingLiveLocationTracker) ActivelyTracking(ctx context.Context) bool 
 	return false
 }
 
+func (t *testingLiveLocationTracker) StopAllTracking(ctx context.Context) {}
+
 func TestLiveMapScraper(t *testing.T) {
 	tc := libkb.SetupTest(t, "liveMapScraper", 1)
 	defer tc.Cleanup()

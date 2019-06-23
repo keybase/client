@@ -402,3 +402,14 @@ func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, key types.Live
 	}
 	return res
 }
+
+func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
+	defer l.Trace(ctx, func() error { return nil }, "StopAllTracking")()
+	l.Lock()
+	defer l.Unlock()
+	for _, t := range l.trackers {
+		delete(l.trackers, t.key())
+		close(t.stopCh)
+	}
+	l.saveLocked(ctx)
+}

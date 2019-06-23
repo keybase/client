@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/chat/types"
@@ -34,6 +35,7 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	}
 	skey := puri.Query().Get("livekey")
 	var liveMapURL *string
+	var timeStr string
 	mapURL, err := maps.GetMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon)
 	if err != nil {
 		return res, err
@@ -46,8 +48,9 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		if *liveMapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
 			return res, err
 		}
+		timeStr = fmt.Sprintf("Posted %s.", time.Now().Format("15:04:05 MST"))
 	}
-	desc := fmt.Sprintf("Accurate to %dm.", int(acc))
+	desc := fmt.Sprintf("Accurate to %dm. %s", int(acc), timeStr)
 	return chat1.NewUnfurlRawWithMaps(chat1.UnfurlMapsRaw{
 		Title:           "Open this location with Google Maps",
 		Url:             linkURL,

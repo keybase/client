@@ -508,6 +508,7 @@ type LiveLocationTracker interface {
 	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
 	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
 	ActivelyTracking(ctx context.Context) bool
+	StopAllTracking(ctx context.Context)
 }
 
 type InternalError interface {
