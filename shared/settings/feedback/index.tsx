@@ -22,6 +22,8 @@ type Props = {
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
   sendError: Error | null
+  showInternalSuccessBanner: boolean // if true, disables the internal success bar
+  onFeedbackDone: (success: boolean) => void
 }
 
 type State = {
@@ -58,8 +60,9 @@ class Feedback extends React.Component<Props, State> {
       const success = !this.props.sending && !this.props.sendError
       this.setState({
         feedback: success ? '' : this.state.feedback,
-        showSuccessBanner: success,
+        showSuccessBanner: this.props.showInternalSuccessBanner && success,
       })
+      this.props.onFeedbackDone(success)
     }
   }
 

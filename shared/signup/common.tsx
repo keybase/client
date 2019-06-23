@@ -42,9 +42,9 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
 
 export const InfoIcon = Container.namedConnect(
   () => ({}),
-  () => ({
+  dispatch => ({
     onDocumentation: () => openURL('https://keybase.io/docs'),
-    onFeedback: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})), // TODO Y2K-108 un-jankify this
+    onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupSendFeedback']})),
   }),
   (s, d, o: InfoIconOwnProps) => ({...s, ...d, ...o}),
   'SignupInfoIcon'

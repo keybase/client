@@ -2,6 +2,7 @@ export const newRoutes = {
   signupEnterDevicename: {getScreen: () => require('./device-name/container').default, upgraded: true},
   signupEnterEmail: {getScreen: () => require('./email/container').default, upgraded: true},
   signupEnterUsername: {getScreen: () => require('./username/container').default, upgraded: true},
+  signupSendFeedback: {getScreen: () => require('./feedback/container').default, upgraded: true},
 }
 
 // Some screens in signup show up after we've actually signed up
