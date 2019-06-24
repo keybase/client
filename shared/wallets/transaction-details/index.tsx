@@ -283,6 +283,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
 
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
+  console.log('props:', props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -314,6 +315,25 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        {!!props.sourceAsset && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Box2 direction="vertical">
+                <Kb.Text type="BodyBigExtrabold">1 USD</Kb.Text>
+                <Kb.Text type="BodySmall">/Stronghold.com</Kb.Text>
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+                <Kb.Text type="BodyBig">=</Kb.Text>
+              </Kb.Box2>
+              <Kb.Box2 direction="vertical">
+                <Kb.Text type="BodyBigExtrabold">0.8447 EUR</Kb.Text>
+                <Kb.Text type="BodySmall">/Stronghold.com</Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
+
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
