@@ -16,6 +16,7 @@ import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo} from '../constants/types/teams'
+import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps, Action as HeaderAction} from '../common-adapters/header-hoc/types'
 import {RouteProps} from '../route-tree/render-route'
 
@@ -30,18 +31,22 @@ type OwnProps = {
   incHighlightIndex: (maxIndex: number) => void
   decHighlightIndex: () => void
   resetHighlightIndex: (resetToHidden?: boolean) => void
+  changeShowRolePicker: (showRolePicker: boolean) => void
+  showRolePicker: boolean
 }
 
 type LocalState = {
   searchString: string
   selectedService: ServiceIdWithContact
   highlightedIndex: number
+  showRolePicker: boolean
 }
 
 const initialState: LocalState = {
   highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
+  showRolePicker: false,
 }
 
 const deriveSearchResults = memoize(
@@ -237,6 +242,17 @@ const deriveOnDownArrowKeyDown = memoize(
   (maxIndex: number, incHighlightIndex: (maxIndex: number) => void) => () => incHighlightIndex(maxIndex)
 )
 
+const deriveRolePickerArrowKeyFns = memoize(
+  (selectedRole: TeamRoleType, onSelectRole: (role: TeamRoleType) => void) => ({
+    downArrow: () => {
+      onSelectRole(nextRoleDown(selectedRole))
+    },
+    upArrow: () => {
+      onSelectRole(nextRoleUp(selectedRole))
+    },
+  })
+)
+
 const mergeProps = (
   stateProps: ReturnType<typeof mapStateToProps>,
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
@@ -276,26 +292,38 @@ const mergeProps = (
     ownProps.resetHighlightIndex
   )
 
+  const rolePickerProps: RolePickerProps | null =
+    ownProps.namespace === 'teams'
+      ? {
+          changeSendNotification: dispatchProps.onChangeSendNotification,
+          changeShowRolePicker: ownProps.changeShowRolePicker,
+          onSelectRole: dispatchProps.onSelectRole,
+          selectedRole: stateProps.selectedRole,
+          sendNotification: stateProps.sendNotification,
+          showRolePicker: ownProps.showRolePicker,
+        }
+      : null
+
+  // TODO this should likely live with the role picker if we need this
+  // functionality elsewhere. Right now it's easier to keep here since the input
+  // already catches all keypresses
+  const rolePickerArrowKeyFns =
+    ownProps.showRolePicker &&
+    deriveRolePickerArrowKeyFns(stateProps.selectedRole, dispatchProps.onSelectRole)
+
   const onEnterKeyDown = deriveOnEnterKeyDown({
     changeText: ownProps.onChangeText,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+    onFinishTeamBuilding:
+      rolePickerProps && !ownProps.showRolePicker
+        ? () => ownProps.changeShowRolePicker(true)
+        : dispatchProps.onFinishTeamBuilding,
     onRemove: dispatchProps.onRemove,
     searchResults: userResultsToShow,
     searchStringIsEmpty: !ownProps.searchString,
     teamSoFar,
   })
-
-  const rolePickerProps: RolePickerProps | null =
-    ownProps.namespace === 'teams'
-      ? {
-          changeSendNotification: dispatchProps.onChangeSendNotification,
-          onSelectRole: dispatchProps.onSelectRole,
-          selectedRole: stateProps.selectedRole,
-          sendNotification: stateProps.sendNotification,
-        }
-      : null
 
   const headerHocProps: HeaderHocProps = isMobile
     ? {
@@ -328,16 +356,15 @@ const mergeProps = (
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: deriveOnDownArrowKeyDown(
-      (userResultsToShow || []).length - 1,
-      ownProps.incHighlightIndex
-    ),
+    onDownArrowKeyDown: ownProps.showRolePicker
+      ? rolePickerArrowKeyFns.downArrow
+      : deriveOnDownArrowKeyDown((userResultsToShow || []).length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
-    onUpArrowKeyDown: ownProps.decHighlightIndex,
+    onUpArrowKeyDown: ownProps.showRolePicker ? rolePickerArrowKeyFns.upArrow : ownProps.decHighlightIndex,
     recommendations,
     rolePickerProps,
     searchResults,
@@ -359,9 +386,15 @@ const Connected: React.ComponentType<OwnProps> = compose(
 class StateWrapperForTeamBuilding extends React.Component<RouteProps<{}, {}>, LocalState> {
   state: LocalState = initialState
 
+  changeShowRolePicker = (showRolePicker: boolean) => this.setState({showRolePicker})
+
   onChangeService = (selectedService: ServiceIdWithContact) => this.setState({selectedService})
 
-  onChangeText = (newText: string) => this.setState({searchString: newText})
+  onChangeText = (newText: string) => {
+    if (newText !== this.state.searchString) {
+      this.setState({searchString: newText, showRolePicker: false})
+    }
+  }
 
   incHighlightIndex = (maxIndex: number) =>
     this.setState((state: LocalState) => ({
@@ -389,6 +422,8 @@ class StateWrapperForTeamBuilding extends React.Component<RouteProps<{}, {}>, Lo
         searchString={this.state.searchString}
         selectedService={this.state.selectedService}
         highlightedIndex={this.state.highlightedIndex}
+        changeShowRolePicker={this.changeShowRolePicker}
+        showRolePicker={this.state.showRolePicker}
       />
     )
   }

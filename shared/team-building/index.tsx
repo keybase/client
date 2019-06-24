@@ -23,7 +23,8 @@ export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
   sendNotification: boolean
   changeSendNotification: (sendNotification: boolean) => void
-  showRolePicker?: boolean
+  showRolePicker: boolean
+  changeShowRolePicker: (showRolePicker: boolean) => void
   selectedRole: TeamRoleType
 }
 
