@@ -45,6 +45,9 @@ protocol local {
     string desc;
     string infoUrl;                 // 'https://...' or empty
     string infoUrlText;             // the text to use in the infoUrl link
+
+    boolean canAddTrustline;        // Whether or not there is enough native balance in the account to create a trustline.
+                                    // False if this is a non-native asset.
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 

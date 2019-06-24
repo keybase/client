@@ -152,6 +152,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28 USD", assets[0].Worth)
 	require.Equal(t, "$3,182.96 USD", assets[0].AvailableToSendWorth)
+	require.True(t, assets[0].CanAddTrustline)
 }
 
 func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
@@ -190,6 +191,7 @@ func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
 	require.Equal(t, "CHF", assets[0].WorthCurrency)
 	require.Equal(t, "3,183.28 CHF", assets[0].Worth)
 	require.Equal(t, "3,182.96 CHF", assets[0].AvailableToSendWorth)
+	require.True(t, assets[0].CanAddTrustline)
 
 	// changing currency also updates DisplayCurrency in GetWalletAccountLocal
 	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
@@ -227,6 +229,7 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00 USD", assets[0].Worth)
 	require.Equal(t, "$0.00 USD", assets[0].AvailableToSendWorth)
+	require.False(t, assets[0].CanAddTrustline)
 }
 
 func TestGetDisplayCurrenciesLocal(t *testing.T) {

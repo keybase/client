@@ -124,6 +124,13 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			if err != nil {
 				return nil, err
 			}
+
+			// 0.5 is the minimum balance necessary to create a trustline
+			balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(d.Amount, "0.5")
+			if err != nil {
+				return nil, err
+			}
+
 			asset := stellar1.AccountAssetLocal{
 				Name:                   "Lumens",
 				AssetCode:              "XLM",
@@ -132,6 +139,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				BalanceTotal:           fmtAmount,
 				BalanceAvailableToSend: fmtAvailable,
 				WorthCurrency:          displayCurrency,
+				CanAddTrustline:        balanceComparedToTrustlineMin == 1,
 			}
 			fillWorths := func() (err error) {
 				if rateErr != nil {
@@ -182,6 +190,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				Desc:                   d.Asset.Desc,
 				InfoUrl:                d.Asset.InfoUrl,
 				InfoUrlText:            d.Asset.InfoUrlText,
+				CanAddTrustline:        false,
 			})
 		}
 	}
