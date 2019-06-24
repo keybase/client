@@ -226,7 +226,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	select {
 	case <-unfurlDoneCh:
 	case <-time.After(time.Minute):
-		l.Debug(ctx, "updateMapUnfurl: timed out waiting for unfurl callbaack, charging...")
+		l.Debug(ctx, "updateMapUnfurl: timed out waiting for unfurl callback, charging...")
 	}
 	l.G().NotifyRouter.RemoveListener(listenerID)
 	return nil
