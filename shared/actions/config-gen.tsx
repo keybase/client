@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as I from 'immutable'
-
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -62,6 +62,7 @@ type _BootstrapStatusLoadedPayload = {
   readonly registered: boolean
   readonly uid: string
   readonly username: string
+  readonly userReacjis: RPCTypes.UserReacjis | null
 }
 type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}

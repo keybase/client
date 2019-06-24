@@ -69,7 +69,8 @@
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
-      "username": "string"
+      "username": "string",
+      "userReacjis": "RPCTypes.UserReacjis | null"
     },
     "daemonError": {"daemonError": "Error | null"},
     "setAccounts": {
