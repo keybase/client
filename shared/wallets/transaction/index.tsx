@@ -133,30 +133,19 @@ const Detail = (props: DetailProps) => {
       const assetCode = props.trustline.asset.code
       const assetIssuer = props.trustline.asset.verifiedDomain || 'Unknown'
       const asset = (
-        <Text type={'BodySmall'}>
+        <Text
+          type={'BodySmall'}
+          style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}
+        >
           <Text type="BodySmallBold">{assetCode}</Text>/{assetIssuer}
         </Text>
       )
-      if (props.trustline.remove) {
-        return (
-          <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
-            You removed a trustline:
-            <Text type="BodySmall" style={textStyle}>
-              {' '}
-            </Text>
-            <Text type="BodySmall" style={{...{textDecoration: 'line-through'}, ...textStyle}}>
-              {asset}
-            </Text>
-            .
-          </Text>
-        )
-      } else {
-        return (
-          <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
-            You added a trustline: {asset}
-          </Text>
-        )
-      }
+      const verb = props.trustline.remove ? 'removed' : 'added'
+      return (
+        <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
+          You {verb} a trustline: {asset}
+        </Text>
+      )
     }
     return (
       <Text type={textType} style={{...{wordBreak: 'break-word'}, ...textStyle}}>
