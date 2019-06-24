@@ -117,21 +117,18 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   worthInfo: '',
 })
 
-export const makeTrustlineAsset = I.Record<Types._TrustlineAsset>({
-  assetCode: '',
-  issuerAccountID: '',
-  issuerVerifiedDomain: '',
-  trustedLimit: 0,
-})
-export const emptyTrustlineAsset = makeTrustlineAsset()
+export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 
 export const makeTrustline = I.Record<Types._Trustline>({
-  acceptedAssets: I.List(),
+  acceptedAssets: I.Map(),
   assetMap: I.Map(),
   expandedAssets: I.Set(),
+  loaded: false,
   popularAssets: I.List(),
-  searchingAssetsHit: I.List(),
+  searchingAssets: undefined,
+  totalAssetsCount: 0,
 })
+export const emptyTrustline = makeTrustline()
 
 export const makeState = I.Record<Types._State>({
   acceptedDisclaimer: false,
@@ -173,7 +170,7 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
-  trustline: makeTrustline(),
+  trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
 
@@ -433,6 +430,7 @@ export const makeAssetDescription = I.Record<Types._AssetDescription>({
   issuerName: '',
   issuerVerifiedDomain: '',
 })
+export const emptyAssetDescription = makeAssetDescription()
 
 export const bannerLevelToBackground = (level: string) => {
   switch (level) {
@@ -564,6 +562,13 @@ export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
 export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
   `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
 export const checkOnlineWaitingKey = 'wallets:checkOnline'
+export const addTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:addTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:deleteTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
+  `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
+export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -677,3 +682,4 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
+export const trustlineHoldingBalance = 0.5

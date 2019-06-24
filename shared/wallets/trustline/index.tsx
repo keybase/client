@@ -3,18 +3,28 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
+import {memoize} from '../../util/memoize'
 import Asset from './asset-container'
 
-type BodyProps = {
-  totalAssetsCount: number
+type _Props = {
+  accountID: Types.AccountID
+  acceptedAssets: Array<Types.AssetID>
+  balanceAvailableToSend: number
+  clearTrustlineModal: () => void
   errorMessage?: string
-  acceptedAssets: I.List<Types.TrustlineAssetID>
-  popularAssets: I.List<Types.TrustlineAssetID>
-  searchingAssets?: I.List<Types.TrustlineAssetID>
+  loaded: boolean
   onSearchChange: (text: string) => void
+  popularAssets: Array<Types.AssetID>
+  refresh: () => void
+  searchingAssets?: Array<Types.AssetID>
+  totalAssetsCount?: number
+  waitingSearch: boolean
 }
 
-type Props = BodyProps & {
+type BodyProps = _Props & {onFocusChange?: (focused: boolean) => void}
+
+type Props = _Props & {
   onDone: () => void
 }
 
@@ -22,34 +32,42 @@ const makeSections = (props: BodyProps) => [
   ...(props.searchingAssets
     ? [
         {
-          data: props.searchingAssets.toArray(),
+          data: props.searchingAssets,
           key: 'section-search',
-          keyExtractor: item => item,
+          keyExtractor: item => `search-item:${item}`,
           title: '',
         },
       ]
     : []),
-  ...(!props.searchingAssets && props.acceptedAssets.size
+  ...(!props.searchingAssets && props.acceptedAssets.length
     ? [
         {
-          data: props.acceptedAssets.toArray(),
+          data: props.acceptedAssets,
           key: 'section-accepted',
-          keyExtractor: item => item,
+          keyExtractor: item => `accepted-item:${item}`,
           title: 'Accepted assets',
         },
       ]
     : []),
-  ...(!props.searchingAssets && props.popularAssets.size
+  ...(!props.searchingAssets && props.popularAssets.length
     ? [
         {
-          data: props.popularAssets.toArray(),
+          data: props.popularAssets,
           key: 'section-popular',
-          keyExtractor: item => item,
+          keyExtractor: item => `popular-item:${item}`,
           title: 'Popular assets',
         },
       ]
     : []),
 ]
+
+// hack around the bug where when we change from search mode where there's no
+// section header, into normal mode where there are section headers, first
+// section header doesn't show.
+const getSectionListKey = (props: BodyProps) =>
+  `sl-${props.searchingAssets ? 'sa' : '_'}-${props.acceptedAssets.length ? 'aa' : '_'}-${
+    props.popularAssets.length ? 'pa' : '_'
+  }`
 
 const sectionHeader = section =>
   !section.title || (
@@ -58,45 +76,105 @@ const sectionHeader = section =>
     </Kb.Box2>
   )
 
-const Body = (props: BodyProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
-      <Kb.SearchFilter
-        icon="iconfont-search"
-        fullWidth={true}
-        placeholderText={`Search ${props.totalAssetsCount} assets`}
-        onChange={props.onSearchChange}
-      />
-    </Kb.Box2>
-    <Kb.Divider />
-    {!!props.errorMessage && <Kb.Banner color="red" text={props.errorMessage} />}
-    <Kb.SectionList
-      sections={makeSections(props)}
-      renderItem={({index, item}) => <Asset firstItem={index === 0} trustlineAssetID={item} />}
-      renderSectionHeader={({section}) => sectionHeader(section)}
-    />
-  </Kb.Box2>
+const haveEnoughBalanceToAccept = memoize(
+  (props: BodyProps) => props.balanceAvailableToSend >= Constants.trustlineHoldingBalance
 )
 
-const TrustlineDesktop = Kb.HeaderOrPopup((props: Props) => {
-  const {onDone, ...rest} = props
+const ListUpdateOnMount = (props: BodyProps) => {
+  // hack to get `ReactList` to render more than one item on initial mount.
+  // Somehow we need two updates here.
+  const [updateCounter, setUpdateCounter] = React.useState(0)
+  React.useEffect(() => setUpdateCounter(updateCounter => (updateCounter > 1 ? 2 : updateCounter + 1)), [
+    updateCounter,
+    setUpdateCounter,
+  ])
+
   return (
-    <Kb.Box2 direction="vertical" style={styles.containerDesktop}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.headerDesktop}>
-        <Kb.Text type="Header">Trustlines</Kb.Text>
-      </Kb.Box2>
-      <Body {...rest} />
-      <Kb.Divider />
-      <Kb.Button
-        type="Default"
-        mode="Primary"
-        label="Done"
-        onClick={props.onDone}
-        style={styles.doneButtonDesktop}
-      />
+    <Kb.SectionList
+      key={getSectionListKey(props)}
+      sections={makeSections(props)}
+      renderItem={({index, item}) => (
+        <Asset
+          accountID={props.accountID}
+          firstItem={index === 0}
+          assetID={item}
+          cannotAccept={!haveEnoughBalanceToAccept(props)}
+        />
+      )}
+      renderSectionHeader={({section}) => sectionHeader(section)}
+    />
+  )
+}
+
+const Body = (props: BodyProps) => {
+  React.useEffect(() => {
+    props.refresh()
+    return () => props.clearTrustlineModal()
+  }, [])
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
+      {props.loaded ? (
+        <>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
+            <Kb.SearchFilter
+              icon="iconfont-search"
+              fullWidth={true}
+              placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
+              hotkey="f"
+              onChange={props.onSearchChange}
+              onFocus={props.onFocusChange && (() => props.onFocusChange(true))}
+              onBlur={props.onFocusChange && (() => props.onFocusChange(false))}
+              waiting={props.waitingSearch}
+            />
+          </Kb.Box2>
+          <Kb.Divider />
+          {!haveEnoughBalanceToAccept(props) && (
+            <Kb.Banner
+              color="red"
+              text={`Stellar holds ${
+                Constants.trustlineHoldingBalance
+              } XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
+            />
+          )}
+          {props.searchingAssets && !props.searchingAssets.length ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
+              <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <ListUpdateOnMount {...props} />
+          )}
+        </>
+      ) : (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
-})
+}
+
+const TrustlineDesktop = (props: Props) => {
+  const {onDone, ...rest} = props
+  const [searchFilterFocused, setSearchFilterFocused] = React.useState(false)
+  return (
+    <Kb.PopupDialog onClose={onDone} immuneToEscape={searchFilterFocused}>
+      <Kb.Box2 direction="vertical" style={styles.containerDesktop}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.headerDesktop}>
+          <Kb.Text type="Header">Trustlines</Kb.Text>
+        </Kb.Box2>
+        <Body {...rest} onFocusChange={setSearchFilterFocused} />
+        <Kb.Divider />
+        <Kb.Button
+          type="Default"
+          mode="Primary"
+          label="Done"
+          onClick={props.onDone}
+          style={styles.doneButtonDesktop}
+        />
+      </Kb.Box2>
+    </Kb.PopupDialog>
+  )
+}
 
 const TrustlineMobile = Kb.HeaderHoc<BodyProps>(Body)
 
@@ -114,10 +192,7 @@ const Trustline = Styles.isMobile
         />
       )
     }
-  : (props: Props) => {
-      const {onDone} = props
-      return <TrustlineDesktop onCancel={onDone} {...props} />
-    }
+  : TrustlineDesktop
 
 export default Trustline
 
@@ -137,10 +212,17 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.xsmall,
   },
+  grow: {
+    ...Styles.globalStyles.flexGrow,
+  },
   headerDesktop: {
+    flexShrink: 0,
     height: 48,
   },
   searchFilter: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+    },
     isElectron: {
       padding: Styles.globalMargins.tiny,
     },

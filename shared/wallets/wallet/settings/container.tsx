@@ -95,12 +95,16 @@ const mapDispatchToProps = dispatch => ({
     dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
   _onSetupInflation: (accountID: Types.AccountID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setInflation'}]})),
+  _onSetupTrustline: (accountID: Types.AccountID) => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]}))
+  },
   _refresh: accountID => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadInflationDestination({accountID}))
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
     dispatch(WalletsGen.createLoadMobileOnlyMode({accountID}))
     dispatch(WalletsGen.createLoadExternalPartners())
+    dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
   },
 })
 
@@ -120,6 +124,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
     dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
+  onSetupTrustline: () => dispatchProps._onSetupTrustline(stateProps.accountID),
   refresh: () => dispatchProps._refresh(stateProps.accountID),
 })
 

@@ -26,6 +26,7 @@ export type SettingsProps = {
   onSetDefault: () => void
   onEditName: () => void
   onSetupInflation: () => void
+  onSetupTrustline?: () => void
   onCurrencyChange: (currency: Types.CurrencyCode) => void
   onMobileOnlyModeChange: (enabled: boolean) => void
   refresh: () => void
@@ -228,6 +229,9 @@ class AccountSettings extends React.Component<SettingsProps> {
               </Kb.Box>
             )}
 
+            {this.props.onSetupTrustline && (
+              <Kb.Button mode="Primary" label="Change Trustline" onClick={props.onSetupTrustline} />
+            )}
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny" fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>

@@ -280,24 +280,20 @@ export type _AirdropDetails = {
 }
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
-export type TrustlineAssetID = string
-export const makeTrustlineAssetID = (issuerAccountID: string, assetCode: string): TrustlineAssetID =>
+export type AssetID = string
+export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
   `${issuerAccountID}-${assetCode}`
-
-export type _TrustlineAsset = {
-  assetCode: string
-  issuerAccountID: string
-  issuerVerifiedDomain: string
-  trustedLimit: number // 0 if not trusted
-}
-export type TrustlineAsset = I.RecordOf<_TrustlineAsset>
+export const assetDescriptionToAssetID = (assetDescription: AssetDescription): AssetID =>
+  makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
 
 export type _Trustline = {
-  acceptedAssets: I.List<TrustlineAssetID>
-  assetMap: I.Map<TrustlineAssetID, TrustlineAsset>
-  expandedAssets: I.Set<TrustlineAssetID>
-  popularAssets: I.List<TrustlineAssetID>
-  searchingAssetsHit: I.List<TrustlineAssetID>
+  acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
+  assetMap: I.Map<AssetID, AssetDescription>
+  expandedAssets: I.Set<AssetID>
+  loaded: boolean
+  popularAssets: I.List<AssetID>
+  searchingAssets?: I.List<AssetID>
+  totalAssetsCount: number
 }
 export type Trustline = I.RecordOf<_Trustline>
 

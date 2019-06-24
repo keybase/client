@@ -426,9 +426,37 @@
     },
     "updateAirdropDetails": {},
     "updatedAirdropDetails": {"details": "Types.AirdropDetails"},
+    "refreshTrustlineAcceptedAssets": {
+      "accountID": "Types.AccountID"
+    },
+    "refreshTrustlinePopularAssets": {},
+    "addTrustline": {
+      "accountID": "Types.AccountID",
+      "assetID": "Types.AssetID"
+    },
+    "deleteTrustline": {
+      "accountID": "Types.AccountID",
+      "assetID": "Types.AssetID"
+    },
+    "setTrustlineAcceptedAssets": {
+      "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlinePopularAssets": {
+      "assets": "Array<Types.AssetDescription>",
+      "totalCount": "number"
+    },
+    "setTrustlineSearchText": {
+      "text": "string"
+    },
+    "setTrustlineSearchResults": {
+      "assets": "Array<Types.AssetDescription>"
+    },
+    "clearTrustlineSearchResults": {},
     "setTrustlineExpanded": {
       "expanded": "boolean",
-      "trustlineAssetID": "Types.TrustlineAssetID"
+      "assetID": "Types.AssetID"
     }
   }
 }
