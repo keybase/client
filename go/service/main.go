@@ -18,6 +18,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/badges"
@@ -74,6 +75,9 @@ type Service struct {
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *libkb.TrackerLoader
+
+	// cancel func for randompw prefetching context, if currently active
+	hasRPWCancelFn context.CancelFunc
 }
 
 type Shutdowner interface {
@@ -900,8 +904,8 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) (err error) {
 		d.G().PushShutdownHook(func() error { return d.stopChatModules(mctx) })
 		d.runTLFUpgrade()
 		d.runTrackerLoader(mctx.Ctx())
+		d.prefetchHasRandomPW(uid)
 		go d.identifySelf()
-		go d.prefetchHasRandomPW(uid)
 	}
 	return nil
 }
@@ -946,6 +950,11 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log("shutting down tracker loader")
 	if d.trackerLoader != nil {
 		<-d.trackerLoader.Shutdown(m.Ctx())
+	}
+
+	log("cancelling random pw prefetch")
+	if d.hasRPWCancelFn != nil {
+		d.hasRPWCancelFn()
 	}
 
 	return nil
@@ -1327,18 +1336,36 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 }
 
 func (d *Service) prefetchHasRandomPW(uid keybase1.UID) {
-	mctx := d.MetaContext(context.Background())
-	arg := keybase1.LoadHasRandomPwArg{
-		ForUID: &uid,
-		// We don't want to force repoll if there's cache, but we can also wait
-		// longer than few seconds.
-		ForceRepoll:    false,
-		NoShortTimeout: true,
-	}
-	randomPW, err := libkb.LoadHasRandomPw(mctx, arg)
-	if err != nil {
-		mctx.Debug("Prefetching HasRandomPW failed: %s", err)
-	} else {
-		mctx.Debug("Prefetching HasRandomPW, result is HasRandomPW=%t", randomPW)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	d.hasRPWCancelFn = cancel
+
+	mctx := d.MetaContext(ctx).WithLogTag("P_HASRPW")
+	go func() {
+		mctx.Debug("prefetchHasRandomPW: starting prefetch")
+		err := backoff.RetryNotifyWithContext(ctx, func() error {
+			if !mctx.CurrentUID().Equal(uid) {
+				// Do not return an error, so backoff does not retry.
+				mctx.Debug("prefetchHasRandomPW: current uid has changed, aborting")
+				return nil
+			}
+
+			arg := keybase1.LoadHasRandomPwArg{
+				ForUID: &uid,
+				// We don't want to force repoll if there's cache, but we can also wait
+				// longer than few seconds.
+				ForceRepoll:    false,
+				NoShortTimeout: true,
+			}
+			randomPW, err := libkb.LoadHasRandomPw(mctx, arg)
+			if err != nil {
+				mctx.Debug("Prefetching HasRandomPW failed: %s", err)
+				return err
+			}
+
+			mctx.Debug("Prefetching HasRandomPW, result is HasRandomPW=%t", randomPW)
+			return nil
+		}, backoff.NewExponentialBackOff(), nil)
+		mctx.Debug("prefetchHasRandomPW: backoff loop returned: %v", err)
+		d.hasRPWCancelFn = nil
+	}()
 }
