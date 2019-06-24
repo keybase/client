@@ -7090,6 +7090,13 @@ expo-constants@~5.0.0:
   dependencies:
     ua-parser-js "^0.7.19"
 
+expo-contacts@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/expo-contacts/-/expo-contacts-5.0.1.tgz#e331aeeac8f83bff40456949acb2f38a0abc5065"
+  integrity sha512-JGse0n6n4xzuHJO6DSIWfqponUXV3IyjfwyRT0I+XUKRWXlb8EL4xZ9+IBr86k6ShzzqHsMNCYHJ1+uigGVVWA==
+  dependencies:
+    uuid-js "^0.7.5"
+
 expo-file-system@~5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-5.0.0.tgz#a98a1e387df5fd808c89574e54d4b8bd356454e8"
