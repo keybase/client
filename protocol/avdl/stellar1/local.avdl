@@ -72,61 +72,6 @@ protocol local {
     OWNACCOUNT_4
   }
 
-  // Summary of a payment.
-  // Keep in sync with PaymentDetailsLocal.
-  record PaymentLocal {
-    PaymentID id;                   // For relay payments, the funding tx.
-    TimeMs time;
-    PaymentStatus statusSimplified;
-    string statusDescription;       // "pending", "completed", "error", "claimable", "canceled"
-    string statusDetail;
-    boolean showCancel;             // true if cancel is an option for this payment
-    string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
-    BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23 CLP", senders intended amount if this was made as a lumens-worth-currency payment
-    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an
-                                    // (APPROXIMATELY $X.XX) message i.e. if this is a pure-XLM payment.
-
-    string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
-                                    // ("example.com") if domain is verified by stellard.
-    union{ null, AccountID } issuerAccountID;
-
-    // What type to display the sender and recipient as.
-    // Either neither or both are OWNACCOUNT.
-    ParticipantType fromType; // cannot be SBS
-    ParticipantType toType;
-
-    AccountID fromAccountID;   // Always filled
-    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
-    string    fromUsername;    // Optional. Filled if KEYBASE.
-
-    union { null, AccountID } toAccountID; // Optional.
-    string    toAccountName;               // Optional. Filled if toType = OWNACCOUNT
-    string    toUsername;                  // Optional. Filled if KEYBASE.
-    string    toAssertion;                 // Optional. Filled if SBS and statusSimplified != 'canceled'
-    string    originalToAssertion;         // Optional. Username or SBS. Filled if statusSimplified == 'canceled'
-
-    string note;                    // secret note
-    string noteErr;
-
-    // for path payments:
-    string sourceAmountMax;
-    string sourceAmountActual;
-    Asset sourceAsset;
-
-    // for non-payment txs, multiple ops:
-    boolean isAdvanced;
-    string summaryAdvanced;         // if isAdvanced is true, just show this string
-    array<string> operations;
-
-    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
-
-    string batchID;                 // if payment sent via batch, will contain the batch id
-    boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
-    boolean isInflation;            // true if payment from known inflation source
-    union { null, string } inflationSource; // name of inflation source
-  }
-
   record PaymentOrErrorLocal {
     union { null, PaymentLocal } payment;
     union { null, string } err;
@@ -145,9 +90,8 @@ protocol local {
   // of the payment referenced by `mostRecentID`.
   void markAsReadLocal(int sessionID, AccountID accountID, PaymentID mostRecentID);
 
-  // Details of a payment.
-  // Keep in sync with PaymentLocal.
-  record PaymentDetailsLocal {
+  // Summary of a payment.
+  record PaymentLocal {
     PaymentID id;
     TransactionID txID;             // For relay payments, the funding tx.
     TimeMs time;
@@ -193,17 +137,26 @@ protocol local {
     string summaryAdvanced;         // if isAdvanced is true, just show this string
     array<string> operations;       // string summary of each operation in the transaction
 
-    string publicNote;              // public memo for the payment
-    string publicNoteType;          // public memo type: "text", "id", "hash", "return"
-
-    @lint("ignore")
-    string externalTxURL;           // link to external web page with tx details
+    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
 
     string batchID;                 // if payment sent via batch, will contain the batch id
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
     boolean isInflation;            // true if payment from known inflation source
     union { null, string } inflationSource; // name of inflation source
+  }
 
+  // Details of a payment.
+  record PaymentDetailsLocal {
+    PaymentLocal summary;
+    PaymentDetailsOnlyLocal details;
+  }
+
+  record PaymentDetailsOnlyLocal {
+    string publicNote;              // public memo for the payment
+    string publicNoteType;          // public memo type: "text", "id", "hash", "return"
+
+    @lint("ignore")
+    string externalTxURL;           // link to external web page with tx details
     string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
   }
 

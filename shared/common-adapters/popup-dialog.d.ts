@@ -8,6 +8,7 @@ export type Props = {
   allowClipBubbling?: boolean
   fill?: boolean
   children?: React.ReactNode
+  immuneToEscape?: boolean
   styleCover?: any
   styleContainer?: any
   styleClose?: any

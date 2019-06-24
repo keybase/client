@@ -8,6 +8,17 @@ protocol appState {
     BACKGROUNDACTIVE_3
   }
 
+  enum MobileNetworkState {
+    NONE_0,
+    WIFI_1,
+    CELLUAR_2,
+    UNKNOWN_3
+  }
+
+  // gui -> service
+  // mobile only
+  void updateMobileNetState(string state);
+
   // gui -> service
   // desktop only
   // https://electronjs.org/docs/api/power-monitor

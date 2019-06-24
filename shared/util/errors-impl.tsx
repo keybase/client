@@ -125,6 +125,7 @@ export const niceError = (e: RPCError) => {
     case RPCTypes.StatusCode.scdevicebadname:
       return 'Seems like an invalid device name'
     case RPCTypes.StatusCode.scdevicenameinuse:
+      return 'This device name is already in use.'
     case RPCTypes.StatusCode.scgenericapierror:
     case RPCTypes.StatusCode.sctimeout:
     case RPCTypes.StatusCode.scapinetworkerror:

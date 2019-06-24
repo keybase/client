@@ -6,6 +6,7 @@ import {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
 import {SagaLogger} from '../../util/saga'
+import {RPCError} from '../../util/errors'
 import * as RouteTreeGen from '../route-tree-gen'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
@@ -23,7 +24,7 @@ describe('goBackAndClearErrors', () => {
       emailError: 'bad email',
       inviteCodeError: 'bad invite',
       nameError: 'bad name',
-      signupError: new HiddenString('bad signup'),
+      signupError: new RPCError('bad signup', 0),
       usernameError: 'bad username',
     })
 
@@ -33,7 +34,7 @@ describe('goBackAndClearErrors', () => {
     expect(nextState.signup.emailError).toEqual('')
     expect(nextState.signup.inviteCodeError).toEqual('')
     expect(nextState.signup.nameError).toEqual('')
-    expect(nextState.signup.signupError.stringValue()).toEqual('')
+    expect(nextState.signup.signupError).toEqual(null)
     expect(nextState.signup.usernameError).toEqual('')
     expect(_testing.goBackAndClearErrors()).toEqual(RouteTreeGen.createNavigateUp())
   })
@@ -303,7 +304,7 @@ describe('actually sign up', () => {
     expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
   it('bails on signupError', () => {
-    const state = Constants.makeState({signupError: new HiddenString('error')})
+    const state = Constants.makeState({signupError: new RPCError('error', 0)})
     expect(_testing.reallySignupOnNoErrors(makeTypedState(state)).next().value).toBeUndefined()
   })
 
@@ -338,9 +339,9 @@ describe('actually sign up', () => {
   })
   it('updates error', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createSignedupError({error: new HiddenString('an error')})
+    const action = SignupGen.createSignedupError({error: new RPCError('an error', 0)})
     const nextState = makeTypedState(reducer(state, action))
-    expect(nextState.signup.signupError.stringValue()).toEqual(action.payload.error.stringValue())
+    expect(nextState.signup.signupError).toEqual(action.payload.error)
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(
       RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
     )

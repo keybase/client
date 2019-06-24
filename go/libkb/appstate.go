@@ -9,8 +9,8 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-// MobileAppState tracks the state of foreground/background status of the app in which the service
-// is running in.
+// MobileAppState tracks the state of foreground/background status of the app
+// in which the service is running in.
 type MobileAppState struct {
 	Contextified
 	sync.Mutex
@@ -68,21 +68,21 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 
 func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
 	check func(keybase1.MobileAppState) bool) {
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), func() error { return nil })()
 	a.Lock()
 	defer a.Unlock()
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateSafe(%v)", state), func() error { return nil })()
 	if check(a.state) {
 		a.updateLocked(state)
 	} else {
-		a.G().Log.Debug("MobileAppState.UpdateSafe: skipping update, failed check")
+		a.G().Log.Debug("MobileAppState.UpdateWithCheck: skipping update, failed check")
 	}
 }
 
 // Update updates the current app state, and notifies any waiting calls from NextUpdate
 func (a *MobileAppState) Update(state keybase1.MobileAppState) {
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), func() error { return nil })()
 	a.Lock()
 	defer a.Unlock()
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), func() error { return nil })()
 	a.updateLocked(state)
 }
 
@@ -97,6 +97,64 @@ func (a *MobileAppState) StateAndMtime() (keybase1.MobileAppState, *time.Time) {
 	a.Lock()
 	defer a.Unlock()
 	return a.state, a.mtime
+}
+
+// --------------------------------------------------
+
+// MobileNetState tracks the state of the network status of the app in which
+// the service is running in.
+type MobileNetState struct {
+	Contextified
+	sync.Mutex
+	state     keybase1.MobileNetworkState
+	updateChs []chan keybase1.MobileNetworkState
+}
+
+func NewMobileNetState(g *GlobalContext) *MobileNetState {
+	return &MobileNetState{
+		Contextified: NewContextified(g),
+		state:        keybase1.MobileNetworkState_NONE,
+	}
+}
+
+// NextUpdate returns a channel that triggers when the network state changes
+func (a *MobileNetState) NextUpdate(lastState *keybase1.MobileNetworkState) chan keybase1.MobileNetworkState {
+	a.Lock()
+	defer a.Unlock()
+	ch := make(chan keybase1.MobileNetworkState, 1)
+	if lastState != nil && *lastState != a.state {
+		ch <- a.state
+	} else {
+		a.updateChs = append(a.updateChs, ch)
+	}
+	return ch
+}
+
+// Update updates the current network state, and notifies any waiting calls
+// from NextUpdate
+func (a *MobileNetState) Update(state keybase1.MobileNetworkState) {
+	defer a.G().Trace(fmt.Sprintf("MobileNetState.Update(%v)", state), func() error { return nil })()
+	a.Lock()
+	defer a.Unlock()
+	if a.state != state {
+		a.G().Log.Debug("MobileNetState.Update: useful update: %v, we are currently in state: %v",
+			state, a.state)
+		a.state = state
+		for _, ch := range a.updateChs {
+			ch <- state
+		}
+		a.updateChs = nil
+	} else {
+		a.G().Log.Debug("MobileNetState.Update: ignoring update: %v, we are currently in state: %v",
+			state, a.state)
+	}
+}
+
+// State returns the current network state
+func (a *MobileNetState) State() keybase1.MobileNetworkState {
+	a.Lock()
+	defer a.Unlock()
+	return a.state
 }
 
 // --------------------------------------------------

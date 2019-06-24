@@ -1283,6 +1283,8 @@ const rootReducer = (
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     }
+    case Chat2Gen.updateUserReacjis:
+      return state.set('userReacjis', action.payload.userReacjis)
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
