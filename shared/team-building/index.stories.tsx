@@ -219,9 +219,10 @@ const load = () => {
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
         rolePickerProps={{
-          onConfirmRolePicker: Sb.action('onConfirmRolePicker'),
+          changeSendNotification: Sb.action('changeSendNotification'),
           onSelectRole: Sb.action('confirmRolePicker'),
           selectedRole: 'writer',
+          sendNotification: true,
           showRolePicker: true,
         }}
         searchString=""
@@ -540,7 +541,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Go Button', () => <GoButton onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Go!" onClick={Sb.action('onClick')} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)

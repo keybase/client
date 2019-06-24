@@ -5,15 +5,9 @@ import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
-import {FloatingRolePicker} from '../teams/role-picker'
+import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
-
-type RolePickerProps = {
-  onConfirmRolePicker: () => void
-  onSelectRole: () => void
-  showRolePicker: boolean
-  selectedRole: TeamRoleType
-}
+import {RolePickerProps} from '.'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -72,13 +66,17 @@ const TeamInput = (props: Props) => (
   />
 )
 
-const TeamBox = (props: Props) =>
-  (Styles.isMobile && (
+const TeamBox = (props: Props) => {
+  const [rolePickerOpen, setRolePickerOpen] = React.useState(
+    (props.rolePickerProps && props.rolePickerProps.showRolePicker) || false
+  )
+
+  return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
       <TeamInput {...props} />
     </Kb.Box2>
-  )) || (
+  ) : (
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Box2 direction="horizontal" style={styles.search}>
@@ -87,15 +85,21 @@ const TeamBox = (props: Props) =>
         {!!props.teamSoFar.length &&
           (props.rolePickerProps ? (
             <FloatingRolePicker
-              open={props.rolePickerProps.showRolePicker}
-              onConfirm={props.rolePickerProps.onConfirmRolePicker}
+              open={rolePickerOpen}
+              onConfirm={props.onFinishTeamBuilding}
               onSelectRole={props.rolePickerProps.onSelectRole}
               selectedRole={props.rolePickerProps.selectedRole}
+              onCancel={() => setRolePickerOpen(false)}
+              footerComponent={sendNotificationFooter(
+                'Announce them in team chats',
+                props.rolePickerProps.sendNotification,
+                props.rolePickerProps.changeSendNotification
+              )}
             >
-              <GoButton onClick={props.onFinishTeamBuilding} />
+              <GoButton label="Add" onClick={() => setRolePickerOpen(true)} />
             </FloatingRolePicker>
           ) : (
-            <GoButton onClick={props.onFinishTeamBuilding} />
+            <GoButton label="Go!" onClick={props.onFinishTeamBuilding} />
           ))}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
@@ -107,6 +111,7 @@ const TeamBox = (props: Props) =>
       </Kb.Box2>
     </Kb.Box2>
   )
+}
 
 const styles = Styles.styleSheetCreate({
   bubbles: Styles.platformStyles({

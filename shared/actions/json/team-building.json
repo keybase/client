@@ -1,12 +1,13 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/team-building'",
+    "import {TeamRoleType} from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
     "fetchUserRecs": {"namespace": "Types.AllowedNamespace"},
-    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace"},
+    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace", "teamname?": "string"},
     "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
     "search": {
       "namespace": "Types.AllowedNamespace",
@@ -24,6 +25,14 @@
       "users": "Array<Types.User>",
       "query": "string",
       "service": "Types.ServiceIdWithContact"
+    },
+    "selectRole": {
+      "namespace": "'teams'",
+      "role": "TeamRoleType"
+    },
+    "changeSendNotification": {
+      "namespace": "'teams'",
+      "sendNotification": "boolean"
     }
   }
 }

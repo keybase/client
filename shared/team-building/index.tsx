@@ -8,7 +8,6 @@ import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
-import {FloatingRolePicker} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 
 type SearchResult = {
@@ -20,10 +19,11 @@ type SearchResult = {
   followingState: FollowingState
 }
 
-type RolePickerProps = {
-  onConfirmRolePicker: () => void
-  onSelectRole: () => void
-  showRolePicker: boolean
+export type RolePickerProps = {
+  onSelectRole: (role: TeamRoleType) => void
+  sendNotification: boolean
+  changeSendNotification: (sendNotification: boolean) => void
+  showRolePicker?: boolean
   selectedRole: TeamRoleType
 }
 
@@ -70,7 +70,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {Styles.isMobile && (
+        {Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <TeamBox
               onChangeText={props.onChangeText}
@@ -82,13 +82,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
               teamSoFar={props.teamSoFar}
               onBackspace={props.onBackspace}
               searchString={props.searchString}
+              rolePickerProps={props.rolePickerProps}
             />
-            {!!props.teamSoFar.length && !Styles.isMobile && (
-              <GoButton onClick={props.onFinishTeamBuilding} />
-            )}
           </Kb.Box2>
-        )}
-        {!Styles.isMobile && (
+        ) : (
           <TeamBox
             onChangeText={props.onChangeText}
             onDownArrowKeyDown={props.onDownArrowKeyDown}

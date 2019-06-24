@@ -1320,6 +1320,8 @@ const rootReducer = (
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
     case TeamBuildingGen.search:
+    case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.changeSendNotification:
       return state.update('teamBuilding', teamBuilding => teamBuildingReducer('chat2', teamBuilding, action))
 
     // Saga only actions

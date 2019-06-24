@@ -8,7 +8,7 @@ export const appendNewChatBuilder = () =>
     path: [{props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
   })
 
-export const appendNewTeamBuilder = () =>
+export const appendNewTeamBuilder = (teamname: string) =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'teams'}, selected: 'teamsTeamBuilder'}],
+    path: [{props: {namespace: 'teams', teamname}, selected: 'teamsTeamBuilder'}],
   })

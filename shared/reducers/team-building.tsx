@@ -6,22 +6,6 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
 import {trim} from 'lodash-es'
 
-export function isTeamBuildingAction(action: TypedActions): action is TeamBuildingGen.Actions {
-  switch (action.type) {
-    case TeamBuildingGen.resetStore:
-    case TeamBuildingGen.cancelTeamBuilding:
-    case TeamBuildingGen.addUsersToTeamSoFar:
-    case TeamBuildingGen.removeUsersFromTeamSoFar:
-    case TeamBuildingGen.searchResultsLoaded:
-    case TeamBuildingGen.finishedTeamBuilding:
-    case TeamBuildingGen.search:
-    case TeamBuildingGen.fetchedUserRecs:
-    case TeamBuildingGen.fetchUserRecs:
-      return true
-  }
-  return false
-}
-
 export default function(
   namespace: string,
   state: Types.TeamBuildingSubState,
@@ -35,6 +19,10 @@ export default function(
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
       return Constants.makeSubState()
+    case TeamBuildingGen.selectRole:
+      return state.set('teamBuildingSelectedRole', action.payload.role)
+    case TeamBuildingGen.changeSendNotification:
+      return state.set('teamBuildingSendNotification', action.payload.sendNotification)
     case TeamBuildingGen.addUsersToTeamSoFar:
       return state.mergeIn(['teamBuildingTeamSoFar'], I.Set(action.payload.users))
     case TeamBuildingGen.removeUsersFromTeamSoFar: {

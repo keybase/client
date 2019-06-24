@@ -2,7 +2,8 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import {debounce, trim} from 'lodash-es'
-import TeamBuilding from '.'
+import TeamBuilding, {RolePickerProps} from '.'
+import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
@@ -14,12 +15,13 @@ import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
-import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {TeamRoleType} from '../constants/types/teams'
+import {Props as HeaderHocProps, Action as HeaderAction} from '../common-adapters/header-hoc/types'
 import {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = {
   namespace: AllowedNamespace
-  showTeamRole?: boolean
+  teamname?: string
   searchString: string
   selectedService: ServiceIdWithContact
   highlightedIndex: number
@@ -112,6 +114,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       state.config.username,
       state.config.following
     ),
+    selectedRole: teamBuildingState.teamBuildingSelectedRole,
+    sendNotification: teamBuildingState.teamBuildingSendNotification,
     serviceResultCount: deriveServiceResultCount(
       teamBuildingState.teamBuildingSearchResults,
       ownProps.searchString
@@ -123,7 +127,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: TypedDispatch, {namespace}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: TypedDispatch, {namespace, teamname}: OwnProps) => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _search: debounce((query: string, service: ServiceIdWithContact, limit?: number) => {
@@ -139,9 +143,14 @@ const mapDispatchToProps = (dispatch: TypedDispatch, {namespace}: OwnProps) => (
     )
   }, 500),
   fetchUserRecs: () => dispatch(TeamBuildingGen.createFetchUserRecs({namespace})),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace})),
+  onChangeSendNotification: (sendNotification: boolean) =>
+    namespace === 'teams' &&
+    dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
+  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace, teamname})),
   onRemove: (userId: string) =>
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
+  onSelectRole: (role: TeamRoleType) =>
+    namespace === 'teams' && dispatch(TeamBuildingGen.createSelectRole({namespace, role})),
 })
 
 const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {
@@ -265,14 +274,35 @@ const mergeProps = (
     teamSoFar,
   })
 
+  const rolePickerProps: RolePickerProps | null =
+    ownProps.namespace === 'teams'
+      ? {
+          changeSendNotification: dispatchProps.onChangeSendNotification,
+          onSelectRole: dispatchProps.onSelectRole,
+          selectedRole: stateProps.selectedRole,
+          sendNotification: stateProps.sendNotification,
+        }
+      : null
+
   const headerHocProps: HeaderHocProps = isMobile
     ? {
         leftAction: 'cancel',
         onLeftAction: dispatchProps._onCancelTeamBuilding,
         rightActions: [
-          teamSoFar.length ? {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding} : null,
+          teamSoFar.length
+            ? rolePickerProps
+              ? {
+                  custom: (
+                    <RolePickerHeaderAction
+                      onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
+                      rolePickerProps={rolePickerProps}
+                    />
+                  ),
+                }
+              : {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding}
+            : null,
         ],
-        title: 'New chat',
+        title: rolePickerProps ? 'Add people' : 'New chat',
       }
     : {}
 
@@ -296,6 +326,7 @@ const mergeProps = (
     onSearchForMore,
     onUpArrowKeyDown: ownProps.decHighlightIndex,
     recommendations,
+    rolePickerProps,
     searchResults,
     searchString: ownProps.searchString,
     selectedService: ownProps.selectedService,
@@ -336,6 +367,7 @@ class StateWrapperForTeamBuilding extends React.Component<RouteProps<{}, {}>, Lo
     return (
       <Connected
         namespace={this.props.navigation.getParam('namespace')}
+        teamname={this.props.navigation.getParam('teamname') || null}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

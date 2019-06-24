@@ -58,7 +58,7 @@ const mapDispatchToProps = dispatch => ({
     }
   },
   _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
-  onNewChat: () => dispatch(appendNewChatBuilder),
+  onNewChat: () => dispatch(appendNewChatBuilder()),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({

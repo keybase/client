@@ -16,7 +16,7 @@ type OwnProps = {
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
-      dispatch(appendNewTeamBuilder())
+      dispatch(appendNewTeamBuilder(teamname))
       // dispatch(
       //   RouteTreeGen.createNavigateTo({
       //     parentPath: [teamsTab],
