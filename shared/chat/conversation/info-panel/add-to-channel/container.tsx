@@ -55,7 +55,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let error
   if (stateProps.error) {
     const e = stateProps.error
-    error = Container.networkErrorCodes.includes(e.code)
+    error = Container.isNetworkErr(e.code)
       ? 'There was a problem connecting to the internet, please try again.'
       : e.message
   }

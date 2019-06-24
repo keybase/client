@@ -17,7 +17,6 @@ type LoaderPackage struct {
 	data         *keybase1.HiddenTeamChain
 	newData      *keybase1.HiddenTeamChain
 	expectedPrev *keybase1.LinkTriple
-	isFresh      bool
 }
 
 func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, error)) (ret *LoaderPackage, err error) {
@@ -35,9 +34,8 @@ func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() 
 
 func NewLoaderPackageForPrecheck(mctx libkb.MetaContext, id keybase1.TeamID, data *keybase1.HiddenTeamChain) *LoaderPackage {
 	return &LoaderPackage{
-		id:      id,
-		data:    data,
-		isFresh: true,
+		id:   id,
+		data: data,
 	}
 }
 
@@ -47,7 +45,7 @@ func NewLoaderPackageForPrecheck(mctx libkb.MetaContext, id keybase1.TeamID, dat
 // that we've previously seen data for this team (and therefor we're allowed to know whether or not
 // the team has a hidden chain (but nothing more)).
 func newLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyGeneration) *LoaderPackage {
-	return &LoaderPackage{id: id, encKID: e, encKIDGen: g, isFresh: true}
+	return &LoaderPackage{id: id, encKID: e, encKIDGen: g}
 }
 
 // Load in data from storage for this chain. We're going to make a deep copy so that
@@ -89,16 +87,11 @@ func (l *LoaderPackage) lastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
 	return l.data.LastReaderPerTeamKeyLinkID()
 }
 
-// SetIsFresh sets the fresh bit, which says that preloaded version of the hidden chain is the
-// most up-to-date. By default, this bit is set to true, but we can turn it off if the merkle/path.json
-// endpoint tells us otherwise.
-func (l *LoaderPackage) SetIsFresh(b bool) {
-	l.isFresh = b
-}
-
-// IsFresh returns false only if someone called SetIsFresh(false).
-func (l *LoaderPackage) IsFresh() bool {
-	return l.isFresh
+func (l *LoaderPackage) IsStale() bool {
+	if l.data == nil {
+		return false
+	}
+	return l.data.IsStale()
 }
 
 func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (err error) {

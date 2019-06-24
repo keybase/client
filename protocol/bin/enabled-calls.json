@@ -92,6 +92,7 @@
   "keybase.1.apiserver.Post": {"promise": true},
   "keybase.1.apiserver.PostJSON": {"promise": true},
   "keybase.1.appState.powerMonitorEvent": {"promise": true},
+  "keybase.1.appState.updateMobileNetState": {"promise": true},
   "keybase.1.avatars.loadTeamAvatars": {"promise": true},
   "keybase.1.avatars.loadUserAvatars": {"promise": true},
   "keybase.1.config.getAllProvisionedUsernames": {"promise": true},

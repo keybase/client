@@ -82,6 +82,7 @@ function* loadDaemonBootstrapStatus(
       loggedIn: s.loggedIn,
       registered: s.registered,
       uid: s.uid,
+      userReacjis: s.userReacjis,
       username: s.username,
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)

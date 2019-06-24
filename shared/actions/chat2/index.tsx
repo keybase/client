@@ -34,6 +34,7 @@ import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
 import {getEngine} from '../../engine/require'
+import {store} from 'emoji-mart'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -550,7 +551,10 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
     targetMsgID: ru.targetMsgID,
   }))
   logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-  return [Chat2Gen.createUpdateReactions({conversationIDKey, updates})]
+  return [
+    Chat2Gen.createUpdateReactions({conversationIDKey, updates}),
+    Chat2Gen.createUpdateUserReacjis({userReacjis: info.userReacjis}),
+  ]
 }
 
 const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
@@ -1856,6 +1860,40 @@ const _maybeAutoselectNewestConversation = (state, action, logger) => {
   }
 }
 
+const startupUserReacjisLoad = (state, action) =>
+  Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
+
+// onUpdateUserReacjis hooks `userReacjis`, frequently used reactions
+// recorded by the service, into the emoji-mart library. Handler spec is
+// documented at
+// https://github.com/missive/emoji-mart/tree/7c2e2a840bdd48c3c9935dac4208115cbcf6006d#storage
+const onUpdateUserReacjis = state => {
+  if (isMobile) {
+    return
+  }
+  const userReacjis = state.chat2.userReacjis
+  // emoji-mart expects a frequency map so we convert the sorted list from the
+  // service into a frequency map that will appease the lib.
+  let i = 0
+  let reacjis = {}
+  userReacjis.topReacjis.forEach(el => {
+    i++
+    reacjis[el] = userReacjis.topReacjis.length - i
+  })
+  store.setHandlers({
+    getter: key => {
+      switch (key) {
+        case 'frequently':
+          return reacjis
+        case 'last':
+          return reacjis[0]
+        case 'skin':
+          return userReacjis.skinTone
+      }
+    },
+  })
+}
+
 const openFolder = (state, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
@@ -3136,6 +3174,18 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     ConfigGen.bootstrapStatusLoaded,
     startupInboxLoad,
     'startupInboxLoad'
+  )
+
+  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
+    ConfigGen.bootstrapStatusLoaded,
+    startupUserReacjisLoad,
+    'startupUserReacjisLoad'
+  )
+
+  yield* Saga.chainAction<Chat2Gen.UpdateUserReacjisPayload>(
+    Chat2Gen.updateUserReacjis,
+    onUpdateUserReacjis,
+    'onUpdateUserReacjis'
   )
 
   // Search handling

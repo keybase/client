@@ -882,7 +882,7 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 	}
 
 	t.Logf("U0 rotates the subteam")
-	err = RotateKey(context.Background(), tcs[0].G, *subteamID)
+	err = RotateKey(context.Background(), tcs[0].G, keybase1.TeamRotateKeyArg{TeamID: *subteamID, Rt: keybase1.RotationType_VISIBLE})
 	require.NoError(t, err)
 
 	t.Logf("Both users can still load the team")

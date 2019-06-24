@@ -34,9 +34,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   routePath: ownProps.routePath || I.List(),
 })
 
-export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'PathItemAction'
-)(PathItemAction)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'PathItemAction')(
+  // Super weird bug: in story mode this seems to get imported more than once.
+  // First time we don't get PathItemAction at all -- it's just undefined.
+  // Then later everything's normal. So just give it a dummy component in that
+  // case.
+  PathItemAction || (() => null)
+)

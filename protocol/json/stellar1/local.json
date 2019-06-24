@@ -1383,6 +1383,18 @@
         {
           "type": "string",
           "name": "memoType"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendNative"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendFiat"
         }
       ]
     },

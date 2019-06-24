@@ -1,6 +1,7 @@
 {
   "prelude": [
-    "import HiddenString from '../util/hidden-string'"
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'",
   ],
   "actions": {
     "login": {
@@ -9,6 +10,6 @@
     },
     "launchAccountResetWebPage": {},
     "launchForgotPasswordWebPage": {},
-    "loginError": {"error": "HiddenString | null"}
+    "loginError": {"error": "RPCError | null"}
   }
 }

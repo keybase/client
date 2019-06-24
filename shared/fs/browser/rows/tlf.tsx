@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
-import {LoadPathMetadataWhenNeeded, TlfInfo, Filename} from '../../common'
+import {useFsLoadEffect, TlfInfo, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean
@@ -40,29 +40,34 @@ const Avatars = (props: TlfProps) => (
     )}
   </Kb.Box>
 )
-const Tlf = (props: TlfProps) => (
-  <StillCommon
-    name={props.name}
-    path={props.path}
-    onOpen={props.onOpen}
-    inDestinationPicker={props.inDestinationPicker}
-    badge={props.isNew ? Types.PathItemBadgeType.New : null}
-    routePath={props.routePath}
-    showActionsWithGrow={true}
-  >
-    {props.loadPathMetadata && <LoadPathMetadataWhenNeeded path={props.path} />}
-    <Kb.Box style={rowStyles.itemBox}>
-      {Styles.isMobile ? (
-        <Content {...props} />
-      ) : (
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+const Tlf = (props: TlfProps) => {
+  useFsLoadEffect({
+    path: props.path,
+    wantPathMetadata: props.loadPathMetadata,
+  })
+  return (
+    <StillCommon
+      name={props.name}
+      path={props.path}
+      onOpen={props.onOpen}
+      inDestinationPicker={props.inDestinationPicker}
+      badge={props.isNew ? Types.PathItemBadgeType.New : null}
+      routePath={props.routePath}
+      showActionsWithGrow={true}
+    >
+      <Kb.Box style={rowStyles.itemBox}>
+        {Styles.isMobile ? (
           <Content {...props} />
-          <Avatars {...props} />
-        </Kb.Box2>
-      )}
-    </Kb.Box>
-  </StillCommon>
-)
+        ) : (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Content {...props} />
+            <Avatars {...props} />
+          </Kb.Box2>
+        )}
+      </Kb.Box>
+    </StillCommon>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   avatarBox: {marginRight: Styles.globalMargins.xsmall},
