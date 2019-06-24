@@ -226,6 +226,7 @@ const load = () => {
       <TeamBuilding
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
+          changeShowRolePicker: Sb.action('changeShowRolePicker'),
           onSelectRole: Sb.action('confirmRolePicker'),
           selectedRole: 'writer',
           sendNotification: true,

@@ -4,7 +4,8 @@ import {RolePickerProps} from '.'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 
 type Props = {
-  rolePickerProps?: RolePickerProps
+  rolePickerProps: RolePickerProps
+  plural: boolean
   onFinishTeamBuilding: () => void
 }
 
@@ -19,6 +20,7 @@ export default (props: Props) => {
       onSelectRole={props.rolePickerProps.onSelectRole}
       selectedRole={props.rolePickerProps.selectedRole}
       onCancel={() => setRolePickerOpen(false)}
+      confirmLabel={`Add as ${props.rolePickerProps.selectedRole}${props.plural ? 's' : ''}`}
       footerComponent={sendNotificationFooter(
         'Announce them in team chats',
         props.rolePickerProps.sendNotification,

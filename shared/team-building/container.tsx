@@ -337,6 +337,7 @@ const mergeProps = (
                     <RolePickerHeaderAction
                       onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
                       rolePickerProps={rolePickerProps}
+                      plural={teamSoFar.length > 1}
                     />
                   ),
                 }

@@ -67,6 +67,7 @@ const TeamInput = (props: Props) => (
 )
 
 const TeamBox = (props: Props) => {
+  const plural = props.teamSoFar.length > 1
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
@@ -86,6 +87,7 @@ const TeamBox = (props: Props) => {
               onSelectRole={props.rolePickerProps.onSelectRole}
               selectedRole={props.rolePickerProps.selectedRole}
               onCancel={() => props.rolePickerProps.changeShowRolePicker(false)}
+              confirmLabel={`Add as ${props.rolePickerProps.selectedRole}${plural ? 's' : ''}`}
               footerComponent={sendNotificationFooter(
                 'Announce them in team chats',
                 props.rolePickerProps.sendNotification,
