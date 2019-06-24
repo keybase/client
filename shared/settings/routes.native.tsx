@@ -20,11 +20,11 @@ export const newRoutes = {
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   privacyPolicy: {getScreen: () => require('./web-links.native').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
-  settingsManageContacts: {getScreen: () => require('./account/manage-contacts').default},
   settingsRoot: {getScreen: () => require('./').default},
   terms: {getScreen: () => require('./web-links.native').default},
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
+  settingsManageContacts: {getScreen: () => require('./account/manage-contacts').default},
 }

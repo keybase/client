@@ -15,8 +15,14 @@ export type Props = {
   onSetPassword: () => void
 } & HeaderHocProps
 
+export const SettingsSection = ({children}: {children: React.ReactNode}) => (
+  <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.section}>
+    {children}
+  </Kb.Box2>
+)
+
 const EmailPhone = (props: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+  <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Email & phone</Kb.Text>
       <Kb.Text type="BodySmall">
@@ -35,7 +41,7 @@ const EmailPhone = (props: Props) => (
       <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
       <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
     </Kb.ButtonBar>
-  </Kb.Box2>
+  </SettingsSection>
 )
 
 const Password = (props: Props) => {
@@ -46,7 +52,7 @@ const Password = (props: Props) => {
     passwordLabel = 'Set a password'
   }
   return (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+    <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Text type="Header">Password</Kb.Text>
         <Kb.Text type="BodySmall">
@@ -63,12 +69,12 @@ const Password = (props: Props) => {
           <Kb.Button mode="Secondary" onClick={props.onSetPassword} label={passwordLabel} small={true} />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Box2>
+    </SettingsSection>
   )
 }
 
 const DeleteAccount = (props: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+  <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Delete account</Kb.Text>
       <Kb.Text type="BodySmall">
@@ -84,11 +90,11 @@ const DeleteAccount = (props: Props) => (
         small={true}
       />
     </Kb.ButtonBar>
-  </Kb.Box2>
+  </SettingsSection>
 )
 
 const ManageContacts = (props: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+  <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Manage contacts</Kb.Text>
       <Kb.Text type="BodySmall">Manage importing the contacts on this device.</Kb.Text>
@@ -96,7 +102,7 @@ const ManageContacts = (props: Props) => (
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <Kb.Button mode="Secondary" onClick={props.onManageContacts} label="Manage contacts" small={true} />
     </Kb.ButtonBar>
-  </Kb.Box2>
+  </SettingsSection>
 )
 
 const AccountSettings = (props: Props) => (
