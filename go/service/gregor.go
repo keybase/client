@@ -309,7 +309,7 @@ func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
 	g.connMutex.Lock()
 	cli := g.cli
 	g.connMutex.Unlock()
-	if g.IsShutdown() || g.cli == nil {
+	if g.IsShutdown() || cli == nil {
 		return gregor1.IncomingClient{Cli: chat.OfflineClient{}}
 	}
 	return gregor1.IncomingClient{Cli: cli}
