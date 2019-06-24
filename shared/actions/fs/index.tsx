@@ -304,25 +304,31 @@ const refreshTagRpc = (
 
   // We've got a refreshTag. Set it regardless.
   const tags = opType === 'folderList' ? folderListRefreshTags : pathMetadataRefreshTags
+  const pathIsSubscribed = tags.get(refreshTag) === path
   tags.set(refreshTag, path)
 
-  // If we are subscribed to the same TLF, just skip. When we have
-  // notifications coming in, we'll know to trigger RPCs for the right paths.
   const tlfPath = Constants.getTlfPath(path)
-  if (tlfPath === lastSubscribedTlf[opType]) {
+  if (tlfPath !== lastSubscribedTlf[opType]) {
+    // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
+    // want to refresh subscription to this TLF.
+    lastSubscribedTlf[opType] = tlfPath
     return {
-      refreshSubscription: false,
-      skipRpc: true,
+      refreshSubscription: true,
+      skipRpc: false,
     }
   }
 
-  // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
-  // want to refresh subscription to this TLF.
-  lastSubscribedTlf[opType] = tlfPath
-  return {
-    refreshSubscription: true,
-    skipRpc: false,
-  }
+  // Otherwise, check if the subscribed path is the same. If it's not the same,
+  // do RPC and refresh subscription path.
+  return pathIsSubscribed
+    ? {
+        refreshSubscription: true,
+        skipRpc: true,
+      }
+    : {
+        refreshSubscription: true,
+        skipRpc: false,
+      }
 }
 
 function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
