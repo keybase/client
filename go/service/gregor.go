@@ -306,10 +306,13 @@ func (g *gregorHandler) GetURI() *rpc.FMPURI {
 }
 
 func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
+	g.connMutex.Lock()
+	cli := g.cli
+	g.connMutex.Unlock()
 	if g.IsShutdown() || g.cli == nil {
 		return gregor1.IncomingClient{Cli: chat.OfflineClient{}}
 	}
-	return gregor1.IncomingClient{Cli: g.cli}
+	return gregor1.IncomingClient{Cli: cli}
 }
 
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
@@ -319,13 +322,16 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || cli == nil {
 		select {
 		case <-g.connectHappened:
-			if g.IsShutdown() || g.cli == nil {
+			g.connMutex.Lock()
+			cli = g.cli
+			g.connMutex.Unlock()
+			if g.IsShutdown() || cli == nil {
 				g.chatLog.Debug(context.Background(), "GetClient: connectHappened, but still shutdown, using OfflineClient for chat1.RemoteClient")
 				return chat1.RemoteClient{Cli: chat.OfflineClient{}}
 
 			}
 			g.chatLog.Debug(context.Background(), "GetClient: successfully waited for connection")
-			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 		case <-time.After(GregorGetClientTimeout):
 			g.chatLog.Debug(context.Background(), "GetClient: shutdown, using OfflineClient for chat1.RemoteClient (waited %s for connectHappened)", GregorGetClientTimeout)
 			return chat1.RemoteClient{Cli: chat.OfflineClient{}}
