@@ -36,7 +36,7 @@ func (t *locationTrack) capLocked(maxCoords int) {
 	if len(t.allCoords) < maxCoords || len(t.allCoords) == 0 {
 		return
 	}
-	newCoords := make([]chat1.Coordinate, maxCoords)
+	newCoords := make([]chat1.Coordinate, maxCoords+1)
 	copy(newCoords, t.allCoords[len(t.allCoords)-maxCoords:len(t.allCoords)])
 	newCoords = append([]chat1.Coordinate{t.allCoords[0]}, newCoords...)
 	t.allCoords = newCoords

@@ -19,13 +19,20 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 )
 
+// For more information about the Google Maps Static API, head here:
+// https://developers.google.com/maps/documentation/maps-static/dev-guide
+
 const MapsProxy = "maps-proxy.core.keybaseapi.com"
 const mapsHost = "maps.googleapis.com"
+const scale = 2
 const locationMapWidth = 640
 const locationMapHeight = 350
+const locationMapWidthScaled = locationMapWidth / scale
+const locationMapHeightScaled = locationMapHeight / scale
 const liveMapWidth = 640
 const liveMapHeight = 270
-const scale = 2
+const liveMapWidthScaled = liveMapWidth / scale
+const liveMapHeightScaled = liveMapHeight / scale
 
 func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat, lon float64) (string, error) {
 	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
@@ -34,7 +41,7 @@ func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat
 	}
 	return fmt.Sprintf(
 		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, lat, lon, lat, lon, locationMapWidth/scale, locationMapHeight/scale, scale,
+		MapsProxy, lat, lon, lat, lon, locationMapWidthScaled, locationMapHeightScaled, scale,
 		key.Googlemaps()), nil
 }
 
@@ -46,9 +53,7 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	if err != nil {
 		return "", err
 	}
-	pathStr := ""
-	startStr := ""
-	centerStr := ""
+	var pathStr, startStr, centerStr string
 	first := coords[0]
 	last := coords[len(coords)-1]
 	if len(coords) > 1 {
@@ -63,8 +68,8 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	}
 	url := fmt.Sprintf(
 		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, liveMapWidth/scale,
-		liveMapHeight/scale, scale, key.Googlemaps())
+		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, liveMapWidthScaled,
+		liveMapHeightScaled, scale, key.Googlemaps())
 	return url, nil
 }
 
