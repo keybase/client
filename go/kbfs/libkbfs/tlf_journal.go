@@ -1064,9 +1064,10 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 		return nil
 	}
 
-	j.vlog.CLogf(
-		ctx, libkb.VLog1, "Server is ahead of local journal (rev=%d), "+
-			"indicating a conflict", currHead.MD.RevisionNumber())
+	j.log.CDebugf(
+		ctx, "Server is ahead of local journal (rev=%d, nextMD=%d), "+
+			"indicating a conflict",
+		currHead.MD.RevisionNumber(), nextMDToFlush)
 	return j.convertMDsToBranch(ctx)
 }
 
