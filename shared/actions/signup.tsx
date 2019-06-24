@@ -9,6 +9,7 @@ import {loginTab} from '../constants/tabs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import {TypedState} from '../constants/reducer'
+import * as SettingsGen from './settings-gen'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -49,6 +50,12 @@ const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? SignupGen.createRestartSignup()
     : RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
+
+// If the email was set to be visible during signup, we need to set that with a separate RPC.
+const setEmailVisibilityAfterSignup = (state: TypedState) =>
+  noErrors(state) &&
+  state.signup.emailVisible &&
+  SettingsGen.createEditEmail({email: state.signup.email, toggleSearchable: true})
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>
@@ -199,6 +206,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<SignupGen.CheckedInviteCodePayload>(SignupGen.checkedInviteCode, showUserOnNoErrors)
   yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+  yield* Saga.chainAction<SignupGen.SignedupPayload>(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
   // actually make the signup call
   yield* Saga.chainGenerator<SignupGen.CheckedDevicenamePayload>(
