@@ -8,8 +8,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
-import {niceError} from '../util/errors'
-import HiddenString from '../util/hidden-string'
+import {RPCError, niceError} from '../util/errors'
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
@@ -26,7 +25,8 @@ const getPasswordHandler = passphrase => (params, response) => {
       if (retryLabel === Constants.invalidPasswordErrorString) {
         retryLabel = 'Incorrect password.'
       }
-      return Saga.put(LoginGen.createLoginError({error: new HiddenString(retryLabel)}))
+      const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
+      return Saga.put(LoginGen.createLoginError({error}))
     } else {
       response.result({
         passphrase,
@@ -83,7 +83,8 @@ function* login(state, action: LoginGen.LoginPayload) {
   } catch (e) {
     // If we're canceling then ignore the error
     if (e.desc !== cancelDesc) {
-      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
+      e.desc = niceError(e)
+      yield Saga.put(LoginGen.createLoginError({error: e}))
     }
   }
 }

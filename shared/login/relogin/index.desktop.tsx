@@ -54,7 +54,7 @@ class Login extends React.Component<Props, State> {
   render() {
     const inputProps = {
       autoFocus: true,
-      errorText: this.props.inputError,
+      errorText: this.props.inputError ? this.props.error : '',
       floatingHintTextOverride: '',
       hintText: 'Password',
       key: this.props.inputKey,
@@ -81,7 +81,7 @@ class Login extends React.Component<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        {!!this.props.bannerError && <Kb.Banner text={this.props.bannerError} color="red" />}
+        {this.props.bannerError && <Kb.Banner text={this.props.error} color="red" />}
         <Kb.Box style={stylesContainer}>
           <Kb.UserCard username={this.props.selectedUser}>
             <Kb.Dropdown
