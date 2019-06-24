@@ -313,7 +313,10 @@ func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
 }
 
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
-	if g.IsShutdown() || g.cli == nil {
+	g.connMutex.Lock()
+	cli := g.cli
+	g.connMutex.Unlock()
+	if g.IsShutdown() || cli == nil {
 		select {
 		case <-g.connectHappened:
 			if g.IsShutdown() || g.cli == nil {
@@ -328,9 +331,8 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: chat.OfflineClient{}}
 		}
 	}
-
 	g.chatLog.Debug(context.Background(), "GetClient: not shutdown, making new remote client")
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 }
 
 func (g *gregorHandler) isFirstConnect() bool {
