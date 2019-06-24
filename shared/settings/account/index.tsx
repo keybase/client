@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import flags from '../../util/feature-flags'
 
 export type Props = {
   contactKeys: I.List<string>
@@ -111,7 +112,7 @@ const AccountSettings = (props: Props) => (
       <EmailPhone {...props} />
       <Kb.Divider />
       <Password {...props} />
-      {Styles.isMobile && (
+      {Styles.isMobile && flags.sbsContacts && (
         <>
           <Kb.Divider />
           <ManageContacts {...props} />
