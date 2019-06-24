@@ -15,7 +15,7 @@ import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
-import {TeamRoleType} from '../constants/types/teams'
+import {TeamRoleType, MemberInfo} from '../constants/types/teams'
 import {Props as HeaderHocProps, Action as HeaderAction} from '../common-adapters/header-hoc/types'
 import {RouteProps} from '../route-tree/render-route'
 
@@ -49,12 +49,14 @@ const deriveSearchResults = memoize(
     searchResults: Array<User> | null,
     teamSoFar: I.Set<User>,
     myUsername: string,
-    followingState: I.Set<string>
+    followingState: I.Set<string>,
+    preExistingTeamMembers: I.Map<string, MemberInfo>
   ) =>
     searchResults &&
     searchResults.map(info => ({
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
       inTeam: teamSoFar.some(u => u.id === info.id),
+      isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
       prettyName: info.prettyName,
       services: info.serviceMap,
       userId: info.id,
@@ -101,18 +103,24 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     ownProps.selectedService,
   ])
 
+  const preExistingTeamMembers: I.Map<string, MemberInfo> = ownProps.teamname
+    ? state.teams.teamNameToMembers.get(ownProps.teamname)
+    : I.Map()
+
   return {
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
       state.config.username,
-      state.config.following
+      state.config.following,
+      preExistingTeamMembers
     ),
     searchResults: deriveSearchResults(
       userResults,
       teamBuildingState.teamBuildingTeamSoFar,
       state.config.username,
-      state.config.following
+      state.config.following,
+      preExistingTeamMembers
     ),
     selectedRole: teamBuildingState.teamBuildingSelectedRole,
     sendNotification: teamBuildingState.teamBuildingSendNotification,
@@ -171,6 +179,11 @@ const deriveOnEnterKeyDown = memoizeShallow(
   }) => () => {
     const selectedResult = !!searchResults && searchResults[highlightedIndex]
     if (selectedResult) {
+      // We don't handle cases where they hit enter on someone that is already a
+      // team member
+      if (selectedResult.isPreExistingTeamMember) {
+        return
+      }
       if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
         onRemove(selectedResult.userId)
         changeText('')

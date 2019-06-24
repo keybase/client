@@ -1,5 +1,4 @@
 import * as React from 'react'
-import GoButton from './go-button'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import TeamBox from './team-box'
@@ -16,6 +15,7 @@ type SearchResult = {
   prettyName: string
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
+  isPreExistingTeamMember: boolean
   followingState: FollowingState
 }
 
@@ -163,6 +163,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 prettyName={result.prettyName}
                 services={result.services}
                 inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
                 followingState={result.followingState}
                 highlight={index === props.highlightedIndex}
                 onAdd={() => props.onAdd(result.userId)}

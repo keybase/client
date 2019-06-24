@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
-import {styles as headerStyles} from '../common-adapters/header-hoc'
 import {RolePickerProps} from '.'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 
