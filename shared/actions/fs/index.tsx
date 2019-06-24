@@ -307,10 +307,11 @@ const refreshTagRpc = (
   const pathIsSubscribed = tags.get(refreshTag) === path
   tags.set(refreshTag, path)
 
-  // If we are not subscribed to the same TLF, always do RPC, and refresh
-  // subscription to this TLF.
   const tlfPath = Constants.getTlfPath(path)
   if (tlfPath !== lastSubscribedTlf[opType]) {
+    // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
+    // want to refresh subscription to this TLF.
+    lastSubscribedTlf[opType] = tlfPath
     return {
       refreshSubscription: true,
       skipRpc: false,
