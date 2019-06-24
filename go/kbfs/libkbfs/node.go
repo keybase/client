@@ -110,8 +110,8 @@ func (n *nodeStandard) Readonly(_ context.Context) bool {
 
 func (n *nodeStandard) ShouldCreateMissedLookup(
 	ctx context.Context, _ data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, string) {
-	return false, ctx, data.File, nil, ""
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
+	return false, ctx, data.File, nil, data.PathPartString{}
 }
 
 func (n *nodeStandard) ShouldRetryOnDirRead(ctx context.Context) bool {

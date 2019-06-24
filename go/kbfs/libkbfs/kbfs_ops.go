@@ -75,7 +75,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs:                  NewFavorites(config),
+		favs: NewFavorites(config),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -1096,8 +1096,8 @@ func (fs *KBFSOpsStandard) CreateFile(
 
 // CreateLink implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateLink(
-	ctx context.Context, dir Node, fromName data.PathPartString,
-	toPath string) (data.EntryInfo, error) {
+	ctx context.Context, dir Node, fromName, toPath data.PathPartString) (
+	data.EntryInfo, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 

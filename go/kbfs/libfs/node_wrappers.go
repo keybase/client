@@ -61,7 +61,7 @@ var perTlfWrappedNodeNames = map[string]bool{
 // specialFileNode.
 func (sfn *specialFileNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	if !perTlfWrappedNodeNames[name.Plaintext()] {
 		return sfn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
@@ -75,7 +75,8 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 			log:    sfn.log,
 		}
 		f := sfn.GetFile(ctx)
-		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(), ""
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
 	}

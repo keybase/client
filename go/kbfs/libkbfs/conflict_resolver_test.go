@@ -469,8 +469,8 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	mergedPaths[expectedUnmergedPath.TailPointer()] = mergedPath
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPath.TailPointer(): {&copyUnmergedEntryAction{
-			dir2.ChildName("file2"), dir2.ChildName("file2"), "", false, false,
-			data.DirEntry{}, nil}},
+			dir2.ChildName("file2"), dir2.ChildName("file2"),
+			dir2.ChildName(""), false, false, data.DirEntry{}, nil}},
 	}
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -543,8 +543,8 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	mergedPaths[expectedUnmergedPath.TailPointer()] = mergedPath
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPath.TailPointer(): {&copyUnmergedEntryAction{
-			dirB2.ChildName("file2"), dirB2.ChildName("file2"), "", false,
-			false, data.DirEntry{}, nil}},
+			dirB2.ChildName("file2"), dirB2.ChildName("file2"),
+			dirB2.ChildName(""), false, false, data.DirEntry{}, nil}},
 	}
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
 		mergedPaths, nil, expectedActions)
@@ -646,14 +646,15 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	dirAPtr1 := cr1.fbo.nodeCache.PathFromNode(dirA1).TailPointer()
 	expectedActions := map[data.BlockPointer]crActionList{
 		dirCPtr: {&copyUnmergedEntryAction{
-			dirC2.ChildName("file2"), dirC2.ChildName("file2"), "",
-			false, false, data.DirEntry{}, nil}},
+			dirC2.ChildName("file2"), dirC2.ChildName("file2"),
+			dirC2.ChildName(""), false, false, data.DirEntry{}, nil}},
 		dirBPtr: {&copyUnmergedEntryAction{
-			dirB1.ChildName("dirC"), dirB1.ChildName("dirC"), "", false, false,
+			dirB1.ChildName("dirC"), dirB1.ChildName("dirC"),
+			dirB1.ChildName(""), false, false,
 			data.DirEntry{}, nil}},
 		dirAPtr1: {&copyUnmergedEntryAction{
-			dirA1.ChildName("dirB"), dirA1.ChildName("dirB"), "", false, false,
-			data.DirEntry{}, nil}},
+			dirA1.ChildName("dirB"), dirA1.ChildName("dirB"),
+			dirA1.ChildName(""), false, false, data.DirEntry{}, nil}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
@@ -745,8 +746,8 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPath.TailPointer(): {&copyUnmergedEntryAction{
-			dirC2.ChildName("file2"), dirC2.ChildName("file2"), "", false,
-			false, data.DirEntry{}, nil}},
+			dirC2.ChildName("file2"), dirC2.ChildName("file2"),
+			dirC2.ChildName(""), false, false, data.DirEntry{}, nil}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{expectedUnmergedPath},
@@ -944,17 +945,17 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	mergedPathE := cr1.fbo.nodeCache.PathFromNode(dirE1)
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPathA.TailPointer(): {&copyUnmergedEntryAction{
-			dirA2.ChildName("dirJ"), dirA2.ChildName("dirJ"), "", false,
-			false, data.DirEntry{}, nil}},
+			dirA2.ChildName("dirJ"), dirA2.ChildName("dirJ"),
+			dirA2.ChildName(""), false, false, data.DirEntry{}, nil}},
 		mergedPathE.TailPointer(): {&copyUnmergedEntryAction{
-			dirE1.ChildName("dirF"), dirE1.ChildName("dirF"), "", false,
-			false, data.DirEntry{}, nil}},
+			dirE1.ChildName("dirF"), dirE1.ChildName("dirF"),
+			dirE1.ChildName(""), false, false, data.DirEntry{}, nil}},
 		mergedPathF.TailPointer(): {&copyUnmergedEntryAction{
-			dirF2.ChildName("file3"), dirF2.ChildName("file3"), "", false,
-			false, data.DirEntry{}, nil}},
+			dirF2.ChildName("file3"), dirF2.ChildName("file3"),
+			dirF2.ChildName(""), false, false, data.DirEntry{}, nil}},
 		mergedPathH.TailPointer(): {&copyUnmergedEntryAction{
-			dirH2.ChildName("file4"), dirH2.ChildName("file4"), "", false,
-			false, data.DirEntry{}, nil}},
+			dirH2.ChildName("file4"), dirH2.ChildName("file4"),
+			dirH2.ChildName(""), false, false, data.DirEntry{}, nil}},
 		mergedPathB.TailPointer(): {&rmMergedEntryAction{
 			dirB2.ChildName("dirD")}},
 	}
@@ -1058,8 +1059,8 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	expectedActions := map[data.BlockPointer]crActionList{
 		mergedPathRoot.TailPointer(): {&dropUnmergedAction{ro}},
 		mergedPathB.TailPointer(): {&copyUnmergedEntryAction{
-			dirB2.ChildName("dirA"), dirB2.ChildName("dirA"), "./../", false,
-			false, data.DirEntry{}, nil}},
+			dirB2.ChildName("dirA"), dirB2.ChildName("dirA"),
+			dirB2.ChildName("./../"), false, false, data.DirEntry{}, nil}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{unmergedPathRoot, unmergedPathB},
@@ -1139,7 +1140,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 			dirRoot1.ChildName("file1"),
 			dirRoot1.ChildName(cre.ConflictRenameHelper(
 				now, "u2", "dev1", "file1")),
-			"", 0, false, data.ZeroPtr, data.ZeroPtr}},
+			dirRoot1.ChildName(""), 0, false, data.ZeroPtr, data.ZeroPtr}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{unmergedPathRoot},
@@ -1261,7 +1262,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 			dirRoot1.ChildName("file"),
 			dirRoot2.ChildName(cre.ConflictRenameHelper(
 				now, "u2", "dev1", "file")),
-			"", 0, false, data.ZeroPtr, data.ZeroPtr}},
+			dirRoot1.ChildName(""), 0, false, data.ZeroPtr, data.ZeroPtr}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []data.Path{unmergedPathFile},

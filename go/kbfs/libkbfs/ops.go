@@ -456,7 +456,7 @@ func (co *createOp) checkConflict(
 				return &renameMergedAction{
 					fromName: co.obfuscatedNewName(),
 					toName:   co.obfuscatedName(toName),
-					symPath:  co.crSymPath,
+					symPath:  co.obfuscatedName(co.crSymPath),
 				}, nil
 			}
 			// Otherwise rename the unmerged entry (guaranteed to be a file).
@@ -468,7 +468,7 @@ func (co *createOp) checkConflict(
 			return &renameUnmergedAction{
 				fromName: co.obfuscatedNewName(),
 				toName:   co.obfuscatedName(toName),
-				symPath:  co.crSymPath,
+				symPath:  co.obfuscatedName(co.crSymPath),
 			}, nil
 		}
 
@@ -489,7 +489,7 @@ func (co *createOp) checkConflict(
 			return &copyUnmergedEntryAction{
 				fromName: co.obfuscatedNewName(),
 				toName:   co.obfuscatedName(toName),
-				symPath:  co.crSymPath,
+				symPath:  co.obfuscatedName(co.crSymPath),
 				unique:   true,
 			}, nil
 		}
@@ -505,13 +505,13 @@ func (co *createOp) getDefaultAction(mergedPath data.Path) crAction {
 		return &renameUnmergedAction{
 			fromName: newName,
 			toName:   newName,
-			symPath:  co.crSymPath,
+			symPath:  co.obfuscatedName(co.crSymPath),
 		}
 	}
 	return &copyUnmergedEntryAction{
 		fromName: newName,
 		toName:   newName,
-		symPath:  co.crSymPath,
+		symPath:  co.obfuscatedName(co.crSymPath),
 	}
 }
 
@@ -1000,8 +1000,8 @@ func (so *syncOp) checkConflict(
 		}
 
 		return &renameUnmergedAction{
-			fromName:                 so.getFinalPath().TailName(),
-			toName:                   so.obfuscatedName(toName),
+			fromName: so.getFinalPath().TailName(),
+			toName:   so.obfuscatedName(toName),
 			unmergedParentMostRecent: so.getFinalPath().ParentPath().TailPointer(),
 			mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
 				TailPointer(),
@@ -1022,7 +1022,7 @@ func (so *syncOp) getDefaultAction(mergedPath data.Path) crAction {
 	return &copyUnmergedEntryAction{
 		fromName: so.getFinalPath().TailName(),
 		toName:   mergedPath.TailName(),
-		symPath:  "",
+		symPath:  so.obfuscatedName(""),
 	}
 }
 
@@ -1312,7 +1312,7 @@ func (sao *setAttrOp) checkConflict(
 			return &renameUnmergedAction{
 				fromName:                 fromName,
 				toName:                   toNamePPS,
-				symPath:                  symPath,
+				symPath:                  sao.obfuscatedName(symPath),
 				causedByAttr:             causedByAttr,
 				unmergedParentMostRecent: sao.getFinalPath().ParentPath().TailPointer(),
 				mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
