@@ -33,6 +33,7 @@ type PathPartString struct {
 	toObfuscate string // if different from `plaintext`
 	ext         string
 	obfuscator  Obfuscator
+	isFileInfo  bool
 }
 
 var _ fmt.Stringer = PathPartString{}
@@ -53,8 +54,14 @@ func NewPathPartString(
 		ext = ""
 	}
 
+	isFileInfo := false
 	if strings.HasPrefix(plaintext, prefixFileInfo) {
 		toObfuscate = strings.TrimPrefix(plaintext, prefixFileInfo)
+		isFileInfo = true
+	} else if strings.HasPrefix(plaintext, prefixToSkipObfsucation) {
+		// Nil out the obfuscator since this string doesn't need
+		// obfuscation.
+		obfuscator = nil
 	}
 
 	conflictedIndex := strings.LastIndex(plaintext, suffixConflictStart)
@@ -70,7 +77,7 @@ func NewPathPartString(
 			toObfuscate, suffixConflictStart)] + ext
 		ext = plaintext[conflictedIndex:]
 	}
-	return PathPartString{plaintext, toObfuscate, ext, obfuscator}
+	return PathPartString{plaintext, toObfuscate, ext, obfuscator, isFileInfo}
 }
 
 func (pps PathPartString) String() string {
@@ -79,12 +86,9 @@ func (pps PathPartString) String() string {
 	}
 
 	var prefix string
-	if strings.HasPrefix(pps.plaintext, prefixFileInfo) {
+	if pps.isFileInfo {
 		// Preserve the fileinfo prefix.
 		prefix = prefixFileInfo
-	} else if strings.HasPrefix(pps.plaintext, prefixToSkipObfsucation) {
-		// Ignore any other .kbfs_ prefixed files.
-		return pps.plaintext
 	}
 
 	toObfuscate := pps.plaintext
