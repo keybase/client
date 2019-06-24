@@ -1383,6 +1383,10 @@
         {
           "type": "string",
           "name": "memoType"
+        },
+        {
+          "type": "string",
+          "name": "displayAmountFiat"
         }
       ]
     },

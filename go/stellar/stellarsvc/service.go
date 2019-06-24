@@ -639,6 +639,31 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		MemoType:     validated.MemoType,
 	}
 
+	if validated.Amount != "" && validated.AssetCode == "" {
+		// show how much validate.Amount XLM is in the user's display currency
+		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, accountID)
+		if err != nil {
+			return nil, nil, err
+		}
+		rate, err := s.remoter.ExchangeRate(mctx.Ctx(), displayCurrency)
+		if err != nil {
+			return nil, nil, err
+		}
+		outsideAmount, err := stellarnet.ConvertXLMToOutside(validated.Amount, rate.Rate)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.DisplayAmountFiat = fmtWorth
+	}
+
 	if validated.TxEnv != nil {
 		tx := validated.TxEnv.Tx
 		if tx.SourceAccount.Address() != "" && tx.SourceAccount.Address() != zeroSourceAccount {
