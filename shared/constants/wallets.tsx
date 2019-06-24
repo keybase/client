@@ -284,6 +284,7 @@ const _defaultPaymentCommon = {
   targetAccountID: '',
   targetType: '',
   time: null,
+  unread: false,
   worth: '',
   worthAtSendTime: '',
 }
@@ -291,7 +292,6 @@ const _defaultPaymentCommon = {
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
   section: 'none' as Types.PaymentSection,
-  unread: false,
 }
 
 const _defaultPaymentDetail = {
@@ -367,15 +367,15 @@ export const rpcPaymentResultToPaymentResult = (
 
 export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
   makePaymentDetail({
-    ...rpcPaymentToPaymentCommon(p),
-    externalTxURL: p.externalTxURL,
-    feeChargedDescription: p.feeChargedDescription,
-    publicMemo: new HiddenString(p.publicNote),
-    publicMemoType: p.publicNoteType,
-    txID: p.txID,
+    ...rpcPaymentToPaymentCommon(p.summary),
+    externalTxURL: p.details.externalTxURL,
+    feeChargedDescription: p.details.feeChargedDescription,
+    publicMemo: new HiddenString(p.details.publicNote),
+    publicMemoType: p.details.publicNoteType,
+    txID: p.summary.txID,
   })
 
-const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
+const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const sourceType = partyTypeToString[p.fromType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
   let targetType = partyTypeToString[p.toType]

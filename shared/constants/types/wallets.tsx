@@ -162,6 +162,7 @@ export type _PaymentCommon = {
   summaryAdvanced: string
   issuerDescription: string
   issuerAccountID: AccountID | null
+  unread: boolean
 }
 
 export type _PaymentResult = {
@@ -171,7 +172,6 @@ export type _PaymentResult = {
   // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
   // might be a better way.
   section: PaymentSection
-  unread: boolean
 } & _PaymentCommon
 
 export type _PaymentDetail = {
