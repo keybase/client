@@ -134,6 +134,13 @@ func (a *MobileNetState) Update(state keybase1.MobileNetworkState) {
 	}
 }
 
+// State returns the current network state
+func (a *MobileNetState) State() keybase1.MobileNetworkState {
+	a.Lock()
+	defer a.Unlock()
+	return a.state
+}
+
 // --------------------------------------------------
 
 type DesktopAppState struct {
