@@ -7,15 +7,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
-
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -24,6 +24,7 @@ type LiveLocationTracker struct {
 	utils.DebugLabeler
 	sync.Mutex
 
+	clock          clockwork.Clock
 	storage        *trackStorage
 	updateInterval time.Duration
 	uid            gregor1.UID
@@ -42,6 +43,7 @@ func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
 		trackers:       make(map[types.LiveLocationKey]*locationTrack),
 		updateInterval: 30 * time.Second,
 		maxCoords:      500,
+		clock:          clockwork.NewRealClock(),
 	}
 }
 
@@ -279,7 +281,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 
 	firstUpdate := true
 	shouldUpdate := false
-	nextUpdate := l.G().Clock().Now().Add(l.updateInterval)
+	nextUpdate := l.clock.Now().Add(l.updateInterval)
 	for {
 		select {
 		case coord := <-t.updateCh:
@@ -296,14 +298,14 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
-		case <-l.G().Clock().AfterTime(nextUpdate):
+		case <-l.clock.AfterTime(nextUpdate):
 			// we update the map unfurl on a timer so we don't spam delete and recreate it
 			if shouldUpdate {
 				l.updateMapUnfurl(ctx, t)
 				shouldUpdate = false
 			}
-			nextUpdate = l.G().Clock().Now().Add(l.updateInterval)
-		case <-l.G().Clock().AfterTime(t.endTime):
+			nextUpdate = l.clock.Now().Add(l.updateInterval)
+		case <-l.clock.AfterTime(t.endTime):
 			l.Debug(ctx, "tracker: live location complete: watchID: %s", watchID)
 			if t.getCurrentPosition || shouldUpdate {
 				l.updateMapUnfurl(ctx, t)
@@ -388,4 +390,8 @@ func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
 		close(t.stopCh)
 	}
 	l.saveLocked(ctx)
+}
+
+func (l *LiveLocationTracker) SetClock(clock clockwork.Clock) {
+	l.clock = clock
 }

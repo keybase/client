@@ -1397,3 +1397,20 @@ func (m *MockChatHelper) convKey(name string, topicName *string) string {
 	}
 	return name + ":" + *topicName
 }
+
+type MockUIRouter struct {
+	libkb.UIRouter
+	ui libkb.ChatUI
+}
+
+func NewMockUIRouter(chatUI libkb.ChatUI) *MockUIRouter {
+	return &MockUIRouter{
+		ui: chatUI,
+	}
+}
+
+func (f *MockUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return f.ui, nil
+}
+
+func (f *MockUIRouter) Shutdown() {}
