@@ -392,13 +392,15 @@ func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node
 }
 
 // CreateLink implements the Engine interface.
-func (k *LibKBFS) CreateLink(u User, parentDir Node, fromName, toPath string) (err error) {
+func (k *LibKBFS) CreateLink(
+	u User, parentDir Node, fromName, toPath string) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
 	ctx, cancel := k.newContext(u)
 	defer cancel()
 	n := parentDir.(libkbfs.Node)
-	_, err = kbfsOps.CreateLink(ctx, n, n.ChildName(fromName), toPath)
+	_, err = kbfsOps.CreateLink(
+		ctx, n, n.ChildName(fromName), n.ChildName(toPath))
 	return err
 }
 

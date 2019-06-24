@@ -137,7 +137,7 @@ var _ libkbfs.Node = (*repoDirNode)(nil)
 // repoDirNode.
 func (rdn *repoDirNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	namePlain := name.Plaintext()
 	switch {
 	case strings.HasPrefix(namePlain, AutogitBranchPrefix):
@@ -148,7 +148,7 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 		// It's difficult to tell if a given name is a legitimate
 		// prefix for a branch name or not, so just accept everything.
 		// If it's not legit, trying to read the data will error out.
-		return true, ctx, data.FakeDir, nil, ""
+		return true, ctx, data.FakeDir, nil, data.PathPartString{}
 	case strings.HasPrefix(namePlain, AutogitCommitPrefix):
 		commit := strings.TrimPrefix(namePlain, AutogitCommitPrefix)
 		if len(commit) == 0 {
@@ -167,7 +167,8 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 			rdn.am.log.CDebugf(ctx, "Error getting commit file")
 			return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
-		return true, ctx, data.FakeFile, f.(*diffFile).GetInfo(), ""
+		return true, ctx, data.FakeFile, f.(*diffFile).GetInfo(),
+			data.PathPartString{}
 	default:
 		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
@@ -315,7 +316,7 @@ var _ libkbfs.Node = (*rootNode)(nil)
 // rootNode.
 func (rn *rootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	if name.Plaintext() != AutogitRoot {
 		return rn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
@@ -344,7 +345,7 @@ func (rn *rootNode) ShouldCreateMissedLookup(
 		}
 		rn.fs = fs
 	}
-	return true, ctx, data.FakeDir, nil, ""
+	return true, ctx, data.FakeDir, nil, data.PathPartString{}
 }
 
 // WrapChild implements the Node interface for rootNode.

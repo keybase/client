@@ -25,7 +25,7 @@ import (
 type copyUnmergedEntryAction struct {
 	fromName      data.PathPartString
 	toName        data.PathPartString
-	symPath       string
+	symPath       data.PathPartString
 	sizeOnly      bool
 	unique        bool
 	unmergedEntry data.DirEntry
@@ -78,7 +78,7 @@ func fixupNamesInOps(fromName string, toName string, ops []op,
 func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	ctx context.Context, unmergedChains, mergedChains *crChains,
 	unmergedDir *data.DirData) (bool, data.BlockPointer, error) {
-	if cuea.symPath != "" {
+	if cuea.symPath.Plaintext() != "" {
 		return false, data.ZeroPtr, nil
 	}
 
@@ -177,9 +177,9 @@ func (cuea *copyUnmergedEntryAction) do(
 		return nil, err
 	}
 
-	if cuea.symPath != "" {
+	if cuea.symPath.Plaintext() != "" {
 		unmergedEntry.Type = data.Sym
-		unmergedEntry.SymPath = cuea.symPath
+		unmergedEntry.SymPath = cuea.symPath.Plaintext()
 	}
 
 	// Make sure this entry is unique.
@@ -367,7 +367,7 @@ func (cuea *copyUnmergedEntryAction) updateOps(
 			unmergedMostRecent)
 	}
 
-	if cuea.symPath != "" && !unmergedChain.isFile() {
+	if cuea.symPath.Plaintext() != "" && !unmergedChain.isFile() {
 		err := crActionConvertSymlink(unmergedMostRecent, mergedMostRecent,
 			unmergedChain, mergedChains, cuea.toName.Plaintext())
 		if err != nil {
@@ -384,7 +384,7 @@ func (cuea *copyUnmergedEntryAction) updateOps(
 			cuea.fromName.Plaintext(), cuea.toName.Plaintext(),
 			unmergedChain.ops, unmergedChains)
 
-		if cuea.unique || cuea.symPath != "" {
+		if cuea.unique || cuea.symPath.Plaintext() != "" {
 			// If a directory was renamed locally, either because of a
 			// direct conflict or because it was turned into a
 			// symlink, we need to fake a merged rename op from the
@@ -522,7 +522,7 @@ func (rmea *rmMergedEntryAction) String() string {
 type renameUnmergedAction struct {
 	fromName     data.PathPartString
 	toName       data.PathPartString
-	symPath      string
+	symPath      data.PathPartString
 	causedByAttr attrChange // was this rename caused by a setAttr?
 	moved        bool       // move this action to the parent at most one time
 
@@ -534,7 +534,7 @@ type renameUnmergedAction struct {
 
 func crActionCopyFile(
 	ctx context.Context, copier fileBlockDeepCopier,
-	fromName, toName data.PathPartString, toSymPath string,
+	fromName, toName, toSymPath data.PathPartString,
 	fromDir, toDir *data.DirData) (
 	data.BlockPointer, data.PathPartString, []data.BlockInfo, error) {
 	// Find the source entry.
@@ -543,9 +543,9 @@ func crActionCopyFile(
 		return data.BlockPointer{}, data.PathPartString{}, nil, err
 	}
 
-	if toSymPath != "" {
+	if toSymPath.Plaintext() != "" {
 		fromEntry.Type = data.Sym
-		fromEntry.SymPath = toSymPath
+		fromEntry.SymPath = toSymPath.Plaintext()
 	}
 
 	// We only rename files (or make symlinks to directories).
@@ -565,7 +565,7 @@ func crActionCopyFile(
 	}
 
 	var ptr data.BlockPointer
-	if toSymPath == "" && fromEntry.BlockPointer.IsInitialized() {
+	if toSymPath.Plaintext() == "" && fromEntry.BlockPointer.IsInitialized() {
 		// Fetch the top block for copyable files.
 		var err error
 		ptr, err = copier(ctx, name, fromEntry.BlockPointer)
@@ -633,7 +633,7 @@ func (rua *renameUnmergedAction) updateOps(
 		return err
 	}
 
-	if rua.symPath != "" && !unmergedChain.isFile() {
+	if rua.symPath.Plaintext() != "" && !unmergedChain.isFile() {
 		err := crActionConvertSymlink(unmergedMostRecent, mergedMostRecent,
 			unmergedChain, mergedChains, rua.toName.Plaintext())
 		if err != nil {
@@ -725,7 +725,7 @@ func (rua *renameUnmergedAction) updateOps(
 		// merged rename op into just a create by removing the rmOp.
 		removeRmOpFromChain(
 			unmergedChain.original, mergedChains, rua.toName.Plaintext())
-		if rua.symPath == "" {
+		if rua.symPath.Plaintext() == "" {
 			// Pretend to write to the new, deduplicated unmerged
 			// copy, to update its pointer in the node cache.
 			so, err := newSyncOp(unmergedEntry.BlockPointer)
@@ -753,7 +753,7 @@ func (rua *renameUnmergedAction) updateOps(
 		// pointer into the new (de-dup'd) pointer.  newMergedEntry is
 		// not yet the final pointer (that happens during syncBlock),
 		// but a later stage will convert it.
-		if rua.symPath == "" {
+		if rua.symPath.Plaintext() == "" {
 			rop.AddUpdate(
 				unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
 		}
@@ -788,7 +788,7 @@ func (rua *renameUnmergedAction) updateOps(
 		if err != nil {
 			return err
 		}
-		if rua.symPath == "" {
+		if rua.symPath.Plaintext() == "" {
 			co.AddRefBlock(newMergedEntry.BlockPointer)
 		}
 		err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
@@ -803,7 +803,7 @@ func (rua *renameUnmergedAction) updateOps(
 	// merged branch.
 	if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer &&
 		rua.fromName.Plaintext() != rua.toName.Plaintext() &&
-		rua.symPath == "" {
+		rua.symPath.Plaintext() == "" {
 		co.AddUnrefBlock(unmergedEntry.BlockPointer)
 	}
 
@@ -827,7 +827,7 @@ func (rua *renameUnmergedAction) String() string {
 type renameMergedAction struct {
 	fromName data.PathPartString
 	toName   data.PathPartString
-	symPath  string
+	symPath  data.PathPartString
 }
 
 func (rma *renameMergedAction) swapUnmergedBlock(
@@ -861,9 +861,9 @@ func (rma *renameMergedAction) do(
 	if err != nil {
 		return nil, err
 	}
-	if rma.symPath != "" {
+	if rma.symPath.Plaintext() != "" {
 		unmergedEntry.Type = data.Sym
-		unmergedEntry.SymPath = rma.symPath
+		unmergedEntry.SymPath = rma.symPath.Plaintext()
 	}
 	unmergedEntry.PrevRevisions = nil
 
@@ -885,7 +885,7 @@ func (rma *renameMergedAction) updateOps(
 			unmergedMostRecent)
 	}
 
-	if rma.symPath != "" && !unmergedChain.isFile() {
+	if rma.symPath.Plaintext() != "" && !unmergedChain.isFile() {
 		err := crActionConvertSymlink(unmergedMostRecent, mergedMostRecent,
 			unmergedChain, mergedChains, rma.fromName.Plaintext())
 		if err != nil {

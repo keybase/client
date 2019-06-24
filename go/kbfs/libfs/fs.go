@@ -846,7 +846,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 // Symlink implements the billy.Filesystem interface for FS.
 func (fs *FS) Symlink(target, link string) (err error) {
 	fs.log.CDebugf(fs.ctx, "Symlink target=%s link=%s",
-		fs.pathForLogging(target), link)
+		fs.pathForLogging(target), fs.root.ChildName(link))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Symlink done: %+v", err)
 		err = translateErr(err)
@@ -867,7 +867,7 @@ func (fs *FS) Symlink(target, link string) (err error) {
 	}
 
 	_, err = fs.config.KBFSOps().CreateLink(
-		fs.ctx, n, n.ChildName(base), target)
+		fs.ctx, n, n.ChildName(base), n.ChildName(target))
 	return err
 }
 

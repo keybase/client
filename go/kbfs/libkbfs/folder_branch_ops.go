@@ -3255,7 +3255,7 @@ func (fbo *folderBranchOps) makeFakeDirEntry(
 
 func (fbo *folderBranchOps) makeFakeFileEntry(
 	ctx context.Context, dir Node, name data.PathPartString, fi os.FileInfo,
-	sympath string) (de data.DirEntry, err error) {
+	sympath data.PathPartString) (de data.DirEntry, err error) {
 	fbo.vlog.CLogf(ctx, libkb.VLog1, "Faking file entry for %s", name)
 	id, err := fbo.makeFakeEntryID(ctx, dir, name)
 	if err != nil {
@@ -3272,7 +3272,7 @@ func (fbo *folderBranchOps) makeFakeFileEntry(
 		EntryInfo: data.EntryInfoFromFileInfo(fi),
 	}
 	if de.Type == data.Sym {
-		de.SymPath = sympath
+		de.SymPath = sympath.Plaintext()
 	}
 	return de, nil
 }
@@ -3309,7 +3309,8 @@ func (fbo *folderBranchOps) processMissedLookup(
 		return node, de.EntryInfo, nil
 	}
 
-	if (sympath != "" && et != data.Sym) || (sympath == "" && et == data.Sym) {
+	if (sympath.Plaintext() != "" && et != data.Sym) ||
+		(sympath.Plaintext() == "" && et == data.Sym) {
 		return nil, data.EntryInfo{}, errors.Errorf(
 			"Invalid sympath %s for entry type %s", sympath, et)
 	}
@@ -3370,10 +3371,11 @@ func (fbo *folderBranchOps) statUsingFS(
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
-		sympath, err = fs.Readlink(name.Plaintext())
+		sympathPlain, err := fs.Readlink(name.Plaintext())
 		if err != nil {
 			return data.DirEntry{}, false, err
 		}
+		sympath = node.ChildName(sympathPlain)
 	}
 
 	de, err = fbo.makeFakeFileEntry(ctx, node, name, fi, sympath)
@@ -4777,7 +4779,7 @@ func (fbo *folderBranchOps) notifyAndSyncOrSignal(
 
 func (fbo *folderBranchOps) createLinkLocked(
 	ctx context.Context, lState *kbfssync.LockState, dir Node,
-	fromName data.PathPartString, toPath string) (data.DirEntry, error) {
+	fromName, toPath data.PathPartString) (data.DirEntry, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	if err := checkDisallowedPrefixes(ctx, fromName); err != nil {
@@ -4830,11 +4832,12 @@ func (fbo *folderBranchOps) createLinkLocked(
 
 	// Create a direntry for the link, and then sync
 	now := fbo.nowUnixNano()
+	toPathPlain := toPath.Plaintext()
 	de := data.DirEntry{
 		EntryInfo: data.EntryInfo{
 			Type:    data.Sym,
-			Size:    uint64(len(toPath)),
-			SymPath: toPath,
+			Size:    uint64(len(toPathPlain)),
+			SymPath: toPathPlain,
 			Mtime:   now,
 			Ctime:   now,
 		},
@@ -4855,8 +4858,8 @@ func (fbo *folderBranchOps) createLinkLocked(
 }
 
 func (fbo *folderBranchOps) CreateLink(
-	ctx context.Context, dir Node, fromName data.PathPartString,
-	toPath string) (ei data.EntryInfo, err error) {
+	ctx context.Context, dir Node, fromName, toPath data.PathPartString) (
+	ei data.EntryInfo, err error) {
 	startTime, timer := fbo.startOp(ctx, "CreateLink %s %s -> %s",
 		getNodeIDStr(dir), fromName, toPath)
 	defer func() {
