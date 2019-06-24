@@ -10,6 +10,7 @@ export type Props = {
   hasPassword: boolean
   onAddEmail: () => void
   onAddPhone: () => void
+  onManageContacts: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
 } & HeaderHocProps
@@ -86,12 +87,30 @@ const DeleteAccount = (props: Props) => (
   </Kb.Box2>
 )
 
+const ManageContacts = (props: Props) => (
+  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+      <Kb.Text type="Header">Manage contacts</Kb.Text>
+      <Kb.Text type="BodySmall">Manage syncing your contacts on this device.</Kb.Text>
+    </Kb.Box2>
+    <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
+      <Kb.Button mode="Secondary" onClick={props.onManageContacts} label="Manage contacts" small={true} />
+    </Kb.ButtonBar>
+  </Kb.Box2>
+)
+
 const AccountSettings = (props: Props) => (
   <Kb.ScrollView>
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <EmailPhone {...props} />
       <Kb.Divider />
       <Password {...props} />
+      {Styles.isMobile && (
+        <>
+          <Kb.Divider />
+          <ManageContacts {...props} />
+        </>
+      )}
       <Kb.Divider />
       <DeleteAccount {...props} />
     </Kb.Box2>
