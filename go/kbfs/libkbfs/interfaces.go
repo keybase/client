@@ -190,7 +190,7 @@ type Node interface {
 	// `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name data.PathPartString) (
 		shouldCreate bool, newCtx context.Context, et data.EntryType,
-		fi os.FileInfo, sympath string)
+		fi os.FileInfo, sympath data.PathPartString)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -372,11 +372,16 @@ type KBFSOps interface {
 		excl Excl) (Node, data.EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new entry info for the created symlink.  This
-	// is a remote-sync operation.
+	// Returns the new entry info for the created symlink.  The
+	// symlink is represented as a single `data.PathPartString`
+	// (generally obfuscated by `dir`'s Obfuscator) to avoid
+	// accidental logging, even though it could point outside of the
+	// directory.  The deobfuscate command will inspect symlinks when
+	// deobfuscating to make this easier to debug.  This is a
+	// remote-sync operation.
 	CreateLink(
-		ctx context.Context, dir Node, fromName data.PathPartString,
-		toPath string) (data.EntryInfo, error)
+		ctx context.Context, dir Node, fromName, toPath data.PathPartString) (
+		data.EntryInfo, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is

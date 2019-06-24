@@ -1341,7 +1341,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	if isDir {
 		_, _, err = config.KBFSOps().CreateDir(ctx, n, testPPS("a"))
 	} else {
-		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS("a"), "b")
+		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS("a"), testPPS("b"))
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
@@ -1390,7 +1390,8 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	if isDir {
 		_, _, err = config.KBFSOps().CreateDir(ctx, n, testPPS(name))
 	} else {
-		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS(name), "b")
+		_, err = config.KBFSOps().CreateLink(
+			ctx, n, testPPS(name), testPPS("b"))
 	}
 	if err == nil {
 		t.Errorf("Got no expected error on create")
@@ -1442,7 +1443,8 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	case data.Dir:
 		_, _, err = config.KBFSOps().CreateDir(ctx, n, testPPS(name))
 	case data.Sym:
-		_, err = config.KBFSOps().CreateLink(ctx, n, testPPS(name), "a")
+		_, err = config.KBFSOps().CreateLink(
+			ctx, n, testPPS(name), testPPS("a"))
 	case data.Exec:
 		_, _, err = config.KBFSOps().CreateFile(
 			ctx, n, testPPS(name), true, NoExcl)
@@ -3950,16 +3952,17 @@ func (fi *fakeFileInfo) Sys() interface{} {
 type wrappedAutocreateNode struct {
 	Node
 	et      data.EntryType
-	sympath string
+	sympath data.PathPartString
 }
 
 func (wan wrappedAutocreateNode) ShouldCreateMissedLookup(
 	ctx context.Context, _ data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	return true, ctx, wan.et, &fakeFileInfo{wan.et}, wan.sympath
 }
 
-func testKBFSOpsAutocreateNodes(t *testing.T, et data.EntryType, sympath string) {
+func testKBFSOpsAutocreateNodes(
+	t *testing.T, et data.EntryType, sympath data.PathPartString) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
@@ -3974,25 +3977,25 @@ func testKBFSOpsAutocreateNodes(t *testing.T, et data.EntryType, sympath string)
 	if et != data.Sym {
 		require.NotNil(t, n)
 	} else {
-		require.Equal(t, sympath, ei.SymPath)
+		require.Equal(t, sympath.Plaintext(), ei.SymPath)
 	}
 	require.Equal(t, et, ei.Type)
 }
 
 func TestKBFSOpsAutocreateNodesFile(t *testing.T) {
-	testKBFSOpsAutocreateNodes(t, data.File, "")
+	testKBFSOpsAutocreateNodes(t, data.File, testPPS(""))
 }
 
 func TestKBFSOpsAutocreateNodesExec(t *testing.T) {
-	testKBFSOpsAutocreateNodes(t, data.Exec, "")
+	testKBFSOpsAutocreateNodes(t, data.Exec, testPPS(""))
 }
 
 func TestKBFSOpsAutocreateNodesDir(t *testing.T) {
-	testKBFSOpsAutocreateNodes(t, data.Dir, "")
+	testKBFSOpsAutocreateNodes(t, data.Dir, testPPS(""))
 }
 
 func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
-	testKBFSOpsAutocreateNodes(t, data.Sym, "sympath")
+	testKBFSOpsAutocreateNodes(t, data.Sym, testPPS("sympath"))
 }
 
 func testKBFSOpsMigrateToImplicitTeam(
@@ -4201,9 +4204,9 @@ type testKBFSOpsRootNode struct {
 
 func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, string) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	if name.Plaintext() == "memfs" {
-		return true, ctx, data.FakeDir, nil, ""
+		return true, ctx, data.FakeDir, nil, testPPS("")
 	}
 	return n.Node.ShouldCreateMissedLookup(ctx, name)
 }

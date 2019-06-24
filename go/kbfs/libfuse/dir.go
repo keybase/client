@@ -695,9 +695,9 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	node fs.Node, err error) {
 	namePPS := d.node.ChildName(req.NewName)
+	targetPPS := d.node.ChildName(req.Target)
 	ctx = d.folder.fs.config.MaybeStartTrace(ctx, "Dir.Symlink",
-		fmt.Sprintf("%s %s -> %s", d.node.GetBasename(),
-			namePPS, req.Target))
+		fmt.Sprintf("%s %s -> %s", d.node.GetBasename(), namePPS, targetPPS))
 	defer func() { d.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	d.folder.fs.vlog.CLogf(
@@ -712,7 +712,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	}
 
 	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
-		ctx, d.node, namePPS, req.Target); err != nil {
+		ctx, d.node, namePPS, targetPPS); err != nil {
 		return nil, err
 	}
 
