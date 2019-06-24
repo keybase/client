@@ -146,7 +146,7 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 	chatUI := newMockChatUI()
 	clock := clockwork.NewFakeClock()
 	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
-	timeout := 2 * time.Second
+	timeout := 20 * time.Second
 
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
