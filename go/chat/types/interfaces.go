@@ -118,6 +118,7 @@ type RegexpSearcher interface {
 
 type Indexer interface {
 	Resumable
+	Suspendable
 
 	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)

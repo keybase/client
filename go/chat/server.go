@@ -165,8 +165,11 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 	return res, err
 }
 
-func (h *Server) suspendConvLoader(ctx context.Context) func() {
-	return utils.SuspendComponent(ctx, h.G(), h.G().ConvLoader)
+func (h *Server) suspendBgConvLoads(ctx context.Context) func() {
+	return utils.SuspendComponents(ctx, h.G(), []types.Suspendable{
+		h.G().ConvLoader,
+		h.G().Indexer,
+	})
 }
 
 func (h *Server) suspendInboxSource(ctx context.Context) func() {
@@ -185,7 +188,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: result obtained offline")
 		}
 	}()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
@@ -679,7 +682,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.dispatchOldPagesJob(ctx, arg.ConversationID, uid, pagination, resultPagination)
 		}
 	}()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 	defer h.suspendInboxSource(ctx)()
 	// Lock conversation while this is running
 	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, arg.ConversationID); err != nil {
@@ -1435,7 +1438,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -1504,7 +1507,7 @@ func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocalNonblock")()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -1535,7 +1538,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
@@ -2472,7 +2475,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	defer h.Trace(ctx, func() error { return err }, "SearchInbox")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
@@ -2901,7 +2904,7 @@ func (h *Server) LoadGallery(ctx context.Context, arg chat1.LoadGalleryArg) (res
 	defer h.Trace(ctx, func() error { return err }, "LoadGallery")()
 	defer func() { err = h.squashSquashableErrors(err) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	defer h.suspendConvLoader(ctx)()
+	defer h.suspendBgConvLoads(ctx)()
 
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
