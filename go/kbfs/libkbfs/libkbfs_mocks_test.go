@@ -979,7 +979,7 @@ func (mr *MockKBFSOpsMockRecorder) CreateFile(arg0, arg1, arg2, arg3, arg4 inter
 }
 
 // CreateLink mocks base method
-func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 string) (data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 data.PathPartString) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLink", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(data.EntryInfo)
@@ -3590,14 +3590,14 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, string) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(context.Context)
 	ret2, _ := ret[2].(data.EntryType)
 	ret3, _ := ret[3].(os.FileInfo)
-	ret4, _ := ret[4].(string)
+	ret4, _ := ret[4].(data.PathPartString)
 	return ret0, ret1, ret2, ret3, ret4
 }
 

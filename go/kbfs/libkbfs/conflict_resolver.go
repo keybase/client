@@ -1500,7 +1500,8 @@ outer:
 					invertCreate)
 			}
 			cr.log.CDebugf(ctx, "Putting new merged rename info "+
-				"%v -> %v (symPath: %v)", ptr, newInfo, symPath)
+				"%v -> %v (symPath: %v)", ptr, newInfo,
+				data.NewPathPartString(symPath, chain.obfuscator))
 			mergedChains.renamedOriginals[ptr] = newInfo
 
 			// Fix up the corresponding rmOp to make sure
@@ -1761,8 +1762,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 			// since this createOp must have been created
 			// as part of conflict resolution.
 			symPath := "./" + strings.Repeat("../", walkBack)
-			cr.log.CDebugf(ctx, "Creating symlink %s at "+
-				"merged path %s", symPath, mergedPath)
+			cr.log.CDebugf(ctx, "Creating symlink %s at merged path %s",
+				data.NewPathPartString(symPath, chain.obfuscator), mergedPath)
 
 			err = cr.convertCreateIntoSymlinkOrCopy(ctx, ptr, info, chain,
 				unmergedChains, mergedChains, symPath)

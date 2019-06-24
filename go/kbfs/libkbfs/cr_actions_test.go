@@ -18,15 +18,15 @@ func testPPS(s string) data.PathPartString {
 func TestCRActionsCollapseNoChange(t *testing.T) {
 	al := crActionList{
 		&copyUnmergedEntryAction{
-			testPPS("old1"), testPPS("new1"), "", false, false,
+			testPPS("old1"), testPPS("new1"), testPPS(""), false, false,
 			data.DirEntry{}, nil},
 		&copyUnmergedEntryAction{
-			testPPS("old2"), testPPS("new2"), "", false, false,
+			testPPS("old2"), testPPS("new2"), testPPS(""), false, false,
 			data.DirEntry{}, nil},
 		&renameUnmergedAction{
-			testPPS("old3"), testPPS("new3"), "", 0, false, data.ZeroPtr,
-			data.ZeroPtr},
-		&renameMergedAction{testPPS("old4"), testPPS("new4"), ""},
+			testPPS("old3"), testPPS("new3"), testPPS(""), 0, false,
+			data.ZeroPtr, data.ZeroPtr},
+		&renameMergedAction{testPPS("old4"), testPPS("new4"), testPPS("")},
 		&copyUnmergedAttrAction{
 			testPPS("old5"), testPPS("new5"), []attrChange{mtimeAttr}, false},
 	}
@@ -42,10 +42,10 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 		&copyUnmergedAttrAction{
 			testPPS("old"), testPPS("new"), []attrChange{mtimeAttr}, false},
 		&copyUnmergedEntryAction{
-			testPPS("old"), testPPS("new"), "", false, false,
+			testPPS("old"), testPPS("new"), testPPS(""), false, false,
 			data.DirEntry{}, nil},
 		&renameUnmergedAction{
-			testPPS("old"), testPPS("new"), "", 0, false, data.ZeroPtr,
+			testPPS("old"), testPPS("new"), testPPS(""), 0, false, data.ZeroPtr,
 			data.ZeroPtr},
 	}
 
