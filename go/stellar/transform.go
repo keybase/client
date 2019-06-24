@@ -117,13 +117,15 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 			}
 		}
 
-		if p.Asset.IsEmpty() && !p.Asset.IsNativeXLM() {
-			// Asset is also expected to be missing.
-			loc.IssuerDescription = FormatAssetIssuerString(p.Asset)
-			issuerAcc := stellar1.AccountID(p.Asset.Issuer)
+		asset := p.Asset // p.Asset is also expected to be missing.
+		if p.Trustline != nil && asset.IsEmpty() {
+			asset = p.Trustline.Asset
+		}
+		if !asset.IsEmpty() && !asset.IsNativeXLM() {
+			loc.IssuerDescription = FormatAssetIssuerString(asset)
+			issuerAcc := stellar1.AccountID(asset.Issuer)
 			loc.IssuerAccountID = &issuerAcc
 		}
-
 	} else {
 		loc, err = newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 		if err != nil {
@@ -159,6 +161,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.IsAdvanced = p.IsAdvanced
 	loc.SummaryAdvanced = p.SummaryAdvanced
 	loc.Operations = p.Operations
+	loc.Trustline = p.Trustline
 
 	return loc, nil
 }

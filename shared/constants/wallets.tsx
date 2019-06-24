@@ -284,6 +284,7 @@ const _defaultPaymentCommon = {
   targetAccountID: '',
   targetType: '',
   time: null,
+  trustline: null,
   unread: false,
   worth: '',
   worthAtSendTime: '',
@@ -419,6 +420,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     targetAccountID: p.toAccountID,
     targetType,
     time: p.time,
+    trustline: p.trustline,
     worth: p.worth,
     worthAtSendTime: p.worthAtSendTime,
   }

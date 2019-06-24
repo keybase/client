@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
+import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
 import {
   Avatar,
@@ -97,24 +98,25 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 }
 
 type DetailProps = {
+  amountUser: string
   approxWorth: string
-  detailView: boolean
-  large: boolean
-  pending: boolean
-  yourRole: Types.Role
   canceled: boolean
   counterparty: string
   counterpartyType: Types.CounterpartyType
-  amountUser: string
+  detailView: boolean
+  isAdvanced: boolean
   isXLM: boolean
+  issuerDescription: string
+  large: boolean
   onShowProfile: (username: string) => void
+  pending: boolean
   selectableText: boolean
   sourceAmount: string
   sourceAsset: string
   status: string
-  issuerDescription: string
-  isAdvanced: boolean
   summaryAdvanced?: string
+  trustline?: RPCTypes.PaymentTrustlineLocal
+  yourRole: Types.Role
 }
 
 const Detail = (props: DetailProps) => {
@@ -127,6 +129,33 @@ const Detail = (props: DetailProps) => {
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
   if (props.isAdvanced) {
+    if (props.trustline) {
+      const assetCode = props.trustline.asset.code
+      const assetIssuer = props.trustline.asset.verifiedDomain || 'Unknown'
+      const asset = (
+        <Text type={'BodySmall'}>
+          <Text type="BodySmallBold">{assetCode}</Text>/{assetIssuer}
+        </Text>
+      )
+      if (props.trustline.remove) {
+        return (
+          <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
+            You removed a trustline:
+            <Text type="BodySmall" style={textStyle}> </Text>
+            <Text type="BodySmall" style={{...{textDecoration: 'line-through'}, ...textStyle}}>
+              {asset}
+            </Text>
+            .
+          </Text>
+        )
+      } else {
+        return (
+          <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
+            You added a trustline: {asset}
+          </Text>
+        )
+      }
+    }
     return (
       <Text type={textType} style={{...{wordBreak: 'break-word'}, ...textStyle}}>
         {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
@@ -405,6 +434,7 @@ export type Props = {
   timestamp: Date | null
   unread: boolean
   yourRole: Types.Role
+  trustline?: RPCTypes.PaymentTrustlineLocal
   issuerDescription: string
 }
 
@@ -433,13 +463,15 @@ export const Transaction = (props: Props) => {
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
         <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-          <CounterpartyIcon
-            counterparty={props.counterparty}
-            counterpartyType={props.counterpartyType}
-            detailView={props.detailView}
-            large={large}
-            onShowProfile={props.onShowProfile}
-          />
+          {!(props.isAdvanced && props.trustline) && (
+            <CounterpartyIcon
+              counterparty={props.counterparty}
+              counterpartyType={props.counterpartyType}
+              detailView={props.detailView}
+              large={large}
+              onShowProfile={props.onShowProfile}
+            />
+          )}
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
               detailView={props.detailView}
@@ -467,6 +499,7 @@ export const Transaction = (props: Props) => {
               issuerDescription={props.issuerDescription}
               isAdvanced={props.isAdvanced}
               summaryAdvanced={props.summaryAdvanced}
+              trustline={props.trustline}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>

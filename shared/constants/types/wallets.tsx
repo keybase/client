@@ -163,6 +163,7 @@ export type _PaymentCommon = {
   issuerDescription: string
   issuerAccountID: AccountID | null
   unread: boolean
+  trustline: StellarRPCTypes.PaymentTrustlineLocal | null
 }
 
 export type _PaymentResult = {
