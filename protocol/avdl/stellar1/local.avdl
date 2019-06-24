@@ -759,6 +759,8 @@ protocol local {
 
     // keybase-specific pay fields
     string displayAmountFiat; // "$1.23 USD" (the worth of amount if XLM in user's display currency)
+    string availableToSendNative;
+    string availableToSendFiat;
   }
 
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);

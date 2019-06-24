@@ -1387,6 +1387,14 @@
         {
           "type": "string",
           "name": "displayAmountFiat"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendNative"
+        },
+        {
+          "type": "string",
+          "name": "availableToSendFiat"
         }
       ]
     },
