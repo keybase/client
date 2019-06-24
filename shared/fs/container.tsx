@@ -89,6 +89,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     path: props.path,
     refreshTag: Types.RefreshTag.Main,
     wantPathMetadata: true,
+    wantTlfs: true,
   })
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {

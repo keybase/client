@@ -61,10 +61,7 @@ const rpcConflictStateToConflictState = (
 
 const loadFavorites = (
   state,
-  action:
-    | FsGen.FavoritesLoadPayload
-    | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
-    | FsGen.KbfsDaemonRpcStatusChangedPayload
+  action: FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
 ) =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
@@ -1098,6 +1095,10 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
   return actions
 }
 
+const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = state =>
+  state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
+  FsGen.createSetTlfsAsUnloaded()
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -1113,13 +1114,13 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<
-    | FsGen.FavoritesLoadPayload
-    | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
-    | FsGen.KbfsDaemonRpcStatusChangedPayload
-  >(
-    [FsGen.favoritesLoad, EngineGen.keybase1NotifyFSFSFavoritesChanged, FsGen.kbfsDaemonRpcStatusChanged],
+  yield* Saga.chainAction<FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload>(
+    [FsGen.favoritesLoad, EngineGen.keybase1NotifyFSFSFavoritesChanged],
     loadFavorites
+  )
+  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    FsGen.kbfsDaemonRpcStatusChanged,
+    setTlfsAsUnloadedWhenKbfsDaemonDisconnects
   )
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
