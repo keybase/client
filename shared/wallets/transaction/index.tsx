@@ -141,7 +141,9 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
             You removed a trustline:
-            <Text type="BodySmall" style={textStyle} />
+            <Text type="BodySmall" style={textStyle}>
+              {' '}
+            </Text>
             <Text type="BodySmall" style={{...{textDecoration: 'line-through'}, ...textStyle}}>
               {asset}
             </Text>
