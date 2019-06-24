@@ -79,6 +79,7 @@ export const makeState = I.Record<Types._State>({
   allowDeleteAccount: false,
   chat: makeChat(),
   checkPasswordIsCorrect: null,
+  contactImportEnabled: null,
   didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),

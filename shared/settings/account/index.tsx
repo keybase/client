@@ -91,7 +91,7 @@ const ManageContacts = (props: Props) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Manage contacts</Kb.Text>
-      <Kb.Text type="BodySmall">Manage syncing your contacts on this device.</Kb.Text>
+      <Kb.Text type="BodySmall">Manage importing the contacts on this device.</Kb.Text>
     </Kb.Box2>
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <Kb.Button mode="Secondary" onClick={props.onManageContacts} label="Manage contacts" small={true} />

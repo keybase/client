@@ -109,6 +109,7 @@ export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
 export type _State = {
   allowDeleteAccount: boolean
+  contactImportEnabled: boolean | null
   waitingForResponse: boolean
   invites: InvitesState
   feedback: FeedbackState
