@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -19,9 +18,6 @@ type FMPURI struct {
 	HostPort string
 	Host     string
 }
-
-var errInvalidFMPScheme = errors.New("invalid framed msgpack rpc scheme")
-var errNoHost = errors.New("missing host in framed msgpack rpc URI")
 
 // ParseFMPURI parses an FMPURI.
 func ParseFMPURI(s string) (*FMPURI, error) {
