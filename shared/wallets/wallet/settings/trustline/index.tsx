@@ -61,5 +61,5 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
   },
 
-  textUnknown: {color: Styles.globalColors.red},
+  textUnknown: {color: Styles.globalColors.redDark},
 })
