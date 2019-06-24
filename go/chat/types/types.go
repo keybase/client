@@ -35,6 +35,8 @@ const (
 	PushConvSettings        = "chat.convsettings"
 	PushSubteamRename       = "chat.subteamrename"
 	PushConversationsUpdate = "chat.conversationsupdate"
+
+	MapsDomain = "keybasemaps"
 )
 
 func NewAllCryptKeys() AllCryptKeys {

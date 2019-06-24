@@ -3,6 +3,7 @@ package types
 import (
 	"io"
 	"regexp"
+	"time"
 
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/s3"
@@ -497,6 +498,18 @@ type TeamMentionLoader interface {
 type ExternalAPIKeySource interface {
 	GetKey(ctx context.Context, typ chat1.ExternalAPIKeyTyp) (chat1.ExternalAPIKey, error)
 	GetAllKeys(ctx context.Context) ([]chat1.ExternalAPIKey, error)
+}
+
+type LiveLocationKey string
+
+type LiveLocationTracker interface {
+	Resumable
+	GetCurrentPosition(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID)
+	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
+	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
+	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
+	ActivelyTracking(ctx context.Context) bool
+	StopAllTracking(ctx context.Context)
 }
 
 type InternalError interface {
