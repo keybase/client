@@ -627,6 +627,9 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
+const loadContactImportEnabled = (_1, _2, logger) =>
+  SettingsGen.createLoadedContactImportEnabled({enabled: true}) // TODO hook up to service
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -709,6 +712,12 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.verifyPhoneNumber,
     verifyPhoneNumber,
     'verifyPhoneNumber'
+  )
+
+  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
+    SettingsGen.loadContactImportEnabled,
+    loadContactImportEnabled,
+    'loadContactImportEnabled'
   )
 }
 

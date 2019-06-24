@@ -11,13 +11,21 @@ type Props = {
   onToggleImport: () => void
 }
 
+const enabledDescription = 'Your phone contacts are being synced on this device.'
+const disabledDescription =
+  'Import your phone contacts and start encrypted chats with your friends. Your contacts never leave this device.'
+
 const ManageContacts = (props: Props) => {
   const contactsImported = Container.useSelector(s => s.settings.contactImportEnabled)
   const dispatch = Container.useDispatch()
-  // if (contactsImported === null) { TODO
-  //   dispatch(SettingsGen.createGetContactImportEnabled())
-  // }
+  if (contactsImported === null) {
+    dispatch(SettingsGen.createLoadContactImportEnabled())
+  }
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onToggle = React.useCallback(
+    () => dispatch(SettingsGen.createEditContactImportEnabled({enable: !contactsImported})),
+    [dispatch, contactsImported]
+  )
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
@@ -26,20 +34,17 @@ const ManageContacts = (props: Props) => {
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="Header">Phone Contacts</Kb.Text>
-            <Kb.Text type="BodySmall">
-              Import your phone contacts and start encrypted chats with your friends. Your contacts never
-              leave this device.
-            </Kb.Text>
+            <Kb.Text type="BodySmall">{contactsImported ? enabledDescription : disabledDescription}</Kb.Text>
+            <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
+              <Kb.Button
+                mode="Secondary"
+                label={contactsImported ? 'Remove contacts' : 'Import phone contacts'}
+                type={contactsImported ? 'Danger' : 'Default'}
+                onClick={onToggle}
+                small={true}
+              />
+            </Kb.ButtonBar>
           </Kb.Box2>
-          <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
-            <Kb.Button
-              mode="Secondary"
-              label={contactsImported ? 'Remove contacts' : 'Import phone contacts'}
-              type={contactsImported ? 'Danger' : 'Default'}
-              onClick={() => {}}
-              small={true}
-            />
-          </Kb.ButtonBar>
         </SettingsSection>
       </Kb.BoxGrow>
     </Kb.Box2>

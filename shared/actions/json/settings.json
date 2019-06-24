@@ -45,6 +45,13 @@
       "toggleSearchable?": "boolean",
       "verify?": "boolean"
     },
+    "loadContactImportEnabled": {},
+    "loadedContactImportEnabled": {
+      "enabled": "boolean"
+    },
+    "editContactImportEnabled": {
+      "enable": "boolean"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
