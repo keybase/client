@@ -310,8 +310,10 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
-			l.Debug(ctx, "tracker: live location complete: watchID: %s", watchID)
+			l.Debug(ctx, "tracker: live location complete: watchID: %d", watchID)
 			if t.getCurrentPosition || shouldUpdate {
+				t.Drain(chat1.Coordinate{})
+				l.Debug(ctx, "tracker: updating due to expiration")
 				l.updateMapUnfurl(ctx, t)
 			}
 			return nil
@@ -328,7 +330,7 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 	defer l.Unlock()
 	// start up a live location tracker for a small amount of time to make sure we get a good
 	// coordinate
-	t := newLocationTrack(convID, msgID, time.Now().Add(4*time.Second), true, l.maxCoords)
+	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
