@@ -146,6 +146,8 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 }
 
 func TestHome(t *testing.T) {
+	t.Skip("zapu: needs to merrge todo changes from PR")
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
