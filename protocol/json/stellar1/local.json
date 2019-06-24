@@ -361,6 +361,13 @@
             "string"
           ],
           "name": "inflationSource"
+        },
+        {
+          "type": [
+            null,
+            "PaymentTrustlineLocal"
+          ],
+          "name": "trustline"
         }
       ]
     },
@@ -398,6 +405,20 @@
         {
           "type": "string",
           "name": "feeChargedDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentTrustlineLocal",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "boolean",
+          "name": "remove"
         }
       ]
     },
