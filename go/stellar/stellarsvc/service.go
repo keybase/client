@@ -662,6 +662,26 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 			return nil, nil, err
 		}
 		local.DisplayAmountFiat = fmtWorth
+
+		details, err := s.remoter.Details(mctx.Ctx(), accountID)
+		availableXLM := details.Available
+		if availableXLM == "" {
+			availableXLM = "0"
+		}
+		availableAmount, err := stellarnet.ConvertXLMToOutside(availableXLM, rate.Rate)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmtAvailableAmount, err := stellar.FormatAmount(mctx, availableAmount, false, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, availableAmount, rate.Currency, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.AvailableToSendNative = fmtAvailableAmount
+		local.AvailableToSendFiat = fmtAvailableWorth
 	}
 
 	if validated.TxEnv != nil {
