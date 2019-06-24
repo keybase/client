@@ -254,9 +254,10 @@ func (l *LiveLocationTracker) startWatch(ctx context.Context) (watchID chat1.Loc
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
 	// check to see if we are being asked to start a tracker that is already expired
-	if t.endTime.Before(time.Now()) {
+	if t.endTime.Before(l.clock.Now()) {
 		return errors.New("tracker from the past")
 	}
+
 	// start up the OS watch routine
 	watchID, err := l.startWatch(ctx)
 	if err != nil {
@@ -270,15 +271,14 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		delete(l.trackers, t.Key())
 		l.saveLocked(ctx)
 	}()
+
 	if !t.getCurrentPosition {
 		// if this is a live location request, just put whatever the last coord is on the screen, makes it
 		// feel more live
 		if !l.lastCoord.IsZero() {
-			t.Drain(l.lastCoord)
+			t.updateCh <- l.lastCoord
 		}
-		l.updateMapUnfurl(ctx, t)
 	}
-
 	firstUpdate := true
 	shouldUpdate := false
 	nextUpdate := l.clock.Now().Add(l.updateInterval)
@@ -289,6 +289,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				t.Drain(coord)
 				shouldUpdate = true
 				if firstUpdate {
+					l.Debug(ctx, "tracker: updating due to live location first update")
 					l.updateMapUnfurl(ctx, t)
 				}
 				firstUpdate = false
@@ -301,6 +302,9 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		case <-l.clock.AfterTime(nextUpdate):
 			// we update the map unfurl on a timer so we don't spam delete and recreate it
 			if shouldUpdate {
+				// drain anything in the buffer if we are being updated and posting at the same time
+				t.Drain(chat1.Coordinate{})
+				l.Debug(ctx, "tracker: updating due to next update")
 				l.updateMapUnfurl(ctx, t)
 				shouldUpdate = false
 			}

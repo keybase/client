@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
@@ -21,13 +22,16 @@ type Source struct {
 	globals.Contextified
 	utils.DebugLabeler
 
+	allCmds  map[int]types.ConversationCommand
 	builtins map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand
+	clock    clockwork.Clock
 }
 
 func NewSource(g *globals.Context) *Source {
 	s := &Source{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Commands.Source", false),
+		clock:        clockwork.NewRealClock(),
 	}
 	s.makeBuiltins()
 	return s
@@ -70,7 +74,8 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 }
 
 func (s *Source) makeBuiltins() {
-	cmds := s.allCommands()
+	s.allCmds = s.allCommands()
+	cmds := s.allCmds
 	common := []types.ConversationCommand{
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
@@ -104,6 +109,11 @@ func (s *Source) makeBuiltins() {
 			return cmds[i].Name() < cmds[j].Name()
 		})
 	}
+}
+
+func (s *Source) SetClock(clock clockwork.Clock) {
+	s.clock = clock
+	s.allCmds[cmdLocation].(*Location).SetClock(clock)
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {

@@ -11,18 +11,25 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 )
 
 type Location struct {
 	*baseCommand
 	sync.Mutex
 	displayed bool
+	clock     clockwork.Clock
 }
 
 func NewLocation(g *globals.Context) *Location {
 	return &Location{
 		baseCommand: newBaseCommand(g, "location", "", "Post your current location", true),
+		clock:       clockwork.NewRealClock(),
 	}
+}
+
+func (h *Location) SetClock(clock clockwork.Clock) {
+	h.clock = clock
 }
 
 func (h *Location) isLiveLocation(toks []string) *gregor1.Time {
@@ -36,7 +43,7 @@ func (h *Location) isLiveLocation(toks []string) *gregor1.Time {
 	if err != nil {
 		return nil
 	}
-	rtime := gregor1.ToTime(time.Now().Add(dur))
+	rtime := gregor1.ToTime(h.clock.Now().Add(dur))
 	return &rtime
 }
 

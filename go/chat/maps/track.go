@@ -46,7 +46,9 @@ func (t *locationTrack) Drain(coord chat1.Coordinate) {
 	t.Lock()
 	defer t.Unlock()
 	defer t.capLocked(t.maxCoords)
-	t.allCoords = append(t.allCoords, coord)
+	if !coord.IsZero() {
+		t.allCoords = append(t.allCoords, coord)
+	}
 	for {
 		select {
 		case coord := <-t.updateCh:
