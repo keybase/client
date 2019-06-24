@@ -57,14 +57,15 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
 		}
 		pathStr += "&"
-		startStr = fmt.Sprintf("markers=color:green%%7C%f,%f&", first.Lat, first.Lon)
+		startStr = fmt.Sprintf("markers=color:green%%7Csize:tiny%%7C%f,%f&", first.Lat, first.Lon)
 	} else {
 		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
-	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
+	url := fmt.Sprintf(
+		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
 		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, liveMapWidth/scale,
-		liveMapHeight/scale, scale, key.Googlemaps()), nil
+		liveMapHeight/scale, scale, key.Googlemaps())
+	return url, nil
 }
 
 func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.ReadCloser, length int64, err error) {
