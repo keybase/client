@@ -664,6 +664,9 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		local.DisplayAmountFiat = fmtWorth
 
 		details, err := s.remoter.Details(mctx.Ctx(), accountID)
+		if err != nil {
+			return nil, nil, err
+		}
 		availableXLM := details.Available
 		if availableXLM == "" {
 			availableXLM = "0"
