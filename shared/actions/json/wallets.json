@@ -425,6 +425,10 @@
       "airdropState": "Types.AirdropState"
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": {"details": "Types.AirdropDetails"}
+    "updatedAirdropDetails": {"details": "Types.AirdropDetails"},
+    "setTrustlineExpanded": {
+      "expanded": "boolean",
+      "trustlineAssetID": "Types.TrustlineAssetID"
+    }
   }
 }
