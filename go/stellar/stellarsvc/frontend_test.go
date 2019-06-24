@@ -2547,6 +2547,78 @@ func TestGetSendAssetChoices(t *testing.T) {
 	}
 }
 
+func TestShowAdvancedSendForm(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
+	fakeAccts := tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	fakeAccts2 := tcs[1].Backend.ImportAccountsForUser(tcs[1])
+
+	// Empty accounts (not even on the network), expecting to see 0
+	// other assets here.
+	shouldShowAdvancedSend, err := tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.False(t, shouldShowAdvancedSend)
+
+	// Giving them an XLM balance does not cause the advanced send form to show up
+	tcs[0].Backend.Gift(fakeAccts[0].accountID, "100")
+	tcs[0].Backend.Gift(fakeAccts2[0].accountID, "100")
+	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.False(t, shouldShowAdvancedSend)
+
+	// Make some test assets
+	keys := tcs[0].Backend.CreateFakeAsset("KEYS")
+	astro := tcs[0].Backend.CreateFakeAsset("AstroDollars")
+
+	// Adjust balance with 0 adds empty balance of given asset (mock "open a trustline").
+	fakeAccts[0].AdjustAssetBalance(0, keys)
+	fakeAccts[0].AdjustAssetBalance(0, astro)
+
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	require.NoError(t, err)
+
+	// The sender has two open trustlines but the receiver still does not have any so it still does not show
+	// the advanced send form
+	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
+		From: fakeAccts[0].accountID,
+		To:   tcs[1].Fu.Username, // Uses the username as the To argument
+	})
+	require.NoError(t, err)
+	require.False(t, shouldShowAdvancedSend)
+
+	// Open AstroDollars for tcs[1]
+	fakeAccts2[0].AdjustAssetBalance(0, astro)
+
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAccts[0].accountID, "test")
+	require.NoError(t, err)
+
+	// Now they have AstroDollars in common
+	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
+		From: fakeAccts[0].accountID,
+		To:   fakeAccts2[0].accountID.String(), // this time use account ID as `To` argument
+	})
+	require.NoError(t, err)
+	require.True(t, shouldShowAdvancedSend)
+
+	// Try with arg.To AccountID not in the system.
+	externalAcc := tcs[0].Backend.AddAccount()
+	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
+		From: fakeAccts[0].accountID,
+		To:   externalAcc.String(),
+	})
+	require.NoError(t, err)
+	require.False(t, shouldShowAdvancedSend)
+}
+
 func TestMakeRequestLocalBasics(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()

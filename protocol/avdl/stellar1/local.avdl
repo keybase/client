@@ -225,6 +225,11 @@ protocol local {
     string right; // Examples: "Stronghold.com", "GBSTRH4QOTWNSVA6E4HFERETX4ZLSR3CIUBLK7AXYII277PFJC4BBYOG"
     string subtext; // Examples: "", "max doesn't accept HUGZ"
   }
+  bool showAdvancedSendForm(
+    int sessionID,
+    AccountID from,
+    string to // Username, account ID, or assertion
+  );
 
   // An ID representing a session with the send form.
   @typedef("string")

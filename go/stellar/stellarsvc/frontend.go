@@ -725,6 +725,37 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 	return res, nil
 }
 
+func (s *Server) ShowAdvancedSendForm(ctx context.Context, arg stellar1.ShowAdvancedSendFormArg) (shouldShow bool, err error) {
+	_, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "ShowAdvancedSendForm",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return false, err
+	}
+
+	// We show the advanced send form if there are any enabled choices for sending an asset
+	// Note that GetSendAssetChoicesLocal does not include native assets
+	res, err := s.GetSendAssetChoicesLocal(
+		ctx,
+		stellar1.GetSendAssetChoicesLocalArg{
+			SessionID: arg.SessionID,
+			From:      arg.From,
+			To:        arg.To,
+		})
+	if err != nil {
+		return false, err
+	}
+	for _, choice := range res {
+		if choice.Enabled {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (s *Server) StartBuildPaymentLocal(ctx context.Context, sessionID int) (res stellar1.BuildPaymentID, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "StartBuildPaymentLocal",

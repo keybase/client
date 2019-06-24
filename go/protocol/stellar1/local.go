@@ -1231,6 +1231,12 @@ type GetSendAssetChoicesLocalArg struct {
 	To        string    `codec:"to" json:"to"`
 }
 
+type ShowAdvancedSendFormArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	From      AccountID `codec:"from" json:"from"`
+	To        string    `codec:"to" json:"to"`
+}
+
 type StartBuildPaymentLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1558,6 +1564,7 @@ type LocalInterface interface {
 	GetWalletAccountPublicKeyLocal(context.Context, GetWalletAccountPublicKeyLocalArg) (string, error)
 	GetWalletAccountSecretKeyLocal(context.Context, GetWalletAccountSecretKeyLocalArg) (SecretKey, error)
 	GetSendAssetChoicesLocal(context.Context, GetSendAssetChoicesLocalArg) ([]SendAssetChoiceLocal, error)
+	ShowAdvancedSendForm(context.Context, ShowAdvancedSendFormArg) (bool, error)
 	StartBuildPaymentLocal(context.Context, int) (BuildPaymentID, error)
 	StopBuildPaymentLocal(context.Context, StopBuildPaymentLocalArg) error
 	BuildPaymentLocal(context.Context, BuildPaymentLocalArg) (BuildPaymentResLocal, error)
@@ -1973,6 +1980,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetSendAssetChoicesLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"showAdvancedSendForm": {
+				MakeArg: func() interface{} {
+					var ret [1]ShowAdvancedSendFormArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ShowAdvancedSendFormArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ShowAdvancedSendFormArg)(nil), args)
+						return
+					}
+					ret, err = i.ShowAdvancedSendForm(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2865,6 +2887,11 @@ func (c LocalClient) GetWalletAccountSecretKeyLocal(ctx context.Context, __arg G
 
 func (c LocalClient) GetSendAssetChoicesLocal(ctx context.Context, __arg GetSendAssetChoicesLocalArg) (res []SendAssetChoiceLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getSendAssetChoicesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ShowAdvancedSendForm(ctx context.Context, __arg ShowAdvancedSendFormArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.showAdvancedSendForm", []interface{}{__arg}, &res)
 	return
 }
 

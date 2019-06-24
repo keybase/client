@@ -1663,6 +1663,23 @@
         "items": "SendAssetChoiceLocal"
       }
     },
+    "showAdvancedSendForm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "from",
+          "type": "AccountID"
+        },
+        {
+          "name": "to",
+          "type": "string"
+        }
+      ],
+      "response": "bool"
+    },
     "startBuildPaymentLocal": {
       "request": [
         {
