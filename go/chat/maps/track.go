@@ -36,25 +36,27 @@ func (t *locationTrack) capLocked(maxCoords int) {
 	if len(t.allCoords) < maxCoords || len(t.allCoords) == 0 {
 		return
 	}
-	newCoords := make([]chat1.Coordinate, maxCoords+1)
+	newCoords := make([]chat1.Coordinate, maxCoords)
 	copy(newCoords, t.allCoords[len(t.allCoords)-maxCoords:len(t.allCoords)])
 	newCoords = append([]chat1.Coordinate{t.allCoords[0]}, newCoords...)
 	t.allCoords = newCoords
 }
 
-func (t *locationTrack) Drain(coord chat1.Coordinate) {
+func (t *locationTrack) Drain(coord chat1.Coordinate) (res int) {
 	t.Lock()
 	defer t.Unlock()
 	defer t.capLocked(t.maxCoords)
 	if !coord.IsZero() {
 		t.allCoords = append(t.allCoords, coord)
+		res++
 	}
 	for {
 		select {
 		case coord := <-t.updateCh:
 			t.allCoords = append(t.allCoords, coord)
+			res++
 		default:
-			return
+			return res
 		}
 	}
 }

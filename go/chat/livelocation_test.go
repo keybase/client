@@ -25,20 +25,20 @@ import (
 type mockChatUI struct {
 	libkb.ChatUI
 	watchID chat1.LocationWatchID
-	watchCh chan struct{}
+	watchCh chan chat1.LocationWatchID
 	clearCh chan chat1.LocationWatchID
 }
 
 func newMockChatUI() *mockChatUI {
 	return &mockChatUI{
-		watchCh: make(chan struct{}, 10),
+		watchCh: make(chan chat1.LocationWatchID, 10),
 		clearCh: make(chan chat1.LocationWatchID, 10),
 	}
 }
 
 func (m *mockChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
-	m.watchCh <- struct{}{}
 	m.watchID++
+	m.watchCh <- m.watchID
 	return m.watchID, nil
 }
 
@@ -119,11 +119,18 @@ func checkCoords(t *testing.T, unfurler *mockUnfurler, refcoords []chat1.Coordin
 	}
 }
 
-func updateCoords(livelocation *maps.LiveLocationTracker, coords []chat1.Coordinate,
-	allCoords []chat1.Coordinate) []chat1.Coordinate {
+func updateCoords(t *testing.T, livelocation *maps.LiveLocationTracker, coords []chat1.Coordinate,
+	allCoords []chat1.Coordinate, coordsCh chan struct{}) []chat1.Coordinate {
 	for _, c := range coords {
 		livelocation.LocationUpdate(context.TODO(), c)
 		allCoords = append(allCoords, c)
+	}
+	for i := 0; i < len(coords); i++ {
+		select {
+		case <-coordsCh:
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "no coords ack")
+		}
 	}
 	return allCoords
 }
@@ -144,10 +151,12 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 
+	coordsCh := make(chan struct{}, 10)
 	unfurler := newMockUnfurler(tc.Context(), t)
 	tc.ChatG.Unfurler = unfurler
 	livelocation := maps.NewLiveLocationTracker(tc.Context())
 	livelocation.SetClock(clock)
+	livelocation.TestingCoordsAddedCh = coordsCh
 	tc.ChatG.LiveLocationTracker = livelocation
 	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
 
@@ -174,7 +183,7 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 			Lon: -73.976237,
 		},
 	}
-	updateCoords(livelocation, coords, nil)
+	updateCoords(t, livelocation, coords, nil, coordsCh)
 	// no new map yet
 	select {
 	case <-unfurler.unfurlCh:
@@ -206,10 +215,12 @@ func TestChatSrvLiveLocation(t *testing.T) {
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 
+	coordsCh := make(chan struct{}, 10)
 	unfurler := newMockUnfurler(tc.Context(), t)
 	tc.ChatG.Unfurler = unfurler
 	livelocation := maps.NewLiveLocationTracker(tc.Context())
 	livelocation.SetClock(clock)
+	livelocation.TestingCoordsAddedCh = coordsCh
 	tc.ChatG.LiveLocationTracker = livelocation
 	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
 
@@ -228,7 +239,7 @@ func TestChatSrvLiveLocation(t *testing.T) {
 		Lat: 40.800348,
 		Lon: -73.968784,
 	}}
-	allCoords = updateCoords(livelocation, coords, allCoords)
+	allCoords = updateCoords(t, livelocation, coords, allCoords, coordsCh)
 	checkCoords(t, unfurler, coords, timeout)
 
 	// Throw some updates in
@@ -242,7 +253,7 @@ func TestChatSrvLiveLocation(t *testing.T) {
 			Lon: -73.976237,
 		},
 	}
-	allCoords = updateCoords(livelocation, coords, allCoords)
+	allCoords = updateCoords(t, livelocation, coords, allCoords, coordsCh)
 	// no new map yet
 	select {
 	case <-unfurler.unfurlCh:
@@ -257,6 +268,108 @@ func TestChatSrvLiveLocation(t *testing.T) {
 	clock.Advance(2 * time.Hour)
 	select {
 	case <-chatUI.clearCh:
+	case <-time.After(timeout):
+		require.Fail(t, "no clear call")
+	}
+}
+
+func TestChatSrvLiveLocationMultiple(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvLiveLocation", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	chatUI := newMockChatUI()
+	clock := clockwork.NewFakeClock()
+	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
+	timeout := 20 * time.Second
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	coordsCh := make(chan struct{}, 10)
+	unfurler := newMockUnfurler(tc.Context(), t)
+	tc.ChatG.Unfurler = unfurler
+	livelocation := maps.NewLiveLocationTracker(tc.Context())
+	livelocation.SetClock(clock)
+	livelocation.TestingCoordsAddedCh = coordsCh
+	tc.ChatG.LiveLocationTracker = livelocation
+	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
+
+	var tracker1, tracker2 chat1.LocationWatchID
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/location live 1h",
+	}))
+	select {
+	case tracker1 = <-chatUI.watchCh:
+	case <-time.After(timeout):
+		require.Fail(t, "no watch position call")
+	}
+
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/location live 3h",
+	}))
+	select {
+	case tracker2 = <-chatUI.watchCh:
+	case <-time.After(timeout):
+		require.Fail(t, "no watch position call")
+	}
+
+	var allCoords []chat1.Coordinate
+	coords := []chat1.Coordinate{chat1.Coordinate{
+		Lat: 40.800348,
+		Lon: -73.968784,
+	}}
+	allCoords = updateCoords(t, livelocation, coords, allCoords, coordsCh)
+	checkCoords(t, unfurler, coords, timeout)
+	checkCoords(t, unfurler, coords, timeout)
+
+	clock.Advance(2 * time.Hour)
+	select {
+	case watchID := <-chatUI.clearCh:
+		require.Equal(t, tracker1, watchID)
+	case <-time.After(timeout):
+		require.Fail(t, "no clear call")
+	}
+	select {
+	case <-chatUI.clearCh:
+		require.Fail(t, "only one tracker should die")
+	default:
+	}
+	// trackers fire after time moves up
+	checkCoords(t, unfurler, coords, timeout)
+	checkCoords(t, unfurler, coords, timeout)
+	select {
+	case <-unfurler.unfurlCh:
+		require.Fail(t, "no more unfurls here")
+	default:
+	}
+
+	coords = []chat1.Coordinate{
+		chat1.Coordinate{
+			Lat: 40.798688,
+			Lon: -73.973716,
+		},
+		chat1.Coordinate{
+			Lat: 40.795234,
+			Lon: -73.976237,
+		},
+	}
+	allCoords = updateCoords(t, livelocation, coords, allCoords, coordsCh)
+	clock.Advance(time.Minute)
+	checkCoords(t, unfurler, allCoords, timeout)
+	select {
+	case <-unfurler.unfurlCh:
+		require.Fail(t, "tracker 1 is done, no update from it")
+	default:
+	}
+
+	clock.Advance(2 * time.Hour)
+	select {
+	case watchID := <-chatUI.clearCh:
+		require.Equal(t, tracker2, watchID)
 	case <-time.After(timeout):
 		require.Fail(t, "no clear call")
 	}

@@ -13,9 +13,9 @@ func TestLocationTrackMaxCoords(t *testing.T) {
 	msgID := chat1.MessageID(5)
 	endTime := time.Now().Add(time.Hour)
 	tr := newLocationTrack(convID, msgID, endTime, false, 2)
-	firstCoord := chat1.Coordinate{Lat: 0, Lon: 0}
+	firstCoord := chat1.Coordinate{Lat: 0, Lon: 1}
 	tr.updateCh <- chat1.Coordinate{Lat: 40.678, Lon: -73.98}
-	tr.updateCh <- chat1.Coordinate{Lat: 40.678, Lon: -73.98}
+	tr.updateCh <- chat1.Coordinate{Lat: 40.678, Lon: -73.99}
 	secondCoord := chat1.Coordinate{Lat: 50.678, Lon: -63.98}
 	tr.updateCh <- secondCoord
 	latestCoord := chat1.Coordinate{Lat: 30.678, Lon: -93.98}

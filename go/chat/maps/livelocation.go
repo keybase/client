@@ -32,6 +32,9 @@ type LiveLocationTracker struct {
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
 	maxCoords      int
+
+	// testing only
+	TestingCoordsAddedCh chan struct{}
 }
 
 func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
@@ -285,39 +288,49 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	for {
 		select {
 		case coord := <-t.updateCh:
+			var added int
 			if !t.getCurrentPosition {
-				t.Drain(coord)
+				added = t.Drain(coord)
 				shouldUpdate = true
+				l.Debug(ctx, "tracker[%v]: got coords", watchID)
 				if firstUpdate {
-					l.Debug(ctx, "tracker: updating due to live location first update")
+					l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
 					l.updateMapUnfurl(ctx, t)
 				}
 				firstUpdate = false
 			} else {
+				added = 1
 				t.SetCoords([]chat1.Coordinate{coord})
 			}
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
+			l.Debug(ctx, "tracker[%v]: added %d coords", added)
+			if l.TestingCoordsAddedCh != nil {
+				for i := 0; i < added; i++ {
+					l.TestingCoordsAddedCh <- struct{}{}
+				}
+			}
 		case <-l.clock.AfterTime(nextUpdate):
 			// we update the map unfurl on a timer so we don't spam delete and recreate it
 			if shouldUpdate {
 				// drain anything in the buffer if we are being updated and posting at the same time
 				t.Drain(chat1.Coordinate{})
-				l.Debug(ctx, "tracker: updating due to next update")
+				l.Debug(ctx, "tracker[%v]: updating due to next update", watchID)
 				l.updateMapUnfurl(ctx, t)
 				shouldUpdate = false
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
-			l.Debug(ctx, "tracker: live location complete: watchID: %d", watchID)
+			l.Debug(ctx, "tracker[%v]: live location complete", watchID)
 			if t.getCurrentPosition || shouldUpdate {
 				t.Drain(chat1.Coordinate{})
-				l.Debug(ctx, "tracker: updating due to expiration")
+				l.Debug(ctx, "tracker[%v]: updating due to expiration", watchID)
 				l.updateMapUnfurl(ctx, t)
 			}
 			return nil
 		case <-t.stopCh:
+			l.Debug(ctx, "tracker[%v]: stopped", watchID)
 			return nil
 		}
 	}
