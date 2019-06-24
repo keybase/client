@@ -102,6 +102,7 @@ export const updatedAirdropDetails = 'wallets:updatedAirdropDetails'
 export const updatedAirdropState = 'wallets:updatedAirdropState'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSEP7Link = 'wallets:validateSEP7Link'
+export const validateSEP7LinkError = 'wallets:validateSEP7LinkError'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
 export const validatedSecretKey = 'wallets:validatedSecretKey'
@@ -289,6 +290,7 @@ type _UpdatedAirdropStatePayload = {
   readonly airdropState: Types.AirdropState
 }
 type _ValidateAccountNamePayload = {readonly name: string}
+type _ValidateSEP7LinkErrorPayload = {readonly error: string}
 type _ValidateSEP7LinkPayload = {readonly link: string}
 type _ValidateSecretKeyPayload = {readonly secretKey: HiddenString}
 type _ValidatedAccountNamePayload = {readonly name: string}
@@ -725,6 +727,12 @@ export const createSetBuildingTo = (payload: _SetBuildingToPayload): SetBuilding
 export const createSetInflationDestination = (
   payload: _SetInflationDestinationPayload
 ): SetInflationDestinationPayload => ({payload, type: setInflationDestination})
+/**
+ * Set the error field for a SEP7 validation.
+ */
+export const createValidateSEP7LinkError = (
+  payload: _ValidateSEP7LinkErrorPayload
+): ValidateSEP7LinkErrorPayload => ({payload, type: validateSEP7LinkError})
 /**
  * Set whether last currency used to send was XLM
  */
@@ -1293,6 +1301,10 @@ export type ValidateAccountNamePayload = {
   readonly payload: _ValidateAccountNamePayload
   readonly type: typeof validateAccountName
 }
+export type ValidateSEP7LinkErrorPayload = {
+  readonly payload: _ValidateSEP7LinkErrorPayload
+  readonly type: typeof validateSEP7LinkError
+}
 export type ValidateSEP7LinkPayload = {
   readonly payload: _ValidateSEP7LinkPayload
   readonly type: typeof validateSEP7Link
@@ -1423,6 +1435,7 @@ export type Actions =
   | UpdatedAirdropDetailsPayload
   | UpdatedAirdropStatePayload
   | ValidateAccountNamePayload
+  | ValidateSEP7LinkErrorPayload
   | ValidateSEP7LinkPayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload

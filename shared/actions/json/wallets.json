@@ -417,6 +417,10 @@
       "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
       "link": "string"
     },
+    "validateSEP7LinkError": {
+      "_description": "Set the error field for a SEP7 validation.",
+      "error": "string"
+    },
     "loadMobileOnlyMode": {
       "_description": "Ask the service for current mobile only mode for Stellar account.",
       "accountID": "Types.AccountID"

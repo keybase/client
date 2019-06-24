@@ -8,6 +8,11 @@ import {namedConnect} from '../../util/container'
 type OwnProps = {}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
+  const error = state.wallets.sep7ConfirmError
+  if (error) {
+    return {error}
+  }
+
   const {
     amount,
     assetCode,
@@ -22,11 +27,13 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     summary,
     xdr,
   } = state.wallets.sep7ConfirmInfo
+
   return {
     amount,
     assetCode,
     assetIssuer,
     callbackURL,
+    error,
     inputURI: state.wallets.sep7ConfirmURI,
     loading: !state.wallets.sep7ConfirmInfo,
     memo,

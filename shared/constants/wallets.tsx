@@ -180,6 +180,7 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep7ConfirmError: '',
   sep7ConfirmInfo: null,
   sep7ConfirmURI: '',
   unreadPaymentsMap: I.Map(),

@@ -325,6 +325,7 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
   sep7ConfirmURI: string
   unreadPaymentsMap: I.Map<string, number>

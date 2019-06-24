@@ -14,6 +14,7 @@ type Summary = {
 type Props = {
   amount: string | null
   callbackURL: string | null
+  error: string
   loading: boolean
   memo: string | null
   memoType: string | null
@@ -45,14 +46,33 @@ const CallbackURLBanner = (props: CallbackURLBannerProps) => (
   </Kb.Box2>
 )
 
-type LoadingProps = {}
-const Loading = Kb.HeaderOrPopup((props: LoadingProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
-      <Kb.ProgressIndicator />
+type ErrorProps = {error: string; onBack: () => void}
+const Error = (props: ErrorProps) => (
+  <Kb.MaybePopup onClose={props.onBack}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.dialog}>
+        <Kb.Text type="Body">{props.error}</Kb.Text>
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-))
+  </Kb.MaybePopup>
+)
+
+type LoadingProps = {onBack: () => void}
+const Loading = (props: LoadingProps) => (
+  <Kb.MaybePopup onClose={props.onBack}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        fullHeight={true}
+        style={styles.dialog}
+      >
+        <Kb.ProgressIndicator />
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.MaybePopup>
+)
 
 type InfoRowProps = {
   bodyText: string
@@ -173,7 +193,9 @@ const TxInfo = (props: TxInfoProps) => (
 
 const SEP7Confirm = (props: Props) =>
   props.loading ? (
-    <Loading />
+    <Loading onBack={props.onBack} />
+  ) : props.error ? (
+    <Error error={props.error} onBack={props.onBack} />
   ) : (
     <Kb.MaybePopup onClose={props.onBack}>
       <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
@@ -259,6 +281,9 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
+  dialog: {
+    padding: Styles.globalMargins.large,
+  },
   header: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.purpleDark,
