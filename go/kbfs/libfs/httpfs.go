@@ -133,7 +133,7 @@ var _ http.FileSystem = httpFileSystem{}
 // Open implements the http.FileSystem interface.
 func (hfs httpFileSystem) Open(filename string) (entry http.File, err error) {
 	hfs.fs.log.CDebugf(
-		hfs.fs.ctx, "hfs.Open %s", hfs.fs.pathForLogging(filename))
+		hfs.fs.ctx, "hfs.Open %s", hfs.fs.PathForLogging(filename))
 	defer func() {
 		hfs.fs.deferLog.CDebugf(hfs.fs.ctx, "hfs.Open done: %+v", err)
 		if err != nil {

@@ -301,25 +301,30 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 		readwrite)
 }
 
-func (fs *FS) pathForLogging(filename string) string {
+// PathForLogging returns the obfuscated path for the given filename.
+func (fs *FS) PathForLogging(filename string) string {
 	if fs.root == nil || fs.root.Obfuscator() == nil {
 		return filename
 	}
 
 	parts := strings.Split(filename, "/")
+	if len(parts) == 0 {
+		return ""
+	}
 	n := fs.root
 	ret := ""
 	for i := 0; i < len(parts)-1; i++ {
 		p := parts[i]
 		childName := n.ChildName(p)
+		ret = path.Join(ret, childName.String())
 		nextNode, _, err := fs.config.KBFSOps().Lookup(fs.ctx, n, childName)
 		if err != nil {
 			// Just keep using the parent node to obfuscate.
 			continue
 		}
 		n = nextNode
-		ret = path.Join(ret, childName.String())
 	}
+	ret = path.Join(ret, n.ChildName(parts[len(parts)-1]).String())
 	return ret
 }
 
@@ -466,7 +471,7 @@ func (fs *FS) lookupOrCreateEntry(
 			return n, ei, nil
 		}
 		fs.log.CDebugf(fs.ctx, "Following symlink=%s from dir=%s",
-			fs.pathForLogging(ei.SymPath), fs.pathForLogging(parentDir))
+			fs.PathForLogging(ei.SymPath), fs.PathForLogging(parentDir))
 		filename, err = followSymlink(parentDir, ei.SymPath)
 		if err != nil {
 			return nil, data.EntryInfo{}, err
@@ -560,7 +565,7 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 	f billy.File, err error) {
 	fs.log.CDebugf(
 		fs.ctx, "OpenFile %s, flag=%d, perm=%o",
-		fs.pathForLogging(filename), flag, perm)
+		fs.PathForLogging(filename), flag, perm)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "OpenFile done: %+v", err)
 		err = translateErr(err)
@@ -637,7 +642,7 @@ func (fs *FS) makeFileInfo(
 
 // Stat implements the billy.Filesystem interface for FS.
 func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "Stat %s", fs.pathForLogging(filename))
+	fs.log.CDebugf(fs.ctx, "Stat %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Stat done: %+v", err)
 		err = translateErr(err)
@@ -664,7 +669,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 // Rename implements the billy.Filesystem interface for FS.
 func (fs *FS) Rename(oldpath, newpath string) (err error) {
 	fs.log.CDebugf(fs.ctx, "Rename %s -> %s",
-		fs.pathForLogging(oldpath), fs.pathForLogging(newpath))
+		fs.PathForLogging(oldpath), fs.PathForLogging(newpath))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Rename done: %+v", err)
 		err = translateErr(err)
@@ -696,7 +701,7 @@ func (fs *FS) Rename(oldpath, newpath string) (err error) {
 
 // Remove implements the billy.Filesystem interface for FS.
 func (fs *FS) Remove(filename string) (err error) {
-	fs.log.CDebugf(fs.ctx, "Remove %s", fs.pathForLogging(filename))
+	fs.log.CDebugf(fs.ctx, "Remove %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Remove done: %+v", err)
 		err = translateErr(err)
@@ -771,7 +776,7 @@ func (fs *FS) readDir(n libkbfs.Node) (fis []os.FileInfo, err error) {
 
 // ReadDir implements the billy.Filesystem interface for FS.
 func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "ReadDir %s", fs.pathForLogging(p))
+	fs.log.CDebugf(fs.ctx, "ReadDir %s", fs.PathForLogging(p))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
 		err = translateErr(err)
@@ -792,7 +797,7 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 
 // MkdirAll implements the billy.Filesystem interface for FS.
 func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
-	fs.log.CDebugf(fs.ctx, "MkdirAll %s", fs.pathForLogging(filename))
+	fs.log.CDebugf(fs.ctx, "MkdirAll %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
 	}()
@@ -806,7 +811,7 @@ func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
 
 // Lstat implements the billy.Filesystem interface for FS.
 func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "Lstat %s", fs.pathForLogging(filename))
+	fs.log.CDebugf(fs.ctx, "Lstat %s", fs.PathForLogging(filename))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Lstat done: %+v", err)
 		err = translateErr(err)
@@ -846,7 +851,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 // Symlink implements the billy.Filesystem interface for FS.
 func (fs *FS) Symlink(target, link string) (err error) {
 	fs.log.CDebugf(fs.ctx, "Symlink target=%s link=%s",
-		fs.pathForLogging(target), fs.root.ChildName(link))
+		fs.PathForLogging(target), fs.root.ChildName(link))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Symlink done: %+v", err)
 		err = translateErr(err)
@@ -873,7 +878,7 @@ func (fs *FS) Symlink(target, link string) (err error) {
 
 // Readlink implements the billy.Filesystem interface for FS.
 func (fs *FS) Readlink(link string) (target string, err error) {
-	fs.log.CDebugf(fs.ctx, "Readlink %s", fs.pathForLogging(link))
+	fs.log.CDebugf(fs.ctx, "Readlink %s", fs.PathForLogging(link))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Readlink done: %+v", err)
 		err = translateErr(err)
@@ -901,7 +906,7 @@ func (fs *FS) Readlink(link string) (target string, err error) {
 
 // Chmod implements the billy.Filesystem interface for FS.
 func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
-	fs.log.CDebugf(fs.ctx, "Chmod %s %s", fs.pathForLogging(name), mode)
+	fs.log.CDebugf(fs.ctx, "Chmod %s %s", fs.PathForLogging(name), mode)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chmod done: %+v", err)
 		err = translateErr(err)
@@ -924,7 +929,7 @@ func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
 func (fs *FS) Lchown(name string, uid, gid int) error {
 	// KBFS doesn't support ownership changes.
 	fs.log.CDebugf(fs.ctx, "Ignoring Lchown %s %d %d",
-		fs.pathForLogging(name), uid, gid)
+		fs.PathForLogging(name), uid, gid)
 	return nil
 }
 
@@ -932,7 +937,7 @@ func (fs *FS) Lchown(name string, uid, gid int) error {
 func (fs *FS) Chown(name string, uid, gid int) error {
 	// KBFS doesn't support ownership changes.
 	fs.log.CDebugf(fs.ctx, "Ignoring Chown %s %d %d",
-		fs.pathForLogging(name), uid, gid)
+		fs.PathForLogging(name), uid, gid)
 	return nil
 }
 
@@ -940,7 +945,7 @@ func (fs *FS) Chown(name string, uid, gid int) error {
 func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 	err error) {
 	fs.log.CDebugf(fs.ctx, "Chtimes %s mtime=%s; ignoring atime=%s",
-		fs.pathForLogging(name), mtime, atime)
+		fs.PathForLogging(name), mtime, atime)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chtimes done: %+v", err)
 		err = translateErr(err)
@@ -960,7 +965,7 @@ func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 
 // ChrootAsLibFS returns a *FS whose root is p.
 func (fs *FS) ChrootAsLibFS(p string) (newFS *FS, err error) {
-	fs.log.CDebugf(fs.ctx, "Chroot %s", fs.pathForLogging(p))
+	fs.log.CDebugf(fs.ctx, "Chroot %s", fs.PathForLogging(p))
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
 		err = translateErr(err)
