@@ -128,7 +128,7 @@ func updateCoords(t *testing.T, livelocation *maps.LiveLocationTracker, coords [
 	for i := 0; i < len(coords); i++ {
 		select {
 		case <-coordsCh:
-		case <-time.After(2 * time.Second):
+		case <-time.After(20 * time.Second):
 			require.Fail(t, "no coords ack")
 		}
 	}
