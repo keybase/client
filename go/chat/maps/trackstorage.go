@@ -19,6 +19,7 @@ type diskLocationTrack struct {
 	EndTime            gregor1.Time         `codec:"E"`
 	Coords             []chat1.Coordinate   `codec:"O"`
 	GetCurrentPosition bool                 `codec:"P"`
+	MaxCoords          int                  `codec:"MC"`
 }
 
 type diskTrackStorage struct {
@@ -54,7 +55,7 @@ func (t *trackStorage) dbKey() libkb.DbKey {
 func (t *trackStorage) Save(ctx context.Context, trackers []*locationTrack) error {
 	var dat []diskLocationTrack
 	for _, t := range trackers {
-		dat = append(dat, t.toDisk())
+		dat = append(dat, t.ToDisk())
 	}
 	return t.encryptedDB.Put(ctx, t.dbKey(), diskTrackStorage{
 		Version:  diskTrackStorageVersion,

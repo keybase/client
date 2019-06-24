@@ -21,6 +21,11 @@ import (
 
 const MapsProxy = "maps-proxy.core.keybaseapi.com"
 const mapsHost = "maps.googleapis.com"
+const locationMapWidth = 640
+const locationMapHeight = 350
+const liveMapWidth = 640
+const liveMapHeight = 270
+const scale = 2
 
 func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat, lon float64) (string, error) {
 	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
@@ -28,8 +33,9 @@ func GetMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, lat
 		return "", err
 	}
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&size=320x200&scale=2&key=%s",
-		MapsProxy, lat, lon, lat, lon, key.Googlemaps()), nil
+		"https://%s/maps/api/staticmap?center=%f,%f&markers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
+		MapsProxy, lat, lon, lat, lon, locationMapWidth/scale, locationMapHeight/scale, scale,
+		key.Googlemaps()), nil
 }
 
 func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, coords []chat1.Coordinate) (string, error) {
@@ -56,11 +62,13 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
 	return fmt.Sprintf(
-		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=320x100&scale=2&key=%s",
-		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, key.Googlemaps()), nil
+		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
+		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, liveMapWidth/scale,
+		liveMapHeight/scale, scale, key.Googlemaps()), nil
 }
 
 func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.ReadCloser, length int64, err error) {
+	sepHeight := 3
 	locPng, err := png.Decode(locReader)
 	if err != nil {
 		return res, length, err
@@ -69,20 +77,20 @@ func CombineMaps(ctx context.Context, locReader, liveReader io.Reader) (res io.R
 	if err != nil {
 		return res, length, err
 	}
-	combined := image.NewRGBA(image.Rect(0, 0, 640, 603))
+	combined := image.NewRGBA(image.Rect(0, 0, locationMapWidth, locationMapHeight+liveMapHeight+sepHeight))
 	for x := 0; x < locPng.Bounds().Dx(); x++ {
 		for y := 0; y < locPng.Bounds().Dy(); y++ {
 			combined.Set(x, y, locPng.At(x, y))
 		}
 	}
 	for x := 0; x < locPng.Bounds().Dx(); x++ {
-		for y := 0; y < 3; y++ {
-			combined.Set(x, 400+y, color.Black)
+		for y := 0; y < sepHeight; y++ {
+			combined.Set(x, locationMapHeight+y, color.Black)
 		}
 	}
 	for x := 0; x < livePng.Bounds().Dx(); x++ {
 		for y := 0; y < livePng.Bounds().Dy(); y++ {
-			combined.Set(x, y+403, livePng.At(x, y))
+			combined.Set(x, y+locationMapHeight+sepHeight, livePng.At(x, y))
 		}
 	}
 	var buf bytes.Buffer

@@ -24,7 +24,7 @@ func TestTrackStorage(t *testing.T) {
 			convID:  chat1.ConversationID([]byte{0, 0, 1}),
 			msgID:   5,
 			endTime: time.Now().Add(time.Hour),
-			coords: []chat1.Coordinate{
+			allCoords: []chat1.Coordinate{
 				chat1.Coordinate{
 					Lat: -41.8983,
 					Lon: 79.882,
@@ -36,6 +36,6 @@ func TestTrackStorage(t *testing.T) {
 	res, err := ts.Restore(context.TODO())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
-	require.Equal(t, len(trackers[0].coords), len(res[0].coords))
-	require.Equal(t, trackers[0].coords[0].Lat, res[0].coords[0].Lat)
+	require.Equal(t, len(trackers[0].allCoords), len(res[0].allCoords))
+	require.Equal(t, trackers[0].allCoords[0].Lat, res[0].allCoords[0].Lat)
 }

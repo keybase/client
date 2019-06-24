@@ -2,8 +2,6 @@ package maps
 
 import (
 	"context"
-	"crypto/sha1"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"sync"
@@ -21,61 +19,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type locationTrack struct {
-	stopCh   chan struct{}
-	updateCh chan chat1.Coordinate
-
-	convID             chat1.ConversationID
-	msgID              chat1.MessageID
-	endTime            time.Time
-	coords             []chat1.Coordinate
-	getCurrentPosition bool
-}
-
-func (t *locationTrack) drain() {
-	for {
-		select {
-		case coord := <-t.updateCh:
-			t.coords = append(t.coords, coord)
-		default:
-			return
-		}
-	}
-}
-
-func (t *locationTrack) key() types.LiveLocationKey {
-	hash := sha1.Sum([]byte(fmt.Sprintf("%s:%d", t.convID, t.msgID)))
-	return types.LiveLocationKey(hex.EncodeToString(hash[:]))
-}
-
-func (t *locationTrack) toDisk() diskLocationTrack {
-	return diskLocationTrack{
-		ConvID:             t.convID,
-		MsgID:              t.msgID,
-		EndTime:            gregor1.ToTime(t.endTime),
-		Coords:             t.coords,
-		GetCurrentPosition: t.getCurrentPosition,
-	}
-}
-
-func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
-	endTime time.Time, getCurrentPosition bool) *locationTrack {
-	return &locationTrack{
-		stopCh:             make(chan struct{}),
-		updateCh:           make(chan chat1.Coordinate, 50),
-		convID:             convID,
-		msgID:              msgID,
-		endTime:            endTime,
-		getCurrentPosition: getCurrentPosition,
-	}
-}
-
-func newLocationTrackFromDisk(d diskLocationTrack) *locationTrack {
-	t := newLocationTrack(d.ConvID, d.MsgID, gregor1.FromTime(d.EndTime), d.GetCurrentPosition)
-	t.coords = d.Coords
-	return t
-}
-
 type LiveLocationTracker struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -87,6 +30,7 @@ type LiveLocationTracker struct {
 	eg             errgroup.Group
 	trackers       map[types.LiveLocationKey]*locationTrack
 	lastCoord      chat1.Coordinate
+	maxCoords      int
 }
 
 func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
@@ -97,6 +41,7 @@ func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
 		storage:        newTrackStorage(g),
 		trackers:       make(map[types.LiveLocationKey]*locationTrack),
 		updateInterval: 30 * time.Second,
+		maxCoords:      500,
 	}
 }
 
@@ -105,6 +50,9 @@ func (l *LiveLocationTracker) Start(ctx context.Context, uid gregor1.UID) {
 	l.Lock()
 	defer l.Unlock()
 	l.uid = uid
+	// bring back any trackers that we have stored. This is most relavent when being woken
+	// up on iOS due to a location update. THe app might need to recreate all of its trackers
+	// if the app had been killed.
 	l.restoreLocked(ctx)
 }
 
@@ -146,7 +94,7 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 		return
 	}
 	for _, t := range trackers {
-		l.trackers[t.key()] = t
+		l.trackers[t.Key()] = t
 		l.eg.Go(func() error { return l.tracker(t) })
 	}
 }
@@ -230,14 +178,15 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	}
 	mvalid := msg.Valid()
 	var coords []chat1.Coordinate
-	if len(t.coords) == 0 {
+	trackerCoords := t.GetCoords()
+	if len(trackerCoords) == 0 {
 		if !l.lastCoord.IsZero() {
 			coords = []chat1.Coordinate{l.lastCoord}
 		} else {
 			return errors.New("no coordinates")
 		}
 	} else {
-		coords = t.coords
+		coords = trackerCoords
 	}
 	last := coords[len(coords)-1]
 	conv, err := utils.GetVerifiedConv(ctx, l.G(), l.uid, t.convID, types.InboxSourceDataSourceAll)
@@ -252,7 +201,7 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&cb=%s", types.MapsDomain,
 		last.Lat, last.Lon, last.Accuracy, libkb.RandStringB64(3))
 	if !t.getCurrentPosition {
-		body += fmt.Sprintf("&livekey=%s", t.key())
+		body += fmt.Sprintf("&livekey=%s", t.Key())
 	}
 	l.G().Unfurler.Prefetch(ctx, l.uid, t.convID, body)
 	for unfurlMsgID := range mvalid.Unfurls {
@@ -281,23 +230,49 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	return nil
 }
 
+func (l *LiveLocationTracker) startWatch(ctx context.Context) (watchID chat1.LocationWatchID, err error) {
+	// try this a couple times in case we are starting fresh and the UI isn't ready yet
+	maxWatchAttempts := 20
+	watchAttempts := 0
+	for {
+		if watchID, err = l.getChatUI(ctx).ChatWatchPosition(ctx); err != nil {
+			l.Debug(ctx, "startWatch: unable to watch position: attempt: %d msg: %s", watchAttempts, err)
+			if watchAttempts > maxWatchAttempts {
+				return 0, err
+			}
+		} else {
+			break
+		}
+		maxWatchAttempts++
+		time.Sleep(time.Second)
+	}
+	return watchID, nil
+}
+
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
-	watchID, err := l.getChatUI(ctx).ChatWatchPosition(ctx)
+	// check to see if we are being asked to start a tracker that is already expired
+	if t.endTime.Before(time.Now()) {
+		return errors.New("tracker from the past")
+	}
+	// start up the OS watch routine
+	watchID, err := l.startWatch(ctx)
 	if err != nil {
-		l.Debug(ctx, "tracker: unable to watch position: %s", err)
 		return err
 	}
 	defer func() {
+		// drop everything when our live location ends
 		l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
 		l.Lock()
 		defer l.Unlock()
-		delete(l.trackers, t.key())
+		delete(l.trackers, t.Key())
 		l.saveLocked(ctx)
 	}()
 	if !t.getCurrentPosition {
+		// if this is a live location request, just put whatever the last coord is on the screen, makes it
+		// feel more live
 		if !l.lastCoord.IsZero() {
-			t.coords = append(t.coords, l.lastCoord)
+			t.Drain(l.lastCoord)
 		}
 		l.updateMapUnfurl(ctx, t)
 	}
@@ -309,20 +284,20 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		select {
 		case coord := <-t.updateCh:
 			if !t.getCurrentPosition {
-				t.coords = append(t.coords, coord)
-				t.drain()
+				t.Drain(coord)
 				shouldUpdate = true
 				if firstUpdate {
 					l.updateMapUnfurl(ctx, t)
 				}
 				firstUpdate = false
 			} else {
-				t.coords = []chat1.Coordinate{coord}
+				t.SetCoords([]chat1.Coordinate{coord})
 			}
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
 		case <-l.G().Clock().AfterTime(nextUpdate):
+			// we update the map unfurl on a timer so we don't spam delete and recreate it
 			if shouldUpdate {
 				l.updateMapUnfurl(ctx, t)
 				shouldUpdate = false
@@ -345,8 +320,10 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 	defer l.Trace(ctx, func() error { return nil }, "GetCurrentPosition")()
 	l.Lock()
 	defer l.Unlock()
-	t := newLocationTrack(convID, msgID, time.Now().Add(5*time.Second), true)
-	l.trackers[t.key()] = t
+	// start up a live location tracker for a small amount of time to make sure we get a good
+	// coordinate
+	t := newLocationTrack(convID, msgID, time.Now().Add(4*time.Second), true, l.maxCoords)
+	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
 }
@@ -356,8 +333,8 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	defer l.Trace(ctx, func() error { return nil }, "StartTracking")()
 	l.Lock()
 	defer l.Unlock()
-	t := newLocationTrack(convID, msgID, endTime, false)
-	l.trackers[t.key()] = t
+	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords)
+	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
 }
@@ -394,8 +371,7 @@ func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, key types.Live
 	l.Lock()
 	defer l.Unlock()
 	if t, ok := l.trackers[key]; ok {
-		// TODO: sample these
-		res = t.coords
+		res = t.GetCoords()
 	}
 	if len(res) == 0 {
 		res = append(res, l.lastCoord)
@@ -408,7 +384,7 @@ func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
 	l.Lock()
 	defer l.Unlock()
 	for _, t := range l.trackers {
-		delete(l.trackers, t.key())
+		delete(l.trackers, t.Key())
 		close(t.stopCh)
 	}
 	l.saveLocked(ctx)

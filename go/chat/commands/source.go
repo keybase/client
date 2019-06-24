@@ -219,4 +219,5 @@ var admins = map[string]bool{
 	"giphy_tester":  true,
 	"candrencil983": true,
 	"candrencil889": true,
+	"candrencil911": true,
 }
