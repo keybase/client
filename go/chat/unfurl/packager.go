@@ -268,22 +268,36 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 
 func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	mapsRaw := raw.Maps()
 	g := chat1.UnfurlGeneric{
-		Title:       raw.Maps().Title,
-		Url:         raw.Maps().Url,
-		SiteName:    raw.Maps().SiteName,
-		Description: raw.Maps().Description,
+		Title:       mapsRaw.Title,
+		Url:         mapsRaw.Url,
+		SiteName:    mapsRaw.SiteName,
+		Description: &mapsRaw.Description,
 	}
 	// load map
-	mapsURL := raw.Maps().ImageUrl
-	if mapsURL == nil {
-		return res, errors.New("no maps URL")
-	}
-	reader, length, err := maps.MapReaderFromURL(ctx, *mapsURL)
+	var reader io.ReadCloser
+	var length int64
+	mapsURL := mapsRaw.ImageUrl
+	locReader, locLength, err := maps.MapReaderFromURL(ctx, mapsURL)
 	if err != nil {
 		return res, err
 	}
-	asset, err := p.assetFromURLWithBody(ctx, reader, length, *mapsURL, uid, convID, true)
+	defer locReader.Close()
+	if mapsRaw.HistoryImageUrl != nil {
+		liveReader, _, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
+		if err != nil {
+			return res, err
+		}
+		defer liveReader.Close()
+		if reader, length, err = maps.CombineMaps(ctx, locReader, liveReader); err != nil {
+			return res, err
+		}
+	} else {
+		reader = locReader
+		length = locLength
+	}
+	asset, err := p.assetFromURLWithBody(ctx, reader, length, mapsURL, uid, convID, true)
 	if err != nil {
 		p.Debug(ctx, "Package: failed to get maps asset URL: %s", err)
 		return res, errors.New("image not available for maps unfurl")
