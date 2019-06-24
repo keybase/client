@@ -28,13 +28,15 @@ const useFsLoadEffect = ({
     [dispatch, path, isPathItem]
   )
 
-  const online = Container.useSelector(state => state.fs.kbfsDaemonStatus.online)
+  const kbfsDaemonConnected =
+    Container.useSelector(state => state.fs.kbfsDaemonStatus.rpcStatus) ===
+    Types.KbfsDaemonRpcStatus.Connected
   const load = React.useCallback(
     (refreshTag?: Types.RefreshTag) => {
-      online && wantPathMetadata && loadPathMetadata(refreshTag)
-      online && wantChildren && loadChildren(refreshTag)
+      kbfsDaemonConnected && wantPathMetadata && loadPathMetadata(refreshTag)
+      kbfsDaemonConnected && wantChildren && loadChildren(refreshTag)
     },
-    [online, wantChildren, wantPathMetadata, loadPathMetadata, loadChildren]
+    [kbfsDaemonConnected, wantChildren, wantPathMetadata, loadPathMetadata, loadChildren]
   )
 
   React.useEffect(() => load(refreshTag), [load, refreshTag])
