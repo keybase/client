@@ -627,7 +627,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 			// format these errors a little nicer for frontend to use directly
 			domain, xerr := stellarnet.UnvalidatedStellarURIOriginDomain(uri)
 			if xerr == nil {
-				return fmt.Errorf("This Stellar link claims to be signed by %s, but the Keybase app cannot currently verify the signature came from %s. Sorry, there's nothing you can do with this Stellar link.", domain, domain)
+				return nil, nil, fmt.Errorf("This Stellar link claims to be signed by %s, but the Keybase app cannot currently verify the signature came from %s. Sorry, there's nothing you can do with this Stellar link.", domain, domain)
 			}
 		}
 		return nil, nil, err
