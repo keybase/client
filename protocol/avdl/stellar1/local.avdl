@@ -146,6 +146,8 @@ protocol local {
     boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
     boolean isInflation;            // true if payment from known inflation source
     union { null, string } inflationSource; // name of inflation source
+
+    union { null, PaymentTrustlineLocal } trustline; // this tx is only a trust line change.
   }
 
   // Details of a payment.
@@ -161,6 +163,11 @@ protocol local {
     @lint("ignore")
     string externalTxURL;           // link to external web page with tx details
     string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
+  }
+
+  record PaymentTrustlineLocal {
+    Asset asset;
+    boolean remove;
   }
 
   // accountID should be the accountID that you want the details for.
