@@ -36,7 +36,7 @@ type ParticipantsOtherAccountProps = {
   toAccount?: Account
   allAccounts: Account[]
   onChangeFromAccount: (accountID: AccountID) => void
-  onChangeRecipient: (recipient: string) => void
+  onChangeRecipient: (from: AccountID) => (recipient: string) => void
   onLinkAccount: () => void
   onCreateNewAccount: () => void
   showSpinner: boolean
@@ -52,6 +52,7 @@ const ParticipantsOtherAccount = (props: ParticipantsOtherAccountProps) => (
     />
     <ToOtherAccount
       user={props.user}
+      fromAccount={props.fromAccount}
       toAccount={props.toAccount}
       allAccounts={props.allAccounts}
       onChangeRecipient={props.onChangeRecipient}

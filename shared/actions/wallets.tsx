@@ -22,6 +22,7 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError, TypedActions} from '../util/container'
 import {Action} from 'redux'
+import * as SettingsGen from './settings-gen'
 
 const stateToBuildRequestParams = state => ({
   amount: state.wallets.building.amount,
@@ -1166,6 +1167,11 @@ const searchTrustlineAssets = (state, {payload: {text}}) => {
     : WalletsGen.createClearTrustlineSearchResults()
 }
 
+const showAdvancedSendForm = (_, {payload: {from, to}}) =>
+  RPCStellarTypes.localShowAdvancedSendFormRpcPromise({from, to})
+    .then(result => WalletsGen.createShowAdvancedSendFormReceived({shouldShow: result}))
+    .catch(err => logger.warn('Error in determining whether to show advanced send form', err))
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
     WalletsGen.createNewAccount,
@@ -1584,6 +1590,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.setTrustlineSearchText,
     searchTrustlineAssets,
     'searchTrustlineAssets'
+  )
+  yield* Saga.chainAction<WalletsGen.ShowAdvancedSendFormPayload>(
+    WalletsGen.showAdvancedSendForm,
+    showAdvancedSendForm,
+    'showAdvancedSendForm'
   )
 }
 

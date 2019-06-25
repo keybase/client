@@ -10,6 +10,7 @@ const mapStateToProps = state => ({
   banners: state.wallets.building.isRequest
     ? state.wallets.builtRequest.builtBanners
     : state.wallets.builtPayment.builtBanners,
+  shouldShowAdvancedSendFormBanner: state.wallets.building.shouldShowAdvancedSendForm,
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -22,6 +23,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     bannerText: banner.message,
   })),
   onReviewPayments: stateProps._failed ? dispatchProps._onReviewPayments : null,
+  shouldShowAdvancedSendFormBanner: stateProps.shouldShowAdvancedSendFormBanner,
 })
 
 export const SendBody = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedSendBody')(

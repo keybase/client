@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
 import * as ProfileGen from '../../../actions/profile-gen'
-import * as Flow from '../../../util/flow'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
@@ -20,14 +19,16 @@ const mapStateToPropsKeybaseUser = state => {
   // If build.to is set, assume it's a valid username.
   return {
     errorMessage: built.toErrMsg,
+    fromAccount: makeAccount(Constants.getAccount(state, build.from)),
     isRequest: build.isRequest,
     recipientUsername: build.to,
   }
 }
 
 const mapDispatchToPropsKeybaseUser = dispatch => ({
-  onChangeRecipient: (to: string) => {
+  onChangeRecipient: (from: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
+    dispatch(WalletsGen.createShowAdvancedSendForm({from, to}))
   },
   onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -61,13 +62,15 @@ const mapStateToPropsStellarPublicKey = state => {
 
   return {
     errorMessage: built.toErrMsg,
+    fromAccount: makeAccount(Constants.getAccount(state, build.from)),
     recipientPublicKey: build.to,
   }
 }
 
 const mapDispatchToPropsStellarPublicKey = dispatch => ({
-  onChangeRecipient: (to: string) => {
+  onChangeRecipient: (from: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
+    dispatch(WalletsGen.createShowAdvancedSendForm({from, to}))
   },
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
   setReadyToReview: (readyToReview: boolean) => {
@@ -118,8 +121,9 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: Types.AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
-  onChangeRecipient: (to: string) => {
+  onChangeRecipient: (from: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
+    dispatch(WalletsGen.createShowAdvancedSendForm({from, to}))
   },
   onCreateNewAccount: () =>
     dispatch(

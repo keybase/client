@@ -736,6 +736,12 @@ func (s *Server) ShowAdvancedSendForm(ctx context.Context, arg stellar1.ShowAdva
 		return false, err
 	}
 
+	if arg.To == "" {
+		// arg.To is optional for GetSendAssetChoicesLocal but it is required for this function
+		// If it is not specified, just return false since there are no non-native assets in common
+		return false, nil
+	}
+
 	// We show the advanced send form if there are any enabled choices for sending an asset
 	// Note that GetSendAssetChoicesLocal does not include native assets
 	res, err := s.GetSendAssetChoicesLocal(

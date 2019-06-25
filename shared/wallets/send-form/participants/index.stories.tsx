@@ -144,6 +144,7 @@ const accounts = [
 ]
 
 const keybaseUserProps = {
+  fromAccount: primaryAccount,
   isRequest: false,
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onRemoveProfile: Sb.action('onRemoveProfile'),
@@ -154,6 +155,7 @@ const keybaseUserProps = {
 }
 
 const stellarPublicKeyProps = {
+  fromAccount: primaryAccount,
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onScanQRCode: Sb.action('onScanQRCode'),
   recipientPublicKey: '',

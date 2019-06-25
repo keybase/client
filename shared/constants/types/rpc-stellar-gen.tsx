@@ -189,7 +189,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.showAdvancedSendForm': {
     inParam: {readonly from: AccountID; readonly to: String}
-    outParam: Bool
+    outParam: Boolean
   }
   'stellar.1.local.startBuildPaymentLocal': {
     inParam: void

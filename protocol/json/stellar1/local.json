@@ -1678,7 +1678,7 @@
           "type": "string"
         }
       ],
-      "response": "bool"
+      "response": "boolean"
     },
     "startBuildPaymentLocal": {
       "request": [

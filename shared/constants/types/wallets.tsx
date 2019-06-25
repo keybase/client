@@ -83,6 +83,7 @@ export type _Building = {
   secretNote: HiddenString
   sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal> | null
   to: string
+  shouldShowAdvancedSendForm: boolean
 }
 
 export type _BuiltPayment = {

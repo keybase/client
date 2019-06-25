@@ -7,6 +7,7 @@ import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import {Account} from '.'
 import {debounce} from 'lodash-es'
+import {AccountID} from '../../../constants/types/wallets'
 
 export type ToKeybaseUserProps = {
   isRequest: boolean
@@ -15,8 +16,9 @@ export type ToKeybaseUserProps = {
   onShowProfile: (username: string) => void
   onShowSuggestions: () => void
   onRemoveProfile: () => void
-  onChangeRecipient: (recipient: string) => void
+  onChangeRecipient: (from: AccountID, recipient: string) => void
   onScanQRCode: (() => void) | null
+  fromAccount: Account
 }
 
 const placeholderExample = isLargeScreen ? 'Ex: G12345... or you*example.com' : 'G12.. or you*example.com'
@@ -64,7 +66,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   return (
     <Search
       heading={props.isRequest ? 'From' : 'To'}
-      onClickResult={props.onChangeRecipient}
+      onClickResult={recipient => props.onChangeRecipient(props.fromAccount.id, recipient)}
       onShowSuggestions={props.onShowSuggestions}
       onShowTracker={props.onShowProfile}
       onScanQRCode={props.onScanQRCode}
@@ -75,9 +77,10 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
 export type ToStellarPublicKeyProps = {
   recipientPublicKey: string
   errorMessage?: string
-  onChangeRecipient: (recipient: string) => void
+  onChangeRecipient: (from: AccountID, recipient: string) => void
   onScanQRCode: (() => void) | null
   setReadyToReview: (ready: boolean) => void
+  fromAccount: Account
 }
 
 type ToStellarPublicKeyState = {
@@ -90,7 +93,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
   _onChangeRecipient = recipientPublicKey => {
     this.setState({recipientPublicKey})
     this.props.setReadyToReview(false)
-    this._propsOnChangeRecipient(recipientPublicKey)
+    this._propsOnChangeRecipient(this.props.fromAccount.id, recipientPublicKey)
   }
 
   componentDidUpdate(prevProps: ToStellarPublicKeyProps, prevState: ToStellarPublicKeyState) {
@@ -172,10 +175,11 @@ export type ToOtherAccountProps = {
   user: string
   toAccount?: Account
   allAccounts: Account[]
-  onChangeRecipient: (recipient: string) => void
+  onChangeRecipient: (from: AccountID, recipient: string) => void
   onLinkAccount: () => void
   onCreateNewAccount: () => void
   showSpinner: boolean
+  fromAccount: Account
 }
 
 class ToOtherAccount extends React.Component<ToOtherAccountProps> {
@@ -187,7 +191,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
       } else if (element.key === 'link-existing') {
         this.props.onLinkAccount()
       } else {
-        this.props.onChangeRecipient(element.props.account.id)
+        this.props.onChangeRecipient(this.props.fromAccount.id, element.props.account.id)
       }
     }
   }
