@@ -109,7 +109,7 @@ export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
 export type _ContactsState = {
   importEnabled: boolean | null
-  // OS permissions. 'undetermined' -> we haven't asked; 'unknown' -> we haven't checked
+  // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
 }
 export type ContactsState = I.RecordOf<_ContactsState>
