@@ -81,7 +81,6 @@ export const makeBuilding = I.Record<Types._Building>({
   recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
   sendAssetChoices: null,
-  shouldShowAdvancedSendForm: false,
   to: '',
 })
 

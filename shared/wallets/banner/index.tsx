@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   background: Background
+  offerAdvancedSendFormbool?: boolean
   onAction?: (() => void) | null
   reviewProofs?: boolean
   sendFailed?: boolean
@@ -40,6 +41,20 @@ const Banner = (props: Props) => (
         >
           Please review.
         </Text>
+      )}
+      {props.offerAdvancedSendFormbool && props.onAction && (
+        <Box2 direction={'horizontal'}>
+          This user is accepting other assets than XLM Lumens.
+          <Text
+            type="BodySmallSemiboldPrimaryLink"
+            center={true}
+            style={styles.secondText}
+            negative={true}
+            onClick={props.onAction}
+          >
+            Send other assets?
+          </Text>
+        </Box2>
       )}
     </Text>
     {props.sendFailed && props.onAction && (

@@ -1838,6 +1838,96 @@ func TestBuildPaymentLocal(t *testing.T) {
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 }
 
+func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
+	fakeAcct := tcs[0].Backend.ImportAccountsForUser(tcs[0])[0]
+	fakeAcct2 := tcs[1].Backend.ImportAccountsForUser(tcs[1])[0]
+	tcs[0].Backend.Gift(fakeAcct.accountID, "100")
+	tcs[0].Backend.Gift(fakeAcct2.accountID, "100")
+
+	err := tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAcct.accountID, "test")
+	require.NoError(t, err)
+	err = tcs[1].Srv.walletState.Refresh(tcs[1].MetaContext(), fakeAcct2.accountID, "test")
+	require.NoError(t, err)
+
+	t.Logf("sending from one account to another that only have native assets")
+	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct.accountID,
+		To:            fakeAcct2.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+	t.Logf("sending from an account with non-native assets to an account with only native assets")
+	astro := tcs[0].Backend.CreateFakeAsset("AstroDollars")
+	fakeAcct.AdjustAssetBalance(0, astro)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAcct.accountID, "test")
+	require.NoError(t, err)
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct.accountID,
+		To:            fakeAcct2.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+	t.Logf("sending from an account with non-native assets to an account with the same non-native asset")
+	fakeAcct2.AdjustAssetBalance(0, astro)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAcct.accountID, "test")
+	require.NoError(t, err)
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct.accountID,
+		To:            fakeAcct2.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:                     "info",
+		OfferAdvancedSendFormbool: true,
+	}})
+}
+
 // Simple happy path case.
 func TestBuildPaymentLocalBidHappy(t *testing.T) {
 	testBuildPaymentLocalBidHappy(t, false)
@@ -2558,20 +2648,14 @@ func TestShowAdvancedSendForm(t *testing.T) {
 
 	// Empty accounts (not even on the network), expecting to see 0
 	// other assets here.
-	shouldShowAdvancedSend, err := tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
-		From: fakeAccts[0].accountID,
-		To:   tcs[1].Fu.Username,
-	})
+	shouldShowAdvancedSend, err := stellar.ShowAdvancedSendBanner(tcs[0].MetaContext(), tcs[0].Srv.remoter, fakeAccts[0].accountID, tcs[1].Fu.Username)
 	require.NoError(t, err)
 	require.False(t, shouldShowAdvancedSend)
 
 	// Giving them an XLM balance does not cause the advanced send form to show up
 	tcs[0].Backend.Gift(fakeAccts[0].accountID, "100")
 	tcs[0].Backend.Gift(fakeAccts2[0].accountID, "100")
-	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
-		From: fakeAccts[0].accountID,
-		To:   tcs[1].Fu.Username,
-	})
+	shouldShowAdvancedSend, err = stellar.ShowAdvancedSendBanner(tcs[0].MetaContext(), tcs[0].Srv.remoter, fakeAccts[0].accountID, tcs[1].Fu.Username)
 	require.NoError(t, err)
 	require.False(t, shouldShowAdvancedSend)
 
@@ -2588,10 +2672,7 @@ func TestShowAdvancedSendForm(t *testing.T) {
 
 	// The sender has two open trustlines but the receiver still does not have any so it still does not show
 	// the advanced send form
-	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
-		From: fakeAccts[0].accountID,
-		To:   tcs[1].Fu.Username, // Uses the username as the To argument
-	})
+	shouldShowAdvancedSend, err = stellar.ShowAdvancedSendBanner(tcs[0].MetaContext(), tcs[0].Srv.remoter, fakeAccts[0].accountID, tcs[1].Fu.Username)
 	require.NoError(t, err)
 	require.False(t, shouldShowAdvancedSend)
 
@@ -2602,27 +2683,18 @@ func TestShowAdvancedSendForm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now they have AstroDollars in common
-	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
-		From: fakeAccts[0].accountID,
-		To:   fakeAccts2[0].accountID.String(), // this time use account ID as `To` argument
-	})
+	shouldShowAdvancedSend, err = stellar.ShowAdvancedSendBanner(tcs[0].MetaContext(), tcs[0].Srv.remoter, fakeAccts[0].accountID, fakeAccts2[0].accountID.String())
 	require.NoError(t, err)
 	require.True(t, shouldShowAdvancedSend)
 
 	// Try with arg.To AccountID not in the system.
 	externalAcc := tcs[0].Backend.AddAccount()
-	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
-		From: fakeAccts[0].accountID,
-		To:   externalAcc.String(),
-	})
+	shouldShowAdvancedSend, err = stellar.ShowAdvancedSendBanner(tcs[0].MetaContext(), tcs[0].Srv.remoter, fakeAccts[0].accountID, externalAcc.String())
 	require.NoError(t, err)
 	require.False(t, shouldShowAdvancedSend)
 
 	// Try with an empty string arg.To
-	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
-		From: fakeAccts[0].accountID,
-		To:   "",
-	})
+	shouldShowAdvancedSend, err = stellar.ShowAdvancedSendBanner(tcs[0].MetaContext(), tcs[0].Srv.remoter, fakeAccts[0].accountID, "")
 	require.NoError(t, err)
 	require.False(t, shouldShowAdvancedSend)
 }

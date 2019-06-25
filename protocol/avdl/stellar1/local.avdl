@@ -225,11 +225,6 @@ protocol local {
     string right; // Examples: "Stronghold.com", "GBSTRH4QOTWNSVA6E4HFERETX4ZLSR3CIUBLK7AXYII277PFJC4BBYOG"
     string subtext; // Examples: "", "max doesn't accept HUGZ"
   }
-  boolean showAdvancedSendForm(
-    int sessionID,
-    AccountID from,
-    string to // Username, account ID, or assertion
-  );
 
   // An ID representing a session with the send form.
   @typedef("string")
@@ -327,6 +322,9 @@ protocol local {
     // Set if this banner means the user's proofs have changed and that is blocking the payment.
     // `message` may be blank in this case.
     boolean proofsChanged;
+    // Set if this banner means there are valid trustlines for non-native assets to be sent from
+    // the from address to the to address. `message` may be blank in this case.
+    boolean offerAdvancedSendFormbool;
   }
 
   // Called when Send is tapped from the build form.

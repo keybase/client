@@ -458,12 +458,5 @@
       "expanded": "boolean",
       "assetID": "Types.AssetID"
     },
-    "showAdvancedSendForm": {
-      "from": "Types.AccountID",
-      "to": "string"
-    },
-    "showAdvancedSendFormReceived": {
-      "shouldShow": "boolean"
-    }
   }
 }

@@ -101,8 +101,6 @@ export const setTrustlineExpanded = 'wallets:setTrustlineExpanded'
 export const setTrustlinePopularAssets = 'wallets:setTrustlinePopularAssets'
 export const setTrustlineSearchResults = 'wallets:setTrustlineSearchResults'
 export const setTrustlineSearchText = 'wallets:setTrustlineSearchText'
-export const showAdvancedSendForm = 'wallets:showAdvancedSendForm'
-export const showAdvancedSendFormReceived = 'wallets:showAdvancedSendFormReceived'
 export const showTransaction = 'wallets:showTransaction'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropDetails = 'wallets:updateAirdropDetails'
@@ -301,8 +299,6 @@ type _SetTrustlinePopularAssetsPayload = {
 }
 type _SetTrustlineSearchResultsPayload = {readonly assets: Array<Types.AssetDescription>}
 type _SetTrustlineSearchTextPayload = {readonly text: string}
-type _ShowAdvancedSendFormPayload = {readonly from: Types.AccountID; readonly to: string}
-type _ShowAdvancedSendFormReceivedPayload = {readonly shouldShow: boolean}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
@@ -947,12 +943,6 @@ export const createSetTrustlineSearchResults = (
 export const createSetTrustlineSearchText = (
   payload: _SetTrustlineSearchTextPayload
 ): SetTrustlineSearchTextPayload => ({payload, type: setTrustlineSearchText})
-export const createShowAdvancedSendForm = (
-  payload: _ShowAdvancedSendFormPayload
-): ShowAdvancedSendFormPayload => ({payload, type: showAdvancedSendForm})
-export const createShowAdvancedSendFormReceived = (
-  payload: _ShowAdvancedSendFormReceivedPayload
-): ShowAdvancedSendFormReceivedPayload => ({payload, type: showAdvancedSendFormReceived})
 export const createUpdateAirdropBannerState = (
   payload: _UpdateAirdropBannerStatePayload
 ): UpdateAirdropBannerStatePayload => ({payload, type: updateAirdropBannerState})
@@ -1332,14 +1322,6 @@ export type SetTrustlineSearchTextPayload = {
   readonly payload: _SetTrustlineSearchTextPayload
   readonly type: typeof setTrustlineSearchText
 }
-export type ShowAdvancedSendFormPayload = {
-  readonly payload: _ShowAdvancedSendFormPayload
-  readonly type: typeof showAdvancedSendForm
-}
-export type ShowAdvancedSendFormReceivedPayload = {
-  readonly payload: _ShowAdvancedSendFormReceivedPayload
-  readonly type: typeof showAdvancedSendFormReceived
-}
 export type ShowTransactionPayload = {
   readonly payload: _ShowTransactionPayload
   readonly type: typeof showTransaction
@@ -1494,8 +1476,6 @@ export type Actions =
   | SetTrustlinePopularAssetsPayload
   | SetTrustlineSearchResultsPayload
   | SetTrustlineSearchTextPayload
-  | ShowAdvancedSendFormPayload
-  | ShowAdvancedSendFormReceivedPayload
   | ShowTransactionPayload
   | UpdateAirdropBannerStatePayload
   | UpdateAirdropDetailsPayload

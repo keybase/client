@@ -439,10 +439,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
-    case WalletsGen.showAdvancedSendFormReceived:
-      return state.merge({
-        building: state.get('building').merge({shouldShowAdvancedSendForm: action.payload.shouldShow}),
-      })
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

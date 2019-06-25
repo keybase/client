@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"fmt"
+	"github.com/keybase/client/go/stellar/remote"
 	"regexp"
 	"strings"
 	"sync"
@@ -18,6 +19,107 @@ import (
 	stellarAddress "github.com/stellar/go/address"
 )
 
+func ShowAdvancedSendBanner(mctx libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to string) (shouldShow bool, err error) {
+	// We don't show a banner if either the from or to are empty strings since they obviously don't have anything in
+	// common
+	if from == "" {
+		return false, nil
+	}
+	if to == "" {
+		return false, nil
+	}
+
+	// We show the advanced send form if there are any enabled choices for sending an asset
+	// Note that GetSendAssetChoicesLocal does not include native assets
+	res, err := GetSendAssetChoicesLocal(
+		mctx,
+		remoter,
+		stellar1.GetSendAssetChoicesLocalArg{
+			From: from,
+			To:   to,
+		})
+	if err != nil {
+		return false, err
+	}
+	for _, choice := range res {
+		if choice.Enabled {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func GetSendAssetChoicesLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
+	owns, _, err := OwnAccount(mctx, arg.From)
+	if err != nil {
+		return res, err
+	}
+	if !owns {
+		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
+	}
+
+	ourBalances, err := remoter.Balances(mctx.Ctx(), arg.From)
+	if err != nil {
+		return res, err
+	}
+
+	res = []stellar1.SendAssetChoiceLocal{}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if asset.IsNativeXLM() {
+			// We are only doing non-native assets here.
+			continue
+		}
+		choice := stellar1.SendAssetChoiceLocal{
+			Asset:   asset,
+			Enabled: true,
+			Left:    bal.Asset.Code,
+			Right:   bal.Asset.Issuer,
+		}
+		res = append(res, choice)
+	}
+
+	if arg.To != "" {
+		recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
+		if err != nil {
+			mctx.G().Log.CDebugf(mctx.Ctx(), "Skipping asset filtering: LookupRecipient for %q failed with: %s",
+				arg.To, err)
+			return res, nil
+		}
+
+		theirBalancesHash := make(map[string]bool)
+		assetHashCode := func(a stellar1.Asset) string {
+			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
+		}
+
+		if recipient.AccountID != nil {
+			theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
+			if err != nil {
+				mctx.G().Log.CDebugf(mctx.Ctx(), "Skipping asset filtering: remoter.Balances for %q failed with: %s",
+					recipient.AccountID, err)
+				return res, nil
+			}
+			for _, bal := range theirBalances {
+				theirBalancesHash[assetHashCode(bal.Asset)] = true
+			}
+		}
+
+		for i, choice := range res {
+			available := theirBalancesHash[assetHashCode(choice.Asset)]
+			if !available {
+				choice.Enabled = false
+				recipientStr := "Recipient"
+				if recipient.User != nil {
+					recipientStr = recipient.User.Username.String()
+				}
+				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
+				res[i] = choice
+			}
+		}
+	}
+	return res, nil
+}
+
 func StartBuildPaymentLocal(mctx libkb.MetaContext) (res stellar1.BuildPaymentID, err error) {
 	return getGlobal(mctx.G()).startBuildPayment(mctx)
 }
@@ -26,7 +128,7 @@ func StopBuildPaymentLocal(mctx libkb.MetaContext, bid stellar1.BuildPaymentID) 
 	getGlobal(mctx.G()).stopBuildPayment(mctx, bid)
 }
 
-func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
+func BuildPaymentLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "BuildPaymentLocal", true)
 	defer tracer.Finish()
 
@@ -184,6 +286,16 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						Message: "Your Keybase username will not be linked to this transaction.",
 					})
 				}
+			}
+			offerAdvancedForm, err := ShowAdvancedSendBanner(mctx, remoter, arg.From, arg.To)
+			if err != nil {
+				return res, err
+			}
+			if offerAdvancedForm {
+				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+					Level:                     "info",
+					OfferAdvancedSendFormbool: true,
+				})
 			}
 		}
 	}

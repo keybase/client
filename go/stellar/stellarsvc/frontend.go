@@ -654,112 +654,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, _, err := stellar.OwnAccount(mctx, arg.From)
-	if err != nil {
-		return res, err
-	}
-	if !owns {
-		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
-	}
-
-	ourBalances, err := s.remoter.Balances(mctx.Ctx(), arg.From)
-	if err != nil {
-		return res, err
-	}
-
-	res = []stellar1.SendAssetChoiceLocal{}
-	for _, bal := range ourBalances {
-		asset := bal.Asset
-		if asset.IsNativeXLM() {
-			// We are only doing non-native assets here.
-			continue
-		}
-		choice := stellar1.SendAssetChoiceLocal{
-			Asset:   asset,
-			Enabled: true,
-			Left:    bal.Asset.Code,
-			Right:   bal.Asset.Issuer,
-		}
-		res = append(res, choice)
-	}
-
-	if arg.To != "" {
-		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
-		if err != nil {
-			s.G().Log.CDebugf(ctx, "Skipping asset filtering: stellar.LookupRecipient for %q failed with: %s",
-				arg.To, err)
-			return res, nil
-		}
-
-		theirBalancesHash := make(map[string]bool)
-		assetHashCode := func(a stellar1.Asset) string {
-			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
-		}
-
-		if recipient.AccountID != nil {
-			theirBalances, err := s.remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
-			if err != nil {
-				s.G().Log.CDebugf(ctx, "Skipping asset filtering: remoter.Balances for %q failed with: %s",
-					recipient.AccountID, err)
-				return res, nil
-			}
-			for _, bal := range theirBalances {
-				theirBalancesHash[assetHashCode(bal.Asset)] = true
-			}
-		}
-
-		for i, choice := range res {
-			available := theirBalancesHash[assetHashCode(choice.Asset)]
-			if !available {
-				choice.Enabled = false
-				recipientStr := "Recipient"
-				if recipient.User != nil {
-					recipientStr = recipient.User.Username.String()
-				}
-				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
-				res[i] = choice
-			}
-		}
-	}
-
-	return res, nil
-}
-
-func (s *Server) ShowAdvancedSendForm(ctx context.Context, arg stellar1.ShowAdvancedSendFormArg) (shouldShow bool, err error) {
-	_, fin, err := s.Preamble(ctx, preambleArg{
-		RPCName:       "ShowAdvancedSendForm",
-		Err:           &err,
-		RequireWallet: true,
-	})
-	defer fin()
-	if err != nil {
-		return false, err
-	}
-
-	if arg.To == "" {
-		// arg.To is optional for GetSendAssetChoicesLocal but it is required for this function
-		// If it is not specified, just return false since there are no non-native assets in common
-		return false, nil
-	}
-
-	// We show the advanced send form if there are any enabled choices for sending an asset
-	// Note that GetSendAssetChoicesLocal does not include native assets
-	res, err := s.GetSendAssetChoicesLocal(
-		ctx,
-		stellar1.GetSendAssetChoicesLocalArg{
-			SessionID: arg.SessionID,
-			From:      arg.From,
-			To:        arg.To,
-		})
-	if err != nil {
-		return false, err
-	}
-	for _, choice := range res {
-		if choice.Enabled {
-			return true, nil
-		}
-	}
-	return false, nil
+	return stellar.GetSendAssetChoicesLocal(mctx, s.remoter, arg)
 }
 
 func (s *Server) StartBuildPaymentLocal(ctx context.Context, sessionID int) (res stellar1.BuildPaymentID, err error) {
@@ -799,7 +694,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	if err != nil {
 		return res, err
 	}
-	return stellar.BuildPaymentLocal(mctx, arg)
+	return stellar.BuildPaymentLocal(mctx, s.remoter, arg)
 }
 
 func (s *Server) ReviewPaymentLocal(ctx context.Context, arg stellar1.ReviewPaymentLocalArg) (err error) {

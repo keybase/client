@@ -12,7 +12,6 @@ type SendBodyProps = {
   banners: Array<BannerType>
   onReviewPayments: (() => void) | null
   isProcessing?: boolean
-  shouldShowAdvancedSendFormBanner: boolean
 }
 
 type RequestBodyProps = {
@@ -31,14 +30,14 @@ export const SendBody = (props: SendBodyProps) => (
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
-        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
-      ))}
-      {props.shouldShowAdvancedSendFormBanner ? (
         <Banner
-          text={'This user is accepting other assets than XLM Lumens. Send other assets?'}
-          background={'Announcements'}
+          key={banner.bannerText}
+          background={banner.bannerBackground}
+          text={banner.bannerText}
+          offerAdvancedSendFormbool={banner.offerAdvancedSendFormbool}
+          onAction={banner.action}
         />
-      ) : null}
+      ))}
       <Participants />
       <AssetInput />
       <Kb.Divider />

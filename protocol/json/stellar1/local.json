@@ -541,6 +541,10 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
+        },
+        {
+          "type": "boolean",
+          "name": "offerAdvancedSendFormbool"
         }
       ]
     },
@@ -1662,23 +1666,6 @@
         "type": "array",
         "items": "SendAssetChoiceLocal"
       }
-    },
-    "showAdvancedSendForm": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "from",
-          "type": "AccountID"
-        },
-        {
-          "name": "to",
-          "type": "string"
-        }
-      ],
-      "response": "boolean"
     },
     "startBuildPaymentLocal": {
       "request": [
