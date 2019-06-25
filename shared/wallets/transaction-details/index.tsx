@@ -560,7 +560,7 @@ const styles = Styles.styleSheetCreate({
   }),
   tooltipText: Styles.platformStyles({
     isElectron: {
-      wordBreak: 'break-work',
+      wordBreak: 'break-word',
     },
   }),
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),

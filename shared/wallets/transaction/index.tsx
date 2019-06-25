@@ -12,7 +12,7 @@ import {
   Text,
   WaitingButton,
 } from '../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
 
@@ -142,13 +142,13 @@ const Detail = (props: DetailProps) => {
       )
       const verb = props.trustline.remove ? 'removed' : 'added'
       return (
-        <Text type="BodySmall" style={{...{wordBreak: 'break-word'}, ...textStyle}}>
+        <Text type="BodySmall" style={{...styles.breakWord, ...textStyle}}>
           You {verb} a trustline: {asset}
         </Text>
       )
     }
     return (
-      <Text type={textType} style={{...{wordBreak: 'break-word'}, ...textStyle}}>
+      <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
         {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
       </Text>
     )
@@ -535,6 +535,7 @@ export const Transaction = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
+  breakWord: platformStyles({isElectron: {wordBreak: 'break-word'}}),
   cancelButton: {
     alignSelf: 'flex-start',
   },
