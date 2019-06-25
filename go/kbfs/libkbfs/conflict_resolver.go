@@ -2304,6 +2304,8 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	dirtyBcache data.DirtyBlockCacheSimple) (data.BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo
 
+	// Use a `nil` childObfuscator here, since this is for a file and
+	// files can't have children to obfuscate, by defintion.
 	file := parentPath.ChildPath(name, ptr, nil)
 	oldInfos, err := cr.fbo.blocks.getIndirectFileBlockInfosLocked(
 		ctx, lState, kmd, file)

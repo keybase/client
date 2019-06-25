@@ -584,7 +584,7 @@ func (e NoChainFoundError) Error() string {
 // DisallowedPrefixError indicates that the user attempted to create
 // an entry using a name with a disallowed prefix.
 type DisallowedPrefixError struct {
-	name   string
+	name   data.PathPartString
 	prefix string
 }
 

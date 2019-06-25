@@ -713,7 +713,16 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 		obfuscator = makeMDObfuscatorFromSecret(secret, mode)
 	}
 	for _, op := range pmd.Changes.Ops {
-		// Add a temporary path with an obfuscator.
+		// Add a temporary path with an obfuscator.  When we
+		// deserialize the ops from the raw byte buffer of the MD
+		// object, they don't have proper `data.Path`s set in them yet
+		// -- that's an unexported field. The path is required for
+		// obfuscation, so here we're just making sure that they all
+		// have one. In places where a perfectly-accurate path is
+		// required (like in conflict resolution), the code there will
+		// need to add a proper path. Note that here the level of the
+		// obfuscator might be wrong, and so might result in
+		// inconsistent suffixes for obfuscated names that conflict.
 		if !op.getFinalPath().IsValid() {
 			op.setFinalPath(data.Path{Path: []data.PathNode{{
 				BlockPointer: data.ZeroPtr,
