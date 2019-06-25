@@ -441,7 +441,8 @@ func getOrCreateRepoAndID(
 		return nil, NullID, err
 	}
 
-	repoNamePPS := repoDir.ChildName(normalizedRepoName)
+	// No need to obfuscate the repo name.
+	repoNamePPS := data.NewPathPartString(normalizedRepoName, nil)
 	_, repoEI, err := config.KBFSOps().Lookup(ctx, repoDir, repoNamePPS)
 	switch errors.Cause(err).(type) {
 	case idutil.NoSuchNameError:
@@ -615,7 +616,8 @@ func DeleteRepo(
 		return castNoSuchNameError(err, repoName)
 	}
 
-	repoNamePPS := repoNode.ChildName(normalizedRepoName)
+	// No need to obfuscate the repo name.
+	repoNamePPS := data.NewPathPartString(normalizedRepoName, nil)
 	_, _, err = kbfsOps.Lookup(ctx, repoNode, repoNamePPS)
 	if err != nil {
 		return castNoSuchNameError(err, repoName)
@@ -752,8 +754,8 @@ func RenameRepo(
 			keybase1.GitPushType_RENAMEREPO, oldRepoName, nil)
 	}
 
-	// Does the new repo not exist yet?
-	repoNamePPS := repoNode.ChildName(normalizedNewRepoName)
+	// Does the new repo not exist yet? No need to obfuscate the repo name.
+	repoNamePPS := data.NewPathPartString(normalizedNewRepoName, nil)
 	_, ei, err := kbfsOps.Lookup(ctx, repoNode, repoNamePPS)
 	switch errors.Cause(err).(type) {
 	case idutil.NoSuchNameError:

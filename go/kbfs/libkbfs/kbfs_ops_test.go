@@ -1434,7 +1434,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et data.EntryType) {
 	n := nodeFromPath(t, ops, p)
 
 	name := ".kbfs_status"
-	expectedErr := DisallowedPrefixError{name, ".kbfs"}
+	expectedErr := DisallowedPrefixError{testPPS(name), ".kbfs"}
 
 	var err error
 	// dir and link have different checks for dup name
