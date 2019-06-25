@@ -3,7 +3,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {capitalize} from 'lodash-es'
+import {capitalize, round} from 'lodash-es'
 import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
@@ -39,6 +39,7 @@ export type NotLoadingProps = {
   senderAccountID: Types.AccountID
   sourceAmount: string
   sourceAsset: string
+  sourceToDestinationConversionRate: number
   status: Types.StatusSimplified
   statusDetail: string
   // A null timestamp means the transaction is still pending.
@@ -320,15 +321,15 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Box2 direction="vertical">
-                <Kb.Text type="BodyBigExtrabold">1 USD</Kb.Text>
-                <Kb.Text type="BodySmall">/Stronghold.com</Kb.Text>
+                <Kb.Text type="BodyBigExtrabold">1 {props.sourceAsset}</Kb.Text>
+                <Kb.Text type="BodySmall">Issuer Description</Kb.Text>
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+              <Kb.Box2 direction="vertical" alignItems="center">
                 <Kb.Text type="BodyBig">=</Kb.Text>
               </Kb.Box2>
               <Kb.Box2 direction="vertical">
-                <Kb.Text type="BodyBigExtrabold">0.8447 EUR</Kb.Text>
-                <Kb.Text type="BodySmall">/Stronghold.com</Kb.Text>
+                <Kb.Text type="BodyBigExtrabold">{round(props.sourceToDestinationConversionRate, 6)}</Kb.Text>
+                <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
