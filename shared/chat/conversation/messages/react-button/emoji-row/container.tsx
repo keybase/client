@@ -2,6 +2,7 @@ import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Types from '../../../../../constants/types/chat2'
 import {StylesCrossPlatform} from '../../../../../styles'
+import {TypedState} from '../../../../../constants/reducer'
 import EmojiRow from '.'
 
 type OwnProps = {
@@ -12,7 +13,7 @@ type OwnProps = {
   style?: StylesCrossPlatform
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   topReacjis: state.chat2.userReacjis.topReacjis,
 })
 

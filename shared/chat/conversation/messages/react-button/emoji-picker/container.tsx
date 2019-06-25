@@ -6,6 +6,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
+import {TypedState} from '../../../../../constants/reducer'
 import EmojiPicker from '.'
 
 type OwnProps = RouteProps<
@@ -27,7 +28,7 @@ type WrapperState = {
   width: number
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   topReacjis: state.chat2.userReacjis.topReacjis,
 })
 
