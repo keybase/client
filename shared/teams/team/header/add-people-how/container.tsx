@@ -17,13 +17,6 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
       dispatch(appendNewTeamBuilder(teamname))
-      // dispatch(
-      //   RouteTreeGen.createNavigateTo({
-      //     parentPath: [teamsTab],
-      //     path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
-      //   })
-      // )
-      // dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
     onInvite: () => {
       dispatch(

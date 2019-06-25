@@ -7,6 +7,8 @@ import * as Types from '../../../constants/types/teams'
 import {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
+import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 import {TeamHeader} from '.'
 
 export type OwnProps = {
@@ -34,8 +36,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
     if (!you) {
       return
     }
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
-    dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
+    dispatch(appendNewTeamBuilder(teamname))
+    dispatch(
+      createAddUsersToTeamSoFar({namespace: 'teams', users: [{id: you, prettyName: you, serviceMap: {}}]})
+    )
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onEditDescription: () =>
