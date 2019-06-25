@@ -7,6 +7,7 @@ import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
+import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 
 type SearchResult = {
@@ -26,6 +27,7 @@ export type RolePickerProps = {
   showRolePicker: boolean
   changeShowRolePicker: (showRolePicker: boolean) => void
   selectedRole: TeamRoleType
+  disabledRoles: OriginalRolePickerProps['disabledRoles']
 }
 
 type Props = {

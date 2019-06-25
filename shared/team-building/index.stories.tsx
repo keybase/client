@@ -227,6 +227,7 @@ const load = () => {
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
           changeShowRolePicker: Sb.action('changeShowRolePicker'),
+          disabledRoles: {},
           onSelectRole: Sb.action('confirmRolePicker'),
           selectedRole: 'writer',
           sendNotification: true,

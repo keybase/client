@@ -16,6 +16,7 @@ import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo} from '../constants/types/teams'
+import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps, Action as HeaderAction} from '../common-adapters/header-hoc/types'
 import {RouteProps} from '../route-tree/render-route'
@@ -112,7 +113,12 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
     ? state.teams.teamNameToMembers.get(ownProps.teamname)
     : I.Map()
 
+  const disabledRoles = ownProps.teamname
+    ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)
+    : {}
+
   return {
+    disabledRoles,
     recommendations: deriveSearchResults(
       teamBuildingState.teamBuildingUserRecs,
       teamBuildingState.teamBuildingTeamSoFar,
@@ -297,6 +303,7 @@ const mergeProps = (
       ? {
           changeSendNotification: dispatchProps.onChangeSendNotification,
           changeShowRolePicker: ownProps.changeShowRolePicker,
+          disabledRoles: stateProps.disabledRoles,
           onSelectRole: dispatchProps.onSelectRole,
           selectedRole: stateProps.selectedRole,
           sendNotification: stateProps.sendNotification,

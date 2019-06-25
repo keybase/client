@@ -87,6 +87,7 @@ const TeamBox = (props: Props) => {
               onSelectRole={props.rolePickerProps.onSelectRole}
               selectedRole={props.rolePickerProps.selectedRole}
               onCancel={() => props.rolePickerProps.changeShowRolePicker(false)}
+              disabledRoles={props.rolePickerProps.disabledRoles}
               confirmLabel={`Add as ${props.rolePickerProps.selectedRole}${plural ? 's' : ''}`}
               footerComponent={sendNotificationFooter(
                 'Announce them in team chats',

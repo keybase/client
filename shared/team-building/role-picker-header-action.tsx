@@ -21,6 +21,7 @@ export default (props: Props) => {
       selectedRole={props.rolePickerProps.selectedRole}
       onCancel={() => setRolePickerOpen(false)}
       confirmLabel={`Add as ${props.rolePickerProps.selectedRole}${props.plural ? 's' : ''}`}
+      disabledRoles={props.rolePickerProps.disabledRoles}
       footerComponent={sendNotificationFooter(
         'Announce them in team chats',
         props.rolePickerProps.sendNotification,
