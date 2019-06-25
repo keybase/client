@@ -29,7 +29,7 @@ const truncateAmount = (amt, numDecimalsAllowed) => {
   return num.toFixed(numDecimalsAllowed)
 }
 
-type Props = {
+export type Props = {
   bottomLabel: string
   displayUnit: string
   inputPlaceholder: string

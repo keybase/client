@@ -2,12 +2,10 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
+import * as Container from '../../util/container'
 import SEP7Confirm from '.'
-import {namedConnect} from '../../util/container'
 
-type OwnProps = {}
-
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState) => {
   const error = state.wallets.sep7ConfirmError
   if (error) {
     return {error}
@@ -32,7 +30,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   } = state.wallets.sep7ConfirmInfo
 
   return {
-    amount,
+    amount: '',
     assetCode,
     assetIssuer,
     availableToSendFiat,
@@ -54,14 +52,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAcceptPay: (inputURI: string, amount: string) =>
     dispatch(WalletsGen.createAcceptSEP7Pay({amount, inputURI})),
   _onAcceptTx: (inputURI: string) => dispatch(WalletsGen.createAcceptSEP7Tx({inputURI})),
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-export default namedConnect(
+export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => ({
