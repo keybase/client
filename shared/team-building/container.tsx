@@ -15,7 +15,7 @@ import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {ServiceIdWithContact, User, SearchResults, AllowedNamespace} from '../constants/types/team-building'
-import {TeamRoleType, MemberInfo} from '../constants/types/teams'
+import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps, Action as HeaderAction} from '../common-adapters/header-hoc/types'
@@ -249,12 +249,22 @@ const deriveOnDownArrowKeyDown = memoize(
 )
 
 const deriveRolePickerArrowKeyFns = memoize(
-  (selectedRole: TeamRoleType, onSelectRole: (role: TeamRoleType) => void) => ({
+  (
+    selectedRole: TeamRoleType,
+    disabledRoles: DisabledReasonsForRolePicker,
+    onSelectRole: (role: TeamRoleType) => void
+  ) => ({
     downArrow: () => {
-      onSelectRole(nextRoleDown(selectedRole))
+      const nextRole = nextRoleDown(selectedRole)
+      if (!disabledRoles[nextRole]) {
+        onSelectRole(nextRole)
+      }
     },
     upArrow: () => {
-      onSelectRole(nextRoleUp(selectedRole))
+      const nextRole = nextRoleUp(selectedRole)
+      if (!disabledRoles[nextRole]) {
+        onSelectRole(nextRole)
+      }
     },
   })
 )
@@ -316,7 +326,7 @@ const mergeProps = (
   // already catches all keypresses
   const rolePickerArrowKeyFns =
     ownProps.showRolePicker &&
-    deriveRolePickerArrowKeyFns(stateProps.selectedRole, dispatchProps.onSelectRole)
+    deriveRolePickerArrowKeyFns(stateProps.selectedRole, stateProps.disabledRoles, dispatchProps.onSelectRole)
 
   const onEnterKeyDown = deriveOnEnterKeyDown({
     changeText: ownProps.onChangeText,
