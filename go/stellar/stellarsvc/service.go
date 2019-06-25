@@ -683,7 +683,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		if err != nil {
 			return nil, nil, err
 		}
-		local.AvailableToSendNative = fmtAvailableAmountXLM
+		local.AvailableToSendNative = fmtAvailableAmountXLM + " XLM"
 		local.AvailableToSendFiat = fmtAvailableWorth
 	}
 
