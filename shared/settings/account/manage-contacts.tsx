@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
@@ -26,6 +27,7 @@ const ManageContacts = (props: Props) => {
     () => dispatch(SettingsGen.createEditContactImportEnabled({enable: !contactsImported})),
     [dispatch, contactsImported]
   )
+  const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
@@ -42,6 +44,7 @@ const ManageContacts = (props: Props) => {
                 type={contactsImported ? 'Danger' : 'Default'}
                 onClick={onToggle}
                 small={true}
+                waiting={waiting}
               />
             </Kb.ButtonBar>
           </Kb.Box2>

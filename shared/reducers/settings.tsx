@@ -189,8 +189,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       )
     case SettingsGen.loadedContactImportEnabled:
       return state.merge({contactImportEnabled: action.payload.enabled})
-    case SettingsGen.editContactImportEnabled:
-      return state.merge({contactImportEnabled: action.payload.enable}) // TODO move to saga
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -219,6 +217,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadProxyData:
     case SettingsGen.saveProxyData:
     case SettingsGen.loadContactImportEnabled:
+    case SettingsGen.editContactImportEnabled:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

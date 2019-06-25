@@ -152,6 +152,7 @@ export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaitin
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
 export const processorProfileInProgress = (state: TypedState) =>
   WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
+export const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 
 export const aboutTab = 'settingsTabs.aboutTab'
 export const advancedTab = 'settingsTabs.advancedTab'
@@ -167,12 +168,12 @@ export const accountTab = 'settingsTabs.accountTab'
 export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
 export const passwordTab = 'settingsTabs.password'
-export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const screenprotectorTab = 'settingsTabs.screenprotector'
 export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs.walletsTab'
 
+export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
@@ -181,3 +182,4 @@ export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
 export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
+export const importContactsWaitingKey = 'settings:importContacts'

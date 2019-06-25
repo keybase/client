@@ -627,8 +627,30 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
-const loadContactImportEnabled = (_1, _2, logger) =>
-  SettingsGen.createLoadedContactImportEnabled({enabled: true}) // TODO hook up to service
+const loadContactImportEnabled = (state: TypedState, _2, logger) =>
+  state.config.username
+    ? RPCTypes.configGetValueRpcPromise(
+        {
+          path: Constants.importContactsConfigKey(state.config.username),
+        },
+        Constants.importContactsWaitingKey
+      ).then(value => SettingsGen.createLoadedContactImportEnabled({enabled: !!value.b && !value.isNull}))
+    : logger.warn('no username')
+
+const editContactImportEnabled = (
+  state: TypedState,
+  action: SettingsGen.EditContactImportEnabledPayload,
+  logger
+) =>
+  state.config.username
+    ? RPCTypes.configSetValueRpcPromise(
+        {
+          path: Constants.importContactsConfigKey(state.config.username),
+          value: {b: action.payload.enable, isNull: false},
+        },
+        Constants.importContactsWaitingKey
+      )
+    : logger.warn('no username')
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
@@ -718,6 +740,11 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.loadContactImportEnabled,
     loadContactImportEnabled,
     'loadContactImportEnabled'
+  )
+  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload>(
+    SettingsGen.editContactImportEnabled,
+    editContactImportEnabled,
+    'editContactImportEnabled'
   )
 }
 
