@@ -1,11 +1,16 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import assetInput, {props4 as assetInputProps} from './asset-input/index.stories'
+import assetInput, {
+  props4 as assetInputProps,
+  propsRecipientAdvanced,
+  propsSenderAdvancedCalculated,
+} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
 import participants from './participants/index.stories'
 import {Props as AvailableProps} from './available'
+import PickAsset from './pick-asset'
 
 import SendRequestForm from '.'
 
@@ -15,7 +20,9 @@ import SendRequestForm from '.'
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
-  AssetInput: props => assetInputProps,
+  AssetInputBasic: props => assetInputProps,
+  AssetInputRecipientAdvanced: props => propsRecipientAdvanced,
+  AssetInputSenderAdvanced: props => propsSenderAdvancedCalculated,
 
   Available: props => ({
     amountErrMsg: '',
@@ -26,8 +33,16 @@ const provider = Sb.createPropProviderWithCommon({
     banners: [],
     isProcessing: props.isProcessing,
   }),
+  ConnectedRequestBodyAdvanced: props => ({
+    banners: [],
+    isProcessing: props.isProcessing,
+  }),
   ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
   ConnectedSendBody: props => ({
+    banners: [],
+    isProcessing: props.isProcessing,
+  }),
+  ConnectedSendBodyAdvanced: props => ({
     banners: [],
     isProcessing: props.isProcessing,
   }),
@@ -60,8 +75,18 @@ const load = () => {
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendRequestForm isRequest={false} onClose={Sb.action('onClose')} />)
-    .add('Request', () => <SendRequestForm isRequest={true} onClose={Sb.action('onClose')} />)
+    .add('Send', () => (
+      <SendRequestForm isAdvanced={false} isRequest={false} onClose={Sb.action('onClose')} />
+    ))
+    .add('Send - advanced', () => (
+      <SendRequestForm isAdvanced={true} isRequest={false} onClose={Sb.action('onClose')} />
+    ))
+    .add('Request - advanced', () => (
+      <SendRequestForm isAdvanced={true} isRequest={true} onClose={Sb.action('onClose')} />
+    ))
+    .add('PickAsset - sender', () => <PickAsset isSender={true} />)
+    .add('PickAsset - recipient keybaseUser', () => <PickAsset isSender={false} username="songgao" />)
+    .add('PickAsset - recipient stellar', () => <PickAsset isSender={false} />)
 }
 
 export default load

@@ -87,6 +87,14 @@ export const sendPayment = 'wallets:sendPayment'
 export const sentPayment = 'wallets:sentPayment'
 export const sentPaymentError = 'wallets:sentPaymentError'
 export const setAccountAsDefault = 'wallets:setAccountAsDefault'
+export const setBuildingAdvancedPublicMemo = 'wallets:setBuildingAdvancedPublicMemo'
+export const setBuildingAdvancedRecipient = 'wallets:setBuildingAdvancedRecipient'
+export const setBuildingAdvancedRecipientAmount = 'wallets:setBuildingAdvancedRecipientAmount'
+export const setBuildingAdvancedRecipientAsset = 'wallets:setBuildingAdvancedRecipientAsset'
+export const setBuildingAdvancedRecipientType = 'wallets:setBuildingAdvancedRecipientType'
+export const setBuildingAdvancedSecretNote = 'wallets:setBuildingAdvancedSecretNote'
+export const setBuildingAdvancedSenderAccountID = 'wallets:setBuildingAdvancedSenderAccountID'
+export const setBuildingAdvancedSenderAsset = 'wallets:setBuildingAdvancedSenderAsset'
 export const setBuildingAmount = 'wallets:setBuildingAmount'
 export const setBuildingCurrency = 'wallets:setBuildingCurrency'
 export const setBuildingFrom = 'wallets:setBuildingFrom'
@@ -279,6 +287,14 @@ type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = {readonly error: string}
 type _SentPaymentPayload = {readonly kbTxID: HiddenString; readonly lastSentXLM: boolean}
 type _SetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
+type _SetBuildingAdvancedPublicMemoPayload = {readonly publicMemo: HiddenString}
+type _SetBuildingAdvancedRecipientAmountPayload = {readonly recipientAmount: string}
+type _SetBuildingAdvancedRecipientAssetPayload = {readonly recipientAsset: AssetDescription}
+type _SetBuildingAdvancedRecipientPayload = {readonly recipient: string}
+type _SetBuildingAdvancedRecipientTypePayload = {readonly recipientType: CounterpartyType}
+type _SetBuildingAdvancedSecretNotePayload = {readonly secretNote: HiddenString}
+type _SetBuildingAdvancedSenderAccountIDPayload = {readonly senderAccountID: AccountID}
+type _SetBuildingAdvancedSenderAssetPayload = {readonly senderAsset: AssetDescription}
 type _SetBuildingAmountPayload = {readonly amount: string}
 type _SetBuildingCurrencyPayload = {readonly currency: string}
 type _SetBuildingFromPayload = {readonly from: Types.AccountID}
@@ -969,6 +985,30 @@ export const createRefreshTrustlineAcceptedAssets = (
 export const createRefreshTrustlinePopularAssets = (
   payload: _RefreshTrustlinePopularAssetsPayload
 ): RefreshTrustlinePopularAssetsPayload => ({payload, type: refreshTrustlinePopularAssets})
+export const createSetBuildingAdvancedPublicMemo = (
+  payload: _SetBuildingAdvancedPublicMemoPayload
+): SetBuildingAdvancedPublicMemoPayload => ({payload, type: setBuildingAdvancedPublicMemo})
+export const createSetBuildingAdvancedRecipient = (
+  payload: _SetBuildingAdvancedRecipientPayload
+): SetBuildingAdvancedRecipientPayload => ({payload, type: setBuildingAdvancedRecipient})
+export const createSetBuildingAdvancedRecipientAmount = (
+  payload: _SetBuildingAdvancedRecipientAmountPayload
+): SetBuildingAdvancedRecipientAmountPayload => ({payload, type: setBuildingAdvancedRecipientAmount})
+export const createSetBuildingAdvancedRecipientAsset = (
+  payload: _SetBuildingAdvancedRecipientAssetPayload
+): SetBuildingAdvancedRecipientAssetPayload => ({payload, type: setBuildingAdvancedRecipientAsset})
+export const createSetBuildingAdvancedRecipientType = (
+  payload: _SetBuildingAdvancedRecipientTypePayload
+): SetBuildingAdvancedRecipientTypePayload => ({payload, type: setBuildingAdvancedRecipientType})
+export const createSetBuildingAdvancedSecretNote = (
+  payload: _SetBuildingAdvancedSecretNotePayload
+): SetBuildingAdvancedSecretNotePayload => ({payload, type: setBuildingAdvancedSecretNote})
+export const createSetBuildingAdvancedSenderAccountID = (
+  payload: _SetBuildingAdvancedSenderAccountIDPayload
+): SetBuildingAdvancedSenderAccountIDPayload => ({payload, type: setBuildingAdvancedSenderAccountID})
+export const createSetBuildingAdvancedSenderAsset = (
+  payload: _SetBuildingAdvancedSenderAssetPayload
+): SetBuildingAdvancedSenderAssetPayload => ({payload, type: setBuildingAdvancedSenderAsset})
 export const createSetTrustlineAcceptedAssets = (
   payload: _SetTrustlineAcceptedAssetsPayload
 ): SetTrustlineAcceptedAssetsPayload => ({payload, type: setTrustlineAcceptedAssets})
@@ -1304,6 +1344,38 @@ export type SetAccountAsDefaultPayload = {
   readonly payload: _SetAccountAsDefaultPayload
   readonly type: typeof setAccountAsDefault
 }
+export type SetBuildingAdvancedPublicMemoPayload = {
+  readonly payload: _SetBuildingAdvancedPublicMemoPayload
+  readonly type: typeof setBuildingAdvancedPublicMemo
+}
+export type SetBuildingAdvancedRecipientAmountPayload = {
+  readonly payload: _SetBuildingAdvancedRecipientAmountPayload
+  readonly type: typeof setBuildingAdvancedRecipientAmount
+}
+export type SetBuildingAdvancedRecipientAssetPayload = {
+  readonly payload: _SetBuildingAdvancedRecipientAssetPayload
+  readonly type: typeof setBuildingAdvancedRecipientAsset
+}
+export type SetBuildingAdvancedRecipientPayload = {
+  readonly payload: _SetBuildingAdvancedRecipientPayload
+  readonly type: typeof setBuildingAdvancedRecipient
+}
+export type SetBuildingAdvancedRecipientTypePayload = {
+  readonly payload: _SetBuildingAdvancedRecipientTypePayload
+  readonly type: typeof setBuildingAdvancedRecipientType
+}
+export type SetBuildingAdvancedSecretNotePayload = {
+  readonly payload: _SetBuildingAdvancedSecretNotePayload
+  readonly type: typeof setBuildingAdvancedSecretNote
+}
+export type SetBuildingAdvancedSenderAccountIDPayload = {
+  readonly payload: _SetBuildingAdvancedSenderAccountIDPayload
+  readonly type: typeof setBuildingAdvancedSenderAccountID
+}
+export type SetBuildingAdvancedSenderAssetPayload = {
+  readonly payload: _SetBuildingAdvancedSenderAssetPayload
+  readonly type: typeof setBuildingAdvancedSenderAsset
+}
 export type SetBuildingAmountPayload = {
   readonly payload: _SetBuildingAmountPayload
   readonly type: typeof setBuildingAmount
@@ -1517,6 +1589,14 @@ export type Actions =
   | SentPaymentErrorPayload
   | SentPaymentPayload
   | SetAccountAsDefaultPayload
+  | SetBuildingAdvancedPublicMemoPayload
+  | SetBuildingAdvancedRecipientAmountPayload
+  | SetBuildingAdvancedRecipientAssetPayload
+  | SetBuildingAdvancedRecipientPayload
+  | SetBuildingAdvancedRecipientTypePayload
+  | SetBuildingAdvancedSecretNotePayload
+  | SetBuildingAdvancedSenderAccountIDPayload
+  | SetBuildingAdvancedSenderAssetPayload
   | SetBuildingAmountPayload
   | SetBuildingCurrencyPayload
   | SetBuildingFromPayload

@@ -92,6 +92,34 @@ export type _Building = {
   to: string
 }
 
+export type _BuildingAdvanced = {
+  recipient: string
+  recipientAmount: string
+  recipientAsset: AssetDescription
+  recipientType: CounterpartyType
+  publicMemo: HiddenString
+  senderAccountID: AccountID
+  senderAsset: AssetDescription
+  secretNote: HiddenString
+}
+
+export type _PaymentPath = {
+  sourceAmount: string
+  sourceAmountMax: string
+  sourceAsset: AssetDescription
+  path: I.List<AssetDescription>
+  destinationAmount: string
+  destinationAsset: AssetDescription
+}
+
+export type _BuiltPaymentAdvanced = {
+  sourceDisplay: string
+  sourceMaxDisplay: string
+  destinationDisplay: string
+  destinationAccount: AccountID
+  fullPath: PaymentPath
+}
+
 export type _BuiltPayment = {
   amountAvailable: string
   amountErrMsg: string
@@ -217,6 +245,9 @@ export type Banner = {
 }
 
 export type Building = I.RecordOf<_Building>
+export type BuildingAdvanced = I.RecordOf<_BuildingAdvanced>
+export type PaymentPath = I.RecordOf<_PaymentPath>
+export type BuiltPaymentAdvanced = I.RecordOf<_BuiltPaymentAdvanced>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
@@ -321,7 +352,9 @@ export type _State = {
   assetsMap: I.Map<AccountID, I.List<Assets>>
   buildCounter: number // increments when we call buildPayment / buildRequest,
   building: Building
+  buildingAdvanced: BuildingAdvanced
   builtPayment: BuiltPayment
+  builtPaymentAdvanced: BuiltPaymentAdvanced
   builtRequest: BuiltRequest
   createNewAccountError: string
   currencies: I.List<Currency>

@@ -1,4 +1,4 @@
-import AssetInput from '.'
+import AssetInputBasic from './asset-input-basic'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {namedConnect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -13,7 +13,6 @@ const mapStateToProps = state => {
     currencyLoading: currency === '',
     displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
     // TODO differentiate between an asset (7 digits) and a display currency (2 digits) below
-    inputPlaceholder: Constants.inputPlaceholderForCurrency(currency),
     numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
     topLabel: '', // TODO
     value: amount,
@@ -40,7 +39,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   bottomLabel: stateProps.bottomLabel,
   currencyLoading: stateProps.currencyLoading,
   displayUnit: stateProps.displayUnit,
-  inputPlaceholder: stateProps.inputPlaceholder,
   numDecimalsAllowed: stateProps.numDecimalsAllowed,
   onChangeAmount: dispatchProps.onChangeAmount,
   onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
@@ -48,4 +46,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   value: stateProps.value,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'AssetInput')(AssetInput)
+export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'AssetInputBasic')(
+  AssetInputBasic
+)

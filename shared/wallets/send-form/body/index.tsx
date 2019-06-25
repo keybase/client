@@ -1,7 +1,11 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import AssetInput from '../asset-input/container'
+import AssetInputBasic from '../asset-input/asset-input-basic-container'
+import {
+  AssetInputRecipientAdvanced,
+  AssetInputSenderAdvanced,
+} from '../asset-input/asset-input-advanced-container'
 import Banner from '../../banner'
 import Footer from '../footer/container'
 import {SecretNote, PublicMemo} from '../note-and-memo/container'
@@ -10,6 +14,7 @@ import {Banner as BannerType} from '../../../constants/types/wallets'
 
 type SendBodyProps = {
   banners: Array<BannerType>
+  onGoAdvanced: () => void
   onReviewPayments: (() => void) | null
   isProcessing?: boolean
 }
@@ -17,6 +22,7 @@ type SendBodyProps = {
 type RequestBodyProps = {
   banners: Array<BannerType>
   isProcessing?: boolean
+  onGoAdvanced: () => void
 }
 
 const Spinner = () => (
@@ -27,13 +33,18 @@ const Spinner = () => (
 
 export const SendBody = (props: SendBodyProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+    <Kb.Banner
+      actions={[{onClick: props.onGoAdvanced, title: 'Request other assets?'}]}
+      color="blue"
+      text="This user is accepting other assets than XLM Lumens."
+    />
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
       ))}
       <Participants />
-      <AssetInput />
+      <AssetInputBasic />
       <Kb.Divider />
       <SecretNote />
       <PublicMemo />
@@ -45,13 +56,18 @@ export const SendBody = (props: SendBodyProps) => (
 
 export const RequestBody = (props: RequestBodyProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+    <Kb.Banner
+      actions={[{onClick: props.onGoAdvanced, title: 'Request other assets'}]}
+      color="blue"
+      text="This user is accepting other assets than XLM Lumens."
+    />
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
       ))}
       <Participants />
-      <AssetInput />
+      <AssetInputBasic />
       <Kb.Divider />
       <SecretNote />
     </Kb.ScrollView>
@@ -80,6 +96,21 @@ const Failure = ({onReviewPayments}: {onReviewPayments: () => void}) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Button label="Review payments" onClick={onReviewPayments} />
+  </Kb.Box2>
+)
+
+type SendBodyAdvancedProps = {}
+
+export const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
+  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+    <Kb.ScrollView style={styles.scrollView}>
+      <AssetInputRecipientAdvanced />
+      <AssetInputSenderAdvanced />
+      <Kb.Divider />
+      <SecretNote />
+      <PublicMemo />
+    </Kb.ScrollView>
+    <Footer isAdvanced={true} />
   </Kb.Box2>
 )
 

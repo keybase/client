@@ -243,6 +243,48 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         builtPayment: state.get('builtPayment').merge({toErrMsg: ''}),
         builtRequest: state.get('builtRequest').merge({toErrMsg: ''}),
       })
+    case WalletsGen.setBuildingAdvancedRecipient:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('recipient', action.payload.recipient)
+      )
+    case WalletsGen.setBuildingAdvancedRecipientAmount:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('recipientAmount', action.payload.recipientAmount)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedRecipientAsset:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('recipientAsset', action.payload.recipientAsset)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedRecipientType:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('recipientType', action.payload.recipientType)
+      )
+    case WalletsGen.setBuildingAdvancedPublicMemo:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+      )
+    case WalletsGen.setBuildingAdvancedSenderAccountID:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('senderAccountID', action.payload.senderAccountID)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedSenderAsset:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('senderAsset', action.payload.senderAsset)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedSecretNote:
+      return state.update(
+        'buildingAdvanced',
+        buildingAdvanced => buildingAdvanced.set('secretNote', action.payload.secretNote)
+        // TODO clear error when we have that
+      )
     case WalletsGen.sendAssetChoicesReceived:
       const {sendAssetChoices} = action.payload
       return state.merge({

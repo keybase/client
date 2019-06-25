@@ -313,6 +313,7 @@
       "_description": "Failed to send a payment",
       "error": "string"
     },
+
     "setBuildingAmount": {
       "_description": "Set building amount",
       "amount": "string"
@@ -345,6 +346,16 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+
+    "setBuildingAdvancedRecipient": {"recipient": "string"},
+    "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
+    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "AssetDescription"},
+    "setBuildingAdvancedRecipientType": {"recipientType": "CounterpartyType"},
+    "setBuildingAdvancedPublicMemo": {"publicMemo": "HiddenString"},
+    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "AccountID"},
+    "setBuildingAdvancedSenderAsset": {"senderAsset": "AssetDescription"},
+    "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
+
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",
