@@ -1,12 +1,11 @@
 import * as React from 'react'
-import {connect, getRouteProps} from '../../../../../util/container'
+import {connect, getRouteProps, TypedState} from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
-import {TypedState} from '../../../../../constants/reducer'
 import EmojiPicker from '.'
 
 type OwnProps = RouteProps<
