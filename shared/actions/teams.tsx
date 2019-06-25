@@ -1042,8 +1042,8 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
   const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
-      Saga.callUntyped(function*() {
-        return RPCTypes.teamsTeamSetSettingsRpcPromise(
+      Saga.callUntyped(() =>
+        RPCTypes.teamsTeamSetSettingsRpcPromise(
           {
             name: teamname,
             settings: {
@@ -1055,13 +1055,13 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
         )
           .then(payload => ({payload, type: 'ok'}))
           .catch(payload => ({payload, type: 'error'}))
-      })
+      )
     )
   }
   if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
     calls.push(
-      Saga.callUntyped(function*() {
-        return RPCTypes.teamsSetTarsDisabledRpcPromise(
+      Saga.callUntyped(() =>
+        RPCTypes.teamsSetTarsDisabledRpcPromise(
           {
             disabled: settings.ignoreAccessRequests,
             name: teamname,
@@ -1070,13 +1070,13 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
         )
           .then(payload => ({payload, type: 'ok'}))
           .catch(payload => ({payload, type: 'error'}))
-      })
+      )
     )
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
     calls.push(
-      Saga.callUntyped(function*() {
-        return RPCTypes.teamsSetTeamShowcaseRpcPromise(
+      Saga.callUntyped(() =>
+        RPCTypes.teamsSetTeamShowcaseRpcPromise(
           {
             anyMemberShowcase: settings.publicityAnyMember,
             name: teamname,
@@ -1085,13 +1085,13 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
         )
           .then(payload => ({payload, type: 'ok'}))
           .catch(payload => ({payload, type: 'error'}))
-      })
+      )
     )
   }
   if (publicityMember !== settings.publicityMember) {
     calls.push(
-      Saga.callUntyped(function*() {
-        return RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
+      Saga.callUntyped(() =>
+        RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
           {
             isShowcased: settings.publicityMember,
             name: teamname,
@@ -1100,13 +1100,13 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
         )
           .then(payload => ({payload, type: 'ok'}))
           .catch(payload => ({payload, type: 'error'}))
-      })
+      )
     )
   }
   if (publicityTeam !== settings.publicityTeam) {
     calls.push(
-      Saga.callUntyped(function*() {
-        return RPCTypes.teamsSetTeamShowcaseRpcPromise(
+      Saga.callUntyped(() =>
+        RPCTypes.teamsSetTeamShowcaseRpcPromise(
           {
             isShowcased: settings.publicityTeam,
             name: teamname,
@@ -1115,7 +1115,7 @@ function* setPublicity(state, action: TeamsGen.SetPublicityPayload) {
         )
           .then(payload => ({payload, type: 'ok'}))
           .catch(payload => ({payload, type: 'error'}))
-      })
+      )
     )
   }
 

@@ -605,6 +605,8 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
       ])
     }
   } finally {
+    // eslint is confused i think
+    // eslint-disable-next-line require-atomic-updates
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
   }
@@ -1076,14 +1078,16 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
           }),
         ])
       case Types.DiskSpaceStatus.Warning:
-        const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
-        NotifyPopup('Disk Space Low', {
-          body: `You have less than ${threshold} of storage space left.`,
-        })
-        // Only show the banner if the previous state was OK and the new state
-        // is warning. Otherwise we rely on the previous state of the banner.
-        if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
-          return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+        {
+          const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
+          NotifyPopup('Disk Space Low', {
+            body: `You have less than ${threshold} of storage space left.`,
+          })
+          // Only show the banner if the previous state was OK and the new state
+          // is warning. Otherwise we rely on the previous state of the banner.
+          if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
+            return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+          }
         }
         break
       case Types.DiskSpaceStatus.Ok:
