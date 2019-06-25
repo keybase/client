@@ -709,6 +709,11 @@ protocol local {
     string assetIssuer;       // required if assetCode exists
     string memo;              // optional
     string memoType;          // required if memo exists
+
+    // keybase-specific pay fields
+    string displayAmountFiat; // "$1.23 USD" (the worth of amount in user's display currency if asset being sent is XLM)
+    string availableToSendNative;
+    string availableToSendFiat;
   }
 
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);

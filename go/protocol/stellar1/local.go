@@ -1028,34 +1028,40 @@ func (o TxDisplaySummary) DeepCopy() TxDisplaySummary {
 }
 
 type ValidateStellarURIResultLocal struct {
-	Operation    string           `codec:"operation" json:"operation"`
-	OriginDomain string           `codec:"originDomain" json:"originDomain"`
-	Message      string           `codec:"message" json:"message"`
-	CallbackURL  string           `codec:"callbackURL" json:"callbackURL"`
-	Xdr          string           `codec:"xdr" json:"xdr"`
-	Summary      TxDisplaySummary `codec:"summary" json:"summary"`
-	Recipient    string           `codec:"recipient" json:"recipient"`
-	Amount       string           `codec:"amount" json:"amount"`
-	AssetCode    string           `codec:"assetCode" json:"assetCode"`
-	AssetIssuer  string           `codec:"assetIssuer" json:"assetIssuer"`
-	Memo         string           `codec:"memo" json:"memo"`
-	MemoType     string           `codec:"memoType" json:"memoType"`
+	Operation             string           `codec:"operation" json:"operation"`
+	OriginDomain          string           `codec:"originDomain" json:"originDomain"`
+	Message               string           `codec:"message" json:"message"`
+	CallbackURL           string           `codec:"callbackURL" json:"callbackURL"`
+	Xdr                   string           `codec:"xdr" json:"xdr"`
+	Summary               TxDisplaySummary `codec:"summary" json:"summary"`
+	Recipient             string           `codec:"recipient" json:"recipient"`
+	Amount                string           `codec:"amount" json:"amount"`
+	AssetCode             string           `codec:"assetCode" json:"assetCode"`
+	AssetIssuer           string           `codec:"assetIssuer" json:"assetIssuer"`
+	Memo                  string           `codec:"memo" json:"memo"`
+	MemoType              string           `codec:"memoType" json:"memoType"`
+	DisplayAmountFiat     string           `codec:"displayAmountFiat" json:"displayAmountFiat"`
+	AvailableToSendNative string           `codec:"availableToSendNative" json:"availableToSendNative"`
+	AvailableToSendFiat   string           `codec:"availableToSendFiat" json:"availableToSendFiat"`
 }
 
 func (o ValidateStellarURIResultLocal) DeepCopy() ValidateStellarURIResultLocal {
 	return ValidateStellarURIResultLocal{
-		Operation:    o.Operation,
-		OriginDomain: o.OriginDomain,
-		Message:      o.Message,
-		CallbackURL:  o.CallbackURL,
-		Xdr:          o.Xdr,
-		Summary:      o.Summary.DeepCopy(),
-		Recipient:    o.Recipient,
-		Amount:       o.Amount,
-		AssetCode:    o.AssetCode,
-		AssetIssuer:  o.AssetIssuer,
-		Memo:         o.Memo,
-		MemoType:     o.MemoType,
+		Operation:             o.Operation,
+		OriginDomain:          o.OriginDomain,
+		Message:               o.Message,
+		CallbackURL:           o.CallbackURL,
+		Xdr:                   o.Xdr,
+		Summary:               o.Summary.DeepCopy(),
+		Recipient:             o.Recipient,
+		Amount:                o.Amount,
+		AssetCode:             o.AssetCode,
+		AssetIssuer:           o.AssetIssuer,
+		Memo:                  o.Memo,
+		MemoType:              o.MemoType,
+		DisplayAmountFiat:     o.DisplayAmountFiat,
+		AvailableToSendNative: o.AvailableToSendNative,
+		AvailableToSendFiat:   o.AvailableToSendFiat,
 	}
 }
 
