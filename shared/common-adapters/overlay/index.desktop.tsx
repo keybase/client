@@ -4,7 +4,7 @@ import {Props} from '.'
 import {collapseStyles, desktopStyles, platformStyles, styleSheetCreate} from '../../styles'
 
 const Overlay = (props: Props) => {
-  if (props.hasOwnProperty('visible') && !props.visible) {
+  if (Object.prototype.hasOwnProperty.call(props, 'visible') && !props.visible) {
     return null
   }
   return (

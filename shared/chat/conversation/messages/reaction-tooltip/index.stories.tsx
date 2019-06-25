@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Sb from '../../../../stories/storybook'
 import {propProvider as ReactButton} from '../react-button/index.stories'
 import {upperFirst} from 'lodash-es'
-import ReactionTooltip, {Props} from '.'
+import {ReactionTooltip, Props} from '.'
 import {OwnProps} from './container'
 
 const provider = Sb.createPropProviderWithCommon(ReactButton)

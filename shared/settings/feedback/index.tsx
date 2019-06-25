@@ -1,8 +1,7 @@
 import React from 'react'
-import {globalMargins} from '../../styles'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../util/container'
-import * as Styles from '../../styles/index'
+import * as Styles from '../../styles'
 
 export const getOtherErrorInfo = (err: Error) => {
   const info = {}
@@ -159,7 +158,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   mainBox: {
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
   },
   outerStyle: {
     backgroundColor: 'white',

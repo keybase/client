@@ -1,11 +1,10 @@
 import * as React from 'react'
-import {Banner, Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
-import {NativeDimensions, NativeFastImage, ZoomableBox} from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, globalMargins, padding, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import {Props} from '.'
 
-const {width: screenWidth} = NativeDimensions.get('window')
+const {width: screenWidth} = Kb.NativeDimensions.get('window')
 const AVATAR_SIZE = screenWidth - globalMargins.medium * 2
 
 class AvatarUpload extends React.Component<Props> {
@@ -70,15 +69,15 @@ class AvatarUpload extends React.Component<Props> {
 
   render() {
     return (
-      <StandardScreen
+      <Kb.StandardScreen
         onCancel={this.props.onClose}
         scrollEnabled={false}
         style={styles.standardScreen}
         title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
       >
-        {!!this.props.error && <Banner text={this.props.error} color="red" />}
-        <Box style={styles.container}>
-          <Box
+        {!!this.props.error && <Kb.Banner text={this.props.error} color="red" />}
+        <Kb.Box style={styles.container}>
+          <Kb.Box
             style={
               isIOS
                 ? null
@@ -90,7 +89,7 @@ class AvatarUpload extends React.Component<Props> {
                   ])
             }
           >
-            <ZoomableBox
+            <Kb.ZoomableBox
               bounces={false}
               contentContainerStyle={this._imageDimensions()}
               maxZoom={10}
@@ -108,24 +107,24 @@ class AvatarUpload extends React.Component<Props> {
                   : null
               }
             >
-              <NativeFastImage
+              <Kb.NativeFastImage
                 resizeMode="cover"
                 source={{uri: `${this.props.image ? this.props.image.uri : ''}`}}
                 style={this._imageDimensions()}
               />
-            </ZoomableBox>
-          </Box>
-          <ButtonBar direction="column">
-            <WaitingButton
+            </Kb.ZoomableBox>
+          </Kb.Box>
+          <Kb.ButtonBar direction="column">
+            <Kb.WaitingButton
               fullWidth={true}
               label="Save"
               onClick={this._onSave}
               style={styles.button}
               waitingKey={this.props.waitingKey}
             />
-          </ButtonBar>
-        </Box>
-      </StandardScreen>
+          </Kb.ButtonBar>
+        </Kb.Box>
+      </Kb.StandardScreen>
     )
   }
 }

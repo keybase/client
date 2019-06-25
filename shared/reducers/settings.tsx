@@ -20,7 +20,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return initialState
     case SettingsGen.setAllowDeleteAccount:
       return state.merge({allowDeleteAccount: action.payload.allow})
-    case SettingsGen.notificationsToggle:
+    case SettingsGen.notificationsToggle: {
       if (!state.notifications.groups.get('email')) {
         logger.warn('Trying to toggle while not loaded')
         return state
@@ -66,6 +66,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           groups: state.notifications.groups.merge(I.Map(changed)) as any,
         })
       )
+    }
     case SettingsGen.notificationsSaved:
       return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
     case SettingsGen.notificationsRefreshed:

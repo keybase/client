@@ -595,9 +595,10 @@ export const getTlfListAndTypeFromPath = (
   switch (visibility) {
     case Types.TlfType.Private:
     case Types.TlfType.Public:
-    case Types.TlfType.Team:
+    case Types.TlfType.Team: {
       const tlfType: Types.TlfType = visibility
       return {tlfList: getTlfListFromType(tlfs, tlfType), tlfType}
+    }
     default:
       return {tlfList: I.Map(), tlfType: Types.TlfType.Private}
   }
@@ -951,7 +952,7 @@ export const getSyncStatusInMergeProps = (
       return Types.SyncStatusStatic.AwaitingToSync
     case Types.PrefetchState.Complete:
       return Types.SyncStatusStatic.Synced
-    case Types.PrefetchState.InProgress:
+    case Types.PrefetchState.InProgress: {
       if (!kbfsDaemonStatus.online) {
         return Types.SyncStatusStatic.AwaitingToSync
       }
@@ -960,6 +961,7 @@ export const getSyncStatusInMergeProps = (
         return Types.SyncStatusStatic.AwaitingToSync
       }
       return inProgress.bytesFetched / inProgress.bytesTotal
+    }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(pathItem.prefetchStatus)
       return Types.SyncStatusStatic.Unknown

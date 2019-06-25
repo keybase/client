@@ -82,13 +82,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           usernames={[props.counterparty]}
         />
       )
-    case 'stellarPublicKey':
+    case 'stellarPublicKey': {
       const key = props.counterparty
       return (
         <Text type={props.textType} selectable={false} title={key}>
           {key.substr(0, 6) + '...' + key.substr(-5)}
         </Text>
       )
+    }
     case 'otherAccount':
       return <Text type={props.textTypeItalic}>{props.counterparty}</Text>
     default:
@@ -241,7 +242,7 @@ const Detail = (props: DetailProps) => {
           </Text>
         )
       }
-    case 'senderAndReceiver':
+    case 'senderAndReceiver': {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textType} style={textStyle}>
@@ -250,6 +251,7 @@ const Detail = (props: DetailProps) => {
           {textSentenceEnd}
         </Text>
       )
+    }
     default:
       throw new Error(`Unexpected role ${props.yourRole}`)
   }

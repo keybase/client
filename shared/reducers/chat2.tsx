@@ -122,7 +122,7 @@ const metaMapReducer = (metaMap, action) => {
           })
         })
       })
-    case Chat2Gen.updateConvRetentionPolicy:
+    case Chat2Gen.updateConvRetentionPolicy: {
       const {conv} = action.payload
       const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
       if (!newMeta) {
@@ -134,7 +134,8 @@ const metaMapReducer = (metaMap, action) => {
         return metaMap.set(newMeta.conversationIDKey, newMeta)
       }
       return metaMap
-    case Chat2Gen.updateTeamRetentionPolicy:
+    }
+    case Chat2Gen.updateTeamRetentionPolicy: {
       const {convs} = action.payload
       const newMetas = convs.reduce((updated, conv) => {
         const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
@@ -145,7 +146,8 @@ const metaMapReducer = (metaMap, action) => {
         return updated
       }, {})
       return metaMap.merge(newMetas)
-    case Chat2Gen.saveMinWriterRole:
+    }
+    case Chat2Gen.saveMinWriterRole: {
       const {cannotWrite, conversationIDKey, role} = action.payload
       return metaMap.update(conversationIDKey, old => {
         if (old) {
@@ -155,6 +157,7 @@ const metaMapReducer = (metaMap, action) => {
         // convo
         return old
       })
+    }
     default:
       return metaMap
   }
@@ -217,7 +220,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         !message || message.type !== 'text' ? message : message.set('text', text)
       )
     }
-    case Chat2Gen.attachmentUploading:
+    case Chat2Gen.attachmentUploading: {
       const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
       const ordinal = convMap.get(action.payload.outboxID)
       if (!ordinal) {
@@ -229,6 +232,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         }
         return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
       })
+    }
     case Chat2Gen.attachmentLoading:
       return messageMap.updateIn(
         [action.payload.conversationIDKey, action.payload.message.ordinal],
@@ -299,7 +303,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return messageMap.clear()
       }
       return messageMap
-    case Chat2Gen.updateMessages:
+    case Chat2Gen.updateMessages: {
       const updateOrdinals = action.payload.messages.reduce((l, msg) => {
         const ordinal = messageIDToOrdinal(
           messageMap,
@@ -322,7 +326,8 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           })
         })
       })
-    case Chat2Gen.messagesExploded:
+    }
+    case Chat2Gen.messagesExploded: {
       const {conversationIDKey, messageIDs} = action.payload
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
       const ordinals = messageIDs
@@ -348,6 +353,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           )
         })
       })
+    }
     default:
       return messageMap
   }
@@ -430,7 +436,7 @@ const rootReducer = (
       } else {
         return state.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
       }
-    case Chat2Gen.unfurlTogglePrompt:
+    case Chat2Gen.unfurlTogglePrompt: {
       const {show, domain} = action.payload
       return state.updateIn(
         ['unfurlPromptMap', action.payload.conversationIDKey, action.payload.messageID],
@@ -438,6 +444,7 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    }
     case Chat2Gen.updateCoinFlipStatus: {
       let fm = state.flipStatusMap
       action.payload.statuses.forEach(s => {
@@ -534,13 +541,14 @@ const rootReducer = (
         }
         return editingMap
       })
-    case Chat2Gen.messageSetQuoting:
+    case Chat2Gen.messageSetQuoting: {
       const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
       const counter = (state.quote ? state.quote.counter : 0) + 1
       return state.set(
         'quote',
         Constants.makeQuoteInfo({counter, ordinal, sourceConversationIDKey, targetConversationIDKey})
       )
+    }
     case Chat2Gen.messagesAdd: {
       const {context, shouldClearOthers} = action.payload
       // pull out deletes and handle at the end
@@ -967,14 +975,15 @@ const rootReducer = (
         moreToLoadMap.set(action.payload.conversationIDKey, action.payload.moreToLoad)
       )
 
-    case Chat2Gen.updateConvExplodingModes:
+    case Chat2Gen.updateConvExplodingModes: {
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
         map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
         return map
       }, {})
       return state.set('explodingModes', I.Map(explodingMap))
-    case Chat2Gen.setExplodingModeLock:
+    }
+    case Chat2Gen.setExplodingModeLock: {
       const {conversationIDKey, unset} = action.payload
       const mode = state.explodingModes.get(conversationIDKey, 0)
       // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
@@ -983,6 +992,7 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
+    }
     case Chat2Gen.giphySend: {
       let nextState = state
       nextState = nextState.setIn(['giphyWindowMap', action.payload.conversationIDKey], false)

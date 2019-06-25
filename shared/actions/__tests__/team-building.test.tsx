@@ -36,7 +36,7 @@ const userSearchMock = {
 
 const mockApiserverGetWithSessionRpcPromise = ({args, endpoint}) => {
   switch (endpoint) {
-    case 'user/user_search':
+    case 'user/user_search': {
       const {q, num_wanted, service, include_services_summary} = args.reduce((acc, a) => {
         acc[a.key] = a.value
         return acc
@@ -54,6 +54,7 @@ const mockApiserverGetWithSessionRpcPromise = ({args, endpoint}) => {
       } else {
         return Promise.reject(new Error('No mock result found'))
       }
+    }
     default:
       return Promise.reject(new Error('Not Implemented'))
   }

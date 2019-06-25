@@ -1,6 +1,6 @@
 import * as React from 'react'
-// @ts-ignore not typed yet
-import {Response} from 'react-native-image-picker'
+
+type Response = any
 
 export type Props = {
   canEditDescription: boolean

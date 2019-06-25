@@ -38,3 +38,4 @@ ios/AppStore_keybase.ios.mobileprovision
 ios/dist
 
 main.jsbundle
+.eslintcache

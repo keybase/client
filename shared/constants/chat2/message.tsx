@@ -703,7 +703,7 @@ const validUIMessagetoMessage = (
 
   switch (m.messageBody.messageType) {
     case RPCChatTypes.MessageType.flip:
-    case RPCChatTypes.MessageType.text:
+    case RPCChatTypes.MessageType.text: {
       let rawText: string
       let payments: Array<RPCChatTypes.TextPayment> | null = null
       switch (m.messageBody.messageType) {
@@ -711,9 +711,11 @@ const validUIMessagetoMessage = (
           rawText = (m.messageBody.flip && m.messageBody.flip.text) || ''
           break
         case RPCChatTypes.MessageType.text:
-          const messageText = m.messageBody.text
-          rawText = (messageText && messageText.body) || ''
-          payments = (messageText && messageText.payments) || null
+          {
+            const messageText = m.messageBody.text
+            rawText = (messageText && messageText.body) || ''
+            payments = (messageText && messageText.payments) || null
+          }
           break
         default:
           rawText = ''
@@ -749,6 +751,7 @@ const validUIMessagetoMessage = (
         text: new HiddenString(rawText),
         unfurls: I.Map((m.unfurls || []).map(u => [u.url, u])),
       })
+    }
     case RPCChatTypes.MessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.MessageType.attachment: {
       // The attachment flow is currently pretty complicated. We'll have core do more of this so it'll be simpler but for now
@@ -903,7 +906,7 @@ const outboxUIMessagetoMessage = (
       : null
 
   switch (o.messageType) {
-    case RPCChatTypes.MessageType.attachment:
+    case RPCChatTypes.MessageType.attachment: {
       const title = o.title
       const fileName = o.filename
       let previewURL = ''
@@ -930,6 +933,7 @@ const outboxUIMessagetoMessage = (
         Types.numberToOrdinal(o.ordinal),
         errorReason
       )
+    }
     case RPCChatTypes.MessageType.flip:
     case RPCChatTypes.MessageType.text:
       return makeMessageText({

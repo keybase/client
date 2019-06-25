@@ -10,10 +10,10 @@ import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import {RouteProps} from '../../route-tree/render-route'
-// @ts-ignore codemode issue
-import {Response} from 'react-native-image-picker'
 import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
+
+type Response = any
 
 type OwnProps = RouteProps<
   {

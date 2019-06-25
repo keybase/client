@@ -22,8 +22,7 @@ import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-// @ts-ignore codemod-issue
-import {showImagePicker, Response} from 'react-native-image-picker'
+import ImagePicker from 'react-native-image-picker'
 import {TypedActions} from 'util/container'
 
 type NextURI = string
@@ -368,7 +367,7 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
 
 const editAvatar = (): Promise<TypedActions> =>
   new Promise((resolve, reject) => {
-    showImagePicker({mediaType: 'photo'}, (response: Response) => {
+    ImagePicker.showImagePicker({mediaType: 'photo'}, (response: ImagePicker.Response) => {
       if (response.didCancel) {
         resolve()
       } else if (response.error) {

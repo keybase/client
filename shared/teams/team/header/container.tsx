@@ -3,11 +3,11 @@ import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
-// @ts-ignore not typed yet
-import {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {TeamHeader} from '.'
+
+type Response = any
 
 export type OwnProps = {
   teamname: Types.Teamname

@@ -176,8 +176,10 @@ function* handlePush(_, action: PushGen.NotificationPayload) {
         }
         break
       case 'chat.extension':
-        const {conversationIDKey} = notification
-        yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+        {
+          const {conversationIDKey} = notification
+          yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+        }
         break
     }
   } catch (e) {

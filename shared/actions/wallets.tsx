@@ -669,7 +669,7 @@ const deletedAccount = state =>
   })
 
 export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
-  a && a.hasOwnProperty('showOnCreation')
+  a && Object.prototype.hasOwnProperty.call(a, 'showOnCreation')
 
 const createdOrLinkedAccount = (
   state,

@@ -319,7 +319,7 @@ class Input extends React.PureComponent<Props, State> {
 
     const floatingHintText =
       !!value.length &&
-      (this.props.hasOwnProperty('floatingHintTextOverride')
+      (Object.prototype.hasOwnProperty.call(this.props, 'floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
@@ -335,7 +335,10 @@ class Input extends React.PureComponent<Props, State> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.hintText,
-      readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? true : undefined,
+      readOnly:
+        Object.prototype.hasOwnProperty.call(this.props, 'editable') && !this.props.editable
+          ? true
+          : undefined,
       ref: this._setInputRef,
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
     }

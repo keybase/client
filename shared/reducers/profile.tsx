@@ -25,10 +25,14 @@ const updateUsername = state => {
           .replace(/\/.*/, '')
       break
     case 'btc':
-      // A simple check, the server does a fuller check
-      const legacyFormat = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-      const segwitFormat = !!username.toLowerCase().match(/^(bc1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}$/)
-      usernameValid = legacyFormat || segwitFormat
+      {
+        // A simple check, the server does a fuller check
+        const legacyFormat = !!username.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+        const segwitFormat = !!username
+          .toLowerCase()
+          .match(/^(bc1)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{11,71}$/)
+        usernameValid = legacyFormat || segwitFormat
+      }
       break
   }
 
@@ -60,12 +64,13 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
         proofFound: action.payload.found,
         proofStatus: action.payload.status,
       })
-    case ProfileGen.updateErrorText:
+    case ProfileGen.updateErrorText: {
       const {errorCode, errorText} = action.payload
       return state.merge({errorCode, errorText})
+    }
     case ProfileGen.updateSigID:
       return state.merge({sigID: action.payload.sigID})
-    case ProfileGen.updatePgpInfo:
+    case ProfileGen.updatePgpInfo: {
       const valid1 = Validators.isValidEmail(state.pgpEmail1)
       const valid2 = state.pgpEmail2 && Validators.isValidEmail(state.pgpEmail2)
       const valid3 = state.pgpEmail3 && Validators.isValidEmail(state.pgpEmail3)
@@ -76,6 +81,7 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
         pgpErrorEmail3: !!valid3,
         pgpErrorText: Validators.isValidName(state.pgpFullName) || valid1 || valid2 || valid3,
       })
+    }
     case ProfileGen.updatePgpPublicKey:
       return state.merge({pgpPublicKey: action.payload.publicKey})
     case ProfileGen.updatePromptShouldStoreKeyOnServer:
