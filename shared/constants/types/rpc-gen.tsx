@@ -3345,6 +3345,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'
 // 'keybase.1.SimpleFS.simpleFSObfuscatePath'
+// 'keybase.1.SimpleFS.simpleFSDeobfuscatePath'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

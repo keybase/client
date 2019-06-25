@@ -2629,3 +2629,44 @@ func (k *SimpleFS) SimpleFSObfuscatePath(
 	return stdpath.Join(
 		tlfHandle.GetCanonicalPath(), asLibFS.PathForLogging(p)), nil
 }
+
+// SimpleFSDeobfuscatePath implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSDeobfuscatePath(
+	ctx context.Context, path keybase1.Path) (res []string, err error) {
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, midPath, finalElem, err := remoteTlfAndPath(path)
+	if err != nil {
+		return nil, err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return nil, err
+	}
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return nil, err
+	}
+	fs, err := k.newFS(
+		ctx, k.config, tlfHandle, branch, "", false)
+	if err != nil {
+		return nil, err
+	}
+	asLibFS, ok := fs.(*libfs.FS)
+	if !ok {
+		return nil, errors.Errorf("FS was not a KBFS file system: %T", fs)
+	}
+	p := fs.Join(midPath, finalElem)
+	resWithoutPrefix, err := libfs.Deobfuscate(ctx, asLibFS, p)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range resWithoutPrefix {
+		res = append(res, stdpath.Join(tlfHandle.GetCanonicalPath(), r))
+	}
+	return res, nil
+}
