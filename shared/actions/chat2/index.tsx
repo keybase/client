@@ -35,6 +35,7 @@ import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
 import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
+import {isIOS} from '../../constants/platform'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -2855,7 +2856,7 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
         }),
       err => logger.warn(err.message),
-      {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)
   } else {
