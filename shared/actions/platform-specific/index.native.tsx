@@ -367,7 +367,7 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
 
 const editAvatar = (): Promise<TypedActions> =>
   new Promise((resolve, reject) => {
-    ImagePicker.showImagePicker({mediaType: 'photo'}, (response: ImagePicker.Response) => {
+    ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel) {
         resolve()
       } else if (response.error) {

@@ -6,8 +6,6 @@ import AddPeopleHow from './add-people-how/container'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import * as Styles from '../../../styles'
 
-type Response = any
-
 export type Props = {
   canChat: boolean
   canEditDescription: boolean
@@ -23,7 +21,7 @@ export type Props = {
   onAddSelf: () => void
   onChat: () => void
   onEditDescription: () => void
-  onEditIcon: (image?: Response) => void
+  onEditIcon: (image?) => void
   onFilePickerError: (error: Error) => void
   onRename: (() => void) | null
 } & Kb.OverlayParentProps

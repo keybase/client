@@ -7,8 +7,6 @@ import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {TeamHeader} from '.'
 
-type Response = any
-
 export type OwnProps = {
   teamname: Types.Teamname
 }
@@ -42,7 +40,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
-  onEditIcon: (image?: Response) =>
+  onEditIcon: (image?) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],

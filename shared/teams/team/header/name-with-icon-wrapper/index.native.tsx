@@ -3,12 +3,10 @@ import {NameWithIcon} from '../../../../common-adapters'
 import ImagePicker from 'react-native-image-picker'
 import {Props} from '.'
 
-type Response = any
-
 const NameWithIconWrapper = (props: Props) => {
   const _onEditIcon = () =>
     props.canEditDescription
-      ? ImagePicker.showImagePicker({mediaType: 'photo'}, (response: Response) => {
+      ? ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
           if (response.didCancel) {
             return
           }

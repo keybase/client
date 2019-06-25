@@ -13,8 +13,6 @@ import {RouteProps} from '../../route-tree/render-route'
 import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
-type Response = any
-
 type OwnProps = RouteProps<
   {
     username: string
@@ -62,7 +60,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onEditAvatar: (image?: Response) => dispatch(ProfileGen.createEditAvatar()),
+  _onEditAvatar: (image?) => dispatch(ProfileGen.createEditAvatar()),
   _onReload: (username: string, isYou: boolean) => {
     dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
 
