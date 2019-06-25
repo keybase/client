@@ -447,7 +447,7 @@ function* requestContactPermissions(
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result = yield Saga.callPromise(askForContactPermissions, state, logger)
-  if (result && thenToggleImportOn) {
+  if (result === 'granted' && thenToggleImportOn) {
     yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
   }
   yield Saga.sequentially([

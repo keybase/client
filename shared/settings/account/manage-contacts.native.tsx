@@ -41,8 +41,8 @@ const ManageContacts = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
       <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
-        {/* TODO banner for after you've successfully imported contacts */}
-        {status === 'never_ask_again' && (
+        {/* TODO banner for after you've successfully imported contacts + hook up to service Y2K-192 */}
+        {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
           <Kb.Banner
             color="red"
             text={
@@ -70,8 +70,6 @@ const ManageContacts = (props: Props) => {
                 waiting={waiting}
               />
             </Kb.ButtonBar>
-            {/* TODO remove */}
-            <Kb.Text type="BodySmall">{status}</Kb.Text>
           </Kb.Box2>
         </SettingsSection>
       </Kb.BoxGrow>
