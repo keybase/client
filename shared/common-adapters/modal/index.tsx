@@ -83,6 +83,7 @@ const Header = (props: HeaderProps) => (
 
 const Footer = (props: FooterProps & {wide: boolean}) => (
   <Kb.Box2
+    centerChildren={true}
     direction="vertical"
     fullWidth={true}
     style={Styles.collapseStyles([

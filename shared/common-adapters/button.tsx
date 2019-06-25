@@ -207,6 +207,7 @@ const commonLabel = Styles.platformStyles({
 const styles = Styles.styleSheetCreate({
   fullWidth: {
     flexGrow: 1,
+    maxWidth: 460,
     width: '100%',
   },
   labelContainer: Styles.platformStyles({
