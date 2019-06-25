@@ -53,6 +53,7 @@ type AccountAssetLocal struct {
 	Desc                   string           `codec:"desc" json:"desc"`
 	InfoUrl                string           `codec:"infoUrl" json:"infoUrl"`
 	InfoUrlText            string           `codec:"infoUrlText" json:"infoUrlText"`
+	CanAddTrustline        bool             `codec:"canAddTrustline" json:"canAddTrustline"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
@@ -78,9 +79,10 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 			}
 			return ret
 		})(o.Reserves),
-		Desc:        o.Desc,
-		InfoUrl:     o.InfoUrl,
-		InfoUrlText: o.InfoUrlText,
+		Desc:            o.Desc,
+		InfoUrl:         o.InfoUrl,
+		InfoUrlText:     o.InfoUrlText,
+		CanAddTrustline: o.CanAddTrustline,
 	}
 }
 
