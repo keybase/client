@@ -4257,9 +4257,6 @@ func checkDisallowedPrefixes(
 					return nil
 				}
 			}
-			// Put the plaintext in the error if it starts with a
-			// disallowed prefix -- there's no expectation of privacy
-			// in that case.
 			return DisallowedPrefixError{name, prefix}
 		}
 	}
