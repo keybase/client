@@ -2617,6 +2617,14 @@ func TestShowAdvancedSendForm(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.False(t, shouldShowAdvancedSend)
+
+	// Try with an empty string arg.To
+	shouldShowAdvancedSend, err = tcs[0].Srv.ShowAdvancedSendForm(context.Background(), stellar1.ShowAdvancedSendFormArg{
+		From: fakeAccts[0].accountID,
+		To:   "",
+	})
+	require.NoError(t, err)
+	require.False(t, shouldShowAdvancedSend)
 }
 
 func TestMakeRequestLocalBasics(t *testing.T) {

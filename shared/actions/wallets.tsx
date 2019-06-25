@@ -22,7 +22,6 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError, TypedActions} from '../util/container'
 import {Action} from 'redux'
-import * as SettingsGen from './settings-gen'
 
 const stateToBuildRequestParams = state => ({
   amount: state.wallets.building.amount,
