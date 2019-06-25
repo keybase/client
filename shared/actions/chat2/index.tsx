@@ -1876,7 +1876,7 @@ const onUpdateUserReacjis = state => {
   // service into a frequency map that will appease the lib.
   let i = 0
   let reacjis = {}
-  userReacjis.topReacjis.forEach(el => {
+  ;(userReacjis.topReacjis || []).forEach(el => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
   })
