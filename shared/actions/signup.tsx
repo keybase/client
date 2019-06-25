@@ -55,7 +55,7 @@ const showErrorOrCleanupAfterSignup = (state: TypedState) =>
 const setEmailVisibilityAfterSignup = (state: TypedState) =>
   noErrors(state) &&
   state.signup.emailVisible &&
-  SettingsGen.createEditEmail({email: state.signup.email, toggleSearchable: true})
+  SettingsGen.createEditEmail({email: state.signup.email, makeSearchable: true})
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>

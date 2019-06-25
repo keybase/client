@@ -410,14 +410,12 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
   if (action.payload.verify) {
     return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
   }
-  if (action.payload.toggleSearchable) {
-    const currentSettings = state.settings.email.emails.get(action.payload.email)
-    const newVisibility = currentSettings
-      ? flipVis(currentSettings.visibility)
-      : ChatTypes.Keybase1.IdentityVisibility.private
+  if (action.payload.makeSearchable != null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({
       email: action.payload.email,
-      visibility: newVisibility,
+      visibility: action.payload.makeSearchable
+        ? ChatTypes.Keybase1.IdentityVisibility.public
+        : ChatTypes.Keybase1.IdentityVisibility.private,
     })
   }
   logger.warn('Empty editEmail action')

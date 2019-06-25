@@ -49,14 +49,12 @@ const EnterEmail = (props: Props) => {
             textContentType="emailAddress"
             value={email}
           />
-          {
-            <Kb.Checkbox
-              label="Allow friends to find you by this email address"
-              checked={allowSearch}
-              onCheck={onChangeAllowSearch}
-              style={styles.checkbox}
-            />
-          }
+          <Kb.Checkbox
+            label="Allow friends to find you by this email address"
+            checked={allowSearch}
+            onCheck={onChangeAllowSearch}
+            style={styles.checkbox}
+          />
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>
