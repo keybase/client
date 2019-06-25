@@ -65,6 +65,7 @@ type GlobalContext struct {
 	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
 	Output           io.Writer            // where 'Stdout'-style output goes
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	MobileNetState   *MobileNetState      // The kind of network connection for the currently running instance of the app
 	MobileAppState   *MobileAppState      // The state of focus for the currently running instance of the app
 	DesktopAppState  *DesktopAppState     // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
@@ -235,6 +236,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
+	g.MobileNetState = NewMobileNetState(g)
 	g.MobileAppState = NewMobileAppState(g)
 	g.DesktopAppState = NewDesktopAppState(g)
 	g.RPCCanceler = NewRPCCanceler()

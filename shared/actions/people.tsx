@@ -6,6 +6,7 @@ import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+import {isNetworkErr} from '../util/container'
 
 // set this to true to have all todo items show up all the time
 const debugTodo = false
@@ -41,18 +42,24 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
       if (debugTodo) {
-        const allTodos: Array<Types.TodoType> = Object.values(Constants.todoTypeEnumToType)
-        allTodos.forEach(todoType => {
+        const allTodos: Array<RPCTypes.HomeScreenTodoType> = Object.values(RPCTypes.HomeScreenTodoType)
+        allTodos.forEach(avdlType => {
+          const todoType = Constants.todoTypeEnumToType[avdlType]
           if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
             return
           }
+          const instructions = Constants.makeDescriptionForTodoItem({
+            legacyEmailVisibility: 'user@example.com',
+            t: avdlType,
+            verifyAllEmail: 'user@example.com',
+            verifyAllPhoneNumber: '+1555000111',
+          } as any)
           newItems = newItems.push(
             Constants.makeTodo({
               badged: true,
               confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
-              dismissable: Constants.todoTypeToDismissable[todoType],
               icon: Constants.todoTypeToIcon[todoType],
-              instructions: Constants.todoTypeToInstructions[todoType],
+              instructions,
               todoType,
               type: 'todo',
             })
@@ -95,7 +102,7 @@ const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
 
 const markViewed = () =>
   RPCTypes.homeHomeMarkViewedRpcPromise().catch(err => {
-    if (networkErrors.includes(err.code)) {
+    if (isNetworkErr(err.code)) {
       logger.warn('Network error calling homeMarkViewed')
     } else {
       throw err
@@ -126,12 +133,6 @@ const connected = () => {
     .then(() => console.log('Registered home UI'))
     .catch(error => console.warn('Error in registering home UI:', error))
 }
-
-const networkErrors = [
-  RPCTypes.StatusCode.scgenericapierror,
-  RPCTypes.StatusCode.scapinetworkerror,
-  RPCTypes.StatusCode.sctimeout,
-]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<PeopleGen.GetPeopleDataPayload>(PeopleGen.getPeopleData, getPeopleData)

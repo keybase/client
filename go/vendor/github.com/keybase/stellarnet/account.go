@@ -17,6 +17,8 @@ import (
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 	snetwork "github.com/stellar/go/network"
+	horizonProtocol "github.com/stellar/go/protocols/horizon"
+	"github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/xdr"
 )
 
@@ -106,7 +108,7 @@ func NetworkPassphrase() string {
 // Account represents a Stellar account.
 type Account struct {
 	address  AddressStr
-	internal *horizon.Account
+	internal *horizonProtocol.Account
 }
 
 // NewAccount makes a new Account item for address.
@@ -141,7 +143,10 @@ func (a *Account) internalNativeBalance() string {
 		return "0"
 	}
 
-	balance := a.internal.GetNativeBalance()
+	balance, err := a.internal.GetNativeBalance()
+	if err != nil {
+		return "0"
+	}
 	if balance == "" {
 		// There seem to be situations where this returns an
 		// empty string instead of "0", so this will fix that.
@@ -156,7 +161,7 @@ func (a *Account) internalNativeBalance() string {
 }
 
 // Balances returns all the balances for an account.
-func (a *Account) Balances() ([]horizon.Balance, error) {
+func (a *Account) Balances() ([]horizonProtocol.Balance, error) {
 	if err := a.load(); err != nil {
 		return nil, err
 	}
@@ -166,7 +171,7 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 
 // Trustline describes a stellar trustline.  It contains an asset and a limit.
 type Trustline struct {
-	horizon.Asset
+	base.Asset
 	Limit string
 }
 
@@ -235,7 +240,7 @@ type AccountDetails struct {
 	Seqno                string
 	SubentryCount        int
 	Available            string
-	Balances             []horizon.Balance
+	Balances             []horizonProtocol.Balance
 	InflationDestination string
 }
 
@@ -335,7 +340,7 @@ func (a *Account) RecentPayments(cursor string, limit int) ([]horizon.Payment, e
 // Transactions returns some of the account's transactions.
 // cursor is optional. if specified, it is used for pagination.
 // limit is optional. if not specified, default is 10.  max limit is 100.
-func (a *Account) Transactions(cursor string, limit int) (res []horizon.Transaction, finalPage bool, err error) {
+func (a *Account) Transactions(cursor string, limit int) (res []horizonProtocol.Transaction, finalPage bool, err error) {
 	if limit <= 0 {
 		limit = 10
 	} else if limit > 100 {
@@ -351,7 +356,7 @@ func (a *Account) Transactions(cursor string, limit int) (res []horizon.Transact
 	}
 
 	finalPage = len(page.Embedded.Records) < limit
-	res = make([]horizon.Transaction, len(page.Embedded.Records))
+	res = make([]horizonProtocol.Transaction, len(page.Embedded.Records))
 	for i, record := range page.Embedded.Records {
 		res[i] = record.Transaction
 	}
@@ -409,11 +414,11 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 	return page.Embedded.Records, nil
 }
 
-// TxDetails gets a horizon.Transaction for txID.
-func TxDetails(txID string) (horizon.Transaction, error) {
+// TxDetails gets a horizonProtocol.Transaction for txID.
+func TxDetails(txID string) (horizonProtocol.Transaction, error) {
 	var embed TransactionEmbed
 	if err := getDecodeJSONStrict(Client().URL+"/transactions/"+txID, Client().HTTP.Get, &embed); err != nil {
-		return horizon.Transaction{}, errMap(err)
+		return horizonProtocol.Transaction{}, errMap(err)
 	}
 	return embed.Transaction, nil
 }
@@ -822,7 +827,7 @@ type SubmitResult struct {
 
 // Submit submits a signed transaction to horizon.
 func Submit(signed string) (res SubmitResult, err error) {
-	var resp horizon.TransactionSuccess
+	var resp horizonProtocol.TransactionSuccess
 	for i := 0; i < submitAttempts; i++ {
 		resp, err = Client().SubmitTransaction(signed)
 		if err != nil {

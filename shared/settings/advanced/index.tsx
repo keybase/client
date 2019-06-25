@@ -220,9 +220,9 @@ class Developer extends React.Component<Props, State> {
 // A list so the order of the elements is fixed
 const proxyTypeList = ['noProxy', 'httpConnect', 'socks']
 const proxyTypeToDisplayName = {
-  httpConnect: 'HTTP Connect',
-  noProxy: 'No Proxy',
-  socks: 'Socks5',
+  httpConnect: 'HTTP(s) Connect',
+  noProxy: 'No proxy',
+  socks: 'SOCKS5',
 }
 
 type ProxyState = {

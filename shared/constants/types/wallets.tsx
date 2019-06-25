@@ -162,6 +162,8 @@ export type _PaymentCommon = {
   summaryAdvanced: string
   issuerDescription: string
   issuerAccountID: AccountID | null
+  unread: boolean
+  trustline: StellarRPCTypes.PaymentTrustlineLocal | null
 }
 
 export type _PaymentResult = {
@@ -171,7 +173,6 @@ export type _PaymentResult = {
   // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
   // might be a better way.
   section: PaymentSection
-  unread: boolean
 } & _PaymentCommon
 
 export type _PaymentDetail = {
@@ -280,6 +281,23 @@ export type _AirdropDetails = {
 }
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
+export type AssetID = string
+export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
+  `${issuerAccountID}-${assetCode}`
+export const assetDescriptionToAssetID = (assetDescription: AssetDescription): AssetID =>
+  makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
+
+export type _Trustline = {
+  acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
+  assetMap: I.Map<AssetID, AssetDescription>
+  expandedAssets: I.Set<AssetID>
+  loaded: boolean
+  popularAssets: I.List<AssetID>
+  searchingAssets?: I.List<AssetID>
+  totalAssetsCount: number
+}
+export type Trustline = I.RecordOf<_Trustline>
+
 export type _State = {
   acceptedDisclaimer: boolean
   acceptingDisclaimerDelay: boolean
@@ -319,6 +337,7 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>
 }

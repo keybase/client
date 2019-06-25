@@ -67,7 +67,15 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
-  menuItems.push('Divider', {danger: true, onClick: props.onDelete, title: 'Delete'})
+
+  // TODO: Drop this `if` once Y2K-180 is done.
+  if (!props.primary) {
+    menuItems.push('Divider', {
+      danger: true,
+      onClick: props.onDelete,
+      title: 'Delete',
+    })
+  }
 
   let gearIconBadge = null
   if (!props.verified) {

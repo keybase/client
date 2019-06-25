@@ -79,6 +79,7 @@ export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
+export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
 export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
@@ -199,6 +200,7 @@ type _SetSendLinkToChatConvIDPayload = {readonly convID: ChatTypes.ConversationI
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
+type _SetTlfsAsUnloadedPayload = void
 type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
 type _ShareNativePayload = {readonly path: Types.Path; readonly key: string}
 type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
@@ -463,6 +465,10 @@ export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload): SetTlfS
 export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload): SetTlfSyncConfigPayload => ({
   payload,
   type: setTlfSyncConfig,
+})
+export const createSetTlfsAsUnloaded = (payload: _SetTlfsAsUnloadedPayload): SetTlfsAsUnloadedPayload => ({
+  payload,
+  type: setTlfsAsUnloaded,
 })
 export const createSettingsLoaded = (
   payload: _SettingsLoadedPayload = Object.freeze({})
@@ -774,6 +780,10 @@ export type SetTlfSyncConfigPayload = {
   readonly payload: _SetTlfSyncConfigPayload
   readonly type: typeof setTlfSyncConfig
 }
+export type SetTlfsAsUnloadedPayload = {
+  readonly payload: _SetTlfsAsUnloadedPayload
+  readonly type: typeof setTlfsAsUnloaded
+}
 export type SettingsLoadedPayload = {
   readonly payload: _SettingsLoadedPayload
   readonly type: typeof settingsLoaded
@@ -909,6 +919,7 @@ export type Actions =
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
+  | SetTlfsAsUnloadedPayload
   | SettingsLoadedPayload
   | ShareNativePayload
   | ShowHideDiskSpaceBannerPayload

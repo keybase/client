@@ -1,42 +1,37 @@
 import * as React from 'react'
 import PeopleItem from '../item'
-import {Box, Button, Icon, Text, IconType} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import PeopleSearch from '../../profile/search/bar-container'
 import * as Styles from '../../styles'
+import {Props as ButtonProps} from '../../common-adapters/button'
+
+export type TaskButton = {
+  label: string
+  onClick: () => void
+  type?: ButtonProps['type']
+  mode?: ButtonProps['mode']
+}
 
 export type Props = {
   badged: boolean
-  icon: IconType
+  icon: Kb.IconType
   instructions: string
-  confirmLabel: string
-  dismissable: boolean
-  onConfirm: () => void
-  onDismiss: () => void
+  subText?: string
   showSearchBar?: boolean
+  buttons: Array<TaskButton>
 }
 
 export const Task = (props: Props) => (
-  <PeopleItem format="multi" badged={props.badged} icon={<Icon type={props.icon} />}>
-    <Text type="Body" style={styles.instructions}>
-      {props.instructions}
-    </Text>
-    <Box style={styles.actionContainer}>
-      {props.showSearchBar ? (
-        <PeopleSearch style={styles.search} />
-      ) : (
-        <Button
-          small={true}
-          label={props.confirmLabel}
-          onClick={props.onConfirm}
-          style={{marginRight: Styles.globalMargins.small}}
-        />
-      )}
-      {props.dismissable && (
-        <Text type="BodyPrimaryLink" onClick={props.onDismiss}>
-          Later
-        </Text>
-      )}
-    </Box>
+  <PeopleItem format="multi" badged={props.badged} icon={<Kb.Icon type={props.icon} />}>
+    <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
+    {props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
+    <Kb.Box style={styles.actionContainer}>
+      {props.showSearchBar && <PeopleSearch style={styles.search} />}
+      {props.buttons.length > 0 &&
+        props.buttons.map(b => (
+          <Kb.Button key={b.label} small={true} style={{marginRight: Styles.globalMargins.tiny}} {...b} />
+        ))}
+    </Kb.Box>
   </PeopleItem>
 )
 
@@ -53,5 +48,7 @@ const styles = Styles.styleSheetCreate({
   search: {
     alignSelf: undefined,
     flexGrow: 0,
+    marginBottom: Styles.globalMargins.xsmall,
+    marginTop: Styles.globalMargins.xsmall,
   },
 })

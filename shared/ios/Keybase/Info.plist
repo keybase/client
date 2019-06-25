@@ -2,15 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>web+stellar</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -27,6 +18,15 @@
 	<string>4.2.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>web+stellar</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>114</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -40,26 +40,26 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Scanning codes</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Inviting contacts to Keybase</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Used for sharing your location with others on Keybase.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Recording audio when taking a video</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Saving images from chat messages</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Attaching images to chat messages</string>
-	<key>NSCalendarsUsageDescription</key>
-	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Used for sharing your location with others on Keybase.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Used for sharing your location with others on Keybase.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used for sharing your location with others on Keybase.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Recording audio when taking a video</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Saving images from chat messages</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Attaching images to chat messages</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>Keybase does not use this data! Please send feedback if you see this message.</string>
 	<key>UIAppFonts</key>
@@ -78,6 +78,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>location</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

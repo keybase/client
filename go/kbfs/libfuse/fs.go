@@ -464,7 +464,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (_ fs.Node, err error) {
-	r.log().CDebugf(ctx, "FS Lookup %s", req.Name)
+	r.private.fs.vlog.CLogf(ctx, libkb.VLog1, "FS Lookup %s", req.Name)
 	defer func() { err = r.private.fs.processError(ctx, libkbfs.ReadMode, err) }()
 
 	specialNode := handleNonTLFSpecialFile(
@@ -483,9 +483,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return r.private, nil
 	case PublicName:
 		return r.public, nil
-	}
-
-	if req.Name == TeamName {
+	case TeamName:
 		return r.team, nil
 	}
 
@@ -494,10 +492,19 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return nil, fuse.ENOENT
 	}
 
+	nameToLog := req.Name
+	// This error is logged, but we don't have a handy obfuscator
+	// here, so just log a special string to avoid exposing the user's
+	// typos or misdirected lookups.
+	if r.private.fs.config.Mode().DoLogObfuscation() {
+		nameToLog = "<obfuscated>"
+	}
+
 	return nil, libkbfs.NoSuchFolderListError{
-		Name:     req.Name,
-		PrivName: PrivateName,
-		PubName:  PublicName,
+		Name:      req.Name,
+		NameToLog: nameToLog,
+		PrivName:  PrivateName,
+		PubName:   PublicName,
 	}
 }
 

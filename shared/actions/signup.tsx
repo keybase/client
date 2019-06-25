@@ -18,7 +18,7 @@ const noErrors = (state: TypedState) =>
   !state.signup.inviteCodeError &&
   !state.signup.nameError &&
   !state.signup.usernameError &&
-  !state.signup.signupError.stringValue() &&
+  !state.signup.signupError &&
   !state.signup.usernameTaken
 
 // Navigation side effects ///////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
     })
     yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
-    yield Saga.put(SignupGen.createSignedupError({error: new HiddenString(error.desc)}))
+    yield Saga.put(SignupGen.createSignedupError({error}))
   }
 }
 

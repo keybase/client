@@ -92,7 +92,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     // for the image. We use this in conjunction with the margin to reliably
                     // center the image in the background container.
                     minHeight: this.props.height + 6,
-                    width: this.props.width + 6,
+                    minWidth: this.props.width + 6,
                   },
                 ])
               )}

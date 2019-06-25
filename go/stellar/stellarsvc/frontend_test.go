@@ -152,6 +152,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28 USD", assets[0].Worth)
 	require.Equal(t, "$3,182.96 USD", assets[0].AvailableToSendWorth)
+	require.True(t, assets[0].CanAddTrustline)
 }
 
 func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
@@ -190,6 +191,7 @@ func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
 	require.Equal(t, "CHF", assets[0].WorthCurrency)
 	require.Equal(t, "3,183.28 CHF", assets[0].Worth)
 	require.Equal(t, "3,182.96 CHF", assets[0].AvailableToSendWorth)
+	require.True(t, assets[0].CanAddTrustline)
 
 	// changing currency also updates DisplayCurrency in GetWalletAccountLocal
 	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
@@ -227,6 +229,7 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00 USD", assets[0].Worth)
 	require.Equal(t, "$0.00 USD", assets[0].AvailableToSendWorth)
+	require.False(t, assets[0].CanAddTrustline)
 }
 
 func TestGetDisplayCurrenciesLocal(t *testing.T) {
@@ -893,7 +896,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 
 	// check the details
-	checkPaymentDetails := func(p stellar1.PaymentDetailsLocal, sender bool) {
+	checkPaymentDetails := func(pd stellar1.PaymentDetailsLocal, sender bool) {
+		p := pd.Summary
 		require.NotEmpty(t, p.Id)
 		require.NotZero(t, p.Time)
 		require.Equal(t, stellar1.PaymentStatus_COMPLETED, p.StatusSimplified)
@@ -929,10 +933,10 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
-		require.Equal(t, "public note", p.PublicNote)
-		require.Equal(t, "text", p.PublicNoteType)
+		require.Equal(t, "public note", pd.Details.PublicNote)
+		require.Equal(t, "text", pd.Details.PublicNoteType)
 		t.Logf("details: %+v", p)
-		require.Equal(t, fmt.Sprintf("https://stellar.expert/explorer/public/tx/%s", p.TxID), p.ExternalTxURL)
+		require.Equal(t, fmt.Sprintf("https://stellar.expert/explorer/public/tx/%s", p.TxID), pd.Details.ExternalTxURL)
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
@@ -1139,10 +1143,11 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "", p.ToAssertion)
 	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
-	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+	pd1, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[2].Payment.Id,
 		AccountID: accountID1,
 	})
+	pd := pd1.Summary
 	require.NoError(t, err)
 	require.Equal(t, "100 XLM", pd.AmountDescription)
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.FromType)
@@ -1156,10 +1161,11 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "", pd.ToAssertion)
 	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
-	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+	pd1, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[1].Payment.Id,
 		AccountID: accountID1,
 	})
+	pd = pd1.Summary
 	require.NoError(t, err)
 	require.Equal(t, "200 XLM", pd.AmountDescription)
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.FromType)
@@ -1173,10 +1179,11 @@ func TestSendToSelf(t *testing.T) {
 	require.Equal(t, "", pd.ToAssertion)
 	require.Equal(t, "$123.23 USD", p.WorthAtSendTime)
 
-	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+	pd1, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[0].Payment.Id,
 		AccountID: accountID2,
 	})
+	pd = pd1.Summary
 	require.NoError(t, err)
 	require.Equal(t, "300 XLM", pd.AmountDescription)
 	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.FromType)
@@ -1234,12 +1241,12 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 		Id: paymentID,
 	})
 	require.NoError(t, err)
-	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
-	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
-	require.Equal(t, "$160.93 USD", detailsRes.Worth)
-	require.Equal(t, "", detailsRes.WorthAtSendTime)
-	require.Equal(t, secretNote, detailsRes.Note)
-	require.Equal(t, "", detailsRes.NoteErr)
+	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Summary.Delta)
+	require.Equal(t, "505.6120000 XLM", detailsRes.Summary.AmountDescription)
+	require.Equal(t, "$160.93 USD", detailsRes.Summary.Worth)
+	require.Equal(t, "", detailsRes.Summary.WorthAtSendTime)
+	require.Equal(t, secretNote, detailsRes.Summary.Note)
+	require.Equal(t, "", detailsRes.Summary.NoteErr)
 }
 
 func TestBuildRequestLocal(t *testing.T) {
@@ -2865,6 +2872,17 @@ func TestManageTrustlines(t *testing.T) {
 	require.Equal(t, keys, balances2[0].Asset)
 	require.Equal(t, "0.0000000", balances2[0].Amount)
 	require.Equal(t, "922337203685.4775807", balances2[0].Limit) // max limit
+
+	// Check if shows up it GetTrustlinesForRecipientLocal
+	rtlines, err := tcs[0].Srv.GetTrustlinesForRecipientLocal(context.Background(), stellar1.GetTrustlinesForRecipientLocalArg{
+		Recipient: tcs[0].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, rtlines.Trustlines, 1)
+	require.Equal(t, keys, rtlines.Trustlines[0].Asset)
+	require.Equal(t, "0.0000000", rtlines.Trustlines[0].Amount)
+	require.Equal(t, "922337203685.4775807", rtlines.Trustlines[0].Limit) // max limit
+	require.Equal(t, rtlines.RecipientType, stellar1.ParticipantType_KEYBASE)
 
 	// Change limit.
 	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{

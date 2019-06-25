@@ -226,6 +226,11 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 		return nil, err
 	}
 
+	// Preserve all the final op paths in the copy.
+	for i, op := range md.data.Changes.Ops {
+		rmd.data.Changes.Ops[i].setFinalPath(op.getFinalPath())
+	}
+
 	return rmd, nil
 }
 
@@ -525,7 +530,8 @@ func (md *RootMetadata) loadCachedBlockChanges(
 			Tlf: md.TlfID(), Branch: data.MasterBranch},
 		Path: []data.PathNode{{
 			BlockPointer: md.data.cachedChanges.Info.BlockPointer,
-			Name:         fmt.Sprintf("<MD with revision %d>", md.Revision()),
+			Name: data.NewPathPartString(
+				fmt.Sprintf("<MD with revision %d>", md.Revision()), nil),
 		}},
 	}
 	fd := data.NewFileData(file, id, nil, md.ReadOnly(),

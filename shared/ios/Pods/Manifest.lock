@@ -24,8 +24,8 @@ PODS:
   - lottie-react-native (2.6.1):
     - lottie-ios (~> 2.5.0)
     - React
-  - React (0.59.8):
-    - React/Core (= 0.59.8)
+  - React (0.59.9):
+    - React/Core (= 0.59.9)
   - react-native-camera (2.0.0):
     - React
     - react-native-camera/RCT (= 2.0.0)
@@ -52,59 +52,59 @@ PODS:
     - React
   - react-native-webview (5.8.2):
     - React
-  - React/Core (0.59.8):
-    - yoga (= 0.59.8.React)
-  - React/CxxBridge (0.59.8):
+  - React/Core (0.59.9):
+    - yoga (= 0.59.9.React)
+  - React/CxxBridge (0.59.9):
     - Folly (= 2018.10.22.00)
     - React/Core
     - React/cxxreact
     - React/jsiexecutor
-  - React/cxxreact (0.59.8):
+  - React/cxxreact (0.59.9):
     - boost-for-react-native (= 1.63.0)
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
     - React/jsinspector
-  - React/DevSupport (0.59.8):
+  - React/DevSupport (0.59.9):
     - React/Core
     - React/RCTWebSocket
-  - React/fishhook (0.59.8)
-  - React/jsi (0.59.8):
+  - React/fishhook (0.59.9)
+  - React/jsi (0.59.9):
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
-  - React/jsiexecutor (0.59.8):
+  - React/jsiexecutor (0.59.9):
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
     - React/cxxreact
     - React/jsi
-  - React/jsinspector (0.59.8)
-  - React/RCTActionSheet (0.59.8):
+  - React/jsinspector (0.59.9)
+  - React/RCTActionSheet (0.59.9):
     - React/Core
-  - React/RCTAnimation (0.59.8):
+  - React/RCTAnimation (0.59.9):
     - React/Core
-  - React/RCTBlob (0.59.8):
+  - React/RCTBlob (0.59.9):
     - React/Core
-  - React/RCTCameraRoll (0.59.8):
+  - React/RCTCameraRoll (0.59.9):
     - React/Core
     - React/RCTImage
-  - React/RCTGeolocation (0.59.8):
+  - React/RCTGeolocation (0.59.9):
     - React/Core
-  - React/RCTImage (0.59.8):
+  - React/RCTImage (0.59.9):
     - React/Core
     - React/RCTNetwork
-  - React/RCTLinkingIOS (0.59.8):
+  - React/RCTLinkingIOS (0.59.9):
     - React/Core
-  - React/RCTNetwork (0.59.8):
+  - React/RCTNetwork (0.59.9):
     - React/Core
-  - React/RCTPushNotification (0.59.8):
+  - React/RCTPushNotification (0.59.9):
     - React/Core
-  - React/RCTSettings (0.59.8):
+  - React/RCTSettings (0.59.9):
     - React/Core
-  - React/RCTText (0.59.8):
+  - React/RCTText (0.59.9):
     - React/Core
-  - React/RCTWebSocket (0.59.8):
+  - React/RCTWebSocket (0.59.9):
     - React/Core
     - React/fishhook
     - React/RCTBlob
@@ -135,7 +135,7 @@ PODS:
     - UMFontInterface
   - UMSensorsInterface (2.0.0)
   - UMTaskManagerInterface (2.0.0)
-  - yoga (0.59.8.React)
+  - yoga (0.59.9.React)
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -295,7 +295,7 @@ SPEC CHECKSUMS:
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
   lottie-ios: d699fdee68d7b63e721d949388b015fef1aaa4ac
   lottie-react-native: 3d8181d43619b1fe804c828bd5a09d20fe8bdea7
-  React: 76e6aa2b87d05eb6cccb6926d72685c9a07df152
+  React: a86b92f00edbe1873a63e4a212c29b7a7ad5224f
   react-native-camera: 4b810becdf9bebf269b252552ee9a074f5f03bd4
   react-native-contacts: f6e5c518598762081ff9cf7c70db36f71668538e
   react-native-fast-image: 47487b71169aea34868e7b38bf870b6b3f2157c5
@@ -320,7 +320,7 @@ SPEC CHECKSUMS:
   UMReactNativeAdapter: 90b3418908718243f8073b297a116c52a7a0fe5a
   UMSensorsInterface: d438f93649e5467cb60ab2667d81e46e800b188b
   UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
-  yoga: 92b2102c3d373d1a790db4ab761d2b0ffc634f64
+  yoga: 03ff42a6f223fb88deeaed60249020d80c3091ee
 
 PODFILE CHECKSUM: 34498eeea067e95f4a2b53d5b9ebdd935348eeb1
 

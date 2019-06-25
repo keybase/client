@@ -161,7 +161,10 @@ func TestHome(t *testing.T) {
 	initialVersion := home.Version
 
 	require.True(t, (initialVersion > 0), "initial version should be > 0")
-	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, true)
+	// Our first todo is VERIFY_ALL_EMAIL, that's badged
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_VERIFY_ALL_EMAIL, true /* isBadged */)
+	// followed by BIO todo
+	assertTodoPresent(t, home, keybase1.HomeScreenTodoType_BIO, false /* isBadged */)
 
 	var countPre int
 	pollForTrue(t, g, func(i int) bool {

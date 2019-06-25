@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -33,6 +34,27 @@ func (a *appStateHandler) UpdateAppState(ctx context.Context, state keybase1.Mob
 
 	// Update app state
 	a.G().MobileAppState.Update(state)
+	return nil
+}
+
+func (a *appStateHandler) UpdateMobileNetState(ctx context.Context, stateStr string) (err error) {
+	a.G().Log.CDebugf(ctx, "UpdateMobileNetState(%v)", stateStr)
+
+	// normalize what the frontend gives us, `bluetooth`, `ethernet`, and
+	// `wimax` are android only values.
+	var state keybase1.MobileNetworkState
+	switch stateStr {
+	case "bluetooth", "ethernet":
+		stateStr = "wifi"
+	case "wimax":
+		stateStr = "cellular"
+	}
+
+	state, ok := keybase1.MobileNetworkStateMap[strings.ToUpper(stateStr)]
+	if !ok {
+		state = keybase1.MobileNetworkState_UNKNOWN
+	}
+	a.G().MobileNetState.Update(state)
 	return nil
 }
 
