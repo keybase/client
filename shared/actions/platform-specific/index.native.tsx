@@ -394,6 +394,12 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(e => {})
 
+const expoPermissionStatusMap = {
+  [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
+  [Permissions.PermissionStatus.DENIED]: 'never_ask_again' as const,
+  [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
+}
+
 const loadContactPermissions = async (
   _,
   action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
@@ -403,67 +409,51 @@ const loadContactPermissions = async (
     // only reload on foreground
     return
   }
-  const {status: _status} = await Permissions.getAsync(Permissions.CONTACTS)
-  logger.info(`OS status: ${_status}`)
-  let status = {
-    [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
-    [Permissions.PermissionStatus.DENIED]: 'denied' as const,
-    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
-  }[_status]
+  let status = null
+  if (isIOS) {
+    status = expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+  } else {
+    status = (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
+      ? 'granted'
+      : 'undetermined'
+  }
+  logger.info(`OS status: ${status}`)
   return SettingsGen.createLoadedContactPermissions({status})
 }
 
-function* requestContactsPermission(
+const askForContactPermissionsAndroid = async (state: TypedState, logger: Saga.SagaLogger) => {
+  const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS)
+  // status is 'granted' | 'denied' | 'never_ask_again'
+  // map 'denied' -> 'undetermined' since 'undetermined' means we can show the prompt again
+  return status === 'denied' ? 'undetermined' : status
+}
+
+const askForContactPermissionsIOS = async (state: TypedState, logger: Saga.SagaLogger) => {
+  const {status} = await Permissions.askAsync(Permissions.CONTACTS)
+  return expoPermissionStatusMap[status]
+}
+
+const askForContactPermissions = (state: TypedState, logger: Saga.SagaLogger) => {
+  return isAndroid
+    ? askForContactPermissionsAndroid(state, logger)
+    : askForContactPermissionsIOS(state, logger)
+}
+
+function* requestContactPermissions(
   state: TypedState,
   action: SettingsGen.RequestContactPermissionsPayload,
-  logger
+  logger: Saga.SagaLogger
 ) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const decrementAction = Saga.put(
-    WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey})
-  )
-  switch (state.settings.contacts.permissionStatus) {
-    case 'unknown':
-      logger.warn('unknown permissions status')
-      return
-    case 'denied':
-      logger.warn('permission denied')
-      if (isIOS) {
-        logger.info('going to settings')
-        yield Saga.put(ConfigGen.createOpenAppSettings())
-      }
-      return
-    case 'undetermined':
-      // haven't asked
-      const {status} = yield* Saga.callPromise(Permissions.askAsync, Permissions.CONTACTS)
-      switch (status) {
-        case Permissions.PermissionStatus.GRANTED:
-          yield Saga.sequentially([
-            Saga.put(SettingsGen.createLoadedContactPermissions({status: 'granted'})),
-            decrementAction,
-            thenToggleImportOn && Saga.put(SettingsGen.createEditContactImportEnabled({enable: true})),
-          ])
-          return
-        case Permissions.PermissionStatus.DENIED:
-          yield Saga.sequentially([
-            Saga.put(SettingsGen.createLoadedContactPermissions({status: 'denied'})),
-            decrementAction,
-          ])
-          return
-        case Permissions.PermissionStatus.UNDETERMINED:
-          yield Saga.sequentially([
-            Saga.put(SettingsGen.createLoadedContactPermissions({status: 'undetermined'})),
-            decrementAction,
-          ])
-          return
-      }
-      break
-    case 'granted':
-      yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
-      return
+  const result = yield Saga.callPromise(askForContactPermissions, state, logger)
+  if (result && thenToggleImportOn) {
+    yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
   }
-  yield decrementAction
+  yield Saga.sequentially([
+    Saga.put(SettingsGen.createLoadedContactPermissions({status: result})),
+    Saga.put(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey})),
+  ])
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
@@ -491,8 +481,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainGenerator<SettingsGen.RequestContactPermissionsPayload>(
     SettingsGen.requestContactPermissions,
-    requestContactsPermission,
-    'requestContactsPermission'
+    requestContactPermissions,
+    'requestContactPermissions'
   )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

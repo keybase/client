@@ -19,8 +19,7 @@ const disabledDescription =
 
 const ManageContacts = (props: Props) => {
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
-  const contactsImported =
-    Container.useSelector(s => s.settings.contacts.importEnabled) && status === 'granted'
+  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
   const dispatch = Container.useDispatch()
   if (contactsImported === null) {
     dispatch(SettingsGen.createLoadContactImportEnabled())
@@ -42,23 +41,30 @@ const ManageContacts = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
       <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
-        {status === 'denied' && Styles.isIOS && (
+        {/* TODO banner for after you've successfully imported contacts */}
+        {status === 'never_ask_again' && (
           <Kb.Banner
             color="red"
-            text="Keybase doesn't have permission to access your contacts."
+            text={
+              contactsImported
+                ? "Contact importing is paused because Keybase doesn't have permission to access your contacts."
+                : "Keybase doesn't have permission to access your contacts."
+            }
             actions={[{onClick: onOpenAppSettings, title: 'Enable in settings.'}]}
           />
         )}
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="Header">Phone Contacts</Kb.Text>
-            <Kb.Text type="BodySmall">{contactsImported ? enabledDescription : disabledDescription}</Kb.Text>
+            <Kb.Text type="BodySmall">
+              {contactsImported && status === 'granted' ? enabledDescription : disabledDescription}
+            </Kb.Text>
             <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
               <Kb.Button
-                disabled={Styles.isIOS && status === 'denied'}
+                disabled={status === 'never_ask_again'}
                 mode="Secondary"
-                label={contactsImported ? 'Remove contacts' : 'Import phone contacts'}
-                type={contactsImported ? 'Danger' : 'Default'}
+                label={contactsImported && status === 'granted' ? 'Remove contacts' : 'Import phone contacts'}
+                type={contactsImported && status === 'granted' ? 'Danger' : 'Default'}
                 onClick={onToggle}
                 small={true}
                 waiting={waiting}

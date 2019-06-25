@@ -52,7 +52,7 @@
       "enabled": "boolean"
     },
     "loadedContactPermissions": {
-      "status": ["'granted'", "'denied'", "'undetermined'"]
+      "status": ["'granted'", "'never_ask_again'", "'undetermined'"]
     },
     "requestContactPermissions": {
       "thenToggleImportOn?": "boolean"
