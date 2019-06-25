@@ -112,6 +112,7 @@ protocol remote {
     string summaryAdvanced;   // one-line summary of the advanced tx
     array<string> operations;   // string representations of each operation in the tx
     union { null, PaymentTrustlineLocal } trustline; // this tx is only a trust line change.
+    array<Asset> path; // for payment paths, the additional hops it took
   }
 
   record PaymentSummaryDirect {

@@ -380,6 +380,13 @@
             "PaymentTrustlineLocal"
           ],
           "name": "trustline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "path"
         }
       ]
     },

@@ -386,6 +386,7 @@ type PaymentSummaryStellar struct {
 	SummaryAdvanced    string                 `codec:"summaryAdvanced" json:"summaryAdvanced"`
 	Operations         []string               `codec:"operations" json:"operations"`
 	Trustline          *PaymentTrustlineLocal `codec:"trustline,omitempty" json:"trustline,omitempty"`
+	Path               []Asset                `codec:"path" json:"path"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -429,6 +430,17 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Trustline),
+		Path: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Path),
 	}
 }
 
