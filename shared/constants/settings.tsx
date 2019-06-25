@@ -75,11 +75,16 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
   verificationState: null,
 })
 
+export const makeContacts = I.Record<Types._ContactsState>({
+  importEnabled: null,
+  permissionStatus: 'unknown',
+})
+
 export const makeState = I.Record<Types._State>({
   allowDeleteAccount: false,
   chat: makeChat(),
   checkPasswordIsCorrect: null,
-  contactImportEnabled: null,
+  contacts: makeContacts(),
   didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),

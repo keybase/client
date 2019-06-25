@@ -45,9 +45,14 @@
       "toggleSearchable?": "boolean",
       "verify?": "boolean"
     },
-    "loadContactImportEnabled": {},
+    "loadContactImportEnabled": {
+      "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
+    },
     "loadedContactImportEnabled": {
       "enabled": "boolean"
+    },
+    "loadedContactPermissions": {
+      "status": ["'granted'", "'denied'", "'undetermined'"]
     },
     "editContactImportEnabled": {
       "enable": "boolean"

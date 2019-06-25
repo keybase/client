@@ -107,9 +107,16 @@ export type _PhoneNumbersState = {
 }
 export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
+export type _ContactsState = {
+  importEnabled: boolean | null
+  // OS permissions. 'undetermined' -> we haven't asked; 'unknown' -> we haven't checked
+  permissionStatus: 'granted' | 'denied' | 'undetermined' | 'unknown'
+}
+export type ContactsState = I.RecordOf<_ContactsState>
+
 export type _State = {
   allowDeleteAccount: boolean
-  contactImportEnabled: boolean | null
+  contacts: ContactsState
   waitingForResponse: boolean
   invites: InvitesState
   feedback: FeedbackState

@@ -3,6 +3,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
+import * as SettingsGen from '../settings-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -20,6 +21,7 @@ import {
 import NetInfo, {ConnectionType} from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
+import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 // @ts-ignore codemod-issue
@@ -390,6 +392,25 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(e => {})
 
+const loadContactPermissions = async (
+  _,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  logger
+) => {
+  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
+    // only reload on foreground
+    return
+  }
+  const {status: _status} = await Permissions.getAsync(Permissions.CONTACTS)
+  logger.info(`OS status: ${_status}`)
+  let status = {
+    [Permissions.PermissionStatus.GRANTED]: 'granted',
+    [Permissions.PermissionStatus.DENIED]: 'denied',
+    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined',
+  }[_status]
+  return SettingsGen.createLoadedContactPermissions({status})
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
@@ -407,6 +428,11 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
     ConfigGen.osNetworkStatusChanged,
     updateMobileNetState
+  )
+  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadContactImportEnabled, ConfigGen.mobileAppState],
+    loadContactPermissions,
+    'loadContactPermissions'
   )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

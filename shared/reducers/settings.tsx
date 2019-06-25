@@ -188,7 +188,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
       )
     case SettingsGen.loadedContactImportEnabled:
-      return state.merge({contactImportEnabled: action.payload.enabled})
+      return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
+    case SettingsGen.loadedContactPermissions:
+      return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

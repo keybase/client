@@ -34,6 +34,7 @@ export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedCheckPassword = 'settings:loadedCheckPassword'
 export const loadedContactImportEnabled = 'settings:loadedContactImportEnabled'
+export const loadedContactPermissions = 'settings:loadedContactPermissions'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedProxyData = 'settings:loadedProxyData'
@@ -118,6 +119,7 @@ type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
 type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect: boolean | null}
 type _LoadedContactImportEnabledPayload = {readonly enabled: boolean}
+type _LoadedContactPermissionsPayload = {readonly status: 'granted' | 'denied' | 'undetermined'}
 type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
 type _LoadedLockdownModePayload = {readonly status: boolean | null}
 type _LoadedProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
@@ -194,6 +196,12 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
 export const createClearPhoneNumberVerification = (
   payload: _ClearPhoneNumberVerificationPayload
 ): ClearPhoneNumberVerificationPayload => ({payload, type: clearPhoneNumberVerification})
+/**
+ * Load whether config says we've enabled contact importing and check OS contacts permission status.
+ */
+export const createLoadContactImportEnabled = (
+  payload: _LoadContactImportEnabledPayload
+): LoadContactImportEnabledPayload => ({payload, type: loadContactImportEnabled})
 /**
  * Refresh unfurl settings
  */
@@ -284,9 +292,6 @@ export const createInvitesSentError = (payload: _InvitesSentPayloadError): Invit
   payload,
   type: invitesSent,
 })
-export const createLoadContactImportEnabled = (
-  payload: _LoadContactImportEnabledPayload
-): LoadContactImportEnabledPayload => ({payload, type: loadContactImportEnabled})
 export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload): LoadHasRandomPwPayload => ({
   payload,
   type: loadHasRandomPw,
@@ -312,6 +317,9 @@ export const createLoadedCheckPassword = (
 export const createLoadedContactImportEnabled = (
   payload: _LoadedContactImportEnabledPayload
 ): LoadedContactImportEnabledPayload => ({payload, type: loadedContactImportEnabled})
+export const createLoadedContactPermissions = (
+  payload: _LoadedContactPermissionsPayload
+): LoadedContactPermissionsPayload => ({payload, type: loadedContactPermissions})
 export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): LoadedHasRandomPwPayload => ({
   payload,
   type: loadedHasRandomPw,
@@ -502,6 +510,10 @@ export type LoadedContactImportEnabledPayload = {
   readonly payload: _LoadedContactImportEnabledPayload
   readonly type: typeof loadedContactImportEnabled
 }
+export type LoadedContactPermissionsPayload = {
+  readonly payload: _LoadedContactPermissionsPayload
+  readonly type: typeof loadedContactPermissions
+}
 export type LoadedHasRandomPwPayload = {
   readonly payload: _LoadedHasRandomPwPayload
   readonly type: typeof loadedHasRandomPw
@@ -665,6 +677,7 @@ export type Actions =
   | LoadSettingsPayload
   | LoadedCheckPasswordPayload
   | LoadedContactImportEnabledPayload
+  | LoadedContactPermissionsPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
   | LoadedProxyDataPayload

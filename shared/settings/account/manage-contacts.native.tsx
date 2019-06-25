@@ -17,7 +17,7 @@ const disabledDescription =
   'Import your phone contacts and start encrypted chats with your friends. Your contacts never leave this device.'
 
 const ManageContacts = (props: Props) => {
-  const contactsImported = Container.useSelector(s => s.settings.contactImportEnabled)
+  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
   const dispatch = Container.useDispatch()
   if (contactsImported === null) {
     dispatch(SettingsGen.createLoadContactImportEnabled())

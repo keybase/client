@@ -627,7 +627,7 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
-const loadContactImportEnabled = async (state: TypedState, _2, logger) => {
+const loadContactImportEnabled = async (state: TypedState, _, logger) => {
   if (!state.config.username) {
     logger.warn('no username')
     return
@@ -662,6 +662,12 @@ const editContactImportEnabled = (
         Constants.importContactsWaitingKey
       ).then(() => SettingsGen.createLoadContactImportEnabled())
     : logger.warn('no username')
+
+const loadOrDeleteContacts = (
+  state: TypedState,
+  action: SettingsGen.EditContactImportEnabledPayload,
+  logger
+) => {}
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
@@ -756,6 +762,11 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.editContactImportEnabled,
     editContactImportEnabled,
     'editContactImportEnabled'
+  )
+  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload>(
+    SettingsGen.editContactImportEnabled,
+    loadOrDeleteContacts,
+    'loadOrDeleteContacts'
   )
 }
 
