@@ -622,6 +622,14 @@ const zeroSourceAccount = "00000000000000000000000000000000000000000000000000000
 func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *stellarnet.ValidatedStellarURI, error) {
 	validated, err := stellarnet.ValidateStellarURI(uri, getter)
 	if err != nil {
+		switch err.(type) {
+		case stellarnet.ErrNetworkWellKnownOrigin, stellarnet.ErrInvalidWellKnownOrigin:
+			// format these errors a little nicer for frontend to use directly
+			domain, xerr := stellarnet.UnvalidatedStellarURIOriginDomain(uri)
+			if xerr == nil {
+				return nil, nil, fmt.Errorf("This Stellar link claims to be signed by %s, but the Keybase app cannot currently verify the signature came from %s. Sorry, there's nothing you can do with this Stellar link.", domain, domain)
+			}
+		}
 		return nil, nil, err
 	}
 

@@ -15,17 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type fakeUIRouter struct {
-	libkb.UIRouter
-	ui libkb.ChatUI
-}
-
-func (f *fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
-	return f.ui, nil
-}
-
-func (f *fakeUIRouter) Shutdown() {}
-
 type testGiphySearcher struct {
 	waitForCancel bool
 	waitingCh     chan struct{}
@@ -67,7 +56,7 @@ func TestGiphyPreview(t *testing.T) {
 	uid := gregor1.UID{1, 2, 3, 4}
 	convID := chat1.ConversationID{1, 2, 3, 4}
 	ui := kbtest.NewChatUI()
-	g.UIRouter = &fakeUIRouter{ui: ui}
+	g.UIRouter = kbtest.NewMockUIRouter(ui)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	timeout := 20 * time.Second
 

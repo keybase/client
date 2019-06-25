@@ -60,7 +60,7 @@ func (e *Extractor) getExemptionList(uid gregor1.UID) (res *WhitelistExemptionLi
 
 func (e *Extractor) isAutoWhitelist(domain string) bool {
 	switch domain {
-	case "giphy.com":
+	case "giphy.com", types.MapsDomain:
 		return true
 	}
 	return false

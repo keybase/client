@@ -43,11 +43,7 @@ func (a *MobileAppState) NextUpdate(lastState *keybase1.MobileAppState) chan key
 	return ch
 }
 
-// Update updates the current app state, and notifies any waiting calls from NextUpdate
-func (a *MobileAppState) Update(state keybase1.MobileAppState) {
-	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), func() error { return nil })()
-	a.Lock()
-	defer a.Unlock()
+func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 	if a.state != state {
 		a.G().Log.Debug("MobileAppState.Update: useful update: %v, we are currently in state: %v",
 			state, a.state)
@@ -68,6 +64,26 @@ func (a *MobileAppState) Update(state keybase1.MobileAppState) {
 		a.G().Log.Debug("MobileAppState.Update: ignoring update: %v, we are currently in state: %v",
 			state, a.state)
 	}
+}
+
+func (a *MobileAppState) UpdateWithCheck(state keybase1.MobileAppState,
+	check func(keybase1.MobileAppState) bool) {
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.UpdateWithCheck(%v)", state), func() error { return nil })()
+	a.Lock()
+	defer a.Unlock()
+	if check(a.state) {
+		a.updateLocked(state)
+	} else {
+		a.G().Log.Debug("MobileAppState.UpdateWithCheck: skipping update, failed check")
+	}
+}
+
+// Update updates the current app state, and notifies any waiting calls from NextUpdate
+func (a *MobileAppState) Update(state keybase1.MobileAppState) {
+	defer a.G().Trace(fmt.Sprintf("MobileAppState.Update(%v)", state), func() error { return nil })()
+	a.Lock()
+	defer a.Unlock()
+	a.updateLocked(state)
 }
 
 // State returns the current app state

@@ -1532,6 +1532,13 @@
           "name": "title"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LocationWatchID",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
     }
   ],
   "messages": {
@@ -1914,14 +1921,27 @@
       ],
       "response": null
     },
-    "chatGetCoordinate": {
+    "chatWatchPosition": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": "Coordinate"
+      "response": "LocationWatchID"
+    },
+    "chatClearWatch": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "LocationWatchID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

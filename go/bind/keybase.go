@@ -561,6 +561,9 @@ func AppDidEnterBackground() bool {
 	case len(convs) > 0:
 		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in progress")
 		stayRunning = true
+	case kbChatCtx.LiveLocationTracker.ActivelyTracking(ctx):
+		kbCtx.Log.Debug("AppDidEnterBackground: active live location in progress")
+		stayRunning = true
 	case kbChatCtx.CoinFlipManager.HasActiveGames(ctx):
 		kbCtx.Log.Debug("AppDidEnterBackground: active coin flip games in progress")
 		stayRunning = true
