@@ -46,7 +46,7 @@ function makeDefaultButtons(onConfirm, confirmLabel, onDismiss?, dismissLabel?) 
 const AddEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {},
+    onConfirm: () => {}, // TODO: See Y2K-187.
     onDismiss: onSkipTodo('addEmail', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -58,7 +58,7 @@ const AddEmailConnector = connect(
 const AddPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {},
+    onConfirm: () => {}, // TODO: See Y2K-187.
     onDismiss: onSkipTodo('addPhoneNumber', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -252,7 +252,7 @@ const TeamShowcaseConnector = connect(
 const VerifyAllEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {},
+    onConfirm: () => {}, // TODO: See Y2K-187.
     onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   }),
   (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
@@ -275,7 +275,7 @@ const VerifyAllEmailConnector = connect(
 const VerifyAllPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {},
+    onConfirm: () => {}, // TODO: See Y2K-187.
     onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   }),
   (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
@@ -298,7 +298,7 @@ const VerifyAllPhoneNumberConnector = connect(
 const LegacyEmailVisibilityConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {},
+    onConfirm: () => {}, // TODO: See Y2K-187.
     onDismiss: onSkipTodo('legacyEmailVisibility', dispatch),
   }),
   (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
