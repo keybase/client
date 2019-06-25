@@ -758,7 +758,7 @@ protocol local {
     string memoType;          // required if memo exists
 
     // keybase-specific pay fields
-    string displayAmountFiat; // "$1.23 USD" (the worth of amount if XLM in user's display currency)
+    string displayAmountFiat; // "$1.23 USD" (the worth of amount in user's display currency if asset being sent is XLM)
     string availableToSendNative;
     string availableToSendFiat;
   }

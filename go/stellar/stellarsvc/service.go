@@ -679,11 +679,11 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		if availableXLM == "" {
 			availableXLM = "0"
 		}
-		availableAmount, err := stellarnet.ConvertXLMToOutside(availableXLM, rate.Rate)
+		fmtAvailableAmountXLM, err := stellar.FormatAmount(mctx, availableXLM, false, stellarnet.Round)
 		if err != nil {
 			return nil, nil, err
 		}
-		fmtAvailableAmount, err := stellar.FormatAmount(mctx, availableAmount, false, stellarnet.Round)
+		availableAmount, err := stellarnet.ConvertXLMToOutside(availableXLM, rate.Rate)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -691,7 +691,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		if err != nil {
 			return nil, nil, err
 		}
-		local.AvailableToSendNative = fmtAvailableAmount
+		local.AvailableToSendNative = fmtAvailableAmountXLM + " XLM"
 		local.AvailableToSendFiat = fmtAvailableWorth
 	}
 
