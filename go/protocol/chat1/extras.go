@@ -2378,3 +2378,11 @@ func (o *SenderSendOptions) GetJoinMentionsAs() *ConversationMemberStatus {
 	}
 	return o.JoinMentionsAs
 }
+
+func (c Coordinate) IsZero() bool {
+	return c.Lat == 0 && c.Lon == 0
+}
+
+func (c Coordinate) Eq(o Coordinate) bool {
+	return c.Lat == o.Lat && c.Lon == o.Lon
+}

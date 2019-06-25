@@ -8,7 +8,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"sync"
@@ -96,26 +95,12 @@ func (no *NodeObfuscator) obfuscateWithHasher(
 	// Look up two words based on the first three bytes of the mac.
 	// (Each word takes 11 bits to lookup a unique word among the 2048
 	// secret words.)
-	first := int(buf[0])
-	// First 8 bits are from buf[0].
-	first <<= 3
-	// Last 3 bits are the first 3 bits of buf[1].
-	const first3 = 0x7 << 5
-	first |= ((int(buf[1]) & first3) >> 5)
-	if float64(first) >= math.Exp2(11) {
-		panic(fmt.Sprintf("Generated %d from 11 bits", first))
-	}
 
-	// First 5 bits are the last 5 bits of buf[1].
-	const last5 = 0x1f
-	second := int(buf[1]) & last5
-	second <<= 6
-	// Last 6 bits are the first 6 bits of buf[2].
-	const first6 = 0x3f << 2
-	second |= ((int(buf[2]) & first6) >> 2)
-	if float64(second) >= math.Exp2(11) {
-		panic(fmt.Sprintf("Generated %d from 11 bits", second))
-	}
+	// Put the first 22 bits in an int.
+	b := (int(buf[0])<<16 | int(buf[1])<<8 | int(buf[2])) >> 2
+
+	second := b & (1<<11 - 1) // second 11 bits are the second word.
+	first := b >> 11          // first 11 bits are the first word.
 
 	firstWord := libkb.SecWord(first)
 	secondWord := libkb.SecWord(second)

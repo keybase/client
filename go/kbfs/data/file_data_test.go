@@ -30,7 +30,11 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, tlf.Private)
-	file := Path{FolderBranch{Tlf: id}, []PathNode{{ptr, "file"}}}
+	file := Path{
+		FolderBranch{Tlf: id},
+		[]PathNode{{ptr, NewPathPartString("file", nil)}},
+		nil,
+	}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
 	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10, 0}
 	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)

@@ -53,6 +53,15 @@ const props = {
   yourRole: 'senderOnly' as 'senderOnly',
 }
 
+const partialAsset = {
+  code: '',
+  desc: '',
+  infoUrl: '',
+  infoUrlText: '',
+  issuerName: '',
+  type: '',
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/Transaction Details', module)
     .addDecorator(story => (
@@ -231,6 +240,114 @@ const load = () => {
           'Paid 1.0000000 XLM to account GA5MKLM3B2L4SXXXXFZAIX54KVUTEKIXRB2XOKAGYVTQMWD77AMKUD2G',
           'Set master key weight to 100',
         ]}
+      />
+    ))
+    .add('Trustline add', () => (
+      <TransactionDetails
+        {...props}
+        counterparty=""
+        counterpartyType="stellarPublicKey"
+        feeChargedDescription="0.0000100 XLM"
+        issuerDescription="Unknown issuer"
+        memo=""
+        recipientAccountID={null}
+        isAdvanced={true}
+        summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+        operations={[
+          'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+        ]}
+        trustline={{
+          asset: {
+            ...partialAsset,
+            ...{
+              code: 'WBEZ',
+              issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+              verifiedDomain: 'strongmold.co',
+            },
+          },
+          remove: true,
+        }}
+      />
+    ))
+    .add('Trustline add (no issuer domain)', () => (
+      <TransactionDetails
+        {...props}
+        counterparty=""
+        counterpartyType="stellarPublicKey"
+        feeChargedDescription="0.0000100 XLM"
+        issuerDescription="Unknown issuer"
+        memo=""
+        recipientAccountID={null}
+        isAdvanced={true}
+        summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+        operations={[
+          'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+        ]}
+        trustline={{
+          asset: {
+            ...partialAsset,
+            ...{
+              code: 'WBEZ',
+              issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+              verifiedDomain: '',
+            },
+          },
+          remove: true,
+        }}
+      />
+    ))
+    .add('Trustline remove', () => (
+      <TransactionDetails
+        {...props}
+        counterparty=""
+        counterpartyType="stellarPublicKey"
+        feeChargedDescription="0.0000100 XLM"
+        issuerDescription="Unknown issuer"
+        memo=""
+        recipientAccountID={null}
+        isAdvanced={true}
+        summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+        operations={[
+          'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+        ]}
+        trustline={{
+          asset: {
+            ...partialAsset,
+            ...{
+              code: 'WBEZ',
+              issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+              verifiedDomain: 'strongmold.co',
+            },
+          },
+          remove: true,
+        }}
+      />
+    ))
+    .add('Trustline remove (no issuer domain)', () => (
+      <TransactionDetails
+        {...props}
+        counterparty=""
+        counterpartyType="stellarPublicKey"
+        feeChargedDescription="0.0000100 XLM"
+        issuerDescription="Unknown issuer"
+        memo=""
+        recipientAccountID={null}
+        isAdvanced={true}
+        summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+        operations={[
+          'Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+        ]}
+        trustline={{
+          asset: {
+            ...partialAsset,
+            ...{
+              code: 'WBEZ',
+              issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+              verifiedDomain: '',
+            },
+          },
+          remove: true,
+        }}
       />
     ))
 }

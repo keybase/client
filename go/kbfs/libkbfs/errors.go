@@ -68,7 +68,7 @@ func (e InvalidParentPathError) Error() string {
 // DirNotEmptyError indicates that the user tried to unlink a
 // subdirectory that was not empty.
 type DirNotEmptyError struct {
-	Name string
+	Name data.PathPartString
 }
 
 // Error implements the error interface for DirNotEmptyError
@@ -584,7 +584,7 @@ func (e NoChainFoundError) Error() string {
 // DisallowedPrefixError indicates that the user attempted to create
 // an entry using a name with a disallowed prefix.
 type DisallowedPrefixError struct {
-	name   string
+	name   data.PathPartString
 	prefix string
 }
 
@@ -662,16 +662,17 @@ func (e InvalidOpError) Error() string {
 // NoSuchFolderListError indicates that the user tried to access a
 // subdirectory of /keybase that doesn't exist.
 type NoSuchFolderListError struct {
-	Name     string
-	PrivName string
-	PubName  string
+	Name      string
+	NameToLog string
+	PrivName  string
+	PubName   string
 }
 
 // Error implements the error interface for NoSuchFolderListError
 func (e NoSuchFolderListError) Error() string {
 	return fmt.Sprintf("/keybase/%s is not a Keybase folder. "+
 		"All folders begin with /keybase/%s or /keybase/%s.",
-		e.Name, e.PrivName, e.PubName)
+		e.NameToLog, e.PrivName, e.PubName)
 }
 
 // UnexpectedUnmergedPutError indicates that we tried to do an

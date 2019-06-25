@@ -212,8 +212,9 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		}
 		return n, nil
 
-	case idutil.NoSuchNameError, idutil.BadTLFNameError:
-		// Invalid public TLF.
+	case idutil.NoSuchNameError, idutil.BadTLFNameError,
+		tlf.NoSuchUserError, idutil.NoSuchUserError:
+		// Invalid TLF.
 		return nil, fuse.ENOENT
 
 	default:
@@ -313,6 +314,11 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 
 	case idutil.TlfNameNotCanonical:
 		return nil
+
+	case idutil.NoSuchNameError, idutil.BadTLFNameError,
+		tlf.NoSuchUserError, idutil.NoSuchUserError:
+		// Invalid TLF.
+		return fuse.ENOENT
 
 	default:
 		return err

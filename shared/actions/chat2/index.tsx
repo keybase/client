@@ -25,7 +25,7 @@ import * as Router2Constants from '../../constants/router2'
 import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isMobile} from '../../constants/platform'
+import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -2846,24 +2846,41 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
   })
 }
 
-const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload, logger) => {
+const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositionPayload, logger) => {
   const response = action.payload.response
   if (isMobile) {
-    navigator.geolocation.getCurrentPosition(
+    const watchID = navigator.geolocation.watchPosition(
       pos =>
-        response.result({accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude}),
+        RPCChatTypes.localLocationUpdateRpcPromise({
+          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+        }),
       err => logger.warn(err.message),
-      {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
+    response.result(watchID)
   } else {
-    // doesn't really work and is disabled in the service, so just stick us in SF
-    response.result({
-      accuracy: 21.6747,
-      lat: 37.785834,
-      lon: -122.406417,
-    })
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.80424, lon: -73.962962},
+      })
+    }, 1000)
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.756325, lon: -73.992533},
+      })
+    }, 6000)
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.704454, lon: -74.010893},
+      })
+    }, 10000)
+    response.result(10)
   }
   return []
+}
+
+const onChatClearWatch = (state, action: EngineGen.Chat1ChatUiChatClearWatchPayload, logger) => {
+  navigator.geolocation.clearWatch(action.payload.params.id)
 }
 
 const resolveMaybeMention = (state, action: Chat2Gen.ResolveMaybeMentionPayload) => {
@@ -3484,11 +3501,16 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,
     onChatMaybeMentionUpdate
   )
-  getEngine().registerCustomResponse('chat.1.chatUi.chatGetCoordinate')
-  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGetCoordinatePayload>(
-    EngineGen.chat1ChatUiChatGetCoordinate,
-    onChatGetCoordinate,
-    'onChatGetCoordinate'
+  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatWatchPositionPayload>(
+    EngineGen.chat1ChatUiChatWatchPosition,
+    onChatWatchPosition,
+    'onChatWatchPosition'
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatClearWatchPayload>(
+    EngineGen.chat1ChatUiChatClearWatch,
+    onChatClearWatch,
+    'onChatClearWatch'
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)

@@ -111,6 +111,7 @@ protocol remote {
     boolean isAdvanced;     // true for non-payment transactions
     string summaryAdvanced;   // one-line summary of the advanced tx
     array<string> operations;   // string representations of each operation in the tx
+    union { null, PaymentTrustlineLocal } trustline; // this tx is only a trust line change.
   }
 
   record PaymentSummaryDirect {

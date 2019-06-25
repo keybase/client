@@ -1332,6 +1332,7 @@ func (j *JournalManager) shutdownExistingJournalsLocked(ctx context.Context) {
 	j.tlfJournals = make(map[tlf.ID]*tlfJournal)
 	j.currentUID = keybase1.UID("")
 	j.currentVerifyingKey = kbfscrypto.VerifyingKey{}
+	j.clearedConflictTlfs = make(map[clearedConflictKey]clearedConflictVal)
 }
 
 // shutdownExistingJournals shuts down all write journals, sets the

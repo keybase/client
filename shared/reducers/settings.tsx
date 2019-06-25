@@ -95,7 +95,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       )
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
       return state.setIn(
-        ['phone', 'phones'],
+        ['phoneNumbers', 'phones'],
         I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
       )
     case SettingsGen.loadedRememberPassword:

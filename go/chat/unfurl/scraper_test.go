@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -18,6 +19,7 @@ import (
 	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -340,7 +342,7 @@ func TestMapScraper(t *testing.T) {
 	lat := 40.800099
 	lon := -73.969341
 	acc := 65.00
-	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", mapsDomain, lat, lon, acc)
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f", types.MapsDomain, lat, lon, acc)
 	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
 	require.NoError(t, err)
 	typ, err := unfurl.UnfurlType()
@@ -349,7 +351,75 @@ func TestMapScraper(t *testing.T) {
 	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lat)))
 	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lon)))
 	require.NotNil(t, unfurl.Maps().ImageUrl)
-	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, maps.MapsProxy))
-	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
-	require.True(t, strings.Contains(*unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, maps.MapsProxy))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
+}
+
+type testingLiveLocationTracker struct {
+	coords []chat1.Coordinate
+}
+
+func (t *testingLiveLocationTracker) Start(ctx context.Context, uid gregor1.UID) {}
+func (t *testingLiveLocationTracker) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (t *testingLiveLocationTracker) StartTracking(ctx context.Context, convID chat1.ConversationID,
+	msgID chat1.MessageID, endTime time.Time) {
+}
+
+func (t *testingLiveLocationTracker) GetCurrentPosition(ctx context.Context, convID chat1.ConversationID,
+	msgID chat1.MessageID) {
+}
+
+func (t *testingLiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Coordinate) {
+	t.coords = append(t.coords, coord)
+}
+
+func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key types.LiveLocationKey) []chat1.Coordinate {
+	return t.coords
+}
+
+func (t *testingLiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
+	return false
+}
+
+func (t *testingLiveLocationTracker) StopAllTracking(ctx context.Context) {}
+
+func TestLiveMapScraper(t *testing.T) {
+	tc := libkb.SetupTest(t, "liveMapScraper", 1)
+	defer tc.Cleanup()
+	liveLocation := &testingLiveLocationTracker{}
+	g := globals.NewContext(tc.G, &globals.ChatContext{
+		ExternalAPIKeySource: types.DummyExternalAPIKeySource{},
+		LiveLocationTracker:  liveLocation,
+	})
+	scraper := NewScraper(g)
+	first := chat1.Coordinate{
+		Lat:      40.800099,
+		Lon:      -73.969341,
+		Accuracy: 65.00,
+	}
+	watchID := chat1.LocationWatchID(20)
+	liveLocation.LocationUpdate(context.TODO(), chat1.Coordinate{
+		Lat:      40.756325,
+		Lon:      -73.992533,
+		Accuracy: 65,
+	})
+	liveLocation.LocationUpdate(context.TODO(), chat1.Coordinate{
+		Lat:      40.704454,
+		Lon:      -74.010893,
+		Accuracy: 65,
+	})
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d", types.MapsDomain, first.Lat,
+		first.Lon, first.Accuracy, watchID)
+	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.NotZero(t, len(unfurl.Maps().ImageUrl))
 }
