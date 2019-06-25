@@ -404,9 +404,9 @@ const loadContactPermissions = async (
   const {status: _status} = await Permissions.getAsync(Permissions.CONTACTS)
   logger.info(`OS status: ${_status}`)
   let status = {
-    [Permissions.PermissionStatus.GRANTED]: 'granted',
-    [Permissions.PermissionStatus.DENIED]: 'denied',
-    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined',
+    [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
+    [Permissions.PermissionStatus.DENIED]: 'denied' as const,
+    [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
   }[_status]
   return SettingsGen.createLoadedContactPermissions({status})
 }
