@@ -41,6 +41,8 @@ export type _TeamBuildingSubState = {
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount
   teamBuildingFinishedTeam: I.Set<User>
+  teamBuildingFinishedSelectedRole: TeamRoleType
+  teamBuildingFinishedSendNotification: boolean
   teamBuildingSearchQuery: Query
   teamBuildingSelectedService: ServiceIdWithContact
   teamBuildingSearchLimit: number

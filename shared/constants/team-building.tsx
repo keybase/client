@@ -37,6 +37,8 @@ function followStateHelperWithId(
 }
 
 const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
+  teamBuildingFinishedSelectedRole: 'writer',
+  teamBuildingFinishedSendNotification: true,
   teamBuildingFinishedTeam: I.Set(),
   teamBuildingSearchLimit: 11,
   teamBuildingSearchQuery: '',

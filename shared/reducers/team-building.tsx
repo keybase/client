@@ -35,9 +35,14 @@ export default function(
       return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
     }
     case TeamBuildingGen.finishedTeamBuilding:
+      const initialState = Constants.makeSubState()
       return state.merge({
+        teamBuildingFinishedSelectedRole: state.teamBuildingSelectedRole,
+        teamBuildingFinishedSendNotification: state.teamBuildingSendNotification,
         teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
-        teamBuildingTeamSoFar: I.Set<Types.User>(),
+        teamBuildingSelectedRole: initialState.teamBuildingSelectedRole,
+        teamBuildingSendNotification: initialState.teamBuildingSendNotification,
+        teamBuildingTeamSoFar: initialState.teamBuildingTeamSoFar,
       })
 
     case TeamBuildingGen.fetchedUserRecs:
