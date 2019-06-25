@@ -19,6 +19,7 @@ func NewCmdSimpleFSDebug(
 		Subcommands: append([]cli.Command{
 			NewCmdSimpleFSDebugDump(cl, g),
 			NewCmdSimpleFSDebugObfuscate(cl, g),
+			NewCmdSimpleFSDebugDeobfuscate(cl, g),
 		}),
 	}
 }
