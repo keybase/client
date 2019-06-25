@@ -5,13 +5,19 @@ import * as Sb from '../../stories/storybook'
 import SEP7Confirm from '.'
 
 const commonProps = {
+  availableToSendFiat: '$12.34 USD',
+  availableToSendNative: '20 XLM',
   callbackURL: null,
+  displayAmountFiat: '$23.45 USD',
+  displayAmountNative: '40 XLM',
+  error: '',
   loading: false,
   memo: '',
   memoType: 'MEMO_NONE',
   onAcceptPay: Sb.action('onAcceptPay'),
   onAcceptTx: Sb.action('onAcceptTx'),
   onBack: Sb.action('onBack'),
+  onChangeAmount: Sb.action('onChangeAmount'),
   waiting: false,
   waitingKey: 'false',
 }

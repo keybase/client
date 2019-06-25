@@ -8,6 +8,18 @@ import HiddenString from '../util/hidden-string'
 
 const initialState: Types.State = Constants.makeState()
 
+const reduceAssetMap = (
+  assetMap: I.Map<Types.AssetID, Types.AssetDescription>,
+  assets: Array<Types.AssetDescription>
+): I.Map<Types.AssetID, Types.AssetDescription> =>
+  assetMap.withMutations(assetMapMutable =>
+    assets.forEach(asset =>
+      assetMapMutable.update(Types.assetDescriptionToAssetID(asset), oldAsset =>
+        asset.equals(oldAsset) ? oldAsset : asset
+      )
+    )
+  )
+
 export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
@@ -381,6 +393,56 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails:
       return state.merge({airdropDetails: action.payload.details})
+    case WalletsGen.setTrustlineExpanded:
+      return state.update('trustline', trustline =>
+        trustline.update('expandedAssets', expandedAssets =>
+          action.payload.expanded
+            ? expandedAssets.add(action.payload.assetID)
+            : expandedAssets.delete(action.payload.assetID)
+        )
+      )
+    case WalletsGen.setTrustlineAcceptedAssets:
+      return state.update('trustline', trustline =>
+        trustline
+          .update('acceptedAssets', acceptedAssets =>
+            acceptedAssets.update(action.payload.accountID, accountAcceptedAssets =>
+              action.payload.limits.equals(accountAcceptedAssets)
+                ? accountAcceptedAssets
+                : action.payload.limits
+            )
+          )
+          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+      )
+    case WalletsGen.setTrustlinePopularAssets:
+      return state.update('trustline', trustline =>
+        trustline.withMutations(trustline =>
+          trustline
+            .set(
+              'popularAssets',
+              I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
+            )
+            .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+            .set('totalAssetsCount', action.payload.totalCount)
+            .set('loaded', true)
+        )
+      )
+    case WalletsGen.setTrustlineSearchText:
+      return action.payload.text
+        ? state
+        : state.update('trustline', trustline =>
+            trustline.update('searchingAssets', searchingAssets => searchingAssets.clear())
+          )
+    case WalletsGen.setTrustlineSearchResults:
+      return state.update('trustline', trustline =>
+        trustline
+          .set(
+            'searchingAssets',
+            I.List(action.payload.assets.map(asset => Types.assetDescriptionToAssetID(asset)))
+          )
+          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+      )
+    case WalletsGen.clearTrustlineSearchResults:
+      return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
@@ -421,6 +483,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.acceptSEP7Pay:
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.validateSEP7Link:
+    case WalletsGen.refreshTrustlineAcceptedAssets:
+    case WalletsGen.refreshTrustlinePopularAssets:
       return state
     default:
       return state

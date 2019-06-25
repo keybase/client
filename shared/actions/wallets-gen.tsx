@@ -16,6 +16,7 @@ export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addNewPayment = 'wallets:addNewPayment'
+export const addTrustline = 'wallets:addTrustline'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
@@ -35,9 +36,11 @@ export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearBuiltRequest = 'wallets:clearBuiltRequest'
 export const clearErrors = 'wallets:clearErrors'
 export const clearNewPayments = 'wallets:clearNewPayments'
+export const clearTrustlineSearchResults = 'wallets:clearTrustlineSearchResults'
 export const createNewAccount = 'wallets:createNewAccount'
 export const createdNewAccount = 'wallets:createdNewAccount'
 export const deleteAccount = 'wallets:deleteAccount'
+export const deleteTrustline = 'wallets:deleteTrustline'
 export const deletedAccount = 'wallets:deletedAccount'
 export const didSetAccountAsDefault = 'wallets:didSetAccountAsDefault'
 export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
@@ -68,6 +71,8 @@ export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const pendingPaymentsReceived = 'wallets:pendingPaymentsReceived'
 export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
+export const refreshTrustlineAcceptedAssets = 'wallets:refreshTrustlineAcceptedAssets'
+export const refreshTrustlinePopularAssets = 'wallets:refreshTrustlinePopularAssets'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
@@ -94,6 +99,11 @@ export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
 export const setSEP7Tx = 'wallets:setSEP7Tx'
+export const setTrustlineAcceptedAssets = 'wallets:setTrustlineAcceptedAssets'
+export const setTrustlineExpanded = 'wallets:setTrustlineExpanded'
+export const setTrustlinePopularAssets = 'wallets:setTrustlinePopularAssets'
+export const setTrustlineSearchResults = 'wallets:setTrustlineSearchResults'
+export const setTrustlineSearchText = 'wallets:setTrustlineSearchText'
 export const showTransaction = 'wallets:showTransaction'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropDetails = 'wallets:updateAirdropDetails'
@@ -116,6 +126,7 @@ type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
 type _AddNewPaymentPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
+type _AddTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _AssetsReceivedPayload = {readonly accountID: Types.AccountID; readonly assets: Array<Types.Assets>}
 type _BadgesUpdatedPayload = {readonly accounts: Array<RPCTypes.WalletAccountInfo>}
 type _BuildPaymentPayload = void
@@ -140,6 +151,7 @@ type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
 type _ClearErrorsPayload = void
 type _ClearNewPaymentsPayload = {readonly accountID: Types.AccountID}
+type _ClearTrustlineSearchResultsPayload = void
 type _CreateNewAccountPayload = {
   readonly name: string
   readonly showOnCreation?: boolean
@@ -152,6 +164,7 @@ type _CreatedNewAccountPayload = {
 }
 type _CreatedNewAccountPayloadError = {readonly name: string; readonly error: string}
 type _DeleteAccountPayload = {readonly accountID: Types.AccountID}
+type _DeleteTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _DeletedAccountPayload = void
 type _DidSetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
 type _DisplayCurrenciesReceivedPayload = {readonly currencies: Array<Types.Currency>}
@@ -234,6 +247,8 @@ type _RecentPaymentsReceivedPayload = {
   readonly oldestUnread: Types.PaymentID
   readonly payments: Array<Types.PaymentResult>
 }
+type _RefreshTrustlineAcceptedAssetsPayload = {readonly accountID: Types.AccountID}
+type _RefreshTrustlinePopularAssetsPayload = void
 type _RejectDisclaimerPayload = void
 type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = {
@@ -280,6 +295,18 @@ type _SetInflationDestinationPayload = {
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
 type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7ConfirmInfo}
+type _SetTrustlineAcceptedAssetsPayload = {
+  readonly accountID: Types.AccountID
+  readonly assets: Array<Types.AssetDescription>
+  readonly limits: I.Map<Types.AssetID, number>
+}
+type _SetTrustlineExpandedPayload = {readonly expanded: boolean; readonly assetID: Types.AssetID}
+type _SetTrustlinePopularAssetsPayload = {
+  readonly assets: Array<Types.AssetDescription>
+  readonly totalCount: number
+}
+type _SetTrustlineSearchResultsPayload = {readonly assets: Array<Types.AssetDescription>}
+type _SetTrustlineSearchTextPayload = {readonly text: string}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
@@ -921,10 +948,42 @@ export const createValidateSEP7Link = (payload: _ValidateSEP7LinkPayload): Valid
 export const createAccountUpdateReceived = (
   payload: _AccountUpdateReceivedPayload
 ): AccountUpdateReceivedPayload => ({payload, type: accountUpdateReceived})
+export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlinePayload => ({
+  payload,
+  type: addTrustline,
+})
+export const createClearTrustlineSearchResults = (
+  payload: _ClearTrustlineSearchResultsPayload
+): ClearTrustlineSearchResultsPayload => ({payload, type: clearTrustlineSearchResults})
+export const createDeleteTrustline = (payload: _DeleteTrustlinePayload): DeleteTrustlinePayload => ({
+  payload,
+  type: deleteTrustline,
+})
 export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload): HideAirdropBannerPayload => ({
   payload,
   type: hideAirdropBanner,
 })
+export const createRefreshTrustlineAcceptedAssets = (
+  payload: _RefreshTrustlineAcceptedAssetsPayload
+): RefreshTrustlineAcceptedAssetsPayload => ({payload, type: refreshTrustlineAcceptedAssets})
+export const createRefreshTrustlinePopularAssets = (
+  payload: _RefreshTrustlinePopularAssetsPayload
+): RefreshTrustlinePopularAssetsPayload => ({payload, type: refreshTrustlinePopularAssets})
+export const createSetTrustlineAcceptedAssets = (
+  payload: _SetTrustlineAcceptedAssetsPayload
+): SetTrustlineAcceptedAssetsPayload => ({payload, type: setTrustlineAcceptedAssets})
+export const createSetTrustlineExpanded = (
+  payload: _SetTrustlineExpandedPayload
+): SetTrustlineExpandedPayload => ({payload, type: setTrustlineExpanded})
+export const createSetTrustlinePopularAssets = (
+  payload: _SetTrustlinePopularAssetsPayload
+): SetTrustlinePopularAssetsPayload => ({payload, type: setTrustlinePopularAssets})
+export const createSetTrustlineSearchResults = (
+  payload: _SetTrustlineSearchResultsPayload
+): SetTrustlineSearchResultsPayload => ({payload, type: setTrustlineSearchResults})
+export const createSetTrustlineSearchText = (
+  payload: _SetTrustlineSearchTextPayload
+): SetTrustlineSearchTextPayload => ({payload, type: setTrustlineSearchText})
 export const createUpdateAirdropBannerState = (
   payload: _UpdateAirdropBannerStatePayload
 ): UpdateAirdropBannerStatePayload => ({payload, type: updateAirdropBannerState})
@@ -968,6 +1027,7 @@ export type AddNewPaymentPayload = {
   readonly payload: _AddNewPaymentPayload
   readonly type: typeof addNewPayment
 }
+export type AddTrustlinePayload = {readonly payload: _AddTrustlinePayload; readonly type: typeof addTrustline}
 export type AssetsReceivedPayload = {
   readonly payload: _AssetsReceivedPayload
   readonly type: typeof assetsReceived
@@ -1043,6 +1103,10 @@ export type ClearNewPaymentsPayload = {
   readonly payload: _ClearNewPaymentsPayload
   readonly type: typeof clearNewPayments
 }
+export type ClearTrustlineSearchResultsPayload = {
+  readonly payload: _ClearTrustlineSearchResultsPayload
+  readonly type: typeof clearTrustlineSearchResults
+}
 export type CreateNewAccountPayload = {
   readonly payload: _CreateNewAccountPayload
   readonly type: typeof createNewAccount
@@ -1059,6 +1123,10 @@ export type CreatedNewAccountPayloadError = {
 export type DeleteAccountPayload = {
   readonly payload: _DeleteAccountPayload
   readonly type: typeof deleteAccount
+}
+export type DeleteTrustlinePayload = {
+  readonly payload: _DeleteTrustlinePayload
+  readonly type: typeof deleteTrustline
 }
 export type DeletedAccountPayload = {
   readonly payload: _DeletedAccountPayload
@@ -1178,6 +1246,14 @@ export type RecentPaymentsReceivedPayload = {
   readonly payload: _RecentPaymentsReceivedPayload
   readonly type: typeof recentPaymentsReceived
 }
+export type RefreshTrustlineAcceptedAssetsPayload = {
+  readonly payload: _RefreshTrustlineAcceptedAssetsPayload
+  readonly type: typeof refreshTrustlineAcceptedAssets
+}
+export type RefreshTrustlinePopularAssetsPayload = {
+  readonly payload: _RefreshTrustlinePopularAssetsPayload
+  readonly type: typeof refreshTrustlinePopularAssets
+}
 export type RejectDisclaimerPayload = {
   readonly payload: _RejectDisclaimerPayload
   readonly type: typeof rejectDisclaimer
@@ -1273,6 +1349,26 @@ export type SetReadyToReviewPayload = {
   readonly type: typeof setReadyToReview
 }
 export type SetSEP7TxPayload = {readonly payload: _SetSEP7TxPayload; readonly type: typeof setSEP7Tx}
+export type SetTrustlineAcceptedAssetsPayload = {
+  readonly payload: _SetTrustlineAcceptedAssetsPayload
+  readonly type: typeof setTrustlineAcceptedAssets
+}
+export type SetTrustlineExpandedPayload = {
+  readonly payload: _SetTrustlineExpandedPayload
+  readonly type: typeof setTrustlineExpanded
+}
+export type SetTrustlinePopularAssetsPayload = {
+  readonly payload: _SetTrustlinePopularAssetsPayload
+  readonly type: typeof setTrustlinePopularAssets
+}
+export type SetTrustlineSearchResultsPayload = {
+  readonly payload: _SetTrustlineSearchResultsPayload
+  readonly type: typeof setTrustlineSearchResults
+}
+export type SetTrustlineSearchTextPayload = {
+  readonly payload: _SetTrustlineSearchTextPayload
+  readonly type: typeof setTrustlineSearchText
+}
 export type ShowTransactionPayload = {
   readonly payload: _ShowTransactionPayload
   readonly type: typeof showTransaction
@@ -1346,6 +1442,7 @@ export type Actions =
   | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddNewPaymentPayload
+  | AddTrustlinePayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload
@@ -1366,10 +1463,12 @@ export type Actions =
   | ClearBuiltRequestPayload
   | ClearErrorsPayload
   | ClearNewPaymentsPayload
+  | ClearTrustlineSearchResultsPayload
   | CreateNewAccountPayload
   | CreatedNewAccountPayload
   | CreatedNewAccountPayloadError
   | DeleteAccountPayload
+  | DeleteTrustlinePayload
   | DeletedAccountPayload
   | DidSetAccountAsDefaultPayload
   | DisplayCurrenciesReceivedPayload
@@ -1402,6 +1501,8 @@ export type Actions =
   | PaymentsReceivedPayload
   | PendingPaymentsReceivedPayload
   | RecentPaymentsReceivedPayload
+  | RefreshTrustlineAcceptedAssetsPayload
+  | RefreshTrustlinePopularAssetsPayload
   | RejectDisclaimerPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
@@ -1428,6 +1529,11 @@ export type Actions =
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
   | SetSEP7TxPayload
+  | SetTrustlineAcceptedAssetsPayload
+  | SetTrustlineExpandedPayload
+  | SetTrustlinePopularAssetsPayload
+  | SetTrustlineSearchResultsPayload
+  | SetTrustlineSearchTextPayload
   | ShowTransactionPayload
   | UpdateAirdropBannerStatePayload
   | UpdateAirdropDetailsPayload

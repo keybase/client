@@ -204,6 +204,7 @@ export const makeUploads: I.Record.Factory<Types._Uploads> = I.Record({
 } as Types._Uploads)
 
 export const makeTlfs: I.Record.Factory<Types._Tlfs> = I.Record({
+  loaded: false,
   private: I.Map(),
   public: I.Map(),
   team: I.Map(),

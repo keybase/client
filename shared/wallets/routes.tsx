@@ -89,6 +89,7 @@ export const newModalRoutes = {
     upgraded: true,
   },
   setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination, upgraded: true},
+  trustline: {getScreen: () => require('./trustline/container').default, upgraded: true},
   walletOnboarding: {getScreen: () => require('./onboarding/container').default, upgraded: true},
   whatIsStellarModal: {
     getScreen: () => require('./what-is-stellar-modal').default,

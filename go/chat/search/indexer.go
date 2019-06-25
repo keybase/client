@@ -23,10 +23,14 @@ type Indexer struct {
 	sync.Mutex
 
 	// encrypted on-disk storage
-	store    *store
-	pageSize int
-	stopCh   chan chan struct{}
-	started  bool
+	store        *store
+	pageSize     int
+	stopCh       chan chan struct{}
+	suspendCh    chan chan struct{}
+	resumeCh     chan struct{}
+	suspendCount int
+	resumeWait   time.Duration
+	started      bool
 
 	maxSyncConvs   int
 	startSyncDelay time.Duration
@@ -46,6 +50,8 @@ func NewIndexer(g *globals.Context) *Indexer {
 		store:        newStore(g),
 		pageSize:     defaultPageSize,
 		stopCh:       make(chan chan struct{}, 10),
+		suspendCh:    make(chan chan struct{}, 10),
+		resumeWait:   time.Second,
 		cancelSyncCh: make(chan struct{}, 100),
 		pokeSyncCh:   make(chan struct{}, 100),
 	}
@@ -122,9 +128,13 @@ func (idx *Indexer) PokeSync(ctx context.Context) {
 func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 	idx.Lock()
 	stopCh := idx.stopCh
+	suspendCh := idx.suspendCh
 	idx.Unlock()
 	idx.Debug(ctx, "starting SelectiveSync bg loop")
 
+	ticker := libkb.NewBgTicker(time.Hour)
+	after := time.After(idx.startSyncDelay)
+	state := keybase1.MobileAppState_FOREGROUND
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
 	cancelSync := func() {
@@ -158,9 +168,13 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			}
 		}()
 	}
-	ticker := libkb.NewBgTicker(time.Hour)
-	after := time.After(idx.startSyncDelay)
-	state := keybase1.MobileAppState_FOREGROUND
+
+	stopSync := func(ctx context.Context, ch chan struct{}) {
+		idx.Debug(ctx, "stopping SelectiveSync bg loop")
+		cancelSync()
+		ticker.Stop()
+		close(ch)
+	}
 	for {
 		select {
 		case <-idx.cancelSyncCh:
@@ -178,11 +192,18 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			default:
 				cancelSync()
 			}
-		case ch := <-stopCh:
-			idx.Debug(ctx, "stopping SelectiveSync bg loop")
+		case ch := <-suspendCh:
 			cancelSync()
-			ticker.Stop()
-			close(ch)
+			// block until we are told to resume or stop.
+			select {
+			case <-ch:
+				time.Sleep(idx.resumeWait)
+			case ch := <-idx.stopCh:
+				stopSync(ctx, ch)
+				return
+			}
+		case ch := <-stopCh:
+			stopSync(ctx, ch)
 			return
 		}
 	}
@@ -201,6 +222,40 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		close(ch)
 	}
 	return ch
+}
+
+func (idx *Indexer) Suspend(ctx context.Context) bool {
+	defer idx.Trace(ctx, func() error { return nil }, "Suspend")()
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		return false
+	}
+	if idx.suspendCount == 0 {
+		idx.Debug(ctx, "Suspend: sending on suspendCh")
+		idx.resumeCh = make(chan struct{})
+		select {
+		case idx.suspendCh <- idx.resumeCh:
+		default:
+			idx.Debug(ctx, "Suspend: failed to suspend loop")
+		}
+	}
+	idx.suspendCount++
+	return true
+}
+
+func (idx *Indexer) Resume(ctx context.Context) bool {
+	defer idx.Trace(ctx, func() error { return nil }, "Resume")()
+	idx.Lock()
+	defer idx.Unlock()
+	if idx.suspendCount > 0 {
+		idx.suspendCount--
+		if idx.suspendCount == 0 && idx.resumeCh != nil {
+			close(idx.resumeCh)
+			return true
+		}
+	}
+	return false
 }
 
 // validBatch verifies the topic type is CHAT

@@ -78,17 +78,18 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])
 
-  const isOnline = props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
+  const isConnected = props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
   React.useEffect(() => {
     // Always triggers whenever something changes if we are not connected.
     // Saga deduplicates redundant checks.
-    isOnline && waitForKbfsDaemon()
-  }, [isOnline, waitForKbfsDaemon])
+    isConnected && waitForKbfsDaemon()
+  }, [isConnected, waitForKbfsDaemon])
 
   useFsLoadEffect({
     path: props.path,
     refreshTag: Types.RefreshTag.Main,
     wantPathMetadata: true,
+    wantTlfs: true,
   })
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {

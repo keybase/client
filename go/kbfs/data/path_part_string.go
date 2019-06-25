@@ -13,6 +13,8 @@ import (
 
 const (
 	prefixToSkipObfsucation = ".kbfs_"
+	prefixFileInfo          = ".kbfs_fileinfo_"
+	suffixConflictStart     = ".conflicted ("
 	tarGzSuffix             = ".tar.gz"
 
 	// extRestoreMaxLen specifies the max length of an extension, such
@@ -27,9 +29,11 @@ const (
 // plaintext data, created using the same `Obfuscator`, should pass
 // equality checks.
 type PathPartString struct {
-	plaintext  string
-	ext        string
-	obfuscator Obfuscator
+	plaintext   string
+	toObfuscate string // if different from `plaintext`
+	ext         string
+	obfuscator  Obfuscator
+	isFileInfo  bool
 }
 
 var _ fmt.Stringer = PathPartString{}
@@ -39,6 +43,7 @@ var _ fmt.Stringer = PathPartString{}
 // `Obfuscator`.
 func NewPathPartString(
 	plaintext string, obfuscator Obfuscator) PathPartString {
+	var toObfuscate string
 	_, ext := SplitFileExtension(plaintext)
 	// Treat the long tarball suffix specially, since it's already
 	// parsed specially by `SplitFileExtension`.  Otherwise, strictly
@@ -48,21 +53,51 @@ func NewPathPartString(
 	if len(ext) > extRestoreMaxLen && ext != tarGzSuffix {
 		ext = ""
 	}
-	conflictedIndex := strings.LastIndex(plaintext, ".conflicted (")
+
+	isFileInfo := false
+	if strings.HasPrefix(plaintext, prefixFileInfo) {
+		toObfuscate = strings.TrimPrefix(plaintext, prefixFileInfo)
+		isFileInfo = true
+	} else if strings.HasPrefix(plaintext, prefixToSkipObfsucation) {
+		// Nil out the obfuscator since this string doesn't need
+		// obfuscation.
+		obfuscator = nil
+	}
+
+	conflictedIndex := strings.LastIndex(plaintext, suffixConflictStart)
 	if conflictedIndex > 0 {
+		// If this is a conflict file, we should obfuscate everything
+		// besides the conflict part, to get a string that matches the
+		// non-conflict portion.  (Also continue to ignore any file
+		// info prefix when obfuscating, as above.)
+		if len(toObfuscate) == 0 {
+			toObfuscate = plaintext
+		}
+		toObfuscate = toObfuscate[:strings.LastIndex(
+			toObfuscate, suffixConflictStart)] + ext
 		ext = plaintext[conflictedIndex:]
 	}
-	return PathPartString{plaintext, ext, obfuscator}
+	return PathPartString{plaintext, toObfuscate, ext, obfuscator, isFileInfo}
 }
 
 func (pps PathPartString) String() string {
-	if strings.HasPrefix(pps.plaintext, prefixToSkipObfsucation) ||
-		pps.obfuscator == nil {
+	if pps.obfuscator == nil {
 		return pps.plaintext
 	}
 
-	ob := pps.obfuscator.Obfuscate(pps.plaintext)
-	return ob + pps.ext
+	var prefix string
+	if pps.isFileInfo {
+		// Preserve the fileinfo prefix.
+		prefix = prefixFileInfo
+	}
+
+	toObfuscate := pps.plaintext
+	if len(pps.toObfuscate) > 0 {
+		toObfuscate = pps.toObfuscate
+	}
+
+	ob := pps.obfuscator.Obfuscate(toObfuscate)
+	return prefix + ob + pps.ext
 }
 
 // Plaintext returns the plaintext underlying this string part.
