@@ -58,6 +58,7 @@ export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
+export const requestContactPermissions = 'settings:requestContactPermissions'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
@@ -146,6 +147,7 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
+type _RequestContactPermissionsPayload = {readonly thenToggleImportOn?: boolean}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
   readonly feedback: string
@@ -398,6 +400,9 @@ export const createProcessorProfile = (payload: _ProcessorProfilePayload): Proce
   payload,
   type: processorProfile,
 })
+export const createRequestContactPermissions = (
+  payload: _RequestContactPermissionsPayload = Object.freeze({})
+): RequestContactPermissionsPayload => ({payload, type: requestContactPermissions})
 export const createSaveProxyData = (payload: _SaveProxyDataPayload): SaveProxyDataPayload => ({
   payload,
   type: saveProxyData,
@@ -606,6 +611,10 @@ export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
   readonly type: typeof processorProfile
 }
+export type RequestContactPermissionsPayload = {
+  readonly payload: _RequestContactPermissionsPayload
+  readonly type: typeof requestContactPermissions
+}
 export type SaveProxyDataPayload = {
   readonly payload: _SaveProxyDataPayload
   readonly type: typeof saveProxyData
@@ -701,6 +710,7 @@ export type Actions =
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
+  | RequestContactPermissionsPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SetAllowDeleteAccountPayload

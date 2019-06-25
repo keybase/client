@@ -54,6 +54,9 @@
     "loadedContactPermissions": {
       "status": ["'granted'", "'denied'", "'undetermined'"]
     },
+    "requestContactPermissions": {
+      "thenToggleImportOn?": "boolean"
+    },
     "editContactImportEnabled": {
       "enable": "boolean"
     },

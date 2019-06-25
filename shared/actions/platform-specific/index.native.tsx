@@ -1,9 +1,11 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as FsTypes from '../../constants/types/fs'
+import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
+import * as WaitingGen from '../waiting-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -26,7 +28,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 // @ts-ignore codemod-issue
 import {showImagePicker, Response} from 'react-native-image-picker'
-import {TypedActions} from 'util/container'
+import {TypedActions, TypedState} from 'util/container'
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
@@ -392,23 +394,47 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(e => {})
 
-const loadContactPermissions = async (
+function* loadContactPermissions(
   _,
   action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger
-) => {
+) {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
     return
   }
-  const {status: _status} = await Permissions.getAsync(Permissions.CONTACTS)
+  const {status: _status} = yield* Saga.callPromise(Permissions.getAsync, Permissions.CONTACTS)
   logger.info(`OS status: ${_status}`)
   let status = {
     [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
     [Permissions.PermissionStatus.DENIED]: 'denied' as const,
     [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
   }[_status]
-  return SettingsGen.createLoadedContactPermissions({status})
+  yield Saga.put(SettingsGen.createLoadedContactPermissions({status}))
+}
+
+function* requestContactsPermission(
+  state: TypedState,
+  action: SettingsGen.RequestContactPermissionsPayload,
+  logger
+) {
+  const {thenToggleImportOn} = action.payload
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  switch (state.settings.contacts.permissionStatus) {
+    case 'unknown':
+      logger.warn('unknown permissions status')
+      return
+    case 'denied':
+      logger.warn('permission denied')
+      if (isIOS) {
+        logger.info('going to settings')
+        yield Saga.put(ConfigGen.createOpenAppSettings())
+      }
+      return
+    case 'undetermined':
+      break
+  }
+  yield Saga.put(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
@@ -429,10 +455,15 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.osNetworkStatusChanged,
     updateMobileNetState
   )
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+  yield* Saga.chainGenerator<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
     [SettingsGen.loadContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
+  )
+  yield* Saga.chainGenerator<SettingsGen.RequestContactPermissionsPayload>(
+    SettingsGen.requestContactPermissions,
+    requestContactsPermission,
+    'requestContactsPermission'
   )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

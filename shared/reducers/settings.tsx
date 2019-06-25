@@ -220,6 +220,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.saveProxyData:
     case SettingsGen.loadContactImportEnabled:
     case SettingsGen.editContactImportEnabled:
+    case SettingsGen.requestContactPermissions:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

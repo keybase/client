@@ -663,12 +663,6 @@ const editContactImportEnabled = (
       ).then(() => SettingsGen.createLoadContactImportEnabled())
     : logger.warn('no username')
 
-const loadOrDeleteContacts = (
-  state: TypedState,
-  action: SettingsGen.EditContactImportEnabledPayload,
-  logger
-) => {}
-
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -762,11 +756,6 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.editContactImportEnabled,
     editContactImportEnabled,
     'editContactImportEnabled'
-  )
-  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload>(
-    SettingsGen.editContactImportEnabled,
-    loadOrDeleteContacts,
-    'loadOrDeleteContacts'
   )
 }
 
