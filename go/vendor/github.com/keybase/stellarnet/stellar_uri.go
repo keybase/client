@@ -95,6 +95,19 @@ func SignStellarURI(uri string, seed SeedStr) (signedURI, signatureB64 string, e
 	return signedURI, signatureB64, nil
 }
 
+// UnvalidatedStellarURIOriginDomain returns just the origin_domain from a stellar URI.
+// This is just for informational purposes.
+func UnvalidatedStellarURIOriginDomain(uri string) (originDomain string, err error) {
+	uv, err := newUnvalidatedURI(uri)
+	if err != nil {
+		return "", err
+	}
+	if !isDomainName(uv.OriginDomain) {
+		return "", errors.New("invalid origin domain")
+	}
+	return uv.OriginDomain, nil
+}
+
 // ValidatedStellarURI contains the origin domain that ValidateStellarURI
 // confirmed
 type ValidatedStellarURI struct {
