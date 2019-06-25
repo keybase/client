@@ -178,6 +178,9 @@ func (n nullHiddenTeamChainManager) Tombstone(MetaContext, keybase1.TeamID) erro
 func (n nullHiddenTeamChainManager) Freeze(MetaContext, keybase1.TeamID) error {
 	return nil
 }
+func (n nullHiddenTeamChainManager) HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error {
+	return nil
+}
 
 func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}

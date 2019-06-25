@@ -430,7 +430,8 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatGetCoordinate(context.Context) (chat1.Coordinate, error)
+	ChatWatchPosition(context.Context) (chat1.LocationWatchID, error)
+	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 }
 
 type PromptDefault int
@@ -733,6 +734,8 @@ type HiddenTeamChainManager interface {
 	Freeze(MetaContext, keybase1.TeamID) error
 	// See comment in TeamLoader#Tombstone.
 	Tombstone(MetaContext, keybase1.TeamID) error
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 }
 
 type TeamAuditor interface {
@@ -980,6 +983,10 @@ type ChatHelper interface {
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error)
+	DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlfName string,
+		msgID chat1.MessageID) error
+	DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
+		msgID chat1.MessageID) error
 	FindConversations(ctx context.Context, name string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)

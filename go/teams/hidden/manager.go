@@ -81,6 +81,30 @@ func (m *ChainManager) checkFrozen(mctx libkb.MetaContext, newState *keybase1.Hi
 	return nil
 }
 
+// Load hidden team chain data from storage, either mem or disk. Will not hit the network.
+func (m *ChainManager) HintLatestSeqno(mctx libkb.MetaContext, id keybase1.TeamID, q keybase1.Seqno) (err error) {
+	mctx = withLogTag(mctx)
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#HintLatestSeqno(%d)", q), func() error { return err })()
+	_, err = m.loadAndMutate(mctx, loadArg{
+		id: id,
+		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
+			changed := false
+			if state.LatestSeqnoHint < q {
+				mctx.Debug("For %s: update LatestSeqnoHint from %d -> %d", id, state.LatestSeqnoHint, q)
+				state.LatestSeqnoHint = q
+				changed = true
+			} else if state.LatestSeqnoHint == q {
+				mctx.Debug("For %s: update LatestSeqnoHint dupe update at %d", id, q)
+			} else {
+				mctx.Debug("For %s: refusing to backtrack from %d -> %d", id, state.LatestSeqnoHint, q)
+			}
+			return changed, nil
+
+		},
+	})
+	return err
+}
+
 func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state *keybase1.HiddenTeamChain, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("ChainManager#load(%+v)", arg), func() error { return err })()
 	lock := m.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), arg.id.String())

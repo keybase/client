@@ -37,6 +37,7 @@ type Props = {
   // expected to handle actual filter/search in a separate component, perhaps
   // in a popup.
   onClick?: (() => void) | null
+  onFocus?: (() => void) | null
   // following props are ignored when onClick is provided
   hotkey?: 'f' | 'k' | null // desktop only,
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
@@ -63,6 +64,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   _onFocus = () => {
     this.setState({focused: true})
+    this.props.onFocus && this.props.onFocus()
   }
 
   _focus = () => {
@@ -93,7 +95,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this._focus()
   }
   _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
-    e.key === 'Escape' && !isComposingIME && this._cancel()
+    e.key === 'Escape' && !isComposingIME && this._cancel(e)
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
   _typing = () => this.state.focused || !!this.state.text

@@ -482,8 +482,9 @@ func stateHasKeySeed(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, sta
 // stateHasKeys checks to see if the given state has the keys specified in the shopping list. If not, it will
 // modify the shopping list and return false. If yes, it will leave the shopping list unchanged and return
 // true.
-func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) (fresh bool) {
+func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, data ftlCombinedData) (fresh bool) {
 	gens := make(map[keybase1.PerTeamKeyGeneration]struct{})
+	state := data.visible
 
 	fresh = true
 
@@ -500,8 +501,9 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 	// pull down the mask, since it's a bug to not have it if it turns out the server refresh
 	// didn't budge the latest key generation.
 	kgn := append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
-	if arg.NeedLatestKey && state.LoadedLatest && state.LatestKeyGeneration > 0 {
-		kgn = append(kgn, state.LatestKeyGeneration)
+	latestKeyGeneration := data.latestKeyGeneration()
+	if arg.NeedLatestKey && state.LoadedLatest && latestKeyGeneration > 0 {
+		kgn = append(kgn, latestKeyGeneration)
 	}
 
 	for _, app := range arg.Applications {
@@ -624,7 +626,8 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 // computeWithPreviousState looks into the given load arg, and also our current cached state, to figure
 // what to get from the server. The results are compiled into a "shopping list" that we'll later
 // use when we concoct our server request.
-func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) {
+func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *shoppingList, arg fastLoadArg, data ftlCombinedData) {
+	state := data.visible
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
 
@@ -641,6 +644,10 @@ func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *s
 		m.Debug("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
 		s.needMerkleRefresh = true
 	}
+	if arg.needChainTail() && data.hidden.IsStale() {
+		m.Debug("HiddenTeamChain was stale, forcing refresh")
+		s.needMerkleRefresh = true
+	}
 	if arg.ForceRefresh {
 		m.Debug("refresh forced via flag")
 		s.needMerkleRefresh = true
@@ -649,7 +656,7 @@ func (f *FastTeamChainLoader) computeWithPreviousState(m libkb.MetaContext, s *s
 		m.Debug("must repoll since in force mode")
 		s.needMerkleRefresh = true
 	}
-	if !stateHasKeys(m, s, arg, state) {
+	if !stateHasKeys(m, s, arg, data) {
 		m.Debug("state was missing needed encryption keys, or we need the freshest")
 	}
 	if !stateHasDownPointers(m, s, arg, state) {
@@ -1417,9 +1424,10 @@ func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (
 
 	var shoppingList shoppingList
 	if state != nil {
-		f.computeWithPreviousState(m, &shoppingList, arg, state)
+		combinedData := newFTLCombinedData(state, hp.ChainData())
+		f.computeWithPreviousState(m, &shoppingList, arg, combinedData)
 		if shoppingList.isEmpty() {
-			return f.toResult(m, arg, newFTLCombinedData(state, hp.ChainData()))
+			return f.toResult(m, arg, combinedData)
 		}
 	} else {
 		shoppingList.computeFreshLoad(m, arg)

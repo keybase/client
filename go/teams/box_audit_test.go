@@ -95,7 +95,7 @@ func TestBoxAuditAttempt(t *testing.T) {
 	require.Error(t, toErr(attempt), "team not rotated after puk rotate so attempt fails")
 	team, err := Load(context.TODO(), aTc.G, keybase1.LoadTeamArg{Name: teamName.String(), ForceRepoll: true})
 	require.NoError(t, err)
-	err = team.Rotate(aM.Ctx())
+	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 	attempt = aA.Attempt(aM, teamID, false)
 	require.NoError(t, toErr(attempt), "team rotated, so audit works")
@@ -482,7 +482,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.Equal(t, newExpected, currentSummary.table)
 
 	t.Logf("A rotates team")
-	err = team.Rotate(aM.Ctx())
+	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 
 	t.Logf("C checks summary")
@@ -520,7 +520,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.NoError(t, err)
 
 	team, _, _ = load(aM, aTeamID)
-	err = team.Rotate(aM.Ctx())
+	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 	team, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newerExpected, chainSummary.table)

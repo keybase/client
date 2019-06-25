@@ -78,7 +78,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		}
 
 		g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name(), teamID)
-		if err := team.Rotate(ctx); err != nil {
+		if err := team.Rotate(ctx, keybase1.RotationType_VISIBLE); err != nil {
 			g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name(), teamID, err)
 			return err
 		}
@@ -244,6 +244,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 		func() error { return err })()
 
 	HintLatestSeqno(mctx, row.Id, row.LatestSeqno)
+	HintLatestHiddenSeqno(mctx, row.Id, row.LatestHiddenSeqno)
 
 	// If we're handling a rename we should also purge the resolver cache and
 	// the KBFS favorites cache

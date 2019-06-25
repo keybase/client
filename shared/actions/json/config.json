@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import {ConnectionType} from '@react-native-community/netinfo'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as FsTypes from '../constants/types/fs'",
@@ -69,7 +70,8 @@
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
-      "username": "string"
+      "username": "string",
+      "userReacjis": "RPCTypes.UserReacjis | null"
     },
     "daemonError": {"daemonError": "Error | null"},
     "setAccounts": {
@@ -118,6 +120,7 @@
     },
     "osNetworkStatusChanged": {
       "online": "boolean",
+      "type": "ConnectionType",
       "isInit?": "boolean"
     }
   }

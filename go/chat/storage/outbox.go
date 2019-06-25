@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"sync"
 	"time"
 
@@ -57,6 +58,11 @@ func NewOutboxID() (chat1.OutboxID, error) {
 func DeriveOutboxID(dat []byte) chat1.OutboxID {
 	h := sha256.Sum256(dat)
 	return chat1.OutboxID(h[:8])
+}
+
+func GetOutboxIDFromURL(url string, convID chat1.ConversationID, msg chat1.MessageUnboxed) chat1.OutboxID {
+	seed := fmt.Sprintf("%s:%s:%d", url, convID, msg.GetMessageID())
+	return DeriveOutboxID([]byte(seed))
 }
 
 func createOutboxStorage(g *globals.Context, uid gregor1.UID) outboxStorage {

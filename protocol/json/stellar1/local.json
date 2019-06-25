@@ -157,11 +157,62 @@
     },
     {
       "type": "record",
+      "name": "PaymentOrErrorLocal",
+      "fields": [
+        {
+          "type": [
+            null,
+            "PaymentLocal"
+          ],
+          "name": "payment"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentsPageLocal",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "PaymentOrErrorLocal"
+          },
+          "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "PageCursor"
+          ],
+          "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentLocal",
       "fields": [
         {
           "type": "PaymentID",
           "name": "id"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
         },
         {
           "type": "TimeMs",
@@ -315,188 +366,22 @@
     },
     {
       "type": "record",
-      "name": "PaymentOrErrorLocal",
-      "fields": [
-        {
-          "type": [
-            null,
-            "PaymentLocal"
-          ],
-          "name": "payment"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "err"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PaymentsPageLocal",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "PaymentOrErrorLocal"
-          },
-          "name": "payments"
-        },
-        {
-          "type": [
-            null,
-            "PageCursor"
-          ],
-          "name": "cursor"
-        },
-        {
-          "type": [
-            null,
-            "PaymentID"
-          ],
-          "name": "oldestUnread"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "PaymentDetailsLocal",
       "fields": [
         {
-          "type": "PaymentID",
-          "name": "id"
+          "type": "PaymentLocal",
+          "name": "summary"
         },
         {
-          "type": "TransactionID",
-          "name": "txID"
-        },
-        {
-          "type": "TimeMs",
-          "name": "time"
-        },
-        {
-          "type": "PaymentStatus",
-          "name": "statusSimplified"
-        },
-        {
-          "type": "string",
-          "name": "statusDescription"
-        },
-        {
-          "type": "string",
-          "name": "statusDetail"
-        },
-        {
-          "type": "boolean",
-          "name": "showCancel"
-        },
-        {
-          "type": "string",
-          "name": "amountDescription"
-        },
-        {
-          "type": "BalanceDelta",
-          "name": "delta"
-        },
-        {
-          "type": "string",
-          "name": "worth"
-        },
-        {
-          "type": "string",
-          "name": "worthAtSendTime"
-        },
-        {
-          "type": "string",
-          "name": "issuerDescription"
-        },
-        {
-          "type": [
-            null,
-            "AccountID"
-          ],
-          "name": "issuerAccountID"
-        },
-        {
-          "type": "ParticipantType",
-          "name": "fromType"
-        },
-        {
-          "type": "ParticipantType",
-          "name": "toType"
-        },
-        {
-          "type": "AccountID",
-          "name": "fromAccountID"
-        },
-        {
-          "type": "string",
-          "name": "fromAccountName"
-        },
-        {
-          "type": "string",
-          "name": "fromUsername"
-        },
-        {
-          "type": [
-            null,
-            "AccountID"
-          ],
-          "name": "toAccountID"
-        },
-        {
-          "type": "string",
-          "name": "toAccountName"
-        },
-        {
-          "type": "string",
-          "name": "toUsername"
-        },
-        {
-          "type": "string",
-          "name": "toAssertion"
-        },
-        {
-          "type": "string",
-          "name": "originalToAssertion"
-        },
-        {
-          "type": "string",
-          "name": "note"
-        },
-        {
-          "type": "string",
-          "name": "noteErr"
-        },
-        {
-          "type": "string",
-          "name": "sourceAmountMax"
-        },
-        {
-          "type": "string",
-          "name": "sourceAmountActual"
-        },
-        {
-          "type": "Asset",
-          "name": "sourceAsset"
-        },
-        {
-          "type": "boolean",
-          "name": "isAdvanced"
-        },
-        {
-          "type": "string",
-          "name": "summaryAdvanced"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "operations"
-        },
+          "type": "PaymentDetailsOnlyLocal",
+          "name": "details"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentDetailsOnlyLocal",
+      "fields": [
         {
           "type": "string",
           "name": "publicNote"
@@ -509,25 +394,6 @@
           "type": "string",
           "name": "externalTxURL",
           "lint": "ignore"
-        },
-        {
-          "type": "string",
-          "name": "batchID"
-        },
-        {
-          "type": "boolean",
-          "name": "fromAirdrop"
-        },
-        {
-          "type": "boolean",
-          "name": "isInflation"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "inflationSource"
         },
         {
           "type": "string",

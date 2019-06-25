@@ -1,5 +1,5 @@
 import * as I from 'immutable'
-import HiddenString from '../../util/hidden-string'
+import {RPCError} from '../../util/errors'
 
 export type _State = {
   // TODO remove
@@ -7,7 +7,7 @@ export type _State = {
   forgotPasswordSubmitting: boolean
   forgotPasswordSuccess: boolean
   // shared by all errors, we only ever want one error
-  error: HiddenString
+  error: RPCError | null
   registerUserPassLoading: boolean
 }
 

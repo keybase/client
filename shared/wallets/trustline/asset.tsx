@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   code: string
+  cannotAccept: boolean
   expanded: boolean
   firstItem: boolean
   issuerAccountID: string
@@ -15,6 +16,10 @@ export type Props = {
   onExpand: () => void
   onRemove: () => void
   onViewDetails: () => void
+
+  waitingKeyAdd: string
+  waitingKeyDelete: string
+  waitingRefresh: boolean
 }
 
 const stopPropagation = onClick => e => {
@@ -82,20 +87,24 @@ const Asset = (props: Props) => (
         {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
         <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
           {props.trusted ? (
-            <Kb.Button
+            <Kb.WaitingButton
               mode="Secondary"
               type="Danger"
               small={true}
               label="Remove"
               onClick={stopPropagation(props.onRemove)}
+              disabled={props.waitingRefresh}
+              waitingKey={props.waitingKeyDelete}
             />
           ) : (
-            <Kb.Button
+            <Kb.WaitingButton
               mode="Primary"
               type="Success"
               small={true}
               label="Accept"
               onClick={stopPropagation(props.onAccept)}
+              disabled={props.cannotAccept || props.waitingRefresh}
+              waitingKey={props.waitingKeyAdd}
             />
           )}
         </Kb.Box2>

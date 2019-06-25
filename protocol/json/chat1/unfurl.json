@@ -125,6 +125,39 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UnfurlMapsRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "historyImageUrl"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlRaw",
       "switch": {
@@ -158,7 +191,7 @@
             "name": "MAPS",
             "def": false
           },
-          "body": "UnfurlGenericRaw"
+          "body": "UnfurlMapsRaw"
         }
       ]
     },

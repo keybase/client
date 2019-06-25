@@ -149,12 +149,38 @@ func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 	}
 }
 
+type UnfurlMapsRaw struct {
+	Title           string  `codec:"title" json:"title"`
+	Url             string  `codec:"url" json:"url"`
+	SiteName        string  `codec:"siteName" json:"siteName"`
+	ImageUrl        string  `codec:"imageUrl" json:"imageUrl"`
+	HistoryImageUrl *string `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
+	Description     string  `codec:"description" json:"description"`
+}
+
+func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
+	return UnfurlMapsRaw{
+		Title:    o.Title,
+		Url:      o.Url,
+		SiteName: o.SiteName,
+		ImageUrl: o.ImageUrl,
+		HistoryImageUrl: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.HistoryImageUrl),
+		Description: o.Description,
+	}
+}
+
 type UnfurlRaw struct {
 	UnfurlType__ UnfurlType        `codec:"unfurlType" json:"unfurlType"`
 	Generic__    *UnfurlGenericRaw `codec:"generic,omitempty" json:"generic,omitempty"`
 	Youtube__    *UnfurlYoutubeRaw `codec:"youtube,omitempty" json:"youtube,omitempty"`
 	Giphy__      *UnfurlGiphyRaw   `codec:"giphy,omitempty" json:"giphy,omitempty"`
-	Maps__       *UnfurlGenericRaw `codec:"maps,omitempty" json:"maps,omitempty"`
+	Maps__       *UnfurlMapsRaw    `codec:"maps,omitempty" json:"maps,omitempty"`
 }
 
 func (o *UnfurlRaw) UnfurlType() (ret UnfurlType, err error) {
@@ -213,7 +239,7 @@ func (o UnfurlRaw) Giphy() (res UnfurlGiphyRaw) {
 	return *o.Giphy__
 }
 
-func (o UnfurlRaw) Maps() (res UnfurlGenericRaw) {
+func (o UnfurlRaw) Maps() (res UnfurlMapsRaw) {
 	if o.UnfurlType__ != UnfurlType_MAPS {
 		panic("wrong case accessed")
 	}
@@ -244,7 +270,7 @@ func NewUnfurlRawWithGiphy(v UnfurlGiphyRaw) UnfurlRaw {
 	}
 }
 
-func NewUnfurlRawWithMaps(v UnfurlGenericRaw) UnfurlRaw {
+func NewUnfurlRawWithMaps(v UnfurlMapsRaw) UnfurlRaw {
 	return UnfurlRaw{
 		UnfurlType__: UnfurlType_MAPS,
 		Maps__:       &v,
@@ -275,7 +301,7 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Giphy__),
-		Maps__: (func(x *UnfurlGenericRaw) *UnfurlGenericRaw {
+		Maps__: (func(x *UnfurlMapsRaw) *UnfurlMapsRaw {
 			if x == nil {
 				return nil
 			}

@@ -305,31 +305,33 @@ func (g *gregorHandler) GetURI() *rpc.FMPURI {
 }
 
 func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
-	if g.IsShutdown() || g.cli == nil {
+	cli := g.getRPCCli()
+	if g.IsShutdown() || cli == nil {
 		return gregor1.IncomingClient{Cli: chat.OfflineClient{}}
 	}
-	return gregor1.IncomingClient{Cli: g.cli}
+	return gregor1.IncomingClient{Cli: cli}
 }
 
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
-	if g.IsShutdown() || g.cli == nil {
+	cli := g.getRPCCli()
+	if g.IsShutdown() || cli == nil {
 		select {
 		case <-g.connectHappened:
-			if g.IsShutdown() || g.cli == nil {
+			cli = g.getRPCCli()
+			if g.IsShutdown() || cli == nil {
 				g.chatLog.Debug(context.Background(), "GetClient: connectHappened, but still shutdown, using OfflineClient for chat1.RemoteClient")
 				return chat1.RemoteClient{Cli: chat.OfflineClient{}}
 
 			}
 			g.chatLog.Debug(context.Background(), "GetClient: successfully waited for connection")
-			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 		case <-time.After(GregorGetClientTimeout):
 			g.chatLog.Debug(context.Background(), "GetClient: shutdown, using OfflineClient for chat1.RemoteClient (waited %s for connectHappened)", GregorGetClientTimeout)
 			return chat1.RemoteClient{Cli: chat.OfflineClient{}}
 		}
 	}
-
 	g.chatLog.Debug(context.Background(), "GetClient: not shutdown, making new remote client")
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), cli)}
 }
 
 func (g *gregorHandler) isFirstConnect() bool {
@@ -396,6 +398,8 @@ func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
 }
 
 func (g *gregorHandler) getRPCCli() rpc.GenericClient {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
 	return g.cli
 }
 
@@ -467,8 +471,9 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	// Only try replaying if we are logged in, it's possible that a handler can
 	// attach before that is true (like if we start the service logged out and
 	// Electron connects)
-	if g.IsConnected() {
-		if _, err := g.replayInBandMessages(context.TODO(), gregor1.IncomingClient{Cli: g.cli},
+	cli := g.getRPCCli()
+	if g.IsConnected() && cli != nil {
+		if _, err := g.replayInBandMessages(context.TODO(), gregor1.IncomingClient{Cli: cli},
 			time.Time{}, handler); err != nil {
 			g.Errorf(context.Background(), "replayInBandMessages on PushHandler failed: %s", err)
 		}

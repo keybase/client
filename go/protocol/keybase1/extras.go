@@ -3054,3 +3054,11 @@ func (s TeamSigChainState) KeySummary() string {
 	}
 	return fmt.Sprintf("{maxPTK:%d, ptk:%v}", s.MaxPerTeamKeyGeneration, v)
 }
+
+func (h *HiddenTeamChain) IsStale() bool {
+	if h == nil || h.LatestSeqnoHint == Seqno(0) {
+		return false
+	}
+	_, fresh := h.Outer[h.LatestSeqnoHint]
+	return !fresh
+}

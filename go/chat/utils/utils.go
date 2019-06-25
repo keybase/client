@@ -1989,6 +1989,18 @@ func SuspendComponent(ctx context.Context, g *globals.Context, suspendable types
 	}
 }
 
+func SuspendComponents(ctx context.Context, g *globals.Context, suspendables []types.Suspendable) func() {
+	resumeFuncs := []func(){}
+	for _, s := range suspendables {
+		resumeFuncs = append(resumeFuncs, SuspendComponent(ctx, g, s))
+	}
+	return func() {
+		for _, f := range resumeFuncs {
+			f()
+		}
+	}
+}
+
 func IsPermanentErr(err error) bool {
 	if uberr, ok := err.(types.UnboxingError); ok {
 		return uberr.IsPermanent()

@@ -321,6 +321,11 @@ protocol teams {
 
     Seqno last;
 
+    // Update this field when gregor notifications come in, and there is a bump
+    // for last seqno. If this is wrong or buggy, it's a performance problem,
+    // not a security problem.
+    Seqno latestSeqnoHint;
+
     // For each PTK type (right now only 'reader'), say where the last seqno of
     // the type is in the chain.
     map<PTKType, Seqno> lastPerTeamKeys;
@@ -726,6 +731,8 @@ protocol teams {
     boolean membershipChanged;
     @jsonkey("latest_seqno")
     Seqno latestSeqno;
+    @jsonkey("latest_hidden_seqno")
+    Seqno latestHiddenSeqno;
     @jsonkey("implicit_team")
     boolean implicitTeam;
     @jsonkey("misc")
@@ -1255,7 +1262,12 @@ protocol teams {
 
   TeamOperation canUserPerform(string name);
 
-  void teamRotateKey(TeamID teamID);
+  enum RotationType {
+    VISIBLE_0,
+    HIDDEN_1
+  }
+
+  void teamRotateKey(TeamID teamID, RotationType rt);
 
   TeamDebugRes teamDebug(TeamID teamID);
   record TeamDebugRes {

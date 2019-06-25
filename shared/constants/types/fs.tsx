@@ -137,6 +137,7 @@ export type Tlf = I.RecordOf<_Tlf>
 export type TlfList = I.Map<string, Tlf>
 
 export type _Tlfs = {
+  loaded: boolean
   private: TlfList
   public: TlfList
   team: TlfList
