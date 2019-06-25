@@ -43,7 +43,7 @@ const Banner = (props: Props) => (
         </Text>
       )}
       {props.offerAdvancedSendForm && props.onAction && (
-        <Box2 direction={'horizontal'}>
+        <Box2 direction={'vertical'}>
           This user is accepting other assets than XLM Lumens.
           <Text
             type="BodySmallSemiboldPrimaryLink"
