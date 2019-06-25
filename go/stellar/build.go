@@ -293,8 +293,8 @@ func BuildPaymentLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stell
 			}
 			if offerAdvancedForm {
 				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:                     "info",
-					OfferAdvancedSendFormbool: true,
+					Level:                 "info",
+					OfferAdvancedSendForm: true,
 				})
 			}
 		}

@@ -474,18 +474,18 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 }
 
 type SendBannerLocal struct {
-	Level                     string `codec:"level" json:"level"`
-	Message                   string `codec:"message" json:"message"`
-	ProofsChanged             bool   `codec:"proofsChanged" json:"proofsChanged"`
-	OfferAdvancedSendFormbool bool   `codec:"offerAdvancedSendFormbool" json:"offerAdvancedSendFormbool"`
+	Level                 string `codec:"level" json:"level"`
+	Message               string `codec:"message" json:"message"`
+	ProofsChanged         bool   `codec:"proofsChanged" json:"proofsChanged"`
+	OfferAdvancedSendForm bool   `codec:"offerAdvancedSendForm" json:"offerAdvancedSendForm"`
 }
 
 func (o SendBannerLocal) DeepCopy() SendBannerLocal {
 	return SendBannerLocal{
-		Level:                     o.Level,
-		Message:                   o.Message,
-		ProofsChanged:             o.ProofsChanged,
-		OfferAdvancedSendFormbool: o.OfferAdvancedSendFormbool,
+		Level:                 o.Level,
+		Message:               o.Message,
+		ProofsChanged:         o.ProofsChanged,
+		OfferAdvancedSendForm: o.OfferAdvancedSendForm,
 	}
 }
 

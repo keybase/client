@@ -1923,8 +1923,8 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
-		Level:                     "info",
-		OfferAdvancedSendFormbool: true,
+		Level:                 "info",
+		OfferAdvancedSendForm: true,
 	}})
 }
 

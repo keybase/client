@@ -324,7 +324,7 @@ protocol local {
     boolean proofsChanged;
     // Set if this banner means there are valid trustlines for non-native assets to be sent from
     // the from address to the to address. `message` may be blank in this case.
-    boolean offerAdvancedSendFormbool;
+    boolean offerAdvancedSendForm;
   }
 
   // Called when Send is tapped from the build form.

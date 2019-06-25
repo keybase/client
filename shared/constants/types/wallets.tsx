@@ -205,7 +205,7 @@ export type Banner = {
   bannerText: string
   reviewProofs?: boolean
   sendFailed?: boolean
-  offerAdvancedSendFormbool?: boolean
+  offerAdvancedSendForm?: boolean
 }
 
 export type Building = I.RecordOf<_Building>

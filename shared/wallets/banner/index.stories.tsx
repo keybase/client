@@ -13,7 +13,7 @@ const examples: Props[] = [
     text: 'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
   },
   {background: 'HighRisk' as const, text: 'Connection error. You are offline.'},
-  {background: 'Announcements' as const, offerAdvancedSendFormbool: true, onAction: () => {}, text: ''},
+  {background: 'Announcements' as const, offerAdvancedSendForm: true, onAction: () => {}, text: ''},
 ]
 
 const load = () => {

@@ -34,7 +34,7 @@ export const SendBody = (props: SendBodyProps) => (
           key={banner.bannerText}
           background={banner.bannerBackground}
           text={banner.bannerText}
-          offerAdvancedSendFormbool={banner.offerAdvancedSendFormbool}
+          offerAdvancedSendForm={banner.offerAdvancedSendForm}
           onAction={banner.action}
         />
       ))}

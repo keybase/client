@@ -544,7 +544,7 @@
         },
         {
           "type": "boolean",
-          "name": "offerAdvancedSendFormbool"
+          "name": "offerAdvancedSendForm"
         }
       ]
     },

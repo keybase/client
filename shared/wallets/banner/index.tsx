@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   background: Background
-  offerAdvancedSendFormbool?: boolean
+  offerAdvancedSendForm?: boolean
   onAction?: (() => void) | null
   reviewProofs?: boolean
   sendFailed?: boolean
@@ -42,7 +42,7 @@ const Banner = (props: Props) => (
           Please review.
         </Text>
       )}
-      {props.offerAdvancedSendFormbool && props.onAction && (
+      {props.offerAdvancedSendForm && props.onAction && (
         <Box2 direction={'horizontal'}>
           This user is accepting other assets than XLM Lumens.
           <Text

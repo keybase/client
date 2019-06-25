@@ -457,6 +457,6 @@
     "setTrustlineExpanded": {
       "expanded": "boolean",
       "assetID": "Types.AssetID"
-    },
+    }
   }
 }

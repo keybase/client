@@ -26,7 +26,7 @@ const mapStateToPropsKeybaseUser = state => {
 }
 
 const mapDispatchToPropsKeybaseUser = dispatch => ({
-  onChangeRecipient: (from: Types.AccountID, to: string) => {
+  onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
@@ -67,7 +67,7 @@ const mapStateToPropsStellarPublicKey = state => {
 }
 
 const mapDispatchToPropsStellarPublicKey = dispatch => ({
-  onChangeRecipient: (from: Types.AccountID, to: string) => {
+  onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
@@ -119,7 +119,7 @@ const mapDispatchToPropsOtherAccount = dispatch => ({
   onChangeFromAccount: (from: Types.AccountID) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
-  onChangeRecipient: (from: Types.AccountID, to: string) => {
+  onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onCreateNewAccount: () =>

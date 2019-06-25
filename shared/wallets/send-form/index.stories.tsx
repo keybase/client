@@ -68,7 +68,7 @@ const load = () => {
       provider({
         action: () => {},
         bannerBackground: 'Announcements' as const,
-        offerAdvancedSendFormbool: true,
+        offerAdvancedSendForm: true,
         text: '',
       })
     )
