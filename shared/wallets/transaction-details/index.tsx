@@ -332,7 +332,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        {!!props.sourceAsset && (
+        {!!props.sourceAsset && !!props.sourceAmount && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
             <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>

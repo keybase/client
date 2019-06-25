@@ -19,6 +19,7 @@ const props = {
   amountUser: '',
   amountXLM: '',
   approxWorth: '',
+  assetCode: '',
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
@@ -40,6 +41,8 @@ const props = {
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
+  sourceIssuer: '',
+  sourceToDestinationConversionRate: 0,
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
@@ -189,8 +192,11 @@ const load = () => {
         counterpartyType="keybaseUser"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
+        assetCode="XLM"
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
+        sourceIssuer="anchortoad.com"
+        sourceToDestinationConversionRate={53.1688643734}
       />
     ))
     .add('Advanced tx', () => (
