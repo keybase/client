@@ -627,15 +627,26 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
-const loadContactImportEnabled = (state: TypedState, _2, logger) =>
-  state.config.username
-    ? RPCTypes.configGetValueRpcPromise(
-        {
-          path: Constants.importContactsConfigKey(state.config.username),
-        },
-        Constants.importContactsWaitingKey
-      ).then(value => SettingsGen.createLoadedContactImportEnabled({enabled: !!value.b && !value.isNull}))
-    : logger.warn('no username')
+const loadContactImportEnabled = async (state: TypedState, _2, logger) => {
+  if (!state.config.username) {
+    logger.warn('no username')
+    return
+  }
+  let enabled = false
+  try {
+    const res = await RPCTypes.configGetValueRpcPromise(
+      {
+        path: Constants.importContactsConfigKey(state.config.username),
+      },
+      Constants.importContactsWaitingKey
+    ).then(value => (enabled = !!value.b && !value.isNull))
+  } catch (err) {
+    if (!err.message.includes('no such key')) {
+      logger.error(`Error reading config: ${err.message}`)
+    }
+  }
+  return SettingsGen.createLoadedContactImportEnabled({enabled})
+}
 
 const editContactImportEnabled = (
   state: TypedState,
@@ -649,7 +660,7 @@ const editContactImportEnabled = (
           value: {b: action.payload.enable, isNull: false},
         },
         Constants.importContactsWaitingKey
-      )
+      ).then(() => SettingsGen.createLoadContactImportEnabled())
     : logger.warn('no username')
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
