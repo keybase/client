@@ -88,7 +88,7 @@ const parsedSearchResults = {
 }
 
 describe('Search Actions', () => {
-  let init
+  let init: ReturnType<typeof startReduxSaga> | null
   let rpc
   beforeEach(() => {
     init = startReduxSaga()
@@ -112,10 +112,12 @@ describe('Search Actions', () => {
     const service = 'keybase'
     expect(rpc).not.toHaveBeenCalled()
     dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
-    expect(getState().chat2.teamBuildingSearchQuery).toEqual('marcopolo')
-    expect(getState().chat2.teamBuildingSelectedService).toEqual('keybase')
+    expect(getState().chat2.teamBuilding.teamBuildingSearchQuery).toEqual('marcopolo')
+    expect(getState().chat2.teamBuilding.teamBuildingSelectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingSearchResults).toEqual(parsedSearchResults[query][service])
+      expect(getState().chat2.teamBuilding.teamBuildingSearchResults).toEqual(
+        parsedSearchResults[query][service]
+      )
     })
   })
 
@@ -124,7 +126,7 @@ describe('Search Actions', () => {
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
     })
   })
 
@@ -134,7 +136,7 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace: testNamespace, users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
     })
   })
 
@@ -144,8 +146,8 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
     })
   })
 
@@ -155,8 +157,8 @@ describe('Search Actions', () => {
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuildingFinishedTeam).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set())
     })
   })
 })
