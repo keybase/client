@@ -71,11 +71,7 @@ const load = () => {
         header={{
           leftButton,
           rightButton,
-          title: (
-            <Kb.Text type="Header" lineClamp={1}>
-              I am a really long title, you might not see all of me.
-            </Kb.Text>
-          ),
+          title: 'I am a really long title, you might not see all of me.',
         }}
       >
         {filler}
@@ -87,14 +83,10 @@ const load = () => {
         header={{
           leftButton,
           rightButton,
-          title: (
-            <Kb.Text type="Header" lineClamp={1}>
-              Some kind of title
-            </Kb.Text>
-          ),
+          title: 'Some kind of title',
         }}
         footer={{
-          children: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
+          content: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
         }}
       >
         {filler}
@@ -106,14 +98,10 @@ const load = () => {
         header={{
           leftButton,
           rightButton,
-          title: (
-            <Kb.Text type="Header" lineClamp={1}>
-              Some kind of title
-            </Kb.Text>
-          ),
+          title: 'Some kind of title',
         }}
         footer={{
-          children: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
+          content: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
           style: {backgroundColor: Styles.globalColors.blueGrey},
         }}
       >
@@ -137,14 +125,10 @@ const load = () => {
         header={{
           leftButton,
           rightButton,
-          title: (
-            <Kb.Text type="Header" lineClamp={1}>
-              Some kind of title
-            </Kb.Text>
-          ),
+          title: 'Some kind of title',
         }}
         footer={{
-          children: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
+          content: <Kb.Button label="Primary" onClick={Sb.action('onClickPrimary')} fullWidth={true} />,
           style: {backgroundColor: Styles.globalColors.blueGrey},
         }}
         mode="Wide"

@@ -4,11 +4,13 @@ import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
 import {Box2} from '../box'
 import BoxGrow from '../box-grow'
+import Text from '../text'
 
 const Kb = {
   Box2,
   BoxGrow,
   ScrollView,
+  Text,
 }
 
 type HeaderProps = {
@@ -19,7 +21,7 @@ type HeaderProps = {
 }
 
 type FooterProps = {
-  children: React.ReactNode
+  content: React.ReactNode
   hideBorder?: boolean
   style?: Styles.StylesCrossPlatform
 }
@@ -73,7 +75,13 @@ const Header = (props: HeaderProps) => (
       <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
         {!!props.leftButton && props.leftButton}
       </Kb.Box2>
-      {props.title}
+      {typeof props.title === 'string' ? (
+        <Kb.Text type="Header" lineClamp={1}>
+          {props.title}
+        </Kb.Text>
+      ) : (
+        props.title
+      )}
       <Kb.Box2 direction="horizontal" style={styles.headerRight}>
         {!!props.rightButton && props.rightButton}
       </Kb.Box2>
@@ -93,7 +101,7 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
       props.style,
     ])}
   >
-    {props.children}
+    {props.content}
   </Kb.Box2>
 )
 

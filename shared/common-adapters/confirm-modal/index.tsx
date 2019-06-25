@@ -42,7 +42,7 @@ class ConfirmModal extends React.PureComponent<Props> {
         }
         banners={this.props.error ? [<Banner key="error" color="red" text={this.props.error} />] : []}
         footer={{
-          children: (
+          content: (
             <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
               {!Styles.isMobile && (
                 <WaitingButton
