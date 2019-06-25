@@ -8,41 +8,53 @@ import (
 )
 
 // OpSummary returns a string summary of an operation.
-func OpSummary(op xdr.Operation) string {
-	body := opBodySummary(op)
+func OpSummary(op xdr.Operation, pastTense bool) string {
+	body := opBodySummary(op, pastTense)
 	if op.SourceAccount != nil {
 		return fmt.Sprintf("[Source account %s] %s", op.SourceAccount.Address(), body)
 	}
 	return body
 }
 
-func opBodySummary(op xdr.Operation) string {
+func opBodySummary(op xdr.Operation, pastTense bool) string {
+	past := func(suffix string) string {
+		if pastTense {
+			return suffix
+		}
+		return ""
+	}
+	tense := func(present, past string) string {
+		if pastTense {
+			return past
+		}
+		return present
+	}
 	switch op.Body.Type {
 	case xdr.OperationTypeCreateAccount:
 		iop := op.Body.MustCreateAccountOp()
-		return fmt.Sprintf("Create account %s with starting balance of %s XLM", iop.Destination.Address(), StringFromStellarXdrAmount(iop.StartingBalance))
+		return fmt.Sprintf("Create%s account %s with starting balance of %s XLM", past("d"), iop.Destination.Address(), StringFromStellarXdrAmount(iop.StartingBalance))
 	case xdr.OperationTypePayment:
 		iop := op.Body.MustPaymentOp()
-		return fmt.Sprintf("Pay %s to account %s", XDRAssetAmountSummary(iop.Amount, iop.Asset), iop.Destination.Address())
+		return fmt.Sprintf("%s %s to account %s", tense("Pay", "Paid"), XDRAssetAmountSummary(iop.Amount, iop.Asset), iop.Destination.Address())
 	case xdr.OperationTypePathPayment:
 		iop := op.Body.MustPathPaymentOp()
-		return fmt.Sprintf("Pay %s to account %s using at most %s", XDRAssetAmountSummary(iop.DestAmount, iop.DestAsset), iop.Destination.Address(), XDRAssetAmountSummary(iop.SendMax, iop.SendAsset))
-	case xdr.OperationTypeManageOffer:
-		iop := op.Body.MustManageOfferOp()
+		return fmt.Sprintf("%s %s to account %s using at most %s", tense("Pay", "Paid"), XDRAssetAmountSummary(iop.DestAmount, iop.DestAsset), iop.Destination.Address(), XDRAssetAmountSummary(iop.SendMax, iop.SendAsset))
+	case xdr.OperationTypeManageSellOffer:
+		iop := op.Body.MustManageSellOfferOp()
 		switch {
 		case iop.OfferId == 0:
-			return fmt.Sprintf("Create offer selling %s for %s to buy %s", XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
+			return fmt.Sprintf("Create%s offer selling %s for %s to buy %s", past("d"), XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 		case iop.Amount == 0:
-			return fmt.Sprintf("Remove offer selling %s for %s to buy %s (id %d)", XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
+			return fmt.Sprintf("Remove%s offer selling %s for %s to buy %s (id %d)", past("d"), XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
 		default:
-			return fmt.Sprintf("Update offer selling %s for %s to buy %s (id %d)", XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
+			return fmt.Sprintf("Update%s offer selling %s for %s to buy %s (id %d)", past("d"), XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying), iop.OfferId)
 		}
-	case xdr.OperationTypeCreatePassiveOffer:
-		iop := op.Body.MustCreatePassiveOfferOp()
+	case xdr.OperationTypeCreatePassiveSellOffer:
+		iop := op.Body.MustCreatePassiveSellOfferOp()
 		if iop.Amount == 0 {
-			return fmt.Sprintf("Remove passive offer selling %s for %s to buy %s", XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
+			return fmt.Sprintf("Remove%s passive offer selling %s for %s to buy %s", past("d"), XDRAssetSummary(iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 		}
-		return fmt.Sprintf("Create passive offer selling %s for %s to buy %s", XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
+		return fmt.Sprintf("Create%s passive offer selling %s for %s to buy %s", past("d"), XDRAssetAmountSummary(iop.Amount, iop.Selling), iop.Price.String(), XDRAssetSummary(iop.Buying))
 	case xdr.OperationTypeSetOptions:
 		iop := op.Body.MustSetOptionsOp()
 		var all []string
@@ -50,7 +62,7 @@ func opBodySummary(op xdr.Operation) string {
 			all = append(all, fmt.Sprintf("Set inflation destination to %s", iop.InflationDest.Address()))
 		}
 		if iop.ClearFlags != nil {
-			all = append(all, fmt.Sprintf("Clear account flags %b", *iop.ClearFlags))
+			all = append(all, fmt.Sprintf("Clear%s account flags %b", past("ed"), *iop.ClearFlags))
 		}
 		if iop.SetFlags != nil {
 			all = append(all, fmt.Sprintf("Set account flags %b", *iop.SetFlags))
@@ -77,9 +89,13 @@ func opBodySummary(op xdr.Operation) string {
 	case xdr.OperationTypeChangeTrust:
 		iop := op.Body.MustChangeTrustOp()
 		if iop.Limit == 0 {
-			return fmt.Sprintf("Remove trust line to %s", XDRAssetSummary(iop.Line))
+			return fmt.Sprintf("Remove%s trust line to %s", past("d"), XDRAssetSummary(iop.Line))
 		}
-		return fmt.Sprintf("Establish trust line to %s with limit %v", XDRAssetSummary(iop.Line), iop.Limit)
+		const defaultPositiveLimit xdr.Int64 = 9223372036854775807
+		if iop.Limit == defaultPositiveLimit {
+			return fmt.Sprintf("Establish%s trust line to %s", past("ed"), XDRAssetSummary(iop.Line))
+		}
+		return fmt.Sprintf("Establish%s trust line to %s with limit %v", past("ed"), XDRAssetSummary(iop.Line), iop.Limit)
 	case xdr.OperationTypeAllowTrust:
 		iop := op.Body.MustAllowTrustOp()
 		var assetCode string
@@ -94,20 +110,20 @@ func opBodySummary(op xdr.Operation) string {
 			return "invalid allow trust asset code"
 		}
 		if iop.Authorize {
-			return fmt.Sprintf("Authorize trustline to %s for %s", assetCode, iop.Trustor.Address())
+			return fmt.Sprintf("Authorize%s trustline to %s for %s", past("d"), assetCode, iop.Trustor.Address())
 		}
-		return fmt.Sprintf("Deauthorize trustline to %s for %s", assetCode, iop.Trustor.Address())
+		return fmt.Sprintf("Deauthorize%s trustline to %s for %s", past("d"), assetCode, iop.Trustor.Address())
 	case xdr.OperationTypeAccountMerge:
 		// oh of cource, MustDestination...why would it possibly match
 		// everything else?
 		destination := op.Body.MustDestination()
-		return fmt.Sprintf("Merge account into %s", destination.Address())
+		return fmt.Sprintf("Merge%s account into %s", past("d"), destination.Address())
 	case xdr.OperationTypeManageData:
 		iop := op.Body.MustManageDataOp()
 		if iop.DataValue == nil {
-			return fmt.Sprintf("Remove data %q", iop.DataName)
+			return fmt.Sprintf("Remove%s data %q", past("d"), iop.DataName)
 		}
-		return fmt.Sprintf("Add data with key %s, hex of binary data %x", iop.DataName, iop.DataValue)
+		return fmt.Sprintf("Add%s data with key %s, hex of binary data %x", past("ed"), iop.DataName, iop.DataValue)
 	default:
 		return "invalid operation type"
 	}

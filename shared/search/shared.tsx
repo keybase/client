@@ -4,13 +4,13 @@ import {globalColors} from '../styles'
 const followingStateToStyle = (followingState: Types.FollowingState) => {
   return {
     Following: {
-      color: globalColors.green,
+      color: globalColors.greenDark,
     },
     NoState: {
       color: globalColors.black,
     },
     NotFollowing: {
-      color: globalColors.blue,
+      color: globalColors.blueDark,
     },
     You: {
       color: globalColors.black,

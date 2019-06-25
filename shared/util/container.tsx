@@ -16,6 +16,8 @@ export const networkErrorCodes = [
   StatusCode.sctimeout,
 ]
 
+export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
+
 export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation.getParam(key)
 
 export type TypedDispatch = (action: TypedActions) => void
@@ -45,3 +47,4 @@ export type RouteProps<P, S> = _RouteProps<P, S>
 export type TypedActions = TypedActions
 export type TypedState = TypedState
 export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>
+export {useSelector, useDispatch} from 'react-redux'

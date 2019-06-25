@@ -121,7 +121,7 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.tiny,
   },
   error: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
 })
 

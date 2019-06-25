@@ -105,10 +105,30 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 }
 
 // transformPaymentStellar converts a stellar1.PaymentSummaryStellar into a stellar1.PaymentLocal.
-func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
-	if err != nil {
-		return nil, err
+func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (res *stellar1.PaymentLocal, err error) {
+	loc := stellar1.NewPaymentLocal(p.TxID, p.Ctime)
+	if p.IsAdvanced {
+		if len(p.Amount) > 0 {
+			// It is expected that there is no amount.
+			// But might as well future proof it so that if an amount shows up it gets formatted.
+			loc.AmountDescription, err = FormatAmountDescriptionAsset(mctx, p.Amount, p.Asset)
+			if err != nil {
+				loc.AmountDescription = ""
+			}
+		}
+
+		if p.Asset.IsEmpty() && !p.Asset.IsNativeXLM() {
+			// Asset is also expected to be missing.
+			loc.IssuerDescription = FormatAssetIssuerString(p.Asset)
+			issuerAcc := stellar1.AccountID(p.Asset.Issuer)
+			loc.IssuerAccountID = &issuerAcc
+		}
+
+	} else {
+		loc, err = newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	isSender := p.From.Eq(acctID)
@@ -130,7 +150,6 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
-	loc.Unread = p.Unread
 	loc.IsInflation = p.IsInflation
 	loc.InflationSource = p.InflationSource
 	loc.SourceAsset = p.SourceAsset
@@ -157,7 +176,7 @@ func formatWorthAtSendTime(mctx libkb.MetaContext, p stellar1.PaymentSummaryDire
 
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+	loc, err := newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +241,7 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 
 // transformPaymentRelay converts a stellar1.PaymentSummaryRelay into a stellar1.PaymentLocal.
 func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
+	loc, err := newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +413,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 	return decrypted.Note, ""
 }
 
-func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
+func newPaymentCommonLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
 	formatted, err := FormatAmountDescriptionAsset(mctx, amount, asset)
@@ -532,10 +551,16 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err == nil {
-		currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(details.DisplayCurrency))
-		if ok {
-			acct.CurrencyLocal = currency
+		for _, currency := range []string{details.DisplayCurrency, DefaultCurrencySetting} {
+			currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(currency))
+			if ok {
+				acct.CurrencyLocal = currency
+				break
+			}
 		}
+	}
+	if acct.CurrencyLocal.Code == "" {
+		mctx.Debug("warning: AccountDetails for %v has empty currency code", details.AccountID)
 	}
 
 	return acct, nil

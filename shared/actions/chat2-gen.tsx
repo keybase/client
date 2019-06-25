@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -140,6 +138,7 @@ export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
+export const updateUserReacjis = 'chat2:updateUserReacjis'
 
 // Payload Types
 type _AddAttachmentViewMessagePayload = {
@@ -606,6 +605,7 @@ type _UpdateUnreadlinePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
 }
+type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis | null}
 
 // Action Creators
 /**
@@ -1245,6 +1245,10 @@ export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload): Updat
 export const createUpdateNotificationSettings = (
   payload: _UpdateNotificationSettingsPayload
 ): UpdateNotificationSettingsPayload => ({payload, type: updateNotificationSettings})
+export const createUpdateUserReacjis = (payload: _UpdateUserReacjisPayload): UpdateUserReacjisPayload => ({
+  payload,
+  type: updateUserReacjis,
+})
 
 // Action Payloads
 export type AddAttachmentViewMessagePayload = {
@@ -1721,6 +1725,10 @@ export type UpdateUnreadlinePayload = {
   readonly payload: _UpdateUnreadlinePayload
   readonly type: typeof updateUnreadline
 }
+export type UpdateUserReacjisPayload = {
+  readonly payload: _UpdateUserReacjisPayload
+  readonly type: typeof updateUserReacjis
+}
 
 // All Actions
 // prettier-ignore
@@ -1855,4 +1863,5 @@ export type Actions =
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
+  | UpdateUserReacjisPayload
   | {type: 'common:resetStore', payload: null}

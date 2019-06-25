@@ -1,8 +1,9 @@
+import {FeatureFlags} from '../util/feature-flags'
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
 
-const ff = {
+const ff: FeatureFlags = {
   admin: false,
   airdrop: true,
   chatIndexProfilingEnabled: false,
@@ -15,6 +16,8 @@ const ff = {
   outOfDateBanner: true,
   plansEnabled: false,
   proofProviders: true,
+  sbsContacts: true,
+  stellarExternalPartners: false,
 }
 
 console.warn('feature flag mock in effect')

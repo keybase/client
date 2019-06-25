@@ -4,7 +4,7 @@ import {TypedState} from './reducer'
 import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
-
+import * as RPCTypes from './types/rpc-gen'
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
   unsubscribedFromAll: false,
@@ -38,6 +38,14 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
   visibility: 0,
 })
 
+export const makePhoneRow = I.Record<Types._PhoneRow>({
+  ctime: 0,
+  phoneNumber: '',
+  superseded: false,
+  verified: false,
+  visibility: RPCTypes.IdentityVisibility.private,
+})
+
 export const makeFeedback = I.Record<Types._FeedbackState>({
   error: null,
 })
@@ -59,16 +67,27 @@ export const makePassword = I.Record<Types._PasswordState>({
   rememberPassword: true,
 })
 
+export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
+  error: '',
+  pendingVerification: '',
+  pendingVerificationAllowSearch: null,
+  phones: null,
+  verificationState: null,
+})
+
 export const makeState = I.Record<Types._State>({
   allowDeleteAccount: false,
   chat: makeChat(),
   checkPasswordIsCorrect: null,
+  didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),
   invites: makeInvites(),
   lockdownModeEnabled: null,
   notifications: makeNotifications(),
   password: makePassword(),
+  phoneNumbers: makePhoneNumbers(),
+  proxyData: null,
   useNativeFrame: true,
   waitingForResponse: false,
 })
@@ -143,7 +162,7 @@ export const foldersTab = 'settingsTabs.foldersTab'
 export const fsTab = 'settingsTabs.fsTab'
 export const gitTab = 'settingsTabs.gitTab'
 export const invitationsTab = 'settingsTabs.invitationsTab'
-export const landingTab = 'settingsTabs.landingTab'
+export const accountTab = 'settingsTabs.accountTab'
 export const logOutTab = 'settingsTabs.logOutTab'
 export const notificationsTab = 'settingsTabs.notificationsTab'
 export const passwordTab = 'settingsTabs.password'
@@ -159,3 +178,5 @@ export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
+export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
+export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'

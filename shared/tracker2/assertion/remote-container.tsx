@@ -48,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
   onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
-  onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
+  onWhatIsStellar: () => dispatchProps._onWhatIsStellar(),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,
   siteIconFull: stateProps.siteIconFull,
@@ -59,4 +59,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   value: stateProps.value,
 })
 
-export default Container.remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Assertion)
+// Just to get the stories working short term. TODO remove and use newer story wrapper
+const ConnectedAssertion =
+  __STORYBOOK__
+    ? Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Assertion')(Assertion)
+    : Container.remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Assertion)
+export default ConnectedAssertion

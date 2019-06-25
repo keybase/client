@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -10,9 +8,15 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addPhoneNumber = 'settings:addPhoneNumber'
+export const addedPhoneNumber = 'settings:addedPhoneNumber'
+export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
+export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
+export const editEmail = 'settings:editEmail'
+export const editPhone = 'settings:editPhone'
 export const feedbackSent = 'settings:feedbackSent'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
@@ -23,11 +27,13 @@ export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
+export const loadProxyData = 'settings:loadProxyData'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedCheckPassword = 'settings:loadedCheckPassword'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
+export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -48,6 +54,7 @@ export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
+export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const stop = 'settings:stop'
@@ -56,12 +63,39 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
+export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddPhoneNumberPayload = {
+  readonly allowSearch: boolean
+  readonly phoneNumber: string
+  readonly resend?: boolean
+}
+type _AddedPhoneNumberPayload = {
+  readonly allowSearch: boolean
+  readonly error?: string
+  readonly phoneNumber: string
+}
+type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
+type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
+type _EditEmailPayload = {
+  readonly email: string
+  readonly delete?: boolean
+  readonly makePrimary?: boolean
+  readonly toggleSearchable?: boolean
+  readonly verify?: boolean
+}
+type _EditPhonePayload = {
+  readonly phone: string
+  readonly delete?: boolean
+  readonly toggleSearchable?: boolean
+  readonly verify?: boolean
+}
 type _FeedbackSentPayload = {readonly error: Error | null}
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
@@ -74,13 +108,18 @@ type _InvitesSentPayload = void
 type _InvitesSentPayloadError = {readonly error: Error}
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
+type _LoadProxyDataPayload = void
 type _LoadRememberPasswordPayload = void
 type _LoadSettingsPayload = void
 type _LoadedCheckPasswordPayload = {readonly checkPasswordIsCorrect: boolean | null}
 type _LoadedHasRandomPwPayload = {readonly randomPW: boolean}
 type _LoadedLockdownModePayload = {readonly status: boolean | null}
+type _LoadedProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _LoadedRememberPasswordPayload = {readonly remember: boolean}
-type _LoadedSettingsPayload = {readonly emails: I.List<Types.EmailRow> | null}
+type _LoadedSettingsPayload = {
+  readonly emails: I.Map<string, Types.EmailRow> | null
+  readonly phones: I.Map<string, Types.PhoneRow> | null
+}
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
@@ -99,7 +138,12 @@ type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
-type _SendFeedbackPayload = {readonly feedback: string; readonly sendLogs: boolean}
+type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
+type _SendFeedbackPayload = {
+  readonly feedback: string
+  readonly sendLogs: boolean
+  readonly sendMaxBytes: boolean
+}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
@@ -113,9 +157,18 @@ type _UnfurlSettingsSavedPayload = {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: I.List<string>
 }
+type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
+type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
+/**
+ * Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.
+ */
+export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
+  payload,
+  type: addPhoneNumber,
+})
 /**
  * An error occurred on the unfurl settings screen
  */
@@ -130,6 +183,12 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
   type: feedbackSent,
 })
 /**
+ * Cancel a phone number verification-in-progress.
+ */
+export const createClearPhoneNumberVerification = (
+  payload: _ClearPhoneNumberVerificationPayload
+): ClearPhoneNumberVerificationPayload => ({payload, type: clearPhoneNumberVerification})
+/**
  * Refresh unfurl settings
  */
 export const createUnfurlSettingsRefresh = (
@@ -142,11 +201,34 @@ export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
 /**
+ * Submit a verification code for a phone number
+ */
+export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload): VerifyPhoneNumberPayload => ({
+  payload,
+  type: verifyPhoneNumber,
+})
+/**
  * Update unfurl settings from settings screen
  */
 export const createUnfurlSettingsSaved = (
   payload: _UnfurlSettingsSavedPayload
 ): UnfurlSettingsSavedPayload => ({payload, type: unfurlSettingsSaved})
+/**
+ * We just attempted to add a phone number and either got an error or the number is pending verification.
+ */
+export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): AddedPhoneNumberPayload => ({
+  payload,
+  type: addedPhoneNumber,
+})
+/**
+ * We verified a phone number or hit an error.
+ */
+export const createVerifiedPhoneNumber = (
+  payload: _VerifiedPhoneNumberPayload
+): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
+export const createCertificatePinningToggled = (
+  payload: _CertificatePinningToggledPayload
+): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
 export const createCheckPassword = (payload: _CheckPasswordPayload): CheckPasswordPayload => ({
   payload,
   type: checkPassword,
@@ -155,6 +237,8 @@ export const createDbNuke = (payload: _DbNukePayload): DbNukePayload => ({payloa
 export const createDeleteAccountForever = (
   payload: _DeleteAccountForeverPayload
 ): DeleteAccountForeverPayload => ({payload, type: deleteAccountForever})
+export const createEditEmail = (payload: _EditEmailPayload): EditEmailPayload => ({payload, type: editEmail})
+export const createEditPhone = (payload: _EditPhonePayload): EditPhonePayload => ({payload, type: editPhone})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
   payload,
   type: invitesClearError,
@@ -199,6 +283,10 @@ export const createLoadLockdownMode = (payload: _LoadLockdownModePayload): LoadL
   payload,
   type: loadLockdownMode,
 })
+export const createLoadProxyData = (payload: _LoadProxyDataPayload): LoadProxyDataPayload => ({
+  payload,
+  type: loadProxyData,
+})
 export const createLoadRememberPassword = (
   payload: _LoadRememberPasswordPayload
 ): LoadRememberPasswordPayload => ({payload, type: loadRememberPassword})
@@ -216,6 +304,10 @@ export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload): Loa
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload): LoadedLockdownModePayload => ({
   payload,
   type: loadedLockdownMode,
+})
+export const createLoadedProxyData = (payload: _LoadedProxyDataPayload): LoadedProxyDataPayload => ({
+  payload,
+  type: loadedProxyData,
 })
 export const createLoadedRememberPassword = (
   payload: _LoadedRememberPasswordPayload
@@ -283,6 +375,10 @@ export const createProcessorProfile = (payload: _ProcessorProfilePayload): Proce
   payload,
   type: processorProfile,
 })
+export const createSaveProxyData = (payload: _SaveProxyDataPayload): SaveProxyDataPayload => ({
+  payload,
+  type: saveProxyData,
+})
 export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackPayload => ({
   payload,
   type: sendFeedback,
@@ -298,15 +394,33 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type AddPhoneNumberPayload = {
+  readonly payload: _AddPhoneNumberPayload
+  readonly type: typeof addPhoneNumber
+}
+export type AddedPhoneNumberPayload = {
+  readonly payload: _AddedPhoneNumberPayload
+  readonly type: typeof addedPhoneNumber
+}
+export type CertificatePinningToggledPayload = {
+  readonly payload: _CertificatePinningToggledPayload
+  readonly type: typeof certificatePinningToggled
+}
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
+}
+export type ClearPhoneNumberVerificationPayload = {
+  readonly payload: _ClearPhoneNumberVerificationPayload
+  readonly type: typeof clearPhoneNumberVerification
 }
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
   readonly payload: _DeleteAccountForeverPayload
   readonly type: typeof deleteAccountForever
 }
+export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
+export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
 export type InvitesClearErrorPayload = {
   readonly payload: _InvitesClearErrorPayload
@@ -348,6 +462,10 @@ export type LoadLockdownModePayload = {
   readonly payload: _LoadLockdownModePayload
   readonly type: typeof loadLockdownMode
 }
+export type LoadProxyDataPayload = {
+  readonly payload: _LoadProxyDataPayload
+  readonly type: typeof loadProxyData
+}
 export type LoadRememberPasswordPayload = {
   readonly payload: _LoadRememberPasswordPayload
   readonly type: typeof loadRememberPassword
@@ -364,6 +482,10 @@ export type LoadedHasRandomPwPayload = {
 export type LoadedLockdownModePayload = {
   readonly payload: _LoadedLockdownModePayload
   readonly type: typeof loadedLockdownMode
+}
+export type LoadedProxyDataPayload = {
+  readonly payload: _LoadedProxyDataPayload
+  readonly type: typeof loadedProxyData
 }
 export type LoadedRememberPasswordPayload = {
   readonly payload: _LoadedRememberPasswordPayload
@@ -445,6 +567,10 @@ export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
   readonly type: typeof processorProfile
 }
+export type SaveProxyDataPayload = {
+  readonly payload: _SaveProxyDataPayload
+  readonly type: typeof saveProxyData
+}
 export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
@@ -468,6 +594,14 @@ export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
   readonly type: typeof unfurlSettingsSaved
 }
+export type VerifiedPhoneNumberPayload = {
+  readonly payload: _VerifiedPhoneNumberPayload
+  readonly type: typeof verifiedPhoneNumber
+}
+export type VerifyPhoneNumberPayload = {
+  readonly payload: _VerifyPhoneNumberPayload
+  readonly type: typeof verifyPhoneNumber
+}
 export type WaitingForResponsePayload = {
   readonly payload: _WaitingForResponsePayload
   readonly type: typeof waitingForResponse
@@ -476,9 +610,15 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddPhoneNumberPayload
+  | AddedPhoneNumberPayload
+  | CertificatePinningToggledPayload
   | CheckPasswordPayload
+  | ClearPhoneNumberVerificationPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
+  | EditEmailPayload
+  | EditPhonePayload
   | FeedbackSentPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
@@ -491,11 +631,13 @@ export type Actions =
   | InvitesSentPayloadError
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
+  | LoadProxyDataPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
   | LoadedCheckPasswordPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
+  | LoadedProxyDataPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | NotificationsRefreshPayload
@@ -516,6 +658,7 @@ export type Actions =
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
+  | SaveProxyDataPayload
   | SendFeedbackPayload
   | SetAllowDeleteAccountPayload
   | StopPayload
@@ -524,5 +667,7 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | VerifiedPhoneNumberPayload
+  | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: null}

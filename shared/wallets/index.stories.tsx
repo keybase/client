@@ -13,7 +13,9 @@ import transactionDetails from './transaction-details/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
 import walletSwitcherRow from './wallet/header/wallet-switcher/wallet-row/index.stories'
+import whatIsStellarModal from './what-is-stellar-modal/index.stories'
 import airdrop from './airdrop/index.stories'
+import trustline from './trustline/index.stories'
 
 const load = () => {
   airdrop()
@@ -30,8 +32,10 @@ const load = () => {
   walletList()
   wallet()
   walletSwitcherRow()
+  whatIsStellarModal()
   transaction()
   transactionDetails()
+  trustline()
 }
 
 export default load

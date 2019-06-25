@@ -8,7 +8,8 @@ protocol unfurl {
   enum UnfurlType {
     GENERIC_0,
     YOUTUBE_1,
-    GIPHY_2
+    GIPHY_2,
+    MAPS_3 // only from scrape, gets converted to generic in packager
   }
 
   record UnfurlVideo {
@@ -39,10 +40,20 @@ protocol unfurl {
     union { null, string } faviconUrl;
   }
 
+  record UnfurlMapsRaw {
+    string title;
+    string url;
+    string siteName;
+    string imageUrl;
+    union { null, string } historyImageUrl;
+    string description;
+  }
+
   variant UnfurlRaw switch (UnfurlType unfurlType) {
     case GENERIC: UnfurlGenericRaw;
     case YOUTUBE: UnfurlYoutubeRaw;
     case GIPHY: UnfurlGiphyRaw;
+    case MAPS: UnfurlMapsRaw;
   }
 
   record UnfurlGeneric {

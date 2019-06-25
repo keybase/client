@@ -952,6 +952,8 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msg.Valid().MessageBody.Text().Body
+	case chat1.MessageType_EDIT:
+		return msg.Valid().MessageBody.Edit().Body
 	case chat1.MessageType_FLIP:
 		return msg.Valid().MessageBody.Flip().Text
 	case chat1.MessageType_ATTACHMENT:
@@ -1026,7 +1028,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 			return ""
 		}
 		switch msg.GetMessageType() {
-		case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT:
+		case chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT, chat1.MessageType_EDIT:
 			return "💣 exploding message."
 		default:
 			return ""
@@ -1983,6 +1985,18 @@ func SuspendComponent(ctx context.Context, g *globals.Context, suspendable types
 	}
 	return func() {
 		suspendable.Resume(ctx)
+	}
+}
+
+func SuspendComponents(ctx context.Context, g *globals.Context, suspendables []types.Suspendable) func() {
+	resumeFuncs := []func(){}
+	for _, s := range suspendables {
+		resumeFuncs = append(resumeFuncs, SuspendComponent(ctx, g, s))
+	}
+	return func() {
+		for _, f := range resumeFuncs {
+			f()
+		}
 	}
 }
 

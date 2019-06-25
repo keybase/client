@@ -54,7 +54,7 @@ class Login extends React.Component<Props, State> {
   render() {
     const inputProps = {
       autoFocus: true,
-      errorText: this.props.error,
+      errorText: this.props.inputError ? this.props.error : '',
       floatingHintTextOverride: '',
       hintText: 'Password',
       key: this.props.inputKey,
@@ -80,39 +80,42 @@ class Login extends React.Component<Props, State> {
     const selectedIdx = this.props.users.indexOf(this.props.selectedUser)
 
     return (
-      <Kb.Box style={stylesContainer}>
-        <Kb.UserCard username={this.props.selectedUser}>
-          <Kb.Dropdown
-            onChanged={this._onClickUser}
-            selected={userRows[selectedIdx]}
-            items={userRows}
-            position={'bottom center'}
-          />
-          <Kb.FormWithCheckbox
-            style={{alignSelf: 'stretch'}}
-            inputProps={inputProps}
-            checkboxesProps={checkboxProps}
-          />
-          <Kb.WaitingButton
-            disabled={!this.props.password}
-            fullWidth={true}
-            waitingKey={Constants.waitingKey}
-            style={{marginTop: 0, width: '100%'}}
-            label="Log in"
-            onClick={() => this.props.onSubmit()}
-          />
-          <Kb.Text
-            type="BodySmallSecondaryLink"
-            onClick={this.props.onForgotPassword}
-            style={{marginTop: 24}}
-          >
-            Forgot password?
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        {this.props.bannerError && <Kb.Banner text={this.props.error} color="red" />}
+        <Kb.Box style={stylesContainer}>
+          <Kb.UserCard username={this.props.selectedUser}>
+            <Kb.Dropdown
+              onChanged={this._onClickUser}
+              selected={userRows[selectedIdx]}
+              items={userRows}
+              position={'bottom center'}
+            />
+            <Kb.FormWithCheckbox
+              style={{alignSelf: 'stretch'}}
+              inputProps={inputProps}
+              checkboxesProps={checkboxProps}
+            />
+            <Kb.WaitingButton
+              disabled={!this.props.password}
+              fullWidth={true}
+              waitingKey={Constants.waitingKey}
+              style={{marginTop: 0, width: '100%'}}
+              label="Log in"
+              onClick={() => this.props.onSubmit()}
+            />
+            <Kb.Text
+              type="BodySmallSecondaryLink"
+              onClick={this.props.onForgotPassword}
+              style={{marginTop: 24}}
+            >
+              Forgot password?
+            </Kb.Text>
+          </Kb.UserCard>
+          <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
+            Create an account
           </Kb.Text>
-        </Kb.UserCard>
-        <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
-          Create an account
-        </Kb.Text>
-      </Kb.Box>
+        </Kb.Box>
+      </Kb.Box2>
     )
   }
 }

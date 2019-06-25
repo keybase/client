@@ -359,3 +359,11 @@ func (c *ChatCLIUI) ChatMaybeMentionUpdate(ctx context.Context, arg chat1.ChatMa
 func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGalleryHitArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatWatchPosition(context.Context, int) (chat1.LocationWatchID, error) {
+	return chat1.LocationWatchID(0), nil
+}
+
+func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+	return nil
+}

@@ -1000,8 +1000,9 @@ type NetworkOptionsArg struct {
 }
 
 type DetailsPlusPaymentsArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type AssetSearchArg struct {
@@ -1012,6 +1013,10 @@ type AssetSearchArg struct {
 type FuzzyAssetSearchArg struct {
 	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
 	SearchString string               `codec:"searchString" json:"searchString"`
+}
+
+type ListPopularAssetsArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 }
 
 type ChangeTrustlineArg struct {
@@ -1055,6 +1060,7 @@ type RemoteInterface interface {
 	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
 	AssetSearch(context.Context, AssetSearchArg) ([]Asset, error)
 	FuzzyAssetSearch(context.Context, FuzzyAssetSearchArg) ([]Asset, error)
+	ListPopularAssets(context.Context, keybase1.UserVersion) (AssetListResult, error)
 	ChangeTrustline(context.Context, ChangeTrustlineArg) error
 	FindPaymentPath(context.Context, FindPaymentPathArg) (PaymentPath, error)
 	PostAnyTransaction(context.Context, PostAnyTransactionArg) error
@@ -1434,6 +1440,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"listPopularAssets": {
+				MakeArg: func() interface{} {
+					var ret [1]ListPopularAssetsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListPopularAssetsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListPopularAssetsArg)(nil), args)
+						return
+					}
+					ret, err = i.ListPopularAssets(ctx, typedArgs[0].Caller)
+					return
+				},
+			},
 			"changeTrustline": {
 				MakeArg: func() interface{} {
 					var ret [1]ChangeTrustlineArg
@@ -1612,6 +1633,12 @@ func (c RemoteClient) AssetSearch(ctx context.Context, __arg AssetSearchArg) (re
 
 func (c RemoteClient) FuzzyAssetSearch(ctx context.Context, __arg FuzzyAssetSearchArg) (res []Asset, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.fuzzyAssetSearch", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) ListPopularAssets(ctx context.Context, caller keybase1.UserVersion) (res AssetListResult, err error) {
+	__arg := ListPopularAssetsArg{Caller: caller}
+	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []interface{}{__arg}, &res)
 	return
 }
 

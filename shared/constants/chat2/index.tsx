@@ -18,6 +18,9 @@ import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 
+export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
+const defaultSkinTone = 1
+
 export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
   attachmentFullscreenSelection: null,
@@ -59,6 +62,7 @@ export const makeState = I.Record<Types._State>({
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
   unsentTextMap: I.Map(),
+  userReacjis: {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis},
 })
 
 export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
@@ -171,6 +175,7 @@ export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.Co
 }
 export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const ordinal = getReplyToOrdinal(state, conversationIDKey)
+  if (!ordinal) return null
   const maybeMessage = getMessage(state, conversationIDKey, ordinal)
   return ordinal ? (maybeMessage === null || maybeMessage === undefined ? undefined : maybeMessage.id) : null
 }
@@ -235,7 +240,7 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   const meta = getMeta(state, getSelectedConversation(state))
   return meta.teamname === teamname
 }
-export const isInfoPanelOpen = (state: TypedState) => {
+export const isInfoPanelOpen = () => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
   return (
     (maybeVisibleScreen === null || maybeVisibleScreen === undefined
@@ -305,10 +310,12 @@ export const makeInboxQuery = (
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
     readOnly: false,
-    status: Object.keys(RPCChatTypes.ConversationStatus)
-      .filter(k => typeof RPCChatTypes.ConversationStatus[k] === 'number')
-      .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
-      .map(k => RPCChatTypes.ConversationStatus[k]),
+    status: (Object.keys(RPCChatTypes.ConversationStatus)
+      .filter(k => typeof RPCChatTypes.ConversationStatus[k as any] === 'number')
+      .filter(k => !['ignored', 'blocked', 'reported'].includes(k as any))
+      .map(k => RPCChatTypes.ConversationStatus[k as any]) as unknown) as Array<
+      RPCChatTypes.ConversationStatus
+    >,
     tlfVisibility: RPCTypes.TLFVisibility.private,
     topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,
@@ -360,6 +367,24 @@ export const clampImageSize = (width: number, height: number, maxSize: number) =
         height: (clamp(width || 0, 0, maxSize) * height) / (width || 1),
         width: clamp(width || 0, 0, maxSize),
       }
+
+export const zoomImage = (width: number, height: number, maxThumbSize: number) => {
+  const dims =
+    height > width
+      ? {height: (maxThumbSize * height) / width, width: maxThumbSize}
+      : {height: maxThumbSize, width: (maxThumbSize * width) / height}
+  const marginHeight = dims.height > maxThumbSize ? (dims.height - maxThumbSize) / 2 : 0
+  const marginWidth = dims.width > maxThumbSize ? (dims.width - maxThumbSize) / 2 : 0
+  return {
+    dims,
+    margins: {
+      marginBottom: -marginHeight,
+      marginLeft: -marginWidth,
+      marginRight: -marginWidth,
+      marginTop: -marginHeight,
+    },
+  }
+}
 
 export {
   getAllChannels,

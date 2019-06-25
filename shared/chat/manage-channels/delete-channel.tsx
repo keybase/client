@@ -68,7 +68,7 @@ class _DeleteChannel extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  colorRed: {color: Styles.globalColors.red},
+  colorRed: {color: Styles.globalColors.redDark},
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,

@@ -1,5 +1,5 @@
 import React from 'react'
-import Text from '../../../common-adapters/text'
+import Text, {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
 import * as Styles from '../../../styles'
 import TeamInfo from '../../../profile/user/teams/teaminfo'
@@ -19,7 +19,7 @@ export type Props = {
   resolved: boolean
   numMembers: number
   publicAdmins: Array<string>
-  style?: Styles.StylesCrossPlatform
+  style?: StylesTextCrossPlatform
 }
 
 type State = {

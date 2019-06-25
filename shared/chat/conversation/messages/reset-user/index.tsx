@@ -57,7 +57,7 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
           backgroundColor="red"
           onClick={letThemIn}
           label="Let them in"
-          labelStyle={{color: globalColors.red}}
+          labelStyle={{color: globalColors.redDark}}
           style={{backgroundColor: globalColors.white}}
         />
       </Box>

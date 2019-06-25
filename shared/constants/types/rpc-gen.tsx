@@ -120,7 +120,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifySession.loggedIn': {
-    inParam: {readonly username: String}
+    inParam: {readonly username: String; readonly signedUp: Boolean}
     outParam: void
   }
   'keybase.1.NotifySession.loggedOut': {
@@ -319,6 +319,10 @@ export type MessageTypes = {
     inParam: {readonly event: String}
     outParam: void
   }
+  'keybase.1.appState.updateMobileNetState': {
+    inParam: {readonly state: String}
+    outParam: void
+  }
   'keybase.1.avatars.loadTeamAvatars': {
     inParam: {readonly names?: Array<String> | null; readonly formats?: Array<AvatarFormat> | null}
     outParam: LoadAvatarsRes
@@ -338,6 +342,10 @@ export type MessageTypes = {
   'keybase.1.config.getConfig': {
     inParam: void
     outParam: Config
+  }
+  'keybase.1.config.getProxyData': {
+    inParam: void
+    outParam: ProxyData
   }
   'keybase.1.config.getRememberPassphrase': {
     inParam: void
@@ -360,8 +368,12 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.config.logSend': {
-    inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean}
+    inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean; readonly sendMaxBytes: Boolean}
     outParam: LogSendID
+  }
+  'keybase.1.config.setProxyData': {
+    inParam: {readonly proxyData: ProxyData}
+    outParam: void
   }
   'keybase.1.config.setRememberPassphrase': {
     inParam: {readonly remember: Boolean}
@@ -437,6 +449,26 @@ export type MessageTypes = {
   }
   'keybase.1.device.dismissDeviceChangeNotifications': {
     inParam: void
+    outParam: void
+  }
+  'keybase.1.emails.addEmail': {
+    inParam: {readonly email: EmailAddress; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.emails.deleteEmail': {
+    inParam: {readonly email: EmailAddress}
+    outParam: void
+  }
+  'keybase.1.emails.sendVerificationEmail': {
+    inParam: {readonly email: EmailAddress}
+    outParam: void
+  }
+  'keybase.1.emails.setPrimaryEmail': {
+    inParam: {readonly email: EmailAddress}
+    outParam: void
+  }
+  'keybase.1.emails.setVisibilityEmail': {
+    inParam: {readonly email: EmailAddress; readonly visibility: IdentityVisibility}
     outParam: void
   }
   'keybase.1.favorite.favoriteAdd': {
@@ -782,6 +814,22 @@ export type MessageTypes = {
   'keybase.1.pgpUi.shouldPushPrivate': {
     inParam: {readonly prompt: Boolean}
     outParam: Boolean
+  }
+  'keybase.1.phoneNumbers.addPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.deletePhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.setVisibilityPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
+    outParam: void
+  }
+  'keybase.1.phoneNumbers.verifyPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber; readonly code: String}
+    outParam: void
   }
   'keybase.1.pprof.logProcessorProfile': {
     inParam: {readonly logDirForMobile: String; readonly profileDurationSeconds: DurationSec}
@@ -1241,8 +1289,7 @@ export enum ClientType {
 }
 
 export enum ConflictStateType {
-  automaticresolving = 0,
-  manualresolvingserverview = 1,
+  normalview = 1,
   manualresolvinglocalview = 2,
 }
 
@@ -1505,6 +1552,13 @@ export enum MobileAppState {
   backgroundactive = 3,
 }
 
+export enum MobileNetworkState {
+  none = 0,
+  wifi = 1,
+  celluar = 2,
+  unknown = 3,
+}
+
 export enum OfflineAvailability {
   none = 0,
   bestEffort = 1,
@@ -1544,6 +1598,10 @@ export enum PathType {
   local = 0,
   kbfs = 1,
   kbfsArchived = 2,
+}
+
+export enum PerTeamSeedCheckVersion {
+  v1 = 1,
 }
 
 export enum PrefetchStatus {
@@ -1645,6 +1703,12 @@ export enum ProvisionMethod {
   gpgSign = 4,
 }
 
+export enum ProxyType {
+  noProxy = 0,
+  httpConnect = 1,
+  socks = 2,
+}
+
 export enum PushReason {
   none = 0,
   reconnected = 1,
@@ -1686,6 +1750,11 @@ export enum RevisionSpanType {
   lastFive = 1,
 }
 
+export enum RotationType {
+  visible = 0,
+  hidden = 1,
+}
+
 export enum RuntimeGroup {
   unknown = 0,
   linuxlike = 1,
@@ -1718,6 +1787,8 @@ export enum SeqType {
   public = 1,
   private = 2,
   semiprivate = 3,
+  userPrivateHidden = 16,
+  teamPrivateHidden = 17,
 }
 
 export enum SignMode {
@@ -2074,6 +2145,7 @@ export type AvatarUrl = String
 export type BadgeConversationInfo = {readonly convID: ChatConversationID; readonly badgeCounts: {[key: string]: Int}; readonly unreadMessages: Int}
 export type BadgeState = {readonly newTlfs: Int; readonly rekeysNeeded: Int; readonly newFollowers: Int; readonly inboxVers: Int; readonly homeTodoItems: Int; readonly newDevices?: Array<DeviceID> | null; readonly revokedDevices?: Array<DeviceID> | null; readonly conversations?: Array<BadgeConversationInfo> | null; readonly newGitRepoGlobalUniqueIDs?: Array<String> | null; readonly newTeamNames?: Array<String> | null; readonly deletedTeams?: Array<DeletedTeamInfo> | null; readonly newTeamAccessRequests?: Array<String> | null; readonly teamsWithResetUsers?: Array<TeamMemberOutReset> | null; readonly unreadWalletAccounts?: Array<WalletAccountInfo> | null; readonly resetState: ResetState}
 export type BinaryKID = Bytes
+export type BinaryLinkID = Bytes
 export type BlockIdCombo = {readonly blockHash: String; readonly chargedTo: UserOrTeamID; readonly blockType: BlockType}
 export type BlockIdCount = {readonly id: BlockIdCombo; readonly liveCount: Int}
 export type BlockPingResponse = {}
@@ -2101,13 +2173,10 @@ export type CompatibilityTeamID = {typ: TeamType.legacy; legacy: TLFID | null} |
 export type ComponentResult = {readonly name: String; readonly status: Status; readonly exitCode: Int}
 export type Config = {readonly serverURI: String; readonly socketFile: String; readonly label: String; readonly runMode: String; readonly gpgExists: Boolean; readonly gpgPath: String; readonly version: String; readonly path: String; readonly binaryRealpath: String; readonly configPath: String; readonly versionShort: String; readonly versionFull: String; readonly isAutoForked: Boolean; readonly forkType: ForkType}
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly s?: String | null; readonly o?: String | null}
-export type ConfiguredAccount = {readonly username: String; readonly hasStoredSecret: Boolean}
+export type ConfiguredAccount = {readonly username: String; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}
 export type ConfirmResult = {readonly identityConfirmed: Boolean; readonly remoteConfirmed: Boolean; readonly expiringLocal: Boolean; readonly autoConfirmed: Boolean}
-export type ConflictAutomaticResolving = {readonly isStuck: Boolean}
 export type ConflictGeneration = Int
-export type ConflictManualResolvingLocalView = {readonly serverView: Path}
-export type ConflictManualResolvingServerView = {readonly localViews?: Array<Path> | null}
-export type ConflictState = {conflictStateType: ConflictStateType.automaticresolving; automaticresolving: ConflictAutomaticResolving | null} | {conflictStateType: ConflictStateType.manualresolvingserverview; manualresolvingserverview: ConflictManualResolvingServerView | null} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: ConflictManualResolvingLocalView | null}
+export type ConflictState = {conflictStateType: ConflictStateType.normalview; normalview: FolderNormalView | null} | {conflictStateType: ConflictStateType.manualresolvinglocalview; manualresolvinglocalview: FolderConflictManualResolvingLocalView | null}
 export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
@@ -2144,7 +2213,7 @@ export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UI
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}
 export type ErrorNum = Int
-export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
+export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly configuredAccounts?: Array<ConfiguredAccount> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
 export type ExternalServiceConfig = {readonly schemaVersion: Int; readonly display?: ServiceDisplayConfig | null; readonly config?: ParamProofServiceConfig | null}
 export type FSEditListRequest = {readonly folder: Folder; readonly requestID: Int}
 export type FSFolderEditHistory = {readonly folder: Folder; readonly serverTime: Time; readonly history?: Array<FSFolderWriterEditHistory> | null}
@@ -2155,7 +2224,7 @@ export type FSPathSyncStatus = {readonly folderType: FolderType; readonly path: 
 export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64}
 export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
-export type FastTeamData = {readonly frozen: Boolean; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
+export type FastTeamData = {readonly frozen: Boolean; readonly subversion: Int; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly maxContinuousPTKGeneration: PerTeamKeyGeneration; readonly seedChecks: {[key: string]: PerTeamSeedCheck}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
 export type FastTeamLoadArg = {readonly ID: TeamID; readonly public: Boolean; readonly assertTeamName?: TeamName | null; readonly applications?: Array<TeamApplication> | null; readonly keyGenerationsNeeded?: Array<PerTeamKeyGeneration> | null; readonly needLatestKey: Boolean; readonly forceRefresh: Boolean}
 export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly last?: LinkTriple | null; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}; readonly downPointers: {[key: string]: DownPointer}; readonly lastUpPointer?: UpPointer | null; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly merkleInfo: {[key: string]: MerkleRootV2}}
@@ -2167,7 +2236,9 @@ export type FileDescriptor = {readonly name: String; readonly type: FileType}
 export type FindNextMDResponse = {readonly kbfsRoot: MerkleRoot; readonly merkleNodes?: Array<Bytes> | null; readonly rootSeqno: Seqno; readonly rootHash: HashMeta}
 export type FirstStepResult = {readonly valPlusTwo: Int}
 export type Folder = {readonly name: String; readonly private: Boolean; readonly created: Boolean; readonly folderType: FolderType; readonly team_id /* teamID */?: TeamID | null; readonly reset_members /* resetMembers */?: Array<User> | null; readonly mtime?: Time | null; readonly conflictState?: ConflictState | null; readonly syncConfig?: FolderSyncConfig | null}
+export type FolderConflictManualResolvingLocalView = {readonly normalView: Path}
 export type FolderHandle = {readonly name: String; readonly folderType: FolderType; readonly created: Boolean}
+export type FolderNormalView = {readonly resolvingConflict: Boolean; readonly stuckInConflict: Boolean; readonly localViews?: Array<Path> | null}
 export type FolderSyncConfig = {readonly mode: FolderSyncMode; readonly paths?: Array<String> | null}
 export type FolderSyncConfigAndStatus = {readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
 export type FolderSyncConfigAndStatusWithFolder = {readonly folder: Folder; readonly config: FolderSyncConfig; readonly status: FolderSyncStatus}
@@ -2202,9 +2273,9 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
-export type HiddenTeamChain = {readonly v: /* subversion */ Int; readonly data: HiddenTeamChainData; readonly perTeamKeys: {[key: string]: Seqno}; readonly ratchet?: LinkTriple | null; readonly cachedAt: Time}
-export type HiddenTeamChainData = {readonly ID: TeamID; readonly public: Boolean; readonly last: Seqno; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}}
-export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKey}}
+export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly latestSeqnoHint: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchet: HiddenTeamChainRatchet; readonly cachedAt: Time}
+export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKeyAndCheck}}
+export type HiddenTeamChainRatchet = {readonly main?: LinkTripleAndTime | null; readonly blinded?: LinkTripleAndTime | null; readonly self?: LinkTripleAndTime | null}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
 export type HomeScreenAnnouncement = {readonly id: HomeScreenAnnouncementID; readonly version: HomeScreenAnnouncementVersion; readonly appLink: AppLinkType; readonly confirmLabel: String; readonly dismissable: Boolean; readonly iconUrl: String; readonly text: String; readonly url: String}
 export type HomeScreenAnnouncementID = Int
@@ -2257,6 +2328,7 @@ export type LeaseID = String
 export type LinkCheckResult = {readonly proofId: Int; readonly proofResult: ProofResult; readonly snoozedResult: ProofResult; readonly torWarning: Boolean; readonly tmpTrackExpireTime: Time; readonly cached?: CheckResult | null; readonly diff?: TrackDiff | null; readonly remoteDiff?: TrackDiff | null; readonly hint?: SigHint | null; readonly breaksTracking: Boolean}
 export type LinkID = String
 export type LinkTriple = {readonly seqno: Seqno; readonly seqType: SeqType; readonly linkID: LinkID}
+export type LinkTripleAndTime = {readonly triple: LinkTriple; readonly time: Time}
 export type ListArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter}
 export type ListResult = {readonly files?: Array<File> | null}
 export type ListToDepthArgs = {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly depth: Int}
@@ -2310,9 +2382,14 @@ export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; 
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
 export type Path = {PathType: PathType.local; local: String | null} | {PathType: PathType.kbfs; kbfs: String | null} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath | null}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
+export type PerTeamKeyAndCheck = {readonly ptk: PerTeamKey; readonly check: PerTeamSeedCheckPostImage}
 export type PerTeamKeyGeneration = Int
 export type PerTeamKeySeed = string | null
-export type PerTeamKeySeedItem = {readonly seed: PerTeamKeySeed; readonly generation: PerTeamKeyGeneration; readonly seqno: Seqno}
+export type PerTeamKeySeedItem = {readonly seed: PerTeamKeySeed; readonly generation: PerTeamKeyGeneration; readonly seqno: Seqno; readonly check?: PerTeamSeedCheck | null}
+export type PerTeamSeedCheck = {readonly version: PerTeamSeedCheckVersion; readonly value: PerTeamSeedCheckValue}
+export type PerTeamSeedCheckPostImage = {readonly h: /* value */ PerTeamSeedCheckValuePostImage; readonly v: /* version */ PerTeamSeedCheckVersion}
+export type PerTeamSeedCheckValue = Bytes
+export type PerTeamSeedCheckValuePostImage = Bytes
 export type PerUserKey = {readonly gen: Int; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID; readonly signedByKID: KID}
 export type PerUserKeyBox = {readonly generation: PerUserKeyGeneration; readonly box: String; readonly receiverKID: KID}
 export type PerUserKeyGeneration = Int
@@ -2337,6 +2414,7 @@ export type ProofSuggestion = {readonly key: String; readonly belowFold: Boolean
 export type ProofSuggestionsRes = {readonly suggestions?: Array<ProofSuggestion> | null; readonly showMore: Boolean}
 export type Proofs = {readonly social?: Array<TrackProof> | null; readonly web?: Array<WebProof> | null; readonly publicKeys?: Array<PublicKey> | null}
 export type ProveParameters = {readonly logoFull?: Array<SizedImage> | null; readonly logoBlack?: Array<SizedImage> | null; readonly title: String; readonly subtext: String; readonly suffix: String; readonly buttonLabel: String}
+export type ProxyData = {readonly addressWithPort: String; readonly proxyType: ProxyType; readonly certPinning: Boolean}
 export type PublicKey = {readonly KID: KID; readonly PGPFingerprint: String; readonly PGPIdentities?: Array<PGPIdentity> | null; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly parentID: String; readonly deviceID: DeviceID; readonly deviceDescription: String; readonly deviceType: String; readonly cTime: Time; readonly eTime: Time; readonly isRevoked: Boolean}
 export type PublicKeyV2 = {keyType: KeyType.nacl; nacl: PublicKeyV2NaCl | null} | {keyType: KeyType.pgp; pgp: PublicKeyV2PGPSummary | null}
 export type PublicKeyV2Base = {readonly kid: KID; readonly isSibkey: Boolean; readonly isEldest: Boolean; readonly cTime: Time; readonly eTime: Time; readonly provisioning: SignatureMetadata; readonly revocation?: SignatureMetadata | null}
@@ -2433,7 +2511,7 @@ export type TeamApplicationKey = {readonly application: TeamApplication; readonl
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
 export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
-export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
+export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
@@ -2484,7 +2562,7 @@ export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<T
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
 export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
 export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?: String | null; readonly setByUID?: UID | null; readonly anyMemberShowcase: Boolean}
-export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
+export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
 export type Test = {readonly reply: String}
@@ -2525,7 +2603,7 @@ export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; read
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion}
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole}
-export type UserSettings = {readonly emails?: Array<Email> | null}
+export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}
 export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}
 export type UserSummary2Set = {readonly users?: Array<UserSummary2> | null; readonly time: Time; readonly version: Int}
@@ -2804,17 +2882,20 @@ export const apiserverGetWithSessionRpcPromise = (params: MessageTypes['keybase.
 export const apiserverPostJSONRpcPromise = (params: MessageTypes['keybase.1.apiserver.PostJSON']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.PostJSON']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.PostJSON', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverPostRpcPromise = (params: MessageTypes['keybase.1.apiserver.Post']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Post']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Post', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const appStatePowerMonitorEventRpcPromise = (params: MessageTypes['keybase.1.appState.powerMonitorEvent']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.appState.powerMonitorEvent']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.appState.powerMonitorEvent', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const appStateUpdateMobileNetStateRpcPromise = (params: MessageTypes['keybase.1.appState.updateMobileNetState']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.appState.updateMobileNetState']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.appState.updateMobileNetState', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const avatarsLoadTeamAvatarsRpcPromise = (params: MessageTypes['keybase.1.avatars.loadTeamAvatars']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.avatars.loadTeamAvatars']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.avatars.loadTeamAvatars', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const avatarsLoadUserAvatarsRpcPromise = (params: MessageTypes['keybase.1.avatars.loadUserAvatars']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.avatars.loadUserAvatars']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.avatars.loadUserAvatars', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetAllProvisionedUsernamesRpcPromise = (params: MessageTypes['keybase.1.config.getAllProvisionedUsernames']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getAllProvisionedUsernames']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getAllProvisionedUsernames', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetBootstrapStatusRpcPromise = (params: MessageTypes['keybase.1.config.getBootstrapStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getBootstrapStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getBootstrapStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetConfigRpcPromise = (params: MessageTypes['keybase.1.config.getConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configGetProxyDataRpcPromise = (params: MessageTypes['keybase.1.config.getProxyData']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getProxyData']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getProxyData', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetRememberPassphraseRpcPromise = (params: MessageTypes['keybase.1.config.getRememberPassphrase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getRememberPassphrase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetUpdateInfo2RpcPromise = (params: MessageTypes['keybase.1.config.getUpdateInfo2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getUpdateInfo2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getUpdateInfo2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetUpdateInfoRpcPromise = (params: MessageTypes['keybase.1.config.getUpdateInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getUpdateInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getUpdateInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configGetValueRpcPromise = (params: MessageTypes['keybase.1.config.getValue']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.getValue']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.getValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configHelloIAmRpcPromise = (params: MessageTypes['keybase.1.config.helloIAm']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.helloIAm']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.helloIAm', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configLogSendRpcPromise = (params: MessageTypes['keybase.1.config.logSend']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.logSend']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.logSend', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configSetProxyDataRpcPromise = (params: MessageTypes['keybase.1.config.setProxyData']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setProxyData']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setProxyData', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetRememberPassphraseRpcPromise = (params: MessageTypes['keybase.1.config.setRememberPassphrase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setRememberPassphrase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetValueRpcPromise = (params: MessageTypes['keybase.1.config.setValue']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setValue']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configStartUpdateIfNeededRpcPromise = (params: MessageTypes['keybase.1.config.startUpdateIfNeeded']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.startUpdateIfNeeded']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.startUpdateIfNeeded', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -2834,6 +2915,11 @@ export const deviceCheckDeviceNameFormatRpcPromise = (params: MessageTypes['keyb
 export const deviceDeviceAddRpcSaga = (p: {params: MessageTypes['keybase.1.device.deviceAdd']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.device.deviceAdd', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const deviceDeviceHistoryListRpcPromise = (params: MessageTypes['keybase.1.device.deviceHistoryList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.device.deviceHistoryList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.deviceHistoryList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const deviceDismissDeviceChangeNotificationsRpcPromise = (params: MessageTypes['keybase.1.device.dismissDeviceChangeNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.device.dismissDeviceChangeNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.device.dismissDeviceChangeNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsAddEmailRpcPromise = (params: MessageTypes['keybase.1.emails.addEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.addEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.addEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsDeleteEmailRpcPromise = (params: MessageTypes['keybase.1.emails.deleteEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.deleteEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.deleteEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsSendVerificationEmailRpcPromise = (params: MessageTypes['keybase.1.emails.sendVerificationEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.sendVerificationEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.sendVerificationEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsSetPrimaryEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setPrimaryEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setPrimaryEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setPrimaryEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const emailsSetVisibilityEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setVisibilityEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setVisibilityEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setVisibilityEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteAddRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteAdd']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteAdd']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteAdd', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteIgnoreRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteIgnore']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteIgnore']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteIgnore', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreatePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.createPersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createPersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createPersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -2872,6 +2958,10 @@ export const loginPaperKeySubmitRpcPromise = (params: MessageTypes['keybase.1.lo
 export const notifyCtlSetNotificationsRpcPromise = (params: MessageTypes['keybase.1.notifyCtl.setNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.notifyCtl.setNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.notifyCtl.setNotifications', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pgpPgpKeyGenDefaultRpcSaga = (p: {params: MessageTypes['keybase.1.pgp.pgpKeyGenDefault']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.pgp.pgpKeyGenDefault', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const pgpPgpStorageDismissRpcPromise = (params: MessageTypes['keybase.1.pgp.pgpStorageDismiss']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pgp.pgpStorageDismiss']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersAddPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.addPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersDeletePhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.deletePhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.deletePhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.deletePhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersSetVisibilityPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.setVisibilityPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.setVisibilityPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.setVisibilityPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersVerifyPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.verifyPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params: MessageTypes['keybase.1.pprof.logProcessorProfile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logProcessorProfile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogTraceRpcPromise = (params: MessageTypes['keybase.1.pprof.logTrace']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logTrace']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logTrace', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const proveCheckProofRpcPromise = (params: MessageTypes['keybase.1.prove.checkProof']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.prove.checkProof']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.prove.checkProof', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -2987,12 +3077,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.delegateUiCtl.registerGregorFirehose'
 // 'keybase.1.device.deviceList'
 // 'keybase.1.device.checkDeviceNameForUser'
-// 'keybase.1.emails.addEmail'
-// 'keybase.1.emails.deleteEmail'
 // 'keybase.1.emails.editEmail'
-// 'keybase.1.emails.setPrimaryEmail'
-// 'keybase.1.emails.sendVerificationEmail'
-// 'keybase.1.emails.setVisibilityEmail'
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
@@ -3180,12 +3265,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.pgpUi.keyGenerated'
 // 'keybase.1.pgpUi.shouldPushPrivate'
 // 'keybase.1.pgpUi.finished'
-// 'keybase.1.phoneNumbers.addPhoneNumber'
 // 'keybase.1.phoneNumbers.editPhoneNumber'
-// 'keybase.1.phoneNumbers.verifyPhoneNumber'
 // 'keybase.1.phoneNumbers.getPhoneNumbers'
-// 'keybase.1.phoneNumbers.deletePhoneNumber'
-// 'keybase.1.phoneNumbers.setVisibilityPhoneNumber'
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
 // 'keybase.1.pprof.processorProfile'
 // 'keybase.1.pprof.trace'

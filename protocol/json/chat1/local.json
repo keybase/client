@@ -134,6 +134,34 @@
     },
     {
       "type": "record",
+      "name": "Coordinate",
+      "fields": [
+        {
+          "type": "double",
+          "name": "lat"
+        },
+        {
+          "type": "double",
+          "name": "lon"
+        },
+        {
+          "type": "double",
+          "name": "accuracy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LiveLocation",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "endTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -167,6 +195,13 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        },
+        {
+          "type": [
+            null,
+            "LiveLocation"
+          ],
+          "name": "liveLocation"
         }
       ]
     },
@@ -4584,6 +4619,15 @@
         }
       ],
       "response": "LoadFlipRes"
+    },
+    "locationUpdate": {
+      "request": [
+        {
+          "name": "coord",
+          "type": "Coordinate"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

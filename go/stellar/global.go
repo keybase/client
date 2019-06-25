@@ -278,13 +278,14 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 
 func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("Stellar.handleReconnect", func() error { return nil })()
-	if s.walletState.Primed() {
-		mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
+	mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
+	time.Sleep(4 * time.Second)
+	if libkb.IsMobilePlatform() {
+		// sleep some more on mobile
 		time.Sleep(4 * time.Second)
-		mctx.Debug("stellar reconnect msg delay complete, refreshing wallet state")
-	} else {
-		mctx.Debug("stellar received reconnect msg, doing wallet refresh on unprimed wallet")
 	}
+	mctx.Debug("stellar reconnect msg delay complete, refreshing wallet state")
+
 	if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
 		mctx.Debug("Stellar.handleReconnect RefreshAll error: %s", err)
 	}
@@ -441,8 +442,9 @@ func (s *Stellar) startBuildPayment(mctx libkb.MetaContext) (bid stellar1.BuildP
 	s.bids = append(s.bids, newBuildPaymentEntry(bid))
 	const maxConcurrentBuilds = 20
 	if len(s.bids) > maxConcurrentBuilds {
-		// Too many open payment builds. Drop the oldest ones.
-		for i := maxConcurrentBuilds; i < len(s.bids); i++ {
+		// Too many open payment builds. Drop the oldest ones at the beginning of the list.
+		// Leave the newest ones at the end of the list.
+		for i := 0; i < len(s.bids)-maxConcurrentBuilds; i++ {
 			entry := s.bids[i]
 			entry.Slot.Shutdown()
 		}

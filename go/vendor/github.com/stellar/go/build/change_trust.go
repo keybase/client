@@ -20,6 +20,7 @@ type ChangeTrustMutator interface {
 }
 
 // ChangeTrustBuilder represents a transaction that is being built.
+// Deprecated use txnbuild.ChangeTrust instead
 type ChangeTrustBuilder struct {
 	O   xdr.Operation
 	CT  xdr.ChangeTrustOp

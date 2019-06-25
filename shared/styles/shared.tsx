@@ -19,17 +19,15 @@ export const globalMargins = {
 
 export const backgroundModeToColor = {
   Announcements: globalColors.blue,
-  Documentation: globalColors.darkBlue,
+  Documentation: globalColors.blueDarker,
   HighRisk: globalColors.red,
   Information: globalColors.yellow,
   Normal: globalColors.white,
   Success: globalColors.green,
-  Terminal: globalColors.darkBlue3,
+  Terminal: globalColors.blueDarker2,
 }
 
-export const backgroundModeToTextColor = (
-  backgroundMode: Background
-): typeof globalColors[keyof typeof globalColors] => {
+export const backgroundModeToTextColor = (backgroundMode: Background) => {
   switch (backgroundMode) {
     case 'Information':
       return globalColors.brown_75
@@ -56,7 +54,7 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
 })
 
 // Take common styles and make them work on both. Deals with special cases in lineHeight and etc
-const unifyStyles = s => ({
+const unifyStyles = (s: any) => ({
   ...s,
   ...(s.hasOwnProperty('lineHeight') && typeof s.lineHeight === 'number'
     ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}

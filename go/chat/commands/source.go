@@ -9,8 +9,10 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
@@ -20,13 +22,16 @@ type Source struct {
 	globals.Contextified
 	utils.DebugLabeler
 
+	allCmds  map[int]types.ConversationCommand
 	builtins map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand
+	clock    clockwork.Clock
 }
 
 func NewSource(g *globals.Context) *Source {
 	s := &Source{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Commands.Source", false),
+		clock:        clockwork.NewRealClock(),
 	}
 	s.makeBuiltins()
 	return s
@@ -41,6 +46,7 @@ const (
 	cmdHide
 	cmdJoin
 	cmdLeave
+	cmdLocation
 	cmdMe
 	cmdMsg
 	cmdMute
@@ -58,6 +64,7 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
 	res[cmdLeave] = NewLeave(s.G())
+	res[cmdLocation] = NewLocation(s.G())
 	res[cmdMe] = NewMe(s.G())
 	res[cmdMsg] = NewMsg(s.G())
 	res[cmdMute] = NewMute(s.G())
@@ -67,7 +74,8 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 }
 
 func (s *Source) makeBuiltins() {
-	cmds := s.allCommands()
+	s.allCmds = s.allCommands()
+	cmds := s.allCmds
 	common := []types.ConversationCommand{
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
@@ -80,6 +88,9 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	if (s.G().IsMobileAppType() && s.isAdmin()) || s.G().GetRunMode() == libkb.DevelRunMode {
+		common = append(common, cmds[cmdLocation])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -98,6 +109,11 @@ func (s *Source) makeBuiltins() {
 			return cmds[i].Name() < cmds[j].Name()
 		})
 	}
+}
+
+func (s *Source) SetClock(clock clockwork.Clock) {
+	s.clock = clock
+	s.allCmds[cmdLocation].(*Location).SetClock(clock)
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
@@ -183,33 +199,36 @@ func (s *Source) isAdmin() bool {
 }
 
 var admins = map[string]bool{
-	"mikem":        true,
-	"max":          true,
-	"candrencil64": true,
-	"chris":        true,
-	"chrisnojima":  true,
-	"mlsteele":     true,
-	"xgess":        true,
-	"karenm":       true,
-	"kb_monbot":    true,
-	"joshblum":     true,
-	"cjb":          true,
-	"jzila":        true,
-	"patrick":      true,
-	"modalduality": true,
-	"strib":        true,
-	"songgao":      true,
-	"ayoubd":       true,
-	"cecileb":      true,
-	"adamjspooner": true,
-	"akalin":       true,
-	"marcopolo":    true,
-	"aimeedavid":   true,
-	"jinyang":      true,
-	"zapu":         true,
-	"jakob223":     true,
-	"taruti":       true,
-	"pzduniak":     true,
-	"zanderz":      true,
-	"giphy_tester": true,
+	"mikem":         true,
+	"max":           true,
+	"candrencil64":  true,
+	"chris":         true,
+	"chrisnojima":   true,
+	"mlsteele":      true,
+	"xgess":         true,
+	"karenm":        true,
+	"kb_monbot":     true,
+	"joshblum":      true,
+	"cjb":           true,
+	"jzila":         true,
+	"patrick":       true,
+	"modalduality":  true,
+	"strib":         true,
+	"songgao":       true,
+	"ayoubd":        true,
+	"cecileb":       true,
+	"adamjspooner":  true,
+	"akalin":        true,
+	"marcopolo":     true,
+	"aimeedavid":    true,
+	"jinyang":       true,
+	"zapu":          true,
+	"jakob223":      true,
+	"taruti":        true,
+	"pzduniak":      true,
+	"zanderz":       true,
+	"giphy_tester":  true,
+	"candrencil983": true,
+	"candrencil889": true,
+	"candrencil911": true,
 }

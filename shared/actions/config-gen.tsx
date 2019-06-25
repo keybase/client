@@ -1,9 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Types from '../constants/types/config'
+import {ConnectionType} from '@react-native-community/netinfo'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -65,6 +63,7 @@ type _BootstrapStatusLoadedPayload = {
   readonly registered: boolean
   readonly uid: string
   readonly username: string
+  readonly userReacjis: RPCTypes.UserReacjis | null
 }
 type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}
@@ -88,7 +87,7 @@ type _LinkPayload = {readonly link: string}
 type _LoadAvatarsPayload = {readonly usernames: Array<string>}
 type _LoadTeamAvatarsPayload = {readonly teamnames: Array<string>}
 type _LoadedAvatarsPayload = {readonly avatars: I.Map<string, I.Map<number, string>>}
-type _LoggedInPayload = {readonly causedByStartup: boolean}
+type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
 type _LogoutHandshakePayload = {readonly version: number}
 type _LogoutHandshakeWaitPayload = {
@@ -100,7 +99,11 @@ type _LogoutPayload = void
 type _MobileAppStatePayload = {readonly nextAppState: 'active' | 'background' | 'inactive'}
 type _OpenAppSettingsPayload = void
 type _OpenAppStorePayload = void
-type _OsNetworkStatusChangedPayload = {readonly online: boolean; readonly isInit?: boolean}
+type _OsNetworkStatusChangedPayload = {
+  readonly online: boolean
+  readonly type: ConnectionType
+  readonly isInit?: boolean
+}
 type _PersistRoutePayload = {readonly path: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RestartHandshakePayload = void

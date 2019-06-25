@@ -1,11 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as chat1Types from '../constants/types/rpc-chat-gen'
 import * as keybase1Types from '../constants/types/rpc-gen'
-import * as gregor1Types from '../constants/types/rpc-gregor-gen'
 import * as stellar1Types from '../constants/types/rpc-stellar-gen'
 
 // Constants
@@ -15,6 +11,7 @@ export const chat1ChatUiChatAttachmentDownloadDone = 'engine-gen:chat1ChatUiChat
 export const chat1ChatUiChatAttachmentDownloadProgress =
   'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
 export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
+export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
 export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
@@ -39,6 +36,7 @@ export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
+export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
 export const chat1NotifyChatChatAttachmentUploadStart = 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
@@ -236,6 +234,13 @@ type _Chat1ChatUiChatAttachmentDownloadStartPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatClearWatchPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatCoinFlipStatusPayload = {
@@ -440,6 +445,13 @@ type _Chat1ChatUiChatThreadFullPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatWatchPositionPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void
   }
 }
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = {
@@ -1651,6 +1663,9 @@ export const createChat1ChatUiChatAttachmentDownloadProgress = (
 export const createChat1ChatUiChatAttachmentDownloadStart = (
   payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
 ): Chat1ChatUiChatAttachmentDownloadStartPayload => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
+export const createChat1ChatUiChatClearWatch = (
+  payload: _Chat1ChatUiChatClearWatchPayload
+): Chat1ChatUiChatClearWatchPayload => ({payload, type: chat1ChatUiChatClearWatch})
 export const createChat1ChatUiChatCoinFlipStatus = (
   payload: _Chat1ChatUiChatCoinFlipStatusPayload
 ): Chat1ChatUiChatCoinFlipStatusPayload => ({payload, type: chat1ChatUiChatCoinFlipStatus})
@@ -1723,6 +1738,9 @@ export const createChat1ChatUiChatThreadCached = (
 export const createChat1ChatUiChatThreadFull = (
   payload: _Chat1ChatUiChatThreadFullPayload
 ): Chat1ChatUiChatThreadFullPayload => ({payload, type: chat1ChatUiChatThreadFull})
+export const createChat1ChatUiChatWatchPosition = (
+  payload: _Chat1ChatUiChatWatchPositionPayload
+): Chat1ChatUiChatWatchPositionPayload => ({payload, type: chat1ChatUiChatWatchPosition})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (
   payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload
 ): Chat1NotifyChatChatAttachmentUploadProgressPayload => ({
@@ -2290,6 +2308,10 @@ export type Chat1ChatUiChatAttachmentDownloadStartPayload = {
   readonly payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
   readonly type: typeof chat1ChatUiChatAttachmentDownloadStart
 }
+export type Chat1ChatUiChatClearWatchPayload = {
+  readonly payload: _Chat1ChatUiChatClearWatchPayload
+  readonly type: typeof chat1ChatUiChatClearWatch
+}
 export type Chat1ChatUiChatCoinFlipStatusPayload = {
   readonly payload: _Chat1ChatUiChatCoinFlipStatusPayload
   readonly type: typeof chat1ChatUiChatCoinFlipStatus
@@ -2385,6 +2407,10 @@ export type Chat1ChatUiChatThreadCachedPayload = {
 export type Chat1ChatUiChatThreadFullPayload = {
   readonly payload: _Chat1ChatUiChatThreadFullPayload
   readonly type: typeof chat1ChatUiChatThreadFull
+}
+export type Chat1ChatUiChatWatchPositionPayload = {
+  readonly payload: _Chat1ChatUiChatWatchPositionPayload
+  readonly type: typeof chat1ChatUiChatWatchPosition
 }
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {
   readonly payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload
@@ -2991,6 +3017,7 @@ export type Actions =
   | Chat1ChatUiChatAttachmentDownloadDonePayload
   | Chat1ChatUiChatAttachmentDownloadProgressPayload
   | Chat1ChatUiChatAttachmentDownloadStartPayload
+  | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload
   | Chat1ChatUiChatConfirmChannelDeletePayload
@@ -3015,6 +3042,7 @@ export type Actions =
   | Chat1ChatUiChatStellarShowConfirmPayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
+  | Chat1ChatUiChatWatchPositionPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
   | Chat1NotifyChatChatIdentifyUpdatePayload

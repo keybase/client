@@ -41,7 +41,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir()),
+		store:             attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir()),
 		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
@@ -1027,10 +1027,21 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)
 	}
-	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender, convID,
-			unboxedMsg)
+		// Unfurl
+		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender,
+			convID, unboxedMsg)
+		// Start tracking any live location sends
+		if unboxedMsg.IsValid() && unboxedMsg.GetMessageType() == chat1.MessageType_TEXT &&
+			unboxedMsg.Valid().MessageBody.Text().LiveLocation != nil {
+			if unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime.IsZero() {
+				s.G().LiveLocationTracker.GetCurrentPosition(ctx, conv.GetConvID(),
+					unboxedMsg.GetMessageID())
+			} else {
+				s.G().LiveLocationTracker.StartTracking(ctx, conv.GetConvID(), unboxedMsg.GetMessageID(),
+					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
+			}
+		}
 	}
 	return nil, boxed, nil
 }

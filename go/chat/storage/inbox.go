@@ -199,8 +199,6 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 		}
 		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
 			// need local metadata for channel names, so skip if we don't have it
-			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, big team missing local metadata",
-				rc.GetConvID())
 			continue
 		}
 		name := rc.GetName()
@@ -979,6 +977,28 @@ func (i *Inbox) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, 
 	return i.writeDiskInbox(ctx, uid, ibox)
 }
 
+func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "MarkLocalRead")()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "MarkLocalRead: no conversation found: convID: %s", convID)
+		return nil
+	}
+	conv.LocalReadMsgID = msgID
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -1499,12 +1519,13 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return 0, nil
+		}
 		return 0, err
 	}
-
 	vers = chat1.InboxVers(ibox.InboxVersion)
 	return vers, nil
 }
@@ -1514,12 +1535,13 @@ func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, e
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return 0, nil
+		}
 		return 0, err
 	}
-
 	vers = ibox.ServerVersion
 	return vers, nil
 }

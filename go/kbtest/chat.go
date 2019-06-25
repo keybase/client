@@ -957,6 +957,10 @@ func (m *ChatRemoteMock) ServerNow(ctx context.Context) (res chat1.ServerNowRes,
 	return res, errors.New("ServerNow not mocked")
 }
 
+func (m *ChatRemoteMock) GetExternalAPIKeys(ctx context.Context, typs []chat1.ExternalAPIKeyTyp) (res []chat1.ExternalAPIKey, err error) {
+	return res, errors.New("GetExternalAPIKeys not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -1180,6 +1184,14 @@ func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) er
 	return nil
 }
 
+func (c *ChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
+	return chat1.LocationWatchID(0), nil
+}
+
+func (c *ChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
@@ -1291,6 +1303,16 @@ func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	return chat1.OutboxID{}, nil
 }
 
+func (m *MockChatHelper) DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	msgID chat1.MessageID) error {
+	return nil
+}
+
+func (m *MockChatHelper) DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	msgID chat1.MessageID) error {
+	return nil
+}
+
 func (m *MockChatHelper) FindConversations(ctx context.Context, name string,
 	topicName *string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
@@ -1375,3 +1397,20 @@ func (m *MockChatHelper) convKey(name string, topicName *string) string {
 	}
 	return name + ":" + *topicName
 }
+
+type MockUIRouter struct {
+	libkb.UIRouter
+	ui libkb.ChatUI
+}
+
+func NewMockUIRouter(chatUI libkb.ChatUI) *MockUIRouter {
+	return &MockUIRouter{
+		ui: chatUI,
+	}
+}
+
+func (f *MockUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return f.ui, nil
+}
+
+func (f *MockUIRouter) Shutdown() {}

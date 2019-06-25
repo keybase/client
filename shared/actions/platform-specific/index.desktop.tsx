@@ -203,6 +203,9 @@ function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
   }
 }
 
+const initOsNetworkStatus = (state, action) =>
+  ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'unknown'})
+
 function* setupReachabilityWatcher() {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('online', () => emitter('online'))
@@ -210,11 +213,9 @@ function* setupReachabilityWatcher() {
     return () => {}
   }, Saga.buffers.sliding(1))
 
-  yield Saga.put(ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine}))
-
   while (true) {
     const status = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))
+    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online', type: 'unknown'}))
   }
 }
 
@@ -398,6 +399,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.onChangeUseNativeFrame,
     setUseNativeFrame
   )
+  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)

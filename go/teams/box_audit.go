@@ -11,6 +11,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
+	storage "github.com/keybase/client/go/teams/storage"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -460,7 +461,7 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 	if rotateBeforeAudit {
 		mctx.Debug("rotating before audit")
-		err := team.Rotate(mctx.Ctx())
+		err := team.Rotate(mctx.Ctx(), keybase1.RotationType_VISIBLE)
 		if err != nil {
 			mctx.Warning("failed to rotate team before audit: %s", err)
 			// continue despite having failed to rotate
@@ -1000,7 +1001,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 
 // merkleSeqnoAtGenerationInception assumes TeamSigChainState.MerkleRoots is populated
 func merkleSeqnoAtGenerationInception(mctx libkb.MetaContext, teamchain *TeamSigChainState) (merkleSeqno keybase1.Seqno, err error) {
-	ptk, err := teamchain.GetLatestPerTeamKey()
+	ptk, err := teamchain.GetLatestPerTeamKey(mctx)
 	if err != nil {
 		return 0, err
 	}
@@ -1016,7 +1017,7 @@ func keySetToTeamIDs(dbKeySet libkb.DBKeySet) ([]keybase1.TeamID, error) {
 	seen := make(map[keybase1.TeamID]bool)
 	teamIDs := make([]keybase1.TeamID, 0, len(dbKeySet))
 	for dbKey := range dbKeySet {
-		teamID, err := ParseTeamIDDBKey(dbKey.Key)
+		teamID, err := storage.ParseTeamIDDBKey(dbKey.Key)
 		if err != nil {
 			return nil, err
 		}

@@ -4,9 +4,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import Container from '../../login/forms/container'
 import * as Constants from '../../constants/provision'
+import {maxUsernameLength} from '../../constants/signup'
 
 type Props = {
   error: string
+  initialUsername: string
   inlineError: string
   inlineSignUpLink: boolean
   onBack: () => void
@@ -34,7 +36,7 @@ type State = {
 }
 
 class Username extends React.Component<Props, State> {
-  state = {username: ''}
+  state = {username: this.props.initialUsername}
 
   _submit = () => {
     this.props.onSubmit(this.state.username)
@@ -58,6 +60,7 @@ class Username extends React.Component<Props, State> {
             autoFocus={true}
             style={styles.input}
             hintText="Username"
+            maxLength={maxUsernameLength}
             errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
             errorTextComponent={errorTextComponent}
             onEnterKeyDown={this._submit}
@@ -109,7 +112,7 @@ const styles = Styles.styleSheetCreate({
   }),
   error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
   errorLink: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
     textDecorationLine: 'underline',
   },
   forgotUsername: {

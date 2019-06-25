@@ -255,6 +255,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConfiguredAccount"
+          },
+          "name": "configuredAccounts"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ClientStatus"
           },
           "name": "Clients",
@@ -753,6 +760,33 @@
           "body": "UpdateDetails"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "ProxyType",
+      "symbols": [
+        "No_Proxy_0",
+        "HTTP_Connect_1",
+        "Socks_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProxyData",
+      "fields": [
+        {
+          "type": "string",
+          "name": "addressWithPort"
+        },
+        {
+          "type": "ProxyType",
+          "name": "proxyType"
+        },
+        {
+          "type": "boolean",
+          "name": "certPinning"
+        }
+      ]
     }
   ],
   "messages": {
@@ -805,6 +839,10 @@
         },
         {
           "name": "sendLogs",
+          "type": "boolean"
+        },
+        {
+          "name": "sendMaxBytes",
           "type": "boolean"
         }
       ],
@@ -980,6 +1018,19 @@
       ],
       "response": "UpdateInfo2",
       "doc": "getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if\n   you are critically out of date."
+    },
+    "setProxyData": {
+      "request": [
+        {
+          "name": "proxyData",
+          "type": "ProxyData"
+        }
+      ],
+      "response": null
+    },
+    "getProxyData": {
+      "request": [],
+      "response": "ProxyData"
     }
   },
   "namespace": "keybase.1"

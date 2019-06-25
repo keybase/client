@@ -769,22 +769,10 @@
 			"revisionTime": "2018-08-09T16:02:10Z"
 		},
 		{
-			"checksumSHA1": "gE62HjsUfGG8H69WkrrXv5e3NZw=",
-			"path": "github.com/keybase/stellar-agl-ed25519",
-			"revision": "95bd4acae776f5f931d94ee2a22d950427a9fdac",
-			"revisionTime": "2018-03-22T21:11:54Z"
-		},
-		{
-			"checksumSHA1": "LHTJnhrxMPKNHNqNduuFKJaPaMg=",
-			"path": "github.com/keybase/stellar-agl-ed25519/edwards25519",
-			"revision": "95bd4acae776f5f931d94ee2a22d950427a9fdac",
-			"revisionTime": "2018-03-22T21:11:54Z"
-		},
-		{
-			"checksumSHA1": "WF18MKDppQi0uapm/q0+getTElE=",
+			"checksumSHA1": "tX/UR2KO3QMu6e/foF/ZdfNkftw=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "27607f442a81e52fb2802c98b3dee6f7f510e908",
-			"revisionTime": "2019-05-20T16:34:51Z"
+			"revision": "8ae3a719860b002d1bdc21015b48fc8abcc423cd",
+			"revisionTime": "2019-06-17T20:48:16Z"
 		},
 		{
 			"checksumSHA1": "wq6QbjIa6d8w/NPNh/m4umdjAT0=",
@@ -851,12 +839,6 @@
 			"path": "github.com/nfnt/resize",
 			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",
 			"revisionTime": "2016-07-24T20:39:20Z"
-		},
-		{
-			"checksumSHA1": "fo0Ufsb5WpclJku+9KdSp4Zoa7E=",
-			"path": "github.com/nullstyle/go-xdr/xdr3",
-			"revision": "a875e7c9fa2388ce03279f6b5ba1c2ccd1f9e917",
-			"revisionTime": "2017-08-10T17:46:27Z"
 		},
 		{
 			"checksumSHA1": "Gbehm4yQRkqSwF3yI/ytorJG3kI=",
@@ -961,116 +943,164 @@
 			"revisionTime": "2016-07-15T15:55:40Z"
 		},
 		{
+			"checksumSHA1": "B2aJD2oZzIr70Gm0Ri32WosOw3w=",
+			"path": "github.com/stellar/go-xdr/xdr3",
+			"revision": "0bc96f33a18ef2f963e75431dbed042129eb421b",
+			"revisionTime": "2018-09-03T00:21:17Z"
+		},
+		{
 			"checksumSHA1": "Tm7U4dBBSq0z5YscZTqSTs4qjEU=",
 			"origin": "github.com/keybase/stellar-org/address",
 			"path": "github.com/stellar/go/address",
-			"revision": "b7f401957e91d55b9ff9eb2583373b6ccdffaaa9",
-			"revisionTime": "2018-07-26T18:14:35Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "9IAVZIwKPa9vqMs5qbSDgAtSMOg=",
+			"checksumSHA1": "KbQKKnZV7ns4utj2gLY7FOGYI+w=",
 			"origin": "github.com/keybase/stellar-org/amount",
 			"path": "github.com/stellar/go/amount",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "nZkWZ3Glzc60inL76xJEsxe7Zn0=",
+			"checksumSHA1": "atGxvhJl/hBdPcAxrvJdQQ9mT9k=",
 			"origin": "github.com/keybase/stellar-org/build",
 			"path": "github.com/stellar/go/build",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
 			"checksumSHA1": "lNNS4mTZlbciLrs24+zR03+KyA0=",
 			"origin": "github.com/keybase/stellar-org/clients/federation",
 			"path": "github.com/stellar/go/clients/federation",
-			"revision": "b7f401957e91d55b9ff9eb2583373b6ccdffaaa9",
-			"revisionTime": "2018-07-26T18:14:35Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "w2iePIoeVYrSC+290DbhfsiVnV8=",
+			"checksumSHA1": "HsowHh6r7IVQphSZhg6fS02BbZk=",
 			"origin": "github.com/keybase/stellar-org/clients/horizon",
 			"path": "github.com/stellar/go/clients/horizon",
-			"revision": "d7b62d43ecad5ba5cd8eb0d704f175c160300030",
-			"revisionTime": "2018-03-28T20:45:36Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "yryl7ivqND9aWxeMTwMXrabbrCI=",
+			"checksumSHA1": "sxGEYSxkK8Y1DbtJWhGNEbiIR/4=",
 			"origin": "github.com/keybase/stellar-org/clients/stellartoml",
 			"path": "github.com/stellar/go/clients/stellartoml",
-			"revision": "2d2b8e1b94f7a55cbe2c0e11686beeeca48a9684",
-			"revisionTime": "2018-08-01T14:55:35Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
 			"checksumSHA1": "lDonyBUSRbzmrEfdrk+2xUnSlLQ=",
 			"origin": "github.com/keybase/stellar-org/crc16",
 			"path": "github.com/stellar/go/crc16",
-			"revision": "d286f70e23139d3b841fba1e19803d21840bc003",
-			"revisionTime": "2018-03-22T21:26:26Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
 			"checksumSHA1": "7breOdx3oym3WOByXt4Lphr4chc=",
 			"origin": "github.com/keybase/stellar-org/hash",
 			"path": "github.com/stellar/go/hash",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "TaeZqYYacz34dGxerxURukIvrXU=",
+			"checksumSHA1": "egspVwMg1v0Dzg7m2RhHqAfzDWw=",
 			"origin": "github.com/keybase/stellar-org/keypair",
 			"path": "github.com/stellar/go/keypair",
-			"revision": "d286f70e23139d3b841fba1e19803d21840bc003",
-			"revisionTime": "2018-03-22T21:26:26Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
 			"checksumSHA1": "smPjsSq12pIzKkI8PX1/YtgCbOY=",
 			"origin": "github.com/keybase/stellar-org/network",
 			"path": "github.com/stellar/go/network",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "ZCskSiuTr7jQM8iZunN+nHhCffw=",
+			"checksumSHA1": "rl9glWYc+u+lljHH8z3GmY0t4vM=",
 			"origin": "github.com/keybase/stellar-org/price",
 			"path": "github.com/stellar/go/price",
-			"revision": "d478595f79f64c46d844523ffa7999b487a9094c",
-			"revisionTime": "2018-03-28T15:49:16Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "nRTg57Gnkuta8Ja9pwblgoLTO8g=",
+			"checksumSHA1": "EGDnhf+fQo0nfGaglM0TMBPMV0M=",
 			"origin": "github.com/keybase/stellar-org/protocols/federation",
 			"path": "github.com/stellar/go/protocols/federation",
-			"revision": "1267654c6b8f80773bc3bec5ff5d466ddcfb240d",
-			"revisionTime": "2018-04-03T15:07:09Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "V18U5E4j+epW4WLtwNcVsgoQkVQ=",
+			"checksumSHA1": "jSmECOL9t1B5sYZxCKYhOxMPlHc=",
+			"origin": "github.com/keybase/stellar-org/protocols/horizon",
+			"path": "github.com/stellar/go/protocols/horizon",
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
+		},
+		{
+			"checksumSHA1": "b7jF5v9LJPYZzZf8VlnSBgqgAEI=",
+			"origin": "github.com/keybase/stellar-org/protocols/horizon/base",
+			"path": "github.com/stellar/go/protocols/horizon/base",
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
+		},
+		{
+			"checksumSHA1": "T/ktj9MMn1BW0wi8DOkMXmm/VhQ=",
 			"origin": "github.com/keybase/stellar-org/strkey",
 			"path": "github.com/stellar/go/strkey",
-			"revision": "d286f70e23139d3b841fba1e19803d21840bc003",
-			"revisionTime": "2018-03-22T21:26:26Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
+		},
+		{
+			"checksumSHA1": "1J1gt9bAORNtJZcK2yPlB/q0ACk=",
+			"origin": "github.com/keybase/stellar-org/support/app",
+			"path": "github.com/stellar/go/support/app",
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
 			"checksumSHA1": "RYWv9kXP4XcsZ1oMsJmXf8bWpYs=",
 			"origin": "github.com/keybase/stellar-org/support/errors",
 			"path": "github.com/stellar/go/support/errors",
-			"revision": "d286f70e23139d3b841fba1e19803d21840bc003",
-			"revisionTime": "2018-03-22T21:26:26Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "pyj3VCpH5DgWiNSVJ+Oe/5GCd5o=",
+			"checksumSHA1": "Z38vZVydNopKqc8prcdz/pDTDU0=",
+			"origin": "github.com/keybase/stellar-org/support/render/hal",
+			"path": "github.com/stellar/go/support/render/hal",
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
+		},
+		{
+			"checksumSHA1": "j8dB+W4hSZ0S1XM2YqCDMYAlZMQ=",
+			"origin": "github.com/keybase/stellar-org/support/render/httpjson",
+			"path": "github.com/stellar/go/support/render/httpjson",
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
+		},
+		{
+			"checksumSHA1": "sb4PCji+XrMwFzeMdSqPivgQPUA=",
 			"origin": "github.com/keybase/stellar-org/support/render/problem",
 			"path": "github.com/stellar/go/support/render/problem",
-			"revision": "3bfc312455e94df6c47ec3223a7ee56cbf22da70",
-			"revisionTime": "2018-03-29T15:39:59Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "9RcsggRabKj4lVyQBPl5qQSokAo=",
+			"checksumSHA1": "aA7kiwk05rwCwvpUVqHgxBzs31M=",
+			"origin": "github.com/keybase/stellar-org/support/url",
+			"path": "github.com/stellar/go/support/url",
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
+		},
+		{
+			"checksumSHA1": "J5AQ9Qbd4n9uu2UYSTBXxfkmlGc=",
 			"origin": "github.com/keybase/stellar-org/xdr",
 			"path": "github.com/stellar/go/xdr",
-			"revision": "d286f70e23139d3b841fba1e19803d21840bc003",
-			"revisionTime": "2018-03-22T21:26:26Z"
+			"revision": "e43266cae98f292a11218decae91a277a8489da2",
+			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
 			"checksumSHA1": "IIsn0Wdi5rHU8xca+FzDd+YeYlc=",

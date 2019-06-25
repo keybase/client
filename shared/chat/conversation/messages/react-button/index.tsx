@@ -271,7 +271,7 @@ const styles = Styles.styleSheetCreate({
     top: 1,
   },
   countActive: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   emojiContainer: Styles.platformStyles({
     isElectron: {

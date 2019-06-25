@@ -337,7 +337,7 @@ class Input extends React.PureComponent<Props, State> {
       placeholder: this.props.hintText,
       readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? true : undefined,
       ref: this._setInputRef,
-      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
+      ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
     }
 
     if (!this.props.uncontrolled) {
@@ -360,7 +360,7 @@ class Input extends React.PureComponent<Props, State> {
     const smallLabelStyle = collapseStyles([
       globalStyles.fontSemibold,
       {
-        color: globalColors.blue,
+        color: globalColors.blueDark,
         fontSize: _bodySmallTextStyle.fontSize,
         lineHeight: `${_lineHeight}px`,
         marginRight: 8,
@@ -417,7 +417,7 @@ const _errorStyle = {
 
 const _floatingStyle = platformStyles({
   isElectron: {
-    color: globalColors.blue,
+    color: globalColors.blueDark,
     display: 'block',
     minHeight: _bodySmallTextStyle.lineHeight,
   },

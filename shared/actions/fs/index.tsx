@@ -35,7 +35,35 @@ const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   }
 }
 
-const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
+const rpcConflictStateToConflictState = (
+  rpcConflictState: RPCTypes.ConflictState | null
+): Types.ConflictState =>
+  rpcConflictState
+    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview
+      ? Constants.makeConflictStateNormalView({
+          localViewTlfPaths: I.List(
+            (rpcConflictState.normalview.localViews || [])
+              .map(p =>
+                p.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(p.kbfs) : Constants.defaultPath
+              )
+              .filter(p => p !== Constants.defaultPath)
+          ),
+          resolvingConflict: rpcConflictState.normalview.resolvingConflict,
+          stuckInConflict: rpcConflictState.normalview.stuckInConflict,
+        })
+      : Constants.makeConflictStateManualResolvingLocalView({
+          normalViewTlfPath:
+            rpcConflictState.manualresolvinglocalview.normalView.PathType === RPCTypes.PathType.kbfs
+              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.normalView.kbfs)
+              : Constants.defaultPath,
+        })
+    : Constants.tlfNormalViewWithNoConflict
+
+const loadFavorites = (
+  state,
+  action: FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
+) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
     const mutablePayload = [
       ...(results.favoriteFolders
@@ -62,6 +90,7 @@ const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
                 [tlfType]: mutablePayload[tlfType].set(
                   tlfName,
                   Constants.makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState),
                     isFavorite,
                     isIgnored,
                     isNew,
@@ -222,10 +251,81 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 const pathMetadataRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
+const lastSubscribedTlf = {
+  folderList: '',
+  pathMetadata: '',
+}
 
 const clearRefreshTags = () => {
   folderListRefreshTags.clear()
   pathMetadataRefreshTags.clear()
+}
+
+const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
+  folderListRefreshTags.delete(action.payload.refreshTag)
+  pathMetadataRefreshTags.delete(action.payload.refreshTag)
+}
+
+type RefreshTagContext = {
+  skipRpc: boolean
+  refreshSubscription: boolean
+}
+// refreshTagRpc is a helper function for dealing with notifications from KBFS.
+// Some background:
+//
+// In some SimpleFS RPCs, we can specify refreshSubscription to signal that we
+// want to subscribe to any pathItem related changes (doesn't get triggered for
+// syncState changes) and get notifications for them. However, the subscription
+// is not based on a path, but at TLF level. In other words, whenever we
+// refreshSubscription, we are actually asking KBFS to give us notifications
+// for its TLF.
+//
+// We have refreshTags in the frontend to track different "sources" that need
+// such information, each of which can have a different path. This way when we
+// get a notification, we know which path needs an update, and we'd call RPCs
+// to refresh for those paths.
+const refreshTagRpc = (
+  path: Types.Path,
+  refreshTag: Types.RefreshTag | null,
+  opType: 'folderList' | 'pathMetadata'
+): RefreshTagContext => {
+  // If we don't have the refreshTag or we are dealing with a special file,
+  // don't skip and don't attempt to subscribe. For example,
+  // /keybase/.kbfs_status can't be subscribed.
+  if (!refreshTag || Constants.hasSpecialFileElement(path)) {
+    return {
+      refreshSubscription: false,
+      skipRpc: false,
+    }
+  }
+
+  // We've got a refreshTag. Set it regardless.
+  const tags = opType === 'folderList' ? folderListRefreshTags : pathMetadataRefreshTags
+  const pathIsSubscribed = tags.get(refreshTag) === path
+  tags.set(refreshTag, path)
+
+  const tlfPath = Constants.getTlfPath(path)
+  if (tlfPath !== lastSubscribedTlf[opType]) {
+    // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
+    // want to refresh subscription to this TLF.
+    lastSubscribedTlf[opType] = tlfPath
+    return {
+      refreshSubscription: true,
+      skipRpc: false,
+    }
+  }
+
+  // Otherwise, check if the subscribed path is the same. If it's not the same,
+  // do RPC and refresh subscription path.
+  return pathIsSubscribed
+    ? {
+        refreshSubscription: true,
+        skipRpc: true,
+      }
+    : {
+        refreshSubscription: true,
+        skipRpc: false,
+      }
 }
 
 function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
@@ -234,13 +334,10 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
 
-  if (refreshTag) {
-    if (folderListRefreshTags.get(refreshTag) === rootPath) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
+  const {skipRpc, refreshSubscription} = refreshTagRpc(rootPath, refreshTag, 'folderList')
 
-    folderListRefreshTags.set(refreshTag, rootPath)
+  if (skipRpc) {
+    return
   }
 
   try {
@@ -251,7 +348,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: !!refreshTag,
+        refreshSubscription,
       })
     } else {
       yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
@@ -259,7 +356,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: !!refreshTag,
+        refreshSubscription,
       })
     }
 
@@ -513,32 +610,20 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
   }
 }
 
-const onTlfUpdate = (state, action: FsGen.NotifyTlfUpdatePayload) => {
+const onTlfUpdate = (
+  state,
+  action: FsGen.NotifyTlfUpdatePayload | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+) => {
   // Trigger folderListLoad and pathMetadata for paths that the user might be
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
-  //
-  // Note that this is not merely a filtered mapping from the refresh tags.
-  // Since KBFS only sends us the latest subscribed TLF, if we get a TLF other
-  // than what our refreshTags suggest, the user must have been in a different
-  // TLF. In this case, we remove the old tag so next time an action comes in,
-  // we'll fire the RPC. This might not be necessary based on current design,
-  // but just in case.
   //
   // It's important to not set the refreshTag in the actions generated here, to
   // make sure the related sagas won't skip the RPC (see `function*
   // folderList`).
   const actions = []
-  folderListRefreshTags.forEach((path, refreshTag) =>
-    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createFolderListLoad({path}))
-      : folderListRefreshTags.delete(refreshTag)
-  )
-  pathMetadataRefreshTags.forEach((path, refreshTag) =>
-    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createLoadPathMetadata({path}))
-      : pathMetadataRefreshTags.delete(refreshTag)
-  )
+  folderListRefreshTags.forEach(path => actions.push(FsGen.createFolderListLoad({path})))
+  pathMetadataRefreshTags.forEach(path => actions.push(FsGen.createLoadPathMetadata({path})))
   return actions
 }
 
@@ -685,23 +770,15 @@ const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeA
 function* loadPathMetadata(state, action: FsGen.LoadPathMetadataPayload) {
   const {path, refreshTag} = action.payload
 
-  if (Types.getPathLevel(path) < 3) {
+  const {skipRpc, refreshSubscription} = refreshTagRpc(path, refreshTag, 'pathMetadata')
+  if (skipRpc) {
     return
-  }
-
-  if (refreshTag) {
-    if (pathMetadataRefreshTags.get(refreshTag) === path) {
-      // We are already subscribed; so don't fire RPC.
-      return
-    }
-
-    pathMetadataRefreshTags.set(refreshTag, path)
   }
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
       path: Constants.pathToRPCPath(path),
-      refreshSubscription: !!refreshTag,
+      refreshSubscription,
     })
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
@@ -903,15 +980,13 @@ const triggerSendLinkToChat = (state, action: FsGen.TriggerSendLinkToChatPayload
   )
 }
 
-const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
-  folderListRefreshTags.delete(action.payload.refreshTag)
-  pathMetadataRefreshTags.delete(action.payload.refreshTag)
-}
-
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = (state, action: ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload) => {
+const waitForKbfsDaemon = (
+  state,
+  action: ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+) => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
@@ -939,6 +1014,11 @@ const startManualCR = (state, action) =>
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 
+const finishManualCR = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
+  }).then(() => FsGen.createFavoritesLoad())
+
 const updateKbfsDaemonOnlineStatus = (
   state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
@@ -960,43 +1040,64 @@ const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkS
 const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
-const onFSOverallSyncSyncStatusChanged = (
+const onNotifyFSOverallSyncSyncStatusChanged = (
   state,
   action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) =>
-  FsGen.createOverallSyncStatusChanged({
-    outOfSpace: action.payload.params.status.outOfSyncSpace,
-    progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
-  })
-
-const notifyDiskSpaceStatus = (diskSpaceStatus: Types.DiskSpaceStatus) => {
-  switch (diskSpaceStatus) {
-    case Types.DiskSpaceStatus.Error:
-      NotifyPopup('Sync Error', {
-        body: 'You are out of disk space. Some folders could not be synced.',
-        sound: true,
-      })
-      break
-    case Types.DiskSpaceStatus.Warning:
-      NotifyPopup('Disk Space Low', {body: 'You have less than 1 GB of storage space left.'})
-      break
-    case Types.DiskSpaceStatus.Ok:
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+) => {
+  const diskSpaceStatus = action.payload.params.status.outOfSyncSpace
+    ? Types.DiskSpaceStatus.Error
+    : action.payload.params.status.localDiskBytesAvailable <
+      state.fs.settings.spaceAvailableNotificationThreshold
+    ? Types.DiskSpaceStatus.Warning
+    : Types.DiskSpaceStatus.Ok
+  // We need to type this separately since otherwise we can't concat to it.
+  let actions: Array<
+    | NotificationsGen.BadgeAppPayload
+    | FsGen.OverallSyncStatusChangedPayload
+    | FsGen.ShowHideDiskSpaceBannerPayload
+  > = [
+    FsGen.createOverallSyncStatusChanged({
+      diskSpaceStatus,
+      progress: Constants.makeSyncingFoldersProgress(action.payload.params.status.prefetchProgress),
+    }),
+  ]
+  // Only notify about the disk space status if it has changed.
+  if (diskSpaceStatus !== state.fs.overallSyncStatus.diskSpaceStatus) {
+    switch (diskSpaceStatus) {
+      case Types.DiskSpaceStatus.Error:
+        NotifyPopup('Sync Error', {
+          body: 'You are out of disk space. Some folders could not be synced.',
+          sound: true,
+        })
+        return actions.concat([
+          NotificationsGen.createBadgeApp({
+            key: 'outOfSpace',
+            on: action.payload.params.status.outOfSyncSpace,
+          }),
+        ])
+      case Types.DiskSpaceStatus.Warning:
+        const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
+        NotifyPopup('Disk Space Low', {
+          body: `You have less than ${threshold} of storage space left.`,
+        })
+        // Only show the banner if the previous state was OK and the new state
+        // is warning. Otherwise we rely on the previous state of the banner.
+        if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
+          return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+        }
+        break
+      case Types.DiskSpaceStatus.Ok:
+        break
+      default:
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(diskSpaceStatus)
+    }
   }
+  return actions
 }
 
-let prevOutOfSpace = false
-const updateMenubarIconOnStuckSync = (state, action) => {
-  const outOfSpace = action.payload.params.status.outOfSyncSpace
-  if (outOfSpace !== prevOutOfSpace) {
-    prevOutOfSpace = outOfSpace
-    // TODO once go side sends info: low on space warning
-    notifyDiskSpaceStatus(outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok)
-    return NotificationsGen.createBadgeApp({key: 'outOfSpace', on: outOfSpace})
-  }
-}
+const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = state =>
+  state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
+  FsGen.createSetTlfsAsUnloaded()
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
@@ -1013,12 +1114,26 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
+  yield* Saga.chainAction<FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload>(
+    [FsGen.favoritesLoad, EngineGen.keybase1NotifyFSFSFavoritesChanged],
+    loadFavorites
+  )
+  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    FsGen.kbfsDaemonRpcStatusChanged,
+    setTlfsAsUnloadedWhenKbfsDaemonDisconnects
+  )
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
-  yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
+  yield* Saga.chainAction<
+    FsGen.NotifyTlfUpdatePayload | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+    // In addition to the actual notification about changes in a TLF, we also
+    // trigger this when overall sync status changes. This is because sync
+    // status changes don't trigger updates for individual pathItems. So just
+    // treat the overall status update as a hint that currently subscribed
+    // items might have been changed too.
+  >([FsGen.notifyTlfUpdate, EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged], onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSPathUpdatedPayload>(
@@ -1048,10 +1163,9 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     FsGen.kbfsDaemonRpcStatusChanged,
     clearRefreshTags
   )
-  yield* Saga.chainAction<ConfigGen.InstallerRanPayload | FsGen.WaitForKbfsDaemonPayload>(
-    [ConfigGen.installerRan, FsGen.waitForKbfsDaemon],
-    waitForKbfsDaemon
-  )
+  yield* Saga.chainAction<
+    ConfigGen.InstallerRanPayload | ConfigGen.LoggedInPayload | FsGen.WaitForKbfsDaemonPayload
+  >([ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon], waitForKbfsDaemon)
   if (flags.kbfsOfflineMode) {
     yield* Saga.chainAction<FsGen.SetTlfSyncConfigPayload>(FsGen.setTlfSyncConfig, setTlfSyncConfig)
     yield* Saga.chainAction<FsGen.LoadTlfSyncConfigPayload>(
@@ -1071,11 +1185,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     )
     yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
       EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      onFSOverallSyncSyncStatusChanged
-    )
-    yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload>(
-      EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-      updateMenubarIconOnStuckSync
+      onNotifyFSOverallSyncSyncStatusChanged
     )
     yield* Saga.chainAction<FsGen.LoadSettingsPayload>(FsGen.loadSettings, loadSettings)
     yield* Saga.chainAction<FsGen.SetSpaceAvailableNotificationThresholdPayload>(
@@ -1087,6 +1197,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction<FsGen.StartManualConflictResolutionPayload>(
       FsGen.startManualConflictResolution,
       startManualCR
+    )
+    yield* Saga.chainAction<FsGen.FinishManualConflictResolutionPayload>(
+      FsGen.finishManualConflictResolution,
+      finishManualCR
     )
   }
 

@@ -1,9 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
-import * as I from 'immutable'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
+import {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this
@@ -53,7 +51,7 @@ type _RequestedInvitePayloadError = {
 }
 type _RestartSignupPayload = void
 type _SignedupPayload = void
-type _SignedupPayloadError = {readonly error: HiddenString}
+type _SignedupPayloadError = {readonly error: RPCError | null}
 
 // Action Creators
 export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDevicenamePayload => ({

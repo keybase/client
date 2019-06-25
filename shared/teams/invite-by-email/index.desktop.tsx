@@ -147,7 +147,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 />
               </Kb.Box>
               {props.errorMessage && (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.red}}>
+                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
                   {props.errorMessage}
                 </Kb.Text>
               )}

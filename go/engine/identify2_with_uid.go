@@ -968,7 +968,7 @@ func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
 			return libkb.NoSigChainError{}
 		case libkb.NotFoundError:
 			return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
-		default: // including libkb.DeletedError
+		default: // including libkb.UserDeletedError
 			return err
 		}
 	}

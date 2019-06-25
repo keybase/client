@@ -6,8 +6,42 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func pplPromptCheckPreconditions(m MetaContext, usernameOrEmail string) (err error) {
+func loginWithPassphraseStream(mctx MetaContext, usernameOrEmail string, tsec Triplesec,
+	pps *PassphraseStream, ls *LoginSession) (err error) {
 
+	defer mctx.Trace("pplGotPassphrase", func() error { return err })()
+
+	loginSessionBytes, err := ls.Session()
+	if err != nil {
+		return err
+	}
+	pdpka, err := computeLoginPackageFromEmailOrUsername(usernameOrEmail, pps, loginSessionBytes)
+	if err != nil {
+		return err
+	}
+	res, err := pplPost(mctx, usernameOrEmail, pdpka)
+	if err != nil {
+		return err
+	}
+
+	var nilDeviceID keybase1.DeviceID
+	err = mctx.LoginContext().SaveState(
+		res.sessionID,
+		res.csrfToken,
+		NewNormalizedUsername(res.username),
+		res.uv,
+		nilDeviceID,
+	)
+	if err != nil {
+		return err
+	}
+	pps.SetGeneration(res.ppGen)
+	mctx.LoginContext().CreateStreamCache(tsec, pps)
+
+	return nil
+}
+
+func pplPromptCheckPreconditions(m MetaContext, usernameOrEmail string) (err error) {
 	if m.LoginContext() == nil {
 		return InternalError{"PassphraseLoginPrompt: need a non-nil LoginContext"}
 	}
@@ -69,34 +103,7 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 	if err != nil {
 		return err
 	}
-	loginSessionBytes, err := ls.Session()
-	if err != nil {
-		return err
-	}
-	pdpka, err := computeLoginPackageFromEmailOrUsername(usernameOrEmail, pps, loginSessionBytes)
-	if err != nil {
-		return err
-	}
-	res, err := pplPost(m, usernameOrEmail, pdpka)
-	if err != nil {
-		return err
-	}
-
-	var nilDeviceID keybase1.DeviceID
-	err = m.LoginContext().SaveState(
-		res.sessionID,
-		res.csrfToken,
-		NewNormalizedUsername(res.username),
-		res.uv,
-		nilDeviceID,
-	)
-	if err != nil {
-		return err
-	}
-	pps.SetGeneration(res.ppGen)
-	m.LoginContext().CreateStreamCache(tsec, pps)
-
-	return nil
+	return loginWithPassphraseStream(m, usernameOrEmail, tsec, pps, ls)
 }
 
 func pplPromptLoop(m MetaContext, maxAttempts int, ls *LoginSession, arg keybase1.GUIEntryArg) (err error) {
@@ -495,4 +502,13 @@ func UnverifiedPassphraseStream(m MetaContext, uid keybase1.UID, passphrase stri
 		}
 	}
 	return StretchPassphrase(m.G(), passphrase, salt)
+}
+
+func LoginFromPassphraseStream(mctx MetaContext, username string, pps *PassphraseStream) (err error) {
+	defer mctx.Trace("LoginFromPassphraseStream", func() error { return err })()
+	ls, err := pplGetLoginSession(mctx, username)
+	if err != nil {
+		return err
+	}
+	return loginWithPassphraseStream(mctx, username, nil, pps, ls)
 }

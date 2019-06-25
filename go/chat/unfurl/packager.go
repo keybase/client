@@ -9,6 +9,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
+
+	"github.com/keybase/client/go/chat/maps"
+
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/s3"
@@ -16,12 +21,12 @@ import (
 	"github.com/keybase/client/go/chat/types"
 
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 type Packager struct {
+	globals.Contextified
 	utils.DebugLabeler
 
 	cache        *unfurlCache
@@ -31,10 +36,11 @@ type Packager struct {
 	maxAssetSize int64
 }
 
-func NewPackager(l logger.Logger, store attachments.Store, s3signer s3.Signer,
+func NewPackager(g *globals.Context, store attachments.Store, s3signer s3.Signer,
 	ri func() chat1.RemoteInterface) *Packager {
 	return &Packager{
-		DebugLabeler: utils.NewDebugLabeler(l, "Packager", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Packager", false),
 		cache:        newUnfurlCache(),
 		store:        store,
 		ri:           ri,
@@ -209,7 +215,8 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	var imgBody io.ReadCloser
 	var imgLength int64
 	if raw.Giphy().ImageUrl != nil {
-		imgBody, imgLength, err = giphy.Asset(ctx, *raw.Giphy().ImageUrl)
+		imgBody, imgLength, err = giphy.Asset(libkb.NewMetaContext(ctx, p.G().ExternalG()),
+			*raw.Giphy().ImageUrl)
 		if err != nil {
 			p.Debug(ctx, "Package: failed to get body specs for giphy image: %s", err)
 			return res, err
@@ -219,7 +226,8 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	if raw.Giphy().Video != nil {
 		// If we found a video, then let's see if it is smaller than the image, if so we will
 		// set it (which means it will get used by the frontend)
-		vidBody, vidLength, err := giphy.Asset(ctx, raw.Giphy().Video.Url)
+		vidBody, vidLength, err := giphy.Asset(libkb.NewMetaContext(ctx, p.G().ExternalG()),
+			raw.Giphy().Video.Url)
 		if err == nil && (imgLength == 0 || vidLength < imgLength) && vidLength < p.maxAssetSize {
 			p.Debug(ctx, "Package: found video: len: %d", vidLength)
 			defer vidBody.Close()
@@ -258,6 +266,46 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 	return chat1.NewUnfurlWithGiphy(g), nil
 }
 
+func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
+	mapsRaw := raw.Maps()
+	g := chat1.UnfurlGeneric{
+		Title:       mapsRaw.Title,
+		Url:         mapsRaw.Url,
+		SiteName:    mapsRaw.SiteName,
+		Description: &mapsRaw.Description,
+	}
+	// load map
+	var reader io.ReadCloser
+	var length int64
+	mapsURL := mapsRaw.ImageUrl
+	locReader, locLength, err := maps.MapReaderFromURL(ctx, mapsURL)
+	if err != nil {
+		return res, err
+	}
+	defer locReader.Close()
+	if mapsRaw.HistoryImageUrl != nil {
+		liveReader, _, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
+		if err != nil {
+			return res, err
+		}
+		defer liveReader.Close()
+		if reader, length, err = maps.CombineMaps(ctx, locReader, liveReader); err != nil {
+			return res, err
+		}
+	} else {
+		reader = locReader
+		length = locLength
+	}
+	asset, err := p.assetFromURLWithBody(ctx, reader, length, mapsURL, uid, convID, true)
+	if err != nil {
+		p.Debug(ctx, "Package: failed to get maps asset URL: %s", err)
+		return res, errors.New("image not available for maps unfurl")
+	}
+	g.Image = &asset
+	return chat1.NewUnfurlWithGeneric(g), nil
+}
+
 func (p *Packager) cacheKey(uid gregor1.UID, convID chat1.ConversationID, raw chat1.UnfurlRaw) string {
 	url := raw.GetUrl()
 	if url == "" {
@@ -294,6 +342,8 @@ func (p *Packager) Package(ctx context.Context, uid gregor1.UID, convID chat1.Co
 		return p.packageGeneric(ctx, uid, convID, raw)
 	case chat1.UnfurlType_GIPHY:
 		return p.packageGiphy(ctx, uid, convID, raw)
+	case chat1.UnfurlType_MAPS:
+		return p.packageMaps(ctx, uid, convID, raw)
 	default:
 		return res, errors.New("not implemented")
 	}

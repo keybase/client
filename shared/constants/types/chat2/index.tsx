@@ -148,6 +148,7 @@ export type _State = {
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  userReacjis: RPCTypes.UserReacjis
 }
 
 export type State = I.RecordOf<_State>
@@ -176,6 +177,7 @@ export type TeamType = Meta.TeamType
 export type AttachmentType = Message.AttachmentType
 export type ChatPaymentInfo = Message.ChatPaymentInfo
 export type ChatRequestInfo = Message.ChatRequestInfo
+export type MessageWithReactionPopup = Message.MessageWithReactionPopup
 export type DecoratedMessage = Message.DecoratedMessage
 export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel

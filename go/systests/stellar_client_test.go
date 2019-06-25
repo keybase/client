@@ -732,4 +732,8 @@ func (s *stellarRetryClient) FuzzyAssetSearchLocal(ctx context.Context, arg stel
 	return s.cli.FuzzyAssetSearchLocal(ctx, arg)
 }
 
+func (s *stellarRetryClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res stellar1.AssetListResult, err error) {
+	return s.cli.ListPopularAssetsLocal(ctx, sessionID)
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

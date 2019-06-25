@@ -4,7 +4,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {connect} from '../../util/container'
+import {connect, isNetworkErr} from '../../util/container'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
@@ -12,7 +12,7 @@ type OwnProps = {
 
 const mapStateToProps = state => ({
   _users: state.config.configuredAccounts,
-  error: state.login.error.stringValue(),
+  error: state.login.error,
   selectedUser: state.config.defaultUsername,
 })
 
@@ -27,9 +27,13 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const users = stateProps._users.sort().toArray()
+  const bannerError = !!stateProps.error && isNetworkErr(stateProps.error.code)
+  const inputError = !!stateProps.error && !bannerError
 
   return {
-    error: stateProps.error,
+    bannerError,
+    error: stateProps.error ? stateProps.error.desc : '',
+    inputError,
     onFeedback: dispatchProps.onFeedback,
     onForgotPassword: dispatchProps.onForgotPassword,
     onLogin: dispatchProps.onLogin,
@@ -52,6 +56,8 @@ type Props = {
   onForgotPassword: () => void
   onSignup: () => void
   onSomeoneElse: () => void
+  bannerError: boolean
+  inputError: boolean
   error: string
   selectedUser: string
   onFeedback: () => void
@@ -70,8 +76,8 @@ class LoginWrapper extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    // Clear the password when there's an error.
-    if (this.props.error !== prevProps.error) {
+    // Clear the password when there's an input error.
+    if (this.props.inputError !== prevProps.inputError) {
       this.setState(p => ({inputKey: p.inputKey + 1, password: ''}))
     }
     if (this.props.selectedUser !== prevProps.selectedUser) {
@@ -82,6 +88,8 @@ class LoginWrapper extends React.Component<Props, State> {
   render() {
     return (
       <Login
+        bannerError={this.props.bannerError}
+        inputError={this.props.inputError}
         error={this.props.error}
         inputKey={String(this.state.inputKey)}
         onFeedback={this.props.onFeedback}

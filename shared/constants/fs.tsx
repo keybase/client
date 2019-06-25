@@ -109,13 +109,24 @@ export const makeTlfSyncPartial: I.Record.Factory<Types._TlfSyncPartial> = I.Rec
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeTlfConflict: I.Record.Factory<Types._TlfConflict> = I.Record({
-  branch: '',
-  state: Types.ConflictState.None,
-} as Types._TlfConflict)
+export const makeConflictStateNormalView: I.Record.Factory<Types._ConflictStateNormalView> = I.Record({
+  localViewTlfPaths: I.List(),
+  resolvingConflict: false,
+  stuckInConflict: false,
+  type: Types.ConflictStateType.NormalView,
+} as Types._ConflictStateNormalView)
+
+export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
+
+export const makeConflictStateManualResolvingLocalView: I.Record.Factory<
+  Types._ConflictStateManualResolvingLocalView
+> = I.Record({
+  normalViewTlfPath: defaultPath,
+  type: Types.ConflictStateType.ManualResolvingLocalView,
+})
 
 export const makeTlf: I.Record.Factory<Types._Tlf> = I.Record({
-  conflict: makeTlfConflict(),
+  conflictState: tlfNormalViewWithNoConflict,
   isFavorite: false,
   isIgnored: false,
   isNew: false,
@@ -139,8 +150,8 @@ export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersP
 } as Types._SyncingFoldersProgress)
 
 export const makeOverallSyncStatus: I.Record.Factory<Types._OverallSyncStatus> = I.Record({
-  diskSpaceBannerHidden: false,
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
+  showingBanner: false,
   syncingFoldersProgress: makeSyncingFoldersProgress(),
 } as Types._OverallSyncStatus)
 
@@ -193,6 +204,7 @@ export const makeUploads: I.Record.Factory<Types._Uploads> = I.Record({
 } as Types._Uploads)
 
 export const makeTlfs: I.Record.Factory<Types._Tlfs> = I.Record({
+  loaded: false,
   private: I.Map(),
   public: I.Map(),
   team: I.Map(),
@@ -802,6 +814,14 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
   }
 }
 
+export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Path) =>
+  Types.pathConcat(
+    newTlfPath,
+    Types.getPathElements(path)
+      .slice(3)
+      .join('/')
+  )
+
 export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
   switch (parsedPath.kind) {
     case Types.PathKind.Root:
@@ -949,13 +969,13 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  routePath?: I.List<string> | null
+  navigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
     path,
   }),
-  RouteTreeGen.createNavigateAppend({
+  navigateAppend({
     path: [{props: {index}, selected: 'destinationPicker'}],
   }),
 ]
@@ -968,9 +988,6 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
-
-// TODO(KBFS-4155): implement this
-export const isUnmergedView = (path: Types.Path): boolean => false
 
 export const makeActionsForShowSendLinkToChat = (
   path: Types.Path,
@@ -1084,6 +1101,9 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
   const tlfPath = getTlfPath(path)
   return tlfPath ? softErrors.tlfErrors.get(tlfPath) : null
 }
+
+export const hasSpecialFileElement = (path: Types.Path): boolean =>
+  Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline

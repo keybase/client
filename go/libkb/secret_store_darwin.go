@@ -246,6 +246,9 @@ func (k KeychainSecretStore) GetUsersWithStoredSecrets(mctx MetaContext) ([]stri
 	users := []string{}
 	for _, account := range accounts {
 		username := parseSlottedAccount(account)
+		if isPPSSecretStore(username) {
+			continue
+		}
 		if _, ok := seen[username]; !ok {
 			users = append(users, username)
 			seen[username] = true

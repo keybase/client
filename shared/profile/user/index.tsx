@@ -480,7 +480,7 @@ export const styles = Styles.styleSheetCreate({
   followTabSelected: {
     borderBottomColor: Styles.globalColors.blue,
   },
-  followTabText: {color: Styles.globalColors.black_60},
+  followTabText: {color: Styles.globalColors.black_50},
   followTabTextSelected: {color: Styles.globalColors.black},
   friendRow: Styles.platformStyles({
     common: {

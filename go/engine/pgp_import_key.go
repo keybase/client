@@ -148,16 +148,6 @@ func (e *PGPKeyImportEngine) checkPregenPrivate() error {
 }
 
 func (e *PGPKeyImportEngine) checkExistingKey(m libkb.MetaContext) error {
-	// Check if the secret key already exists
-	if _, err := m.G().Keyrings.GetSecretKeyLocked(m, libkb.SecretKeyArg{
-		Me:       e.me,
-		KeyType:  libkb.PGPKeyType,
-		KeyQuery: e.GetKID().String(),
-	}); err == nil {
-		// There's a secret key, so let the engine return an error later
-		return nil
-	}
-
 	// Check if we have a public key that matches
 	pgps := e.me.GetActivePGPKeys(false)
 	for _, key := range pgps {
@@ -234,6 +224,10 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		}
 		if err = e.exportToGPG(m); err != nil {
 			return GPGExportingError{err, true /* inPGPGen */}
+		}
+	} else if e.arg.PushSecret {
+		if err = e.pushSecretOnly(m); err != nil {
+			return err
 		}
 	}
 
@@ -415,6 +409,28 @@ func (e *PGPKeyImportEngine) push(m libkb.MetaContext) (err error) {
 		m.UIs().LogUI.Info("  %s", line)
 	}
 
+	return nil
+}
+
+func (e *PGPKeyImportEngine) pushSecretOnly(m libkb.MetaContext) (err error) {
+	defer m.Trace("PGP#PushSecretOnly", func() error { return err })()
+
+	m.UIs().LogUI.Info("Only pushing encrypted private key to Keybase server")
+
+	hargs := libkb.HTTPArgs{
+		"private_key": libkb.S{Val: e.epk},
+	}
+	arg := libkb.APIArg{
+		Endpoint:    "key/add",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        hargs,
+	}
+	_, err = m.G().API.Post(m, arg)
+	if err != nil {
+		return err
+	}
+
+	m.UIs().LogUI.Info("Success! Pushed encrypted private key")
 	return nil
 }
 

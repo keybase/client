@@ -3,7 +3,9 @@ package types
 import (
 	"io"
 	"regexp"
+	"time"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -84,7 +86,6 @@ type ConversationSource interface {
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
-	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
@@ -118,6 +119,7 @@ type RegexpSearcher interface {
 
 type Indexer interface {
 	Resumable
+	Suspendable
 
 	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
@@ -145,6 +147,7 @@ type InboxSource interface {
 	Offlinable
 	Resumable
 	Suspendable
+	badges.LocalChatState
 
 	Clear(ctx context.Context, uid gregor1.UID) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp,
@@ -157,6 +160,7 @@ type InboxSource interface {
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
+	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -489,6 +493,23 @@ type TeamMentionLoader interface {
 		forceRemote bool) error
 	IsTeamMention(ctx context.Context, uid gregor1.UID,
 		maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool
+}
+
+type ExternalAPIKeySource interface {
+	GetKey(ctx context.Context, typ chat1.ExternalAPIKeyTyp) (chat1.ExternalAPIKey, error)
+	GetAllKeys(ctx context.Context) ([]chat1.ExternalAPIKey, error)
+}
+
+type LiveLocationKey string
+
+type LiveLocationTracker interface {
+	Resumable
+	GetCurrentPosition(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID)
+	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
+	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
+	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
+	ActivelyTracking(ctx context.Context) bool
+	StopAllTracking(ctx context.Context)
 }
 
 type InternalError interface {

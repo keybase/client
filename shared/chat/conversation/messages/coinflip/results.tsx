@@ -85,11 +85,11 @@ const suits = {
     icon: 'iconfont-club',
   },
   diamonds: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
     icon: 'iconfont-diamond',
   },
   hearts: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
     icon: 'iconfont-heart',
   },
   spades: {

@@ -3,8 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
@@ -15,6 +14,8 @@ type OwnProps = {
 type Props = OwnProps & {
   openParent: () => void
 }
+
+type OwnPropsWithSafeNavigation = Container.PropsWithSafeNavigation<OwnProps>
 
 const Explain = (props: Props) => {
   const elems = Types.getPathElements(props.path)
@@ -113,16 +114,18 @@ const Oops = (props: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, props: OwnProps) => ({
+const mapDispatchToProps = (dispatch, props: OwnPropsWithSafeNavigation) => ({
   openParent: () =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({
+      props.navigateAppend({
         path: [{props: {path: Types.getPathParent(props.path)}, selected: 'main'}],
       })
     ),
 })
 
-export default namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Oops')(Oops)
+export default Container.withSafeNavigation(
+  Container.namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Oops')(Oops)
+)
 
 const styles = Styles.styleSheetCreate({
   button: {

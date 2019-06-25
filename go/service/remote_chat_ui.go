@@ -176,3 +176,14 @@ func (r *RemoteChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessa
 		Message:   msg,
 	})
 }
+
+func (r *RemoteChatUI) ChatWatchPosition(ctx context.Context) (chat1.LocationWatchID, error) {
+	return r.cli.ChatWatchPosition(ctx, r.sessionID)
+}
+
+func (r *RemoteChatUI) ChatClearWatch(ctx context.Context, watchID chat1.LocationWatchID) error {
+	return r.cli.ChatClearWatch(ctx, chat1.ChatClearWatchArg{
+		SessionID: r.sessionID,
+		Id:        watchID,
+	})
+}

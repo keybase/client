@@ -66,7 +66,7 @@ const styleMap = avatarSizes.reduce(
           paddingLeft: size / 2,
         },
         text: {
-          color: Styles.globalColors.black_40,
+          color: Styles.globalColors.black_50,
           paddingRight: size / 5,
         },
       }),
@@ -87,7 +87,7 @@ const styleMap = avatarSizes.reduce(
           width: size,
         },
         text: {
-          color: Styles.globalColors.black_40,
+          color: Styles.globalColors.black_50,
           paddingBottom: size / 5,
         },
       }),

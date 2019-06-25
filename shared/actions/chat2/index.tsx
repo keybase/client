@@ -33,6 +33,8 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
+import {getEngine} from '../../engine/require'
+import {store} from 'emoji-mart'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -88,9 +90,7 @@ function* inboxRefresh(
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
     const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
     // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items
-      .map(item => Constants.unverifiedInboxUIItemToConversationMeta(item, username))
-      .filter(Boolean)
+    const metas = items.map(item => Constants.unverifiedInboxUIItemToConversationMeta(item)).filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
       Chat2Gen.createMetasReceived({
@@ -551,7 +551,10 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
     targetMsgID: ru.targetMsgID,
   }))
   logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-  return [Chat2Gen.createUpdateReactions({conversationIDKey, updates})]
+  return [
+    Chat2Gen.createUpdateReactions({conversationIDKey, updates}),
+    Chat2Gen.createUpdateUserReacjis({userReacjis: info.userReacjis}),
+  ]
 }
 
 const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
@@ -609,10 +612,9 @@ const onChatInboxSynced = (state, action: EngineGen.Chat1NotifyChatChatInboxSync
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
       const selectedConversation = Constants.getSelectedConversation(state)
-      const username = state.config.username
       const items = (syncRes.incremental && syncRes.incremental.items) || []
       const metas = items.reduce((arr, i) => {
-        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv, username)
+        const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
         if (meta) {
           if (meta.conversationIDKey === selectedConversation) {
             // First thing load the messages
@@ -1858,6 +1860,40 @@ const _maybeAutoselectNewestConversation = (state, action, logger) => {
   }
 }
 
+const startupUserReacjisLoad = (state, action) =>
+  Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
+
+// onUpdateUserReacjis hooks `userReacjis`, frequently used reactions
+// recorded by the service, into the emoji-mart library. Handler spec is
+// documented at
+// https://github.com/missive/emoji-mart/tree/7c2e2a840bdd48c3c9935dac4208115cbcf6006d#storage
+const onUpdateUserReacjis = state => {
+  if (isMobile) {
+    return
+  }
+  const userReacjis = state.chat2.userReacjis
+  // emoji-mart expects a frequency map so we convert the sorted list from the
+  // service into a frequency map that will appease the lib.
+  let i = 0
+  let reacjis = {}
+  userReacjis.topReacjis.forEach(el => {
+    i++
+    reacjis[el] = userReacjis.topReacjis.length - i
+  })
+  store.setHandlers({
+    getter: key => {
+      switch (key) {
+        case 'frequently':
+          return reacjis
+        case 'last':
+          return reacjis[0]
+        case 'skin':
+          return userReacjis.skinTone
+      }
+    },
+  })
+}
+
 const openFolder = (state, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
@@ -2810,6 +2846,43 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
   })
 }
 
+const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositionPayload, logger) => {
+  const response = action.payload.response
+  if (isMobile) {
+    const watchID = navigator.geolocation.watchPosition(
+      pos =>
+        RPCChatTypes.localLocationUpdateRpcPromise({
+          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+        }),
+      err => logger.warn(err.message),
+      {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
+    )
+    response.result(watchID)
+  } else {
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.80424, lon: -73.962962},
+      })
+    }, 1000)
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.756325, lon: -73.992533},
+      })
+    }, 6000)
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.704454, lon: -74.010893},
+      })
+    }, 10000)
+    response.result(10)
+  }
+  return []
+}
+
+const onChatClearWatch = (state, action: EngineGen.Chat1ChatUiChatClearWatchPayload, logger) => {
+  navigator.geolocation.clearWatch(action.payload.params.id)
+}
+
 const resolveMaybeMention = (state, action: Chat2Gen.ResolveMaybeMentionPayload) => {
   return RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
@@ -3120,6 +3193,18 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     'startupInboxLoad'
   )
 
+  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
+    ConfigGen.bootstrapStatusLoaded,
+    startupUserReacjisLoad,
+    'startupUserReacjisLoad'
+  )
+
+  yield* Saga.chainAction<Chat2Gen.UpdateUserReacjisPayload>(
+    Chat2Gen.updateUserReacjis,
+    onUpdateUserReacjis,
+    'onUpdateUserReacjis'
+  )
+
   // Search handling
   yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
@@ -3415,6 +3500,17 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,
     onChatMaybeMentionUpdate
+  )
+  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatWatchPositionPayload>(
+    EngineGen.chat1ChatUiChatWatchPosition,
+    onChatWatchPosition,
+    'onChatWatchPosition'
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatClearWatchPayload>(
+    EngineGen.chat1ChatUiChatClearWatch,
+    onChatClearWatch,
+    'onChatClearWatch'
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)

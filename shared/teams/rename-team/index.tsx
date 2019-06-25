@@ -173,7 +173,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   error: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   inputContainer: {
     borderColor: Styles.globalColors.black_10,

@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +26,7 @@ func TestLoaderBasic(t *testing.T) {
 	teamName, teamID := createTeam2(tc)
 
 	t.Logf("load the team")
-	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -33,7 +34,7 @@ func TestLoaderBasic(t *testing.T) {
 	require.True(t, teamName.Eq(team.Name))
 
 	t.Logf("load the team again")
-	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -57,7 +58,7 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	teamName, teamID := createTeam2(tc)
 
 	t.Logf("load the team")
-	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:     teamID,
 		Public: public,
 	})
@@ -78,7 +79,7 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	t.Logf("cache post-set cachedAt:%v", team.CachedAt.Time())
 
 	t.Logf("load the team again")
-	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:     teamID,
 		Public: public,
 	})
@@ -100,7 +101,7 @@ func TestLoaderByName(t *testing.T) {
 	teamName, teamID := createTeam2(tc)
 
 	t.Logf("load the team")
-	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		Name: teamName.String(),
 	})
 	require.NoError(t, err)
@@ -130,7 +131,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("B's first load at gen 1")
-	team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -149,7 +150,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	}
 
 	t.Logf("load as A to check the progression")
-	team, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
 	})
@@ -159,7 +160,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 
 	t.Logf("B loads and hits its cache")
-	team, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -168,7 +169,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 1, "number of kbfs rkms")
 
 	t.Logf("B loads with NeedKeyGeneration")
-	team, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedKeyGeneration: 3,
@@ -299,7 +300,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and caches")
-	team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -310,7 +311,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and hits the cache")
-	team, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -318,7 +319,7 @@ func TestLoaderWantMembers(t *testing.T) {
 
 	t.Logf("U1 loads with WantMembers=U2 and that causes a repoll but no error")
 	loadAsU1WantU2 := func() *keybase1.TeamData {
-		team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 			ID: teamID,
 			Refreshers: keybase1.TeamRefreshers{
 				WantMembers: []keybase1.UserVersion{fus[2].GetUserVersion()},
@@ -363,7 +364,7 @@ func TestLoaderParentEasy(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("load the parent")
-	team, err := tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
 	})
@@ -372,7 +373,7 @@ func TestLoaderParentEasy(t *testing.T) {
 	require.False(t, TeamSigChainState{inner: team.Chain}.HasAnyStubbedLinks(), "team has stubbed links")
 	subteamName, err := TeamSigChainState{inner: team.Chain}.GetSubteamName(*subteamID)
 	if err != nil {
-		t.Logf("seqno: %v", TeamSigChainState{team.Chain}.GetLatestSeqno())
+		t.Logf("seqno: %v", TeamSigChainState{inner: team.Chain}.GetLatestSeqno())
 		t.Logf("subteam log: %v", spew.Sdump(team.Chain.SubteamLog))
 		require.NoError(t, err)
 	}
@@ -394,7 +395,7 @@ func TestLoaderSubteamEasy(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
-	team, err := tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: *subteamID,
 	})
 	require.NoError(t, err)
@@ -425,7 +426,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the parent")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: parentID,
 	})
 	require.NoError(t, err)
@@ -437,7 +438,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the subteam")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: *subteamID,
 	})
 	require.NoError(t, err)
@@ -463,7 +464,7 @@ func TestLoaderNotInParent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the subteam")
-	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: *subteamID,
 	})
 	require.NoError(t, err)
@@ -496,7 +497,7 @@ func TestLoaderMultilevel(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
-	team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: *subsubteamID,
 	})
 	require.NoError(t, err)
@@ -523,7 +524,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and caches")
-	team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -534,7 +535,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and hits the cache")
-	team, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -542,7 +543,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 
 	t.Logf("U1 loads with WantMembers=U2 which infers the eldestseqno and repolls")
 	loadAsU1WantU2 := func() *keybase1.TeamData {
-		team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 			ID: teamID,
 			Refreshers: keybase1.TeamRefreshers{
 				WantMembers: []keybase1.UserVersion{keybase1.UserVersion{
@@ -842,7 +843,7 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.NotNil(t, rootData, "root team should be cached")
 	require.False(t, frozen)
 	require.False(t, tombstoned)
-	require.True(t, (TeamSigChainState{rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
+	require.True(t, (TeamSigChainState{inner: rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
 
 	t.Logf("U0 adds U2 to lair")
 	_, err = AddMember(context.Background(), tcs[0].G, subteamLairName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
@@ -881,7 +882,7 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 	}
 
 	t.Logf("U0 rotates the subteam")
-	err = RotateKey(context.Background(), tcs[0].G, *subteamID)
+	err = RotateKey(context.Background(), tcs[0].G, keybase1.TeamRotateKeyArg{TeamID: *subteamID, Rt: keybase1.RotationType_VISIBLE})
 	require.NoError(t, err)
 
 	t.Logf("Both users can still load the team")
@@ -1024,7 +1025,7 @@ func TestLoaderUpgradeMerkleHead(t *testing.T) {
 	teamName, teamID := createTeam2(tc)
 
 	t.Logf("load the team")
-	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -1032,7 +1033,7 @@ func TestLoaderUpgradeMerkleHead(t *testing.T) {
 	require.True(t, teamName.Eq(team.Name))
 
 	t.Logf("load the team again")
-	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, _, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
@@ -1155,7 +1156,7 @@ func randomTlfID(t *testing.T) keybase1.TLFID {
 	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }
 
-func getFastStorageFromG(g *libkb.GlobalContext) *FTLStorage {
+func getFastStorageFromG(g *libkb.GlobalContext) *storage.FTLStorage {
 	tl := g.GetFastTeamLoader().(*FastTeamChainLoader)
 	return tl.storage
 }
@@ -1211,7 +1212,7 @@ func freezeTest(t *testing.T, freezeAction freezeF, unfreezeAction freezeF) {
 	require.NoError(t, err)
 
 	// Load chains again, forcing repoll
-	_, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:     rootID,
 		Public: rootID.IsPublic(),
 	})
@@ -1302,7 +1303,7 @@ func TestTombstoneViaDelete(t *testing.T) {
 	require.NotNil(t, ftd.Chain.Last)
 
 	// Load chains again, should error due to tombstone
-	_, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[0].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID:     rootID,
 		Public: rootID.IsPublic(),
 	})

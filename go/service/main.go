@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/maps"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/unfurl"
@@ -400,6 +401,7 @@ func (d *Service) startChatModules() {
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 		g.CoinFlipManager.Start(context.Background(), uid)
 		g.TeamMentionLoader.Start(context.Background(), uid)
+		g.LiveLocationTracker.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -413,6 +415,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().Indexer.Stop(m.Ctx())
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
 	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
+	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
 	return nil
 }
 
@@ -428,7 +431,9 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	boxer := chat.NewBoxer(g)
 	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
+	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), d.badger, ri)
+	g.InboxSource = inboxSource
+	d.badger.SetLocalChatState(inboxSource)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -453,7 +458,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
-	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
+	store := attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir())
 	attachmentLRUSize := 1000
 	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
 	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
@@ -477,6 +482,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
+	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
+	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

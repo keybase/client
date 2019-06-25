@@ -1,6 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
-
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
@@ -31,10 +29,10 @@ export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
+export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
-export const hideDiskSpaceBanner = 'fs:hideDiskSpaceBanner'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const initSendLinkToChat = 'fs:initSendLinkToChat'
@@ -81,14 +79,15 @@ export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
+export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
+export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
-export const tlfCrStatusChanged = 'fs:tlfCrStatusChanged'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
@@ -141,13 +140,13 @@ type _FavoritesLoadedPayload = {
   readonly public: I.Map<string, Types.Tlf>
   readonly team: I.Map<string, Types.Tlf>
 }
+type _FinishManualConflictResolutionPayload = {readonly localViewTlfPath: Types.Path}
 type _FolderListLoadPayload = {readonly path: Types.Path; readonly refreshTag?: Types.RefreshTag}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: I.Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
-type _HideDiskSpaceBannerPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
 type _InitSendLinkToChatPayload = {readonly path: Types.Path}
@@ -174,7 +173,7 @@ type _OpenPathInSystemFileManagerPayload = {readonly path: Types.Path}
 type _OpenSecurityPreferencesPayload = void
 type _OverallSyncStatusChangedPayload = {
   readonly progress: Types.SyncingFoldersProgress
-  readonly outOfSpace: boolean
+  readonly diskSpaceStatus: Types.DiskSpaceStatus
 }
 type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
@@ -201,14 +200,15 @@ type _SetSendLinkToChatConvIDPayload = {readonly convID: ChatTypes.ConversationI
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
+type _SetTlfsAsUnloadedPayload = void
 type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
 type _ShareNativePayload = {readonly path: Types.Path; readonly key: string}
+type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
 type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
-type _TlfCrStatusChangedPayload = {readonly status: Types.ConflictState; readonly tlfPath: Types.Path}
 type _TlfSyncConfigLoadedPayload = {
   readonly tlfType: Types.TlfType
   readonly tlfName: string
@@ -302,6 +302,9 @@ export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload): Favorit
   payload,
   type: favoritesLoaded,
 })
+export const createFinishManualConflictResolution = (
+  payload: _FinishManualConflictResolutionPayload
+): FinishManualConflictResolutionPayload => ({payload, type: finishManualConflictResolution})
 export const createFolderListLoad = (payload: _FolderListLoadPayload): FolderListLoadPayload => ({
   payload,
   type: folderListLoad,
@@ -311,9 +314,6 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   type: folderListLoaded,
 })
 export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
-export const createHideDiskSpaceBanner = (
-  payload: _HideDiskSpaceBannerPayload
-): HideDiskSpaceBannerPayload => ({payload, type: hideDiskSpaceBanner})
 export const createHideSystemFileManagerIntegrationBanner = (
   payload: _HideSystemFileManagerIntegrationBannerPayload
 ): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
@@ -466,6 +466,10 @@ export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload): SetTl
   payload,
   type: setTlfSyncConfig,
 })
+export const createSetTlfsAsUnloaded = (payload: _SetTlfsAsUnloadedPayload): SetTlfsAsUnloadedPayload => ({
+  payload,
+  type: setTlfsAsUnloaded,
+})
 export const createSettingsLoaded = (
   payload: _SettingsLoadedPayload = Object.freeze({})
 ): SettingsLoadedPayload => ({payload, type: settingsLoaded})
@@ -473,6 +477,9 @@ export const createShareNative = (payload: _ShareNativePayload): ShareNativePayl
   payload,
   type: shareNative,
 })
+export const createShowHideDiskSpaceBanner = (
+  payload: _ShowHideDiskSpaceBannerPayload
+): ShowHideDiskSpaceBannerPayload => ({payload, type: showHideDiskSpaceBanner})
 export const createShowIncomingShare = (payload: _ShowIncomingSharePayload): ShowIncomingSharePayload => ({
   payload,
   type: showIncomingShare,
@@ -491,10 +498,6 @@ export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayl
 export const createStartManualConflictResolution = (
   payload: _StartManualConflictResolutionPayload
 ): StartManualConflictResolutionPayload => ({payload, type: startManualConflictResolution})
-export const createTlfCrStatusChanged = (payload: _TlfCrStatusChangedPayload): TlfCrStatusChangedPayload => ({
-  payload,
-  type: tlfCrStatusChanged,
-})
 export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
 ): TlfSyncConfigLoadedPayload => ({payload, type: tlfSyncConfigLoaded})
@@ -592,6 +595,10 @@ export type FavoritesLoadedPayload = {
   readonly payload: _FavoritesLoadedPayload
   readonly type: typeof favoritesLoaded
 }
+export type FinishManualConflictResolutionPayload = {
+  readonly payload: _FinishManualConflictResolutionPayload
+  readonly type: typeof finishManualConflictResolution
+}
 export type FolderListLoadPayload = {
   readonly payload: _FolderListLoadPayload
   readonly type: typeof folderListLoad
@@ -601,10 +608,6 @@ export type FolderListLoadedPayload = {
   readonly type: typeof folderListLoaded
 }
 export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
-export type HideDiskSpaceBannerPayload = {
-  readonly payload: _HideDiskSpaceBannerPayload
-  readonly type: typeof hideDiskSpaceBanner
-}
 export type HideSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _HideSystemFileManagerIntegrationBannerPayload
   readonly type: typeof hideSystemFileManagerIntegrationBanner
@@ -777,11 +780,19 @@ export type SetTlfSyncConfigPayload = {
   readonly payload: _SetTlfSyncConfigPayload
   readonly type: typeof setTlfSyncConfig
 }
+export type SetTlfsAsUnloadedPayload = {
+  readonly payload: _SetTlfsAsUnloadedPayload
+  readonly type: typeof setTlfsAsUnloaded
+}
 export type SettingsLoadedPayload = {
   readonly payload: _SettingsLoadedPayload
   readonly type: typeof settingsLoaded
 }
 export type ShareNativePayload = {readonly payload: _ShareNativePayload; readonly type: typeof shareNative}
+export type ShowHideDiskSpaceBannerPayload = {
+  readonly payload: _ShowHideDiskSpaceBannerPayload
+  readonly type: typeof showHideDiskSpaceBanner
+}
 export type ShowIncomingSharePayload = {
   readonly payload: _ShowIncomingSharePayload
   readonly type: typeof showIncomingShare
@@ -798,10 +809,6 @@ export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonl
 export type StartManualConflictResolutionPayload = {
   readonly payload: _StartManualConflictResolutionPayload
   readonly type: typeof startManualConflictResolution
-}
-export type TlfCrStatusChangedPayload = {
-  readonly payload: _TlfCrStatusChangedPayload
-  readonly type: typeof tlfCrStatusChanged
 }
 export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
@@ -862,10 +869,10 @@ export type Actions =
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
+  | FinishManualConflictResolutionPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
-  | HideDiskSpaceBannerPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | InitSendLinkToChatPayload
@@ -912,14 +919,15 @@ export type Actions =
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
+  | SetTlfsAsUnloadedPayload
   | SettingsLoadedPayload
   | ShareNativePayload
+  | ShowHideDiskSpaceBannerPayload
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
-  | TlfCrStatusChangedPayload
   | TlfSyncConfigLoadedPayload
   | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload

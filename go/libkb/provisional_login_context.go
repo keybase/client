@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/hex"
 	"errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 

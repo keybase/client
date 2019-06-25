@@ -3,6 +3,7 @@ import WaitingButton from '../waiting-button'
 import {Box, Box2} from '../box'
 import HeaderOrPopup from '../header-or-popup'
 import ButtonBar from '../button-bar'
+import Banner from '../banner'
 import Icon from '../icon'
 import ScrollView from '../scroll-view'
 import Text from '../text'
@@ -14,6 +15,7 @@ export type Props = {
   confirmText?: string
   content?: React.ReactNode
   description: string
+  error?: string
   header?: React.ReactNode
   icon?: IconType
   onCancel: () => void | null
@@ -28,37 +30,41 @@ class _ConfirmModal extends React.PureComponent<Props> {
     return (
       <Box style={styles.mobileFlex}>
         <Box2 direction="vertical" style={styles.container}>
-          <ScrollView>
-            <Box2
-              alignItems="center"
-              direction="vertical"
-              fullWidth={true}
-              fullHeight={true}
-              style={styles.inner}
-            >
-              {this.props.icon && (
-                <Icon
-                  boxStyle={styles.icon}
-                  color={Styles.globalColors.black_50}
-                  fontSize={Styles.isMobile ? 64 : 48}
-                  style={styles.icon}
-                  type={iconType}
-                />
-              )}
-              {this.props.header && (
-                <Box2 alignItems="center" direction="vertical" style={styles.icon}>
-                  {this.props.header}
-                </Box2>
-              )}
-              <Text center={true} style={styles.text} type="HeaderBig">
-                {this.props.prompt}
-              </Text>
-              <Text center={true} style={styles.text} type="Body">
-                {this.props.description}
-              </Text>
-              {this.props.content}
-            </Box2>
-          </ScrollView>
+          {this.props.error && <Banner color="red" text={this.props.error} />}
+          <Box2 direction="vertical" style={styles.container2}>
+            <ScrollView contentContainerStyle={{flexGrow: 1}}>
+              <Box2
+                alignItems="center"
+                direction="vertical"
+                centerChildren={true}
+                fullWidth={true}
+                fullHeight={true}
+                style={styles.inner}
+              >
+                {this.props.icon && (
+                  <Icon
+                    boxStyle={styles.icon}
+                    color={Styles.globalColors.black_50}
+                    fontSize={Styles.isMobile ? 64 : 48}
+                    style={styles.icon}
+                    type={iconType}
+                  />
+                )}
+                {this.props.header && (
+                  <Box2 alignItems="center" direction="vertical" style={styles.icon}>
+                    {this.props.header}
+                  </Box2>
+                )}
+                <Text center={true} style={styles.text} type="HeaderBig">
+                  {this.props.prompt}
+                </Text>
+                <Text center={true} style={styles.text} type="Body">
+                  {this.props.description}
+                </Text>
+                {this.props.content}
+              </Box2>
+            </ScrollView>
+          </Box2>
         </Box2>
         <Box2 direction="horizontal" style={styles.buttonBox}>
           <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
@@ -110,16 +116,23 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderRadius: 4,
       overflow: 'hidden',
-      padding: 64,
+      padding: 0,
       width: 560,
     },
     isMobile: {
       flex: 1,
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
       width: '100%',
     },
   }),
+  container2: Styles.platformStyles({
+    isElectron: {
+      padding: 64,
+    },
+  }),
+  errorBannerText: {
+    color: Styles.globalColors.white,
+    maxWidth: 512,
+  },
   icon: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
@@ -131,7 +144,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {flex: 1},
   }),
   text: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,
   },
 })

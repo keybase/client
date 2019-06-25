@@ -279,7 +279,18 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     (this.props.message.type === 'text' ||
       this.props.message.type === 'attachment' ||
       this.props.message.type === 'sendPayment' ||
-      this.props.message.type === 'requestPayment') &&
+      this.props.message.type === 'requestPayment' ||
+      this.props.message.type === 'setChannelname' ||
+      this.props.message.type === 'setDescription' ||
+      this.props.message.type === 'systemAddedToTeam' ||
+      this.props.message.type === 'systemChangeRetention' ||
+      this.props.message.type === 'systemGitPush' ||
+      this.props.message.type === 'systemInviteAccepted' ||
+      this.props.message.type === 'systemJoined' ||
+      this.props.message.type === 'systemLeft' ||
+      this.props.message.type === 'systemSimpleToComplex' ||
+      this.props.message.type === 'systemText' ||
+      this.props.message.type === 'systemUsersAddedToConversation') &&
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
       <MessagePopup
@@ -652,8 +663,8 @@ const styles = Styles.styleSheetCreate({
       top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
     },
   }),
-  fail: {color: Styles.globalColors.red},
-  failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
+  fail: {color: Styles.globalColors.redDark},
+  failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
   fast,
   marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
   menuButtons: Styles.platformStyles({

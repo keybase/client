@@ -77,7 +77,7 @@ const metaMapReducer = (metaMap, action) => {
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )
-            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv, username || '')
+            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
             if (!newMeta) {
               // public conversation, do nothing
               return metaMap
@@ -1284,6 +1284,8 @@ const rootReducer = (
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     }
+    case Chat2Gen.updateUserReacjis:
+      return state.set('userReacjis', action.payload.userReacjis)
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

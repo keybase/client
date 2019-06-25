@@ -8,7 +8,7 @@ export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
-export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
+export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver' | 'none'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
@@ -49,16 +49,18 @@ export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
 export type _Assets = {
   assetCode: string
+  availableToSendWorth: string
   balanceAvailableToSend: string
   balanceTotal: string
+  infoUrl: string
+  infoUrlText: string
   issuerAccountID: string
   issuerName: string
   issuerVerifiedDomain: string
   name: string
+  reserves: I.List<Reserve>
   worth: string
   worthCurrency: string
-  availableToSendWorth: string
-  reserves: I.List<Reserve>
 }
 
 export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode
@@ -155,8 +157,12 @@ export type _PaymentCommon = {
   worth: string
   worthAtSendTime: string // for "(APPROXIMATELY $X.XX)" strings,
   // issuer, for non-xlm assets
+  isAdvanced: boolean
+  operations: Array<string> | null
+  summaryAdvanced: string
   issuerDescription: string
   issuerAccountID: AccountID | null
+  unread: boolean
 }
 
 export type _PaymentResult = {
@@ -166,7 +172,6 @@ export type _PaymentResult = {
   // https://keybase.atlassian.net/browse/CORE-9234 is fixed there
   // might be a better way.
   section: PaymentSection
-  unread: boolean
 } & _PaymentCommon
 
 export type _PaymentDetail = {
@@ -275,6 +280,23 @@ export type _AirdropDetails = {
 }
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
+export type AssetID = string
+export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
+  `${issuerAccountID}-${assetCode}`
+export const assetDescriptionToAssetID = (assetDescription: AssetDescription): AssetID =>
+  makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
+
+export type _Trustline = {
+  acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
+  assetMap: I.Map<AssetID, AssetDescription>
+  expandedAssets: I.Set<AssetID>
+  loaded: boolean
+  popularAssets: I.List<AssetID>
+  searchingAssets?: I.List<AssetID>
+  totalAssetsCount: number
+}
+export type Trustline = I.RecordOf<_Trustline>
+
 export type _State = {
   acceptedDisclaimer: boolean
   acceptingDisclaimerDelay: boolean
@@ -314,6 +336,7 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>
 }

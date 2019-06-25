@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
+	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -134,7 +135,7 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 
 	if err == nil {
 		// ret.Status might indicate an error we should return
-		// (like libkb.DeletedError, for example)
+		// (like libkb.UserDeletedError, for example)
 		err = libkb.UserErrorFromStatus(ret.Status)
 		if err != nil {
 			h.G().Log.CDebugf(netCtx, "using error from StatusCode: %v => %s", ret.Status, err)
@@ -145,14 +146,19 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 	return ret, err
 }
 
-func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
+func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (res keybase1.UserSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	emails, err := libkb.LoadUserEmails(mctx)
 	if err != nil {
-		return
+		return res, err
 	}
-	us.Emails = emails
-	return
+	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		return res, err
+	}
+	res.Emails = emails
+	res.PhoneNumbers = phoneNumbers
+	return res, nil
 }
 
 func (h *UserHandler) LoadPublicKeys(ctx context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
@@ -569,47 +575,8 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 }
 
 func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {
-	if !h.G().ActiveDevice.Valid() {
-		h.G().Log.CDebugf(ctx, "CanLogout: looks like user is not logged in")
-		res.CanLogout = true
-		return res, nil
-	}
-
-	if err := libkb.CheckCurrentUIDDeviceID(libkb.NewMetaContext(ctx, h.G())); err != nil {
-		switch err.(type) {
-		case libkb.DeviceNotFoundError, libkb.UserNotFoundError,
-			libkb.KeyRevokedError, libkb.NoDeviceError, libkb.NoUIDError:
-			h.G().Log.CDebugf(ctx, "CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
-			return keybase1.CanLogoutRes{CanLogout: true}, nil
-		default:
-			// Unexpected error like network connectivity issue, fall through.
-			// Even if we are offline here, we may be able to get cached value
-			// `false` from LoadHasRandomPw and be allowed to log out.
-			h.G().Log.CDebugf(ctx, "CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
-		}
-	}
-
-	hasRandomPW, err := h.LoadHasRandomPw(ctx, keybase1.LoadHasRandomPwArg{
-		SessionID:   sessionID,
-		ForceRepoll: false,
-	})
-
-	if err != nil {
-		return keybase1.CanLogoutRes{
-			CanLogout: false,
-			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
-		}, nil
-	}
-
-	if hasRandomPW {
-		return keybase1.CanLogoutRes{
-			CanLogout:     false,
-			SetPassphrase: true,
-			Reason:        "You signed up without a password and need to set a password first",
-		}, nil
-	}
-
-	res.CanLogout = true
+	m := libkb.NewMetaContext(ctx, h.G())
+	res = libkb.CanLogout(m)
 	return res, nil
 }
 

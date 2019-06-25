@@ -102,7 +102,7 @@ const UpgradeButton = ({onClick, type}: {onClick: () => void; type: 'upgrade' | 
 const DowngradeLink = ({onClick}) => (
   <Text
     type={'BodySmall'}
-    style={{color: globalColors.blue}}
+    style={{color: globalColors.blueDark}}
     onClick={e => {
       onClick()
       e.stopPropagation()
@@ -141,7 +141,10 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
     >
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text type={'BodySemibold'} style={{color: globalColors.blue, marginRight: globalMargins.xtiny}}>
+          <Text
+            type={'BodySemibold'}
+            style={{color: globalColors.blueDark, marginRight: globalMargins.xtiny}}
+          >
             {level}
           </Text>
           <Text type={'BodySmall'}>({price})</Text>
@@ -183,11 +186,11 @@ function PaymentInfo({
       >
         <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">{name}</Text>
-          <Text style={{color: isBroken ? globalColors.red : globalColors.black_50}} type="BodySmall">
+          <Text style={{color: isBroken ? globalColors.redDark : globalColors.black_50}} type="BodySmall">
             **** {last4Digits} {isBroken ? ' (broken)' : ''}
           </Text>
         </Box>
-        <Text type="BodySmall" style={{color: globalColors.blue}} onClick={onChangePaymentInfo}>
+        <Text type="BodySmall" style={{color: globalColors.blueDark}} onClick={onChangePaymentInfo}>
           Update
         </Text>
       </Box>
@@ -265,7 +268,7 @@ function AccountEmail({
       <Box style={globalStyles.flexBoxColumn}>
         <Text type="BodySemibold">{email}</Text>
       </Box>
-      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangeEmail}>
+      <Text type="Body" style={{color: globalColors.blueDark}} onClick={onChangeEmail}>
         Edit
       </Text>
     </Box>
@@ -299,7 +302,7 @@ function AccountPassword({onChangePassword}: {onChangePassword: () => void}) {
       <Text type="Body" style={{flex: 1}}>
         •••••••••
       </Text>
-      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassword}>
+      <Text type="Body" style={{color: globalColors.blueDark}} onClick={onChangePassword}>
         Edit
       </Text>
     </Box>

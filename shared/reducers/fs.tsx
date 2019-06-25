@@ -139,7 +139,7 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
   if (!newTlf.resetParticipants.equals(oldTlf.resetParticipants)) {
     return newTlf
   }
-  if (!newTlf.conflict.equals(oldTlf.conflict)) {
+  if (!newTlf.conflictState.equals(oldTlf.conflictState)) {
     return newTlf
   }
   // syncConfig, resetParticipants, and conflict all stayed thte same in value,
@@ -149,7 +149,7 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
       n
         .set('syncConfig', oldTlf.syncConfig)
         .set('resetParticipants', oldTlf.resetParticipants)
-        .set('conflict', oldTlf.conflict)
+        .set('conflictState', oldTlf.conflictState)
     )
   )
 }
@@ -242,8 +242,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
             .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
             .update('team', team => updateTlfList(team, action.payload.team))
+            .set('loaded', true)
         )
       )
+    case FsGen.setTlfsAsUnloaded:
+      return state.update('tlfs', tlfs => tlfs.set('loaded', false))
     case FsGen.setFolderViewFilter:
       return state.set('folderViewFilter', action.payload.filter)
     case FsGen.tlfSyncConfigLoaded:
@@ -517,30 +520,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.overallSyncStatusChanged:
       return state.update('overallSyncStatus', overallSyncStatus =>
         overallSyncStatus
-          .update('syncingFoldersProgress', syncingFoldersProgress =>
-            action.payload.progress.equals(syncingFoldersProgress)
-              ? syncingFoldersProgress
-              : action.payload.progress
-          )
-          .set(
-            'diskSpaceStatus',
-            action.payload.outOfSpace ? Types.DiskSpaceStatus.Error : Types.DiskSpaceStatus.Ok
-          )
-          // Unhide the banner if the state we're coming from isn't WARNING.
-          .set(
-            'diskSpaceBannerHidden',
-            overallSyncStatus.diskSpaceBannerHidden &&
-              overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Warning
-          )
+          .set('syncingFoldersProgress', action.payload.progress)
+          .set('diskSpaceStatus', action.payload.diskSpaceStatus)
       )
+    case FsGen.showHideDiskSpaceBanner:
+      return state.setIn(['overallSyncStatus', 'showingBanner'], action.payload.show)
     case FsGen.setDriverStatus:
       return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
     case FsGen.showSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
     case FsGen.hideSystemFileManagerIntegrationBanner:
       return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
-    case FsGen.hideDiskSpaceBanner:
-      return state.update('overallSyncStatus', status => status.set('diskSpaceBannerHidden', true))
     case FsGen.driverEnable:
       return state.update('sfmi', sfmi =>
         sfmi.update('driverStatus', driverStatus =>
@@ -565,14 +555,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
-    case FsGen.tlfCrStatusChanged:
-      const parsedPath = Constants.parsePath(action.payload.tlfPath)
-      const newState = action.payload.status
-      if (parsedPath.kind !== Types.PathKind.TeamTlf && parsedPath.kind !== Types.PathKind.GroupTlf) {
-        // This should not happen.
-        return state
-      }
-      return state.setIn(['tlfs', parsedPath.tlfType, parsedPath.tlfName, 'conflict', 'state'], newState)
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
@@ -599,6 +581,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('settings', s => s.set('isLoading', true))
 
     case FsGen.startManualConflictResolution:
+    case FsGen.finishManualConflictResolution:
     case FsGen.driverDisable:
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:

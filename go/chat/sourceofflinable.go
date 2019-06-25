@@ -87,6 +87,7 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 				s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
 				s.Lock()
 				if s.offline {
+					connected = s.connected
 					s.Unlock()
 					s.Debug(ctx, "IsOffline: since we got word of being offline, we will keep waiting")
 					continue

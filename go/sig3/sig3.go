@@ -2,14 +2,14 @@ package sig3
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 )
-
-//
 
 // Generic sig3 wrapper class, should implement the following interface.
 type Generic interface {
@@ -28,6 +28,9 @@ type Generic interface {
 	// enough information to verify.
 	setVerifiedBit()
 	verify() error
+
+	// check this chainlink after parsing for type-specific properties
+	parseCheck() error
 }
 
 // Base struct for sig3 links that contains much of the raw material pulled down or off local storage.
@@ -68,10 +71,27 @@ func (r *RotateKey) rkb() *RotateKeyBody {
 	return ret
 }
 
+func (r *RotateKey) PTKs() []PerTeamKey {
+	return r.rkb().PTKs
+}
+
+func (r *RotateKey) ReaderKey() *PerTeamKey {
+	for _, k := range r.rkb().PTKs {
+		if k.PTKType == keybase1.PTKType_READER {
+			return &k
+		}
+	}
+	return nil
+}
+
 func (b *Base) setVerifiedBit() {
 	if b.inner != nil && b.sig != nil {
 		b.verified = true
 	}
+}
+
+func (b *Base) parseCheck() error {
+	return nil
 }
 
 // Outer returns a copy of the OuterLink in this base class
@@ -126,11 +146,19 @@ func (b Base) verify() error {
 }
 
 func (i InnerLink) hash() (LinkID, error) {
+	return hashInterface(i)
+}
+
+func hashInterface(i interface{}) (LinkID, error) {
 	b, err := msgpack.Encode(i)
 	if err != nil {
 		return LinkID{}, err
 	}
 	return hash(b), nil
+}
+
+func (o OuterLink) Hash() (LinkID, error) {
+	return hashInterface(o)
 }
 
 func (r RotateKey) verify() error {
@@ -201,7 +229,7 @@ func (l LinkID) eq(m LinkID) bool {
 	return hmac.Equal(l[:], m[:])
 }
 
-func (s Sig3ExportJSON) parseSig() (*Base, error) {
+func (s ExportJSON) parseSig() (*Base, error) {
 	var out Base
 	if s.Sig == "" {
 		return &out, nil
@@ -211,14 +239,14 @@ func (s Sig3ExportJSON) parseSig() (*Base, error) {
 		return nil, err
 	}
 	out.sig = &Sig{}
-	if len(*out.sig) != len(b) {
-		return nil, newParseError("sig was wrong size (%d != %d)", len(*out.sig), len(b))
+	err = msgpack.Decode(&out.sig, b)
+	if err != nil {
+		return nil, err
 	}
-	copy((*out.sig)[:], b)
 	return &out, nil
 }
 
-func (s Sig3ExportJSON) parseOuter(in Base) (*Base, error) {
+func (s ExportJSON) parseOuter(in Base) (*Base, error) {
 	if s.Outer == "" {
 		return nil, newParseError("outer cannot be nil")
 	}
@@ -243,7 +271,19 @@ func (s Sig3ExportJSON) parseOuter(in Base) (*Base, error) {
 	return &in, nil
 }
 
-func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
+func (r *RotateKey) parseCheck() error {
+	m := make(map[keybase1.PTKType]bool)
+	for _, k := range r.rkb().PTKs {
+		typ := k.PTKType
+		if m[typ] {
+			return newParseError("duplicated PTK type: %s", typ)
+		}
+		m[typ] = true
+	}
+	return nil
+}
+
+func (s *ExportJSON) parseInner(in Base) (Generic, error) {
 	var out Generic
 
 	if (s.Inner == "") != (in.sig == nil) {
@@ -276,10 +316,16 @@ func (s *Sig3ExportJSON) parseInner(in Base) (Generic, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = out.parseCheck()
+	if err != nil {
+		return nil, err
+	}
+
 	return out, nil
 }
 
-func (s Sig3ExportJSON) parse() (out Generic, err error) {
+func (s ExportJSON) parse() (out Generic, err error) {
 	var tmp *Base
 	tmp, err = s.parseSig()
 	if err != nil {
@@ -296,10 +342,10 @@ func (s Sig3ExportJSON) parse() (out Generic, err error) {
 	return out, nil
 }
 
-// Import from Sig3ExportJSON format (as sucked down from the server) into a Generic link type,
+// Import from ExportJSON format (as sucked down from the server) into a Generic link type,
 // that can be casted into the supported link types (like RotateKey). Returns an error if we
 // failed to parse the input data, or if signature validation failed.
-func (s Sig3ExportJSON) Import() (Generic, error) {
+func (s ExportJSON) Import() (Generic, error) {
 	out, err := s.parse()
 	if err != nil {
 		return nil, err
@@ -329,6 +375,22 @@ type KeyPair struct {
 	pub  KID
 }
 
+func NewKeyPair(priv kbcrypto.NaclSigningKeyPrivate, pub KID) *KeyPair {
+	return &KeyPair{priv, pub}
+}
+
+func genRandomBytes(i int) ([]byte, error) {
+	ret := make([]byte, i, i)
+	n, err := rand.Reader.Read(ret[:])
+	if err != nil {
+		return nil, err
+	}
+	if n != i {
+		return nil, newSig3Error("short random entropy read")
+	}
+	return ret, nil
+}
+
 // Sign the RotateKey structure, with the given user's keypair (outer), and with the new
 // PTKs (inner). Return a Sig3Bundle, which was the exportable information, that you can
 // export either to local storage or up to the server.
@@ -343,6 +405,12 @@ func (r RotateKey) Sign(outer KeyPair, inners []KeyPair) (ret *Sig3Bundle, err e
 	o.LinkType = LinkTypeRotateKey
 	o.ChainType = ChainTypeTeamPrivateHidden
 	i.Signer.KID = outer.pub
+	if i.Entropy == nil {
+		i.Entropy, err = genRandomBytes(16)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	for j := range r.rkb().PTKs {
 		ptk := &r.rkb().PTKs[j]
@@ -386,7 +454,7 @@ func signGeneric(g Generic, privkey kbcrypto.NaclSigningKeyPrivate) (ret *Sig3Bu
 }
 
 // Export a sig3 up to the server in base64'ed JSON format, as in a POST request.
-func (s Sig3Bundle) Export() (ret Sig3ExportJSON, err error) {
+func (s Sig3Bundle) Export() (ret ExportJSON, err error) {
 	enc := func(i interface{}) (string, error) {
 		b, err := msgpack.Encode(i)
 		if err != nil {
@@ -405,7 +473,42 @@ func (s Sig3Bundle) Export() (ret Sig3ExportJSON, err error) {
 		}
 	}
 	if s.Sig != nil {
-		ret.Sig = base64.StdEncoding.EncodeToString(s.Sig[:])
+		ret.Sig, err = enc(s.Sig[:])
+		if err != nil {
+			return ret, nil
+		}
 	}
 	return ret, nil
+}
+
+func IsStubbed(g Generic) bool {
+	return g.Inner() == nil
+}
+
+func Hash(g Generic) (LinkID, error) {
+	return g.Outer().Hash()
+}
+
+func CheckLinkSequence(v []Generic) error {
+	if len(v) == 0 {
+		return nil
+	}
+	prev := v[0]
+	for _, link := range v[1:] {
+		if prev.Seqno()+keybase1.Seqno(1) != link.Seqno() {
+			return newSequenceError("seqno mismatch at link %d", link.Seqno())
+		}
+		hsh, err := Hash(prev)
+		if err != nil {
+			return newSequenceError("bad prev hash computation at %d: %s", link.Seqno(), err.Error())
+		}
+		if link.Prev() == nil {
+			return newSequenceError("bad nil prev at %d", link.Seqno())
+		}
+		if !hsh.eq(*link.Prev()) {
+			return newSequenceError("prev hash mismatch at %d", link.Seqno())
+		}
+		prev = link
+	}
+	return nil
 }

@@ -425,4 +425,10 @@ protocol chatUi {
   void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
 
   void chatLoadGalleryHit(int sessionID, UIMessage message);
+
+  // Location support
+  @typedef("uint64") @lint("ignore") record LocationWatchID {}
+  LocationWatchID chatWatchPosition(int sessionID);
+  void chatClearWatch(int sessionID, LocationWatchID id);
+
 }

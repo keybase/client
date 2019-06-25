@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -34,6 +35,8 @@ const (
 	PushConvSettings        = "chat.convsettings"
 	PushSubteamRename       = "chat.subteamrename"
 	PushConversationsUpdate = "chat.conversationsupdate"
+
+	MapsDomain = "keybasemaps"
 )
 
 func NewAllCryptKeys() AllCryptKeys {
@@ -84,8 +87,9 @@ type RemoteConversationMetadata struct {
 }
 
 type RemoteConversation struct {
-	Conv          chat1.Conversation          `codec:"c"`
-	LocalMetadata *RemoteConversationMetadata `codec:"l"`
+	Conv           chat1.Conversation          `codec:"c"`
+	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
+	LocalReadMsgID chat1.MessageID             `codec:"r"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
@@ -139,6 +143,10 @@ func (rc RemoteConversation) GetName() string {
 
 func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 	return rc.Conv.GetTopicType()
+}
+
+func (rc RemoteConversation) IsLocallyRead() bool {
+	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
 type Inbox struct {
@@ -358,6 +366,12 @@ func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+func (d DummyIndexer) Suspend(ctx context.Context) bool {
+	return false
+}
+func (d DummyIndexer) Resume(ctx context.Context) bool {
+	return false
+}
 func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
@@ -519,4 +533,20 @@ func (d DummyTeamMentionLoader) LoadTeamMention(ctx context.Context, uid gregor1
 func (d DummyTeamMentionLoader) IsTeamMention(ctx context.Context, uid gregor1.UID,
 	maybeMention chat1.MaybeMention, knownTeamMentions []chat1.KnownTeamMention) bool {
 	return false
+}
+
+type DummyExternalAPIKeySource struct{}
+
+func (d DummyExternalAPIKeySource) GetKey(ctx context.Context, typ chat1.ExternalAPIKeyTyp) (res chat1.ExternalAPIKey, err error) {
+	switch typ {
+	case chat1.ExternalAPIKeyTyp_GIPHY:
+		return chat1.NewExternalAPIKeyWithGiphy(""), nil
+	case chat1.ExternalAPIKeyTyp_GOOGLEMAPS:
+		return chat1.NewExternalAPIKeyWithGooglemaps(""), nil
+	}
+	return res, errors.New("dummy doesnt know about key typ")
+}
+
+func (d DummyExternalAPIKeySource) GetAllKeys(ctx context.Context) (res []chat1.ExternalAPIKey, err error) {
+	return res, nil
 }

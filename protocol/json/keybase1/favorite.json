@@ -31,25 +31,22 @@
       "type": "enum",
       "name": "ConflictStateType",
       "symbols": [
-        "AutomaticResolving_0",
-        "ManualResolvingServerView_1",
+        "NormalView_1",
         "ManualResolvingLocalView_2"
       ]
     },
     {
       "type": "record",
-      "name": "ConflictAutomaticResolving",
+      "name": "FolderNormalView",
       "fields": [
         {
           "type": "boolean",
-          "name": "isStuck"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConflictManualResolvingServerView",
-      "fields": [
+          "name": "resolvingConflict"
+        },
+        {
+          "type": "boolean",
+          "name": "stuckInConflict"
+        },
         {
           "type": {
             "type": "array",
@@ -61,11 +58,11 @@
     },
     {
       "type": "record",
-      "name": "ConflictManualResolvingLocalView",
+      "name": "FolderConflictManualResolvingLocalView",
       "fields": [
         {
           "type": "Path",
-          "name": "serverView"
+          "name": "normalView"
         }
       ]
     },
@@ -79,24 +76,17 @@
       "cases": [
         {
           "label": {
-            "name": "AutomaticResolving",
+            "name": "NormalView",
             "def": false
           },
-          "body": "ConflictAutomaticResolving"
-        },
-        {
-          "label": {
-            "name": "ManualResolvingServerView",
-            "def": false
-          },
-          "body": "ConflictManualResolvingServerView"
+          "body": "FolderNormalView"
         },
         {
           "label": {
             "name": "ManualResolvingLocalView",
             "def": false
           },
-          "body": "ConflictManualResolvingLocalView"
+          "body": "FolderConflictManualResolvingLocalView"
         }
       ]
     },

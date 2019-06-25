@@ -633,7 +633,6 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {

@@ -13,7 +13,8 @@
       "symbols": [
         "GENERIC_0",
         "YOUTUBE_1",
-        "GIPHY_2"
+        "GIPHY_2",
+        "MAPS_3"
       ]
     },
     {
@@ -124,6 +125,39 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UnfurlMapsRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "siteName"
+        },
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "historyImageUrl"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlRaw",
       "switch": {
@@ -151,6 +185,13 @@
             "def": false
           },
           "body": "UnfurlGiphyRaw"
+        },
+        {
+          "label": {
+            "name": "MAPS",
+            "def": false
+          },
+          "body": "UnfurlMapsRaw"
         }
       ]
     },

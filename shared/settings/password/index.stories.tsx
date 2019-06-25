@@ -5,6 +5,7 @@ import {action, storiesOf} from '../../stories/storybook'
 const props = {
   errorMessage: null,
   hasPGPKeyOnServer: false,
+  hasRandomPW: true,
   heading: '',
   newPasswordConfirmError: null,
   newPasswordError: null,

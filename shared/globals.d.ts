@@ -3,6 +3,8 @@ declare var __DEV__: boolean
 declare var __STORYBOOK__: boolean
 declare var __STORYSHOT__: boolean
 
+type Values<T extends object> = T[keyof T]
+
 type Unpacked<T> = T extends (infer U)[]
   ? U
   : T extends (...args: any[]) => infer U

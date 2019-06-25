@@ -55,7 +55,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}}: 
           <Box
             style={{
               ...globalStyles.flexBoxColumn,
-              backgroundColor: globalColors.darkBlue3,
+              backgroundColor: globalColors.blueDarker2,
               borderRadius: 4,
               minWidth: 100,
               padding: 10,
