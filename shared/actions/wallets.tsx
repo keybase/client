@@ -270,23 +270,29 @@ const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
     ])
     .catch(error => [
       WalletsGen.createValidateSEP7LinkError({
-        error: error.message,
+        error: error.desc,
       }),
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
     ])
 
 const acceptSEP7Tx = (state, action: WalletsGen.AcceptSEP7TxPayload) =>
-  RPCStellarTypes.localApproveTxURILocalRpcPromise({
-    inputURI: state.wallets.sep7ConfirmURI,
-  }).then(_ => RouteTreeGen.createClearModals())
+  RPCStellarTypes.localApproveTxURILocalRpcPromise(
+    {
+      inputURI: state.wallets.sep7ConfirmURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => RouteTreeGen.createClearModals())
 
 const acceptSEP7Pay = (state, action: WalletsGen.AcceptSEP7PayPayload) =>
-  RPCStellarTypes.localApprovePayURILocalRpcPromise({
-    amount: action.payload.amount,
-    fromCLI: false,
-    inputURI: state.wallets.sep7ConfirmURI,
-  }).then(_ => RouteTreeGen.createClearModals())
+  RPCStellarTypes.localApprovePayURILocalRpcPromise(
+    {
+      amount: action.payload.amount,
+      fromCLI: false,
+      inputURI: state.wallets.sep7ConfirmURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => RouteTreeGen.createClearModals())
 
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()

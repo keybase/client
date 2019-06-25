@@ -14,7 +14,10 @@ type Summary = {
 
 type Props = {
   amount: string | null
+  availableToSendNative: string
   callbackURL: string | null
+  displayAmountFiat: string
+  displayAmountNative: string
   error: string
   loading: boolean
   memo: string | null
@@ -23,11 +26,11 @@ type Props = {
   onAcceptPay: (amount: string) => void
   onAcceptTx: () => void
   onBack: () => void
+  onChangeAmount: (amount: string) => void
   operation: 'pay' | 'tx'
   originDomain: string
   recipient: string | null
   summary: Summary
-  waiting: boolean
   waitingKey: string
 }
 
@@ -141,23 +144,38 @@ const Header = (props: HeaderProps) => (
 
 type PaymentInfoProps = {
   amount: string
+  availableToSendNative: string
+  displayAmountFiat: string
   memo: string | null
   message: string | null
+  onChangeAmount: (amount: string) => void
   recipient: string
 }
 const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {!!props.amount && (
-      <>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
-          <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Amount
+    <Kb.Divider />
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
+      <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+        Amount
+      </Kb.Text>
+      {!!props.amount && (
+        <>
+          <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
+            {props.amount} XLM
           </Kb.Text>
-        </Kb.Box2>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
+            <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+              (Approximately {props.displayAmountFiat})
+            </Kb.Text>
+            <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+              Your primary account has {props.availableToSendNative} available to send.
+            </Kb.Text>
+          </Kb.Box2>
+        </>
+      )}
+    </Kb.Box2>
 
-        <AssetInput initialAmount={props.amount} />
-      </>
-    )}
+    {!props.amount && <AssetInput />}
 
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
 
@@ -208,8 +226,11 @@ const SEP7Confirm = (props: Props) =>
           {props.operation === 'pay' ? (
             <PaymentInfo
               amount={props.amount}
+              availableToSendNative={props.availableToSendNative}
+              displayAmountFiat={props.displayAmountFiat}
               memo={props.memoType === 'MEMO_TEXT' && props.memo}
               message={props.message}
+              onChangeAmount={props.onChangeAmount}
               recipient={props.recipient}
             />
           ) : (
@@ -230,7 +251,6 @@ const SEP7Confirm = (props: Props) =>
         >
           <Kb.WaitingButton
             type="Success"
-            disabled={props.waiting}
             onClick={props.operation === 'pay' ? () => props.onAcceptPay(props.amount) : props.onAcceptTx}
             waitingKey={props.waitingKey}
             fullWidth={true}

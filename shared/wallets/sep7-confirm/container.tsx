@@ -1,7 +1,7 @@
+import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
-import * as WaitingConstants from '../../constants/waiting'
 import SEP7Confirm from '.'
 import {namedConnect} from '../../util/container'
 
@@ -15,9 +15,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
   const {
     amount,
+    availableToSendFiat,
+    availableToSendNative,
     assetCode,
     assetIssuer,
     callbackURL,
+    displayAmountFiat,
     memo,
     memoType,
     message,
@@ -32,7 +35,10 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     amount,
     assetCode,
     assetIssuer,
+    availableToSendFiat,
+    availableToSendNative,
     callbackURL,
+    displayAmountFiat,
     error,
     inputURI: state.wallets.sep7ConfirmURI,
     loading: !state.wallets.sep7ConfirmInfo,
@@ -43,7 +49,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     originDomain,
     recipient,
     summary,
-    waiting: WaitingConstants.anyWaiting(state, Constants.sep7WaitingKey),
     waitingKey: Constants.sep7WaitingKey,
     xdr,
   }
