@@ -12,6 +12,7 @@ export type NotLoadingProps = {
   amountUser: string
   amountXLM: string
   approxWorth: string
+  assetCode: string
   counterparty: string
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: string | null
@@ -39,6 +40,7 @@ export type NotLoadingProps = {
   senderAccountID: Types.AccountID
   sourceAmount: string
   sourceAsset: string
+  sourceIssuer: string
   sourceToDestinationConversionRate: number
   status: Types.StatusSimplified
   statusDetail: string
@@ -65,6 +67,12 @@ export type Props =
 type PartyAccountProps = {
   accountID: Types.AccountID | null
   accountName: string
+}
+
+interface ConvertedCurrencyLabelProps {
+  amount: string | number
+  assetCode: string
+  issuerDescription: string
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
@@ -282,9 +290,17 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
+  <Kb.Box2 direction="vertical" noShrink={true}>
+    <Kb.Text type="BodyBigExtrabold">
+      {props.amount} {props.assetCode}
+    </Kb.Text>
+    <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
+  </Kb.Box2>
+)
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
-  console.log('props:', props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -319,18 +335,20 @@ const TransactionDetails = (props: NotLoadingProps) => {
         {!!props.sourceAsset && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Box2 direction="vertical">
-                <Kb.Text type="BodyBigExtrabold">1 {props.sourceAsset}</Kb.Text>
-                <Kb.Text type="BodySmall">Issuer Description</Kb.Text>
-              </Kb.Box2>
-              <Kb.Box2 direction="vertical" alignItems="center">
+            <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+              <ConvertedCurrencyLabel
+                amount={1}
+                assetCode={props.sourceAsset}
+                issuerDescription={props.sourceIssuer || 'Unknown issuer'}
+              />
+              <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={{flex: 1}}>
                 <Kb.Text type="BodyBig">=</Kb.Text>
               </Kb.Box2>
-              <Kb.Box2 direction="vertical">
-                <Kb.Text type="BodyBigExtrabold">{round(props.sourceToDestinationConversionRate, 6)}</Kb.Text>
-                <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
-              </Kb.Box2>
+              <ConvertedCurrencyLabel
+                amount={round(props.sourceToDestinationConversionRate, 6)}
+                assetCode={props.assetCode}
+                issuerDescription={props.issuerDescription}
+              />
             </Kb.Box2>
           </Kb.Box2>
         )}

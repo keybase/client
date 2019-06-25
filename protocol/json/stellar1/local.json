@@ -270,6 +270,10 @@
           "name": "toType"
         },
         {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
           "type": "AccountID",
           "name": "fromAccountID"
         },

@@ -265,6 +265,7 @@ type PaymentLocal struct {
 	IssuerAccountID                   *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType                          ParticipantType `codec:"fromType" json:"fromType"`
 	ToType                            ParticipantType `codec:"toType" json:"toType"`
+	AssetCode                         string          `codec:"assetCode" json:"assetCode"`
 	FromAccountID                     AccountID       `codec:"fromAccountID" json:"fromAccountID"`
 	FromAccountName                   string          `codec:"fromAccountName" json:"fromAccountName"`
 	FromUsername                      string          `codec:"fromUsername" json:"fromUsername"`
@@ -312,6 +313,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		})(o.IssuerAccountID),
 		FromType:        o.FromType.DeepCopy(),
 		ToType:          o.ToType.DeepCopy(),
+		AssetCode:       o.AssetCode,
 		FromAccountID:   o.FromAccountID.DeepCopy(),
 		FromAccountName: o.FromAccountName,
 		FromUsername:    o.FromUsername,

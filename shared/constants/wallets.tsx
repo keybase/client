@@ -261,6 +261,7 @@ export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
 
 const _defaultPaymentCommon = {
   amountDescription: '',
+  assetCode: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
   id: Types.noPaymentID,
@@ -275,6 +276,7 @@ const _defaultPaymentCommon = {
   sourceAccountID: '',
   sourceAmount: '',
   sourceAsset: '',
+  sourceIssuer: '',
   sourceToDestinationConversionRate: 0,
   sourceType: '',
   statusDescription: '',
@@ -397,6 +399,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
     amountDescription: p.amountDescription,
+    assetCode: p.assetCode,
     delta: balanceDeltaToString[p.delta],
     error: '',
     id: Types.rpcPaymentIDToPaymentID(p.id),
@@ -411,6 +414,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAccountID: p.fromAccountID,
     sourceAmount: p.sourceAmountActual,
     sourceAsset: p.sourceAsset.code,
+    sourceIssuer: p.sourceAsset.issuerName,
     sourceToDestinationConversionRate: p.sourceToDestinationConversionRate,
     sourceType,
     statusDescription: p.statusDescription,

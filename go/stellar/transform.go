@@ -143,6 +143,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
+	loc.AssetCode = p.Asset.Code
 	loc.FromAccountID = p.From
 	loc.FromType = stellar1.ParticipantType_STELLAR
 	loc.ToAccountID = &p.To
@@ -219,6 +220,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		}
 	}
 
+	loc.AssetCode = p.Asset.Code
+
 	fillOwnAccounts(mctx, loc, oc)
 	switch {
 	case loc.FromAccountName != "":
@@ -243,10 +246,7 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	loc.SourceAsset = p.SourceAsset
 	destinationAmount, err1 := strconv.ParseFloat(p.Amount, 64)
 	sourceAmount, err2 := strconv.ParseFloat(p.SourceAmountActual, 64)
-	fmt.Printf("%v, %v\n", destinationAmount, sourceAmount)
-	fmt.Printf("%v, %v\n", err1, err2)
 	if err1 == nil && err2 == nil && sourceAmount != 0 {
-		fmt.Printf("yup: %v", destinationAmount/sourceAmount)
 		loc.SourceToDestinationConversionRate = destinationAmount / sourceAmount
 	}
 

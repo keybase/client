@@ -114,6 +114,8 @@ protocol local {
     ParticipantType fromType; // cannot be SBS
     ParticipantType toType;
 
+    string assetCode; // e.g., "USD", "XLM", etc.
+
     AccountID fromAccountID;   // Always filled
     string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
     string    fromUsername;    // Optional. Filled if KEYBASE.
