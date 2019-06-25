@@ -1,17 +1,14 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
-import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
-import * as Chat2Gen from './chat2-gen'
-import * as TeamsGen from './teams-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
-type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
+export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 
 const apiSearch = (
   query: string,
@@ -140,40 +137,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
     })
     .then(users => TeamBuildingGen.createFetchedUserRecs({namespace, users}))
 
-const createConversation = (state: TypedState, {payload: {namespace}}: NSAction) => [
-  Chat2Gen.createSelectConversation({
-    conversationIDKey: ChatConstants.pendingWaitingConversationIDKey,
-    reason: 'justCreated',
-  }),
-  Chat2Gen.createCreateConversation({
-    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
-  }),
-]
-
-function addThemToTeam(
-  state: TypedState,
-  {payload: {teamname}}: TeamBuildingGen.FinishedTeamBuildingPayload,
-  logger: Saga.SagaLogger
-) {
-  if (!teamname) {
-    logger.error("Trying to add them to a team, but I don't know what the teamname is.")
-    return
-  }
-
-  const role = state.teams.teamBuilding.teamBuildingFinishedSelectedRole
-  const sendChatNotification = state.teams.teamBuilding.teamBuildingFinishedSendNotification
-
-  return state.teams.teamBuilding.teamBuildingFinishedTeam.toArray().map(user =>
-    TeamsGen.createAddToTeam({
-      role,
-      sendChatNotification,
-      teamname,
-      username: user.id,
-    })
-  )
-}
-
-function filterForNs<S, A, L, R>(
+export function filterForNs<S, A, L, R>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => R
 ) {
@@ -195,7 +159,9 @@ function filterGenForNs<S, A, L, R>(
   }
 }
 
-function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace): Saga.SagaGenerator<any, any> {
+export default function* commonSagas(
+  namespace: TeamBuildingTypes.AllowedNamespace
+): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamBuildingGen.SearchPayload>(
     TeamBuildingGen.search,
     filterForNs(namespace, search)
@@ -216,22 +182,3 @@ function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace): Saga.SagaG
     filterForNs(namespace, closeTeamBuilding)
   )
 }
-
-function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
-  yield* commonSagas('chat2')
-  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
-    TeamBuildingGen.finishedTeamBuilding,
-    filterForNs('chat2', createConversation)
-  )
-}
-
-function* teamsTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
-  yield* commonSagas('teams')
-
-  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
-    TeamBuildingGen.finishedTeamBuilding,
-    filterForNs('teams', addThemToTeam)
-  )
-}
-
-export {chatTeamBuildingSaga, teamsTeamBuildingSaga}

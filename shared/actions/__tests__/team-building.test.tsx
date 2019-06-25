@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {chatTeamBuildingSaga} from '../team-building'
+import {chatTeamBuildingSaga} from '../chat2'
 import * as Testing from '../../util/testing'
 
 const testNamespace = 'chat2'

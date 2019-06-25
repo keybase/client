@@ -4,6 +4,7 @@ import {map} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
 import * as EngineGen from './engine-gen-gen'
+import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
 import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
@@ -21,7 +22,8 @@ import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
-import {teamsTeamBuildingSaga} from './team-building'
+import {TypedState} from '../constants/reducer'
+import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
 import openSMS from '../util/sms'
@@ -1425,6 +1427,39 @@ const clearNavBadges = () =>
     )
     .then(() => RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'}))
     .catch(err => logError(err))
+
+function addThemToTeamFromTeamBuilder(
+  state: TypedState,
+  {payload: {teamname}}: TeamBuildingGen.FinishedTeamBuildingPayload,
+  logger: Saga.SagaLogger
+) {
+  if (!teamname) {
+    logger.error("Trying to add them to a team, but I don't know what the teamname is.")
+    return
+  }
+
+  const role = state.teams.teamBuilding.teamBuildingFinishedSelectedRole
+  const sendChatNotification = state.teams.teamBuilding.teamBuildingFinishedSendNotification
+
+  return state.teams.teamBuilding.teamBuildingFinishedTeam.toArray().map(user =>
+    TeamsGen.createAddToTeam({
+      role,
+      sendChatNotification,
+      teamname,
+      username: user.id,
+    })
+  )
+}
+
+function* teamBuildingSaga(): Saga.SagaGenerator<any, any> {
+  yield* commonTeamBuildingSaga('teams')
+
+  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
+    TeamBuildingGen.finishedTeamBuilding,
+    filterForNs('teams', addThemToTeamFromTeamBuilder)
+  )
+}
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
@@ -1612,7 +1647,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
 
   // Hook up the team building sub saga
-  yield* teamsTeamBuildingSaga()
+  yield* teamBuildingSaga()
 }
 
 export default teamsSaga
