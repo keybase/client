@@ -363,7 +363,8 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -375,7 +376,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	clock.Add(1 * time.Minute)
 	second := clock.Now()
 
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)

@@ -108,6 +108,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     timestamp: tx.time ? new Date(tx.time) : null,
     title: 'Transaction details',
     transactionID: tx.txID,
+    trustline: tx.trustline,
     you: stateProps.you,
   }
 }

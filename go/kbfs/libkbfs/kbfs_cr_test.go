@@ -29,7 +29,7 @@ func readAndCompareData(ctx context.Context, t *testing.T, config Config,
 	rootNode := GetRootNodeOrBust(ctx, t, config, name, tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.Lookup(ctx, rootNode, "a")
+	fileNode, _, err := kbfsOps.Lookup(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	data := make([]byte, 1)
 	_, err = kbfsOps.Read(ctx, fileNode, data, 0)
@@ -89,7 +89,7 @@ func TestBasicMDUpdate(t *testing.T) {
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -101,7 +101,7 @@ func TestBasicMDUpdate(t *testing.T) {
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(entries))
-	_, ok := entries["a"]
+	_, ok := entries[rootNode2.ChildName("a")]
 	require.True(t, ok)
 
 	// The status should have fired as well (though in this case the
@@ -137,7 +137,8 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 
 	kbfsOps1 := config1.KBFSOps()
 	// user 1 creates a file
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -146,9 +147,9 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	// now user 1 renames the old file, and creates a new one
-	err = kbfsOps1.Rename(ctx, rootNode1, "a", rootNode1, "b")
+	err = kbfsOps1.Rename(ctx, rootNode1, testPPS("a"), rootNode1, testPPS("b"))
 	require.NoError(t, err)
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "c", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -161,9 +162,9 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(entries))
-	_, ok := entries["b"]
+	_, ok := entries[rootNode2.ChildName("b")]
 	require.True(t, ok)
-	_, ok = entries["c"]
+	_, ok = entries[rootNode2.ChildName("c")]
 	require.True(t, ok)
 }
 
@@ -206,7 +207,8 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	fileNode1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -223,7 +225,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	data2 := []byte{2}
 	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
@@ -287,7 +289,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	fileNode1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -300,7 +303,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	data2 := []byte{2}
 	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
@@ -342,7 +345,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	rootNode1B := GetRootNodeOrBust(ctx, t, config1B, name, tlf.Private)
 
 	kbfsOps1B := config1B.KBFSOps()
-	fileNode1B, _, err := kbfsOps1B.Lookup(ctx, rootNode1B, "a")
+	fileNode1B, _, err := kbfsOps1B.Lookup(ctx, rootNode1B, testPPS("a"))
 	require.NoError(t, err)
 
 	readAndCompareData(ctx, t, config1B, name, data1, userName1)
@@ -427,7 +430,8 @@ func TestMultiUserWrite(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -436,7 +440,7 @@ func TestMultiUserWrite(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 
 	data2 := []byte{2}
@@ -491,7 +495,8 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -500,7 +505,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 
 	// disable updates on user 2
@@ -510,13 +515,15 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	require.NoError(t, err)
 
 	// User 1 makes a new file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 
 	// User 2 makes a new different file
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -546,7 +553,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	assert.Equal(t, len(expectedChildren), len(children1))
 
 	for _, child := range expectedChildren {
-		_, ok := children1[child]
+		_, ok := children1[rootNode1.ChildName(child)]
 		assert.True(t, ok)
 	}
 
@@ -617,9 +624,9 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -628,9 +635,9 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
-	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, testPPS("b"))
 	require.NoError(t, err)
 
 	// disable updates on user 2
@@ -702,9 +709,10 @@ func TestBasicCRFileConflict(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	fileB1, _, err := kbfsOps1.CreateFile(
+		ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -713,9 +721,9 @@ func TestBasicCRFileConflict(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
-	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, testPPS("b"))
 	require.NoError(t, err)
 
 	// disable updates on user 2
@@ -767,7 +775,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	assert.Equal(t, len(expectedChildren), len(children1))
 
 	for _, child := range expectedChildren {
-		_, ok := children1[child]
+		_, ok := children1[dirA1.ChildName(child)]
 		assert.True(t, ok)
 	}
 
@@ -808,9 +816,10 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	fileB1, _, err := kbfsOps1.CreateFile(
+		ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -819,9 +828,9 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
-	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, testPPS("b"))
 	require.NoError(t, err)
 
 	err = SetCRFailureForTesting(ctx, config2, rootNode2.GetFolderBranch(),
@@ -867,8 +876,8 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	t.Log("Write a bunch more files as user 2, creating more conflicts.")
 	for i := 0; i < maxConflictResolutionAttempts; i++ {
 		fileName := fmt.Sprintf("file%d", i)
-		newFile, _, err := kbfsOps2.CreateFile(ctx, dirA2, fileName, false,
-			NoExcl)
+		newFile, _, err := kbfsOps2.CreateFile(
+			ctx, dirA2, testPPS(fileName), false, NoExcl)
 		require.NoError(t, err, "Loop %d", i)
 		err = kbfsOps2.SyncAll(ctx, newFile.GetFolderBranch())
 		require.NoError(t, err, "Loop %d", i)
@@ -891,9 +900,10 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Trigger CR and wait for it to resolve.")
-	dirA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "newFile", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(
+		ctx, dirA2, testPPS("newFile"), false, NoExcl)
 	require.NoError(t, err)
 
 	err = kbfsOps2.SyncAll(ctx, dirA2.GetFolderBranch())
@@ -931,9 +941,9 @@ func TestBasicCRFailureAndFixing(t *testing.T) {
 
 	rootNodeConflict, _, err := kbfsOps2.GetRootNode(ctx, h, b)
 	require.NoError(t, err)
-	dirAConflict, _, err := kbfsOps2.Lookup(ctx, rootNodeConflict, "a")
+	dirAConflict, _, err := kbfsOps2.Lookup(ctx, rootNodeConflict, testPPS("a"))
 	require.NoError(t, err)
-	fileBConflict, _, err := kbfsOps2.Lookup(ctx, dirAConflict, "b")
+	fileBConflict, _, err := kbfsOps2.Lookup(ctx, dirAConflict, testPPS("b"))
 	require.NoError(t, err)
 
 	gotData2 := make([]byte, len(data2))
@@ -962,7 +972,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -971,7 +981,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	// disable updates and CR on user 2
 	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
@@ -980,13 +990,14 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	require.NoError(t, err)
 
 	// User 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 
 	// User 2 creates the same file, and writes to it.
-	fileB2, _, err := kbfsOps2.CreateFile(ctx, dirA2, "b", false, NoExcl)
+	fileB2, _, err := kbfsOps2.CreateFile(
+		ctx, dirA2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1023,7 +1034,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	assert.Equal(t, len(expectedChildren), len(children1))
 
 	for _, child := range expectedChildren {
-		_, ok := children1[child]
+		_, ok := children1[dirA1.ChildName(child)]
 		assert.True(t, ok)
 	}
 
@@ -1050,7 +1061,7 @@ func TestCRDouble(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -1059,7 +1070,7 @@ func TestCRDouble(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	// disable updates and CR on user 2
 	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
@@ -1068,13 +1079,14 @@ func TestCRDouble(t *testing.T) {
 	require.NoError(t, err)
 
 	// User 1 creates a new file to start a conflict.
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 
 	// User 2 makes a couple revisions
-	fileNodeC, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoExcl)
+	fileNodeC, _, err := kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1120,11 +1132,11 @@ func TestCRDouble(t *testing.T) {
 	require.NoError(t, err)
 
 	// A few merged revisions
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("e"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "f", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("f"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1144,17 +1156,17 @@ func TestCRDouble(t *testing.T) {
 	require.NoError(t, err)
 	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "g", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, testPPS("g"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 
 	// User 2 makes a couple unmerged revisions
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "h", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("h"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "i", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("i"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1194,9 +1206,10 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	fileB1, _, err := kbfsOps1.CreateFile(
+		ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -1205,9 +1218,9 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
-	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, testPPS("b"))
 	require.NoError(t, err)
 
 	config2Dev2 := ConfigAsUser(config1, userName2)
@@ -1286,7 +1299,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
-	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
+	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, testPPS("a"))
 	require.NoError(t, err)
 
 	cre := WriterDeviceDateConflictRenamer{}
@@ -1307,7 +1320,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	assert.Equal(t, len(expectedChildren), len(children1))
 
 	for _, child := range expectedChildren {
-		_, ok := children1[child]
+		_, ok := children1[dirA1.ChildName(child)]
 		assert.True(t, ok)
 	}
 
@@ -1337,9 +1350,10 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	fileB1, _, err := kbfsOps1.CreateFile(
+		ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -1348,7 +1362,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 
 	config2Dev2 := ConfigAsUser(config1, userName2)
@@ -1420,7 +1434,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
-	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
+	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, testPPS("a"))
 	require.NoError(t, err)
 
 	// Make sure they all see the same set of children
@@ -1439,7 +1453,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	assert.Equal(t, len(expectedChildren), len(children1))
 
 	for _, child := range expectedChildren {
-		_, ok := children1[child]
+		_, ok := children1[dirA1.ChildName(child)]
 		assert.True(t, ok)
 	}
 
@@ -1479,7 +1493,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -1488,7 +1502,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	// disable updates and CR on user 2
 	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
@@ -1497,13 +1511,14 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	require.NoError(t, err)
 
 	// User 1 creates a new file to start a conflict.
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 
 	// User 2 does one successful operation to create the first unmerged MD.
-	fileNodeB, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	fileNodeB, _, err := kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1604,7 +1619,8 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
-	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	aNode1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	data := []byte{1, 2, 3, 4, 5}
 	err = kbfsOps1.Write(ctx, aNode1, data, 0)
@@ -1616,7 +1632,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	// disable updates and CR on user 2
 	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
@@ -1668,7 +1684,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Do a second operation and complete the resolution.
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1693,7 +1709,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, len(expectedChildren), len(children2))
 	for _, child := range expectedChildren {
-		_, ok := children2[child]
+		_, ok := children2[rootNode2.ChildName(child)]
 		assert.True(t, ok)
 	}
 }
@@ -1715,9 +1731,9 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	kbfsOps1 := config1.KBFSOps()
-	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err)
-	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -1728,9 +1744,9 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	kbfsOps2 := config2.KBFSOps()
 	ops2 := getOps(config2, rootNode2.GetFolderBranch().Tlf)
 	ops2.cr.maxRevsThreshold = 2
-	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.Lookup(ctx, dirA2, "b")
+	_, _, err = kbfsOps2.Lookup(ctx, dirA2, testPPS("b"))
 	require.NoError(t, err)
 
 	// disable updates on user 2
@@ -1740,17 +1756,17 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	require.NoError(t, err)
 
 	// One write for user 1
-	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "c", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps1.SyncAll(ctx, dirA1.GetFolderBranch())
 	require.NoError(t, err)
 
 	// Two writes for user 2
-	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "d", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, testPPS("d"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "e", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, testPPS("e"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1790,7 +1806,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	wg.Wait()
 
 	// Pretend that CR was canceled by another write.
-	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "f", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, testPPS("f"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1814,7 +1830,8 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	// Now try to write again
 	writeErrCh := make(chan error, 1)
 	go func() {
-		_, _, err := kbfsOps2.CreateFile(ctx, dirA2, "g", false, NoExcl)
+		_, _, err := kbfsOps2.CreateFile(
+			ctx, dirA2, testPPS("g"), false, NoExcl)
 		assert.NoError(t, err)
 		err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 		require.NoError(t, err)
@@ -1860,7 +1877,8 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
-	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	aNode1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	data := []byte{1, 2, 3, 4, 5}
 	err = kbfsOps1.Write(ctx, aNode1, data, 0)
@@ -1872,7 +1890,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 
 	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err)
 	// disable updates and CR on user 2
 	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
@@ -1887,7 +1905,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	require.NoError(t, err)
 
 	// User 2 creates a file to start a conflict branch.
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
@@ -1900,7 +1918,8 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		_, _, err = kbfsOps2.CreateFile(putCtx, rootNode2, "c", false, NoExcl)
+		_, _, err = kbfsOps2.CreateFile(
+			putCtx, rootNode2, testPPS("c"), false, NoExcl)
 		require.NoError(t, err)
 		err = kbfsOps2.SyncAll(putCtx, rootNode2.GetFolderBranch())
 		// Even though internally folderBranchOps ignores the
@@ -1938,7 +1957,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, len(expectedChildren), len(children2))
 	for _, child := range expectedChildren {
-		_, ok := children2[child]
+		_, ok := children2[rootNode2.ChildName(child)]
 		assert.True(t, ok)
 	}
 }
@@ -1972,7 +1991,7 @@ func TestForceStuckConflict(t *testing.T) {
 	t.Log("Initialize the TLF")
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
 	require.NoError(t, err)
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)

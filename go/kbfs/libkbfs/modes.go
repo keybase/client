@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 	"math"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -556,5 +558,6 @@ func (mt modeTest) QuotaReclamationMinHeadAge() time.Duration {
 }
 
 func (mt modeTest) DoLogObfuscation() bool {
-	return false
+	e := os.Getenv("KEYBASE_TEST_OBFUSCATE_LOGS")
+	return e != "" && e != "0" && strings.ToLower(e) != "false"
 }

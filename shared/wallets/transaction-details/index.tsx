@@ -3,6 +3,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
 import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
@@ -49,6 +50,7 @@ export type NotLoadingProps = {
   yourRole: Types.Role
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string
+  trustline?: RPCTypes.PaymentTrustlineLocal
   isAdvanced: boolean
   summaryAdvanced?: string
 }
@@ -310,6 +312,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           issuerDescription={props.issuerDescription}
           isAdvanced={props.isAdvanced}
           summaryAdvanced={props.summaryAdvanced}
+          trustline={props.trustline}
         />
       </Kb.Box2>
       <Kb.Divider />
@@ -340,7 +343,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           </Kb.Box2>
         )}
 
-        {props.operations && props.operations.length && (
+        {props.operations && props.operations.length && !(props.trustline && props.operations.length <= 1) && (
           <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
             {props.operations.map((op, i) => (

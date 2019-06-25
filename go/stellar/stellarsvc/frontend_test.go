@@ -2873,6 +2873,17 @@ func TestManageTrustlines(t *testing.T) {
 	require.Equal(t, "0.0000000", balances2[0].Amount)
 	require.Equal(t, "922337203685.4775807", balances2[0].Limit) // max limit
 
+	// Check if shows up it GetTrustlinesForRecipientLocal
+	rtlines, err := tcs[0].Srv.GetTrustlinesForRecipientLocal(context.Background(), stellar1.GetTrustlinesForRecipientLocalArg{
+		Recipient: tcs[0].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, rtlines.Trustlines, 1)
+	require.Equal(t, keys, rtlines.Trustlines[0].Asset)
+	require.Equal(t, "0.0000000", rtlines.Trustlines[0].Amount)
+	require.Equal(t, "922337203685.4775807", rtlines.Trustlines[0].Limit) // max limit
+	require.Equal(t, rtlines.RecipientType, stellar1.ParticipantType_KEYBASE)
+
 	// Change limit.
 	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{
 		AccountID: senderAccountID,

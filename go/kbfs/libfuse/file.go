@@ -88,7 +88,7 @@ func (f *File) fillAttrWithMode(
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	ctx = f.folder.fs.config.MaybeStartTrace(
-		ctx, "File.Attr", f.node.GetBasename())
+		ctx, "File.Attr", f.node.GetBasename().String())
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Attr")
@@ -134,7 +134,7 @@ var _ fs.NodeAccesser = (*File)(nil)
 // executable" UTI.
 func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) (err error) {
 	ctx = f.folder.fs.config.MaybeStartTrace(
-		ctx, "File.Access", f.node.GetBasename())
+		ctx, "File.Access", f.node.GetBasename().String())
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	if int(r.Uid) != os.Getuid() &&
@@ -193,7 +193,7 @@ func (f *File) sync(ctx context.Context) error {
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	ctx = f.folder.fs.config.MaybeStartTrace(
-		ctx, "File.Fsync", f.node.GetBasename())
+		ctx, "File.Fsync", f.node.GetBasename().String())
 	defer func() { f.folder.fs.config.MaybeFinishTrace(ctx, err) }()
 
 	f.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "File Fsync")

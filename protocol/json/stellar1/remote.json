@@ -373,6 +373,13 @@
             "items": "string"
           },
           "name": "operations"
+        },
+        {
+          "type": [
+            null,
+            "PaymentTrustlineLocal"
+          ],
+          "name": "trustline"
         }
       ]
     },
