@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletBackButton} from '../common'
+import AssetInput from './asset-input-container'
 
 type Summary = {
   fee: string
@@ -148,15 +149,13 @@ const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {!!props.amount && (
       <>
-        <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
             Amount
           </Kb.Text>
-          <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
-            {props.amount} XLM
-          </Kb.Text>
         </Kb.Box2>
+
+        <AssetInput initialAmount={props.amount} />
       </>
     )}
 
