@@ -325,6 +325,10 @@
           "name": "sourceAsset"
         },
         {
+          "type": "double",
+          "name": "sourceToDestinationConversionRate"
+        },
+        {
           "type": "boolean",
           "name": "isAdvanced"
         },
