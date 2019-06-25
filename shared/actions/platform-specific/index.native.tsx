@@ -394,23 +394,23 @@ const openAppStore = () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(e => {})
 
-function* loadContactPermissions(
+const loadContactPermissions = async (
   _,
   action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger
-) {
+) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
     return
   }
-  const {status: _status} = yield* Saga.callPromise(Permissions.getAsync, Permissions.CONTACTS)
+  const {status: _status} = await Permissions.getAsync(Permissions.CONTACTS)
   logger.info(`OS status: ${_status}`)
   let status = {
     [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
     [Permissions.PermissionStatus.DENIED]: 'denied' as const,
     [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
   }[_status]
-  yield Saga.put(SettingsGen.createLoadedContactPermissions({status}))
+  return SettingsGen.createLoadedContactPermissions({status})
 }
 
 function* requestContactsPermission(
@@ -420,6 +420,9 @@ function* requestContactsPermission(
 ) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  const decrementAction = Saga.put(
+    WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey})
+  )
   switch (state.settings.contacts.permissionStatus) {
     case 'unknown':
       logger.warn('unknown permissions status')
@@ -432,9 +435,35 @@ function* requestContactsPermission(
       }
       return
     case 'undetermined':
+      // haven't asked
+      const {status} = yield* Saga.callPromise(Permissions.askAsync, Permissions.CONTACTS)
+      switch (status) {
+        case Permissions.PermissionStatus.GRANTED:
+          yield Saga.sequentially([
+            Saga.put(SettingsGen.createLoadedContactPermissions({status: 'granted'})),
+            decrementAction,
+            thenToggleImportOn && Saga.put(SettingsGen.createEditContactImportEnabled({enable: true})),
+          ])
+          return
+        case Permissions.PermissionStatus.DENIED:
+          yield Saga.sequentially([
+            Saga.put(SettingsGen.createLoadedContactPermissions({status: 'denied'})),
+            decrementAction,
+          ])
+          return
+        case Permissions.PermissionStatus.UNDETERMINED:
+          yield Saga.sequentially([
+            Saga.put(SettingsGen.createLoadedContactPermissions({status: 'undetermined'})),
+            decrementAction,
+          ])
+          return
+      }
       break
+    case 'granted':
+      yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
+      return
   }
-  yield Saga.put(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  yield decrementAction
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
@@ -455,7 +484,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.osNetworkStatusChanged,
     updateMobileNetState
   )
-  yield* Saga.chainGenerator<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
     [SettingsGen.loadContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
