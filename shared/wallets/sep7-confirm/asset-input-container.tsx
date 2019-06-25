@@ -19,12 +19,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onChangeDisplayUnit: undefined, // Add when non-native assets are supported
 })
 
-const AssetInputWrapper = (props: Props) => {
+const AssetInputWrapper = props => {
   const [amount, onChangeAmount] = React.useState('')
   return <AssetInput {...props} value={amount} onChangeAmount={onChangeAmount} />
 }
 
-const AssetInputContainer = Container.namedConnect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => ({
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => ({
   bottomLabel: stateProps.bottomLabel,
   currencyLoading: stateProps.currencyLoading,
   displayUnit: stateProps.displayUnit,
@@ -32,6 +32,4 @@ const AssetInputContainer = Container.namedConnect(mapStateToProps, mapDispatchT
   numDecimalsAllowed: stateProps.numDecimalsAllowed,
   onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
   topLabel: stateProps.topLabel,
-}), 'AssetInput')(AssetInputWrapper)
-
-export default AssetInputContainer
+}), 'AssetInputWrapper')(AssetInputWrapper)
