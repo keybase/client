@@ -1,5 +1,6 @@
 import libphonenumber from 'google-libphonenumber'
-import countries from './data/countries.json'
+import countries from './country-data/countries.json'
+import supportedCodes from './sms-support/data.json'
 
 const PNF = libphonenumber.PhoneNumberFormat
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
@@ -8,7 +9,8 @@ const supported = phoneUtil.getSupportedRegions()
 export const countryData = countries.reduce((res, curr) => {
   if (
     curr.alpha2 &&
-    curr.status === 'assigned' &&
+    (curr.status === 'assigned' || curr.status === 'user assigned') &&
+    supportedCodes[curr.alpha2] &&
     curr.countryCallingCodes.length &&
     supported.includes(curr.alpha2)
   ) {

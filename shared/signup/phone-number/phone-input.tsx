@@ -4,8 +4,10 @@ import * as Styles from '../../styles'
 import {isIOS} from '../../constants/platform'
 import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-numbers/'
 import {memoize} from '../../util/memoize'
+import CountryMenu from './country-menu'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
+const getCountryEmoji = countryCode => countryData[countryCode].emoji
 const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
 const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
@@ -108,7 +110,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               gap="small"
               ref={this.props.setAttachmentRef}
             >
-              <Kb.Text type="BodySemibold">{getCallingCode(this.state.country)}</Kb.Text>
+              <Kb.Text type="BodySemibold">
+                {getCountryEmoji(this.state.country)} {getCallingCode(this.state.country)}
+              </Kb.Text>
               <Kb.Icon type="iconfont-caret-down" sizeType="Small" />
             </Kb.Box2>
           </Kb.ClickableBox>
@@ -176,9 +180,9 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   render() {
     if (!Styles.isMobile) {
       return (
-        <Kb.FloatingMenu
+        <CountryMenu
           closeOnSelect={true}
-          containerStyle={{maxHeight: 160, width: 240}}
+          containerStyle={styles.countryMenu}
           items={menuItems(countryData, this._onSelectMenu)}
           onHidden={this.props.onHidden}
           visible={this.props.visible}
@@ -213,6 +217,11 @@ const styles = Styles.styleSheetCreate({
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
+  },
+  countryMenu: {
+    maxHeight: 200,
+    overflow: 'hidden',
+    width: 240,
   },
   fullHeight: {height: '100%'},
   input: Styles.platformStyles({
