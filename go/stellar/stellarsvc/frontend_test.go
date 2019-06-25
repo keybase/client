@@ -2882,6 +2882,7 @@ func TestManageTrustlines(t *testing.T) {
 	require.Equal(t, keys, rtlines.Trustlines[0].Asset)
 	require.Equal(t, "0.0000000", rtlines.Trustlines[0].Amount)
 	require.Equal(t, "922337203685.4775807", rtlines.Trustlines[0].Limit) // max limit
+	require.Equal(t, rtlines.RecipientType, stellar1.ParticipantType_KEYBASE)
 
 	// Change limit.
 	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{
