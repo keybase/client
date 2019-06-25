@@ -906,17 +906,12 @@ var errNoFlushedRevisions = errors.New("No flushed MDs yet")
 var errNoMergedRevWhileStaged = errors.New(
 	"Cannot find most recent merged revision while staged")
 
-// getJournalPredecessorRevision returns the revision that precedes
-// the current journal head if journaling enabled and there are
-// unflushed MD updates; otherwise it returns
-// kbfsmd.RevisionUninitialized.  If there aren't any flushed MD
-// revisions, it returns errNoFlushedRevisions.
-func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
-	kbfsmd.Revision, error) {
+func (fbo *folderBranchOps) getJournalRevisions(ctx context.Context) (
+	predRev, journalEndRev kbfsmd.Revision, err error) {
 	jManager, err := GetJournalManager(fbo.config)
 	if err != nil {
 		// Journaling is disabled entirely.
-		return kbfsmd.RevisionUninitialized, nil
+		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized, nil
 	}
 
 	jStatus, err := jManager.JournalStatus(fbo.id())
@@ -926,23 +921,36 @@ func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
 		// file/disk corruption) that indicate a real problem, so it
 		// might be nice to type those errors so we can distinguish
 		// them.
-		return kbfsmd.RevisionUninitialized, nil
+		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized, nil
 	}
 
 	if jStatus.BranchID != kbfsmd.NullBranchID.String() {
-		return kbfsmd.RevisionUninitialized, errNoMergedRevWhileStaged
+		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized,
+			errNoMergedRevWhileStaged
 	}
 
 	if jStatus.RevisionStart == kbfsmd.RevisionUninitialized {
 		// The journal is empty, so the local head must be the most recent.
-		return kbfsmd.RevisionUninitialized, nil
+		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized, nil
 	} else if jStatus.RevisionStart == kbfsmd.RevisionInitial {
 		// Nothing has been flushed to the servers yet, so don't
 		// return anything.
-		return kbfsmd.RevisionUninitialized, errNoFlushedRevisions
+		return kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized,
+			errNoFlushedRevisions
 	}
 
-	return jStatus.RevisionStart - 1, nil
+	return jStatus.RevisionStart - 1, jStatus.RevisionEnd, nil
+}
+
+// getJournalPredecessorRevision returns the revision that precedes
+// the current journal head if journaling enabled and there are
+// unflushed MD updates; otherwise it returns
+// kbfsmd.RevisionUninitialized.  If there aren't any flushed MD
+// revisions, it returns errNoFlushedRevisions.
+func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
+	kbfsmd.Revision, error) {
+	pred, _, err := fbo.getJournalRevisions(ctx)
+	return pred, err
 }
 
 // validateHeadLocked validates an untrusted head and sets it as trusted.
@@ -3820,7 +3828,7 @@ func (fbo *folderBranchOps) loadCachedMDChanges(ctx context.Context,
 
 	if copied {
 		irmd = MakeImmutableRootMetadata(
-			md, key, irmd.mdID, fbo.config.Clock().Now(), true)
+			md, key, irmd.mdID, fbo.config.Clock().Now(), irmd.putToServer)
 
 		err := fbo.config.MDCache().Replace(irmd, irmd.BID())
 		if err != nil {
@@ -6604,7 +6612,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// If there's anything in the journal, don't apply these MDs.
 	// Wait for CR to happen.
 	if !fbo.isUnmergedLocked(lState) {
-		mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
+		mergedRev, journalEnd, err := fbo.getJournalRevisions(ctx)
 		if err == errNoFlushedRevisions {
 			// If the journal is still on the initial revision, ignore
 			// the error and fall through to ignore CR.
@@ -6613,9 +6621,11 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			return err
 		}
 		if mergedRev != kbfsmd.RevisionUninitialized {
-			if len(rmds) > 0 {
-				// We should update our view of the merged master though,
-				// to avoid re-registering for the same updates again.
+			if latestMerged.Revision() > journalEnd {
+				// If somehow we fetch more revisions than our journal
+				// knows about, we should update our view of the
+				// merged master, to avoid re-registering for the same
+				// updates again.
 				func() {
 					fbo.headLock.Lock(lState)
 					defer fbo.headLock.Unlock(lState)
@@ -8994,6 +9004,12 @@ func (fbo *folderBranchOps) SetSyncConfig(
 				Branch: data.MasterBranch,
 			}}
 	}
+
+	defer func() {
+		if err == nil {
+			fbo.config.Reporter().NotifyFavoritesChanged(ctx)
+		}
+	}()
 
 	lState := makeFBOLockState()
 	md, err := fbo.getLatestMergedMD(ctx, lState)

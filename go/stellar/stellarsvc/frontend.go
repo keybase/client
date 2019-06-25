@@ -179,6 +179,9 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				WorthCurrency:          "",
 				Worth:                  "",
 				AvailableToSendWorth:   "",
+				Desc:                   d.Asset.Desc,
+				InfoUrl:                d.Asset.InfoUrl,
+				InfoUrlText:            d.Asset.InfoUrlText,
 			})
 		}
 	}
@@ -380,47 +383,17 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		}
 	}
 
-	payment = stellar1.PaymentDetailsLocal{
-		Id:                    summary.Id,
-		TxID:                  stellar1.TransactionIDFromPaymentID(summary.Id),
-		Time:                  summary.Time,
-		StatusSimplified:      summary.StatusSimplified,
-		StatusDescription:     summary.StatusDescription,
-		StatusDetail:          summary.StatusDetail,
-		ShowCancel:            summary.ShowCancel,
-		AmountDescription:     summary.AmountDescription,
-		Delta:                 summary.Delta,
-		Worth:                 summary.Worth,
-		WorthAtSendTime:       summary.WorthAtSendTime,
-		FromType:              summary.FromType,
-		ToType:                summary.ToType,
-		FromAccountID:         summary.FromAccountID,
-		FromAccountName:       summary.FromAccountName,
-		FromUsername:          summary.FromUsername,
-		ToAccountID:           summary.ToAccountID,
-		ToAccountName:         summary.ToAccountName,
-		ToUsername:            summary.ToUsername,
-		ToAssertion:           summary.ToAssertion,
-		OriginalToAssertion:   summary.OriginalToAssertion,
-		Note:                  summary.Note,
-		NoteErr:               summary.NoteErr,
-		PublicNote:            details.Memo,
-		PublicNoteType:        details.MemoType,
-		IssuerDescription:     summary.IssuerDescription,
-		IssuerAccountID:       summary.IssuerAccountID,
-		ExternalTxURL:         details.ExternalTxURL,
-		IsInflation:           summary.IsInflation,
-		InflationSource:       summary.InflationSource,
-		SourceAsset:           summary.SourceAsset,
-		SourceAmountMax:       summary.SourceAmountMax,
-		SourceAmountActual:    summary.SourceAmountActual,
-		IsAdvanced:            summary.IsAdvanced,
-		SummaryAdvanced:       summary.SummaryAdvanced,
-		Operations:            summary.Operations,
-		FeeChargedDescription: fee,
-	}
+	summary.TxID = stellar1.TransactionIDFromPaymentID(summary.Id)
 
-	return payment, nil
+	return stellar1.PaymentDetailsLocal{
+		Summary: *summary,
+		Details: stellar1.PaymentDetailsOnlyLocal{
+			PublicNote:            details.Memo,
+			PublicNoteType:        details.MemoType,
+			ExternalTxURL:         details.ExternalTxURL,
+			FeeChargedDescription: fee,
+		},
+	}, nil
 }
 
 func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1.GetGenericPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
@@ -444,40 +417,16 @@ func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1
 		return payment, err
 	}
 
-	payment = stellar1.PaymentDetailsLocal{
-		Id:                  summary.Id,
-		TxID:                stellar1.TransactionIDFromPaymentID(summary.Id),
-		Time:                summary.Time,
-		StatusSimplified:    summary.StatusSimplified,
-		StatusDescription:   summary.StatusDescription,
-		StatusDetail:        summary.StatusDetail,
-		ShowCancel:          summary.ShowCancel,
-		AmountDescription:   summary.AmountDescription,
-		Delta:               summary.Delta,
-		Worth:               summary.Worth,
-		WorthAtSendTime:     summary.WorthAtSendTime,
-		FromType:            summary.FromType,
-		ToType:              summary.ToType,
-		FromAccountID:       summary.FromAccountID,
-		FromAccountName:     summary.FromAccountName,
-		FromUsername:        summary.FromUsername,
-		ToAccountID:         summary.ToAccountID,
-		ToAccountName:       summary.ToAccountName,
-		ToUsername:          summary.ToUsername,
-		ToAssertion:         summary.ToAssertion,
-		OriginalToAssertion: summary.OriginalToAssertion,
-		Note:                summary.Note,
-		NoteErr:             summary.NoteErr,
-		PublicNote:          details.Memo,
-		PublicNoteType:      details.MemoType,
-		IssuerDescription:   summary.IssuerDescription,
-		IssuerAccountID:     summary.IssuerAccountID,
-		ExternalTxURL:       details.ExternalTxURL,
-		IsInflation:         summary.IsInflation,
-		InflationSource:     summary.InflationSource,
-	}
+	summary.TxID = stellar1.TransactionIDFromPaymentID(summary.Id)
 
-	return payment, nil
+	return stellar1.PaymentDetailsLocal{
+		Summary: *summary,
+		Details: stellar1.PaymentDetailsOnlyLocal{
+			PublicNote:     details.Memo,
+			PublicNoteType: details.MemoType,
+			ExternalTxURL:  details.ExternalTxURL,
+		},
+	}, nil
 }
 
 func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaymentLocalArg) (res stellar1.RelayClaimResult, err error) {

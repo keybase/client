@@ -155,7 +155,7 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 		require.Equal(t, public, canOpenWithPublicKey, "should only be able to open with public key if public")
 
 		team := loadTeam()
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 		loadTeam() // load again to get the new key
 	}

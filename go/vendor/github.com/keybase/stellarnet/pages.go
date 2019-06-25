@@ -9,15 +9,6 @@ import (
 // TransactionEmbed is used to get the Links in addition to
 // the horizon.Transaction from the transactions endpoints.
 type TransactionEmbed struct {
-	Links struct {
-		Self       horizon.Link `json:"self"`
-		Account    horizon.Link `json:"account"`
-		Ledger     horizon.Link `json:"ledger"`
-		Operations horizon.Link `json:"operations"`
-		Effects    horizon.Link `json:"effects"`
-		Precedes   horizon.Link `json:"precedes"`
-		Succeeds   horizon.Link `json:"succeeds"`
-	} `json:"_links"`
 	horizon.Transaction
 }
 

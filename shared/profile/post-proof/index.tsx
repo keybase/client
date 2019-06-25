@@ -52,7 +52,7 @@ const WebDescription = ({platformUserName}) => {
         type="BodyPrimaryLink"
         center={true}
         onClickURL={`https://${root}`}
-        style={{color: Styles.globalColors.blue, marginTop: Styles.globalMargins.tiny}}
+        style={{color: Styles.globalColors.blueDark, marginTop: Styles.globalMargins.tiny}}
       >
         {root}
       </Kb.Text>
@@ -60,7 +60,7 @@ const WebDescription = ({platformUserName}) => {
         type="BodyPrimaryLink"
         center={true}
         onClickURL={`https://${wellKnown}`}
-        style={{color: Styles.globalColors.blue}}
+        style={{color: Styles.globalColors.blueDark}}
       >
         {wellKnown}
       </Kb.Text>
@@ -201,7 +201,7 @@ class PostProof extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  blue: {color: Styles.globalColors.blue},
+  blue: {color: Styles.globalColors.blueDark},
   center: {alignSelf: 'center'},
   error: {
     backgroundColor: Styles.globalColors.red,

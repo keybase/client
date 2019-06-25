@@ -93,7 +93,7 @@ const GitPushDefault = ({
                   type="Terminal"
                   style={platformStyles({
                     common: {
-                      color: globalColors.blue,
+                      color: globalColors.blueDark,
                       fontSize: 12,
                       lineHeight: 16,
                     },

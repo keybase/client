@@ -2,6 +2,7 @@ import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
+import {AllowedColors} from '../common-adapters/text'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
 import * as SettingsConstants from './settings'
@@ -116,6 +117,19 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   worthInfo: '',
 })
 
+export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
+
+export const makeTrustline = I.Record<Types._Trustline>({
+  acceptedAssets: I.Map(),
+  assetMap: I.Map(),
+  expandedAssets: I.Set(),
+  loaded: false,
+  popularAssets: I.List(),
+  searchingAssets: undefined,
+  totalAssetsCount: 0,
+})
+export const emptyTrustline = makeTrustline()
+
 export const makeState = I.Record<Types._State>({
   acceptedDisclaimer: false,
   acceptingDisclaimerDelay: false,
@@ -156,6 +170,7 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
 
@@ -209,6 +224,8 @@ export const makeAssets = I.Record<Types._Assets>({
   availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
+  infoUrl: '',
+  infoUrlText: '',
   issuerAccountID: '',
   issuerName: '',
   issuerVerifiedDomain: '',
@@ -224,6 +241,8 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    infoUrl: w.infoUrl,
+    infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
     issuerName: w.issuerName,
     issuerVerifiedDomain: w.issuerVerifiedDomain,
@@ -265,6 +284,7 @@ const _defaultPaymentCommon = {
   targetAccountID: '',
   targetType: '',
   time: null,
+  unread: false,
   worth: '',
   worthAtSendTime: '',
 }
@@ -272,7 +292,6 @@ const _defaultPaymentCommon = {
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
   section: 'none' as Types.PaymentSection,
-  unread: false,
 }
 
 const _defaultPaymentDetail = {
@@ -348,15 +367,15 @@ export const rpcPaymentResultToPaymentResult = (
 
 export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
   makePaymentDetail({
-    ...rpcPaymentToPaymentCommon(p),
-    externalTxURL: p.externalTxURL,
-    feeChargedDescription: p.feeChargedDescription,
-    publicMemo: new HiddenString(p.publicNote),
-    publicMemoType: p.publicNoteType,
-    txID: p.txID,
+    ...rpcPaymentToPaymentCommon(p.summary),
+    externalTxURL: p.details.externalTxURL,
+    feeChargedDescription: p.details.feeChargedDescription,
+    publicMemo: new HiddenString(p.details.publicNote),
+    publicMemoType: p.details.publicNoteType,
+    txID: p.summary.txID,
   })
 
-const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
+const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const sourceType = partyTypeToString[p.fromType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
   let targetType = partyTypeToString[p.toType]
@@ -411,6 +430,7 @@ export const makeAssetDescription = I.Record<Types._AssetDescription>({
   issuerName: '',
   issuerVerifiedDomain: '',
 })
+export const emptyAssetDescription = makeAssetDescription()
 
 export const bannerLevelToBackground = (level: string) => {
   switch (level) {
@@ -542,6 +562,13 @@ export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
 export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
   `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
 export const checkOnlineWaitingKey = 'wallets:checkOnline'
+export const addTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:addTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:deleteTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
+  `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
+export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -633,10 +660,10 @@ export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
 
 export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.acceptedDisclaimer
 
-export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
-  let balanceChangeColor = Styles.globalColors.black
+export const getBalanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
+  let balanceChangeColor: AllowedColors = Styles.globalColors.black
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purpleDark
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.greenDark : Styles.globalColors.purpleDark
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20
@@ -655,3 +682,4 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
+export const trustlineHoldingBalance = 0.5

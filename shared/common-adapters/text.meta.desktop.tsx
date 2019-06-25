@@ -39,9 +39,6 @@ function fontSizeToSizeStyle(fontSize: number): Object | null {
   }
 }
 
-let _darkMetaData = null
-let _lightMetaData = null
-
 const _metaData = (): {[K in TextType]: MetaType} => {
   const whiteNegative = {
     negative: globalColors.white,
@@ -295,7 +292,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       },
     },
     TerminalInline: {
-      colorForBackground: {...whiteNegative, positive: globalColors.darkBlue},
+      colorForBackground: {...whiteNegative, positive: globalColors.blueDarker},
       fontSize: 13,
       styleOverride: {
         ...globalStyles.fontTerminal,
@@ -310,6 +307,9 @@ const _metaData = (): {[K in TextType]: MetaType} => {
     },
   }
 }
+
+let _darkMetaData = null
+let _lightMetaData = null
 
 const metaData = (): {[K in TextType]: MetaType} => {
   if (isDarkMode()) {

@@ -103,7 +103,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {flexGrow: 1},
   }),
   headerName: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
     textDecorationLine: 'line-through',
   },
   italicName: {...Styles.globalStyles.italic},

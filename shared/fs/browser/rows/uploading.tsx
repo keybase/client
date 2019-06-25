@@ -66,7 +66,7 @@ const styles = Styles.styleSheetCreate({
     opacity: 0.3,
   },
   textFailed: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
 })
 

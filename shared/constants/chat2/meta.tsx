@@ -14,6 +14,7 @@ import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {getFullname} from '../users'
+import {AllowedColors} from '../../common-adapters/text'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -442,8 +443,8 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     ? globalColors.fastBlank
     : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
-  const subColor = isError
-    ? globalColors.red
+  const subColor: AllowedColors = isError
+    ? globalColors.redDark
     : isSelected
     ? globalColors.white
     : hasUnread

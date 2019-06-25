@@ -9,7 +9,7 @@ export const CHECKBOX_MARGIN = 8
 
 class Checkbox extends Component<Props> {
   render() {
-    let borderColor = this.props.checked ? globalColors.blue : globalColors.black_20
+    let borderColor: string = this.props.checked ? globalColors.blue : globalColors.black_20
 
     if (this.props.disabled && !this.props.checked) {
       borderColor = globalColors.black_10

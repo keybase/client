@@ -48,7 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
   onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
-  onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
+  onWhatIsStellar: () => dispatchProps._onWhatIsStellar(),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,
   siteIconFull: stateProps.siteIconFull,

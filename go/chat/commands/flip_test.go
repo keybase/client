@@ -21,7 +21,7 @@ func TestFlipPreview(t *testing.T) {
 	ui := kbtest.NewChatUI()
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	g.CoinFlipManager = types.DummyCoinFlipManager{}
-	g.UIRouter = &fakeUIRouter{ui: ui}
+	g.UIRouter = kbtest.NewMockUIRouter(ui)
 	flip := NewFlip(g)
 	ctx := context.TODO()
 	uid := gregor1.UID{1, 2, 3, 4}

@@ -37,7 +37,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   title: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   titleSelected: {
     ...Styles.globalStyles.fontSemibold,

@@ -204,6 +204,7 @@ export const makeUploads: I.Record.Factory<Types._Uploads> = I.Record({
 } as Types._Uploads)
 
 export const makeTlfs: I.Record.Factory<Types._Tlfs> = I.Record({
+  loaded: false,
   private: I.Map(),
   public: I.Map(),
   team: I.Map(),
@@ -1100,6 +1101,9 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
   const tlfPath = getTlfPath(path)
   return tlfPath ? softErrors.tlfErrors.get(tlfPath) : null
 }
+
+export const hasSpecialFileElement = (path: Types.Path): boolean =>
+  Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
 export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline

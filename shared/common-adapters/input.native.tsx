@@ -332,7 +332,7 @@ class Input extends Component<Props, State> {
       selectTextOnFocus: this.props.selectTextOnFocus,
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
-      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
+      ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
     }
 
     if (!this.props.uncontrolled) {
@@ -402,7 +402,7 @@ const _bodyErrorTextStyle: any = getTextStyle('BodySmallError')
 const styles = styleSheetCreate({
   error: {minHeight: _bodyErrorTextStyle.lineHeight},
   floating: {
-    color: globalColors.blue,
+    color: globalColors.blueDark,
     marginBottom: 9,
     minHeight: _bodySmallTextStyle.lineHeight,
   },
@@ -413,7 +413,7 @@ const styles = styleSheetCreate({
   },
   smallLabel: {
     ...globalStyles.fontSemibold,
-    color: globalColors.blue,
+    color: globalColors.blueDark,
     fontSize: _headerTextStyle.fontSize,
     marginRight: 8,
   },

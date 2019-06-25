@@ -3,7 +3,7 @@ import * as Styles from '../../../styles'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import Text from '../../../common-adapters/text'
+import Text, {StylesTextCrossPlatform} from '../../../common-adapters/text'
 import {namedConnect} from '../../../util/container'
 import Mention from '../../../common-adapters/mention-container'
 import TeamMention from './team-container'
@@ -17,7 +17,7 @@ type Props = {
   info: RPCChatTypes.UIMaybeMentionInfo | null
   name: string
   onResolve: () => void
-  style?: Styles.StylesCrossPlatform
+  style?: StylesTextCrossPlatform
 }
 
 const MaybeMention = (props: Props) => {
@@ -62,7 +62,7 @@ type OwnProps = {
   allowFontScaling?: boolean
   channel: string
   name: string
-  style?: Styles.StylesCrossPlatform
+  style?: StylesTextCrossPlatform
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {

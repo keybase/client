@@ -461,7 +461,7 @@ func (a *BoxAuditor) attemptLocked(mctx libkb.MetaContext, teamID keybase1.TeamI
 
 	if rotateBeforeAudit {
 		mctx.Debug("rotating before audit")
-		err := team.Rotate(mctx.Ctx())
+		err := team.Rotate(mctx.Ctx(), keybase1.RotationType_VISIBLE)
 		if err != nil {
 			mctx.Warning("failed to rotate team before audit: %s", err)
 			// continue despite having failed to rotate

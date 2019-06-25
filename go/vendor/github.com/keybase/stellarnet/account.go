@@ -17,6 +17,7 @@ import (
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 	snetwork "github.com/stellar/go/network"
+	"github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/xdr"
 )
 
@@ -141,7 +142,10 @@ func (a *Account) internalNativeBalance() string {
 		return "0"
 	}
 
-	balance := a.internal.GetNativeBalance()
+	balance, err := a.internal.GetNativeBalance()
+	if err != nil {
+		return "0"
+	}
 	if balance == "" {
 		// There seem to be situations where this returns an
 		// empty string instead of "0", so this will fix that.
@@ -166,7 +170,7 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 
 // Trustline describes a stellar trustline.  It contains an asset and a limit.
 type Trustline struct {
-	horizon.Asset
+	base.Asset
 	Limit string
 }
 

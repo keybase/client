@@ -99,7 +99,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 }
 
 const styleRowText = (props: {isHeader?: boolean; danger?: boolean; disabled?: boolean}) => {
-  const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
+  const dangerColor = props.danger ? Styles.globalColors.redDark : Styles.globalColors.blueDark
   const color = props.isHeader ? Styles.globalColors.white : dangerColor
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }

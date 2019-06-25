@@ -4,6 +4,7 @@ import {Box, Divider} from '../../common-adapters'
 import * as Sb from '../../stories/storybook'
 import Asset from '.'
 
+const openInfoURL = Sb.action('openInfoURL')
 const openStellarURL = Sb.action('openStellarURL')
 
 const native = {
@@ -12,6 +13,8 @@ const native = {
   code: 'XLM',
   equivAvailableToSend: '$53.41 USD',
   equivBalance: '$54.14 USD',
+  infoUrl: '',
+  infoUrlText: '',
   issuerAccountID: '',
   issuerName: 'Stellar network',
   name: 'Lumens',
@@ -28,9 +31,13 @@ const keyz = {
   code: 'KEYZ',
   equivAvailableToSend: '',
   equivBalance: '',
+  infoUrl:
+    'https://stellar.expert/explorer/public/asset/KEYZ-GDVDSIDVX63LKSUFTO5NQ3YHPDDAYUSEPOJLFXVWCVCLEKMOERGHZ7DR',
+  infoUrlText: 'View details',
   issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
   issuerName: 'keybase.io',
   name: 'KEYZ',
+  openInfoURL,
   openStellarURL,
   reserves: [],
 }
@@ -41,9 +48,12 @@ const btc = {
   code: 'BTC',
   equivAvailableToSend: '',
   equivBalance: '',
+  infoUrl: 'https://www.stellarx.com/markets/BTC:GATEMHCCKCY67ZUCKTROYN24ZYT5GK4EQZ65JJLDHKHRUZI3EUEKMTCH',
+  infoUrlText: 'Exchange',
   issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
   issuerName: 'FarcicalBTCAnchor.eg',
   name: 'BTC',
+  openInfoURL,
   openStellarURL,
   reserves: [],
 }
@@ -54,9 +64,13 @@ const btexcadv = {
   code: 'BTEXCADV',
   equivAvailableToSend: '',
   equivBalance: '',
+  infoUrl:
+    'https://stellar.expert/explorer/public/asset/KEYZ-GDVDSIDVX63LKSUFTO5NQ3YHPDDAYUSEPOJLFXVWCVCLEKMOERGHZ7DR',
+  infoUrlText: 'View details',
   issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
   issuerName: 'Unknown',
   name: 'BTEXCADV',
+  openInfoURL,
   openStellarURL,
   reserves: [],
 }

@@ -107,7 +107,7 @@ const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
 const styles = Styles.styleSheetCreate({
   blueMobile: Styles.platformStyles({
     isMobile: {
-      color: Styles.globalColors.blue,
+      color: Styles.globalColors.blueDark,
     },
   }),
 })

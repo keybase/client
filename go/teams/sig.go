@@ -16,6 +16,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -269,6 +271,30 @@ func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me)
 }
 
+func AppendChainLinkSig3(ctx context.Context, g *libkb.GlobalContext,
+	sig libkb.Sig3, state *TeamSigChainState,
+	me keybase1.UserVersion) (err error) {
+
+	mctx := libkb.NewMetaContext(ctx, g)
+
+	if len(sig.Outer) == 0 || len(sig.Sig) == 0 {
+		return NewPrecheckStructuralError("got a stubbed v3 link on post, which isn't allowed", nil)
+	}
+
+	hp := hidden.NewLoaderPackageForPrecheck(mctx, state.GetID(), state.hidden)
+	ex := sig3.ExportJSON{
+		Inner: sig.Inner,
+		Outer: sig.Outer,
+		Sig:   sig.Sig,
+	}
+	err = hp.Update(mctx, []sig3.ExportJSON{ex})
+	if err != nil {
+		return err
+	}
+	mctx.Debug("AppendChainLinkSig3 success for %s", sig.Outer)
+	return nil
+}
+
 func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState,
 	me keybase1.UserVersion) (err error) {
@@ -295,6 +321,16 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	for i, sigItem := range sigMultiItems {
+
+		if sigItem.Sig3 != nil {
+			err = AppendChainLinkSig3(ctx, g, *sigItem.Sig3, state, me)
+			if err != nil {
+				g.Log.CDebugf(ctx, "precheckLinksToPost: link (sig3) %v/%v rejected: %v", i+1, len(sigMultiItems), err)
+				return NewPrecheckAppendError(err)
+			}
+			continue
+		}
+
 		outerLink, err := libkb.DecodeOuterLinkV2(sigItem.Sig)
 		if err != nil {
 			return NewPrecheckStructuralError("unpack outer", err)

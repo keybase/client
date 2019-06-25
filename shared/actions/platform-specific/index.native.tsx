@@ -17,7 +17,7 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-import NetInfo from '@react-native-community/netinfo'
+import NetInfo, {ConnectionType} from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -241,20 +241,26 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
+const updateMobileNetState = (state, action) => {
+  RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
+    console.warn('Error sending mobileNetStateUpdate', err)
+  })
+}
+
 const initOsNetworkStatus = (state, action) =>
   NetInfo.getConnectionInfo().then(({type}) =>
-    ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none'})
+    ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
   )
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type === 'none' ? 'offline' : 'online'))
+    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type))
     return () => {}
   }, Saga.buffers.sliding(1))
 
   while (true) {
     const status = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online'}))
+    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status !== 'none', type: status}))
   }
 }
 
@@ -398,6 +404,10 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
   yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction<ConfigGen.OsNetworkStatusChangedPayload>(
+    ConfigGen.osNetworkStatusChanged,
+    updateMobileNetState
+  )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)

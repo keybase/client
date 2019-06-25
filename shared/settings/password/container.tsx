@@ -9,6 +9,7 @@ type OwnProps = RouteProps<{}, {}>
 const mapStateToProps = state => ({
   error: state.settings.password.error,
   hasPGPKeyOnServer: !!state.settings.password.hasPGPKeyOnServer,
+  hasRandomPW: !!state.settings.password.randomPW,
   newPasswordConfirmError: state.settings.password.newPasswordConfirmError
     ? state.settings.password.newPasswordConfirmError.stringValue()
     : null,

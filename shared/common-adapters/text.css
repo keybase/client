@@ -69,7 +69,7 @@
 .text_HeaderLink {
   font-size: 18px;
   line-height: 22px;
-  color: rgb(76, 142, 255);
+  color: #3663ea;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -109,7 +109,7 @@
 .text_BodyBigLink {
   font-size: 15px;
   line-height: 19px;
-  color: rgb(76, 142, 255);
+  color: #3663ea;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -176,7 +176,7 @@
 .text_BodySemiboldLink {
   font-size: 14px;
   line-height: 18px;
-  color: rgb(76, 142, 255);
+  color: #3663ea;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -201,7 +201,7 @@
 .text_BodyPrimaryLink {
   font-size: 14px;
   line-height: 18px;
-  color: rgb(76, 142, 255);
+  color: #3663ea;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -268,7 +268,7 @@
 .text_BodySmallPrimaryLink {
   font-size: 13px;
   line-height: 17px;
-  color: #4c8eff;
+  color: #3663ea;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -309,7 +309,7 @@
 .text_BodySmallSemiboldPrimaryLink {
   font-size: 13px;
   line-height: 17px;
-  color: rgb(76, 142, 255);
+  color: #3663ea;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -364,7 +364,7 @@
 .text_BodySmallError {
   font-size: 13px;
   line-height: 17px;
-  color: rgb(255, 77, 97);
+  color: #d72236;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -376,7 +376,7 @@
 .text_BodySmallSuccess {
   font-size: 13px;
   line-height: 17px;
-  color: rgb(55, 189, 153);
+  color: #289a72;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -388,7 +388,7 @@
 .text_BodySmallWallet {
   font-size: 13px;
   line-height: 17px;
-  color: rgb(132, 92, 219);
+  color: #704eba;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;

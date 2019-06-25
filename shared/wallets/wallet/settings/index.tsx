@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
+import WalletSettingTrustline from './trustline/container'
 import openUrl from '../../../util/open-url'
 
 export type SettingsProps = {
@@ -228,6 +229,8 @@ class AccountSettings extends React.Component<SettingsProps> {
               </Kb.Box>
             )}
 
+            <WalletSettingTrustline accountID={props.accountID} />
+
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny" fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>
@@ -337,7 +340,7 @@ const styles = Styles.styleSheetCreate({
   },
   partnerIcon: {flexShrink: 0, height: 32, width: 32},
   partnerLink: {color: Styles.globalColors.black},
-  red: {color: Styles.globalColors.red},
+  red: {color: Styles.globalColors.redDark},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

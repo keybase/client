@@ -613,6 +613,9 @@ var emptyBadgeCounts = map[keybase1.DeviceType]int{
 }
 
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
+	if i.UnreadMessages == 0 {
+		return i
+	}
 	rc, err := s.createInbox().GetConversation(ctx, s.uid, chat1.ConversationID(i.ConvID.Bytes()))
 	if err != nil {
 		s.Debug(ctx, "ApplyLocalChatState: failed to get conv: %s", err)

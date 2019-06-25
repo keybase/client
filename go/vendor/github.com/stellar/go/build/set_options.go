@@ -19,6 +19,7 @@ type SetOptionsMutator interface {
 }
 
 // SetOptionsBuilder represents a transaction that is being built.
+// Deprecated use txnbuild.SetOptions instead
 type SetOptionsBuilder struct {
 	O   xdr.Operation
 	SO  xdr.SetOptionsOp

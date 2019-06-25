@@ -174,7 +174,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
   },
   errorText: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   fullErrorContainer: Styles.platformStyles({
     isElectron: {

@@ -135,7 +135,7 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blue,
   },
   textError: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
   },
   textPlain: Styles.platformStyles({
     common: {color: Styles.globalColors.black_63},

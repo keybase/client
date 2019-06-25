@@ -82,7 +82,7 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
-  error: {color: Styles.globalColors.red},
+  error: {color: Styles.globalColors.redDark},
   fullWidth: {width: '100%'},
   iconStyle: {
     height: 32,

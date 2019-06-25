@@ -73,7 +73,7 @@ const styles = Styles.styleSheetCreate({
   }),
   error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
   errorLink: {
-    color: Styles.globalColors.red,
+    color: Styles.globalColors.redDark,
     textDecorationLine: 'underline',
   },
   input: Styles.platformStyles({

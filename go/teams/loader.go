@@ -358,7 +358,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		mctx.Debug("Box auditor feature flagged off; not checking jail during team load...")
 	}
 
-	return &ret.team, &ret.hidden, nil
+	return &ret.team, ret.hidden, nil
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
@@ -415,12 +415,12 @@ type load2ArgT struct {
 
 type load2ResT struct {
 	team      keybase1.TeamData
-	hidden    keybase1.HiddenTeamChain
+	hidden    *keybase1.HiddenTeamChain
 	didRepoll bool
 }
 
 func (l load2ResT) teamShim() *TeamShim {
-	return &TeamShim{Data: &l.team, Hidden: &l.hidden}
+	return &TeamShim{Data: &l.team, Hidden: l.hidden}
 }
 
 // Load2 does the rest of the work loading a team.
@@ -555,6 +555,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("merkle")
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
+	var hiddenIsFresh bool
 
 	if (ret == nil) || repoll {
 		mctx.Debug("TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
@@ -565,17 +566,16 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		if err != nil {
 			return nil, err
 		}
-		var hiddenIsFresh bool
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
 		lastSeqno, lastLinkID, hiddenIsFresh, err = l.world.merkleLookupWithHidden(ctx, arg.teamID, arg.public, harg)
 		if err != nil {
 			return nil, err
 		}
-		hiddenPackage.SetIsFresh(hiddenIsFresh)
 		didRepoll = true
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
 		lastLinkID = ret.Chain.LastLinkID
+		hiddenIsFresh = true
 	}
 
 	// For child calls to load2, the subteam reader ID is carried up
@@ -608,7 +608,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		mctx.Debug("TeamLoader fetching: chain update")
 		// The cache is definitely behind
 		fetchLinksAndOrSecrets = true
-	} else if !hiddenPackage.IsFresh() {
+	} else if !hiddenIsFresh {
 		mctx.Debug("TeamLoader fetching: hidden chain wasn't fresh")
 		fetchLinksAndOrSecrets = true
 	} else if !l.hasSyncedSecrets(mctx, teamShim()) {
@@ -800,7 +800,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	err = hiddenPackage.CheckUpdatesAgainstSeeds(mctx, ret.PerTeamKeySeedsUnverified)
+	err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
 	if err != nil {
 		return nil, err
 	}
@@ -895,29 +895,24 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	if hd := hiddenPackage.ChainData(); hd != nil {
-		load2res.hidden = *hd
+		load2res.hidden = hd
 	}
 
 	return &load2res, nil
 }
 
 func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData) (ret *hidden.LoaderPackage, err error) {
-	var encKID keybase1.KID
-	var gen keybase1.PerTeamKeyGeneration
-	if team != nil {
-		ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey(mctx)
-		if err != nil {
-			return nil, err
-		}
-		encKID = ptk.EncKID
-		gen = ptk.Gen
-	}
-	ret = hidden.NewLoaderPackage(id, encKID, gen)
-	err = ret.Load(mctx)
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
+	return hidden.NewLoaderPackage(mctx, id,
+		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, err error) {
+			if team == nil {
+				return encKID, gen, nil
+			}
+			ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey(mctx)
+			if err != nil {
+				return encKID, gen, err
+			}
+			return ptk.EncKID, ptk.Gen, nil
+		})
 }
 
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {
@@ -1136,6 +1131,11 @@ func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fr
 	// Repoll if the server has previously hinted that the team has new links.
 	if fromCache != nil && fromCache.MainChain() != nil && fromCache.MainChain().Chain.LastSeqno < fromCache.MainChain().LatestSeqnoHint {
 		reason = "behind seqno hint"
+		return false, true
+	}
+
+	if fromCache != nil && fromCache.HiddenChain() != nil && fromCache.HiddenChain().IsStale() {
+		reason = "behind hidden seqno hint"
 		return false, true
 	}
 
