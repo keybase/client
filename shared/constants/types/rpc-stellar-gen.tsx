@@ -408,6 +408,7 @@ export type PaymentTrustlineLocal = {readonly asset: Asset; readonly remove: Boo
 export type PaymentsPage = {readonly payments?: Array<PaymentSummary> | null; readonly cursor?: PageCursor | null; readonly oldestUnread?: TransactionID | null}
 export type PaymentsPageLocal = {readonly payments?: Array<PaymentOrErrorLocal> | null; readonly cursor?: PageCursor | null; readonly oldestUnread?: PaymentID | null}
 export type PredefinedInflationDestination = {readonly tag: InflationDestinationTag; readonly name: String; readonly recommended: Boolean; readonly accountID: AccountID; readonly url: String}
+export type RecipientTrustlinesLocal = {readonly trustlines?: Array<Balance> | null; readonly recipientType: ParticipantType}
 export type RelayClaimPost = {readonly keybaseID: KeybaseTransactionID; readonly dir: RelayDirection; readonly signedTransaction: String; readonly autoClaimToken?: String | null}
 export type RelayClaimResult = {readonly claimStellarID: TransactionID}
 export type RelayContents = {readonly stellarID: TransactionID; readonly sk: SecretKey; readonly note: String}
@@ -499,6 +500,7 @@ export const localValidateSecretKeyLocalRpcPromise = (params: MessageTypes['stel
 // 'stellar.1.local.sendPathLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
+// 'stellar.1.local.getTrustlinesForRecipientLocal'
 // 'stellar.1.local.findPaymentPathLocal'
 // 'stellar.1.local.balancesLocal'
 // 'stellar.1.local.sendCLILocal'

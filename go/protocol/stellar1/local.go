@@ -693,6 +693,28 @@ func (o AirdropStatus) DeepCopy() AirdropStatus {
 	}
 }
 
+type RecipientTrustlinesLocal struct {
+	Trustlines    []Balance       `codec:"trustlines" json:"trustlines"`
+	RecipientType ParticipantType `codec:"recipientType" json:"recipientType"`
+}
+
+func (o RecipientTrustlinesLocal) DeepCopy() RecipientTrustlinesLocal {
+	return RecipientTrustlinesLocal{
+		Trustlines: (func(x []Balance) []Balance {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Balance, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Trustlines),
+		RecipientType: o.RecipientType.DeepCopy(),
+	}
+}
+
 type PaymentPathLocal struct {
 	SourceDisplay      string      `codec:"sourceDisplay" json:"sourceDisplay"`
 	SourceMaxDisplay   string      `codec:"sourceMaxDisplay" json:"sourceMaxDisplay"`
@@ -1423,6 +1445,11 @@ type GetTrustlinesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type GetTrustlinesForRecipientLocalArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Recipient string `codec:"recipient" json:"recipient"`
+}
+
 type FindPaymentPathLocalArg struct {
 	From             AccountID `codec:"from" json:"from"`
 	To               string    `codec:"to" json:"to"`
@@ -1612,6 +1639,7 @@ type LocalInterface interface {
 	DeleteTrustlineLocal(context.Context, DeleteTrustlineLocalArg) error
 	ChangeTrustlineLimitLocal(context.Context, ChangeTrustlineLimitLocalArg) error
 	GetTrustlinesLocal(context.Context, GetTrustlinesLocalArg) ([]Balance, error)
+	GetTrustlinesForRecipientLocal(context.Context, GetTrustlinesForRecipientLocalArg) (RecipientTrustlinesLocal, error)
 	FindPaymentPathLocal(context.Context, FindPaymentPathLocalArg) (PaymentPathLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
@@ -2394,6 +2422,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getTrustlinesForRecipientLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTrustlinesForRecipientLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetTrustlinesForRecipientLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetTrustlinesForRecipientLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTrustlinesForRecipientLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"findPaymentPathLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]FindPaymentPathLocalArg
@@ -3028,6 +3071,11 @@ func (c LocalClient) ChangeTrustlineLimitLocal(ctx context.Context, __arg Change
 
 func (c LocalClient) GetTrustlinesLocal(ctx context.Context, __arg GetTrustlinesLocalArg) (res []Balance, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetTrustlinesForRecipientLocal(ctx context.Context, __arg GetTrustlinesForRecipientLocalArg) (res RecipientTrustlinesLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesForRecipientLocal", []interface{}{__arg}, &res)
 	return
 }
 

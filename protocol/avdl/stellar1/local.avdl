@@ -521,6 +521,12 @@ protocol local {
   void changeTrustlineLimitLocal(int sessionID, AccountID accountID, Trustline trustline, string limit);
   array<Balance> getTrustlinesLocal(int sessionID, AccountID accountID);
 
+  record RecipientTrustlinesLocal {
+    array<Balance> trustlines;
+    ParticipantType recipientType; // keybase or stellar
+  }
+  RecipientTrustlinesLocal getTrustlinesForRecipientLocal(int sessionID, string recipient);
+
   record PaymentPathLocal {
     string sourceDisplay;               // for display purposes
     string sourceMaxDisplay;

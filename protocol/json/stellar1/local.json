@@ -789,6 +789,23 @@
     },
     {
       "type": "record",
+      "name": "RecipientTrustlinesLocal",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Balance"
+          },
+          "name": "trustlines"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "recipientType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PaymentPathLocal",
       "fields": [
         {
@@ -2203,6 +2220,19 @@
         "type": "array",
         "items": "Balance"
       }
+    },
+    "getTrustlinesForRecipientLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        }
+      ],
+      "response": "RecipientTrustlinesLocal"
     },
     "findPaymentPathLocal": {
       "request": [
