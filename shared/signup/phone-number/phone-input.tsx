@@ -82,7 +82,6 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   _onChangeFilter = filter => this.setState(s => ({...s, filter}))
 
   clearFilter() {
-    console.log('asd')
     this._onChangeFilter('')
   }
 
@@ -188,11 +187,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   }
 
   _toggleShowingMenu = () => {
-    console.log(this._countrySelectorRef)
-    console.log(this._countrySelectorRef.current)
-    if (this._countrySelectorRef && this._countrySelectorRef.current) {
-      this._countrySelectorRef.current.clearFilter()
-    }
+    this._countrySelectorRef.current.clearFilter()
     this.props.toggleShowingMenu()
   }
 
