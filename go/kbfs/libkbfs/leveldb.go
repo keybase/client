@@ -5,11 +5,14 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/logger"
@@ -25,6 +28,7 @@ const (
 	diskCacheVersionFilename string = "version"
 	metered                         = true
 	unmetered                       = false
+	leveldbMaxWaitOnEagain          = 10 * time.Second
 )
 
 var leveldbOptions = &opt.Options{
@@ -98,8 +102,9 @@ func (ldb *LevelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
 	return ldb.Put(key, value, nil)
 }
 
-// openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
-// as its underlying storage layer, and with the options specified.
+// openLevelDBWithOptions opens or recovers a leveldb.DB with a
+// passed-in storage.Storage as its underlying storage layer, and with
+// the options specified.
 func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 	*LevelDb, error) {
 	db, err := leveldb.Open(stor, options)
@@ -116,6 +121,41 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 		return nil, err
 	}
 	return &LevelDb{db, stor}, nil
+}
+
+var initialStartTime = time.Now()
+
+// openLevelDBStorage opens read-write leveldb storage based on a path.
+func openLevelDBStorage(
+	ctx context.Context, p string, log logger.Logger) (storage.Storage, error) {
+	// If we can't open the storage file because another process is
+	// still alive that has it open, wait a bit for that other process
+	// to be killed and release the resource.  Count the time from the
+	// beginning of the process's initialization, so we don't wait
+	// N*timeout for every DB we try to open.
+	eagainDeadline := initialStartTime.Add(leveldbMaxWaitOnEagain)
+	logged := false
+	for time.Now().Before(eagainDeadline) {
+		ldb, err := storage.OpenFile(p, false)
+		switch errors.Cause(err) {
+		case nil:
+			return ldb, nil
+		case syscall.EAGAIN:
+			if !logged {
+				if log != nil {
+					log.CDebugf(ctx,
+						"Waiting %s for the db %s to become available: %+v",
+						leveldbMaxWaitOnEagain, p, err)
+				}
+				logged = true
+			}
+			// Sleep and try again.
+			time.Sleep(100 * time.Millisecond)
+		default:
+			return nil, err
+		}
+	}
+	return nil, syscall.EAGAIN
 }
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage

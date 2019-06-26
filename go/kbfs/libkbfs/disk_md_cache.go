@@ -190,7 +190,7 @@ func newDiskMDCacheLocal(
 		return nil, err
 	}
 	headsDbPath := filepath.Join(versionPath, headsDbFilename)
-	headsStorage, err := storage.OpenFile(headsDbPath, false)
+	headsStorage, err := openLevelDBStorage(nil, headsDbPath, log)
 	if err != nil {
 		return nil, err
 	}

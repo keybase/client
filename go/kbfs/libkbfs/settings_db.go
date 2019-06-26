@@ -52,7 +52,8 @@ func openSettingsDBInternal(config Config) (*LevelDb, error) {
 		return nil, err
 	}
 
-	stor, err := storage.OpenFile(path.Join(dbPath, settingsDBName), false)
+	stor, err := openLevelDBStorage(
+		nil, path.Join(dbPath, settingsDBName), config.MakeLogger(""))
 	if err != nil {
 		return nil, err
 	}

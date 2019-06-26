@@ -313,7 +313,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 		return nil, err
 	}
 	blockDbPath := filepath.Join(versionPath, blockDbFilename)
-	blockStorage, err := storage.OpenFile(blockDbPath, false)
+	blockStorage, err := openLevelDBStorage(nil, blockDbPath, log)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 		}
 	}()
 	metaDbPath := filepath.Join(versionPath, metaDbFilename)
-	metadataStorage, err := storage.OpenFile(metaDbPath, false)
+	metadataStorage, err := openLevelDBStorage(nil, metaDbPath, log)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 		}
 	}()
 	tlfDbPath := filepath.Join(versionPath, tlfDbFilename)
-	tlfStorage, err := storage.OpenFile(tlfDbPath, false)
+	tlfStorage, err := openLevelDBStorage(nil, tlfDbPath, log)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +343,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 		}
 	}()
 	lastUnrefDbPath := filepath.Join(versionPath, lastUnrefDbFilename)
-	lastUnrefStorage, err := storage.OpenFile(lastUnrefDbPath, false)
+	lastUnrefStorage, err := openLevelDBStorage(nil, lastUnrefDbPath, log)
 	if err != nil {
 		return nil, err
 	}

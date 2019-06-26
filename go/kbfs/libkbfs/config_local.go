@@ -29,7 +29,6 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 )
@@ -1444,7 +1443,7 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 
 func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 	dbPath := filepath.Join(c.storageRoot, configName)
-	stor, err := storage.OpenFile(dbPath, false)
+	stor, err := openLevelDBStorage(nil, dbPath, c.MakeLogger(""))
 	if err != nil {
 		return nil, err
 	}

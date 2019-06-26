@@ -3777,10 +3777,12 @@ func openCRDBInternal(config Config) (*LevelDb, error) {
 		return nil, err
 	}
 
-	stor, err := storage.OpenFile(sysPath.Join(config.StorageRoot(),
-		conflictResolverRecordsDir, conflictResolverRecordsVersionString,
-		conflictResolverRecordsDB), false)
-
+	stor, err := openLevelDBStorage(
+		nil,
+		sysPath.Join(config.StorageRoot(),
+			conflictResolverRecordsDir, conflictResolverRecordsVersionString,
+			conflictResolverRecordsDB),
+		config.MakeLogger(""))
 	if err != nil {
 		return nil, err
 	}

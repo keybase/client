@@ -178,7 +178,7 @@ func newDiskQuotaCacheLocal(
 		return nil, err
 	}
 	dbPath := filepath.Join(versionPath, quotaDbFilename)
-	quotaStorage, err := storage.OpenFile(dbPath, false)
+	quotaStorage, err := openLevelDBStorage(nil, dbPath, log)
 	if err != nil {
 		return nil, err
 	}
