@@ -51,7 +51,12 @@ export class ImageRender extends React.Component<Props, State> {
             />
           )}
           {!this.props.loaded && (
-            <Kb.NativeFastImage source={{uri: this.props.src}} resizeMode="cover" style={styles.poster} />
+            <Kb.NativeFastImage
+              onLoad={this.props.onLoadedVideo}
+              source={{uri: this.props.src}}
+              resizeMode="cover"
+              style={styles.poster}
+            />
           )}
         </Kb.Box2>
       )

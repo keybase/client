@@ -152,7 +152,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       style={Kb.iconCastPlatformStyles(styles.playButton)}
                     />
                   )}
-                  {this.props.videoDuration.length > 0 && this.state.loaded && (
+                  {this.props.videoDuration.length > 0 && (
                     <Kb.Box style={styles.durationContainer}>
                       <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
                         {this.props.videoDuration}
@@ -170,7 +170,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   )}
                 </Kb.Box>
               )}
-              {this.state.loadingVideo === 'loading' && <Kb.ProgressIndicator style={styles.progress} />}
+              {Styles.isMobile && this.state.loadingVideo === 'loading' && (
+                <Kb.ProgressIndicator style={styles.progress} />
+              )}
             </Kb.Box>
             <Kb.Box style={styles.progressContainer}>
               {!this.props.onShowInFinder && (
