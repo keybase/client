@@ -22,7 +22,7 @@ export const countryData = countries.reduce((res, curr) => {
       emoji: curr.emoji,
       example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
-      pickerText: `${curr.emoji} ${curr.name} ${curr.countryCallingCodes[0]}`,
+      pickerText: `${curr.emoji} ${curr.name} ${curr.countryCallingCodes[0].replace(' ', '\xa0')}`,
     }
   }
   return res

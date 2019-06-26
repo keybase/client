@@ -19,9 +19,9 @@ const menuItems = memoize((countryData, filter, onClick) =>
   Object.values(countryData)
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .filter((cd: any) => {
-      const strippedFilter = filter.replace(/\D+/g, '')
+      const strippedFilter = filter.replace(/[^\d+]/g, '')
       return (
-        (strippedFilter.length > 0 && cd.callingCode.replace(/\D+/g, '').includes(strippedFilter)) ||
+        (strippedFilter.length > 0 && cd.callingCode.replace(/[^\d+]/g, '').includes(strippedFilter)) ||
         cd.pickerText.toLowerCase().includes(filter.toLowerCase())
       )
     })
