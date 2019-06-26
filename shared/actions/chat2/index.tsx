@@ -25,7 +25,7 @@ import * as Router2Constants from '../../constants/router2'
 import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isMobile} from '../../constants/platform'
+import {isIOS, isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -35,7 +35,6 @@ import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
 import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
-import {isIOS} from '../../constants/platform'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
