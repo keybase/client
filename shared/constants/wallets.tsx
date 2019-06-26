@@ -224,6 +224,7 @@ export const makeAssets = I.Record<Types._Assets>({
   availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
+  canAddTrustline: false,
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -241,6 +242,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    canAddTrustline: w.canAddTrustline,
     infoUrl: w.infoUrl,
     infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
@@ -622,6 +624,13 @@ export const getExternalPartners = (state: TypedState, accountID: Types.AccountI
 
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())
+
+export const getCanAddTrustline = (state: TypedState, accountID: Types.AccountID) => {
+  // We'd prefer this to be a field on account, rather than assets.
+  // Until then, pull it out of XLM assets.
+  const xlm = getAssets(state, accountID).find(a => a.assetCode === 'XLM')
+  return xlm ? xlm.canAddTrustline : false
+}
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID, unknownAccount)
