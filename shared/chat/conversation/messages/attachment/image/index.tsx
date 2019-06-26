@@ -152,7 +152,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       style={Kb.iconCastPlatformStyles(styles.playButton)}
                     />
                   )}
-                  {this.props.videoDuration.length > 0 && (
+                  {this.props.videoDuration.length > 0 && this.state.loaded && (
                     <Kb.Box style={styles.durationContainer}>
                       <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
                         {this.props.videoDuration}
