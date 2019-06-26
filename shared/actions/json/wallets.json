@@ -355,6 +355,9 @@
     "setBuildingAdvancedSenderAccountID": {"senderAccountID": "AccountID"},
     "setBuildingAdvancedSenderAsset": {"senderAsset": "AssetDescription"},
     "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
+    "calculateBuildingAdvanced": {},
+    "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
+    "sendPaymentAdvanced": {},
 
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
@@ -462,6 +465,9 @@
     "refreshTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID"
     },
+    "refreshTrustlineAcceptedAssetsByUsername": {
+      "username": "string"
+    },
     "refreshTrustlinePopularAssets": {},
     "addTrustline": {
       "accountID": "Types.AccountID",
@@ -473,6 +479,11 @@
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlineAcceptedAssetsByUsername": {
+      "username": "string",
       "assets": "Array<Types.AssetDescription>",
       "limits": "I.Map<Types.AssetID, number>"
     },

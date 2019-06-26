@@ -19,12 +19,18 @@ type Props = Container.RouteProps<
   {}
 >
 
-const AssetList = ({accountID, isSender}) => {
-  const dispatch = Container.useDispatch()
+const AssetList = ({accountID, isSender, username}) => {
   const acceptedAssets = Container.useSelector(state =>
-    state.wallets.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
+    username
+      ? state.wallets.trustline.acceptedAssetsByUsername.get(username, Constants.emptyAccountAcceptedAssets)
+      : state.wallets.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
   )
   const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
+  const selectedAsset = Container.useSelector(state =>
+    isSender ? state.wallets.buildingAdvanced.senderAsset : state.wallets.buildingAdvanced.recipientAsset
+  )
+  const selectedAssetID = selectedAsset !== 'native' && Types.assetDescriptionToAssetID(selectedAsset)
+  const dispatch = Container.useDispatch()
   const onSelect = React.useCallback(
     asset => {
       dispatch(
@@ -36,21 +42,24 @@ const AssetList = ({accountID, isSender}) => {
     },
     [dispatch, isSender]
   )
-  const selectedAssetID = Types.assetDescriptionToAssetID(
-    Container.useSelector(state =>
-      isSender ? state.wallets.buildingAdvanced.senderAsset : state.wallets.buildingAdvanced.recipientAsset
-    )
-  )
+  React.useEffect(() => {
+    username
+      ? dispatch(WalletsGen.createRefreshTrustlineAcceptedAssetsByUsername({username}))
+      : dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+  }, [dispatch, username, accountID])
   return (
     <Kb.BoxGrow>
       <Kb.List2
-        items={acceptedAssets
-          .keySeq()
-          .toArray()
-          .map(assetID => ({
-            asset: assetMap.get(assetID, Constants.emptyAssetDescription),
-            selected: assetID === selectedAssetID,
-          }))}
+        items={[
+          ...acceptedAssets
+            .keySeq()
+            .toArray()
+            .map(assetID => ({
+              asset: assetMap.get(assetID, Constants.emptyAssetDescription),
+              selected: assetID === selectedAssetID,
+            })),
+          {asset: 'native', selected: selectedAsset === 'native'},
+        ]}
         bounces={true}
         itemHeight={{
           height: 56, // TODO figure out desktop
@@ -66,16 +75,18 @@ const AssetList = ({accountID, isSender}) => {
                   ellipsizeMode="tail"
                   style={selected && styles.textSelected}
                 >
-                  {asset.code}
+                  {asset === 'native' ? 'XLM' : asset.code}
                 </Kb.Text>
-                <Kb.Text
-                  type="BodySmall"
-                  lineClamp={1}
-                  ellipsizeMode="middle"
-                  style={selected && styles.textSelected}
-                >
-                  {asset.issuerVerifiedDomain || asset.issuerAccountID}
-                </Kb.Text>
+                {asset !== 'native' && (
+                  <Kb.Text
+                    type="BodySmall"
+                    lineClamp={1}
+                    ellipsizeMode="middle"
+                    style={selected && styles.textSelected}
+                  >
+                    {asset.issuerVerifiedDomain || asset.issuerAccountID}
+                  </Kb.Text>
+                )}
               </Kb.Box2>
               {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
             </Kb.ClickableBox>
@@ -87,7 +98,7 @@ const AssetList = ({accountID, isSender}) => {
 }
 
 const PickAsset = (props: Props) => {
-  const accountID = props.navigation.getParam('accountID')
+  const accountID = props.navigation.getParam('accountID') || Types.noAccountID
   const isSender = props.navigation.getParam('isSender')
   const username = props.navigation.getParam('username')
 
@@ -115,7 +126,7 @@ const PickAsset = (props: Props) => {
             <Kb.Text type="BodyTinySemibold">This account can receive</Kb.Text>
           )}
         </Header>
-        <AssetList accountID={accountID} isSender={isSender} />
+        <AssetList accountID={accountID} username={username} isSender={isSender} />
       </Kb.Box2>
     </Kb.MaybePopup>
   )

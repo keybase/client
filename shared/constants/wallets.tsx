@@ -119,6 +119,7 @@ export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
   destinationAccount: Types.noAccountID,
   destinationDisplay: '',
   fullPath: emptyPaymentPath,
+  readyToSend: false,
   sourceDisplay: '',
   sourceMaxDisplay: '',
 })
@@ -187,6 +188,7 @@ export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 
 export const makeTrustline = I.Record<Types._Trustline>({
   acceptedAssets: I.Map(),
+  acceptedAssetsByUsername: I.Map(),
   assetMap: I.Map(),
   expandedAssets: I.Set(),
   loaded: false,

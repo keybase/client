@@ -10,12 +10,14 @@ type OwnProps = {
   onConfirm?: () => void // if showing confirm form directly (not through routing)
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state, {isAdvanced}: OwnProps) => {
   const accountID = state.wallets.selectedAccount
   const {isRequest} = state.wallets.building
-  const isReady = isRequest
-    ? state.wallets.builtRequest.readyToRequest
-    : state.wallets.builtPayment.readyToReview
+  const isReady = !isAdvanced
+    ? isRequest
+      ? state.wallets.builtRequest.readyToRequest
+      : state.wallets.builtPayment.readyToReview
+    : state.wallets.builtPaymentAdvanced.readyToSend
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
   const thisDeviceIsLockedOut = Constants.getAccount(state, accountID).deviceReadOnly
   return {
@@ -45,13 +47,14 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
       })
     )
   },
+  onClickSendAdvanced: () => {},
 })
 
 const mergeProps = (s, d, o) => ({
   disabled: s.disabled,
   isAdvanced: !!o.isAdvanced,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,
-  onClickSend: s.isRequest ? undefined : d.onClickSend,
+  onClickSend: !o.isAdvanced ? (s.isRequest ? undefined : d.onClickSend) : d.onClickSendAdvanced,
   thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
   waitingKey: s.waitingKey,
 })

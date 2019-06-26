@@ -462,6 +462,18 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           )
           .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
       )
+    case WalletsGen.setTrustlineAcceptedAssetsByUsername:
+      return state.update('trustline', trustline =>
+        trustline
+          .update('acceptedAssetsByUsername', acceptedAssetsByUsername =>
+            acceptedAssetsByUsername.update(action.payload.username, accountAcceptedAssets =>
+              action.payload.limits.equals(accountAcceptedAssets)
+                ? accountAcceptedAssets
+                : action.payload.limits
+            )
+          )
+          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+      )
     case WalletsGen.setTrustlinePopularAssets:
       return state.update('trustline', trustline =>
         trustline.withMutations(trustline =>
@@ -492,6 +504,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
+    case WalletsGen.setBuiltPaymentAdvanced:
+      return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
@@ -533,6 +547,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
+    case WalletsGen.calculateBuildingAdvanced:
       return state
     default:
       return state

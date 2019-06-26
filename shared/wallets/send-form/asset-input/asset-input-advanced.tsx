@@ -5,16 +5,17 @@ import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import Available from '../available/container'
 import {AmountInput, sharedStyles} from './shared'
 
 type RecipientProps = {
-  recipientAsset?: Types.AssetDescription
-  currencyLoading: boolean
+  currencyLoading?: boolean
   numDecimalsAllowed: number
   onChangeAmount: (string) => void
-  recipientType: Types.CounterpartyType
   recipient: string
+  recipientAsset?: Types.AssetDescription
+  recipientType: Types.CounterpartyType
   value: string
 }
 
@@ -65,23 +66,39 @@ type SenderProps = {
   xlmToRecipientAsset?: number
 }
 
-const senderAmount = (props: SenderProps) =>
-  props.amountLoading ? (
-    <Kb.ProgressIndicator style={styles.amountLoading} />
-  ) : typeof props.approximate === 'number' ? (
+const ApproximateBlock = (props: SenderProps) => {
+  return (
     <Kb.Box2 direction="vertical" alignItems="flex-start">
       <Kb.Text type="HeaderBigExtrabold" style={!!props.error && styles.error}>
-        ~{props.approximate.toFixed(props.numDecimals)}
+        ~{props.approximate}
       </Kb.Text>
       <Kb.Text type="BodyTiny">At most {props.atMost}</Kb.Text>
       {!!props.recipientAsset && (
         <Kb.Text type="BodyTiny">
-          1 {props.recipientAsset.code}= {props.xlmToRecipientAsset} XLM
+          1 {props.recipientAsset.code} = {props.xlmToRecipientAsset} XLM
         </Kb.Text>
       )}
     </Kb.Box2>
+  )
+}
+
+const CalculateButton = (props: SenderProps) => {
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(() => {
+    dispatch(WalletsGen.createCalculateBuildingAdvanced())
+  }, [dispatch])
+  return (
+    <Kb.Icon type="iconfont-calculate" sizeType="Big" color={Styles.globalColors.purple} onClick={onClick} />
+  )
+}
+
+const senderAmount = (props: SenderProps) =>
+  props.amountLoading ? (
+    <Kb.ProgressIndicator style={styles.amountLoading} />
+  ) : props.approximate ? (
+    <ApproximateBlock {...props} />
   ) : (
-    <Kb.Icon type="iconfont-calculate" sizeType="Big" color={Styles.globalColors.purple} />
+    <CalculateButton {...props} />
   )
 
 export const AssetInputSenderAdvanced = (props: SenderProps) => (
@@ -104,21 +121,19 @@ type PickAssetButtonProps = {
   isSender: boolean
 }
 
-export const PickAssetButton = (props: PickAssetButtonProps) => {
-  const _buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
-  const accountID = props.isSender
-    ? _buildingAdvanced.senderAccountID
-    : _buildingAdvanced.recipientType === 'keybaseUser'
-    ? ''
-    : _buildingAdvanced.recipient
-  const username = props.isSender
-    ? ''
-    : _buildingAdvanced.recipientType === 'keybaseUser'
-    ? _buildingAdvanced.recipient
+const useGoToPickAssetCallback = (buildingAdvanced: Types.BuildingAdvanced, isSender: boolean) => {
+  const accountID = !isSender
+    ? buildingAdvanced.recipientType === 'keybaseUser'
+      ? Types.noAccountID
+      : buildingAdvanced.recipient
+    : buildingAdvanced.senderAccountID
+  const username = !isSender
+    ? buildingAdvanced.recipientType === 'keybaseUser'
+      ? buildingAdvanced.recipient
+      : ''
     : ''
-  const asset = props.isSender ? _buildingAdvanced.senderAsset : _buildingAdvanced.recipientAsset
   const dispatch = Container.useDispatch()
-  const goToPickAsset = React.useCallback(
+  return React.useCallback(
     () =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -126,7 +141,7 @@ export const PickAssetButton = (props: PickAssetButtonProps) => {
             {
               props: {
                 accountID,
-                isSender: props.isSender,
+                isSender,
                 username,
               },
               selected: Constants.pickAssetFormRouteKey,
@@ -134,8 +149,15 @@ export const PickAssetButton = (props: PickAssetButtonProps) => {
           ],
         })
       ),
-    [dispatch]
+    [dispatch, accountID, username, isSender]
   )
+}
+
+const PickAssetButton = (props: PickAssetButtonProps) => {
+  const _buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const {isSender} = props
+  const goToPickAsset = useGoToPickAssetCallback(_buildingAdvanced, isSender)
+  const asset = isSender ? _buildingAdvanced.senderAsset : _buildingAdvanced.recipientAsset
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} alignSelf="flex-start" alignItems="flex-end">
       <Kb.ClickableBox onClick={goToPickAsset}>

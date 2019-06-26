@@ -95,11 +95,11 @@ export type _Building = {
 export type _BuildingAdvanced = {
   recipient: string
   recipientAmount: string
-  recipientAsset: AssetDescription
+  recipientAsset: AssetDescription | 'native'
   recipientType: CounterpartyType
   publicMemo: HiddenString
   senderAccountID: AccountID
-  senderAsset: AssetDescription
+  senderAsset: AssetDescription | 'native'
   secretNote: HiddenString
 }
 
@@ -113,11 +113,12 @@ export type _PaymentPath = {
 }
 
 export type _BuiltPaymentAdvanced = {
+  destinationAccount: AccountID
+  destinationDisplay: string
+  fullPath: PaymentPath
+  readyToSend: boolean
   sourceDisplay: string
   sourceMaxDisplay: string
-  destinationDisplay: string
-  destinationAccount: AccountID
-  fullPath: PaymentPath
 }
 
 export type _BuiltPayment = {
@@ -329,6 +330,7 @@ export const assetDescriptionToAssetID = (assetDescription: AssetDescription): A
 
 export type _Trustline = {
   acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
+  acceptedAssetsByUsername: I.Map<string, I.Map<AssetID, number>>
   assetMap: I.Map<AssetID, AssetDescription>
   expandedAssets: I.Set<AssetID>
   loaded: boolean

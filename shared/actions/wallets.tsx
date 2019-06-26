@@ -197,9 +197,7 @@ function* requestPayment(state, _: WalletsGen.RequestPaymentPayload, logger) {
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
-      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${
-        buildRes.secretNoteErrMsg
-      }; toErrMsg: ${buildRes.toErrMsg}`
+      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${buildRes.secretNoteErrMsg}; toErrMsg: ${buildRes.toErrMsg}`
     )
     yield Saga.put(
       WalletsGen.createBuiltRequestReceived({
@@ -1112,6 +1110,17 @@ const gregorPushState = (_, action: GregorGen.PushStatePayload) =>
     show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
   })
 
+const assetDescriptionOrNativeToRpcAsset = (
+  asset: 'native' | Types.AssetDescription
+): RPCStellarTypes.Asset =>
+  asset === 'native'
+    ? {type: 'native'}
+    : {
+        type: asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
+        code: asset.code,
+        issuer: asset.issuerAccountID,
+      }
+
 const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDescription =>
   Constants.makeAssetDescription({
     code: asset.code,
@@ -1120,31 +1129,60 @@ const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDe
     issuerVerifiedDomain: asset.verifiedDomain,
   })
 
+const balancesToAction = (
+  balances: Array<RPCStellarTypes.Balance>,
+  accountID: Types.AccountID,
+  username: string
+) => {
+  const {assets, limitsMutable} = balances.reduce(
+    ({assets, limitsMutable}, balance) => {
+      console.log({songgao: 'reduce', asset: balance.asset})
+      const assetDescription = rpcAssetToAssetDescription(balance.asset)
+      return {
+        assets: [...assets, assetDescription],
+        limitsMutable: limitsMutable.set(
+          Types.assetDescriptionToAssetID(assetDescription),
+          Number.parseFloat(balance.limit) || 0
+        ),
+      }
+    },
+    {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
+  )
+  return [
+    ...(accountID !== Types.noAccountID
+      ? [
+          WalletsGen.createSetTrustlineAcceptedAssets({
+            accountID,
+            assets,
+            limits: limitsMutable.asImmutable(),
+          }),
+        ]
+      : []),
+    ...(username
+      ? [
+          WalletsGen.createSetTrustlineAcceptedAssetsByUsername({
+            assets,
+            limits: limitsMutable.asImmutable(),
+            username,
+          }),
+        ]
+      : []),
+  ]
+}
+
 const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
   accountID !== Types.noAccountID &&
   RPCStellarTypes.localGetTrustlinesLocalRpcPromise(
     {accountID},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(accountID)
-  ).then(balances => {
-    const {assets, limitsMutable} = (balances || []).reduce(
-      ({assets, limitsMutable}, balance) => {
-        const assetDescription = rpcAssetToAssetDescription(balance.asset)
-        return {
-          assets: [...assets, assetDescription],
-          limitsMutable: limitsMutable.set(
-            Types.assetDescriptionToAssetID(assetDescription),
-            Number.parseFloat(balance.limit) || 0
-          ),
-        }
-      },
-      {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
-    )
-    return WalletsGen.createSetTrustlineAcceptedAssets({
-      accountID,
-      assets,
-      limits: limitsMutable.asImmutable(),
-    })
-  })
+  ).then(balances => balancesToAction(balances || [], accountID, ''))
+
+const refreshTrustlineAcceptedAssetsByUsername = (state, {payload: {username}}) =>
+  !!username &&
+  RPCStellarTypes.localGetTrustlinesForRecipientLocalRpcPromise(
+    {recipient: username},
+    Constants.refreshTrustlineAcceptedAssetsWaitingKey(username)
+  ).then(({trustlines}) => balancesToAction(trustlines || [], Types.noAccountID, username))
 
 const refreshTrustlinePopularAssets = () =>
   RPCStellarTypes.localListPopularAssetsLocalRpcPromise().then(({assets, totalCount}) =>
@@ -1199,6 +1237,40 @@ const searchTrustlineAssets = (state, {payload: {text}}) => {
       )
     : WalletsGen.createClearTrustlineSearchResults()
 }
+
+const calculateBuildingAdvanced = state =>
+  RPCStellarTypes.localFindPaymentPathLocalRpcPromise({
+    amount: state.wallets.buildingAdvanced.recipientAmount,
+    destinationAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset),
+    from: state.wallets.buildingAdvanced.senderAccountID,
+    sourceAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset),
+    to: state.wallets.buildingAdvanced.recipient,
+  }).then(res => {
+    console.log({res})
+    const {
+      destinationAccount,
+      destinationDisplay,
+      fullPath: {sourceAmount, sourceAmountMax, sourceAsset, path, destinationAsset},
+      sourceDisplay,
+      sourceMaxDisplay,
+    } = res
+    return WalletsGen.createSetBuiltPaymentAdvanced({
+      builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
+        destinationAccount,
+        destinationDisplay,
+        fullPath: Constants.makePaymentPath({
+          destinationAsset: rpcAssetToAssetDescription(destinationAsset),
+          path: I.List(path ? path.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : []),
+          sourceAmount,
+          sourceAmountMax,
+          sourceAsset: rpcAssetToAssetDescription(sourceAsset),
+        }),
+        readyToSend: true,
+        sourceDisplay,
+        sourceMaxDisplay,
+      }),
+    })
+  })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
@@ -1615,6 +1687,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     refreshTrustlineAcceptedAssets,
     'refreshTrustlineAcceptedAssets'
   )
+  yield* Saga.chainAction<WalletsGen.RefreshTrustlineAcceptedAssetsByUsernamePayload>(
+    WalletsGen.refreshTrustlineAcceptedAssetsByUsername,
+    refreshTrustlineAcceptedAssetsByUsername,
+    'refreshTrustlineAcceptedAssetsByUsername'
+  )
   yield* Saga.chainAction<WalletsGen.RefreshTrustlinePopularAssetsPayload>(
     WalletsGen.refreshTrustlinePopularAssets,
     refreshTrustlinePopularAssets,
@@ -1634,6 +1711,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.setTrustlineSearchText,
     searchTrustlineAssets,
     'searchTrustlineAssets'
+  )
+  yield* Saga.chainAction<WalletsGen.SetTrustlineSearchTextPayload>(
+    WalletsGen.calculateBuildingAdvanced,
+    calculateBuildingAdvanced,
+    'calculateBuildingAdvanced'
   )
 }
 

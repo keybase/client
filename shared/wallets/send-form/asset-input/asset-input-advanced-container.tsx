@@ -42,8 +42,8 @@ const senderD = dispatch => ({})
 
 const senderM = (s, d, o: OwnProps) => ({
   amountLoading: false,
-  approximate: s._builtPaymentAdvanced.sourceDisplay,
-  atMost: s._builtPaymentAdvanced.sourceAmountMax,
+  approximate: s._builtPaymentAdvanced.fullPath.sourceAmount,
+  atMost: s._builtPaymentAdvanced.fullPath.sourceAmountMax,
   error: false,
   numDecimals: s._buildingAdvanced.recipientAsset === 'native' ? 7 : 2,
   recipientAsset: s._buildingAdvanced.recipientAsset,
