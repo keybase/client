@@ -6585,6 +6585,11 @@ func TestChatBulkAddToConv(t *testing.T) {
 
 func TestReacjiStore(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		default:
+			return
+		}
 		ctc := makeChatTestContext(t, "ReacjiStore", 1)
 		defer ctc.cleanup()
 
@@ -6613,13 +6618,13 @@ func TestReacjiStore(t *testing.T) {
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
 		reactionKeys := []string{
-			":100:",
-			":1234:",
-			":1st_place_medal:",
-			":2nd_place_medal:",
-			":3rd_place_medal:",
-			":8ball:",
 			":a:",
+			":8ball:",
+			":3rd_place_medal:",
+			":2nd_place_medal:",
+			":1st_place_medal:",
+			":1234:",
+			":100:",
 		}
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
@@ -6640,9 +6645,9 @@ func TestReacjiStore(t *testing.T) {
 		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID2 := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-		mustReactToMsg(ctx, t, ctc, user, conv, textID2, ":a:")
+		mustReactToMsg(ctx, t, ctc, user, conv, textID2, ":100:")
 		consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-		expectedData.FrequencyMap[":a:"]++
+		expectedData.FrequencyMap[":100:"]++
 		info := consumeReactionUpdate(t, listener)
 		assertReacjiStore(info.UserReacjis, expected, expectedData)
 
