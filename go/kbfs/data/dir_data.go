@@ -79,10 +79,14 @@ func (dd *DirData) GetTopBlock(ctx context.Context, rtype BlockReqType) (
 	return topBlock, nil
 }
 
+func (dd *DirData) obfuscator() Obfuscator {
+	return dd.tree.file.Obfuscator()
+}
+
 // GetChildren returns a map of all the child EntryInfos in this
 // directory.
 func (dd *DirData) GetChildren(ctx context.Context) (
-	children map[string]EntryInfo, err error) {
+	children map[PathPartString]EntryInfo, err error) {
 	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return nil, err
@@ -99,13 +103,13 @@ func (dd *DirData) GetChildren(ctx context.Context) (
 	for _, b := range blocks {
 		numEntries += len(b.(*DirBlock).Children)
 	}
-	children = make(map[string]EntryInfo, numEntries)
+	children = make(map[PathPartString]EntryInfo, numEntries)
 	for _, b := range blocks {
 		for k, de := range b.(*DirBlock).Children {
 			if hiddenEntries[k] {
 				continue
 			}
-			children[k] = de.EntryInfo
+			children[NewPathPartString(k, dd.obfuscator())] = de.EntryInfo
 		}
 	}
 	return children, nil
@@ -114,7 +118,7 @@ func (dd *DirData) GetChildren(ctx context.Context) (
 // GetEntries returns a map of all the child DirEntrys in this
 // directory.
 func (dd *DirData) GetEntries(ctx context.Context) (
-	children map[string]DirEntry, err error) {
+	children map[PathPartString]DirEntry, err error) {
 	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return nil, err
@@ -131,10 +135,10 @@ func (dd *DirData) GetEntries(ctx context.Context) (
 	for _, b := range blocks {
 		numEntries += len(b.(*DirBlock).Children)
 	}
-	children = make(map[string]DirEntry, numEntries)
+	children = make(map[PathPartString]DirEntry, numEntries)
 	for _, b := range blocks {
 		for k, de := range b.(*DirBlock).Children {
-			children[k] = de
+			children[NewPathPartString(k, dd.obfuscator())] = de
 		}
 	}
 	return children, nil
@@ -142,22 +146,24 @@ func (dd *DirData) GetEntries(ctx context.Context) (
 
 // Lookup returns the DirEntry for the given entry named by `name` in
 // this directory.
-func (dd *DirData) Lookup(ctx context.Context, name string) (DirEntry, error) {
+func (dd *DirData) Lookup(ctx context.Context, name PathPartString) (
+	DirEntry, error) {
 	topBlock, err := dd.GetTopBlock(ctx, BlockRead)
 	if err != nil {
 		return DirEntry{}, err
 	}
 
-	off := StringOffset(name)
+	namePlain := name.Plaintext()
+	off := StringOffset(namePlain)
 	_, _, block, _, _, _, err := dd.tree.getBlockAtOffset(
 		ctx, topBlock, &off, BlockLookup)
 	if err != nil {
 		return DirEntry{}, err
 	}
 
-	de, ok := block.(*DirBlock).Children[name]
+	de, ok := block.(*DirBlock).Children[namePlain]
 	if !ok {
-		return DirEntry{}, idutil.NoSuchNameError{Name: name}
+		return DirEntry{}, idutil.NoSuchNameError{Name: name.String()}
 	}
 	return de, nil
 }
@@ -268,7 +274,7 @@ func (dd *DirData) processModifiedBlock(
 }
 
 func (dd *DirData) addEntryHelper(
-	ctx context.Context, name string, newDe DirEntry,
+	ctx context.Context, name PathPartString, newDe DirEntry,
 	errorIfExists, errorIfNoMatch bool) (
 	unrefs []BlockInfo, err error) {
 	topBlock, err := dd.GetTopBlock(ctx, BlockWrite)
@@ -276,7 +282,8 @@ func (dd *DirData) addEntryHelper(
 		return nil, err
 	}
 
-	off := StringOffset(name)
+	namePlain := name.Plaintext()
+	off := StringOffset(namePlain)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
 		ctx, topBlock, &off, BlockWrite)
 	if err != nil {
@@ -284,48 +291,49 @@ func (dd *DirData) addEntryHelper(
 	}
 	dblock := block.(*DirBlock)
 
-	de, exists := dblock.Children[name]
+	de, exists := dblock.Children[namePlain]
 	if errorIfExists && exists {
-		return nil, NameExistsError{name}
+		return nil, NameExistsError{name.String()}
 	} else if errorIfNoMatch &&
 		(!exists || de.BlockPointer != newDe.BlockPointer) {
-		return nil, idutil.NoSuchNameError{Name: name}
+		return nil, idutil.NoSuchNameError{Name: name.String()}
 	}
-	dblock.Children[name] = newDe
+	dblock.Children[namePlain] = newDe
 
 	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
 }
 
 // AddEntry adds a new entry to this directory.
 func (dd *DirData) AddEntry(
-	ctx context.Context, newName string, newDe DirEntry) (
+	ctx context.Context, newName PathPartString, newDe DirEntry) (
 	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, newName, newDe, true, false)
 }
 
 // UpdateEntry updates an existing entry to this directory.
 func (dd *DirData) UpdateEntry(
-	ctx context.Context, name string, newDe DirEntry) (
+	ctx context.Context, name PathPartString, newDe DirEntry) (
 	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, name, newDe, false, true)
 }
 
 // SetEntry set an entry to this directory, whether it is new or existing.
 func (dd *DirData) SetEntry(
-	ctx context.Context, name string, newDe DirEntry) (
+	ctx context.Context, name PathPartString, newDe DirEntry) (
 	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, name, newDe, false, false)
 }
 
 // RemoveEntry removes an entry from this directory.
-func (dd *DirData) RemoveEntry(ctx context.Context, name string) (
+func (dd *DirData) RemoveEntry(ctx context.Context, name PathPartString) (
 	unrefs []BlockInfo, err error) {
 	topBlock, err := dd.GetTopBlock(ctx, BlockWrite)
 	if err != nil {
 		return nil, err
 	}
 
-	off := StringOffset(name)
+	namePlain := name.Plaintext()
+	off := StringOffset(namePlain)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
 		ctx, topBlock, &off, BlockWrite)
 	if err != nil {
@@ -333,11 +341,11 @@ func (dd *DirData) RemoveEntry(ctx context.Context, name string) (
 	}
 	dblock := block.(*DirBlock)
 
-	if _, exists := dblock.Children[name]; !exists {
+	if _, exists := dblock.Children[namePlain]; !exists {
 		// Nothing to do.
 		return nil, nil
 	}
-	delete(dblock.Children, name)
+	delete(dblock.Children, namePlain)
 
 	// For now, just leave the block empty, at its current place in
 	// the tree.  TODO: remove empty blocks all the way up the tree

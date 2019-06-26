@@ -22,7 +22,8 @@ func maybePrintPath(path string, err error, verbose bool) {
 }
 
 func createDir(ctx context.Context, kbfsOps libkbfs.KBFSOps, parentNode libkbfs.Node, dirname, path string, verbose bool) (libkbfs.Node, error) {
-	childNode, _, err := kbfsOps.CreateDir(ctx, parentNode, dirname)
+	childNode, _, err := kbfsOps.CreateDir(
+		ctx, parentNode, parentNode.ChildName(dirname))
 	maybePrintPath(path, err, verbose)
 	return childNode, err
 }
@@ -62,7 +63,8 @@ func mkdirOne(ctx context.Context, config libkbfs.Config, dirPathStr string, cre
 
 			nextNode, err := createDir(ctx, kbfsOps, currNode, dirname, currP.String(), verbose)
 			if err == (data.NameExistsError{Name: dirname}) {
-				nextNode, _, err = kbfsOps.Lookup(ctx, currNode, dirname)
+				nextNode, _, err = kbfsOps.Lookup(
+					ctx, currNode, currNode.ChildName(dirname))
 			}
 			if err != nil {
 				return err

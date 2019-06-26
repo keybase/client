@@ -11,16 +11,21 @@ const mapStateToProps = state => {
   const {emails} = state.settings.email
   const {rememberPassword} = state.settings.password
   let accountProps
+  let email = ''
+  let isVerified = false
   if (emails && emails.first()) {
-    const {email, isVerified} = emails.first()
-    accountProps = {
-      email,
-      hasRandomPW: state.settings.password.randomPW,
-      isVerified,
-      onChangeEmail: () => logger.debug('todo'),
-      onChangePassword: () => logger.debug('todo'),
-      rememberPassword,
-    }
+    const firstEmail = emails.first()
+    email = firstEmail.email
+    isVerified = firstEmail.isVerified
+  }
+
+  accountProps = {
+    email,
+    hasRandomPW: state.settings.password.randomPW,
+    isVerified,
+    onChangeEmail: () => logger.debug('todo'),
+    onChangePassword: () => logger.debug('todo'),
+    rememberPassword,
   }
 
   // const {

@@ -152,6 +152,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28 USD", assets[0].Worth)
 	require.Equal(t, "$3,182.96 USD", assets[0].AvailableToSendWorth)
+	require.True(t, assets[0].CanAddTrustline)
 }
 
 func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
@@ -190,6 +191,7 @@ func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
 	require.Equal(t, "CHF", assets[0].WorthCurrency)
 	require.Equal(t, "3,183.28 CHF", assets[0].Worth)
 	require.Equal(t, "3,182.96 CHF", assets[0].AvailableToSendWorth)
+	require.True(t, assets[0].CanAddTrustline)
 
 	// changing currency also updates DisplayCurrency in GetWalletAccountLocal
 	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
@@ -227,6 +229,7 @@ func TestGetAccountAssetsLocalEmptyBalance(t *testing.T) {
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$0.00 USD", assets[0].Worth)
 	require.Equal(t, "$0.00 USD", assets[0].AvailableToSendWorth)
+	require.False(t, assets[0].CanAddTrustline)
 }
 
 func TestGetDisplayCurrenciesLocal(t *testing.T) {
@@ -2969,6 +2972,17 @@ func TestManageTrustlines(t *testing.T) {
 	require.Equal(t, keys, balances2[0].Asset)
 	require.Equal(t, "0.0000000", balances2[0].Amount)
 	require.Equal(t, "922337203685.4775807", balances2[0].Limit) // max limit
+
+	// Check if shows up it GetTrustlinesForRecipientLocal
+	rtlines, err := tcs[0].Srv.GetTrustlinesForRecipientLocal(context.Background(), stellar1.GetTrustlinesForRecipientLocalArg{
+		Recipient: tcs[0].Fu.Username,
+	})
+	require.NoError(t, err)
+	require.Len(t, rtlines.Trustlines, 1)
+	require.Equal(t, keys, rtlines.Trustlines[0].Asset)
+	require.Equal(t, "0.0000000", rtlines.Trustlines[0].Amount)
+	require.Equal(t, "922337203685.4775807", rtlines.Trustlines[0].Limit) // max limit
+	require.Equal(t, rtlines.RecipientType, stellar1.ParticipantType_KEYBASE)
 
 	// Change limit.
 	err = tcs[0].Srv.ChangeTrustlineLimitLocal(context.Background(), stellar1.ChangeTrustlineLimitLocalArg{

@@ -124,6 +124,13 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 			if err != nil {
 				return nil, err
 			}
+
+			// 0.5 is the minimum balance necessary to create a trustline
+			balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(d.Amount, "0.5")
+			if err != nil {
+				return nil, err
+			}
+
 			asset := stellar1.AccountAssetLocal{
 				Name:                   "Lumens",
 				AssetCode:              "XLM",
@@ -132,6 +139,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				BalanceTotal:           fmtAmount,
 				BalanceAvailableToSend: fmtAvailable,
 				WorthCurrency:          displayCurrency,
+				CanAddTrustline:        balanceComparedToTrustlineMin == 1,
 			}
 			fillWorths := func() (err error) {
 				if rateErr != nil {
@@ -182,6 +190,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				Desc:                   d.Asset.Desc,
 				InfoUrl:                d.Asset.InfoUrl,
 				InfoUrlText:            d.Asset.InfoUrlText,
+				CanAddTrustline:        false,
 			})
 		}
 	}
@@ -1065,7 +1074,44 @@ func (s *Server) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustli
 	if err != nil {
 		return ret, err
 	}
-	balances, err := s.remoter.Balances(mctx.Ctx(), arg.AccountID)
+	return s.getTrustlinesAccountID(mctx, arg.AccountID)
+}
+
+func (s *Server) GetTrustlinesForRecipientLocal(ctx context.Context, arg stellar1.GetTrustlinesForRecipientLocalArg) (ret stellar1.RecipientTrustlinesLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "GetTrustlinesByRecipientLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return ret, err
+	}
+
+	recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.Recipient), false)
+	if err != nil {
+		return ret, err
+	}
+	if recipient.AccountID == nil {
+		return ret, errors.New("recipient has no stellar accounts")
+	}
+
+	trustlines, err := s.getTrustlinesAccountID(mctx, stellar1.AccountID(*recipient.AccountID))
+	if err != nil {
+		return ret, err
+	}
+	ret.Trustlines = trustlines
+
+	if recipient.User != nil {
+		ret.RecipientType = stellar1.ParticipantType_KEYBASE
+	} else {
+		ret.RecipientType = stellar1.ParticipantType_STELLAR
+	}
+
+	return ret, nil
+}
+
+func (s *Server) getTrustlinesAccountID(mctx libkb.MetaContext, accountID stellar1.AccountID) (ret []stellar1.Balance, err error) {
+	balances, err := s.remoter.Balances(mctx.Ctx(), accountID)
 	if err != nil {
 		return ret, err
 	}

@@ -153,6 +153,78 @@ const load = () => {
       ]}
     />
   ))
+  addConfigs(stories, 'Trustline add', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: 'strongmold.co',
+        },
+        remove: false,
+      }}
+    />
+  ))
+  addConfigs(stories, 'Trustline add (no issuer domain)', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: '',
+        },
+        remove: false,
+      }}
+    />
+  ))
+  addConfigs(stories, 'Trustline remove', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: 'strongmold.co',
+        },
+        remove: true,
+      }}
+    />
+  ))
+  addConfigs(stories, 'Trustline remove (no issuer domain)', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: '',
+        },
+        remove: true,
+      }}
+    />
+  ))
 }
 
 export default load

@@ -42,18 +42,24 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
         .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
       if (debugTodo) {
-        const allTodos: Array<Types.TodoType> = Object.values(Constants.todoTypeEnumToType)
-        allTodos.forEach(todoType => {
+        const allTodos: Array<RPCTypes.HomeScreenTodoType> = Object.values(RPCTypes.HomeScreenTodoType)
+        allTodos.forEach(avdlType => {
+          const todoType = Constants.todoTypeEnumToType[avdlType]
           if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
             return
           }
+          const instructions = Constants.makeDescriptionForTodoItem({
+            legacyEmailVisibility: 'user@example.com',
+            t: avdlType,
+            verifyAllEmail: 'user@example.com',
+            verifyAllPhoneNumber: '+1555000111',
+          } as any)
           newItems = newItems.push(
             Constants.makeTodo({
               badged: true,
               confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
-              dismissable: Constants.todoTypeToDismissable[todoType],
               icon: Constants.todoTypeToIcon[todoType],
-              instructions: Constants.todoTypeToInstructions[todoType],
+              instructions,
               todoType,
               type: 'todo',
             })

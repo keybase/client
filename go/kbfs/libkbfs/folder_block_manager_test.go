@@ -44,11 +44,11 @@ func testQuotaReclamation(ctx context.Context, t *testing.T, config Config,
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync all: %v", err)
-	err = kbfsOps.RemoveDir(ctx, rootNode, "a")
+	err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err, "Couldn't remove dir: %+v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync all: %v", err)
@@ -88,7 +88,7 @@ func testQuotaReclamation(ctx context.Context, t *testing.T, config Config,
 	// Increase the time and make a new revision, but don't run quota
 	// reclamation yet.
 	clock.Set(now.Add(2 * config.Mode().QuotaReclamationMinUnrefAge()))
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
+	_, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("b"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync all: %v", err)
@@ -244,11 +244,11 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	testPointersPerGCThreshold := 10
 	for i := 0; i < testPointersPerGCThreshold; i++ {
-		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+		_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 		require.NoError(t, err, "Couldn't sync all: %v", err)
-		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
+		err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err, "Couldn't remove dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 		require.NoError(t, err, "Couldn't sync all: %v", err)
@@ -312,12 +312,13 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	name := u1.String() + "," + u2.String()
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
-	data := []byte{1, 2, 3, 4, 5}
+	data1 := []byte{1, 2, 3, 4, 5}
 	kbfsOps1 := config1.KBFSOps()
-	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	aNode1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
-	err = kbfsOps1.Write(ctx, aNode1, data, 0)
+	err = kbfsOps1.Write(ctx, aNode1, data1, 0)
 	require.NoError(t, err, "Couldn't write file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, aNode1.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %+v", err)
@@ -325,7 +326,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// Make two more files that share a block, only one of which will
 	// be deleted.
 	otherData := []byte{5, 4, 3, 2, 1}
-	for _, name := range []string{"b", "c"} {
+	for _, name := range []data.PathPartString{testPPS("b"), testPPS("c")} {
 		node, _, err := kbfsOps1.CreateFile(ctx, rootNode1, name, false, NoExcl)
 		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps1.Write(ctx, node, otherData, 0)
@@ -337,17 +338,17 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// u2 reads the file
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
 	kbfsOps2 := config2.KBFSOps()
-	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
-	data2 := make([]byte, len(data))
+	data2 := make([]byte, len(data1))
 	_, err = kbfsOps2.Read(ctx, aNode2, data2, 0)
 	require.NoError(t, err, "Couldn't read file: %+v", err)
-	if !bytes.Equal(data, data2) {
+	if !bytes.Equal(data1, data2) {
 		t.Fatalf("Read bad data: %v", data2)
 	}
-	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "b")
+	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("b"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
-	data2 = make([]byte, len(data))
+	data2 = make([]byte, len(data1))
 	_, err = kbfsOps2.Read(ctx, bNode2, data2, 0)
 	require.NoError(t, err, "Couldn't read file: %+v", err)
 	if !bytes.Equal(otherData, data2) {
@@ -355,9 +356,9 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Remove two of the files
-	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "a")
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err, "Couldn't remove file: %+v", err)
-	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "b")
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, testPPS("b"))
 	require.NoError(t, err, "Couldn't remove file: %+v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %+v", err)
@@ -401,7 +402,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// for which one reference has been deleted, but the other should
 	// still be live.  This will cause one dedup reference, and 3 new
 	// blocks (2 from the create, and 1 from the sync).
-	dNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "d", false, NoExcl)
+	dNode, _, err := kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("d"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %+v", err)
@@ -416,11 +418,12 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Make the same file on node 2, making sure this doesn't try to
 	// reuse the same block (i.e., there are only 2 put calls).
-	eNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoExcl)
+	eNode, _, err := kbfsOps2.CreateFile(
+		ctx, rootNode2, testPPS("e"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %+v", err)
-	err = kbfsOps2.Write(ctx, eNode, data, 0)
+	err = kbfsOps2.Write(ctx, eNode, data1, 0)
 	require.NoError(t, err, "Couldn't write file: %+v", err)
 
 	// Stall the puts that comes as part of the sync call.
@@ -594,15 +597,15 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	// u1 does the writes, and u2 tries to do the QR.
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
-	err = kbfsOps1.RemoveDir(ctx, rootNode1, "a")
+	err = kbfsOps1.RemoveDir(ctx, rootNode1, testPPS("a"))
 	require.NoError(t, err, "Couldn't remove dir: %+v", err)
 
 	// Increase the time and make a new revision, and make sure quota
 	// reclamation doesn't run.
 	clock.Add(2 * config2.Mode().QuotaReclamationMinUnrefAge())
-	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, testPPS("b"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
 
 	// Wait for outstanding archives
@@ -658,7 +661,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	// If u2 does a write, we don't have to wait the minimum head age.
-	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "c")
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, testPPS("c"))
 	require.NoError(t, err, "Couldn't create dir: %+v", err)
 
 	// Wait for outstanding archives
@@ -707,11 +710,11 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 
 	numCycles := 4
 	for i := 0; i < numCycles; i++ {
-		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+		_, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err, "Couldn't create dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 		require.NoError(t, err, "Couldn't sync all: %v", err)
-		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
+		err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
 		require.NoError(t, err, "Couldn't remove dir: %+v", err)
 		err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 		require.NoError(t, err, "Couldn't sync all: %v", err)
@@ -798,7 +801,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
-	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	aNode, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -808,7 +811,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.Equal(t, uint64(2), status[syncCacheName].NumBlocks)
 
 	t.Log("Make a second revision that will unref some blocks")
-	_, _, err = kbfsOps.CreateDir(ctx, aNode, "b")
+	_, _, err = kbfsOps.CreateDir(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -821,17 +824,17 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	require.Equal(t, uint64(3), status[syncCacheName].NumBlocks)
 
 	t.Log("Add two empty files, to cause deduplication")
-	_, _, err = kbfsOps.CreateFile(ctx, aNode, "c", false, NoExcl)
+	_, _, err = kbfsOps.CreateFile(ctx, aNode, testPPS("c"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	_, _, err = kbfsOps.CreateFile(ctx, aNode, "d", false, NoExcl)
+	_, _, err = kbfsOps.CreateFile(ctx, aNode, testPPS("d"), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 
 	t.Logf("Remove one file, but not the other")
-	err = kbfsOps.RemoveEntry(ctx, aNode, "d")
+	err = kbfsOps.RemoveEntry(ctx, aNode, testPPS("d"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -845,11 +848,11 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 
 	t.Log("Test another TLF that isn't synced until after a few revisions")
 	rootNode = GetRootNodeOrBust(ctx, t, config, userName.String(), tlf.Public)
-	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	aNode, _, err = kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
-	bNode, _, err := kbfsOps.CreateDir(ctx, aNode, "b")
+	bNode, _, err := kbfsOps.CreateDir(ctx, aNode, testPPS("b"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -864,7 +867,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
-	_, _, err = kbfsOps.CreateDir(ctx, bNode, "c")
+	_, _, err = kbfsOps.CreateDir(ctx, bNode, testPPS("c"))
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
