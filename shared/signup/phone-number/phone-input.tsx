@@ -117,7 +117,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               <Kb.Text type="BodySemibold">
                 {getCountryEmoji(this.state.country)} {getCallingCode(this.state.country)}
               </Kb.Text>
-              <Kb.Icon type="iconfont-caret-down" sizeType="Small" />
+              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
           <Kb.PlainInput
