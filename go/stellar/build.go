@@ -286,16 +286,17 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						Message: "Your Keybase username will not be linked to this transaction.",
 					})
 				}
-			}
-			offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, arg.To)
-			if err != nil {
-				return res, err
-			}
-			if offerAdvancedForm {
-				res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-					Level:                 "info",
-					OfferAdvancedSendForm: true,
-				})
+
+				offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, arg.To)
+				if err != nil {
+					return res, err
+				}
+				if offerAdvancedForm {
+					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+						Level:                 "info",
+						OfferAdvancedSendForm: true,
+					})
+				}
 			}
 		}
 	}
