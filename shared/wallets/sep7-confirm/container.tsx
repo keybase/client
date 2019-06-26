@@ -59,7 +59,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-export default Container.namedConnect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => ({
@@ -68,6 +68,5 @@ export default Container.namedConnect(
     onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
     onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
     onBack: dispatchProps.onClose,
-  }),
-  'SEP7Confirm'
+  })
 )(SEP7Confirm)
