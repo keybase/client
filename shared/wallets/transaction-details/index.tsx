@@ -295,7 +295,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
 const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
   <Kb.Box2 direction="vertical" noShrink={true}>
     <Kb.Text type="BodyBigExtrabold">
-      {props.amount} {props.assetCode}
+      {props.amount} {props.assetCode || 'XLM'}
     </Kb.Text>
     <Kb.Text type="BodySmall">/{props.issuerDescription || 'Unknown issuer'}</Kb.Text>
   </Kb.Box2>
@@ -356,7 +356,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
               <ConvertedCurrencyLabel
                 amount={round(props.sourceToDestinationConversionRate, 6)}
                 assetCode={props.assetCode}
-                issuerDescription={props.issuerDescription}
+                issuerDescription={props.assetCode === '' ? 'Stellar Lumens' : props.issuerDescription}
               />
             </Kb.Box2>
           </Kb.Box2>

@@ -194,14 +194,39 @@ const load = () => {
         yourRole="receiverOnly"
       />
     ))
-    .add('Sent path payment', () => (
+    .add('Sent path payment (XLM -> Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="53.1688643 TOAD"
+        assetCode="TOAD"
+        sourceAmount="0.0222742"
+        issuerDescription="anchortoad.com"
+        sourceToDestinationConversionRate={22.447495308473478}
+      />
+    ))
+    .add('Sent path payment (Asset -> Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="2.5 FROG"
+        assetCode="FROG"
+        sourceAmount="1.02"
+        sourceAsset="TOAD"
+        sourceIssuer="anchortoad.com"
+        issuerDescription="froggycoin.io"
+        sourceToDestinationConversionRate={2.450980392}
+      />
+    ))
+    .add('Sent path payment (Asset -> XLM)', () => (
       <TransactionDetails
         {...props}
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        assetCode="XLM"
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
         sourceIssuer="anchortoad.com"

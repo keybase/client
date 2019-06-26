@@ -161,7 +161,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.SourceAmountActual = p.SourceAmountActual
 	destinationAmount, err1 := strconv.ParseFloat(p.Amount, 64)
 	sourceAmount, err2 := strconv.ParseFloat(p.SourceAmountActual, 64)
-	if err1 != nil && err2 != nil {
+	if err1 != nil && err2 != nil && sourceAmount != 0 {
 		loc.SourceToDestinationConversionRate = destinationAmount / sourceAmount
 	}
 

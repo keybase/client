@@ -212,7 +212,7 @@ const Detail = (props: DetailProps) => {
       {' '}
       by converting{' '}
       <Text type={textTypeExtrabold}>
-        {props.sourceAmount} {props.sourceAsset}
+        {props.sourceAmount} {props.sourceAsset || 'XLM'}
       </Text>
     </Text>
   ) : null
@@ -520,7 +520,11 @@ export const Transaction = (props: Props) => {
                   canceled={props.status === 'canceled'}
                   pending={pending}
                   yourRole={props.yourRole}
-                  amountXLM={props.amountXLM}
+                  amountXLM={
+                    props.sourceAmount
+                      ? `${props.sourceAmount} ${props.sourceAsset || 'XLM'}`
+                      : props.amountXLM
+                  }
                 />
               )}
             </Box2>
