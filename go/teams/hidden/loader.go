@@ -11,12 +11,16 @@ import (
 // It additionally can have new chain links loaded from the server, since it might need to be queried
 // in the process of loading the team as if the new links were already commited to the data store.
 type LoaderPackage struct {
-	id           keybase1.TeamID
-	encKID       keybase1.KID
-	encKIDGen    keybase1.PerTeamKeyGeneration
-	data         *keybase1.HiddenTeamChain
-	newData      *keybase1.HiddenTeamChain
-	expectedPrev *keybase1.LinkTriple
+	id             keybase1.TeamID
+	encKID         keybase1.KID
+	encKIDGen      keybase1.PerTeamKeyGeneration
+	data           *keybase1.HiddenTeamChain
+	newData        *keybase1.HiddenTeamChain
+	expectedPrev   *keybase1.LinkTriple
+	ratchets       []sig3.Tail
+	rbks           *RatchetBlindingKeySet
+	allNewRatchets map[keybase1.Seqno]keybase1.LinkTripleAndTime
+	newRatchetSet  keybase1.HiddenTeamChainRatchetSet
 }
 
 func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, error)) (ret *LoaderPackage, err error) {
@@ -138,7 +142,7 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 	return NewLoaderError("Server promised a hidden chain up to %d, but never received; is it withholding?", max)
 }
 
-func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
+func (l *LoaderPackage) checkLoadedRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
 	q := ratchet.Triple.Seqno
 	link, ok := update.Outer[q]
 	if ok && !link.Eq(ratchet.Triple.LinkID) {
@@ -147,12 +151,12 @@ func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.Hi
 	return nil
 }
 
-func (l *LoaderPackage) checkRatchets(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) (err error) {
+func (l *LoaderPackage) checkLoadedRatchets(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) (err error) {
 	if l.data == nil {
 		return nil
 	}
-	for _, r := range l.data.Ratchet.Flat() {
-		err = l.checkRatchet(mctx, update, r)
+	for _, r := range l.data.RatchetSet.Flat() {
+		err = l.checkLoadedRatchet(mctx, update, r)
 		if err != nil {
 			return err
 		}
@@ -173,6 +177,30 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 	err = l.storeData(mctx, data)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (l *LoaderPackage) checkNewLinkAgainstNewRatchets(mctx libkb.MetaContext, q keybase1.Seqno, h keybase1.LinkID) (err error) {
+	if l.allNewRatchets == nil {
+		return nil
+	}
+	found, ok := l.allNewRatchets[q]
+	if !ok {
+		return nil
+	}
+	if !found.Triple.LinkID.Eq(h) {
+		return NewLoaderError("link ID at %d fails to check against ratchet: %s != %s", q, found.Triple.LinkID, h)
+	}
+	return nil
+}
+
+func (l *LoaderPackage) checkNewLinksAgainstNewRatchets(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) error {
+	for k, v := range update.Outer {
+		err := l.checkNewLinkAgainstNewRatchets(mctx, k, v)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -209,7 +237,11 @@ func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.Exp
 		return nil, err
 	}
 
-	err = l.checkRatchets(mctx, data)
+	err = l.checkLoadedRatchets(mctx, data)
+	if err != nil {
+		return nil, err
+	}
+	err = l.checkNewLinksAgainstNewRatchets(mctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +364,13 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 	if l.data == nil {
 		return keybase1.Seqno(0)
 	}
-	return l.data.Ratchet.Max()
+	ret := l.data.RatchetSet.Max()
+	tmp := l.newRatchetSet.Max()
+	if tmp > ret {
+		ret = tmp
+	}
+	return ret
+
 }
 
 // HasReaderPerTeamKeyAtGeneration returns true if the LoaderPackage has a sigchain entry for
@@ -347,9 +385,14 @@ func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyG
 
 // Commit the update from the server to main HiddenTeamChain storage.
 func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
-	if l.newData == nil {
+	if l.newData == nil && l.newRatchetSet.IsEmpty() {
 		return nil
 	}
+	if l.newData == nil {
+		l.newData = keybase1.NewHiddenTeamChain(l.id)
+	}
+	l.newData.RatchetSet.Merge(l.newRatchetSet)
+
 	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData, l.expectedPrev)
 	return err
 }
@@ -366,4 +409,54 @@ func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGener
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()
+}
+
+func (l *LoaderPackage) RatchetBlindingKeySet() *RatchetBlindingKeySet {
+	return l.rbks
+}
+
+func (l *LoaderPackage) SetRatchetBlindingKeySet(r *RatchetBlindingKeySet) {
+	l.rbks = r
+}
+
+func (l *LoaderPackage) AddRatchets(mctx libkb.MetaContext, v []SCTeamRatchet, ctime int, typ keybase1.RatchetType) (err error) {
+	for _, r := range v {
+		err := l.AddRatchet(mctx, r, ctime, typ)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (l *LoaderPackage) AddRatchet(mctx libkb.MetaContext, r SCTeamRatchet, ctime int, typ keybase1.RatchetType) (err error) {
+	tail := l.rbks.Get(r)
+	if tail == nil {
+		return NewLoaderError("missing unblind for ratchet %s", r.String())
+	}
+	ratchet := keybase1.LinkTripleAndTime{
+		Triple: tail.Export(),
+		Time:   keybase1.TimeFromSeconds(int64(ctime)),
+	}
+	err = checkRatchet(mctx, l.data, ratchet)
+	if err != nil {
+		return err
+	}
+	err = checkRatchet(mctx, l.newData, ratchet)
+	if err != nil {
+		return err
+	}
+	if l.allNewRatchets == nil {
+		l.allNewRatchets = make(map[keybase1.Seqno]keybase1.LinkTripleAndTime)
+	}
+	q := ratchet.Triple.Seqno
+	found, ok := l.allNewRatchets[q]
+	if ok && !found.Triple.LinkID.Eq(ratchet.Triple.LinkID) {
+		return NewLoaderError("ratchet for seqno %d contradicts another ratchet", q)
+	}
+	if !ok {
+		l.allNewRatchets[q] = ratchet
+	}
+	l.newRatchetSet.Add(typ, ratchet)
+	return nil
 }

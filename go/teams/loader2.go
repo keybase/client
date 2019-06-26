@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 	"github.com/keybase/go-codec/codec"
 )
 
@@ -992,4 +993,12 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 			state.PerTeamKeySeedsUnverified[g] = ptksu
 		},
 	)
+}
+
+func consumeRatchets(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, link *ChainLinkUnpacked) (err error) {
+	if link.isStubbed() {
+		return nil
+	}
+	err = hiddenPackage.AddRatchets(mctx, link.inner.Ratchets(), link.inner.Ctime, keybase1.RatchetType_MAIN)
+	return err
 }

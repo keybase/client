@@ -1744,6 +1744,12 @@ export enum PushReason {
   newData = 2,
 }
 
+export enum RatchetType {
+  main = 0,
+  blinded = 1,
+  self = 2,
+}
+
 export enum Reachable {
   unknown = 0,
   yes = 1,
@@ -2323,9 +2329,9 @@ export type HasServerKeysRes = {readonly hasServerKeys: Boolean}
 export type HashMeta = Bytes
 export type Hello2Res = {readonly encryptionKey: KID; readonly sigPayload: HelloRes; readonly deviceEkKID: KID}
 export type HelloRes = String
-export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly latestSeqnoHint: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchet: HiddenTeamChainRatchet; readonly cachedAt: Time}
+export type HiddenTeamChain = {readonly id: TeamID; readonly subversion: Int; readonly public: Boolean; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly last: Seqno; readonly latestSeqnoHint: Seqno; readonly lastPerTeamKeys: {[key: string]: Seqno}; readonly outer: {[key: string]: LinkID}; readonly inner: {[key: string]: HiddenTeamChainLink}; readonly readerPerTeamKeys: {[key: string]: Seqno}; readonly ratchetSet: HiddenTeamChainRatchetSet; readonly cachedAt: Time}
 export type HiddenTeamChainLink = {readonly m: /* merkleRoot */ MerkleRootV2; readonly p: /* parentChain */ LinkTriple; readonly s: /* signer */ Signer; readonly k: /* ptk */ {[key: string]: PerTeamKeyAndCheck}}
-export type HiddenTeamChainRatchet = {readonly main?: LinkTripleAndTime | null; readonly blinded?: LinkTripleAndTime | null; readonly self?: LinkTripleAndTime | null}
+export type HiddenTeamChainRatchetSet = {readonly ratchets: {[key: string]: LinkTripleAndTime}}
 export type HomeScreen = {readonly lastViewed: Time; readonly version: Int; readonly visits: Int; readonly items?: Array<HomeScreenItem> | null; readonly followSuggestions?: Array<HomeUserSummary> | null; readonly announcementsVersion: Int}
 export type HomeScreenAnnouncement = {readonly id: HomeScreenAnnouncementID; readonly version: HomeScreenAnnouncementVersion; readonly appLink: AppLinkType; readonly confirmLabel: String; readonly dismissable: Boolean; readonly iconUrl: String; readonly text: String; readonly url: String}
 export type HomeScreenAnnouncementID = Int

@@ -106,6 +106,11 @@ func TestRotateHiddenOther(t *testing.T) {
 		rotate(i%2 == 0)
 		check()
 	}
+
+	mctx1 := libkb.NewMetaContext(ctx, tcs[1].G)
+	ch, err := tcs[1].G.GetHiddenTeamChainManager().Load(mctx1, teamID)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.Seqno(2), ch.RatchetSet.Ratchets[keybase1.RatchetType_MAIN].Triple.Seqno)
 }
 
 func TestRotateHiddenOtherFTL(t *testing.T) {
@@ -161,6 +166,11 @@ func TestRotateHiddenOtherFTL(t *testing.T) {
 
 	// Also test the gregor-powered refresh mechanism. We're going to mock out the gregor message for now.
 	rotate(true)
-	tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(libkb.NewMetaContext(ctx, tcs[1].G), teamID, keybase1.Seqno(4))
+	mctx1 := libkb.NewMetaContext(ctx, tcs[1].G)
+	tcs[1].G.GetHiddenTeamChainManager().HintLatestSeqno(mctx1, teamID, keybase1.Seqno(4))
 	checkForUser(1, false)
+
+	ch, err := tcs[1].G.GetHiddenTeamChainManager().Load(mctx1, teamID)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.Seqno(2), ch.RatchetSet.Ratchets[keybase1.RatchetType_MAIN].Triple.Seqno)
 }
