@@ -15,9 +15,10 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  // const [allowSearch, onChangeAllowSearch] = React.useState(false)
   const disabled = !valid
-  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(phoneNumber, allowSearch))
+  const onContinue = () =>
+    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* allowSearch */)
   return (
     <SignupScreen
       buttons={[
@@ -51,12 +52,15 @@ const EnterPhoneNumber = (props: Props) => {
           onChangeValidity={onChangeValidity}
           onEnterKeyDown={onContinue}
         />
-        <Kb.Checkbox
-          label="Allow friends to find you by this phone number"
-          checked={allowSearch}
-          onCheck={onChangeAllowSearch}
-          style={styles.checkbox}
-        />
+        <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>
+        {/*
+          <Kb.Checkbox
+            label="Allow friends to find you by this phone number"
+            checked={allowSearch}
+            onCheck={onChangeAllowSearch}
+            style={styles.checkbox}
+          />
+        */}
         {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
       </Kb.Box2>
     </SignupScreen>

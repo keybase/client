@@ -6,6 +6,7 @@ import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-
 import {memoize} from '../../util/memoize'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
+const getCountryEmoji = countryCode => countryData[countryCode].emoji
 const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
 const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
@@ -14,9 +15,16 @@ const pickerItems = memoize(countryData =>
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
-const menuItems = memoize((countryData, onClick) =>
+const menuItems = memoize((countryData, filter, onClick) =>
   Object.values(countryData)
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
+    .filter((cd: any) => {
+      const strippedFilter = filter.replace(/[^\d+]/g, '')
+      return (
+        (strippedFilter.length > 0 && cd.callingCode.replace(/[^\d+]/g, '').includes(strippedFilter)) ||
+        cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+      )
+    })
     .map((cd: any) => ({
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
@@ -25,12 +33,99 @@ const menuItems = memoize((countryData, onClick) =>
 )
 
 const MenuItem = props => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.menuItem}>
-    <Kb.Text type="BodySemibold" center={true}>
-      {props.text}
-    </Kb.Text>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem}>
+    <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
   </Kb.Box2>
 )
+
+type CountrySelectorProps = {
+  attachTo: () => React.Component<any> | null
+  onSelect: (arg0: string) => void
+  onHidden: () => void
+  selected: string
+  visible: boolean
+}
+
+type CountrySelectorState = {
+  selected: string
+  filter: string
+}
+
+class CountrySelector extends React.Component<CountrySelectorProps, CountrySelectorState> {
+  state = {
+    filter: '',
+    selected: this.props.selected,
+  }
+
+  componentDidUpdate(prevProps: CountrySelectorProps) {
+    if (this.props.selected !== prevProps.selected) {
+      this._onSelect(this.props.selected)
+    }
+  }
+
+  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+
+  _onCancel = () => {
+    this._onSelect(this.props.selected)
+    this.props.onHidden()
+  }
+
+  _onDone = () => {
+    this.props.onSelect(this.state.selected)
+    this.props.onHidden()
+  }
+
+  _onSelectMenu = selected => {
+    this.props.onSelect(selected)
+  }
+
+  _onChangeFilter = filter => this.setState(s => ({filter}))
+
+  clearFilter() {
+    this._onChangeFilter('')
+  }
+
+  render() {
+    if (!Styles.isMobile) {
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          containerStyle={styles.countryLayout}
+          header={{
+            title: 'Search',
+            view: (
+              <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
+                <Kb.SearchFilter
+                  icon="iconfont-search"
+                  fullWidth={true}
+                  onChange={this._onChangeFilter}
+                  placeholderText="Search"
+                  focusOnMount={true}
+                />
+              </Kb.Box2>
+            ),
+          }}
+          items={menuItems(countryData, this.state.filter, this._onSelectMenu)}
+          listStyle={styles.countryList}
+          onHidden={this.props.onHidden}
+          visible={this.props.visible}
+          attachTo={this.props.attachTo}
+        />
+      )
+    }
+    return (
+      <Kb.FloatingPicker
+        items={pickerItems(countryData)}
+        onSelect={this._onSelect}
+        onHidden={this._onCancel}
+        onCancel={this._onCancel}
+        onDone={this._onDone}
+        selectedValue={this.state.selected}
+        visible={this.props.visible}
+      />
+    )
+  }
+}
 
 type Props = {
   defaultCountry?: string
@@ -48,6 +143,7 @@ type State = {
 class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   state = {country: this.props.defaultCountry || defaultCountry, formatted: ''}
   _formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
+  _countrySelectorRef = React.createRef<CountrySelector>()
 
   _setFormatted = formatted =>
     this.setState(s => {
@@ -91,6 +187,11 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     }
   }
 
+  _toggleShowingMenu = () => {
+    this._countrySelectorRef.current.clearFilter()
+    this.props.toggleShowingMenu()
+  }
+
   render() {
     return (
       <>
@@ -99,7 +200,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           direction="horizontal"
           style={Styles.collapseStyles([styles.container, this.props.style])}
         >
-          <Kb.ClickableBox onClick={this.props.toggleShowingMenu} style={styles.fullHeight}>
+          <Kb.ClickableBox onClick={this._toggleShowingMenu} style={styles.fullHeight}>
             <Kb.Box2
               direction="horizontal"
               style={styles.callingCodeContainer}
@@ -108,8 +209,10 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               gap="small"
               ref={this.props.setAttachmentRef}
             >
-              <Kb.Text type="BodySemibold">{getCallingCode(this.state.country)}</Kb.Text>
-              <Kb.Icon type="iconfont-caret-down" sizeType="Small" />
+              <Kb.Text type="BodySemibold">
+                {getCountryEmoji(this.state.country)} {getCallingCode(this.state.country)}
+              </Kb.Text>
+              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
           <Kb.PlainInput
@@ -126,79 +229,16 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         <CountrySelector
           attachTo={this.props.getAttachmentRef}
           onSelect={this._setCountry}
-          onHidden={this.props.toggleShowingMenu}
+          onHidden={this._toggleShowingMenu}
           selected={this.state.country}
           visible={this.props.showingMenu}
+          ref={this._countrySelectorRef}
         />
       </>
     )
   }
 }
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
-
-type CountrySelectorProps = {
-  attachTo: () => React.Component<any> | null
-  onSelect: (arg0: string) => void
-  onHidden: () => void
-  selected: string
-  visible: boolean
-}
-
-type CountrySelectorState = {
-  selected: string
-}
-
-class CountrySelector extends React.Component<CountrySelectorProps, CountrySelectorState> {
-  state = {selected: this.props.selected}
-
-  componentDidUpdate(prevProps: CountrySelectorProps) {
-    if (this.props.selected !== prevProps.selected) {
-      this._onSelect(this.props.selected)
-    }
-  }
-
-  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
-
-  _onCancel = () => {
-    this._onSelect(this.props.selected)
-    this.props.onHidden()
-  }
-
-  _onDone = () => {
-    this.props.onSelect(this.state.selected)
-    this.props.onHidden()
-  }
-
-  _onSelectMenu = selected => {
-    this.props.onSelect(selected)
-  }
-
-  render() {
-    if (!Styles.isMobile) {
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          containerStyle={{maxHeight: 160, width: 240}}
-          items={menuItems(countryData, this._onSelectMenu)}
-          onHidden={this.props.onHidden}
-          visible={this.props.visible}
-          attachTo={this.props.attachTo}
-        />
-      )
-    }
-    return (
-      <Kb.FloatingPicker
-        items={pickerItems(countryData)}
-        onSelect={this._onSelect}
-        onHidden={this._onCancel}
-        onCancel={this._onCancel}
-        onDone={this._onDone}
-        selectedValue={this.state.selected}
-        visible={this.props.visible}
-      />
-    )
-  }
-}
 
 const styles = Styles.styleSheetCreate({
   callingCodeContainer: {
@@ -214,6 +254,29 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
     borderWidth: 1,
   },
+  countryLayout: {
+    maxHeight: 200,
+    overflow: 'hidden',
+    width: 240,
+  },
+  countryList: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      display: 'block',
+      maxHeight: 160,
+      overflowX: 'hidden',
+      overflowY: 'auto',
+      paddingBottom: 0,
+      paddingTop: 0,
+    },
+  }),
+  countrySearch: {
+    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.padding(0, Styles.globalMargins.tiny),
+    flexShrink: 0,
+    height: 38,
+    width: '100%',
+  },
   fullHeight: {height: '100%'},
   input: Styles.platformStyles({
     isElectron: {
@@ -224,7 +287,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   menuItem: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.medium),
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
+  },
+  searchWrapper: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
   },
 })
 
