@@ -215,6 +215,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.clearAddingEmail: {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
     }
+    case SettingsGen.clearAddedEmail: {
+      return state.update('email', emailState => emailState.merge({addedEmail: null}))
+    }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

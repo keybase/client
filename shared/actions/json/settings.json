@@ -69,6 +69,7 @@
       "error?": "Error"
     },
     "clearAddingEmail": {"_description": "Reset state used for adding an email."},
+    "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"

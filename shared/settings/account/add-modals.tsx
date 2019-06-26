@@ -11,6 +11,18 @@ import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export const Email = () => {
   const dispatch = Container.useDispatch()
+  // clean on unmount
+  React.useEffect(() => () => dispatch(SettingsGen.createClearAddingEmail()), [dispatch])
+
+  // watch for + nav away on success
+  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
+  React.useEffect(() => {
+    if (addedEmail) {
+      // success
+      dispatch(RouteTreeGen.createClearModals())
+    }
+  }, [addedEmail, dispatch])
+
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [email, onChangeEmail] = React.useState('')
   const [allowSearch, onChangeAllowSearch] = React.useState(true)
@@ -66,11 +78,7 @@ export const Email = () => {
     </Kb.Modal>
   )
 }
-export const Phone = props => (
-  <Kb.Modal>
-    <AddPhone {...props} />
-  </Kb.Modal>
-)
+export const Phone = AddPhone
 
 const styles = Styles.styleSheetCreate({
   banner: {

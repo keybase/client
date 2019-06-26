@@ -14,6 +14,7 @@ export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
+export const clearAddedEmail = 'settings:clearAddedEmail'
 export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
@@ -90,6 +91,7 @@ type _AddedPhoneNumberPayload = {
 }
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
+type _ClearAddedEmailPayload = void
 type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
@@ -228,6 +230,13 @@ export const createUnfurlSettingsRefreshed = (
 export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
   payload,
   type: clearAddingEmail,
+})
+/**
+ * Reset state used for showing we just added an email.
+ */
+export const createClearAddedEmail = (payload: _ClearAddedEmailPayload): ClearAddedEmailPayload => ({
+  payload,
+  type: clearAddedEmail,
 })
 /**
  * Submit a verification code for a phone number
@@ -457,6 +466,10 @@ export type CertificatePinningToggledPayload = {
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
+}
+export type ClearAddedEmailPayload = {
+  readonly payload: _ClearAddedEmailPayload
+  readonly type: typeof clearAddedEmail
 }
 export type ClearAddingEmailPayload = {
   readonly payload: _ClearAddingEmailPayload
@@ -688,6 +701,7 @@ export type Actions =
   | AddedPhoneNumberPayload
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
+  | ClearAddedEmailPayload
   | ClearAddingEmailPayload
   | ClearPhoneNumberVerificationPayload
   | DbNukePayload

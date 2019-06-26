@@ -13,6 +13,7 @@ type OwnProps = {}
 const mapStateToProps = (state: TypedState, o: OwnProps) => ({
   _emails: state.settings.email.emails,
   _phones: state.settings.phoneNumbers.phones,
+  addedEmail: state.settings.email.addedEmail,
   bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
   hasPassword: !state.settings.password.randomPW,
 })
@@ -26,6 +27,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
     dispatch(SettingsGen.createLoadRememberPassword())
     dispatch(SettingsGen.createLoadHasRandomPw())
   },
+  onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
   onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
   onManageContacts: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsManageContacts']})),
   onSetPassword: () =>
@@ -50,6 +52,7 @@ export default connect(
       bootstrapDone: true,
       originalProps: {
         ...dispatchProps,
+        addedEmail: stateProps.addedEmail,
         contactKeys: I.List([...stateProps._emails.keys(), ...stateProps._phones.keys()]),
         hasPassword: stateProps.hasPassword,
         title: 'Account',
