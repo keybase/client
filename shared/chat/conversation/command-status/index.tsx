@@ -22,7 +22,7 @@ const bkgColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
     case RPCChatTypes.UICommandStatusDisplayTyp.warning:
       return {backgroundColor: Styles.globalColors.yellowLight}
     case RPCChatTypes.UICommandStatusDisplayTyp.status:
-      return {backgroundColor: Styles.globalColors.black_05}
+      return {}
   }
   return {}
 }
