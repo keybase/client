@@ -22,7 +22,7 @@ type Props = {
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
   sendError: Error | null
-  showInternalSuccessBanner: boolean // if true, disables the internal success bar
+  showInternalSuccessBanner: boolean // if true, enables the internal success bar
   onFeedbackDone: (success: boolean) => void
 }
 
