@@ -7,7 +7,6 @@
     "_node": "cross-env-shell BABEL_ENV=yarn babel-node --extensions='.tsx' --extensions='.js' ",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific .",
-    "lint-specific-nocache": "eslint  --quiet --ext js --ext ts --ext tsx --ext d.ts --ext mobile.tsx --ext desktop.tsx",
     "lint-specific": "eslint --cache --quiet --ext js --ext ts --ext tsx --ext d.ts --ext mobile.tsx --ext desktop.tsx",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
