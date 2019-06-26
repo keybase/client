@@ -82,7 +82,7 @@ type _AddPhoneNumberPayload = {
   readonly phoneNumber: string
   readonly resend?: boolean
 }
-type _AddedEmailPayload = {readonly email: string; readonly error: string}
+type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly error?: string

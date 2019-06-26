@@ -204,7 +204,12 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         logger.warn("addedEmail: doesn't match")
         return state
       }
-      return state // TODO
+      return state.update('email', emailState =>
+        emailState.merge({
+          addingEmail: '',
+          error: action.payload.error || null,
+        })
+      )
     }
     case SettingsGen.clearAddingEmail: {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))

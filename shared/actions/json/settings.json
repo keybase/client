@@ -66,7 +66,7 @@
     },
     "addedEmail": {
       "email": "string",
-      "error": "string"
+      "error?": "Error"
     },
     "clearAddingEmail": {"_description": "Reset state used for adding an email."},
     "invitesClearError": {},

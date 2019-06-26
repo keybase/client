@@ -666,7 +666,22 @@ const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger
     logger.info('email error; bailing')
     return
   }
-  // TODO call
+  const {email, searchable} = action.payload
+  return RPCTypes.emailsAddEmailRpcPromise(
+    {
+      email,
+      visibility: searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private,
+    },
+    Constants.addEmailWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createAddedEmail({email})
+    })
+    .catch(err => {
+      logger.warn(`error: ${err.message}`)
+      return SettingsGen.createAddedEmail({email, error: err})
+    })
 }
 
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
