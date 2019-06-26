@@ -83,59 +83,57 @@ class GetTitles extends React.Component<Props, State> {
     if (!info) return null
 
     return (
-      <Kb.ScrollView style={styles.scrollView}>
-        <Kb.Box2
-          alignItems="center"
-          direction="vertical"
-          fullWidth={true}
-          style={styles.container}
-        >
-          <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
-            {info.type === 'image' ? (
-              <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
-            ) : (
-              <Kb.Icon type="icon-file-uploading-48" />
-            )}
-          </Kb.Box2>
-          {paths.length > 0 && !Styles.isMobile && (
-            <Kb.Box2 direction="vertical" style={styles.filename}>
-              <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-              <Kb.Text type="BodySmall">
-                {info.filename} ({this.state.index + 1} of {paths.length})
-              </Kb.Text>
-            </Kb.Box2>
-          )}
+      <Kb.Box2 direction="vertical" style={styles.containerOuter} fullHeight={true} fullWidth={true}>
+        <Kb.ScrollView style={styles.scrollView} contentContainerStyle={Styles.globalStyles.fullHeight}>
           <Kb.Box2
+            alignItems="center"
             direction="vertical"
+            fullHeight={true}
             fullWidth={true}
-            style={styles.inputContainer}
+            style={styles.container}
           >
-
-          <Kb.PlainInput
-            style={styles.input}
-            autoFocus={true}
-            autoCorrect={true}
-            placeholder={titleHint}
-            multiline={true}
-            rowsMin={2}
-            value={info.title}
-            onEnterKeyDown={this._onNext}
-            onChangeText={this._updateTitle}
-            selectTextOnFocus={true}
-            />
+            <Kb.Box2 alignItems="center" direction="vertical" style={styles.imageContainer}>
+              {info.type === 'image' ? (
+                <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
+              ) : (
+                <Kb.Icon type="icon-file-uploading-48" />
+              )}
+            </Kb.Box2>
+            {paths.length > 0 && !Styles.isMobile && (
+              <Kb.Box2 direction="vertical" style={styles.filename}>
+                <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  {info.filename} ({this.state.index + 1} of {paths.length})
+                </Kb.Text>
+              </Kb.Box2>
+            )}
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+              <Kb.PlainInput
+                style={styles.input}
+                autoFocus={true}
+                autoCorrect={true}
+                placeholder={titleHint}
+                multiline={true}
+                rowsMin={2}
+                value={info.title}
+                onEnterKeyDown={this._onNext}
+                onChangeText={this._updateTitle}
+                selectTextOnFocus={true}
+              />
+            </Kb.Box2>
           </Kb.Box2>
-          <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
-            {!Styles.isMobile && (
-              <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
-            )}
-            {this._isLast() ? (
-              <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
-            ) : (
-              <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
-            )}
-          </Kb.ButtonBar>
-        </Kb.Box2>
-      </Kb.ScrollView>
+        </Kb.ScrollView>
+        <Kb.ButtonBar fullWidth={true} small={true} style={styles.buttonContainer}>
+          {!Styles.isMobile && (
+            <Kb.Button fullWidth={true} type="Dim" onClick={this.props.onCancel} label="Cancel" />
+          )}
+          {this._isLast() ? (
+            <Kb.WaitingButton fullWidth={true} waitingKey={null} onClick={this._onNext} label="Send" />
+          ) : (
+            <Kb.Button fullWidth={true} onClick={this._onNext} label="Next" />
+          )}
+        </Kb.ButtonBar>
+      </Kb.Box2>
     )
   }
 }
@@ -144,25 +142,31 @@ const styles = Styles.styleSheetCreate({
   buttonContainer: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-end',
-      backgroundColor: Styles.globalColors.white,
       borderStyle: 'solid',
       borderTopColor: Styles.globalColors.black_10,
       borderTopWidth: 1,
+      flexShrink: 0,
       padding: Styles.globalMargins.small,
     },
+    isMobile: Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small, 0),
   }),
   cancelButton: {
     marginRight: Styles.globalMargins.tiny,
   },
   container: Styles.platformStyles({
     isElectron: {
-      height: 560,
       justifyContent: 'space-between',
-      width: 400,
     },
     isMobile: {
+      justifyContent: 'space-around',
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+    },
+  }),
+  containerOuter: Styles.platformStyles({
+    isElectron: {
+      height: 560,
+      width: 400,
     },
   }),
   filename: Styles.platformStyles({
@@ -188,6 +192,7 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'center',
     },
     isElectron: {
+      flex: 1,
       height: 325,
       paddingBottom: Styles.globalMargins.medium,
       paddingTop: Styles.globalMargins.medium,

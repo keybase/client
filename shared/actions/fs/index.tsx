@@ -1036,8 +1036,13 @@ const updateKbfsDaemonOnlineStatus = (
 // timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
-const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkStatusChangedPayload) =>
-  !action.payload.isInit && RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkStatusChangedPayload) => {
+  if (!action.payload.isInit) {
+    return RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+      .then(() => {})
+      .catch(err => logger.warn(`failed to check KBFS reachability: ${err.message}`))
+  }
+}
 
 const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})

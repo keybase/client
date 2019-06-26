@@ -56,11 +56,6 @@ type KeybaseServiceBase struct {
 	teamCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
 	teamCache map[keybase1.TeamID]idutil.TeamInfo
-
-	lastNotificationFilenameLock sync.Mutex
-	lastNotificationFilename     string
-	lastPathUpdated              string
-	lastSyncNotificationPath     string
 }
 
 // Wrapper over `KeybaseServiceBase` implementing a `merkleRootGetter`
@@ -1171,18 +1166,6 @@ func (k *KeybaseServiceBase) NotifyOnlineStatusChanged(ctx context.Context,
 
 // Notify implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
-	// Reduce log spam by not repeating log lines for
-	// notifications with the same filename.
-	//
-	// TODO: Only do this in debug mode.
-	func() {
-		k.lastNotificationFilenameLock.Lock()
-		defer k.lastNotificationFilenameLock.Unlock()
-		if notification.Filename != k.lastNotificationFilename {
-			k.lastNotificationFilename = notification.Filename
-			k.log.CDebugf(ctx, "Sending notification for %s", notification.Filename)
-		}
-	}()
 	return k.kbfsClient.FSEvent(ctx, *notification)
 }
 
@@ -1190,18 +1173,6 @@ func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifyPathUpdated(
 	ctx context.Context, path string) error {
-	// Reduce log spam by not repeating log lines for
-	// notifications with the same filename.
-	//
-	// TODO: Only do this in debug mode.
-	func() {
-		k.lastNotificationFilenameLock.Lock()
-		defer k.lastNotificationFilenameLock.Unlock()
-		if path != k.lastPathUpdated {
-			k.lastPathUpdated = path
-			k.log.CDebugf(ctx, "Sending path updated notification for %s", path)
-		}
-	}()
 	return k.kbfsClient.FSPathUpdate(ctx, path)
 }
 
@@ -1209,18 +1180,6 @@ func (k *KeybaseServiceBase) NotifyPathUpdated(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifySyncStatus(ctx context.Context,
 	status *keybase1.FSPathSyncStatus) error {
-	// Reduce log spam by not repeating log lines for
-	// notifications with the same pathname.
-	//
-	// TODO: Only do this in debug mode.
-	func() {
-		k.lastNotificationFilenameLock.Lock()
-		defer k.lastNotificationFilenameLock.Unlock()
-		if status.Path != k.lastSyncNotificationPath {
-			k.lastSyncNotificationPath = status.Path
-			k.log.CDebugf(ctx, "Sending notification for %s", status.Path)
-		}
-	}()
 	return k.kbfsClient.FSSyncEvent(ctx, *status)
 }
 

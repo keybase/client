@@ -332,11 +332,9 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 
 	var jStatus TLFJournalStatus
 	if blocks != nil {
-		jStatus, err =
-			jManager.JournalStatusWithPaths(ctx, tlfID, blocks)
+		jStatus, err = jManager.JournalStatusWithPaths(ctx, tlfID, blocks)
 	} else {
-		jStatus, err =
-			jManager.JournalStatus(tlfID)
+		jStatus, err = jManager.JournalStatus(tlfID)
 	}
 	if err != nil {
 		log := fbsk.config.MakeLogger("")

@@ -286,14 +286,15 @@ func TestDeleteRepo(t *testing.T) {
 	err = DeleteRepo(ctx, config, h, "Repo1")
 	require.NoError(t, err)
 
-	gitNode, _, err := config.KBFSOps().Lookup(ctx, rootNode, kbfsRepoDir)
+	gitNode, _, err := config.KBFSOps().Lookup(
+		ctx, rootNode, rootNode.ChildName(kbfsRepoDir))
 	require.NoError(t, err)
 	children, err := config.KBFSOps().GetDirChildren(ctx, gitNode)
 	require.NoError(t, err)
 	require.Len(t, children, 0) // .kbfs_deleted_repos is hidden
 
 	deletedReposNode, _, err := config.KBFSOps().Lookup(
-		ctx, gitNode, kbfsDeletedReposDir)
+		ctx, gitNode, gitNode.ChildName(kbfsDeletedReposDir))
 	require.NoError(t, err)
 	children, err = config.KBFSOps().GetDirChildren(ctx, deletedReposNode)
 	require.NoError(t, err)
