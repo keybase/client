@@ -43,5 +43,5 @@ protocol userSearch {
         map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
     }
 
-    array<APIUserSearchResult> userSearch(string query, string service, int maxResults);
+    array<APIUserSearchResult> userSearch(string query, string service, int maxResults, boolean includeServicesSummary);
 }

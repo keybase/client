@@ -142,6 +142,10 @@
         {
           "name": "maxResults",
           "type": "int"
+        },
+        {
+          "name": "includeServicesSummary",
+          "type": "boolean"
         }
       ],
       "response": {

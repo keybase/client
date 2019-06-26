@@ -104,9 +104,10 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 }
 
 type UserSearchArg struct {
-	Query      string `codec:"query" json:"query"`
-	Service    string `codec:"service" json:"service"`
-	MaxResults int    `codec:"maxResults" json:"maxResults"`
+	Query                  string `codec:"query" json:"query"`
+	Service                string `codec:"service" json:"service"`
+	MaxResults             int    `codec:"maxResults" json:"maxResults"`
+	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
 }
 
 type UserSearchInterface interface {

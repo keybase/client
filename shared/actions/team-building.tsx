@@ -13,11 +13,12 @@ export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}
 const apiSearch = (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
-  limit: number,
+  maxResults: number,
   includeServicesSummary: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
   return RPCTypes.userSearchUserSearchRpcPromise({
-    maxResults: limit,
+    includeServicesSummary,
+    maxResults,
     query,
     service,
   })

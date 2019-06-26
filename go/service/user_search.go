@@ -44,7 +44,7 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 			"q":                        libkb.S{Val: arg.Query},
 			"num_wanted":               libkb.I{Val: arg.MaxResults},
 			"service":                  libkb.S{Val: service},
-			"include_services_summary": libkb.B{Val: true}, // TODO
+			"include_services_summary": libkb.B{Val: arg.IncludeServicesSummary},
 		},
 	}
 	var response rawSearchResults
