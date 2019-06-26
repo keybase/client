@@ -100,6 +100,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
                   fullWidth={true}
                   onChange={this._onChangeFilter}
                   placeholderText="Search"
+                  focusOnMount={true}
                 />
               </Kb.Box2>
             ),
