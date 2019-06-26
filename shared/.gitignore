@@ -6,14 +6,9 @@ android/.idea
 android/**/build/
 android/dist
 android/**/*.iml
-android/.project
-android/.settings/**
-# New in Android studio 3.5
-android/app/.classpath
-android/app/.project
-android/app/.settings/
-android/keybaselib/.project
-android/keybaselib/.settings/
+android/**/.classpath
+android/**/.project
+android/**/.settings/**
 
 # iOS
 !default.mode1v3

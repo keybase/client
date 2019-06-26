@@ -102,6 +102,8 @@ const deriveUserFromUserIdFn = memoize(
     null
 )
 
+const emptyObj = {}
+
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
   const userResults = teamBuildingState.teamBuildingSearchResults.getIn([
@@ -115,7 +117,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 
   const disabledRoles = ownProps.teamname
     ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)
-    : {}
+    : emptyObj
 
   return {
     disabledRoles,
@@ -354,7 +356,7 @@ const mergeProps = (
                     <RolePickerHeaderAction
                       onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
                       rolePickerProps={rolePickerProps}
-                      plural={teamSoFar.length > 1}
+                      count={teamSoFar.length}
                     />
                   ),
                 }

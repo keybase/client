@@ -6,7 +6,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
-import {TeamRoleType} from '../constants/types/teams'
+import {pluralize} from '../util/string'
 import {RolePickerProps} from '.'
 
 type Props = {
@@ -67,7 +67,6 @@ const TeamInput = (props: Props) => (
 )
 
 const TeamBox = (props: Props) => {
-  const plural = props.teamSoFar.length > 1
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" style={styles.container}>
       <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
@@ -88,7 +87,7 @@ const TeamBox = (props: Props) => {
               selectedRole={props.rolePickerProps.selectedRole}
               onCancel={() => props.rolePickerProps.changeShowRolePicker(false)}
               disabledRoles={props.rolePickerProps.disabledRoles}
-              confirmLabel={`Add as ${props.rolePickerProps.selectedRole}${plural ? 's' : ''}`}
+              confirmLabel={`Add as ${pluralize(props.rolePickerProps.selectedRole, props.teamSoFar.length)}`}
               footerComponent={sendNotificationFooter(
                 'Announce them in team chats',
                 props.rolePickerProps.sendNotification,

@@ -3587,7 +3587,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 
-  yield Saga.spawn(chatTeamBuildingSaga)
+  yield* chatTeamBuildingSaga()
 }
 
 export default chat2Saga
