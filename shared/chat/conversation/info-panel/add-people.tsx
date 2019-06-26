@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
 import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 import {teamsTab} from '../../../constants/tabs'
 
 type Props = {
@@ -66,15 +67,7 @@ type OwnProps = {
 
 const mapDispatchToProps = dispatch => {
   return {
-    _onAddPeople: teamname => {
-      dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [teamsTab],
-          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamAddPeople'}],
-        })
-      )
-      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
-    },
+    _onAddPeople: teamname => dispatch(appendNewTeamBuilder(teamname)),
     _onAddToChannel: conversationIDKey => {
       dispatch(
         RouteTreeGen.createNavigateAppend({

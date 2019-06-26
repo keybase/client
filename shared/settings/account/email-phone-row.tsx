@@ -67,7 +67,15 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
-  menuItems.push('Divider', {danger: true, onClick: props.onDelete, title: 'Delete'})
+
+  // TODO: Drop this `if` once Y2K-180 is done.
+  if (!props.primary) {
+    menuItems.push('Divider', {
+      danger: true,
+      onClick: props.onDelete,
+      title: 'Delete',
+    })
+  }
 
   let gearIconBadge = null
   if (!props.verified) {
@@ -153,12 +161,14 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  _onMakeNotSearchable: () =>
+    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false})),
+  _onMakeSearchable: () =>
+    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
     onDelete: () => dispatch(SettingsGen.createEditEmail({delete: true, email: ownProps.contactKey})),
     onMakePrimary: () =>
       dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
-    onToggleSearchable: () =>
-      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, toggleSearchable: true})),
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
@@ -185,11 +195,13 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         verified: stateProps._phoneRow.verified,
       }
     } else if (stateProps._emailRow) {
+      const searchable = stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
         primary: stateProps._emailRow.isPrimary,
-        searchable: stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public,
+        searchable,
         type: 'email' as const,
         verified: stateProps._emailRow.isVerified,
       }

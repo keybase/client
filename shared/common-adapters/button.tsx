@@ -19,8 +19,8 @@ export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black'
 export type Props = {
   children?: React.ReactNode
   onClick?: null | ((event: React.SyntheticEvent) => void)
-  onMouseEnter?: ((e: React.MouseEvent) => void)
-  onMouseLeave?: ((e: React.MouseEvent) => void)
+  onMouseEnter?: (e: React.MouseEvent) => void
+  onMouseLeave?: (e: React.MouseEvent) => void
   label?: string
   style?: Styles.StylesCrossPlatform
   labelContainerStyle?: Styles.StylesCrossPlatform

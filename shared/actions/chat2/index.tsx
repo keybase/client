@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as EngineGen from '../engine-gen-gen'
+import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
@@ -15,6 +16,7 @@ import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
+import {TypedState} from '../../constants/reducer'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
@@ -22,10 +24,10 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
-import chatTeamBuildingSaga from './team-building'
+import commonTeamBuildingSaga, {filterForNs, NSAction} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isIOS, isMobile} from '../../constants/platform'
+import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -2991,6 +2993,27 @@ const onMarkInboxSearchOld = state =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
 
+const createConversationFromTeamBuilder = (
+  state: TypedState,
+  {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
+) => [
+  Chat2Gen.createSelectConversation({
+    conversationIDKey: Constants.pendingWaitingConversationIDKey,
+    reason: 'justCreated',
+  }),
+  Chat2Gen.createCreateConversation({
+    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
+  }),
+]
+
+export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
+  yield* commonTeamBuildingSaga('chat2')
+  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
+    TeamBuildingGen.finishedTeamBuilding,
+    filterForNs('chat2', createConversationFromTeamBuilder)
+  )
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -3564,7 +3587,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 
-  yield Saga.spawn(chatTeamBuildingSaga)
+  yield* chatTeamBuildingSaga()
 }
 
 export default chat2Saga

@@ -78,21 +78,31 @@ func (e TlfNameNotCanonical) Error() string {
 // NoSuchNameError indicates that the user tried to access a
 // subdirectory entry that doesn't exist.
 type NoSuchNameError struct {
-	Name string
+	Name      string
+	NameToLog string
 }
 
 // Error implements the error interface for NoSuchNameError
 func (e NoSuchNameError) Error() string {
-	return fmt.Sprintf("%s doesn't exist", e.Name)
+	n := e.Name
+	if len(e.NameToLog) > 0 {
+		n = e.NameToLog
+	}
+	return fmt.Sprintf("%s doesn't exist", n)
 }
 
 // BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
 type BadTLFNameError struct {
-	Name string
+	Name      string
+	NameToLog string
 }
 
 // Error implements the error interface for BadTLFNameError.
 func (e BadTLFNameError) Error() string {
-	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
+	n := e.Name
+	if len(e.NameToLog) > 0 {
+		n = e.NameToLog
+	}
+	return fmt.Sprintf("TLF name %s is in an incorrect format", n)
 }

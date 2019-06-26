@@ -202,6 +202,8 @@ func verifyMDForPrivateHelper(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil)
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
+	config.mockKeyman.EXPECT().GetFirstTLFCryptKey(gomock.Any(), gomock.Any()).
+		AnyTimes().Return(kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func verifyMDForPrivate(

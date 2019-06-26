@@ -104,6 +104,11 @@ export type AttachmentFullscreenSelection = {
   message: Message.Message
 }
 
+export type UserReacjis = {
+  topReacjis: Array<string>
+  skinTone: number
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -147,8 +152,9 @@ export type _State = {
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  userReacjis: RPCTypes.UserReacjis
-} & TeamBuildingTypes.TeamBuildingSubState
+  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  userReacjis: UserReacjis
+}
 
 export type State = I.RecordOf<_State>
 

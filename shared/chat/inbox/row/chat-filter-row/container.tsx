@@ -1,6 +1,7 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {appendNewChatBuilder} from '../../../../actions/typed-routes'
 import {isDarwin, isMobile} from '../../../../constants/platform'
 import {namedConnect, compose, withProps} from '../../../../util/container'
 import ConversationFilterInput from '../../../conversation-filter-input'
@@ -26,11 +27,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {}, selected: 'chatNewChat'}],
-        })
-      )
+      dispatch(appendNewChatBuilder())
     } else {
       dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))
     }

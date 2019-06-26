@@ -11,7 +11,7 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   displayName: string,
   options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
 ) =>
-  compose(
+  (compose(
     connect(
       mapStateToProps,
       mapDispatchToProps,
@@ -19,6 +19,6 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
       options
     ),
     setDisplayName(displayName)
-  ) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
+  ) as unknown) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
 
 export default connect

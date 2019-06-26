@@ -18,6 +18,7 @@ export default function(state: Types.State = initialState, action: PinentryGen.A
     }
     case PinentryGen.replaceEntity: {
       const {keyPath, entities} = action.payload
+      // @ts-ignore
       return state.mergeIn(keyPath, entities)
     }
     case PinentryGen.subtractEntity: {

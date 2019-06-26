@@ -39,11 +39,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (ownProps.selectedTab !== Tabs.chatTab && tab === Tabs.chatTab) {
       dispatch(Chat2Gen.createTabSelected())
     }
-    if (ownProps.selectedTab !== Tabs.walletsTab && tab === Tabs.walletsTab && !walletsAcceptedDisclaimer) {
-      // haven't accepted disclaimer, show onboarding and bail
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
-      return
-    }
     if (ownProps.selectedTab === tab) {
       ownProps.navigation.navigate(tabRoots[tab])
     } else {

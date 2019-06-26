@@ -62,7 +62,7 @@ func (f fs) tlf(ctx context.Context, path Path) (keybase1.ListResult, error) {
 
 		// For entryInfo: for name, entryInfo := range children
 		for name := range children {
-			dirPath, err := path.Join(name)
+			dirPath, err := path.Join(name.Plaintext())
 			if err != nil {
 				return keybase1.ListResult{}, err
 			}

@@ -555,7 +555,8 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 		ctx, libkb.VLog1, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)",
 		srcParent, srcName, ddst.node, dstName)
 	if err := srcFolder.fs.config.KBFSOps().Rename(
-		ctx, srcParent, srcName, ddst.node, dstName); err != nil {
+		ctx, srcParent, srcParent.ChildName(srcName), ddst.node,
+		ddst.node.ChildName(dstName)); err != nil {
 		f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename FAILED %v", err)
 		return err
 	}

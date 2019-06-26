@@ -281,14 +281,13 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
-        justifyContent: 'space-between',
         minHeight: ROW_HEIGHT,
       }}
     >
-      <Text type="Body">
+      <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
         Email address:
-        <Button label="Add an email address" type="Dim" small={true} onClick={onChangeEmail} />
       </Text>
+      <Button label="Add an email address" type="Dim" small={true} onClick={onChangeEmail} />
     </Box>
   )
 }

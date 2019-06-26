@@ -130,7 +130,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
@@ -197,7 +198,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	for i := 0; i < nFiles; i++ {
 		name := fmt.Sprintf("file%d", i)
 		fileNode, _, err := kbfsOps.CreateFile(
-			ctx, rootNode, name, false, NoExcl)
+			ctx, rootNode, testPPS(name), false, NoExcl)
 		require.NoError(t, err, "Couldn't create file %s: %v", name, err)
 		fileNodes[i] = fileNode
 	}
@@ -342,7 +343,8 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	var data []byte
 	// Write 2 blocks worth of data
@@ -437,7 +439,8 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
@@ -571,7 +574,8 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	// Write to file to mark it dirty.
@@ -653,7 +657,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	// Write to file to mark it dirty.
@@ -739,7 +744,8 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %+v", err)
 
 	err = kbfsOps.Truncate(ctx, fileNode, 131072)
@@ -773,7 +779,8 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 		t.Fatalf("Couldn't sync from server")
 	}
 
-	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	fileNode2, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("b"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %+v", err)
 
 	err = kbfsOps.Truncate(ctx, fileNode2, 131072)
@@ -868,7 +875,8 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	// Write to file to make an indirect block.
 	data := make([]byte, bsplitter.MaxSize()+1)
@@ -915,14 +923,15 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
 	// Now update the folder pointer in some other way
-	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, testPPS("b"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	// Now sync the original file and see make sure the write survived
@@ -958,7 +967,8 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
@@ -1141,7 +1151,8 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	// Two initial blocks, then maxParallelBlockPuts blocks that
 	// will be processed but discarded, then three extra blocks
@@ -1250,7 +1261,8 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		t.Fatalf("Second sync failed: %v", err)
 	}
 
-	if _, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl); err != nil {
+	if _, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("b"), false, NoExcl); err != nil {
 		t.Fatalf("Couldn't create file after sync: %v", err)
 	}
 
@@ -1291,7 +1303,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	// 15 blocks
 	var data []byte
@@ -1379,7 +1392,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	fileNodes := make([]Node, nFiles)
 
 	fileNodes[0], _, err = kbfsOps.CreateFile(
-		ctx, rootNode, "file0", false, NoExcl)
+		ctx, rootNode, testPPS("file0"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	firstData := make([]byte, 30)
@@ -1395,14 +1408,14 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	require.NoError(t, err, "First sync failed: %v", err)
 
 	// Remove the first file, and wait for the archiving to complete.
-	err = kbfsOps.RemoveEntry(ctx, rootNode, "file0")
+	err = kbfsOps.RemoveEntry(ctx, rootNode, testPPS("file0"))
 	require.NoError(t, err, "Couldn't remove file: %v", err)
 
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err, "Couldn't sync from server: %v", err)
 
 	fileNode2, _, err := kbfsOps.CreateFile(
-		ctx, rootNode, "file0", false, NoExcl)
+		ctx, rootNode, testPPS("file0"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	// Now write the identical first block and sync it.
@@ -1413,7 +1426,7 @@ func testKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T, nFiles int) {
 	for i := 1; i < nFiles; i++ {
 		name := fmt.Sprintf("file%d", i)
 		fileNode, _, err := kbfsOps.CreateFile(
-			ctx, rootNode, name, false, NoExcl)
+			ctx, rootNode, testPPS(name), false, NoExcl)
 		require.NoError(t, err, "Couldn't create file: %v", err)
 		data := make([]byte, 30)
 		// Write 2 blocks worth of data
@@ -1509,7 +1522,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	kbfsOps := config.KBFSOps()
 	fileNodes := make([]Node, nFiles)
 	fileNodes[0], _, err = kbfsOps.CreateFile(
-		ctx, rootNode, "file0", false, NoExcl)
+		ctx, rootNode, testPPS("file0"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	var data []byte
 
@@ -1533,7 +1546,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	require.NoError(t, err, "Couldn't get the pointer map for file0: %+v", err)
 
 	t.Log("Remove that file")
-	err = kbfsOps.RemoveEntry(ctx, rootNode, "file0")
+	err = kbfsOps.RemoveEntry(ctx, rootNode, testPPS("file0"))
 	require.NoError(t, err, "Couldn't remove file: %v", err)
 
 	t.Log("Sync from server, waiting for the archiving to complete")
@@ -1554,7 +1567,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 
 	t.Log("Create file0 again")
 	fileNode2, _, err := kbfsOps.CreateFile(
-		ctx, rootNode, "file0", false, NoExcl)
+		ctx, rootNode, testPPS("file0"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	t.Log("Now write the identical first block, plus a new block and sync it.")
@@ -1568,7 +1581,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	for i := 1; i < nFiles; i++ {
 		name := fmt.Sprintf("Create file%d", i)
 		fileNode, _, err := kbfsOps.CreateFile(
-			ctx, rootNode, name, false, NoExcl)
+			ctx, rootNode, testPPS(name), false, NoExcl)
 		require.NoError(t, err, "Couldn't create file: %v", err)
 		data := make([]byte, 30)
 		// Write 2 blocks worth of data
@@ -1702,7 +1715,8 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	errChan := make(chan error, 1)
 	go func() {
-		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
+		_, _, err := kbfsOps.CreateFile(
+			putCtx, rootNode, testPPS("a"), false, WithExcl)
 		errChan <- err
 	}()
 
@@ -1726,7 +1740,7 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	ctx2 := libcontext.BackgroundContextWithCancellationDelayer()
 	defer libcontext.CleanupCancellationDelayer(ctx2)
 	if _, _, err = kbfsOps.Lookup(
-		ctx2, rootNode, "a"); err != nil {
+		ctx2, rootNode, testPPS("a")); err != nil {
 		t.Fatalf("Lookup returned error: %v", err)
 	}
 }
@@ -1758,7 +1772,8 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	errChan := make(chan error, 1)
 	go func() {
-		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
+		_, _, err := kbfsOps.CreateFile(
+			putCtx, rootNode, testPPS("a"), false, WithExcl)
 		errChan <- err
 	}()
 
@@ -1801,7 +1816,7 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	// do another Op, which generates a new revision, to make sure
 	// CheckConfigAndShutdown doesn't get stuck
 	if _, _, err = kbfsOps.CreateFile(ctx2,
-		rootNode, "b", false, NoExcl); err != nil {
+		rootNode, testPPS("b"), false, NoExcl); err != nil {
 		t.Fatalf("throwaway op failed: %v", err)
 	}
 }
@@ -1823,7 +1838,8 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
@@ -1909,7 +1925,8 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
@@ -1991,13 +2008,13 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
 
 	// Remove that file, and wait for the archiving to complete
-	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	err = kbfsOps.RemoveEntry(ctx, rootNode, testPPS("a"))
 	require.NoError(t, err, "Couldn't remove file: %v", err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
@@ -2005,7 +2022,8 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err, "Couldn't sync from server: %v", err)
 
-	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode2, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	var data []byte
@@ -2074,7 +2092,8 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	// Write over the dirty amount of data.  TODO: make this
@@ -2229,7 +2248,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 	kbfsOps1 := config1.KBFSOps()
 	fileNodeA1, _, err := kbfsOps1.CreateFile(
-		ctx, rootNode1, "a", false, NoExcl)
+		ctx, rootNode1, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file: %v", err)
@@ -2258,7 +2277,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		var err error
-		fileNodeA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+		fileNodeA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
 		require.NoError(t, err, "Couldn't lookup a: %v", err)
 	}()
 	// Wait for the lookup to block.
@@ -2335,7 +2354,8 @@ func TestKBFSOpsConcurMultiblockOverwriteWithCanceledSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	fileNode, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
 	data := make([]byte, 30)
@@ -2436,7 +2456,7 @@ func TestKBFSOpsConcurWriteOfNonsyncedFileDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 	fileA := "a"
 	fileANode, _, err := kbfsOps.CreateFile(
-		ctx, rootNode, fileA, false, NoExcl)
+		ctx, rootNode, testPPS(fileA), false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
@@ -2447,7 +2467,7 @@ func TestKBFSOpsConcurWriteOfNonsyncedFileDuringSync(t *testing.T) {
 
 	fileB := "b"
 	fileBNode, _, err := kbfsOps.CreateFile(
-		ctx, rootNode, fileB, false, NoExcl)
+		ctx, rootNode, testPPS(fileB), false, NoExcl)
 	require.NoError(t, err)
 	dataB := []byte{1, 2, 3}
 	err = kbfsOps.Write(ctx, fileBNode, dataB, 0)
