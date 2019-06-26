@@ -19,7 +19,6 @@ const mapStateToPropsKeybaseUser = state => {
   // If build.to is set, assume it's a valid username.
   return {
     errorMessage: built.toErrMsg,
-    fromAccount: makeAccount(Constants.getAccount(state, build.from)),
     isRequest: build.isRequest,
     recipientUsername: build.to,
   }
@@ -61,7 +60,6 @@ const mapStateToPropsStellarPublicKey = state => {
 
   return {
     errorMessage: built.toErrMsg,
-    fromAccount: makeAccount(Constants.getAccount(state, build.from)),
     recipientPublicKey: build.to,
   }
 }

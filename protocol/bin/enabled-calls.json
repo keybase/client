@@ -273,7 +273,6 @@
   "stellar.1.local.setAccountMobileOnlyLocal": {"promise": true},
   "stellar.1.local.setInflationDestinationLocal": {"promise": true},
   "stellar.1.local.setWalletAccountAsDefaultLocal": {"promise": true},
-  "stellar.1.local.showAdvancedSendForm": {"promise": true},
   "stellar.1.local.startBuildPaymentLocal": {"promise": true},
   "stellar.1.local.stopBuildPaymentLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},

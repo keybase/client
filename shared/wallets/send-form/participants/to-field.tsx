@@ -7,7 +7,6 @@ import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import {Account} from '.'
 import {debounce} from 'lodash-es'
-import {AccountID} from '../../../constants/types/wallets'
 
 export type ToKeybaseUserProps = {
   isRequest: boolean
