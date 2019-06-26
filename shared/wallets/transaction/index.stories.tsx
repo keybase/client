@@ -106,6 +106,32 @@ const load = () => {
       </Box2>
     ))
     .addDecorator(Sb.scrollViewDecorator)
+    .add('Airdrop', () => (
+      <Transaction
+        amountUser="$12.34 USD"
+        approxWorth="$12.34 USD"
+        amountXLM="20 XLM"
+        counterparty=""
+        counterpartyType="airdrop"
+        fromAirdrop={true}
+        isAdvanced={false}
+        issuerDescription=""
+        memo=""
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
+        onSelectTransaction={Sb.action('onSelectTransaction')}
+        onShowProfile={Sb.action('onShowProfile')}
+        readState="read"
+        selectableText={false}
+        sourceAmount=""
+        sourceAsset=""
+        status="completed"
+        statusDetail=""
+        timestamp={new Date()}
+        unread={false}
+        yourRole="airdrop"
+      />
+    ))
 
   // Don't add new configs except for new counterparty types -- change
   // addConfigs instead.

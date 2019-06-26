@@ -627,6 +627,42 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
+const loadContactImportEnabled = async (state: TypedState, _, logger) => {
+  if (!state.config.username) {
+    logger.warn('no username')
+    return
+  }
+  let enabled = false
+  try {
+    const res = await RPCTypes.configGetValueRpcPromise(
+      {
+        path: Constants.importContactsConfigKey(state.config.username),
+      },
+      Constants.importContactsWaitingKey
+    ).then(value => (enabled = !!value.b && !value.isNull))
+  } catch (err) {
+    if (!err.message.includes('no such key')) {
+      logger.error(`Error reading config: ${err.message}`)
+    }
+  }
+  return SettingsGen.createLoadedContactImportEnabled({enabled})
+}
+
+const editContactImportEnabled = (
+  state: TypedState,
+  action: SettingsGen.EditContactImportEnabledPayload,
+  logger
+) =>
+  state.config.username
+    ? RPCTypes.configSetValueRpcPromise(
+        {
+          path: Constants.importContactsConfigKey(state.config.username),
+          value: {b: action.payload.enable, isNull: false},
+        },
+        Constants.importContactsWaitingKey
+      ).then(() => SettingsGen.createLoadContactImportEnabled())
+    : logger.warn('no username')
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -709,6 +745,17 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.verifyPhoneNumber,
     verifyPhoneNumber,
     'verifyPhoneNumber'
+  )
+
+  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
+    SettingsGen.loadContactImportEnabled,
+    loadContactImportEnabled,
+    'loadContactImportEnabled'
+  )
+  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload>(
+    SettingsGen.editContactImportEnabled,
+    editContactImportEnabled,
+    'editContactImportEnabled'
   )
 }
 
