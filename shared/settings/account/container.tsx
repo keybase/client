@@ -18,8 +18,8 @@ const mapStateToProps = (state: TypedState, o: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: TypedDispatch) => ({
-  onAddEmail: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['addEmail']})),
-  onAddPhone: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['addPhone']})),
+  onAddEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']})),
+  onAddPhone: () => {}, // dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
