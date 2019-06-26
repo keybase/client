@@ -297,12 +297,15 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
     <Kb.Text type="BodyBigExtrabold">
       {props.amount} {props.assetCode}
     </Kb.Text>
-    <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
+    <Kb.Text type="BodySmall">/{props.issuerDescription || 'Unknown issuer'}</Kb.Text>
   </Kb.Box2>
 )
 
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
+
+  const isPathPayment = !!props.sourceAmount
+
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -335,14 +338,17 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-        {!!props.sourceAsset && !!props.sourceAmount && (
+        {isPathPayment && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
             <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
               <ConvertedCurrencyLabel
                 amount={1}
                 assetCode={props.sourceAsset}
-                issuerDescription={props.sourceIssuer || 'Unknown issuer'}
+                issuerDescription={
+                  // If we don't have a sourceAsset, the source is native Lumens
+                  props.sourceAsset === '' ? 'Stellar Lumens' : props.sourceIssuer
+                }
               />
               <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={{flex: 1}}>
                 <Kb.Text type="BodyBig">=</Kb.Text>
@@ -355,7 +361,6 @@ const TransactionDetails = (props: NotLoadingProps) => {
             </Kb.Box2>
           </Kb.Box2>
         )}
-
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
