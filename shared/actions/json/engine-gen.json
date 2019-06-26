@@ -94,6 +94,9 @@
         "chat1ChatUiChatClearWatch": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}"
         },
+        "chat1ChatUiChatSlashFeedback": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSlashFeedback']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSlashFeedback']['outParam']) => void}"
+        },
         "chat1NotifyChatNewChatActivity": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}"
         },

@@ -127,6 +127,10 @@ func (r DummyChatUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) er
 	return nil
 }
 
+func (r DummyChatUI) ChatSlashFeedback(context.Context, chat1.ChatSlashFeedbackArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

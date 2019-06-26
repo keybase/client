@@ -367,3 +367,7 @@ func (c *ChatCLIUI) ChatWatchPosition(context.Context, int) (chat1.LocationWatch
 func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatSlashFeedback(context.Context, chat1.ChatSlashFeedbackArg) error {
+	return nil
+}

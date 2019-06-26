@@ -1539,6 +1539,22 @@
       "fields": [],
       "typedef": "uint64",
       "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "UISlashFeedbackTyp",
+      "symbols": [
+        "STATUS_0",
+        "WARNING_1",
+        "ERROR_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UISlashActionTyp",
+      "symbols": [
+        "APPSETTINGS_0"
+      ]
     }
   ],
   "messages": {
@@ -1939,6 +1955,30 @@
         {
           "name": "id",
           "type": "LocationWatchID"
+        }
+      ],
+      "response": null
+    },
+    "chatSlashFeedback": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "displayText",
+          "type": "string"
+        },
+        {
+          "name": "typ",
+          "type": "UISlashFeedbackTyp"
+        },
+        {
+          "name": "actions",
+          "type": {
+            "type": "array",
+            "items": "UISlashActionTyp"
+          }
         }
       ],
       "response": null

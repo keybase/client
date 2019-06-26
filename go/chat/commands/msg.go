@@ -26,6 +26,12 @@ func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	if !d.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
+	defer func() {
+		if err != nil {
+			d.getChatUI().ChatSlashFeedback(ctx, "Failed to send message", chat1.UISlashFeedbackTyp_ERROR,
+				nil)
+		}
+	}()
 	toks, err := d.tokenize(text, 3)
 	if err != nil {
 		return err

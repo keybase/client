@@ -431,4 +431,14 @@ protocol chatUi {
   LocationWatchID chatWatchPosition(int sessionID);
   void chatClearWatch(int sessionID, LocationWatchID id);
 
+  // Slash command feedback
+  enum UISlashFeedbackTyp {
+    STATUS_0,
+    WARNING_1,
+    ERROR_2
+  }
+  enum UISlashActionTyp {
+    APPSETTINGS_0
+  }
+  void chatSlashFeedback(int sessionID, string displayText, UISlashFeedbackTyp typ, array<UISlashActionTyp> actions);
 }

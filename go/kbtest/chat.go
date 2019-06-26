@@ -1192,6 +1192,11 @@ func (c *ChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error {
 	return nil
 }
 
+func (c *ChatUI) ChatSlashFeedback(context.Context, string, chat1.UISlashFeedbackTyp,
+	[]chat1.UISlashActionTyp) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {

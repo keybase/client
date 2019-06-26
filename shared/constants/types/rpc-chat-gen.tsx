@@ -203,6 +203,10 @@ export type MessageTypes = {
     inParam: {readonly teamname: String}
     outParam: void
   }
+  'chat.1.chatUi.chatSlashFeedback': {
+    inParam: {readonly displayText: String; readonly typ: UISlashFeedbackTyp; readonly actions?: Array<UISlashActionTyp> | null}
+    outParam: void
+  }
   'chat.1.chatUi.chatStellarDataConfirm': {
     inParam: {readonly summary: UIChatPaymentSummary}
     outParam: Boolean
@@ -797,6 +801,16 @@ export enum UIMaybeMentionStatus {
   nothing = 3,
 }
 
+export enum UISlashActionTyp {
+  appsettings = 0,
+}
+
+export enum UISlashFeedbackTyp {
+  status = 0,
+  warning = 1,
+  error = 2,
+}
+
 export enum UITextDecorationTyp {
   payment = 0,
   atmention = 1,
@@ -1155,6 +1169,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatSlashFeedback'?: (params: MessageTypes['chat.1.chatUi.chatSlashFeedback']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.NewChatActivity'?: (params: MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1209,6 +1224,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatSlashFeedback'?: (params: MessageTypes['chat.1.chatUi.chatSlashFeedback']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSlashFeedback']['outParam']) => void}) => IncomingReturn
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1296,6 +1312,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatLoadGalleryHit'
 // 'chat.1.chatUi.chatWatchPosition'
 // 'chat.1.chatUi.chatClearWatch'
+// 'chat.1.chatUi.chatSlashFeedback'
 // 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'

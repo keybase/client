@@ -432,6 +432,7 @@ type ChatUI interface {
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
 	ChatWatchPosition(context.Context) (chat1.LocationWatchID, error)
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
+	ChatSlashFeedback(context.Context, string, chat1.UISlashFeedbackTyp, []chat1.UISlashActionTyp) error
 }
 
 type PromptDefault int

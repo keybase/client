@@ -2146,6 +2146,58 @@ func (o LocationWatchID) DeepCopy() LocationWatchID {
 	return o
 }
 
+type UISlashFeedbackTyp int
+
+const (
+	UISlashFeedbackTyp_STATUS  UISlashFeedbackTyp = 0
+	UISlashFeedbackTyp_WARNING UISlashFeedbackTyp = 1
+	UISlashFeedbackTyp_ERROR   UISlashFeedbackTyp = 2
+)
+
+func (o UISlashFeedbackTyp) DeepCopy() UISlashFeedbackTyp { return o }
+
+var UISlashFeedbackTypMap = map[string]UISlashFeedbackTyp{
+	"STATUS":  0,
+	"WARNING": 1,
+	"ERROR":   2,
+}
+
+var UISlashFeedbackTypRevMap = map[UISlashFeedbackTyp]string{
+	0: "STATUS",
+	1: "WARNING",
+	2: "ERROR",
+}
+
+func (e UISlashFeedbackTyp) String() string {
+	if v, ok := UISlashFeedbackTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UISlashActionTyp int
+
+const (
+	UISlashActionTyp_APPSETTINGS UISlashActionTyp = 0
+)
+
+func (o UISlashActionTyp) DeepCopy() UISlashActionTyp { return o }
+
+var UISlashActionTypMap = map[string]UISlashActionTyp{
+	"APPSETTINGS": 0,
+}
+
+var UISlashActionTypRevMap = map[UISlashActionTyp]string{
+	0: "APPSETTINGS",
+}
+
+func (e UISlashActionTyp) String() string {
+	if v, ok := UISlashActionTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -2294,6 +2346,13 @@ type ChatClearWatchArg struct {
 	Id        LocationWatchID `codec:"id" json:"id"`
 }
 
+type ChatSlashFeedbackArg struct {
+	SessionID   int                `codec:"sessionID" json:"sessionID"`
+	DisplayText string             `codec:"displayText" json:"displayText"`
+	Typ         UISlashFeedbackTyp `codec:"typ" json:"typ"`
+	Actions     []UISlashActionTyp `codec:"actions" json:"actions"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -2324,6 +2383,7 @@ type ChatUiInterface interface {
 	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
 	ChatWatchPosition(context.Context, int) (LocationWatchID, error)
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
+	ChatSlashFeedback(context.Context, ChatSlashFeedbackArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2765,6 +2825,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatSlashFeedback": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSlashFeedbackArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSlashFeedbackArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSlashFeedbackArg)(nil), args)
+						return
+					}
+					err = i.ChatSlashFeedback(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2920,5 +2995,10 @@ func (c ChatUiClient) ChatWatchPosition(ctx context.Context, sessionID int) (res
 
 func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatSlashFeedback(ctx context.Context, __arg ChatSlashFeedbackArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSlashFeedback", []interface{}{__arg}, nil)
 	return
 }
