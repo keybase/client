@@ -63,7 +63,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {...s, selected}))
+  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
 
   _onCancel = () => {
     this._onSelect(this.props.selected)
@@ -79,7 +79,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onSelect(selected)
   }
 
-  _onChangeFilter = filter => this.setState(s => ({...s, filter}))
+  _onChangeFilter = filter => this.setState(s => ({filter}))
 
   clearFilter() {
     this._onChangeFilter('')
