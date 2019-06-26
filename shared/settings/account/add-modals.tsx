@@ -10,6 +10,8 @@ import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 export const Email = () => {
   const dispatch = Container.useDispatch()
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const [email, onChangeEmail] = React.useState('')
+  const [allowSearch, onChangeAllowSearch] = React.useState(true)
   return (
     <Kb.Modal
       onClose={onClose}
@@ -32,7 +34,13 @@ export const Email = () => {
         fullHeight={true}
         style={styles.body}
       >
-        <EnterEmailBody />
+        <EnterEmailBody
+          email={email}
+          onChangeEmail={onChangeEmail}
+          showAllowSearch={true}
+          allowSearch={allowSearch}
+          onChangeAllowSearch={onChangeAllowSearch}
+        />
       </Kb.Box2>
     </Kb.Modal>
   )
