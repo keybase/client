@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
@@ -15,9 +16,11 @@ export const Email = () => {
   const [allowSearch, onChangeAllowSearch] = React.useState(true)
   const emailError = Container.useSelector(state => state.settings.email.error)
   const disabled = !email
+  const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
   const onContinue = React.useCallback(
-    () => (disabled ? null : dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch}))),
-    [dispatch, disabled, email, allowSearch]
+    () =>
+      disabled || waiting ? null : dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch})),
+    [dispatch, disabled, email, allowSearch, waiting]
   )
   return (
     <Kb.Modal
@@ -26,8 +29,16 @@ export const Email = () => {
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
-            {!Styles.isMobile && <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} />}
-            <Kb.Button label="Continue" fullWidth={true} onClick={onContinue} disabled={disabled} />
+            {!Styles.isMobile && (
+              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+            )}
+            <Kb.Button
+              label="Continue"
+              fullWidth={true}
+              onClick={onContinue}
+              disabled={disabled}
+              waiting={waiting}
+            />
           </Kb.ButtonBar>
         ),
         style: styles.footer,

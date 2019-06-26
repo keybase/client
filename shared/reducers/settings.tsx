@@ -206,7 +206,8 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       }
       return state.update('email', emailState =>
         emailState.merge({
-          addingEmail: '',
+          addedEmail: action.payload.error ? null : action.payload.email,
+          addingEmail: action.payload.error ? emailState.addingEmail : null,
           error: action.payload.error || null,
         })
       )

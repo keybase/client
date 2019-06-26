@@ -73,6 +73,7 @@ export type EmailRow = I.RecordOf<_EmailRow>
 
 export type _EmailState = {
   addingEmail: string | null
+  addedEmail: string | null // show banner with dismiss on account settings
   emails: I.Map<string, EmailRow> | null
   newEmail: string
   error: Error | null
