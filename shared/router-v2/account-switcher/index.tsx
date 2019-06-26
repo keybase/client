@@ -124,12 +124,7 @@ export const asRows = (props: RowsProps): Kb.MenuItems => {
 
 const styles = Styles.styleSheetCreate({
   avatarSignedOut: {opacity: 0.4},
-  buttonBox: Styles.padding(
-    0,
-    Styles.globalMargins.small,
-    Styles.globalMargins.tiny,
-    Styles.globalMargins.small
-  ),
+  buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   nameText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

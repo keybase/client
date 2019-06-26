@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps: ReturnType<typeof mapStateToProps>, dispatchProps, ownProps: OwnProps): Props => {
+  (stateProps, dispatchProps, ownProps: OwnProps): Props => {
     const accountRows = Constants.prepareAccountRows(stateProps.accountRows, stateProps.username)
     return {
       accountRows: accountRows

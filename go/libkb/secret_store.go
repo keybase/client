@@ -130,15 +130,14 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 	// Get the full names
 
 	uids := make([]keybase1.UID, 0, len(allUsernames))
-	uidMapper := m.G().UIDMapper
 	for _, username := range allUsernames {
-		uid := uidMapper.MapHardcodedUsernameToUID(username)
+		uid := m.G().UIDMapper.MapHardcodedUsernameToUID(username)
 		if !uid.Exists() {
 			uid = UsernameToUIDPreserveCase(username.String())
 		}
 		uids = append(uids, uid)
 	}
-	usernamePackages, err := uidMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
+	usernamePackages, err := m.G().UIDMapper.MapUIDsToUsernamePackages(m.Ctx(), m.G(),
 		uids, time.Hour*24, time.Second*10, false)
 	if err != nil {
 		if usernamePackages != nil {

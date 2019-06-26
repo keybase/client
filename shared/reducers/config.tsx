@@ -219,7 +219,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         const defaultUsernames = action.payload.configuredAccounts
           .filter(account => account.isCurrent)
           .map(account => account.username)
-        defaultUsername = defaultUsernames.length > 0 ? defaultUsernames[0] : ''
+        defaultUsername = defaultUsernames[0] || ''
       }
 
       return state.merge({
