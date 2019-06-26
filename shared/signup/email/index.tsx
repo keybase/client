@@ -37,6 +37,7 @@ const EnterEmail = (props: Props) => {
         showAllowSearch={true}
         allowSearch={allowSearch}
         onChangeAllowSearch={onChangeAllowSearch}
+        icon={<Kb.Icon type="icon-email-add-96" />}
       />
     </SignupScreen>
   )
@@ -49,6 +50,7 @@ type BodyProps = {
   allowSearch: boolean
   onChangeAllowSearch: (allow: boolean) => void
   showAllowSearch: boolean
+  icon: React.ReactNode
 }
 export const EnterEmailBody = (props: BodyProps) => (
   <Kb.Box2
@@ -58,7 +60,7 @@ export const EnterEmailBody = (props: BodyProps) => (
     fullWidth={true}
     style={Styles.globalStyles.flexOne}
   >
-    <Kb.Icon type="icon-email-add-96" />
+    {props.icon}
     <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
       <Kb.NewInput
         autoFocus={true}

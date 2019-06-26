@@ -12,6 +12,8 @@ export const Email = () => {
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [email, onChangeEmail] = React.useState('')
   const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const disabled = !email
+  const onContinue = disabled ? () => {} : () => {} // TODO real callback
   return (
     <Kb.Modal
       onClose={onClose}
@@ -20,7 +22,7 @@ export const Email = () => {
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             {!Styles.isMobile && <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} />}
-            <Kb.Button label="Continue" fullWidth={true} />
+            <Kb.Button label="Continue" fullWidth={true} onClick={onContinue} disabled={disabled} />
           </Kb.ButtonBar>
         ),
         style: styles.footer,
@@ -40,6 +42,8 @@ export const Email = () => {
           showAllowSearch={true}
           allowSearch={allowSearch}
           onChangeAllowSearch={onChangeAllowSearch}
+          onContinue={onContinue}
+          icon={<Kb.Icon type={Styles.isMobile ? 'icon-email-add-64' : 'icon-email-add-48'} />}
         />
       </Kb.Box2>
     </Kb.Modal>
