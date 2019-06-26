@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
+import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email/'
 import AddPhone from '../../signup/phone-number/container'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
@@ -12,8 +13,12 @@ export const Email = () => {
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [email, onChangeEmail] = React.useState('')
   const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const emailError = Container.useSelector(state => state.settings.email.error)
   const disabled = !email
-  const onContinue = disabled ? () => {} : () => {} // TODO real callback
+  const onContinue = React.useCallback(
+    () => (disabled ? null : dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch}))),
+    [dispatch, disabled, email, allowSearch]
+  )
   return (
     <Kb.Modal
       onClose={onClose}
@@ -45,6 +50,7 @@ export const Email = () => {
           onContinue={onContinue}
           icon={<Kb.Icon type={Styles.isMobile ? 'icon-email-add-64' : 'icon-email-add-48'} />}
         />
+        {!!emailError && <Kb.Banner color="red" text={emailError.message} style={styles.banner} />}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -56,6 +62,12 @@ export const Phone = props => (
 )
 
 const styles = Styles.styleSheetCreate({
+  banner: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   body: {
     ...Styles.padding(
       Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
@@ -64,6 +76,7 @@ const styles = Styles.styleSheetCreate({
     ),
     backgroundColor: Styles.globalColors.blueGrey,
     flexGrow: 1,
+    position: 'relative',
   },
   buttonBar: {
     minHeight: undefined,

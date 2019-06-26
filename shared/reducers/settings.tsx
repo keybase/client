@@ -6,6 +6,7 @@ import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
 import {actionHasError} from '../util/container'
+import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -191,6 +192,11 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
     case SettingsGen.loadedContactPermissions:
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
+    case SettingsGen.addEmail: {
+      const {email} = action.payload
+      const emailError = isValidEmail(email)
+      return state.update('email', email => email.merge({error: emailError ? new Error(emailError) : null}))
+    }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

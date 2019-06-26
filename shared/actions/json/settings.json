@@ -60,6 +60,13 @@
     "editContactImportEnabled": {
       "enable": "boolean"
     },
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
+    "addedEmail": {
+      "error": "string"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"

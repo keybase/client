@@ -8,7 +8,9 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addEmail = 'settings:addEmail'
 export const addPhoneNumber = 'settings:addPhoneNumber'
+export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
@@ -73,11 +75,13 @@ export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
 type _AddPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly phoneNumber: string
   readonly resend?: boolean
 }
+type _AddedEmailPayload = {readonly error: string}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly error?: string
@@ -242,6 +246,11 @@ export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): Added
 export const createVerifiedPhoneNumber = (
   payload: _VerifiedPhoneNumberPayload
 ): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
+export const createAddEmail = (payload: _AddEmailPayload): AddEmailPayload => ({payload, type: addEmail})
+export const createAddedEmail = (payload: _AddedEmailPayload): AddedEmailPayload => ({
+  payload,
+  type: addedEmail,
+})
 export const createCertificatePinningToggled = (
   payload: _CertificatePinningToggledPayload
 ): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
@@ -422,10 +431,12 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
 export type AddPhoneNumberPayload = {
   readonly payload: _AddPhoneNumberPayload
   readonly type: typeof addPhoneNumber
 }
+export type AddedEmailPayload = {readonly payload: _AddedEmailPayload; readonly type: typeof addedEmail}
 export type AddedPhoneNumberPayload = {
   readonly payload: _AddedPhoneNumberPayload
   readonly type: typeof addedPhoneNumber
@@ -658,7 +669,9 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddEmailPayload
   | AddPhoneNumberPayload
+  | AddedEmailPayload
   | AddedPhoneNumberPayload
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
