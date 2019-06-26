@@ -72,6 +72,7 @@ export type _EmailRow = RPCTypes.Email
 export type EmailRow = I.RecordOf<_EmailRow>
 
 export type _EmailState = {
+  addingEmail: string | null
   emails: I.Map<string, EmailRow> | null
   newEmail: string
   error: Error | null

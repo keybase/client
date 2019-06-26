@@ -26,6 +26,7 @@ export const makeChat = I.Record<Types._ChatState>({
 })
 
 export const makeEmail = I.Record<Types._EmailState>({
+  addingEmail: null,
   emails: null,
   error: null,
   newEmail: '',

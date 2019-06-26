@@ -14,6 +14,7 @@ export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
+export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
@@ -81,7 +82,7 @@ type _AddPhoneNumberPayload = {
   readonly phoneNumber: string
   readonly resend?: boolean
 }
-type _AddedEmailPayload = {readonly error: string}
+type _AddedEmailPayload = {readonly email: string; readonly error: string}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly error?: string
@@ -89,6 +90,7 @@ type _AddedPhoneNumberPayload = {
 }
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
+type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
@@ -220,6 +222,13 @@ export const createUnfurlSettingsRefresh = (
 export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
+/**
+ * Reset state used for adding an email.
+ */
+export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
+  payload,
+  type: clearAddingEmail,
+})
 /**
  * Submit a verification code for a phone number
  */
@@ -449,6 +458,10 @@ export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
 }
+export type ClearAddingEmailPayload = {
+  readonly payload: _ClearAddingEmailPayload
+  readonly type: typeof clearAddingEmail
+}
 export type ClearPhoneNumberVerificationPayload = {
   readonly payload: _ClearPhoneNumberVerificationPayload
   readonly type: typeof clearPhoneNumberVerification
@@ -675,6 +688,7 @@ export type Actions =
   | AddedPhoneNumberPayload
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
+  | ClearAddingEmailPayload
   | ClearPhoneNumberVerificationPayload
   | DbNukePayload
   | DeleteAccountForeverPayload

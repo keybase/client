@@ -65,8 +65,10 @@
       "searchable": "boolean"
     },
     "addedEmail": {
+      "email": "string",
       "error": "string"
     },
+    "clearAddingEmail": {"_description": "Reset state used for adding an email."},
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"

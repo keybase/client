@@ -195,7 +195,19 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.addEmail: {
       const {email} = action.payload
       const emailError = isValidEmail(email)
-      return state.update('email', email => email.merge({error: emailError ? new Error(emailError) : null}))
+      return state.update('email', emailState =>
+        emailState.merge({addingEmail: email, error: emailError ? new Error(emailError) : null})
+      )
+    }
+    case SettingsGen.addedEmail: {
+      if (action.payload.email !== state.email.addingEmail) {
+        logger.warn("addedEmail: doesn't match")
+        return state
+      }
+      return state // TODO
+    }
+    case SettingsGen.clearAddingEmail: {
+      return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
     }
     // Saga only actions
     case SettingsGen.dbNuke:
