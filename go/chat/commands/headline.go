@@ -25,6 +25,12 @@ func (s *Headline) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
+	defer func() {
+		if err != nil {
+			s.getChatUI().ChatCommandStatus(ctx, convID, "Failed to set channel headline",
+				chat1.UICommandStatusDisplayTyp_ERROR, nil)
+		}
+	}()
 	_, msg, err := s.commandAndMessage(text)
 	if err != nil {
 		return err
