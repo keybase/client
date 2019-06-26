@@ -1104,6 +1104,9 @@ const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = state =>
   state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
   FsGen.createSetTlfsAsUnloaded()
 
+const setDebugLevel = (_, action: FsGen.SetDebugLevelPayload) =>
+  RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -1208,6 +1211,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       finishManualCR
     )
   }
+
+  yield* Saga.chainAction<FsGen.SetDebugLevelPayload>(FsGen.setDebugLevel, setDebugLevel)
 
   yield Saga.spawn(platformSpecificSaga)
 }
