@@ -187,6 +187,10 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('phoneNumbers', pn =>
         pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
       )
+    case SettingsGen.loadedContactImportEnabled:
+      return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
+    case SettingsGen.loadedContactPermissions:
+      return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -214,6 +218,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.verifyPhoneNumber:
     case SettingsGen.loadProxyData:
     case SettingsGen.saveProxyData:
+    case SettingsGen.loadContactImportEnabled:
+    case SettingsGen.editContactImportEnabled:
+    case SettingsGen.requestContactPermissions:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
