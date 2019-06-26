@@ -6612,7 +6612,15 @@ func TestReacjiStore(t *testing.T) {
 		// post a bunch of reactions, we should end up with these reactions
 		// replacing the defaults sorted alphabetically (since they tie on
 		// being used once each)
-		reactionKeys := []string{"g", "f", "e", "d", "c", "b", "a"}
+		reactionKeys := []string{
+			":100:",
+			":1234:",
+			":1st_place_medal:",
+			":2nd_place_medal:",
+			":3rd_place_medal:",
+			":8ball:",
+			":a:",
+		}
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
@@ -6632,9 +6640,9 @@ func TestReacjiStore(t *testing.T) {
 		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		textID2 := mustPostLocalForTest(t, ctc, user, conv, msg)
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-		mustReactToMsg(ctx, t, ctc, user, conv, textID2, "a")
+		mustReactToMsg(ctx, t, ctc, user, conv, textID2, ":a:")
 		consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
-		expectedData.FrequencyMap["a"]++
+		expectedData.FrequencyMap[":a:"]++
 		info := consumeReactionUpdate(t, listener)
 		assertReacjiStore(info.UserReacjis, expected, expectedData)
 
