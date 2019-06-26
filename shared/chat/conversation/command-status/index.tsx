@@ -30,13 +30,13 @@ const bkgColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
 const textColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
   switch (typ) {
     case RPCChatTypes.UICommandStatusDisplayTyp.error:
-      return {color: Styles.globalColors.white}
+      return Styles.globalColors.white
     case RPCChatTypes.UICommandStatusDisplayTyp.warning:
-      return {}
+      return undefined
     case RPCChatTypes.UICommandStatusDisplayTyp.status:
-      return {}
+      return undefined
   }
-  return {}
+  return undefined
 }
 
 const CommandStatus = (props: Props) => {
@@ -46,31 +46,34 @@ const CommandStatus = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([bkgColor(props.displayType), styles.container])}
-        gap="tiny"
+        gap="xsmall"
       >
         <Kb.Icon
           onClick={props.onCancel}
           type="iconfont-remove"
-          style={Kb.iconCastPlatformStyles(
-            Styles.collapseStyles([textColor(props.displayType), styles.close])
-          )}
+          style={Kb.iconCastPlatformStyles(styles.close)}
+          color={textColor(props.displayType)}
           boxStyle={styles.close}
         />
-        <Kb.Text type="BodySmall" style={Styles.collapseStyles([textColor(props.displayType)])}>
-          {props.displayText}
-        </Kb.Text>
-        {props.actions.map((a, i) => {
-          return (
-            <Kb.Text
-              key={i}
-              type="BodySmallSemiboldPrimaryLink"
-              onClick={a.onClick}
-              style={Styles.collapseStyles([textColor(props.displayType)])}
-            >
-              {a.displayText}
-            </Kb.Text>
-          )
-        })}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer} gap="tiny">
+          <Kb.Text type="BodySmall" style={Styles.collapseStyles([{color: textColor(props.displayType)}])}>
+            {props.displayText}
+          </Kb.Text>
+          {props.actions.map((a, i) => {
+            return (
+              <Kb.Text
+                key={i}
+                negative={true}
+                type="BodySmallSemiboldPrimaryLink"
+                onClick={a.onClick}
+                style={Styles.collapseStyles([{color: textColor(props.displayType)}])}
+                underline={true}
+              >
+                {a.displayText}
+              </Kb.Text>
+            )
+          })}
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box>
   )
@@ -88,6 +91,9 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
     },
   }),
+  contentContainer: {
+    flex: 1,
+  },
   outerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,

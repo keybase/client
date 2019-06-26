@@ -1184,7 +1184,7 @@ func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) er
 	return nil
 }
 
-func (c *ChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
+func (c *ChatUI) ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error) {
 	return chat1.LocationWatchID(0), nil
 }
 

@@ -4628,6 +4628,15 @@
         }
       ],
       "response": null
+    },
+    "locationDenied": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

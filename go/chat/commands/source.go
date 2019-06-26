@@ -89,7 +89,7 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
 	}
-	if (s.G().IsMobileAppType() && s.isAdmin()) || s.G().GetRunMode() == libkb.DevelRunMode {
+	if (s.G().IsMobileAppType() || s.isAdmin()) || s.G().GetRunMode() == libkb.DevelRunMode {
 		common = append(common, cmds[cmdLocation])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)

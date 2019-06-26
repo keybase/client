@@ -1942,6 +1942,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": "LocationWatchID"

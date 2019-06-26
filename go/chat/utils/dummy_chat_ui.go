@@ -119,7 +119,7 @@ func (r DummyChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadG
 	return nil
 }
 
-func (r DummyChatUI) ChatWatchPosition(context.Context, int) (chat1.LocationWatchID, error) {
+func (r DummyChatUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
 	return chat1.LocationWatchID(0), nil
 }
 

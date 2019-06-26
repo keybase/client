@@ -2866,7 +2866,10 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
         RPCChatTypes.localLocationUpdateRpcPromise({
           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
         }),
-      err => logger.warn(err.message),
+      err => {
+        logger.warn(err.message)
+        RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
+      },
       {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)

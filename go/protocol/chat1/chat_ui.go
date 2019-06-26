@@ -2338,7 +2338,8 @@ type ChatLoadGalleryHitArg struct {
 }
 
 type ChatWatchPositionArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
 }
 
 type ChatClearWatchArg struct {
@@ -2382,7 +2383,7 @@ type ChatUiInterface interface {
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
 	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
-	ChatWatchPosition(context.Context, int) (LocationWatchID, error)
+	ChatWatchPosition(context.Context, ChatWatchPositionArg) (LocationWatchID, error)
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
 	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
 }
@@ -2807,7 +2808,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatWatchPositionArg)(nil), args)
 						return
 					}
-					ret, err = i.ChatWatchPosition(ctx, typedArgs[0].SessionID)
+					ret, err = i.ChatWatchPosition(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2988,8 +2989,7 @@ func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGall
 	return
 }
 
-func (c ChatUiClient) ChatWatchPosition(ctx context.Context, sessionID int) (res LocationWatchID, err error) {
-	__arg := ChatWatchPositionArg{SessionID: sessionID}
+func (c ChatUiClient) ChatWatchPosition(ctx context.Context, __arg ChatWatchPositionArg) (res LocationWatchID, err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res)
 	return
 }
