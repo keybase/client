@@ -409,6 +409,13 @@
         {
           "type": "string",
           "name": "feeChargedDescription"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
         }
       ]
     },

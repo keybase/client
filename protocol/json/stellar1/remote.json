@@ -380,13 +380,6 @@
             "PaymentTrustlineLocal"
           ],
           "name": "trustline"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Asset"
-          },
-          "name": "path"
         }
       ]
     },
@@ -669,6 +662,13 @@
         {
           "type": "string",
           "name": "feeCharged"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
         }
       ]
     },

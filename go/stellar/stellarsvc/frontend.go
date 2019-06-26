@@ -401,6 +401,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 			PublicNoteType:        details.MemoType,
 			ExternalTxURL:         details.ExternalTxURL,
 			FeeChargedDescription: fee,
+			PathIntermediate:      details.PathIntermediate,
 		},
 	}, nil
 }
