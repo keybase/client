@@ -947,7 +947,7 @@ const maybeNavToLinkExisting = (state, action: WalletsGen.CheckDisclaimerPayload
   })
 
 const rejectDisclaimer = (state, action: WalletsGen.RejectDisclaimerPayload) =>
-  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
+  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
 
 const loadMobileOnlyMode = (
   state,
