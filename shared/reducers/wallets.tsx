@@ -382,6 +382,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         airdropQualifications: I.List(action.payload.airdropQualifications),
         airdropState: action.payload.airdropState,
       })
+    case WalletsGen.validateSEP7LinkError:
+      return state.merge({sep7ConfirmError: action.payload.error})
+    case WalletsGen.setSEP7Tx:
+      return state.merge({sep7ConfirmInfo: action.payload.tx, sep7ConfirmURI: action.payload.confirmURI})
     case WalletsGen.hideAirdropBanner:
       // set this immediately so it goes away immediately
       return state.merge({airdropShowBanner: false})
@@ -476,6 +480,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.exitFailedPayment:
     case WalletsGen.loadInflationDestination:
     case WalletsGen.loadExternalPartners:
+    case WalletsGen.acceptSEP7Pay:
+    case WalletsGen.acceptSEP7Tx:
+    case WalletsGen.validateSEP7Link:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
       return state
