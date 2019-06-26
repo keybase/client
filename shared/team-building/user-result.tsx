@@ -10,6 +10,8 @@ import {ServiceIdWithContact, FollowingState} from '../constants/types/team-buil
 // * maybe move realCSS up?
 
 export type Props = {
+  // They are already a member in the actual team, not this temporary set.
+  isPreExistingTeamMember: boolean
   resultForService: ServiceIdWithContact
   username: string
   prettyName: string
@@ -43,9 +45,11 @@ class Row extends React.Component<Props, LocalState> {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
+    const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : null
+    const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : null
 
     return (
-      <Kb.ClickableBox onClick={this.props.inTeam ? this.props.onRemove : this.props.onAdd}>
+      <Kb.ClickableBox onClick={this.props.inTeam ? onRemove : onAdd}>
         <Kb.Box2
           onMouseOver={() => {
             this.setState({hovering: true})
@@ -68,6 +72,7 @@ class Row extends React.Component<Props, LocalState> {
           <Kb.DesktopStyle style={realCSS(this.props.inTeam)} />
           <Avatar resultForService={this.props.resultForService} keybaseUsername={keybaseUsername} />
           <Username
+            isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
             username={serviceUsername}
             prettyName={this.props.prettyName}
@@ -79,13 +84,15 @@ class Row extends React.Component<Props, LocalState> {
             keybaseUsername={keybaseUsername}
             followingState={this.props.followingState}
           />
-          <ActionButton
-            inTeam={this.props.inTeam}
-            onAdd={this.props.onAdd}
-            onRemove={this.props.onRemove}
-            highlight={this.props.highlight}
-            hover={this.state.hovering}
-          />
+          {!this.props.isPreExistingTeamMember && (
+            <ActionButton
+              inTeam={this.props.inTeam}
+              onAdd={this.props.onAdd}
+              onRemove={this.props.onRemove}
+              highlight={this.props.highlight}
+              hover={this.state.hovering}
+            />
+          )}
         </Kb.Box2>
       </Kb.ClickableBox>
     )
@@ -113,9 +120,13 @@ const Avatar = ({
   )
 }
 
+const isPreExistingTeamMemberText = (prettyName: string) =>
+  `${prettyName || ''}${prettyName ? ' • ' : ''} Already in team`
+
 const Username = (props: {
   username: string
   prettyName: string
+  isPreExistingTeamMember?: boolean
   followingState: FollowingState
   keybaseResult: boolean
 }) => (
@@ -126,7 +137,11 @@ const Username = (props: {
     >
       {props.username}
     </Kb.Text>
-    {!!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>}
+    {props.isPreExistingTeamMember ? (
+      <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+    ) : (
+      !!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>
+    )}
   </Kb.Box2>
 )
 

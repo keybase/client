@@ -341,6 +341,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       if (!visibility) {
         return state
       }
+      // @ts-ignore
       return state.mergeIn(['tlfs', visibility, elems[2]], {
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
@@ -370,16 +371,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
       return state.mergeIn(
         ['edits'],
-        [
-          [
-            Constants.makeEditID(),
-            Constants.makeNewFolder({
-              hint: newFolderName,
-              name: newFolderName,
-              parentPath,
-            }),
-          ],
-        ]
+        I.Map({
+          [Constants.makeEditID()]: Constants.makeNewFolder({
+            hint: newFolderName,
+            name: newFolderName,
+            parentPath,
+          }),
+        })
       )
     case FsGen.newFolderName:
       return state.update('edits', edits =>

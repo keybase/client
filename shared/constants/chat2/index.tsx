@@ -55,6 +55,7 @@ export const makeState = I.Record<Types._State>({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
@@ -63,9 +64,6 @@ export const makeState = I.Record<Types._State>({
   unreadMap: I.Map(),
   unsentTextMap: I.Map(),
   userReacjis: defaultUserReacjis,
-
-  // Team Building
-  ...TeamBuildingConstants.makeSubState(),
 })
 
 export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
