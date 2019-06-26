@@ -63,7 +63,7 @@ type _BootstrapStatusLoadedPayload = {
   readonly registered: boolean
   readonly uid: string
   readonly username: string
-  readonly userReacjis: RPCTypes.UserReacjis | null
+  readonly userReacjis: RPCTypes.UserReacjis
 }
 type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}

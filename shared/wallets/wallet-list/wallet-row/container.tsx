@@ -1,6 +1,6 @@
 import {WalletRow, Props} from '.'
 import {namedConnect, isMobile} from '../../../util/container'
-import {getAccount, getSelectedAccount} from '../../../constants/wallets'
+import {getAccount, getAirdropSelected, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {AccountID} from '../../../constants/types/wallets'
@@ -22,10 +22,9 @@ const mapStateToProps = (
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = getSelectedAccount(state)
-  // const path = RouteTree.getPath(state.routeTree.routeState).last()
-  const airdropSelected = false // TODO path === 'airdrop' || path === 'airdropQualify'
-
+  const airdropSelected = getAirdropSelected(state)
   return {
+    airdropSelected,
     contents: account.balanceDescription,
     isSelected: !airdropSelected && selectedAccount === ownProps.accountID,
     keybaseUser,
@@ -46,6 +45,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+  airdropSelected: stateProps.airdropSelected,
   contents: stateProps.contents,
   isSelected: !isMobile && stateProps.isSelected,
   keybaseUser: stateProps.keybaseUser,

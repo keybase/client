@@ -699,7 +699,7 @@
       "conversationIDKey": "Types.ConversationIDKey"
     },
     "updateUserReacjis": {
-      "userReacjis": "RPCTypes.UserReacjis | null"
+      "userReacjis": "RPCTypes.UserReacjis"
     },
     "setCommandStatusInfo": {
       "_description": "Set command status info",

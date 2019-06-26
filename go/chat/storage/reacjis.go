@@ -12,9 +12,12 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
+	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
-const reacjiDiskVersion = 2
+const reacjiDiskVersion = 3
+
+var codeMap map[string]string
 
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
 var DefaultTopReacjis = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
@@ -154,6 +157,12 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, reacji string) error {
 	s.Lock()
 	defer s.Unlock()
+	if codeMap == nil {
+		codeMap = emoji.CodeMap()
+	}
+	if _, ok := codeMap[reacji]; !ok {
+		return nil
+	}
 
 	cache := s.populateCacheLocked(ctx, uid)
 	cache.FrequencyMap[reacji]++

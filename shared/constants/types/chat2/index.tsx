@@ -110,6 +110,11 @@ export type CommandStatusInfo = {
   actions: Array<RPCChatTypes.UICommandStatusActionTyp>
 }
 
+export type UserReacjis = {
+  topReacjis: Array<string>
+  skinTone: number
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -154,7 +159,7 @@ export type _State = {
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  userReacjis: RPCTypes.UserReacjis
+  userReacjis: UserReacjis
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

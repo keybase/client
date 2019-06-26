@@ -612,7 +612,7 @@ type _UpdateUnreadlinePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
 }
-type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis | null}
+type _UpdateUserReacjisPayload = {readonly userReacjis: RPCTypes.UserReacjis}
 
 // Action Creators
 /**
