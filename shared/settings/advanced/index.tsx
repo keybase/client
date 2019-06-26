@@ -169,7 +169,7 @@ class Developer extends React.Component<Props, State> {
         <Kb.Button
           style={styles.developerButtons}
           mode="Secondary"
-          label="FS More Logging"
+          label="Enable Detailed Logging"
           onClick={props.onExtraKBFSLogging}
         />
         {this._showPprofControls() && (
