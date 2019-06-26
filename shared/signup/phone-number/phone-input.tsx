@@ -19,7 +19,11 @@ const menuItems = memoize((countryData, filter, onClick) =>
   Object.values(countryData)
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .filter((cd: any) => {
-      return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+      const strippedFilter = filter.replace(/\D+/g, '')
+      return (
+        (strippedFilter.length > 0 && cd.callingCode.replace(/\D+/g, '').includes(strippedFilter)) ||
+        cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+      )
     })
     .map((cd: any) => ({
       onClick: () => onClick(cd.alpha2),
@@ -198,6 +202,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
                 placeholder="Search"
                 icon="iconfont-search"
                 onChangeText={this._onChangeFilter}
+                value={this.state.filter}
                 textType="BodySemibold"
               />
             ),
