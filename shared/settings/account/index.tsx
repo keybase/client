@@ -17,7 +17,7 @@ export type Props = {
 } & HeaderHocProps
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
-  <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.section}>
+  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
     {children}
   </Kb.Box2>
 )
