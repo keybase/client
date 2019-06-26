@@ -93,7 +93,7 @@ type _EditEmailPayload = {
   readonly email: string
   readonly delete?: boolean
   readonly makePrimary?: boolean
-  readonly toggleSearchable?: boolean
+  readonly makeSearchable?: boolean | null
   readonly verify?: boolean
 }
 type _EditPhonePayload = {

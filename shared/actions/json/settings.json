@@ -36,7 +36,7 @@
       "email": "string",
       "delete?": "boolean",
       "makePrimary?": "boolean",
-      "toggleSearchable?": "boolean",
+      "makeSearchable?": "boolean | null",
       "verify?": "boolean"
     },
     "editPhone": {
