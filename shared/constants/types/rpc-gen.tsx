@@ -3423,4 +3423,4 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.userCard'
-// 'keybase.1.userSearch.search'
+// 'keybase.1.userSearch.userSearch'

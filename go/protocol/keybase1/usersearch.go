@@ -68,32 +68,32 @@ func (o UserSearchResult) DeepCopy() UserSearchResult {
 	}
 }
 
-type SearchArg struct {
+type UserSearchArg struct {
 	Query      string `codec:"query" json:"query"`
 	Service    string `codec:"service" json:"service"`
 	MaxResults int    `codec:"maxResults" json:"maxResults"`
 }
 
 type UserSearchInterface interface {
-	Search(context.Context, SearchArg) ([]UserSearchResult, error)
+	UserSearch(context.Context, UserSearchArg) ([]UserSearchResult, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.userSearch",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"search": {
+			"userSearch": {
 				MakeArg: func() interface{} {
-					var ret [1]SearchArg
+					var ret [1]UserSearchArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SearchArg)
+					typedArgs, ok := args.(*[1]UserSearchArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]SearchArg)(nil), args)
+						err = rpc.NewTypeError((*[1]UserSearchArg)(nil), args)
 						return
 					}
-					ret, err = i.Search(ctx, typedArgs[0])
+					ret, err = i.UserSearch(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -105,7 +105,7 @@ type UserSearchClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c UserSearchClient) Search(ctx context.Context, __arg SearchArg) (res []UserSearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.search", []interface{}{__arg}, &res)
+func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []UserSearchResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
 	return
 }

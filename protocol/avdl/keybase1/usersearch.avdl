@@ -21,5 +21,5 @@ protocol userSearch {
         union { null, ProcessedContact } contact;
     }
 
-    array<UserSearchResult> search(string query, string service, int maxResults);
+    array<UserSearchResult> userSearch(string query, string service, int maxResults);
 }
