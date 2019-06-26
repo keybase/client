@@ -263,6 +263,7 @@ const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
+  fromAirdrop: false,
   id: Types.noPaymentID,
   isAdvanced: false,
   issuerAccountID: null,
@@ -399,6 +400,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
+    fromAirdrop: p.fromAirdrop,
     id: Types.rpcPaymentIDToPaymentID(p.id),
     isAdvanced: p.isAdvanced,
     issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
@@ -469,6 +471,14 @@ export const paymentToYourInfoAndCounterparty = (
   counterparty: string
   counterpartyType: Types.CounterpartyType
 } => {
+  if (p.fromAirdrop) {
+    return {
+      counterparty: '',
+      counterpartyType: 'airdrop',
+      yourAccountName: '',
+      yourRole: 'airdrop',
+    }
+  }
   switch (p.delta) {
     case 'none':
       // In this case, sourceType and targetType are usually
