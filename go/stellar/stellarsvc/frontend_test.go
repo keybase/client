@@ -1911,7 +1911,34 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 	require.False(t, bres.SendingIntentionXLM)
 	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
-	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:                 "info",
+		OfferAdvancedSendForm: true,
+	}})
+
+	t.Logf("sending from an account with only native assets to an account with non-native assets")
+	bres, err = tcs[2].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct3.accountID,
+		To:            fakeAcct.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:                 "info",
+		OfferAdvancedSendForm: true,
+	}})
 
 	t.Logf("sending from an account with non-native assets to an account with the same non-native asset")
 	fakeAcct4.AdjustAssetBalance(0, astro)

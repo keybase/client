@@ -20,32 +20,43 @@ import (
 )
 
 func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to string) (shouldShow bool, err error) {
-	// We don't show a banner if either the from or to are empty strings since they obviously don't have anything in
-	// common
-	if from == "" {
-		return false, nil
-	}
-	if to == "" {
-		return false, nil
-	}
-
-	// We show the advanced send form if there are any enabled choices for sending an asset
-	// Note that GetSendAssetChoicesLocal does not include native assets
-	res, err := GetSendAssetChoicesLocal(
-		mctx,
-		remoter,
-		stellar1.GetSendAssetChoicesLocalArg{
-			From: from,
-			To:   to,
-		})
-	if err != nil {
-		return false, err
-	}
-	for _, choice := range res {
-		if choice.Enabled {
-			return true, nil
+	// Lookup our assets
+	if from != "" {
+		ourBalances, err := remoter.Balances(mctx.Ctx(), from)
+		if err != nil {
+			return false, err
+		}
+		for _, bal := range ourBalances {
+			asset := bal.Asset
+			if !asset.IsNativeXLM() {
+				return true, nil
+			}
 		}
 	}
+
+	// Lookup their assets
+	if to != "" {
+		recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(to), false)
+		if err != nil {
+			return false, err
+		}
+
+		if recipient.AccountID == nil {
+			return false, fmt.Errorf("failed to get AccountID for reccipient")
+		}
+		theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
+		if err != nil {
+			return false, err
+		}
+		for _, bal := range theirBalances {
+			asset := bal.Asset
+			if !asset.IsNativeXLM() {
+				return true, nil
+			}
+		}
+	}
+
+	// Neither of us have non-native assets so return false
 	return false, nil
 }
 
