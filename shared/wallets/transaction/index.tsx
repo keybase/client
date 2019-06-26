@@ -26,10 +26,12 @@ type CounterpartyIconProps = {
 
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
-  if (!props.counterparty) {
+  if (!props.counterparty && props.counterpartyType !== 'airdrop') {
     return <Icon type="icon-stellar-logo-grey-48" style={{height: size, width: size}} />
   }
   switch (props.counterpartyType) {
+    case 'airdrop':
+      return <Icon type="icon-airdrop-star-48" style={{height: size, width: size}} />
     case 'keybaseUser':
       return (
         <Avatar
@@ -71,6 +73,8 @@ type CounterpartyTextProps = {
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
   switch (props.counterpartyType) {
+    case 'airdrop':
+      return <Text style={{color: globalColors.white}} type={props.textTypeSemibold}>Stellar airdrop</Text>
     case 'keybaseUser':
       return (
         <ConnectedUsernames
@@ -104,6 +108,7 @@ type DetailProps = {
   counterparty: string
   counterpartyType: Types.CounterpartyType
   detailView: boolean
+  fromAirdrop: boolean
   isAdvanced: boolean
   isXLM: boolean
   issuerDescription: string
@@ -218,6 +223,10 @@ const Detail = (props: DetailProps) => {
   ) : null
 
   switch (props.yourRole) {
+    case 'airdrop':
+      return <Text type={textType} style={textStyle}>
+        {counterparty()}
+      </Text>
     case 'senderOnly':
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
@@ -285,6 +294,8 @@ type AmountXLMProps = {
 
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
+    case 'airdrop':
+      return globalColors.white
     case 'senderOnly':
       return globalColors.black
     case 'receiverOnly':
@@ -302,6 +313,7 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
   switch (role) {
     case 'senderOnly':
       return `- ${amountXLM}`
+    case 'airdrop':
     case 'receiverOnly':
       return `+ ${amountXLM}`
     case 'senderAndReceiver':
@@ -348,6 +360,7 @@ export const TimestampPending = () => (
 type TimestampLineProps = {
   detailView: boolean | null
   error: string
+  reverseColor?: boolean
   status: Types.StatusSimplified
   timestamp: Date | null
   selectableText: boolean
@@ -374,7 +387,7 @@ const TimestampLine = (props: TimestampLineProps) => {
       break
   }
   return (
-    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
+    <Text selectable={props.selectableText} style={props.reverseColor && {color: globalColors.white}} title={tooltip} type="BodySmall">
       {human}
       {status ? ` • ` : null}
       {!!status && (
@@ -405,6 +418,7 @@ export type Props = {
   counterparty: string
   counterpartyType: Types.CounterpartyType
   detailView?: boolean
+  fromAirdrop: boolean
   isAdvanced: boolean
   summaryAdvanced?: string
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
@@ -432,6 +446,9 @@ export type Props = {
 export const Transaction = (props: Props) => {
   let showMemo: boolean
   switch (props.counterpartyType) {
+    case 'airdrop':
+      showMemo = false
+      break
     case 'keybaseUser':
       showMemo = true
       break
@@ -449,7 +466,7 @@ export const Transaction = (props: Props) => {
   }
   const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
-  const backgroundColor = props.unread && !props.detailView ? globalColors.blueLighter2 : globalColors.white
+  const backgroundColor = props.fromAirdrop ? globalColors.purpleLight : (props.unread && !props.detailView) ? globalColors.blueLighter2 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -467,6 +484,7 @@ export const Transaction = (props: Props) => {
             <TimestampLine
               detailView={props.detailView}
               error={props.status === 'error' ? props.statusDetail : ''}
+              reverseColor={props.fromAirdrop}
               selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
@@ -474,6 +492,7 @@ export const Transaction = (props: Props) => {
             <Detail
               approxWorth={props.approxWorth}
               detailView={!!props.detailView}
+              fromAirdrop={props.fromAirdrop}
               large={large}
               pending={pending}
               canceled={props.status === 'canceled'}

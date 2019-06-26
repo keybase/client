@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
+import * as Router2Constants from './router2'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
@@ -265,6 +266,7 @@ const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
+  fromAirdrop: false,
   id: Types.noPaymentID,
   isAdvanced: false,
   issuerAccountID: null,
@@ -401,6 +403,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
+    fromAirdrop: p.fromAirdrop,
     id: Types.rpcPaymentIDToPaymentID(p.id),
     isAdvanced: p.isAdvanced,
     issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
@@ -471,6 +474,14 @@ export const paymentToYourInfoAndCounterparty = (
   counterparty: string
   counterpartyType: Types.CounterpartyType
 } => {
+  if (p.fromAirdrop) {
+    return {
+      counterparty: '',
+      counterpartyType: 'airdrop',
+      yourAccountName: '',
+      yourRole: 'airdrop',
+    }
+  }
   switch (p.delta) {
     case 'none':
       // In this case, sourceType and targetType are usually
@@ -577,6 +588,11 @@ export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
+
+export const getAirdropSelected = (state: TypedState) => {
+  const path = Router2Constants.getVisibleScreen().routeName
+  return path === 'airdrop' || path === 'airdropQualify'
+}
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
