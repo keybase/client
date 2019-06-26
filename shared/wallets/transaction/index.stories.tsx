@@ -106,6 +106,32 @@ const load = () => {
       </Box2>
     ))
     .addDecorator(Sb.scrollViewDecorator)
+    .add('Airdrop', () => (
+      <Transaction
+        amountUser="$12.34 USD"
+        approxWorth="$12.34 USD"
+        amountXLM="20 XLM"
+        counterparty=""
+        counterpartyType="airdrop"
+        fromAirdrop={true}
+        isAdvanced={false}
+        issuerDescription=""
+        memo=""
+        onCancelPayment={null}
+        onCancelPaymentWaitingKey=""
+        onSelectTransaction={Sb.action('onSelectTransaction')}
+        onShowProfile={Sb.action('onShowProfile')}
+        readState="read"
+        selectableText={false}
+        sourceAmount=""
+        sourceAsset=""
+        status="completed"
+        statusDetail=""
+        timestamp={new Date()}
+        unread={false}
+        yourRole="airdrop"
+      />
+    ))
 
   // Don't add new configs except for new counterparty types -- change
   // addConfigs instead.
@@ -151,6 +177,78 @@ const load = () => {
         'Paid 1.0000000 XLM to account GA5MKLM3B2L4SXXXXFZAIX54KVUTEKIXRB2XOKAGYVTQMWD77AMKUD2G',
         'Set master key weight to 100',
       ]}
+    />
+  ))
+  addConfigs(stories, 'Trustline add', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: 'strongmold.co',
+        },
+        remove: false,
+      }}
+    />
+  ))
+  addConfigs(stories, 'Trustline add (no issuer domain)', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Established trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: '',
+        },
+        remove: false,
+      }}
+    />
+  ))
+  addConfigs(stories, 'Trustline remove', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: 'strongmold.co',
+        },
+        remove: true,
+      }}
+    />
+  ))
+  addConfigs(stories, 'Trustline remove (no issuer domain)', config => (
+    <Transaction
+      {...config}
+      counterparty=""
+      counterpartyType="stellarPublicKey"
+      isAdvanced={true}
+      summaryAdvanced="Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C"
+      operations={['Removed trust line to WBEZ/GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C']}
+      trustline={{
+        asset: {
+          code: 'WBEZ',
+          issuer: 'GCKPQEBFEWJHDBUIW42XHWOHTVMTYQ73YJU6M4J5UD2QVUKUZBS5D55C',
+          verifiedDomain: '',
+        },
+        remove: true,
+      }}
     />
   ))
 }

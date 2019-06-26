@@ -27,7 +27,7 @@ import * as Router2Constants from '../../constants/router2'
 import commonTeamBuildingSaga, {filterForNs, NSAction} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isMobile} from '../../constants/platform'
+import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -2857,7 +2857,7 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
         }),
       err => logger.warn(err.message),
-      {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)
   } else {

@@ -3,6 +3,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
 import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
@@ -17,6 +18,7 @@ export type NotLoadingProps = {
   counterpartyMeta: string | null
   counterpartyType: Types.CounterpartyType
   feeChargedDescription: string
+  fromAirdrop: boolean
   // issuer, for non-xlm assets
   issuerDescription: string
   issuerAccountID: Types.AccountID | null
@@ -49,6 +51,7 @@ export type NotLoadingProps = {
   yourRole: Types.Role
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string
+  trustline?: RPCTypes.PaymentTrustlineLocal
   isAdvanced: boolean
   summaryAdvanced?: string
 }
@@ -196,6 +199,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
       switch (yourRole) {
         case 'senderOnly':
           return 'Sent'
+        case 'airdrop':
         case 'receiverOnly':
           return 'Received'
         case 'senderAndReceiver':
@@ -243,6 +247,8 @@ const propsToParties = (props: NotLoadingProps) => {
   ) : null
 
   switch (props.yourRole) {
+    case 'airdrop':
+      return {receiver: you, sender: counterparty}
     case 'senderOnly':
       return {receiver: counterparty, sender: you}
     case 'receiverOnly':
@@ -293,6 +299,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
+          fromAirdrop={props.fromAirdrop}
           detailView={true}
           memo={props.memo}
           onCancelPayment={null}
@@ -310,6 +317,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           issuerDescription={props.issuerDescription}
           isAdvanced={props.isAdvanced}
           summaryAdvanced={props.summaryAdvanced}
+          trustline={props.trustline}
         />
       </Kb.Box2>
       <Kb.Divider />
@@ -340,7 +348,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           </Kb.Box2>
         )}
 
-        {props.operations && props.operations.length && (
+        {props.operations && props.operations.length && !(props.trustline && props.operations.length <= 1) && (
           <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Operations:</Kb.Text>
             {props.operations.map((op, i) => (

@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
+import * as Router2Constants from './router2'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
@@ -224,6 +225,7 @@ export const makeAssets = I.Record<Types._Assets>({
   availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
+  canAddTrustline: false,
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -241,6 +243,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    canAddTrustline: w.canAddTrustline,
     infoUrl: w.infoUrl,
     infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
@@ -263,6 +266,7 @@ const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
+  fromAirdrop: false,
   id: Types.noPaymentID,
   isAdvanced: false,
   issuerAccountID: null,
@@ -284,6 +288,7 @@ const _defaultPaymentCommon = {
   targetAccountID: '',
   targetType: '',
   time: null,
+  trustline: null,
   unread: false,
   worth: '',
   worthAtSendTime: '',
@@ -398,6 +403,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
+    fromAirdrop: p.fromAirdrop,
     id: Types.rpcPaymentIDToPaymentID(p.id),
     isAdvanced: p.isAdvanced,
     issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
@@ -419,6 +425,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     targetAccountID: p.toAccountID,
     targetType,
     time: p.time,
+    trustline: p.trustline,
     worth: p.worth,
     worthAtSendTime: p.worthAtSendTime,
   }
@@ -467,6 +474,14 @@ export const paymentToYourInfoAndCounterparty = (
   counterparty: string
   counterpartyType: Types.CounterpartyType
 } => {
+  if (p.fromAirdrop) {
+    return {
+      counterparty: '',
+      counterpartyType: 'airdrop',
+      yourAccountName: '',
+      yourRole: 'airdrop',
+    }
+  }
   switch (p.delta) {
     case 'none':
       // In this case, sourceType and targetType are usually
@@ -574,6 +589,11 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
+export const getAirdropSelected = (state: TypedState) => {
+  const path = Router2Constants.getVisibleScreen().routeName
+  return path === 'airdrop' || path === 'airdropQualify'
+}
+
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
 export const getSelectedAccountData = (state: TypedState) =>
@@ -620,6 +640,13 @@ export const getExternalPartners = (state: TypedState, accountID: Types.AccountI
 
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())
+
+export const getCanAddTrustline = (state: TypedState, accountID: Types.AccountID) => {
+  // We'd prefer this to be a field on account, rather than assets.
+  // Until then, pull it out of XLM assets.
+  const xlm = getAssets(state, accountID).find(a => a.assetCode === 'XLM')
+  return xlm ? xlm.canAddTrustline : false
+}
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID, unknownAccount)

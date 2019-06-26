@@ -45,6 +45,21 @@
       "toggleSearchable?": "boolean",
       "verify?": "boolean"
     },
+    "loadContactImportEnabled": {
+      "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
+    },
+    "loadedContactImportEnabled": {
+      "enabled": "boolean"
+    },
+    "loadedContactPermissions": {
+      "status": ["'granted'", "'never_ask_again'", "'undetermined'"]
+    },
+    "requestContactPermissions": {
+      "thenToggleImportOn?": "boolean"
+    },
+    "editContactImportEnabled": {
+      "enable": "boolean"
+    },
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"

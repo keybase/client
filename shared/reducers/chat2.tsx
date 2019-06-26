@@ -1285,7 +1285,11 @@ const rootReducer = (
       })
     }
     case Chat2Gen.updateUserReacjis:
-      return state.set('userReacjis', action.payload.userReacjis)
+      let {skinTone, topReacjis} = action.payload.userReacjis
+      if (!topReacjis) {
+        topReacjis = Constants.defaultTopReacjis
+      }
+      return state.merge({userReacjis: {skinTone, topReacjis}})
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

@@ -124,8 +124,13 @@ const mapDispatchToProps = (dispatch, props: OwnPropsWithSafeNavigation) => ({
 })
 
 export default Container.withSafeNavigation(
-  Container.namedConnect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Oops')(Oops)
-)
+  Container.namedConnect(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o: OwnPropsWithSafeNavigation) => ({...o, ...s, ...d}),
+    'Oops'
+  )(Oops)
+) as any
 
 const styles = Styles.styleSheetCreate({
   button: {

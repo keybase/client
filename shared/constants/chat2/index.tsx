@@ -20,6 +20,7 @@ import HiddenString from '../../util/hidden-string'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
+export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 
 export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
@@ -62,7 +63,7 @@ export const makeState = I.Record<Types._State>({
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
   unsentTextMap: I.Map(),
-  userReacjis: {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis},
+  userReacjis: defaultUserReacjis,
 })
 
 export const makeQuoteInfo = I.Record<Types._QuoteInfo>({

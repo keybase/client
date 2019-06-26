@@ -139,10 +139,20 @@ func (q *EventuallyConsistentQuotaUsage) cache(
 
 func (q *EventuallyConsistentQuotaUsage) fetch(ctx context.Context) (
 	quotaInfo *kbfsblock.QuotaInfo, err error) {
-	if q.tid.IsNil() {
-		return q.config.BlockServer().GetUserQuotaInfo(ctx)
+	bserver := q.config.BlockServer()
+	for i := 0; bserver == nil; i++ {
+		// This is possible if a login event comes in during
+		// initialization.
+		if i == 0 {
+			q.log.CDebugf(ctx, "Waiting for bserver")
+		}
+		time.Sleep(100 * time.Millisecond)
+		bserver = q.config.BlockServer()
 	}
-	return q.config.BlockServer().GetTeamQuotaInfo(ctx, q.tid)
+	if q.tid.IsNil() {
+		return bserver.GetUserQuotaInfo(ctx)
+	}
+	return bserver.GetTeamQuotaInfo(ctx, q.tid)
 }
 
 func (q *EventuallyConsistentQuotaUsage) doBackgroundFetch() {

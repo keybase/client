@@ -8,10 +8,10 @@ export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
-export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver' | 'none'
+export type Role = 'airdrop' | 'senderOnly' | 'receiverOnly' | 'senderAndReceiver' | 'none'
 
 // Possible 'types' of things you can send or receive transactions with
-export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
+export type CounterpartyType = 'airdrop' | 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
 // Reserves held against an account's XLM balance
 export type _Reserve = {
@@ -52,6 +52,7 @@ export type _Assets = {
   availableToSendWorth: string
   balanceAvailableToSend: string
   balanceTotal: string
+  canAddTrustline: boolean
   infoUrl: string
   infoUrlText: string
   issuerAccountID: string
@@ -137,6 +138,7 @@ export type PaymentSection = 'pending' | 'history' | 'none' // where does the pa
 export type _PaymentCommon = {
   amountDescription: string
   delta: PaymentDelta
+  fromAirdrop: boolean
   error: string | null
   id: PaymentID
   note: HiddenString
@@ -163,6 +165,7 @@ export type _PaymentCommon = {
   issuerDescription: string
   issuerAccountID: AccountID | null
   unread: boolean
+  trustline: StellarRPCTypes.PaymentTrustlineLocal | null
 }
 
 export type _PaymentResult = {

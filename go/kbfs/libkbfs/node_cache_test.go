@@ -22,23 +22,27 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentName := "parent"
 	var err error
-	parentNode, err = ncs.GetOrCreate(parentPtr, parentName, nil, data.Dir)
+	parentNode, err = ncs.GetOrCreate(
+		parentPtr, testPPS(parentName), nil, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
-	if parentNode.GetBasename() != parentName {
-		t.Errorf("Expected basename %s, got %s", parentName, parentNode.GetBasename())
+	if parentNode.GetBasename().Plaintext() != parentName {
+		t.Errorf("Expected basename %s, got %s",
+			parentName, parentNode.GetBasename())
 	}
 
 	// now create a child node for that parent
 	childPtr1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	childName1 := "child1"
-	childNode1, err = ncs.GetOrCreate(childPtr1, childName1, parentNode, data.Dir)
+	childNode1, err = ncs.GetOrCreate(
+		childPtr1, testPPS(childName1), parentNode, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create child node: %v", err)
 	}
-	if childNode1.GetBasename() != childName1 {
-		t.Errorf("Expected basename %s, got %s", childName1, childNode1.GetBasename())
+	if childNode1.GetBasename().Plaintext() != childName1 {
+		t.Errorf("Expected basename %s, got %s",
+			childName1, childNode1.GetBasename())
 	}
 
 	parent2 := childNode1
@@ -48,48 +52,50 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch data.BranchName, flat bool) 
 
 	childPtr2 := data.BlockPointer{ID: kbfsblock.FakeID(2)}
 	childName2 := "child2"
-	childNode2, err = ncs.GetOrCreate(childPtr2, childName2, parent2, data.Dir)
+	childNode2, err = ncs.GetOrCreate(
+		childPtr2, testPPS(childName2), parent2, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create second child node: %v", err)
 	}
-	if childNode2.GetBasename() != childName2 {
-		t.Errorf("Expected basename %s, got %s", childName2, childNode2.GetBasename())
+	if childNode2.GetBasename().Plaintext() != childName2 {
+		t.Errorf("Expected basename %s, got %s",
+			childName2, childNode2.GetBasename())
 	}
 
 	childPath1 = []data.PathNode{
 		{
 			BlockPointer: parentPtr,
-			Name:         parentName,
+			Name:         testPPS(parentName),
 		},
 		{
 			BlockPointer: childPtr1,
-			Name:         childName1,
+			Name:         testPPS(childName1),
 		},
 	}
 	if flat {
 		childPath2 = []data.PathNode{
 			{
 				BlockPointer: parentPtr,
-				Name:         parentName,
+				Name:         testPPS(parentName),
 			},
 			{
 				BlockPointer: childPtr2,
-				Name:         childName2,
+				Name:         testPPS(childName2),
 			},
 		}
 	} else {
 		childPath2 = []data.PathNode{
 			{
 				BlockPointer: parentPtr,
-				Name:         parentName,
+				Name:         testPPS(parentName),
 			},
 			{
 				BlockPointer: childPtr1,
-				Name:         childName1,
+				Name:         testPPS(childName1),
 			},
 			{
 				BlockPointer: childPtr2,
-				Name:         childName2,
+				Name:         testPPS(childName2),
 			},
 		}
 	}
@@ -168,7 +174,8 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	})
 
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, data.Dir)
+	parentNode, err := ncs.GetOrCreate(
+		parentPtr, testPPS("parent"), nil, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
@@ -177,7 +184,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 
 	// now try to create a child node for that parent
 	childPtr1 := data.BlockPointer{ID: kbfsblock.FakeID(1)}
-	_, err = ncs.GetOrCreate(childPtr1, "child", parentNode, data.Dir)
+	_, err = ncs.GetOrCreate(childPtr1, testPPS("child"), parentNode, data.Dir)
 	expectedErr := ParentNodeNotFoundError{parentPtr.Ref()}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when creating w/o parent: %v", err)
@@ -192,7 +199,8 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 	})
 
 	parentPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
-	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil, data.Dir)
+	parentNode, err := ncs.GetOrCreate(
+		parentPtr, testPPS("parent"), nil, data.Dir)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
@@ -214,12 +222,12 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	childPtr2 := path2[1].BlockPointer
 
 	// now move child2 under child1
-	undoMove, err := ncs.Move(childPtr2.Ref(), childNode1, "child3")
+	undoMove, err := ncs.Move(childPtr2.Ref(), childNode1, testPPS("child3"))
 	if err != nil {
 		t.Errorf("Couldn't update parent: %v", err)
 	}
 
-	if childNode2.GetBasename() != "child3" {
+	if childNode2.GetBasename().Plaintext() != "child3" {
 		t.Errorf("Child2 has the wrong name after move: %s",
 			childNode2.GetBasename())
 	}
@@ -240,7 +248,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	}
 
 	undoMove()
-	if childNode2.GetBasename() != "child2" {
+	if childNode2.GetBasename().Plaintext() != "child2" {
 		t.Errorf("Child2 has the wrong name after move: %s",
 			childNode2.GetBasename())
 	}
@@ -261,7 +269,7 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 	simulateGC(ncs, []Node{childNode2})
 
 	// now move child2 under child1
-	_, err := ncs.Move(childPtr2.Ref(), childNode1, "child3")
+	_, err := ncs.Move(childPtr2.Ref(), childNode1, testPPS("child3"))
 	expectedErr := ParentNodeNotFoundError{childPtr1.Ref()}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when updating parent: %v", err)
@@ -306,13 +314,13 @@ func TestNodeCacheUnlink(t *testing.T) {
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
 
-	if childNode2.GetBasename() != "" {
+	if childNode2.GetBasename().Plaintext() != "" {
 		t.Errorf("Expected empty basename, got %s", childNode2.GetBasename())
 	}
 
 	// Undo
 	undoFn()
-	if childNode2.GetBasename() != path2[2].Name {
+	if childNode2.GetBasename().Plaintext() != path2[2].Name.Plaintext() {
 		t.Errorf("Expected basename %s, got %s",
 			path2[2].Name, childNode2.GetBasename())
 	}
@@ -337,7 +345,7 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
 
-	if childNode2.GetBasename() != "child2" {
+	if childNode2.GetBasename().Plaintext() != "child2" {
 		t.Errorf("Expected basename child2, got %s", childNode2.GetBasename())
 	}
 }
@@ -363,7 +371,7 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	newChildPtr2 := data.BlockPointer{ID: kbfsblock.FakeID(22)}
 	ncs.UpdatePointer(childPtr2.Ref(), newChildPtr2) // NO-OP
 	childNode2B, err := ncs.GetOrCreate(
-		newChildPtr2, newChildName, childNode1, data.Dir)
+		newChildPtr2, testPPS(newChildName), childNode1, data.Dir)
 	if err != nil {
 		t.Fatalf("Couldn't relink node: %v", err)
 	}
@@ -378,13 +386,13 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	// New node
 	path = ncs.PathFromNode(childNode2B)
 	path2[2].BlockPointer = newChildPtr2
-	path2[2].Name = newChildName
+	path2[2].Name = testPPS(newChildName)
 	checkNodeCachePath(t, id, branch, path, path2)
 
-	if g, e := childNode2.GetBasename(), ""; g != e {
+	if g, e := childNode2.GetBasename().Plaintext(), ""; g != e {
 		t.Errorf("Expected basename %s, got %s", e, g)
 	}
-	if g, e := childNode2B.GetBasename(), newChildName; g != e {
+	if g, e := childNode2B.GetBasename().Plaintext(), newChildName; g != e {
 		t.Errorf("Expected basename %s, got %s", e, g)
 	}
 }
@@ -512,12 +520,12 @@ func TestNodeCacheWrapChild(t *testing.T) {
 
 	rootPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	rootName := "root"
-	rootNode, err := ncs.GetOrCreate(rootPtr, rootName, nil, data.Dir)
+	rootNode, err := ncs.GetOrCreate(rootPtr, testPPS(rootName), nil, data.Dir)
 	require.NoError(t, err)
 
 	childPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	childName := "child1"
-	_, err = ncs.GetOrCreate(childPtr, childName, rootNode, data.Dir)
+	_, err = ncs.GetOrCreate(childPtr, testPPS(childName), rootNode, data.Dir)
 	require.NoError(t, err)
 	require.True(t, wtn1.wrapChildCalled)
 	require.True(t, wtn2.wrapChildCalled)
@@ -536,12 +544,14 @@ func TestNodeCacheAllNodeChildren(t *testing.T) {
 
 	childPtr3 := data.BlockPointer{ID: kbfsblock.FakeID(3)}
 	childName3 := "child3"
-	_, err := ncs.GetOrCreate(childPtr3, childName3, childNode1, data.Dir)
+	_, err := ncs.GetOrCreate(
+		childPtr3, testPPS(childName3), childNode1, data.Dir)
 	require.NoError(t, err)
 
 	childPtr4 := data.BlockPointer{ID: kbfsblock.FakeID(4)}
 	childName4 := "child4"
-	_, err = ncs.GetOrCreate(childPtr4, childName4, parentNode, data.Dir)
+	_, err = ncs.GetOrCreate(
+		childPtr4, testPPS(childName4), parentNode, data.Dir)
 	require.NoError(t, err)
 
 	parentChildren := ncs.AllNodeChildren(parentNode)
@@ -554,7 +564,7 @@ func TestNodeCacheAllNodeChildren(t *testing.T) {
 	require.Len(t, child2Children, 0)
 
 	t.Log("Move child3 under the parent node.")
-	_, err = ncs.Move(childPtr3.Ref(), parentNode, "child3")
+	_, err = ncs.Move(childPtr3.Ref(), parentNode, testPPS("child3"))
 	require.NoError(t, err)
 
 	parentChildren = ncs.AllNodeChildren(parentNode)
@@ -577,7 +587,7 @@ func TestNodeCacheObfuscator(t *testing.T) {
 	t.Log("Root node should have an obfuscator")
 	rootPtr := data.BlockPointer{ID: kbfsblock.FakeID(0)}
 	rootName := "root"
-	rootNode, err := ncs.GetOrCreate(rootPtr, rootName, nil, data.Dir)
+	rootNode, err := ncs.GetOrCreate(rootPtr, testPPS(rootName), nil, data.Dir)
 	require.NoError(t, err)
 	rootOb := rootNode.Obfuscator()
 	require.NotNil(t, rootOb)
@@ -591,7 +601,8 @@ func TestNodeCacheObfuscator(t *testing.T) {
 	t.Log("Child file should not have an obfuscator")
 	childPtr := data.BlockPointer{ID: kbfsblock.FakeID(1)}
 	childName := "child1"
-	childNode, err := ncs.GetOrCreate(childPtr, childName, rootNode, data.File)
+	childNode, err := ncs.GetOrCreate(
+		childPtr, testPPS(childName), rootNode, data.File)
 	require.NoError(t, err)
 	childOb := childNode.Obfuscator()
 	require.Nil(t, childOb)

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {connect, getRouteProps} from '../../../../../util/container'
+import {connect, getRouteProps, TypedState} from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
@@ -27,7 +27,7 @@ type WrapperState = {
   width: number
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   topReacjis: state.chat2.userReacjis.topReacjis,
 })
 

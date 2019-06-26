@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/dokan"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/libkb"
@@ -41,10 +42,14 @@ func (f *File) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (a *d
 	return a, err
 }
 
+func (f *File) namePPS() data.PathPartString {
+	return f.parent.ChildName(f.name)
+}
+
 // CanDeleteFile - return just nil
 // TODO check for permissions here.
 func (f *File) CanDeleteFile(ctx context.Context, fi *dokan.FileInfo) error {
-	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %q", f.name)
+	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %s", f.namePPS())
 	return nil
 }
 
@@ -61,10 +66,12 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 		f.folder.fs.renameAndDeletionLock.Lock()
 		defer f.folder.fs.renameAndDeletionLock.Unlock()
+		namePPS := f.namePPS()
 		f.folder.fs.vlog.CLogf(
-			ctx, libkb.VLog1, "Removing (Delete) file in cleanup %s", f.name)
+			ctx, libkb.VLog1, "Removing (Delete) file in cleanup %s", namePPS)
 
-		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)
+		err = f.folder.fs.config.KBFSOps().RemoveEntry(
+			ctx, f.parent, namePPS)
 	}
 
 	if f.refcount.Decrease() {

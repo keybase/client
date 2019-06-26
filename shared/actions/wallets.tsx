@@ -1092,7 +1092,7 @@ const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
     {accountID},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(accountID)
   ).then(balances => {
-    const {assets, limitsMutable} = balances.reduce(
+    const {assets, limitsMutable} = (balances || []).reduce(
       ({assets, limitsMutable}, balance) => {
         const assetDescription = rpcAssetToAssetDescription(balance.asset)
         return {
