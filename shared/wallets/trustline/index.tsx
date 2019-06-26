@@ -4,13 +4,13 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import {memoize} from '../../util/memoize'
 import Asset from './asset-container'
 
 type _Props = {
   accountID: Types.AccountID
   acceptedAssets: Array<Types.AssetID>
-  balanceAvailableToSend: number
+  balanceAvailableToSend: string
+  canAddTrustline: boolean
   clearTrustlineModal: () => void
   errorMessage?: string
   loaded: boolean
@@ -76,10 +76,6 @@ const sectionHeader = section =>
     </Kb.Box2>
   )
 
-const haveEnoughBalanceToAccept = memoize(
-  (props: BodyProps) => props.balanceAvailableToSend >= Constants.trustlineHoldingBalance
-)
-
 const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.
   // Somehow we need two updates here.
@@ -98,7 +94,7 @@ const ListUpdateOnMount = (props: BodyProps) => {
           accountID={props.accountID}
           firstItem={index === 0}
           assetID={item}
-          cannotAccept={!haveEnoughBalanceToAccept(props)}
+          cannotAccept={!props.canAddTrustline}
         />
       )}
       renderSectionHeader={({section}) => sectionHeader(section)}
@@ -128,7 +124,7 @@ const Body = (props: BodyProps) => {
             />
           </Kb.Box2>
           <Kb.Divider />
-          {!haveEnoughBalanceToAccept(props) && (
+          {!props.canAddTrustline && (
             <Kb.Banner
               color="red"
               text={`Stellar holds ${

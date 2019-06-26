@@ -27,7 +27,7 @@ module.exports = {
     __STORYBOOK__: false,
     __STORYSHOT__: false
   },
-  plugins: ["filenames", "babel", "import", "flowtype", "react-hooks"],
+  plugins: ["filenames", "babel", "import", "react-hooks"],
   settings: {
     "import/core-modules": ["electron", "react-native"],
     "import/resolver": {
@@ -44,18 +44,6 @@ module.exports = {
       "error",
       "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"
     ],
-    "flowtype/define-flow-type": "error",
-    "flowtype/delimiter-dangle": "off",
-    "flowtype/generic-spacing": "off",
-    "flowtype/no-dupe-keys": "off",
-    "flowtype/object-type-delimiter": "off",
-    "flowtype/require-valid-file-annotation": "off",
-    "flowtype/semi": "off",
-    "flowtype/space-after-type-colon": "off",
-    "flowtype/space-before-generic-bracket": "off",
-    "flowtype/union-intersection-spacing": "off",
-    "flowtype/use-flow-type": "off",
-    "flowtype/valid-syntax": "off",
     "generator-star-spacing": "off",
     "import/export": "error",
     "import/imports-first": "error",

@@ -58,6 +58,7 @@ export type _Assets = {
   availableToSendWorth: string
   balanceAvailableToSend: string
   balanceTotal: string
+  canAddTrustline: boolean
   infoUrl: string
   infoUrlText: string
   issuerAccountID: string

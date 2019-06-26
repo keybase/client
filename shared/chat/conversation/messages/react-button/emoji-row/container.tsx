@@ -12,7 +12,7 @@ type OwnProps = {
   style?: StylesCrossPlatform
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   topReacjis: state.chat2.userReacjis.topReacjis,
 })
 
