@@ -161,6 +161,7 @@ protocol local {
     @lint("ignore")
     string externalTxURL;           // link to external web page with tx details
     string feeChargedDescription;   // "0.0000100 XLM" the actual fee that was charged for this tx (formatted)
+    array<Asset> pathIntermediate;  // for payment paths, the additional hops it took
   }
 
   record PaymentTrustlineLocal {

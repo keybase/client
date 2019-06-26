@@ -14,9 +14,10 @@ import (
 type EKType string
 
 const (
-	DeviceEKStr EKType = "deviceEK"
-	UserEKStr   EKType = "userEK"
-	TeamEKStr   EKType = "teamEK"
+	DeviceEKStr  EKType = "deviceEK"
+	UserEKStr    EKType = "userEK"
+	TeamEKStr    EKType = "teamEK"
+	TeambotEKStr EKType = "teambotEK"
 )
 
 type EphemeralKeyError struct {

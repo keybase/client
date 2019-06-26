@@ -607,11 +607,12 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 }
 
 type PaymentDetails struct {
-	Summary       PaymentSummary `codec:"summary" json:"summary"`
-	Memo          string         `codec:"memo" json:"memo"`
-	MemoType      string         `codec:"memoType" json:"memoType"`
-	ExternalTxURL string         `codec:"externalTxURL" json:"externalTxURL"`
-	FeeCharged    string         `codec:"feeCharged" json:"feeCharged"`
+	Summary          PaymentSummary `codec:"summary" json:"summary"`
+	Memo             string         `codec:"memo" json:"memo"`
+	MemoType         string         `codec:"memoType" json:"memoType"`
+	ExternalTxURL    string         `codec:"externalTxURL" json:"externalTxURL"`
+	FeeCharged       string         `codec:"feeCharged" json:"feeCharged"`
+	PathIntermediate []Asset        `codec:"pathIntermediate" json:"pathIntermediate"`
 }
 
 func (o PaymentDetails) DeepCopy() PaymentDetails {
@@ -621,6 +622,17 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 		MemoType:      o.MemoType,
 		ExternalTxURL: o.ExternalTxURL,
 		FeeCharged:    o.FeeCharged,
+		PathIntermediate: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PathIntermediate),
 	}
 }
 

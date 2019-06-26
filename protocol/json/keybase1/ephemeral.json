@@ -260,6 +260,67 @@
           "name": "metadata"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeambotEkMetadata",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid",
+          "jsonkey": "teambot_dh_public"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "EkGeneration",
+          "name": "userEkGeneration",
+          "jsonkey": "user_ek_generation"
+        },
+        {
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeambotEkBoxed",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "TeambotEkMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeambotEk",
+      "fields": [
+        {
+          "type": "Bytes32",
+          "name": "seed"
+        },
+        {
+          "type": "TeambotEkMetadata",
+          "name": "metadata"
+        }
+      ]
     }
   ],
   "messages": {},

@@ -105,6 +105,32 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   worthInfo: '',
 })
 
+export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
+  fee: null,
+  memo: '',
+  memoType: '',
+  operations: null,
+  source: '',
+})
+
+export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
+  amount: null,
+  assetCode: '',
+  assetIssuer: '',
+  availableToSendFiat: '',
+  availableToSendNative: '',
+  callbackURL: '',
+  displayAmountFiat: '',
+  memo: '',
+  memoType: '',
+  message: '',
+  operation: '',
+  originDomain: '',
+  recipient: '',
+  summary: makeSEP7Summary(),
+  xdr: '',
+})
+
 export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   amountErrMsg: '',
   builtBanners: null,
@@ -171,6 +197,9 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep7ConfirmError: '',
+  sep7ConfirmInfo: null,
+  sep7ConfirmURI: '',
   trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
@@ -566,6 +595,7 @@ export const requestPaymentWaitingKey = 'wallets:requestPayment'
 export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
+export const sep7WaitingKey = 'wallets:sep7'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 export const loadAccountsWaitingKey = 'wallets:loadAccounts'
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
@@ -699,6 +729,10 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   }
   return sign + balanceChange
 }
+
+export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+
+export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
 
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
