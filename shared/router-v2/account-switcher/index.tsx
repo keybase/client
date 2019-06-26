@@ -32,7 +32,7 @@ const AccountRow = ({
   onSelectAccount: (username: string) => void
 }) => (
   <Kb.NameWithIcon
-    clickType={onSelectAccount}
+    clickType="onClick"
     horizontal={true}
     username={entry.account.username}
     metaOne={

@@ -25,7 +25,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({
         configuredAccounts: state.configuredAccounts,
         defaultUsername: action.payload.wasCurrentDevice // if revoking self find another name if it exists
-          ? state.configuredAccounts.find(n => n.username !== state.defaultUsername, {username: ''}).username
+          ? (state.configuredAccounts.find(n => n.username !== state.defaultUsername) || {username: ''})
+              .username
           : state.defaultUsername,
       })
     case Tracker2Gen.updatedDetails: {

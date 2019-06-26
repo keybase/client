@@ -28,8 +28,8 @@ export type NameWithIconProps = {
   metaTwo?: string | React.ReactElement // If components such as metaOne or
   // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,
   // both will fire unless the inner clicks call `event.preventDefault()`
-  onClick?: () => void
-  clickType?: 'tracker' | 'profile' | ((username: string) => void)
+  onClick?: (username: string) => void
+  clickType?: 'profile' | 'onClick'
   onEditIcon?: ((e?: React.SyntheticEvent) => void) | null
   selectable?: boolean
   size?: Size
@@ -46,7 +46,7 @@ export type NameWithIconProps = {
 class NameWithIcon extends React.Component<NameWithIconProps> {
   _onClickWrapper = (event: React.SyntheticEvent) => {
     if (!event.defaultPrevented && this.props.onClick) {
-      this.props.onClick()
+      this.props.onClick(this.props.username)
     }
   }
 
@@ -95,7 +95,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const username = this.props.username || ''
     const usernameOrTitle = username ? (
       <ConnectedUsernames
-        onUsernameClicked={this.props.clickType || this.props.onClick}
+        onUsernameClicked={this.props.clickType === 'onClick' ? this.props.onClick : 'profile'}
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
         containerStyle={Styles.collapseStyles([
           !this.props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
