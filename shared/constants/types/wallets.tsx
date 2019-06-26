@@ -225,6 +225,7 @@ export type Currency = I.RecordOf<_LocalCurrency>
 export type _Account = {
   accountID: AccountID
   balanceDescription: string
+  canAddTrustline: boolean
   canSubmitTx: boolean
   deviceReadOnly: boolean
   displayCurrency: Currency

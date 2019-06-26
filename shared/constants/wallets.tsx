@@ -212,6 +212,7 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
+    canAddTrustline: w.canAddTrustline,
     canSubmitTx: w.canSubmitTx,
     deviceReadOnly: w.deviceReadOnly,
     displayCurrency: currencyResultToCurrency(w.currencyLocal),
@@ -243,7 +244,6 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
-    canAddTrustline: w.canAddTrustline,
     infoUrl: w.infoUrl,
     infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
@@ -330,6 +330,7 @@ export const unknownCurrency = makeCurrency()
 export const makeAccount = I.Record<Types._Account>({
   accountID: Types.noAccountID,
   balanceDescription: '',
+  canAddTrustline: false,
   canSubmitTx: false,
   deviceReadOnly: false,
   displayCurrency: unknownCurrency,
