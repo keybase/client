@@ -5,6 +5,7 @@ import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import {IconType} from '../../common-adapters/icon.constants'
 import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -29,8 +30,8 @@ export enum ProgressType {
 export type _FsError = {
   time: number
   errorMessage: string
-  erroredAction: FsGen.Actions
-  retriableAction?: FsGen.Actions | null
+  erroredAction: FsGen.Actions | EngineGen.Actions
+  retriableAction?: FsGen.Actions | EngineGen.Actions | null
 }
 export type FsError = I.RecordOf<_FsError>
 
