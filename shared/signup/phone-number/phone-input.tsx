@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import {isIOS} from '../../constants/platform'
 import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-numbers/'
 import {memoize} from '../../util/memoize'
-import CountryMenu from './country-menu'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
 const getCountryEmoji = countryCode => countryData[countryCode].emoji
@@ -16,9 +15,12 @@ const pickerItems = memoize(countryData =>
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
-const menuItems = memoize((countryData, onClick) =>
+const menuItems = memoize((countryData, filter, onClick) =>
   Object.values(countryData)
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
+    .filter((cd: any) => {
+      return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+    })
     .map((cd: any) => ({
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
@@ -27,10 +29,8 @@ const menuItems = memoize((countryData, onClick) =>
 )
 
 const MenuItem = props => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.menuItem}>
-    <Kb.Text type="BodySemibold" center={true}>
-      {props.text}
-    </Kb.Text>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem}>
+    <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
   </Kb.Box2>
 )
 
@@ -150,10 +150,14 @@ type CountrySelectorProps = {
 
 type CountrySelectorState = {
   selected: string
+  filter: string
 }
 
 class CountrySelector extends React.Component<CountrySelectorProps, CountrySelectorState> {
-  state = {selected: this.props.selected}
+  state = {
+    filter: '',
+    selected: this.props.selected,
+  }
 
   componentDidUpdate(prevProps: CountrySelectorProps) {
     if (this.props.selected !== prevProps.selected) {
@@ -161,7 +165,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {...s, selected}))
 
   _onCancel = () => {
     this._onSelect(this.props.selected)
@@ -177,13 +181,29 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onSelect(selected)
   }
 
+  _onChangeFilter = filter => this.setState(s => ({...s, filter}))
+
   render() {
     if (!Styles.isMobile) {
       return (
-        <CountryMenu
+        <Kb.FloatingMenu
           closeOnSelect={true}
-          containerStyle={styles.countryMenu}
-          items={menuItems(countryData, this._onSelectMenu)}
+          containerStyle={styles.countryLayout}
+          header={{
+            title: 'Search',
+            view: (
+              <Kb.NewInput
+                autoFocus={true}
+                containerStyle={styles.countrySearch}
+                placeholder="Search"
+                icon="iconfont-search"
+                onChangeText={this._onChangeFilter}
+                textType="BodySemibold"
+              />
+            ),
+          }}
+          items={menuItems(countryData, this.state.filter, this._onSelectMenu)}
+          listStyle={styles.countryList}
           onHidden={this.props.onHidden}
           visible={this.props.visible}
           attachTo={this.props.attachTo}
@@ -218,10 +238,28 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
     borderWidth: 1,
   },
-  countryMenu: {
+  countryLayout: {
     maxHeight: 200,
     overflow: 'hidden',
     width: 240,
+  },
+  countryList: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      display: 'block',
+      maxHeight: 160,
+      overflowX: 'hidden',
+      overflowY: 'auto',
+      paddingBottom: 0,
+      paddingTop: 0,
+    },
+  }),
+  countrySearch: {
+    ...Styles.globalStyles.flexBoxRow,
+    ...Styles.padding(0, Styles.globalMargins.tiny),
+    flexShrink: 0,
+    height: 38,
+    width: '100%',
   },
   fullHeight: {height: '100%'},
   input: Styles.platformStyles({
@@ -233,7 +271,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   menuItem: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.medium),
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
   },
 })
 
