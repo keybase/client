@@ -19,7 +19,7 @@ import (
 	stellarAddress "github.com/stellar/go/address"
 )
 
-func ShowAdvancedSendBanner(mctx libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to string) (shouldShow bool, err error) {
+func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to string) (shouldShow bool, err error) {
 	// We don't show a banner if either the from or to are empty strings since they obviously don't have anything in
 	// common
 	if from == "" {
@@ -128,7 +128,7 @@ func StopBuildPaymentLocal(mctx libkb.MetaContext, bid stellar1.BuildPaymentID) 
 	getGlobal(mctx.G()).stopBuildPayment(mctx, bid)
 }
 
-func BuildPaymentLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
+func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "BuildPaymentLocal", true)
 	defer tracer.Finish()
 
@@ -287,7 +287,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stell
 					})
 				}
 			}
-			offerAdvancedForm, err := ShowAdvancedSendBanner(mctx, remoter, arg.From, arg.To)
+			offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, arg.To)
 			if err != nil {
 				return res, err
 			}

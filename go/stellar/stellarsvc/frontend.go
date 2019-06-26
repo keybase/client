@@ -694,7 +694,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	if err != nil {
 		return res, err
 	}
-	return stellar.BuildPaymentLocal(mctx, s.remoter, arg)
+	return stellar.BuildPaymentLocal(mctx, arg)
 }
 
 func (s *Server) ReviewPaymentLocal(ctx context.Context, arg stellar1.ReviewPaymentLocalArg) (err error) {
