@@ -302,6 +302,41 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
       {props.amount} {props.assetCode || 'XLM'}
     </Kb.Text>
     <Kb.Text type="BodySmall">/{props.issuerDescription || 'Unknown issuer'}</Kb.Text>
+
+const PaymentPathLine = () => <Kb.Box style={styles.paymentPathLine} />
+
+const PaymentPathEnd = (props: any) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
+    <Kb.Avatar size={32} borderColor={Styles.globalColors.purpleLight} />
+    <Kb.Text type="BodyBigExtrabold">
+      {props.assetLabel}
+      <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
+    </Kb.Text>
+  </Kb.Box2>
+)
+const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
+  <Kb.Box2
+    direction="horizontal"
+    style={styles.paymentPathStop}
+    alignItems="center"
+    fullWidth={true}
+    gap="medium"
+  >
+    <Kb.Box style={styles.paymentPathCircle} />
+    <Kb.Text type="BodyBigExtrabold">
+      {props.assetCode}
+      <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const PaymentPath = (props: any) => (
+  <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
+    <PaymentPathEnd assetLabel="-67.34" issuer="nathansmith.io" />
+    <PaymentPathLine />
+    <PaymentPathStop assetCode="USD" issuer="nathansmith.io" />
+    <PaymentPathLine />
+    <PaymentPathEnd assetLabel="+45.00" issuer="nathansmith.io" />
   </Kb.Box2>
 )
 
@@ -366,6 +401,13 @@ const TransactionDetails = (props: NotLoadingProps) => {
             </Kb.Box2>
           </Kb.Box2>
         )}
+        {!!sender && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
+            <PaymentPath />
+          </Kb.Box2>
+        )}
+
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
@@ -574,6 +616,23 @@ const styles = Styles.styleSheetCreate({
   partyAccountContainer: {
     alignSelf: 'flex-start',
   },
+  paymentPathCircle: {
+    backgroundColor: Styles.globalColors.purple,
+    borderColor: Styles.globalColors.purpleLighter,
+    borderRadius: 10 / 2,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    height: 10,
+    width: 10,
+  },
+  paymentPathLine: {
+    backgroundColor: Styles.globalColors.purpleLight,
+    height: Styles.globalMargins.medium,
+    marginLeft: 15,
+    marginRight: 15,
+    width: 2,
+  },
+  paymentPathStop: {marginBottom: -4.5, marginLeft: 11, marginTop: -4.5},
   progressIndicator: {height: 50, width: 50},
   rightContainer: {
     flex: 1,
