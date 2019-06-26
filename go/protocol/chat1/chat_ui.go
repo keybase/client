@@ -2146,53 +2146,53 @@ func (o LocationWatchID) DeepCopy() LocationWatchID {
 	return o
 }
 
-type UISlashFeedbackTyp int
+type UICommandStatusDisplayTyp int
 
 const (
-	UISlashFeedbackTyp_STATUS  UISlashFeedbackTyp = 0
-	UISlashFeedbackTyp_WARNING UISlashFeedbackTyp = 1
-	UISlashFeedbackTyp_ERROR   UISlashFeedbackTyp = 2
+	UICommandStatusDisplayTyp_STATUS  UICommandStatusDisplayTyp = 0
+	UICommandStatusDisplayTyp_WARNING UICommandStatusDisplayTyp = 1
+	UICommandStatusDisplayTyp_ERROR   UICommandStatusDisplayTyp = 2
 )
 
-func (o UISlashFeedbackTyp) DeepCopy() UISlashFeedbackTyp { return o }
+func (o UICommandStatusDisplayTyp) DeepCopy() UICommandStatusDisplayTyp { return o }
 
-var UISlashFeedbackTypMap = map[string]UISlashFeedbackTyp{
+var UICommandStatusDisplayTypMap = map[string]UICommandStatusDisplayTyp{
 	"STATUS":  0,
 	"WARNING": 1,
 	"ERROR":   2,
 }
 
-var UISlashFeedbackTypRevMap = map[UISlashFeedbackTyp]string{
+var UICommandStatusDisplayTypRevMap = map[UICommandStatusDisplayTyp]string{
 	0: "STATUS",
 	1: "WARNING",
 	2: "ERROR",
 }
 
-func (e UISlashFeedbackTyp) String() string {
-	if v, ok := UISlashFeedbackTypRevMap[e]; ok {
+func (e UICommandStatusDisplayTyp) String() string {
+	if v, ok := UICommandStatusDisplayTypRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
-type UISlashActionTyp int
+type UICommandStatusActionTyp int
 
 const (
-	UISlashActionTyp_APPSETTINGS UISlashActionTyp = 0
+	UICommandStatusActionTyp_APPSETTINGS UICommandStatusActionTyp = 0
 )
 
-func (o UISlashActionTyp) DeepCopy() UISlashActionTyp { return o }
+func (o UICommandStatusActionTyp) DeepCopy() UICommandStatusActionTyp { return o }
 
-var UISlashActionTypMap = map[string]UISlashActionTyp{
+var UICommandStatusActionTypMap = map[string]UICommandStatusActionTyp{
 	"APPSETTINGS": 0,
 }
 
-var UISlashActionTypRevMap = map[UISlashActionTyp]string{
+var UICommandStatusActionTypRevMap = map[UICommandStatusActionTyp]string{
 	0: "APPSETTINGS",
 }
 
-func (e UISlashActionTyp) String() string {
-	if v, ok := UISlashActionTypRevMap[e]; ok {
+func (e UICommandStatusActionTyp) String() string {
+	if v, ok := UICommandStatusActionTypRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -2346,11 +2346,12 @@ type ChatClearWatchArg struct {
 	Id        LocationWatchID `codec:"id" json:"id"`
 }
 
-type ChatSlashFeedbackArg struct {
-	SessionID   int                `codec:"sessionID" json:"sessionID"`
-	DisplayText string             `codec:"displayText" json:"displayText"`
-	Typ         UISlashFeedbackTyp `codec:"typ" json:"typ"`
-	Actions     []UISlashActionTyp `codec:"actions" json:"actions"`
+type ChatCommandStatusArg struct {
+	SessionID   int                        `codec:"sessionID" json:"sessionID"`
+	ConvID      string                     `codec:"convID" json:"convID"`
+	DisplayText string                     `codec:"displayText" json:"displayText"`
+	Typ         UICommandStatusDisplayTyp  `codec:"typ" json:"typ"`
+	Actions     []UICommandStatusActionTyp `codec:"actions" json:"actions"`
 }
 
 type ChatUiInterface interface {
@@ -2383,7 +2384,7 @@ type ChatUiInterface interface {
 	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
 	ChatWatchPosition(context.Context, int) (LocationWatchID, error)
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
-	ChatSlashFeedback(context.Context, ChatSlashFeedbackArg) error
+	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2825,18 +2826,18 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatSlashFeedback": {
+			"chatCommandStatus": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatSlashFeedbackArg
+					var ret [1]ChatCommandStatusArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatSlashFeedbackArg)
+					typedArgs, ok := args.(*[1]ChatCommandStatusArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatSlashFeedbackArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatCommandStatusArg)(nil), args)
 						return
 					}
-					err = i.ChatSlashFeedback(ctx, typedArgs[0])
+					err = i.ChatCommandStatus(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2998,7 +2999,7 @@ func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchAr
 	return
 }
 
-func (c ChatUiClient) ChatSlashFeedback(ctx context.Context, __arg ChatSlashFeedbackArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSlashFeedback", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []interface{}{__arg}, nil)
 	return
 }

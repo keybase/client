@@ -1192,8 +1192,8 @@ func (c *ChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error {
 	return nil
 }
 
-func (c *ChatUI) ChatSlashFeedback(context.Context, string, chat1.UISlashFeedbackTyp,
-	[]chat1.UISlashActionTyp) error {
+func (c *ChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
 	return nil
 }
 

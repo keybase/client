@@ -8,18 +8,18 @@ import CommandStatus from './index'
 const errorProps = {
   actions: [],
   displayText: 'Failed to send message.',
-  displayType: RPCChatTypes.UISlashFeedbackTyp.error,
+  displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
   onCancel: Sb.action('onCancel'),
 }
 
 const warningProps = {
   ...errorProps,
-  displayType: RPCChatTypes.UISlashFeedbackTyp.warning,
+  displayType: RPCChatTypes.UICommandStatusDisplayTyp.warning,
 }
 
 const statusProps = {
   ...errorProps,
-  displayType: RPCChatTypes.UISlashFeedbackTyp.status,
+  displayType: RPCChatTypes.UICommandStatusDisplayTyp.status,
 }
 
 const singleActionProps = {

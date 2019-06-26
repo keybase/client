@@ -368,6 +368,6 @@ func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) err
 	return nil
 }
 
-func (c *ChatCLIUI) ChatSlashFeedback(context.Context, chat1.ChatSlashFeedbackArg) error {
+func (c *ChatCLIUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
 	return nil
 }

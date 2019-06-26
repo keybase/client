@@ -104,6 +104,12 @@ export type AttachmentFullscreenSelection = {
   message: Message.Message
 }
 
+export type CommandStatusInfo = {
+  displayText: string
+  displayType: RPCChatTypes.UICommandStatusDisplayTyp
+  actions: Array<RPCChatTypes.UICommandStatusActionTyp>
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -141,6 +147,7 @@ export type _State = {
   unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
+  commandStatusMap: I.Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
   threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>

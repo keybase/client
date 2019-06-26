@@ -1542,7 +1542,7 @@
     },
     {
       "type": "enum",
-      "name": "UISlashFeedbackTyp",
+      "name": "UICommandStatusDisplayTyp",
       "symbols": [
         "STATUS_0",
         "WARNING_1",
@@ -1551,7 +1551,7 @@
     },
     {
       "type": "enum",
-      "name": "UISlashActionTyp",
+      "name": "UICommandStatusActionTyp",
       "symbols": [
         "APPSETTINGS_0"
       ]
@@ -1959,11 +1959,15 @@
       ],
       "response": null
     },
-    "chatSlashFeedback": {
+    "chatCommandStatus": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
         },
         {
           "name": "displayText",
@@ -1971,13 +1975,13 @@
         },
         {
           "name": "typ",
-          "type": "UISlashFeedbackTyp"
+          "type": "UICommandStatusDisplayTyp"
         },
         {
           "name": "actions",
           "type": {
             "type": "array",
-            "items": "UISlashActionTyp"
+            "items": "UICommandStatusActionTyp"
           }
         }
       ],

@@ -2838,6 +2838,18 @@ const onChatCommandMarkdown = (status, action: EngineGen.Chat1ChatUiChatCommandM
   })
 }
 
+const onChatCommandStatus = (status, action: EngineGen.Chat1ChatUiChatCommandStatusPayload) => {
+  const {convID, displayText, typ, actions} = action.payload.params
+  return Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    info: {
+      actions,
+      displayText,
+      displayType: typ,
+    },
+  })
+}
+
 const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
   const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetMaybeMentionInfo({
@@ -3496,6 +3508,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown,
     'onChatCommandMarkdown'
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandStatusPayload>(
+    EngineGen.chat1ChatUiChatCommandStatus,
+    onChatCommandStatus,
+    'onChatCommandStatus'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,

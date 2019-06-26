@@ -28,6 +28,7 @@ export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
+export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
@@ -99,6 +100,7 @@ export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
+export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -196,6 +198,7 @@ type _BlockConversationPayload = {
 }
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
 type _CreateConversationPayload = {readonly participants: Array<string>}
@@ -480,6 +483,10 @@ type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
 }
+type _SetCommandStatusInfoPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly info: Types.CommandStatusInfo
+}
 type _SetContainsLastMessagePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly contains: boolean
@@ -648,6 +655,12 @@ export const createClearAttachmentView = (
   payload: _ClearAttachmentViewPayload
 ): ClearAttachmentViewPayload => ({payload, type: clearAttachmentView})
 /**
+ * Clear command status info
+ */
+export const createClearCommandStatusInfo = (
+  payload: _ClearCommandStatusInfoPayload
+): ClearCommandStatusInfoPayload => ({payload, type: clearCommandStatusInfo})
+/**
  * Clear data for payment confirm modal
  */
 export const createClearPaymentConfirmInfo = (
@@ -810,6 +823,12 @@ export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload): S
   payload,
   type: setCommandMarkdown,
 })
+/**
+ * Set command status info
+ */
+export const createSetCommandStatusInfo = (
+  payload: _SetCommandStatusInfoPayload
+): SetCommandStatusInfoPayload => ({payload, type: setCommandStatusInfo})
 /**
  * Set index percent complete
  */
@@ -1325,6 +1344,10 @@ export type ClearAttachmentViewPayload = {
   readonly payload: _ClearAttachmentViewPayload
   readonly type: typeof clearAttachmentView
 }
+export type ClearCommandStatusInfoPayload = {
+  readonly payload: _ClearCommandStatusInfoPayload
+  readonly type: typeof clearCommandStatusInfo
+}
 export type ClearPaymentConfirmInfoPayload = {
   readonly payload: _ClearPaymentConfirmInfoPayload
   readonly type: typeof clearPaymentConfirmInfo
@@ -1573,6 +1596,10 @@ export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
 }
+export type SetCommandStatusInfoPayload = {
+  readonly payload: _SetCommandStatusInfoPayload
+  readonly type: typeof setCommandStatusInfo
+}
 export type SetContainsLastMessagePayload = {
   readonly payload: _SetContainsLastMessagePayload
   readonly type: typeof setContainsLastMessage
@@ -1752,6 +1779,7 @@ export type Actions =
   | BlockConversationPayload
   | ChangeFocusPayload
   | ClearAttachmentViewPayload
+  | ClearCommandStatusInfoPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
@@ -1823,6 +1851,7 @@ export type Actions =
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
   | SetCommandMarkdownPayload
+  | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload

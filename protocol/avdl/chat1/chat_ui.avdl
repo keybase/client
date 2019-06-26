@@ -432,13 +432,13 @@ protocol chatUi {
   void chatClearWatch(int sessionID, LocationWatchID id);
 
   // Slash command feedback
-  enum UISlashFeedbackTyp {
+  enum UICommandStatusDisplayTyp {
     STATUS_0,
     WARNING_1,
     ERROR_2
   }
-  enum UISlashActionTyp {
+  enum UICommandStatusActionTyp {
     APPSETTINGS_0
   }
-  void chatSlashFeedback(int sessionID, string displayText, UISlashFeedbackTyp typ, array<UISlashActionTyp> actions);
+  void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
 }

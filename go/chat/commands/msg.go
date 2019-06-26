@@ -28,8 +28,8 @@ func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	}
 	defer func() {
 		if err != nil {
-			d.getChatUI().ChatSlashFeedback(ctx, "Failed to send message", chat1.UISlashFeedbackTyp_ERROR,
-				nil)
+			d.getChatUI().ChatCommandStatus(ctx, convID, "Failed to send message",
+				chat1.UICommandStatusDisplayTyp_ERROR, nil)
 		}
 	}()
 	toks, err := d.tokenize(text, 3)

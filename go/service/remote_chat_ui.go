@@ -188,10 +188,11 @@ func (r *RemoteChatUI) ChatClearWatch(ctx context.Context, watchID chat1.Locatio
 	})
 }
 
-func (r *RemoteChatUI) ChatSlashFeedback(ctx context.Context, displayText string,
-	typ chat1.UISlashFeedbackTyp, actions []chat1.UISlashActionTyp) error {
-	return r.cli.ChatSlashFeedback(ctx, chat1.ChatSlashFeedbackArg{
+func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.ConversationID, displayText string,
+	typ chat1.UICommandStatusDisplayTyp, actions []chat1.UICommandStatusActionTyp) error {
+	return r.cli.ChatCommandStatus(ctx, chat1.ChatCommandStatusArg{
 		SessionID:   r.sessionID,
+		ConvID:      convID.String(),
 		DisplayText: displayText,
 		Typ:         typ,
 		Actions:     actions,

@@ -127,7 +127,7 @@ func (r DummyChatUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) er
 	return nil
 }
 
-func (r DummyChatUI) ChatSlashFeedback(context.Context, chat1.ChatSlashFeedbackArg) error {
+func (r DummyChatUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
 	return nil
 }
 
