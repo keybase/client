@@ -410,7 +410,7 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
   if (action.payload.verify) {
     return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
   }
-  if (action.payload.makeSearchable != null) {
+  if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({
       email: action.payload.email,
       visibility: action.payload.makeSearchable
