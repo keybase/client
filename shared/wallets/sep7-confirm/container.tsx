@@ -10,45 +10,11 @@ const mapStateToProps = (state: Container.TypedState) => {
   if (error) {
     return {error}
   }
-
-  const {
-    amount,
-    availableToSendFiat,
-    availableToSendNative,
-    assetCode,
-    assetIssuer,
-    callbackURL,
-    displayAmountFiat,
-    memo,
-    memoType,
-    message,
-    operation,
-    originDomain,
-    recipient,
-    summary,
-    xdr,
-  } = state.wallets.sep7ConfirmInfo
-
   return {
-    amount: '',
-    assetCode,
-    assetIssuer,
-    availableToSendFiat,
-    availableToSendNative,
-    callbackURL,
-    displayAmountFiat,
-    error,
     inputURI: state.wallets.sep7ConfirmURI,
     loading: !state.wallets.sep7ConfirmInfo,
-    memo,
-    memoType,
-    message,
-    operation,
-    originDomain,
-    recipient,
-    summary,
+    sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
     waitingKey: Constants.sep7WaitingKey,
-    xdr,
   }
 }
 
@@ -62,11 +28,48 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => ({
-    ...ownProps,
-    ...stateProps,
-    onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
-    onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
-    onBack: dispatchProps.onClose,
-  })
+  (stateProps, dispatchProps, ownProps) => {
+    const {
+      amount,
+      assetCode,
+      availableToSendFiat,
+      availableToSendNative,
+      assetIssuer,
+      callbackURL,
+      displayAmountFiat,
+      memo,
+      memoType,
+      message,
+      operation,
+      originDomain,
+      recipient,
+      summary,
+      xdr,
+    } = stateProps.sep7ConfirmInfo
+    return {
+      ...ownProps,
+      amount,
+      assetCode,
+      assetIssuer,
+      availableToSendFiat,
+      availableToSendNative,
+      callbackURL,
+      displayAmountFiat,
+      error: stateProps.error,
+      inputURI: stateProps.inputURI,
+      loading: stateProps.loading,
+      memo,
+      memoType,
+      message,
+      onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
+      onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
+      onBack: dispatchProps.onClose,
+      operation,
+      originDomain,
+      recipient,
+      summary,
+      waitingKey: stateProps.waitingKey,
+      xdr,
+    }
+  }
 )(SEP7Confirm)

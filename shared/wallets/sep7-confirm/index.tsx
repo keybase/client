@@ -38,12 +38,7 @@ type CallbackURLBannerProps = {
   callbackURL: string
 }
 const CallbackURLBanner = (props: CallbackURLBannerProps) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    centerChildren={true}
-    style={{backgroundColor: Styles.globalColors.blue, padding: Styles.globalMargins.tiny}}
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.callbackURLBanner}>
     <Kb.Text type="BodySemibold" negative={true}>
       The payment will be sent to {props.callbackURL}.
     </Kb.Text>
@@ -93,7 +88,7 @@ const InfoRow = (props: InfoRowProps) => (
       {props.showStellarIcon ? (
         <Kb.Box2 direction="horizontal" gap="xtiny">
           <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
-          <Kb.Text selectable={true} type="Body" style={styles.stellarAddressConfirmText}>
+          <Kb.Text lineClamp={2} selectable={true} type="Body">
             {props.bodyText}
           </Kb.Text>
         </Kb.Box2>
@@ -191,10 +186,9 @@ type TxInfoProps = {
 }
 const TxInfo = (props: TxInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.operations.length > 0 &&
-      props.operations.map((op, idx) => (
-        <InfoRow key={idx + 1} headerText={`Operation ${idx + 1}`} bodyText={op} />
-      ))}
+    {props.operations.map((op, idx) => (
+      <InfoRow key={idx + 1} headerText={`Operation ${idx + 1}`} bodyText={op} />
+    ))}
     {!!props.fee && <InfoRow headerText="Fee" bodyText={props.fee + ' stroops'} />}
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
     {!!props.source && <InfoRow headerText="Source account" bodyText={props.source} showStellarIcon={true} />}
@@ -221,7 +215,7 @@ const SEP7Confirm = (props: Props) =>
               amount={props.amount}
               availableToSendNative={props.availableToSendNative}
               displayAmountFiat={props.displayAmountFiat}
-              memo={props.memoType === 'MEMO_TEXT' && props.memo}
+              memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
               message={props.message}
               onChangeAmount={props.onChangeAmount}
               recipient={props.recipient}
@@ -278,6 +272,10 @@ const styles = Styles.styleSheetCreate({
       borderTopWidth: 1,
     },
   }),
+  callbackURLBanner: {
+    backgroundColor: Styles.globalColors.blue,
+    padding: Styles.globalMargins.tiny,
+  },
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -333,11 +331,6 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 0,
     flexShrink: 1,
   },
-  stellarAddressConfirmText: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
   stellarIcon: {
     alignSelf: 'flex-start',
     marginRight: Styles.globalMargins.xxtiny,
