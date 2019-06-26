@@ -1,0 +1,101 @@
+{
+  "protocol": "userSearch",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "contacts.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "RemoteResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "service"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KeybaseUserResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserSearchResult",
+      "fields": [
+        {
+          "type": "int",
+          "name": "score"
+        },
+        {
+          "type": [
+            null,
+            "KeybaseUserResult"
+          ],
+          "name": "keybaseUser"
+        },
+        {
+          "type": [
+            null,
+            "RemoteResult"
+          ],
+          "name": "remoteUser"
+        },
+        {
+          "type": [
+            null,
+            "ProcessedContact"
+          ],
+          "name": "contact"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "search": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "service",
+          "type": "string"
+        },
+        {
+          "name": "maxResults",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserSearchResult"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

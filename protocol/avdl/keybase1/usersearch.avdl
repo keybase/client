@@ -1,0 +1,25 @@
+@namespace("keybase.1")
+protocol userSearch {
+    import idl "common.avdl";
+    import idl "contacts.avdl";
+
+    record RemoteResult {
+        string username;
+        string service;
+    }
+
+    record KeybaseUserResult {
+        string username;
+        UID uid;
+        string fullName;
+    }
+
+    record UserSearchResult {
+        int score;
+        union { null, KeybaseUserResult } keybaseUser;
+        union { null, RemoteResult } remoteUser;
+        union { null, ProcessedContact } contact;
+    }
+
+    array<UserSearchResult> search(string query, string service, int maxResults);
+}

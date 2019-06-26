@@ -2346,6 +2346,7 @@ export type KeyBundleResponse = {readonly WriterBundle: KeyBundle; readonly Read
 export type KeyHalf = {readonly user: UID; readonly deviceKID: KID; readonly key: Bytes}
 export type KeyInfo = {readonly fingerprint: String; readonly key: String; readonly desc: String}
 export type KeybaseTime = {readonly unix: Time; readonly chain: Seqno}
+export type KeybaseUserResult = {readonly username: String; readonly uid: UID; readonly fullName: String}
 export type LeaseID = String
 export type LinkCheckResult = {readonly proofId: Int; readonly proofResult: ProofResult; readonly snoozedResult: ProofResult; readonly torWarning: Boolean; readonly tmpTrackExpireTime: Time; readonly cached?: CheckResult | null; readonly diff?: TrackDiff | null; readonly remoteDiff?: TrackDiff | null; readonly hint?: SigHint | null; readonly breaksTracking: Boolean}
 export type LinkID = String
@@ -2453,6 +2454,7 @@ export type RegisterAddressRes = {readonly type: String; readonly family: String
 export type RekeyEvent = {readonly eventType: RekeyEventType; readonly interruptType: Int}
 export type RekeyRequest = {readonly folderID: String; readonly revision: Long}
 export type RemoteProof = {readonly proofType: ProofType; readonly key: String; readonly value: String; readonly displayMarkup: String; readonly sigID: SigID; readonly mTime: Time}
+export type RemoteResult = {readonly username: String; readonly service: String}
 export type RemoteTrack = {readonly username: String; readonly uid: UID; readonly linkID: LinkID}
 export type RemoveArgs = {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean}
 export type RepoID = String
@@ -2628,6 +2630,7 @@ export type UserPlusKeysV2 = {readonly uid: UID; readonly username: String; read
 export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; readonly pastIncarnations?: Array<UserPlusKeysV2> | null; readonly uvv: UserVersionVector; readonly seqnoLinkIDs: {[key: string]: LinkID}; readonly minorVersion: UPK2MinorVersion}
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole}
+export type UserSearchResult = {readonly score: Int; readonly keybaseUser?: KeybaseUserResult | null; readonly remoteUser?: RemoteResult | null; readonly contact?: ProcessedContact | null}
 export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
 export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}
 export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}
@@ -3420,3 +3423,4 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.userCard'
+// 'keybase.1.userSearch.search'
