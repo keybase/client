@@ -3023,15 +3023,9 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	node Node, ei data.EntryInfo, handle *tlfhandle.Handle, err error) {
 	startTime, timer := fbo.startOp(ctx, "getRootNode")
 	defer func() {
-		if node != nil {
-			fbo.endOp(
-				ctx, startTime, timer, "getRootNode done: %s %p %+v",
-				getNodeIDStr(node), node.Obfuscator(), err)
-		} else {
-			fbo.endOp(
-				ctx, startTime, timer, "getRootNode done: %s <no node> %+v",
-				getNodeIDStr(node), err)
-		}
+		fbo.endOp(
+			ctx, startTime, timer, "getRootNode done: %s %+v",
+			getNodeIDStr(node), err)
 	}()
 
 	lState := makeFBOLockState()
