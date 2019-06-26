@@ -54,6 +54,10 @@
         {
           "type": "boolean",
           "name": "canSubmitTx"
+        },
+        {
+          "type": "boolean",
+          "name": "canAddTrustline"
         }
       ]
     },
@@ -119,10 +123,6 @@
         {
           "type": "string",
           "name": "infoUrlText"
-        },
-        {
-          "type": "boolean",
-          "name": "canAddTrustline"
         }
       ]
     },
