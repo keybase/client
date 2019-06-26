@@ -380,10 +380,11 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 }
 
 type PaymentDetailsOnlyLocal struct {
-	PublicNote            string `codec:"publicNote" json:"publicNote"`
-	PublicNoteType        string `codec:"publicNoteType" json:"publicNoteType"`
-	ExternalTxURL         string `codec:"externalTxURL" json:"externalTxURL"`
-	FeeChargedDescription string `codec:"feeChargedDescription" json:"feeChargedDescription"`
+	PublicNote            string  `codec:"publicNote" json:"publicNote"`
+	PublicNoteType        string  `codec:"publicNoteType" json:"publicNoteType"`
+	ExternalTxURL         string  `codec:"externalTxURL" json:"externalTxURL"`
+	FeeChargedDescription string  `codec:"feeChargedDescription" json:"feeChargedDescription"`
+	PathIntermediate      []Asset `codec:"pathIntermediate" json:"pathIntermediate"`
 }
 
 func (o PaymentDetailsOnlyLocal) DeepCopy() PaymentDetailsOnlyLocal {
@@ -392,6 +393,17 @@ func (o PaymentDetailsOnlyLocal) DeepCopy() PaymentDetailsOnlyLocal {
 		PublicNoteType:        o.PublicNoteType,
 		ExternalTxURL:         o.ExternalTxURL,
 		FeeChargedDescription: o.FeeChargedDescription,
+		PathIntermediate: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PathIntermediate),
 	}
 }
 
