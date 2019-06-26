@@ -42,7 +42,7 @@ func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, fro
 		}
 
 		if recipient.AccountID == nil {
-			return false, fmt.Errorf("failed to get AccountID for reccipient")
+			return false, fmt.Errorf("failed to get AccountID for recipient: " + to)
 		}
 		theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
 		if err != nil {

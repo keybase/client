@@ -2377,11 +2377,15 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
 	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
 	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
+	fakeAcct := tcs[1].Backend.ImportAccountsForUser(tcs[1])[0]
+	err = tcs[1].Srv.walletState.Refresh(tcs[1].MetaContext(), fakeAcct.accountID, "test")
 	require.NoError(t, err)
 
 	send := func(bid stellar1.BuildPaymentID, amount string) (errorString string) {
