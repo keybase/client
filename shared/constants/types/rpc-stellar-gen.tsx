@@ -256,6 +256,12 @@ export enum AccountMode {
   mobile = 2,
 }
 
+export enum AdvancedBanner {
+  noBanner = 0,
+  senderBanner = 1,
+  receiverBanner = 2,
+}
+
 export enum BalanceDelta {
   none = 0,
   increase = 1,
@@ -419,7 +425,7 @@ export type RequestPost = {readonly toUser?: Keybase1.UserVersion | null; readon
 export type RequestStatusMsg = {readonly reqID: KeybaseRequestID}
 export type SecretKey = String
 export type SendAssetChoiceLocal = {readonly asset: Asset; readonly enabled: Boolean; readonly left: String; readonly right: String; readonly subtext: String}
-export type SendBannerLocal = {readonly level: String; readonly message: String; readonly proofsChanged: Boolean; readonly offerAdvancedSendForm: Boolean}
+export type SendBannerLocal = {readonly level: String; readonly message: String; readonly proofsChanged: Boolean; readonly offerAdvancedSendForm: AdvancedBanner}
 export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID; readonly pending: Boolean}
 export type SendResultCLILocal = {readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID}
 export type SignXdrResult = {readonly singedTx: String; readonly accountID: AccountID; readonly submitErr?: String | null; readonly submitTxID?: TransactionID | null}

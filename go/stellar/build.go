@@ -19,45 +19,47 @@ import (
 	stellarAddress "github.com/stellar/go/address"
 )
 
-func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to string) (shouldShow bool, err error) {
-	// Lookup our assets
-	if from != "" {
-		ourBalances, err := remoter.Balances(mctx.Ctx(), from)
+func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, from stellar1.AccountID, to string) (shouldShow stellar1.AdvancedBanner, err error) {
+	// Lookup their assets first because we want to display the banner about them supporting non-native assets
+	// if both sides support non-native assets
+	if to != "" {
+		recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(to), false)
 		if err != nil {
-			return false, err
+			return stellar1.AdvancedBanner_NO_BANNER, err
 		}
-		for _, bal := range ourBalances {
-			asset := bal.Asset
-			if !asset.IsNativeXLM() {
-				return true, nil
+
+		// If the AccountID is nil it means that the account doesn't have stellar set up yet and is a relay
+		// transaction. So just continue and see whether the sender side supports any non-native asset
+		if recipient.AccountID != nil {
+			theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
+			if err != nil {
+				return stellar1.AdvancedBanner_NO_BANNER, err
+			}
+			for _, bal := range theirBalances {
+				asset := bal.Asset
+				if !asset.IsNativeXLM() {
+					return stellar1.AdvancedBanner_RECEIVER_BANNER, nil
+				}
 			}
 		}
 	}
 
-	// Lookup their assets
-	if to != "" {
-		recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(to), false)
+	// Lookup our assets
+	if from != "" {
+		ourBalances, err := remoter.Balances(mctx.Ctx(), from)
 		if err != nil {
-			return false, err
+			return stellar1.AdvancedBanner_NO_BANNER, err
 		}
-
-		if recipient.AccountID == nil {
-			return false, fmt.Errorf("failed to get AccountID for recipient: " + to)
-		}
-		theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
-		if err != nil {
-			return false, err
-		}
-		for _, bal := range theirBalances {
+		for _, bal := range ourBalances {
 			asset := bal.Asset
 			if !asset.IsNativeXLM() {
-				return true, nil
+				return stellar1.AdvancedBanner_SENDER_BANNER, nil
 			}
 		}
 	}
 
 	// Neither of us have non-native assets so return false
-	return false, nil
+	return stellar1.AdvancedBanner_NO_BANNER, nil
 }
 
 func GetSendAssetChoicesLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
@@ -302,10 +304,10 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				if err != nil {
 					return res, err
 				}
-				if offerAdvancedForm {
+				if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
 					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
 						Level:                 "info",
-						OfferAdvancedSendForm: true,
+						OfferAdvancedSendForm: offerAdvancedForm,
 					})
 				}
 			}

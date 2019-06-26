@@ -552,6 +552,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AdvancedBanner",
+      "symbols": [
+        "NO_BANNER_0",
+        "SENDER_BANNER_1",
+        "RECEIVER_BANNER_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "SendBannerLocal",
       "fields": [
@@ -568,7 +577,7 @@
           "name": "proofsChanged"
         },
         {
-          "type": "boolean",
+          "type": "AdvancedBanner",
           "name": "offerAdvancedSendForm"
         }
       ]

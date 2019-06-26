@@ -1913,7 +1913,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:                 "info",
-		OfferAdvancedSendForm: true,
+		OfferAdvancedSendForm: stellar1.AdvancedBanner_SENDER_BANNER,
 	}})
 
 	t.Logf("sending from an account with only native assets to an account with non-native assets")
@@ -1937,7 +1937,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:                 "info",
-		OfferAdvancedSendForm: true,
+		OfferAdvancedSendForm: stellar1.AdvancedBanner_RECEIVER_BANNER,
 	}})
 
 	t.Logf("sending from an account with non-native assets to an account with the same non-native asset")
@@ -1964,7 +1964,7 @@ func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
 	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
 		Level:                 "info",
-		OfferAdvancedSendForm: true,
+		OfferAdvancedSendForm: stellar1.AdvancedBanner_RECEIVER_BANNER,
 	}})
 }
 

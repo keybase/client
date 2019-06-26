@@ -26,7 +26,7 @@ type BuildPaymentCache interface {
 	GetOutsideExchangeRate(libkb.MetaContext, stellar1.OutsideCurrencyCode) (stellar1.OutsideExchangeRate, error)
 	AvailableXLMToSend(libkb.MetaContext, stellar1.AccountID) (string, error)
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
-	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (bool, error)
+	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (stellar1.AdvancedBanner, error)
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -112,11 +112,11 @@ func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 }
 
 type shouldOfferAdvancedSendCacheEntry struct {
-	res  bool
+	res  stellar1.AdvancedBanner
 	time time.Time
 }
 
-func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (bool, error) {
+func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (stellar1.AdvancedBanner, error) {
 	fromTo := from.String() + ":" + to
 
 	lock := c.shouldOfferAdvancedSendLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), fromTo)

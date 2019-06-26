@@ -8,6 +8,7 @@ import participants from './participants/index.stories'
 import {Props as AvailableProps} from './available'
 
 import SendRequestForm from '.'
+import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
 
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
@@ -68,7 +69,7 @@ const load = () => {
       provider({
         action: () => {},
         bannerBackground: 'Announcements' as const,
-        offerAdvancedSendForm: true,
+        offerAdvancedSendForm: AdvancedBanner.senderBanner,
         text: '',
       })
     )

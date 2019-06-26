@@ -2,6 +2,7 @@ import * as React from 'react'
 import {storiesOf} from '../../stories/storybook'
 import {Box} from '../../common-adapters'
 import Banner, {Props} from '.'
+import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
 
 const examples: Props[] = [
   {
@@ -13,7 +14,18 @@ const examples: Props[] = [
     text: 'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
   },
   {background: 'HighRisk' as const, text: 'Connection error. You are offline.'},
-  {background: 'Announcements' as const, offerAdvancedSendForm: true, onAction: () => {}, text: ''},
+  {
+    background: 'Announcements' as const,
+    offerAdvancedSendForm: AdvancedBanner.receiverBanner,
+    onAction: () => {},
+    text: '',
+  },
+  {
+    background: 'Announcements' as const,
+    offerAdvancedSendForm: AdvancedBanner.senderBanner,
+    onAction: () => {},
+    text: '',
+  },
 ]
 
 const load = () => {

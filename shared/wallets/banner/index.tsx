@@ -2,10 +2,11 @@ import * as React from 'react'
 import {Box2, Text} from '../../common-adapters'
 import {Background} from '../../common-adapters/text'
 import * as Styles from '../../styles'
+import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
 
 export type Props = {
   background: Background
-  offerAdvancedSendForm?: boolean
+  offerAdvancedSendForm?: AdvancedBanner
   onAction?: (() => void) | null
   reviewProofs?: boolean
   sendFailed?: boolean
@@ -42,20 +43,25 @@ const Banner = (props: Props) => (
           Please review.
         </Text>
       )}
-      {props.offerAdvancedSendForm && props.onAction && (
-        <Box2 direction={'vertical'}>
-          This user is accepting other assets than XLM Lumens.
-          <Text
-            type="BodySmallSemiboldPrimaryLink"
-            center={true}
-            style={styles.secondText}
-            negative={true}
-            onClick={props.onAction}
-          >
-            Send other assets?
-          </Text>
-        </Box2>
-      )}
+      {(props.offerAdvancedSendForm === AdvancedBanner.receiverBanner ||
+        props.offerAdvancedSendForm === AdvancedBanner.senderBanner) &&
+        props.onAction && (
+          <Box2 direction={'vertical'}>
+            {props.offerAdvancedSendForm === AdvancedBanner.receiverBanner &&
+              'This user accepts more assets than XLM. '}
+            {props.offerAdvancedSendForm === AdvancedBanner.senderBanner &&
+              'You can send more assets than XLM. '}
+            <Text
+              type="BodySmallSemiboldPrimaryLink"
+              center={true}
+              style={styles.secondText}
+              negative={true}
+              onClick={props.onAction}
+            >
+              Send other assets?
+            </Text>
+          </Box2>
+        )}
     </Text>
     {props.sendFailed && props.onAction && (
       <Text
