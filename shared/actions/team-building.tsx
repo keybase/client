@@ -15,25 +15,18 @@ const apiSearch = (
   service: TeamBuildingTypes.ServiceIdWithContact,
   limit: number,
   includeServicesSummary: boolean
-): Promise<Array<TeamBuildingTypes.User>> =>
-  RPCTypes.apiserverGetWithSessionRpcPromise({
-    args: [
-      {key: 'q', value: query},
-      {key: 'num_wanted', value: String(limit)},
-      {key: 'service', value: service === 'keybase' ? '' : service},
-      {key: 'include_services_summary', value: includeServicesSummary ? '1' : '0'},
-    ],
-    endpoint: 'user/user_search',
+): Promise<Array<TeamBuildingTypes.User>> => {
+  return RPCTypes.userSearchUserSearchRpcPromise({
+    maxResults: limit,
+    query,
+    service,
   })
-    .then(results =>
-      JSON.parse(results.body)
-        .list.map(r => Constants.parseRawResultToUser(r, service))
-        .filter(u => !!u)
-    )
+    .then(results => results.map(r => Constants.parseRawResultToUser(r, service)).filter(u => !!u))
     .catch(err => {
       logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
       return []
     })
+}
 
 function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
   const teamBuildingState = state[namespace].teamBuilding

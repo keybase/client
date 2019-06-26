@@ -3,23 +3,45 @@ protocol userSearch {
     import idl "common.avdl";
     import idl "contacts.avdl";
 
-    record RemoteResult {
+    @typedef("string")
+    record APIUserServiceIDWithContact {}
+
+    record APIUserKeybaseResult {
         string username;
-        string service;
+        string uid;
+        @jsonkey("picture_url")
+        string pictureUrl;
+        @jsonkey("full_name")
+        string fullName;
+        @jsonkey("is_followee")
+        boolean isFollowee;
     }
 
-    record KeybaseUserResult {
+    record APIUserServiceResult {
+        @jsonkey("service_name")
+        APIUserServiceIDWithContact serviceName;
         string username;
-        UID uid;
+        @jsonkey("picture_url")
+        string pictureUrl;
+        string bio;
+        string location;
+        @jsonkey("full_name")
         string fullName;
     }
 
-    record UserSearchResult {
-        int score;
-        union { null, KeybaseUserResult } keybaseUser;
-        union { null, RemoteResult } remoteUser;
-        union { null, ProcessedContact } contact;
+    record APIUserServiceSummary {
+        @jsonkey("service_name")
+        APIUserServiceIDWithContact serviceName;
+        string username;
     }
 
-    array<UserSearchResult> userSearch(string query, string service, int maxResults);
+    record APIUserSearchResult {
+        double score;
+        union { null, APIUserKeybaseResult } keybase;
+        union { null, APIUserServiceResult } service;
+        @jsonkey("services_summary")
+        map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
+    }
+
+    array<APIUserSearchResult> userSearch(string query, string service, int maxResults);
 }
