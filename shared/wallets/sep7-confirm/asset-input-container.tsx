@@ -9,8 +9,8 @@ const mapStateToProps = (state: Container.TypedState) => {
     bottomLabel: `Your primary account has ${state.wallets.sep7ConfirmInfo.availableToSendNative} available to send.`,
     currencyLoading: false,
     displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
-    inputPlaceholder: currency !== 'XLM' ? '0.00' : '0.0000000',
-    numDecimalsAllowed: currency !== 'XLM' ? 2 : 7,
+    inputPlaceholder: Constants.inputPlaceholderForCurrency(currency),
+    numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
     topLabel: '',
   }
 }

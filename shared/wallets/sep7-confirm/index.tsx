@@ -174,13 +174,9 @@ const PaymentInfo = (props: PaymentInfoProps) => (
         </>
       )}
     </Kb.Box2>
-
     {!props.amount && <AssetInput />}
-
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
-
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
-
     {!!props.recipient && (
       <InfoRow headerText="Recipient" bodyText={props.recipient} showStellarIcon={true} />
     )}
@@ -199,11 +195,8 @@ const TxInfo = (props: TxInfoProps) => (
       props.operations.map((op, idx) => (
         <InfoRow key={idx + 1} headerText={`Operation ${idx + 1}`} bodyText={op} />
       ))}
-
     {!!props.fee && <InfoRow headerText="Fee" bodyText={props.fee + ' stroops'} />}
-
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
-
     {!!props.source && <InfoRow headerText="Source account" bodyText={props.source} showStellarIcon={true} />}
   </Kb.Box2>
 )
