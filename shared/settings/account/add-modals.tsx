@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email/'
 import {EnterPhoneNumberBody} from '../../signup/phone-number/'
+import {VerifyBody} from '../../signup/phone-number/verify'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export const Email = () => {
@@ -83,18 +84,28 @@ export const Email = () => {
 }
 export const Phone = () => {
   const dispatch = Container.useDispatch()
-  // clean on unmount
+  // clean only errors on unmount so verify screen still has info
   React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberErrors()), [dispatch])
+  // watch for go to verify
+  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
+  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  React.useEffect(() => {
+    if (!error && !!pendingVerification) {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+    }
+  }, [dispatch, error, pendingVerification])
+
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
   const [allowSearch, onChangeAllowSearch] = React.useState(false)
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
   const disabled = !valid
   const onContinue = React.useCallback(
-    () => disabled || dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']})), // dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-    [dispatch, allowSearch, phoneNumber]
+    () =>
+      // TODO switch back to add
+      disabled || waiting ? null : dispatch(SettingsGen.createAddedPhoneNumber({allowSearch, phoneNumber})),
+    [dispatch, disabled, waiting, allowSearch, phoneNumber]
   )
   return (
     <Kb.Modal
@@ -148,7 +159,43 @@ export const Phone = () => {
   )
 }
 export const VerifyPhone = () => {
-  return null
+  const dispatch = Container.useDispatch()
+  // clean everything on unmount
+  React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberAdd()), [dispatch])
+  const onClose = React.useCallback(() => {
+    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    dispatch(RouteTreeGen.createClearModals())
+  }, [dispatch])
+  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const onResend = React.useCallback(
+    () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
+    [dispatch]
+  )
+  return (
+    <Kb.Modal
+      onClose={onClose}
+      header={{
+        hideBorder: true,
+        style: styles.blueBackground,
+        title: <Kb.Text type="BodySmall">{pendingVerification || 'wut'}</Kb.Text>,
+      }}
+      mode="Wide"
+    >
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([
+          styles.blueBackground,
+          styles.verifyContainer,
+          Styles.globalStyles.flexOne,
+        ])}
+        fullWidth={true}
+        fullHeight={true}
+        centerChildren={true}
+      >
+        <VerifyBody />
+      </Kb.Box2>
+    </Kb.Modal>
+  )
 }
 
 const styles = Styles.styleSheetCreate({
@@ -157,6 +204,9 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
     top: 0,
+  },
+  blueBackground: {
+    backgroundColor: Styles.globalColors.blue,
   },
   body: {
     ...Styles.padding(
@@ -184,4 +234,7 @@ const styles = Styles.styleSheetCreate({
       width: 64,
     },
   }),
+  verifyContainer: {
+    ...Styles.padding(0, Styles.globalMargins.small),
+  },
 })
