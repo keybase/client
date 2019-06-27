@@ -307,6 +307,10 @@ func (fs *FS) PathForLogging(filename string) string {
 		return filename
 	}
 
+	if filename == "." {
+		return ""
+	}
+
 	parts := strings.Split(filename, "/")
 	if len(parts) == 0 {
 		return ""
