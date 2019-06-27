@@ -48,16 +48,26 @@ const StandardScreen = (props: Props) => {
 
 const MIN_BANNER_HEIGHT = 40
 const styles = Styles.styleSheetCreate({
-  banner: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.green,
-    justifyContent: 'center',
-    marginBottom: Styles.globalMargins.tiny,
-    minHeight: MIN_BANNER_HEIGHT,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
+  banner: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.green,
+      justifyContent: 'center',
+      marginBottom: Styles.globalMargins.tiny,
+      minHeight: MIN_BANNER_HEIGHT,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   bannerError: {backgroundColor: Styles.globalColors.red},
   bannerText: {color: Styles.globalColors.white},
   container: {
