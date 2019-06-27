@@ -103,7 +103,7 @@ export const areaCodeIsCanadian = (input: string): boolean => {
   return !!canadianAreaCodes[input]
 }
 
-export const validateNumber = (rawNumber: string, region: string) => {
+export const validateNumber = (rawNumber: string, region?: string) => {
   try {
     const number = phoneUtil.parse(rawNumber, region)
     const valid = phoneUtil.isValidNumberForRegion(number, region)
@@ -114,6 +114,12 @@ export const validateNumber = (rawNumber: string, region: string) => {
   } catch (e) {
     return {e164: '', valid: false}
   }
+}
+
+export const formatPhoneNumber = (rawNumber: string) => {
+  // TODO: support non-US numbers
+  const number = phoneUtil.parse(rawNumber, 'US')
+  return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
 }
 
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter

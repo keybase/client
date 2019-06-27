@@ -81,6 +81,9 @@ const UsernameHeader = (props: Props) => (
   </Box>
 )
 
+// TODO: is there a desktop design for this
+export const PhoneHeader = UsernameHeader
+
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
