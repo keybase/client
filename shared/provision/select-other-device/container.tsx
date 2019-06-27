@@ -3,6 +3,7 @@ import * as LoginGen from '../../actions/login-gen'
 import SelectOtherDevice from '.'
 import {connect, compose, safeSubmitPerMount, TypedDispatch, TypedState} from '../../util/container'
 import {RouteProps} from '../../route-tree/render-route'
+import HiddenString from '../../util/hidden-string'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -13,7 +14,7 @@ const mapStateToProps = (state: TypedState) => ({
     .map(account => account.username),
 })
 const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
-  onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: null, username})),
+  onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())
     dispatch(ownProps.navigateUp())

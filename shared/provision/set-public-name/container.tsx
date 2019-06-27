@@ -4,6 +4,7 @@ import SetPublicName from '.'
 import * as Container from '../../util/container'
 import {RouteProps} from '../../route-tree/render-route'
 import * as LoginGen from '../../actions/login-gen'
+import HiddenString from '../../util/hidden-string'
 
 type OwnProps = {
   deviceName: string
@@ -20,7 +21,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
-  onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: null, username})),
+  onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
 })
 
 export default Container.compose(

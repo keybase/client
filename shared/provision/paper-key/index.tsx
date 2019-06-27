@@ -59,7 +59,8 @@ class PaperKey extends React.Component<
               disabled={!this.state.paperKey}
               waitingKey={Constants.waitingKey}
             />
-          </Kb.ButtonBar>
+          </Kb.ButtonBar>{' '}
+          {props.onBack && <Kb.Button label="Back to my existing account" onClick={props.onBack} />}
         </Kb.Box2>
       </Kb.Box2>
     )
