@@ -103,6 +103,11 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
     },
+    isMobile: {
+      borderColor: Styles.globalColors.black_20,
+      borderStyle: 'solid',
+      borderTopWidth: 1,
+    },
   }),
 })
 
