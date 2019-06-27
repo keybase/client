@@ -8,6 +8,8 @@ import {connect, isMobile} from '../../../util/container'
 import openSMS from '../../../util/sms'
 import flags from '../../../util/feature-flags'
 
+const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/app`
+
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
@@ -82,7 +84,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     onClick: dispatchProps.onClick,
-    onShareClick: (phoneNumber: string) => openSMS(['+' + phoneNumber], 'hey bud join keybase'),
+    onShareClick: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
     type,
     users: users || [],
   }
