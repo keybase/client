@@ -43,10 +43,11 @@ const Banner = (props: Props) => (
           Please review.
         </Text>
       )}
+      {alert(JSON.stringify(props))}
       {(props.offerAdvancedSendForm === AdvancedBanner.receiverBanner ||
         props.offerAdvancedSendForm === AdvancedBanner.senderBanner) &&
         props.onAction && (
-          <Box2 direction={'vertical'}>
+          <>
             {props.offerAdvancedSendForm === AdvancedBanner.receiverBanner &&
               'This user accepts more assets than XLM. '}
             {props.offerAdvancedSendForm === AdvancedBanner.senderBanner &&
@@ -60,7 +61,7 @@ const Banner = (props: Props) => (
             >
               Send other assets?
             </Text>
-          </Box2>
+          </>
         )}
     </Text>
     {props.sendFailed && props.onAction && (
