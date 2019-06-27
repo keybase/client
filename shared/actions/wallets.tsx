@@ -282,7 +282,7 @@ const acceptSEP7Tx = (state, action: WalletsGen.AcceptSEP7TxPayload) =>
       inputURI: state.wallets.sep7ConfirmURI,
     },
     Constants.sep7WaitingKey
-  ).then(_ => RouteTreeGen.createClearModals())
+  ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
 
 const acceptSEP7Pay = (state, action: WalletsGen.AcceptSEP7PayPayload) =>
   RPCStellarTypes.localApprovePayURILocalRpcPromise(
@@ -292,7 +292,7 @@ const acceptSEP7Pay = (state, action: WalletsGen.AcceptSEP7PayPayload) =>
       inputURI: state.wallets.sep7ConfirmURI,
     },
     Constants.sep7WaitingKey
-  ).then(_ => RouteTreeGen.createClearModals())
+  ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
 
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()
