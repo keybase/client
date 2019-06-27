@@ -2159,10 +2159,10 @@ export enum UserOrTeamResult {
   team = 2,
 }
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
-export type APIUserKeybaseResult = {readonly username: String; readonly uid: String; readonly pictureUrl: String; readonly fullName: String; readonly isFollowee: Boolean}
+export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}}
 export type APIUserServiceIDWithContact = String
-export type APIUserServiceResult = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String}
+export type APIUserServiceResult = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
 export type APIUserServiceSummary = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}

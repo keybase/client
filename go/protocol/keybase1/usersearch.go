@@ -15,19 +15,41 @@ func (o APIUserServiceIDWithContact) DeepCopy() APIUserServiceIDWithContact {
 }
 
 type APIUserKeybaseResult struct {
-	Username   string `codec:"username" json:"username"`
-	Uid        string `codec:"uid" json:"uid"`
-	PictureUrl string `codec:"pictureUrl" json:"picture_url"`
-	FullName   string `codec:"fullName" json:"full_name"`
-	IsFollowee bool   `codec:"isFollowee" json:"is_followee"`
+	Username   string  `codec:"username" json:"username"`
+	Uid        UID     `codec:"uid" json:"uid"`
+	PictureUrl *string `codec:"pictureUrl,omitempty" json:"picture_url,omitempty"`
+	FullName   *string `codec:"fullName,omitempty" json:"full_name,omitempty"`
+	RawScore   float64 `codec:"rawScore" json:"raw_score"`
+	Stellar    *string `codec:"stellar,omitempty" json:"stellar,omitempty"`
+	IsFollowee bool    `codec:"isFollowee" json:"is_followee"`
 }
 
 func (o APIUserKeybaseResult) DeepCopy() APIUserKeybaseResult {
 	return APIUserKeybaseResult{
-		Username:   o.Username,
-		Uid:        o.Uid,
-		PictureUrl: o.PictureUrl,
-		FullName:   o.FullName,
+		Username: o.Username,
+		Uid:      o.Uid.DeepCopy(),
+		PictureUrl: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.PictureUrl),
+		FullName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FullName),
+		RawScore: o.RawScore,
+		Stellar: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Stellar),
 		IsFollowee: o.IsFollowee,
 	}
 }
@@ -39,6 +61,7 @@ type APIUserServiceResult struct {
 	Bio         string                      `codec:"bio" json:"bio"`
 	Location    string                      `codec:"location" json:"location"`
 	FullName    string                      `codec:"fullName" json:"full_name"`
+	Confirmed   *bool                       `codec:"confirmed,omitempty" json:"confirmed,omitempty"`
 }
 
 func (o APIUserServiceResult) DeepCopy() APIUserServiceResult {
@@ -49,6 +72,13 @@ func (o APIUserServiceResult) DeepCopy() APIUserServiceResult {
 		Bio:         o.Bio,
 		Location:    o.Location,
 		FullName:    o.FullName,
+		Confirmed: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Confirmed),
 	}
 }
 

@@ -8,11 +8,14 @@ protocol userSearch {
 
     record APIUserKeybaseResult {
         string username;
-        string uid;
+        UID uid;
         @jsonkey("picture_url")
-        string pictureUrl;
+        union { null, string } pictureUrl;
         @jsonkey("full_name")
-        string fullName;
+        union { null, string } fullName;
+        @jsonkey("raw_score")
+        double rawScore;
+        union { null, string } stellar;
         @jsonkey("is_followee")
         boolean isFollowee;
     }
@@ -27,6 +30,7 @@ protocol userSearch {
         string location;
         @jsonkey("full_name")
         string fullName;
+        union { null, boolean } confirmed;
     }
 
     record APIUserServiceSummary {

@@ -26,18 +26,36 @@
           "name": "username"
         },
         {
-          "type": "string",
+          "type": "UID",
           "name": "uid"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "pictureUrl",
           "jsonkey": "picture_url"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "fullName",
           "jsonkey": "full_name"
+        },
+        {
+          "type": "double",
+          "name": "rawScore",
+          "jsonkey": "raw_score"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "stellar"
         },
         {
           "type": "boolean",
@@ -76,6 +94,13 @@
           "type": "string",
           "name": "fullName",
           "jsonkey": "full_name"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "confirmed"
         }
       ]
     },
