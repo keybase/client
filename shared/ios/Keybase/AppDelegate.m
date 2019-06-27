@@ -111,8 +111,8 @@ const BOOL isDebug = NO;
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
 #if DEBUG
-  // uncomment to get a prod bundle
-  [[RCTBundleURLProvider sharedSettings] setEnableDev: true];
+  // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
+//  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
