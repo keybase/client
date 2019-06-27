@@ -20,12 +20,12 @@ import (
 )
 
 type LocalChatState interface {
-	ApplyLocalChatState(context.Context, keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo
+	ApplyLocalChatState(context.Context, []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo
 }
 
 type dummyLocalChatState struct{}
 
-func (d dummyLocalChatState) ApplyLocalChatState(ctx context.Context, i keybase1.BadgeConversationInfo) keybase1.BadgeConversationInfo {
+func (d dummyLocalChatState) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo {
 	return i
 }
 
@@ -69,8 +69,9 @@ func (b *BadgeState) Export(ctx context.Context) (keybase1.BadgeState, error) {
 
 	b.state.Conversations = []keybase1.BadgeConversationInfo{}
 	for _, info := range b.chatUnreadMap {
-		b.state.Conversations = append(b.state.Conversations, b.localChatState.ApplyLocalChatState(ctx, info))
+		b.state.Conversations = append(b.state.Conversations, info)
 	}
+	b.state.Conversations = b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
 	b.state.InboxVers = int(b.inboxVers)
 
 	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
