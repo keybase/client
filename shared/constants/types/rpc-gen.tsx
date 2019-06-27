@@ -1598,6 +1598,7 @@ export enum MobileNetworkState {
   wifi = 1,
   celluar = 2,
   unknown = 3,
+  notavailable = 4,
 }
 
 export enum OfflineAvailability {

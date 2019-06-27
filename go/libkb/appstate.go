@@ -113,7 +113,7 @@ type MobileNetState struct {
 func NewMobileNetState(g *GlobalContext) *MobileNetState {
 	return &MobileNetState{
 		Contextified: NewContextified(g),
-		state:        keybase1.MobileNetworkState_WIFI,
+		state:        keybase1.MobileNetworkState_NOTAVAILABLE,
 	}
 }
 

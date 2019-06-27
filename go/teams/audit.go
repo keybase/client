@@ -67,13 +67,10 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 		return devParams
 	}
 	if libkb.IsMobilePlatform() {
-		state := m.G().MobileNetState.State()
-		switch state {
-		case keybase1.MobileNetworkState_WIFI:
-			return mobileParamsWifi
-		default:
+		if m.G().MobileNetState.State().IsLimited() {
 			return mobileParamsNoWifi
 		}
+		return mobileParamsWifi
 	}
 	return desktopParams
 }

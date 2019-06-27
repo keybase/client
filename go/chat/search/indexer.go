@@ -151,9 +151,7 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 		}
 	}
 	attemptSync := func(ctx context.Context) {
-		switch netState {
-		case keybase1.MobileNetworkState_WIFI:
-		default:
+		if netState.IsLimited() {
 			return
 		}
 		l.Lock()
@@ -203,10 +201,8 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 				cancelSync()
 			}
 		case netState = <-idx.G().MobileNetState.NextUpdate(&netState):
-			switch netState {
-			case keybase1.MobileNetworkState_WIFI:
-			// if we switch off of wifi cancel any running syncs
-			default:
+			if netState.IsLimited() {
+				// if we switch off of wifi cancel any running syncs
 				cancelSync()
 			}
 		case ch := <-suspendCh:

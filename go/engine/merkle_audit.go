@@ -101,9 +101,7 @@ func (e *MerkleAudit) Run(mctx libkb.MetaContext) (err error) {
 	}
 	if mctx.G().IsMobileAppType() {
 		state := mctx.G().MobileNetState.State()
-		switch state {
-		case keybase1.MobileNetworkState_WIFI:
-		default:
+		if state.IsLimited() {
 			mctx.Debug("merkle audit skipping without wifi, network state: %v", state)
 			return nil
 		}

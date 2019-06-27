@@ -25,9 +25,7 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 
 	if mctx.G().IsMobileAppType() {
 		netState := mctx.G().MobileNetState.State()
-		switch netState {
-		case keybase1.MobileNetworkState_WIFI:
-		default:
+		if netState.IsLimited() {
 			mctx.Debug("ShouldRunBoxAudit: skipping box audit, network state: %v", netState)
 			return false
 		}

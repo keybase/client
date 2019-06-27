@@ -204,7 +204,7 @@ function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
 }
 
 const initOsNetworkStatus = (state, action) =>
-  ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'wifi'})
+  ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
 
 function* setupReachabilityWatcher() {
   const channel = Saga.eventChannel(emitter => {
@@ -215,7 +215,9 @@ function* setupReachabilityWatcher() {
 
   while (true) {
     const status = yield Saga.take(channel)
-    yield Saga.put(ConfigGen.createOsNetworkStatusChanged({online: status === 'online', type: 'wifi'}))
+    yield Saga.put(
+      ConfigGen.createOsNetworkStatusChanged({online: status === 'online', type: 'notavailable'})
+    )
   }
 }
 

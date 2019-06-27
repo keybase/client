@@ -200,20 +200,19 @@ func (b *BackgroundConvLoader) monitorNetState() error {
 	for {
 		select {
 		case state = <-b.G().MobileNetState.NextUpdate(&state):
-			switch state {
-			case keybase1.MobileNetworkState_WIFI:
-				b.Debug(ctx, "monitorNetState: connected to wifi: %v")
+			if state.IsLimited() {
+				b.Debug(ctx, "monitorNetState: %v, suspending load thread", state)
+				if !suspended {
+					b.Suspend(ctx)
+					suspended = true
+				}
+			} else {
+				b.Debug(ctx, "monitorNetState: attempting resume: %v", state)
 				// Only resume if we had suspended earlier (frontend can spam us with these)
 				if suspended {
 					b.Debug(ctx, "monitorNetState: resuming load thread")
 					b.Resume(ctx)
 					suspended = false
-				}
-			default:
-				b.Debug(ctx, "monitorNetState: %v, suspending load thread", state)
-				if !suspended {
-					b.Suspend(ctx)
-					suspended = true
 				}
 			}
 		}
