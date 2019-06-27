@@ -77,39 +77,10 @@ const AssetList = ({accountID, isSender, username}) => {
       ? dispatch(WalletsGen.createRefreshTrustlineAcceptedAssetsByUsername({username}))
       : dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
   }, [dispatch, username, accountID])
-  const items = acceptedAssets
-    .keySeq()
-    .toArray()
-    .map(assetID => ({
-      assetID,
-      key: assetID,
-      selected: assetID === selectedAssetID,
-    }))
-  const itemsAmended = [
-    ...items.slice(0, 1),
-    {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
-  ]
-  const json = JSON.stringify(itemsAmended)
-  const jsonLiteral =
-    '[{"assetID":"GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD","key":"GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD","selected":false},{"assetID":"XLM","key":" XLM","selected":false}]'
-  const parsedJson = JSON.parse(json)
-  const parsedJsonLiteral = JSON.parse(jsonLiteral)
-  console.log({
-    songgao: 'AssetList',
-    items,
-    itemsAmended,
-    json,
-    jsonLiteral,
-    parsedJson,
-    parsedJsonLiteral,
-    equal: json === jsonLiteral,
-  })
   return (
     <Kb.BoxGrow>
       <Kb.List2
-        items={
-          parsedJsonLiteral /* SONGGAO-for-NOJIMA: this works. `parsedJson` doesn't*/ || [
-            /*
+        items={[
           ...acceptedAssets
             .keySeq()
             .toArray()
@@ -118,33 +89,15 @@ const AssetList = ({accountID, isSender, username}) => {
               key: assetID,
               selected: assetID === selectedAssetID,
             })),
-           */
-            ...items,
-            {
-              assetID: 'GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD',
-              key: 'GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD',
-              selected: false,
-            },
-            {
-              assetID: 'GDSVWEA7XV6M5XNLODVTPCGMAJTNBLZBXOFNQD3BNPNYALEYBNT6CE2V-WSD',
-              key: 'GDSVWEA7XV6M5XNLODVTPCGMAJTNBLZBXOFNQD3BNPNYALEYBNT6CE2V-WSD',
-              selected: false,
-            },
-            {
-              assetID: 'GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX-USD',
-              key: 'GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX-USD',
-              selected: false,
-            },
-            {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
-          ]
-        }
+          {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
+        ]}
         bounces={true}
         itemHeight={{
           height: 56, // TODO figure out desktop
           type: 'fixed',
         }}
         renderItem={(index, {assetID, selected}) => {
-          return <Item assetID={assetID} isSelder={isSender} selected={selected} />
+          return <Item assetID={assetID} isSender={isSender} selected={selected} />
         }}
         keyProperty="key"
       />

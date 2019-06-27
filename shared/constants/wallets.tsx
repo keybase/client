@@ -650,6 +650,7 @@ export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: T
 export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
   `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
 export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
+export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 

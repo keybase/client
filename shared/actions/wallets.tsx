@@ -1276,13 +1276,16 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
   })
 
 const calculateBuildingAdvanced = state =>
-  RPCStellarTypes.localFindPaymentPathLocalRpcPromise({
-    amount: state.wallets.buildingAdvanced.recipientAmount,
-    destinationAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset),
-    from: state.wallets.buildingAdvanced.senderAccountID,
-    sourceAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset),
-    to: state.wallets.buildingAdvanced.recipient,
-  }).then(res => {
+  RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
+    {
+      amount: state.wallets.buildingAdvanced.recipientAmount,
+      destinationAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset),
+      from: state.wallets.buildingAdvanced.senderAccountID,
+      sourceAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset),
+      to: state.wallets.buildingAdvanced.recipient,
+    },
+    Constants.calculateBuildingAdvancedWaitingKey
+  ).then(res => {
     console.log({res})
     const {destinationAccount, destinationDisplay, fullPath, sourceDisplay, sourceMaxDisplay} = res
     return WalletsGen.createSetBuiltPaymentAdvanced({
