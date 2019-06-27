@@ -12,6 +12,15 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "acceptSEP7Pay": {
+      "_description": "Accept the prepared SEP7 payment",
+      "amount": "string",
+      "inputURI": "string"
+    },
+    "acceptSEP7Tx": {
+      "_description": "Accept the prepared SEP7 tx",
+      "inputURI": "string"
+    },
     "resetAcceptingDisclaimer": {
       "_description": "Reset to the pre-accepting-disclaimer state."
     },
@@ -279,6 +288,11 @@
       "reason": "'user-selected' | 'auto-selected' | 'from-chat' | 'show-transaction'",
       "show?": "boolean"
     },
+    "setSEP7Tx": {
+      "_description": "Prepare a SEP7 tx to be shown to the user for confirmation",
+      "confirmURI": "string",
+      "tx": "Types.SEP7ConfirmInfo"
+    },
     "showTransaction": {
       "_description": "Navigate to the details page for the given transaction.",
       "accountID": "Types.AccountID",
@@ -399,6 +413,14 @@
         "error": "string"
       }
     },
+    "validateSEP7Link": {
+      "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
+      "link": "string"
+    },
+    "validateSEP7LinkError": {
+      "_description": "Set the error field for a SEP7 validation.",
+      "error": "string"
+    },
     "loadMobileOnlyMode": {
       "_description": "Ask the service for current mobile only mode for Stellar account.",
       "accountID": "Types.AccountID"
@@ -425,6 +447,38 @@
       "airdropState": "Types.AirdropState"
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": {"details": "Types.AirdropDetails"}
+    "updatedAirdropDetails": {"details": "Types.AirdropDetails"},
+    "refreshTrustlineAcceptedAssets": {
+      "accountID": "Types.AccountID"
+    },
+    "refreshTrustlinePopularAssets": {},
+    "addTrustline": {
+      "accountID": "Types.AccountID",
+      "assetID": "Types.AssetID"
+    },
+    "deleteTrustline": {
+      "accountID": "Types.AccountID",
+      "assetID": "Types.AssetID"
+    },
+    "setTrustlineAcceptedAssets": {
+      "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlinePopularAssets": {
+      "assets": "Array<Types.AssetDescription>",
+      "totalCount": "number"
+    },
+    "setTrustlineSearchText": {
+      "text": "string"
+    },
+    "setTrustlineSearchResults": {
+      "assets": "Array<Types.AssetDescription>"
+    },
+    "clearTrustlineSearchResults": {},
+    "setTrustlineExpanded": {
+      "expanded": "boolean",
+      "assetID": "Types.AssetID"
+    }
   }
 }

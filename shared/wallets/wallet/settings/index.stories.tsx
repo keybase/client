@@ -89,8 +89,20 @@ const secondarySettingsProps = {
   name: 'some other account',
 }
 
+const provider = Sb.createPropProviderWithCommon({
+  WalletSettingTrustline: () => ({
+    assets: [
+      {code: 'USD', issuerVerifiedDomain: 'stronghold.com'},
+      {code: 'USD', issuerVerifiedDomain: 'example.com'},
+    ],
+    onSetupTrustline: Sb.action('onSetupTrustline'),
+    refresh: Sb.action('refresh'),
+  }),
+})
+
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings', module)
+    .addDecorator(provider)
     .add('Default', () => <Settings {...defaultSettingsProps} />)
     .add('Default with inflation dest', () => (
       <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />

@@ -373,6 +373,13 @@
             "items": "string"
           },
           "name": "operations"
+        },
+        {
+          "type": [
+            null,
+            "PaymentTrustlineLocal"
+          ],
+          "name": "trustline"
         }
       ]
     },
@@ -655,6 +662,13 @@
         {
           "type": "string",
           "name": "feeCharged"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
         }
       ]
     },

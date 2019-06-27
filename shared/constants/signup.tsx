@@ -2,6 +2,7 @@ import * as I from 'immutable'
 import * as Types from './types/signup'
 import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
+import {RPCError} from '../util/errors'
 
 export const maxUsernameLength = 16
 export const usernameHint =
@@ -20,13 +21,14 @@ export const makeState = I.Record<Types._State>({
   devicenameError: '',
   email: '',
   emailError: '',
+  emailVisible: false,
   inviteCode: '',
   inviteCodeError: '',
   name: '',
   nameError: '',
   password: new HiddenString(''),
   passwordError: new HiddenString(''),
-  signupError: new HiddenString(''),
+  signupError: null,
   username: '',
   usernameError: '',
   usernameTaken: '',

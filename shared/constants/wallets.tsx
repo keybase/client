@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
+import * as Router2Constants from './router2'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
@@ -104,6 +105,32 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   worthInfo: '',
 })
 
+export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
+  fee: null,
+  memo: '',
+  memoType: '',
+  operations: null,
+  source: '',
+})
+
+export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
+  amount: null,
+  assetCode: '',
+  assetIssuer: '',
+  availableToSendFiat: '',
+  availableToSendNative: '',
+  callbackURL: '',
+  displayAmountFiat: '',
+  memo: '',
+  memoType: '',
+  message: '',
+  operation: '',
+  originDomain: '',
+  recipient: '',
+  summary: makeSEP7Summary(),
+  xdr: '',
+})
+
 export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   amountErrMsg: '',
   builtBanners: null,
@@ -116,6 +143,19 @@ export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   worthDescription: '',
   worthInfo: '',
 })
+
+export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
+
+export const makeTrustline = I.Record<Types._Trustline>({
+  acceptedAssets: I.Map(),
+  assetMap: I.Map(),
+  expandedAssets: I.Set(),
+  loaded: false,
+  popularAssets: I.List(),
+  searchingAssets: undefined,
+  totalAssetsCount: 0,
+})
+export const emptyTrustline = makeTrustline()
 
 export const makeState = I.Record<Types._State>({
   acceptedDisclaimer: false,
@@ -157,6 +197,10 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep7ConfirmError: '',
+  sep7ConfirmInfo: null,
+  sep7ConfirmURI: '',
+  trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
 
@@ -197,6 +241,7 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
+    canAddTrustline: w.canAddTrustline,
     canSubmitTx: w.canSubmitTx,
     deviceReadOnly: w.deviceReadOnly,
     displayCurrency: currencyResultToCurrency(w.currencyLocal),
@@ -210,6 +255,7 @@ export const makeAssets = I.Record<Types._Assets>({
   availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
+  canAddTrustline: false,
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -249,6 +295,7 @@ const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
+  fromAirdrop: false,
   id: Types.noPaymentID,
   isAdvanced: false,
   issuerAccountID: null,
@@ -270,6 +317,8 @@ const _defaultPaymentCommon = {
   targetAccountID: '',
   targetType: '',
   time: null,
+  trustline: null,
+  unread: false,
   worth: '',
   worthAtSendTime: '',
 }
@@ -277,7 +326,6 @@ const _defaultPaymentCommon = {
 const _defaultPaymentResult = {
   ..._defaultPaymentCommon,
   section: 'none' as Types.PaymentSection,
-  unread: false,
 }
 
 const _defaultPaymentDetail = {
@@ -311,6 +359,7 @@ export const unknownCurrency = makeCurrency()
 export const makeAccount = I.Record<Types._Account>({
   accountID: Types.noAccountID,
   balanceDescription: '',
+  canAddTrustline: false,
   canSubmitTx: false,
   deviceReadOnly: false,
   displayCurrency: unknownCurrency,
@@ -353,15 +402,15 @@ export const rpcPaymentResultToPaymentResult = (
 
 export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal) =>
   makePaymentDetail({
-    ...rpcPaymentToPaymentCommon(p),
-    externalTxURL: p.externalTxURL,
-    feeChargedDescription: p.feeChargedDescription,
-    publicMemo: new HiddenString(p.publicNote),
-    publicMemoType: p.publicNoteType,
-    txID: p.txID,
+    ...rpcPaymentToPaymentCommon(p.summary),
+    externalTxURL: p.details.externalTxURL,
+    feeChargedDescription: p.details.feeChargedDescription,
+    publicMemo: new HiddenString(p.details.publicNote),
+    publicMemoType: p.details.publicNoteType,
+    txID: p.summary.txID,
   })
 
-const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
+const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const sourceType = partyTypeToString[p.fromType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
   let targetType = partyTypeToString[p.toType]
@@ -384,6 +433,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
+    fromAirdrop: p.fromAirdrop,
     id: Types.rpcPaymentIDToPaymentID(p.id),
     isAdvanced: p.isAdvanced,
     issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
@@ -405,6 +455,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDe
     targetAccountID: p.toAccountID,
     targetType,
     time: p.time,
+    trustline: p.trustline,
     worth: p.worth,
     worthAtSendTime: p.worthAtSendTime,
   }
@@ -416,6 +467,7 @@ export const makeAssetDescription = I.Record<Types._AssetDescription>({
   issuerName: '',
   issuerVerifiedDomain: '',
 })
+export const emptyAssetDescription = makeAssetDescription()
 
 export const bannerLevelToBackground = (level: string) => {
   switch (level) {
@@ -452,6 +504,14 @@ export const paymentToYourInfoAndCounterparty = (
   counterparty: string
   counterpartyType: Types.CounterpartyType
 } => {
+  if (p.fromAirdrop) {
+    return {
+      counterparty: '',
+      counterpartyType: 'airdrop',
+      yourAccountName: '',
+      yourRole: 'airdrop',
+    }
+  }
   switch (p.delta) {
     case 'none':
       // In this case, sourceType and targetType are usually
@@ -535,6 +595,7 @@ export const requestPaymentWaitingKey = 'wallets:requestPayment'
 export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
+export const sep7WaitingKey = 'wallets:sep7'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 export const loadAccountsWaitingKey = 'wallets:loadAccounts'
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
@@ -547,10 +608,22 @@ export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
 export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
   `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
 export const checkOnlineWaitingKey = 'wallets:checkOnline'
+export const addTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:addTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: Types.AssetID) =>
+  `wallets:deleteTrustline:${Types.accountIDToString(accountID)}:${assetID}`
+export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
+  `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
+export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
+
+export const getAirdropSelected = (state: TypedState) => {
+  const path = Router2Constants.getVisibleScreen().routeName
+  return path === 'airdrop' || path === 'airdropQualify'
+}
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
@@ -657,6 +730,11 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   return sign + balanceChange
 }
 
+export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+
+export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
+
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
+export const trustlineHoldingBalance = 0.5

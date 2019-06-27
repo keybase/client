@@ -30,7 +30,11 @@ func setupDirDataTest(t *testing.T, maxPtrsPerBlock, numDirEntries int) (
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, tlf.Private)
-	dir := Path{FolderBranch{Tlf: id}, []PathNode{{ptr, "dir"}}}
+	dir := Path{
+		FolderBranch{Tlf: id},
+		[]PathNode{{ptr, NewPathPartString("dir", nil)}},
+		nil,
+	}
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
 	bsplit := &BlockSplitterSimple{10, maxPtrsPerBlock, 10, numDirEntries}
 	kmd := libkeytest.NewEmptyKeyMetadata(id, 1)
@@ -93,15 +97,15 @@ func TestDirDataGetChildren(t *testing.T) {
 	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 1)
-	require.Equal(t, uint64(1), children["a"].Size)
+	require.Equal(t, uint64(1), children[NewPathPartString("a", nil)].Size)
 
 	t.Log("Two entries, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "b", 2)
 	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 2)
-	require.Equal(t, uint64(1), children["a"].Size)
-	require.Equal(t, uint64(2), children["b"].Size)
+	require.Equal(t, uint64(1), children[NewPathPartString("a", nil)].Size)
+	require.Equal(t, uint64(2), children[NewPathPartString("b", nil)].Size)
 
 	t.Log("Indirect blocks")
 	dd.tree.file.Path[len(dd.tree.file.Path)-1].DirectType = IndirectBlock
@@ -136,16 +140,16 @@ func TestDirDataGetChildren(t *testing.T) {
 	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 4)
-	require.Equal(t, uint64(1), children["a"].Size)
-	require.Equal(t, uint64(2), children["b"].Size)
-	require.Equal(t, uint64(3), children["z1"].Size)
-	require.Equal(t, uint64(4), children["z2"].Size)
+	require.Equal(t, uint64(1), children[NewPathPartString("a", nil)].Size)
+	require.Equal(t, uint64(2), children[NewPathPartString("b", nil)].Size)
+	require.Equal(t, uint64(3), children[NewPathPartString("z1", nil)].Size)
+	require.Equal(t, uint64(4), children[NewPathPartString("z2", nil)].Size)
 
 }
 
 func testDirDataCheckLookup(
 	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64) {
-	de, err := dd.Lookup(ctx, name)
+	de, err := dd.Lookup(ctx, NewPathPartString(name, nil))
 	require.NoError(t, err)
 	require.Equal(t, size, de.Size)
 }
@@ -159,13 +163,13 @@ func TestDirDataLookup(t *testing.T) {
 		SkipCacheHash)
 
 	t.Log("No entries, direct block")
-	_, err := dd.Lookup(ctx, "a")
+	_, err := dd.Lookup(ctx, NewPathPartString("a", nil))
 	require.Equal(t, idutil.NoSuchNameError{Name: "a"}, err)
 
 	t.Log("Single entry, direct block")
 	addFakeDirDataEntryToBlock(topBlock, "a", 1)
 	testDirDataCheckLookup(ctx, t, dd, "a", 1)
-	_, err = dd.Lookup(ctx, "b")
+	_, err = dd.Lookup(ctx, NewPathPartString("b", nil))
 	require.Equal(t, idutil.NoSuchNameError{Name: "b"}, err)
 
 	t.Log("Indirect blocks")
@@ -208,7 +212,7 @@ func TestDirDataLookup(t *testing.T) {
 
 func addFakeDirDataEntry(
 	ctx context.Context, t *testing.T, dd *DirData, name string, size uint64) {
-	_, err := dd.AddEntry(ctx, name, DirEntry{
+	_, err := dd.AddEntry(ctx, NewPathPartString(name, nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: size,
 		},
@@ -396,7 +400,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLookup(ctx, t, dd, " 1", 14)
 
 	t.Log("Adding an existing name should error")
-	_, err := dd.AddEntry(ctx, "a", DirEntry{
+	_, err := dd.AddEntry(ctx, NewPathPartString("a", nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -415,11 +419,11 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	t.Log("Make a simple dir and remove one entry")
 	addFakeDirDataEntry(ctx, t, dd, "a", 1)
 	addFakeDirDataEntry(ctx, t, dd, "z", 2)
-	_, err := dd.RemoveEntry(ctx, "z")
+	_, err := dd.RemoveEntry(ctx, NewPathPartString("z", nil))
 	require.NoError(t, err)
 	require.Len(t, topBlock.Children, 1)
 	testDirDataCheckLookup(ctx, t, dd, "a", 1)
-	_, err = dd.Lookup(ctx, "z")
+	_, err = dd.Lookup(ctx, NewPathPartString("z", nil))
 	require.Equal(t, idutil.NoSuchNameError{Name: "z"}, err)
 
 	t.Log("Make a big complicated tree and remove an entry")
@@ -438,7 +442,7 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
-	_, err = dd.RemoveEntry(ctx, "c")
+	_, err = dd.RemoveEntry(ctx, NewPathPartString("c", nil))
 	require.NoError(t, err)
 	expectedLeafs := []testDirDataLeaf{
 		{"", 2, false},    // " 1" and "a"
@@ -464,7 +468,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 
 	t.Log("Make a simple dir and update one entry")
 	addFakeDirDataEntry(ctx, t, dd, "a", 1)
-	_, err := dd.UpdateEntry(ctx, "a", DirEntry{
+	_, err := dd.UpdateEntry(ctx, NewPathPartString("a", nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -488,7 +492,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
-	_, err = dd.UpdateEntry(ctx, "c", DirEntry{
+	_, err = dd.UpdateEntry(ctx, NewPathPartString("c", nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 1000,
 		},
@@ -508,7 +512,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	}
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 	t.Log("Updating an non-existing name should error")
-	_, err = dd.UpdateEntry(ctx, "foo", DirEntry{
+	_, err = dd.UpdateEntry(ctx, NewPathPartString("foo", nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},

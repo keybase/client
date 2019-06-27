@@ -59,61 +59,67 @@ const rpcConflictStateToConflictState = (
         })
     : Constants.tlfNormalViewWithNoConflict
 
-const loadFavorites = (state, action: FsGen.FavoritesLoadPayload) =>
-  RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise().then(results => {
-    const mutablePayload = [
-      ...(results.favoriteFolders
-        ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
-        : []),
-      ...(results.ignoredFolders
-        ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
-        : []),
-      ...(results.newFolders
-        ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
-        : []),
-    ].reduce(
-      (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
-        folders.reduce((mutablePayload, folder) => {
-          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-          const tlfName =
-            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, state.config.username)
-              : folder.name
-          return !tlfType
-            ? mutablePayload
-            : {
-                ...mutablePayload,
-                [tlfType]: mutablePayload[tlfType].set(
-                  tlfName,
-                  Constants.makeTlf({
-                    conflictState: rpcConflictStateToConflictState(folder.conflictState),
-                    isFavorite,
-                    isIgnored,
-                    isNew,
-                    name: tlfName,
-                    resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
-                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig),
-                    teamId: folder.team_id || '',
-                    tlfMtime: folder.mtime || 0,
-                  })
-                ),
-              }
-        }, mutablePayload),
-      {
-        private: I.Map().asMutable(),
-        public: I.Map().asMutable(),
-        team: I.Map().asMutable(),
-      }
-    )
-    return FsGen.createFavoritesLoaded({
-      // @ts-ignore asImmutable returns a weak type
-      private: mutablePayload.private.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      public: mutablePayload.public.asImmutable(),
-      // @ts-ignore asImmutable returns a weak type
-      team: mutablePayload.team.asImmutable(),
+const loadFavorites = (
+  state,
+  action: FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
+) =>
+  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+  RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
+    .then(results => {
+      const mutablePayload = [
+        ...(results.favoriteFolders
+          ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
+          : []),
+        ...(results.ignoredFolders
+          ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
+          : []),
+        ...(results.newFolders
+          ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
+          : []),
+      ].reduce(
+        (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
+          folders.reduce((mutablePayload, folder) => {
+            const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+            const tlfName =
+              tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+                ? tlfToPreferredOrder(folder.name, state.config.username)
+                : folder.name
+            return !tlfType
+              ? mutablePayload
+              : {
+                  ...mutablePayload,
+                  [tlfType]: mutablePayload[tlfType].set(
+                    tlfName,
+                    Constants.makeTlf({
+                      conflictState: rpcConflictStateToConflictState(folder.conflictState),
+                      isFavorite,
+                      isIgnored,
+                      isNew,
+                      name: tlfName,
+                      resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
+                      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig),
+                      teamId: folder.team_id || '',
+                      tlfMtime: folder.mtime || 0,
+                    })
+                  ),
+                }
+          }, mutablePayload),
+        {
+          private: I.Map().asMutable(),
+          public: I.Map().asMutable(),
+          team: I.Map().asMutable(),
+        }
+      )
+      return FsGen.createFavoritesLoaded({
+        // @ts-ignore asImmutable returns a weak type
+        private: mutablePayload.private.asImmutable(),
+        // @ts-ignore asImmutable returns a weak type
+        public: mutablePayload.public.asImmutable(),
+        // @ts-ignore asImmutable returns a weak type
+        team: mutablePayload.team.asImmutable(),
+      })
     })
-  })
+    .catch(makeRetriableErrorHandler(action))
 
 const getSyncConfigFromRPC = (
   tlfName: string,
@@ -247,7 +253,10 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 const pathMetadataRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
-let lastSubscribedTlf = ''
+const lastSubscribedTlf = {
+  folderList: '',
+  pathMetadata: '',
+}
 
 const clearRefreshTags = () => {
   folderListRefreshTags.clear()
@@ -294,25 +303,31 @@ const refreshTagRpc = (
 
   // We've got a refreshTag. Set it regardless.
   const tags = opType === 'folderList' ? folderListRefreshTags : pathMetadataRefreshTags
+  const pathIsSubscribed = tags.get(refreshTag) === path
   tags.set(refreshTag, path)
 
-  // If we are subscribed to the same TLF, just skip. When we have
-  // notifications coming in, we'll know to trigger RPCs for the right paths.
   const tlfPath = Constants.getTlfPath(path)
-  if (tlfPath === lastSubscribedTlf) {
+  if (tlfPath !== lastSubscribedTlf[opType]) {
+    // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
+    // want to refresh subscription to this TLF.
+    lastSubscribedTlf[opType] = tlfPath
     return {
-      refreshSubscription: false,
-      skipRpc: true,
+      refreshSubscription: true,
+      skipRpc: false,
     }
   }
 
-  // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
-  // want to refresh subscription to this TLF.
-  lastSubscribedTlf = tlfPath
-  return {
-    refreshSubscription: true,
-    skipRpc: false,
-  }
+  // Otherwise, check if the subscribed path is the same. If it's not the same,
+  // do RPC and refresh subscription path.
+  return pathIsSubscribed
+    ? {
+        refreshSubscription: true,
+        skipRpc: true,
+      }
+    : {
+        refreshSubscription: true,
+        skipRpc: false,
+      }
 }
 
 function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload) {
@@ -597,32 +612,20 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
   }
 }
 
-const onTlfUpdate = (state, action: FsGen.NotifyTlfUpdatePayload) => {
+const onTlfUpdate = (
+  state,
+  action: FsGen.NotifyTlfUpdatePayload | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+) => {
   // Trigger folderListLoad and pathMetadata for paths that the user might be
   // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
-  //
-  // Note that this is not merely a filtered mapping from the refresh tags.
-  // Since KBFS only sends us the latest subscribed TLF, if we get a TLF other
-  // than what our refreshTags suggest, the user must have been in a different
-  // TLF. In this case, we remove the old tag so next time an action comes in,
-  // we'll fire the RPC. This might not be necessary based on current design,
-  // but just in case.
   //
   // It's important to not set the refreshTag in the actions generated here, to
   // make sure the related sagas won't skip the RPC (see `function*
   // folderList`).
   const actions = []
-  folderListRefreshTags.forEach((path, refreshTag) =>
-    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createFolderListLoad({path}))
-      : folderListRefreshTags.delete(refreshTag)
-  )
-  pathMetadataRefreshTags.forEach((path, refreshTag) =>
-    Types.pathsAreInSameTlf(path, action.payload.tlfPath)
-      ? actions.push(FsGen.createLoadPathMetadata({path}))
-      : pathMetadataRefreshTags.delete(refreshTag)
-  )
+  folderListRefreshTags.forEach(path => actions.push(FsGen.createFolderListLoad({path})))
+  pathMetadataRefreshTags.forEach(path => actions.push(FsGen.createLoadPathMetadata({path})))
   return actions
 }
 
@@ -1018,14 +1021,32 @@ const finishManualCR = (state, action) =>
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 
+// At start-up we might have a race where we get connected to a kbfs daemon
+// which dies soon after, and we get an EOF here. So retry for a few times
+// until we get through. After each try we delay for 2s, so this should give us
+// e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
+// and we deserve a black bar.
+const checkIfWeReConnectedToMDServerUpToNTimes = (n: number) =>
+  RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise()
+    .then(connectedToMDServer => FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer}))
+    .catch(
+      n > 0
+        ? error => {
+            logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
+            return Saga.delay(2000).then(() => checkIfWeReConnectedToMDServerUpToNTimes(n - 1))
+          }
+        : error => {
+            logger.warn(`failed to check if we are connected to MDServer : ${error}; n=${n}, throwing`)
+            throw error
+          }
+    )
+
 const updateKbfsDaemonOnlineStatus = (
   state,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | ConfigGen.OsNetworkStatusChangedPayload
 ) =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && state.config.osNetworkOnline
-    ? RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise().then(connectedToMDServer =>
-        FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
-      )
+    ? checkIfWeReConnectedToMDServerUpToNTimes(6)
     : Promise.resolve(FsGen.createKbfsDaemonOnlineStatusChanged({online: false}))
 
 // We don't trigger the reachability check at init. Reachability checks cause
@@ -1033,8 +1054,13 @@ const updateKbfsDaemonOnlineStatus = (
 // timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
-const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkStatusChangedPayload) =>
-  !action.payload.isInit && RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkStatusChangedPayload) => {
+  if (!action.payload.isInit) {
+    return RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise().catch(err =>
+      logger.warn(`failed to check KBFS reachability: ${err.message}`)
+    )
+  }
+}
 
 const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
   FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
@@ -1094,6 +1120,13 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
   return actions
 }
 
+const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = state =>
+  state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
+  FsGen.createSetTlfsAsUnloaded()
+
+const setDebugLevel = (_, action: FsGen.SetDebugLevelPayload) =>
+  RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.RefreshLocalHTTPServerInfoPayload>(
     FsGen.refreshLocalHTTPServerInfo,
@@ -1109,12 +1142,26 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     [FsGen.folderListLoad, FsGen.editSuccess],
     folderList
   )
-  yield* Saga.chainAction<FsGen.FavoritesLoadPayload>(FsGen.favoritesLoad, loadFavorites)
+  yield* Saga.chainAction<FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload>(
+    [FsGen.favoritesLoad, EngineGen.keybase1NotifyFSFSFavoritesChanged],
+    loadFavorites
+  )
+  yield* Saga.chainAction<FsGen.KbfsDaemonRpcStatusChangedPayload>(
+    FsGen.kbfsDaemonRpcStatusChanged,
+    setTlfsAsUnloadedWhenKbfsDaemonDisconnects
+  )
   yield* Saga.chainGenerator<FsGen.FavoriteIgnorePayload>(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield* Saga.chainAction<FsGen.FavoritesLoadedPayload>(FsGen.favoritesLoaded, updateFsBadge)
   yield* Saga.chainAction<FsGen.LetResetUserBackInPayload>(FsGen.letResetUserBackIn, letResetUserBackIn)
   yield* Saga.chainAction<FsGen.CommitEditPayload>(FsGen.commitEdit, commitEdit)
-  yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
+  yield* Saga.chainAction<
+    FsGen.NotifyTlfUpdatePayload | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+    // In addition to the actual notification about changes in a TLF, we also
+    // trigger this when overall sync status changes. This is because sync
+    // status changes don't trigger updates for individual pathItems. So just
+    // treat the overall status update as a hint that currently subscribed
+    // items might have been changed too.
+  >([FsGen.notifyTlfUpdate, EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged], onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
   yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSPathUpdatedPayload>(
@@ -1184,6 +1231,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
       finishManualCR
     )
   }
+
+  yield* Saga.chainAction<FsGen.SetDebugLevelPayload>(FsGen.setDebugLevel, setDebugLevel)
 
   yield Saga.spawn(platformSpecificSaga)
 }

@@ -112,4 +112,28 @@ protocol ephemeral {
     Bytes32 seed;
     TeamEkMetadata metadata;
   }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  record TeambotEkMetadata {
+    @jsonkey("teambot_dh_public")
+    KID kid;
+    EkGeneration generation;
+    UID uid;
+    @jsonkey("user_ek_generation")
+    EkGeneration userEkGeneration;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    Time ctime;
+  }
+
+  record TeambotEkBoxed {
+    string box;
+    TeambotEkMetadata metadata;
+  }
+
+  record TeambotEk {
+    Bytes32 seed;
+    TeambotEkMetadata metadata;
+  }
 }

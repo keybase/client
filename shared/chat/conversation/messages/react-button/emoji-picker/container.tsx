@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {connect, getRouteProps} from '../../../../../util/container'
+import {connect, getRouteProps, TypedState} from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
@@ -17,6 +17,7 @@ type OwnProps = RouteProps<
 >
 
 type WrapperProps = {
+  topReacjis: Array<string>
   onAddReaction: (emoji: string) => void
   onCancel: () => void
 }
@@ -26,7 +27,9 @@ type WrapperState = {
   width: number
 }
 
-const mapStateToProps = () => ({})
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  topReacjis: state.chat2.userReacjis.topReacjis,
+})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')
@@ -41,6 +44,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  ...stateProps,
   ...dispatchProps,
 })
 
@@ -77,6 +81,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
           textType="BodySemibold"
         />
         <EmojiPicker
+          topReacjis={this.props.topReacjis}
           filter={this.state.filter}
           onChoose={emoji => this.props.onAddReaction(`:${emoji.short_name}:`)}
           width={this.state.width}

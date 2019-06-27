@@ -242,8 +242,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             .update('private', privateTlfs => updateTlfList(privateTlfs, action.payload.private))
             .update('public', publicTlfs => updateTlfList(publicTlfs, action.payload.public))
             .update('team', team => updateTlfList(team, action.payload.team))
+            .set('loaded', true)
         )
       )
+    case FsGen.setTlfsAsUnloaded:
+      return state.update('tlfs', tlfs => tlfs.set('loaded', false))
     case FsGen.setFolderViewFilter:
       return state.set('folderViewFilter', action.payload.filter)
     case FsGen.tlfSyncConfigLoaded:
@@ -338,6 +341,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       if (!visibility) {
         return state
       }
+      // @ts-ignore
       return state.mergeIn(['tlfs', visibility, elems[2]], {
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
@@ -367,16 +371,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
       return state.mergeIn(
         ['edits'],
-        [
-          [
-            Constants.makeEditID(),
-            Constants.makeNewFolder({
-              hint: newFolderName,
-              name: newFolderName,
-              parentPath,
-            }),
-          ],
-        ]
+        I.Map({
+          [Constants.makeEditID()]: Constants.makeNewFolder({
+            hint: newFolderName,
+            name: newFolderName,
+            parentPath,
+          }),
+        })
       )
     case FsGen.newFolderName:
       return state.update('edits', edits =>

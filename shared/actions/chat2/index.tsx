@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as EngineGen from '../engine-gen-gen'
+import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
@@ -15,6 +16,7 @@ import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
+import {TypedState} from '../../constants/reducer'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
@@ -22,10 +24,10 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
-import chatTeamBuildingSaga from './team-building'
+import commonTeamBuildingSaga, {filterForNs, NSAction} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isMobile} from '../../constants/platform'
+import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -34,6 +36,7 @@ import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
 import {getEngine} from '../../engine/require'
+import {store} from 'emoji-mart'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -550,7 +553,10 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
     targetMsgID: ru.targetMsgID,
   }))
   logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-  return [Chat2Gen.createUpdateReactions({conversationIDKey, updates})]
+  return [
+    Chat2Gen.createUpdateReactions({conversationIDKey, updates}),
+    Chat2Gen.createUpdateUserReacjis({userReacjis: info.userReacjis}),
+  ]
 }
 
 const onChatPromptUnfurl = (_, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
@@ -1856,6 +1862,40 @@ const _maybeAutoselectNewestConversation = (state, action, logger) => {
   }
 }
 
+const startupUserReacjisLoad = (state, action) =>
+  Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
+
+// onUpdateUserReacjis hooks `userReacjis`, frequently used reactions
+// recorded by the service, into the emoji-mart library. Handler spec is
+// documented at
+// https://github.com/missive/emoji-mart/tree/7c2e2a840bdd48c3c9935dac4208115cbcf6006d#storage
+const onUpdateUserReacjis = state => {
+  if (isMobile) {
+    return
+  }
+  const userReacjis = state.chat2.userReacjis
+  // emoji-mart expects a frequency map so we convert the sorted list from the
+  // service into a frequency map that will appease the lib.
+  let i = 0
+  let reacjis = {}
+  userReacjis.topReacjis.forEach(el => {
+    i++
+    reacjis[el] = userReacjis.topReacjis.length - i
+  })
+  store.setHandlers({
+    getter: key => {
+      switch (key) {
+        case 'frequently':
+          return reacjis
+        case 'last':
+          return reacjis[0]
+        case 'skin':
+          return userReacjis.skinTone
+      }
+    },
+  })
+}
+
 const openFolder = (state, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
@@ -2808,24 +2848,41 @@ const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeM
   })
 }
 
-const onChatGetCoordinate = (state, action: EngineGen.Chat1ChatUiChatGetCoordinatePayload, logger) => {
+const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositionPayload, logger) => {
   const response = action.payload.response
   if (isMobile) {
-    navigator.geolocation.getCurrentPosition(
+    const watchID = navigator.geolocation.watchPosition(
       pos =>
-        response.result({accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude}),
+        RPCChatTypes.localLocationUpdateRpcPromise({
+          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+        }),
       err => logger.warn(err.message),
-      {enableHighAccuracy: true, maximumAge: 0, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
+    response.result(watchID)
   } else {
-    // doesn't really work and is disabled in the service, so just stick us in SF
-    response.result({
-      accuracy: 21.6747,
-      lat: 37.785834,
-      lon: -122.406417,
-    })
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.80424, lon: -73.962962},
+      })
+    }, 1000)
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.756325, lon: -73.992533},
+      })
+    }, 6000)
+    setTimeout(() => {
+      RPCChatTypes.localLocationUpdateRpcPromise({
+        coord: {accuracy: 65, lat: 40.704454, lon: -74.010893},
+      })
+    }, 10000)
+    response.result(10)
   }
   return []
+}
+
+const onChatClearWatch = (state, action: EngineGen.Chat1ChatUiChatClearWatchPayload, logger) => {
+  navigator.geolocation.clearWatch(action.payload.params.id)
 }
 
 const resolveMaybeMention = (state, action: Chat2Gen.ResolveMaybeMentionPayload) => {
@@ -2935,6 +2992,27 @@ const addUsersToChannel = (_, action: Chat2Gen.AddUsersToChannelPayload, logger)
 const onMarkInboxSearchOld = state =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
+
+const createConversationFromTeamBuilder = (
+  state: TypedState,
+  {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
+) => [
+  Chat2Gen.createSelectConversation({
+    conversationIDKey: Constants.pendingWaitingConversationIDKey,
+    reason: 'justCreated',
+  }),
+  Chat2Gen.createCreateConversation({
+    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
+  }),
+]
+
+export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
+  yield* commonTeamBuildingSaga('chat2')
+  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
+    TeamBuildingGen.finishedTeamBuilding,
+    filterForNs('chat2', createConversationFromTeamBuilder)
+  )
+}
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -3136,6 +3214,18 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     ConfigGen.bootstrapStatusLoaded,
     startupInboxLoad,
     'startupInboxLoad'
+  )
+
+  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
+    ConfigGen.bootstrapStatusLoaded,
+    startupUserReacjisLoad,
+    'startupUserReacjisLoad'
+  )
+
+  yield* Saga.chainAction<Chat2Gen.UpdateUserReacjisPayload>(
+    Chat2Gen.updateUserReacjis,
+    onUpdateUserReacjis,
+    'onUpdateUserReacjis'
   )
 
   // Search handling
@@ -3434,11 +3524,16 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,
     onChatMaybeMentionUpdate
   )
-  getEngine().registerCustomResponse('chat.1.chatUi.chatGetCoordinate')
-  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGetCoordinatePayload>(
-    EngineGen.chat1ChatUiChatGetCoordinate,
-    onChatGetCoordinate,
-    'onChatGetCoordinate'
+  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatWatchPositionPayload>(
+    EngineGen.chat1ChatUiChatWatchPosition,
+    onChatWatchPosition,
+    'onChatWatchPosition'
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatClearWatchPayload>(
+    EngineGen.chat1ChatUiChatClearWatch,
+    onChatClearWatch,
+    'onChatClearWatch'
   )
 
   yield* Saga.chainAction<Chat2Gen.ReplyJumpPayload>(Chat2Gen.replyJump, onReplyJump)
@@ -3492,7 +3587,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 
-  yield Saga.spawn(chatTeamBuildingSaga)
+  yield* chatTeamBuildingSaga()
 }
 
 export default chat2Saga

@@ -697,6 +697,9 @@
     "clearAttachmentView": {
       "_description": "Clear attachment views",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateUserReacjis": {
+      "userReacjis": "RPCTypes.UserReacjis"
     }
   }
 }

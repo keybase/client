@@ -1,6 +1,8 @@
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
+import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 import * as SearchGen from '../../../actions/search-gen'
 import {
   HeaderRightActions as _HeaderRightActions,
@@ -97,8 +99,10 @@ const mapStateToPropsSub = (state, {teamname}) => ({
 
 const mapDispatchToPropsSub = dispatch => ({
   onAddSelf: (you: string, teamname: string) => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]}))
-    dispatch(SearchGen.createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
+    dispatch(appendNewTeamBuilder(teamname))
+    dispatch(
+      createAddUsersToTeamSoFar({namespace: 'teams', users: [{id: you, prettyName: you, serviceMap: {}}]})
+    )
   },
 })
 

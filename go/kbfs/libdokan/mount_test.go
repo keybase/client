@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/dokan"
-	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
@@ -2051,7 +2050,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", tlf.Private)
 
 		ops := config.KBFSOps()
-		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		myfile, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName("myfile"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2159,7 +2158,7 @@ func TestErrorFile(t *testing.T) {
 	}
 
 	// Make sure the root error file reads as expected
-	expectedErr := idutil.NoSuchUserError{Input: "janedoe"}
+	expectedErr := dokan.ErrObjectNameNotFound
 
 	// test both the root error file and one in a directory
 	testForErrorText(t, filepath.Join(mnt.Dir, libkbfs.ErrorFile),
@@ -2172,7 +2171,6 @@ func TestErrorFile(t *testing.T) {
 		expectedErr, "dir")
 	testForErrorText(t, filepath.Join(mnt.Dir, PrivateName, "jdoe", libkbfs.ErrorFile),
 		expectedErr, "dir")
-
 }
 
 type testMountObserver struct {
@@ -2325,7 +2323,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", tlf.Private)
 
 		ops := config1.KBFSOps()
-		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
+		myfile, _, err := ops.Lookup(ctx, jdoe, jdoe.ChildName("myfile"))
 		if err != nil {
 			t.Fatal(err)
 		}

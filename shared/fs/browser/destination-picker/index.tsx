@@ -50,62 +50,71 @@ const DesktopHeaders = (props: Props) => (
   </>
 )
 
-const DestinationPicker = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-    <FsCommon.LoadPathMetadataWhenNeeded
-      path={props.parentPath}
-      refreshTag={Types.RefreshTag.DestinationPicker}
-    />
-    {!Styles.isMobile && <DesktopHeaders {...props} />}
-    <Kb.Divider key="dheader" />
-    {!!props.onBackUp && (
-      <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={props.onBackUp}>
-        <Kb.Icon
-          type="iconfont-folder-up"
-          color={Styles.globalColors.black_50}
-          fontSize={32}
-          style={RowCommon.rowStyles.pathItemIcon}
-        />
-        <Kb.Text type="BodySemibold">..</Kb.Text>
-      </Kb.ClickableBox>
-    )}
-    {!!props.onCopyHere && (
-      <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={props.onCopyHere}>
-        <Kb.Icon
-          type="icon-folder-copy-32"
-          color={Styles.globalColors.blue}
-          style={RowCommon.rowStyles.pathItemIcon}
-        />
-        <Kb.Text type="BodySemibold" style={styles.actionText}>
-          Copy here
-        </Kb.Text>
-      </Kb.ClickableBox>
-    )}
-    {!!props.onMoveHere && (
-      <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={props.onMoveHere}>
-        <Kb.Icon
-          type="icon-folder-move-32"
-          color={Styles.globalColors.blue}
-          style={RowCommon.rowStyles.pathItemIcon}
-        />
-        <Kb.Text type="BodySemibold" style={styles.actionText}>
-          Move here
-        </Kb.Text>
-      </Kb.ClickableBox>
-    )}
-    <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-      <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
-    </Kb.Box2>
-    {Styles.isMobile && <Kb.Divider key="dfooter" />}
-    <Kb.Box2 key="footer" direction="horizontal" centerChildren={true} fullWidth={true} style={styles.footer}>
-      {Styles.isMobile ? (
-        <NewFolder onNewFolder={props.onNewFolder} />
-      ) : (
-        <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+const DestinationPicker = (props: Props) => {
+  FsCommon.useFsLoadEffect({
+    path: props.parentPath,
+    refreshTag: Types.RefreshTag.DestinationPicker,
+    wantPathMetadata: true,
+  })
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
+      {!Styles.isMobile && <DesktopHeaders {...props} />}
+      <Kb.Divider key="dheader" />
+      {!!props.onBackUp && (
+        <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={props.onBackUp}>
+          <Kb.Icon
+            type="iconfont-folder-up"
+            color={Styles.globalColors.black_50}
+            fontSize={32}
+            style={RowCommon.rowStyles.pathItemIcon}
+          />
+          <Kb.Text type="BodySemibold">..</Kb.Text>
+        </Kb.ClickableBox>
       )}
+      {!!props.onCopyHere && (
+        <Kb.ClickableBox key="copy" style={styles.actionRowContainer} onClick={props.onCopyHere}>
+          <Kb.Icon
+            type="icon-folder-copy-32"
+            color={Styles.globalColors.blue}
+            style={RowCommon.rowStyles.pathItemIcon}
+          />
+          <Kb.Text type="BodySemibold" style={styles.actionText}>
+            Copy here
+          </Kb.Text>
+        </Kb.ClickableBox>
+      )}
+      {!!props.onMoveHere && (
+        <Kb.ClickableBox key="move" style={styles.actionRowContainer} onClick={props.onMoveHere}>
+          <Kb.Icon
+            type="icon-folder-move-32"
+            color={Styles.globalColors.blue}
+            style={RowCommon.rowStyles.pathItemIcon}
+          />
+          <Kb.Text type="BodySemibold" style={styles.actionText}>
+            Move here
+          </Kb.Text>
+        </Kb.ClickableBox>
+      )}
+      <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
+        <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
+      </Kb.Box2>
+      {Styles.isMobile && <Kb.Divider key="dfooter" />}
+      <Kb.Box2
+        key="footer"
+        direction="horizontal"
+        centerChildren={true}
+        fullWidth={true}
+        style={styles.footer}
+      >
+        {Styles.isMobile ? (
+          <NewFolder onNewFolder={props.onNewFolder} />
+        ) : (
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+        )}
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const HighOrderDestinationPickerDesktop = Kb.HeaderOrPopup(DestinationPicker)
 const HighOrderDestinationPickerMobile = withProps(

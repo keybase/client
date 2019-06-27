@@ -32,6 +32,7 @@ type ChatContext struct {
 	CoinFlipManager      types.CoinFlipManager            // manage /flip games
 	TeamMentionLoader    types.TeamMentionLoader          // load potential team mentions
 	ExternalAPIKeySource types.ExternalAPIKeySource       // source of third party API keys
+	LiveLocationTracker  types.LiveLocationTracker        // track live location messages for updates
 }
 
 type Context struct {

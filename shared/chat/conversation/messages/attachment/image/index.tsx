@@ -92,7 +92,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                     // for the image. We use this in conjunction with the margin to reliably
                     // center the image in the background container.
                     minHeight: this.props.height + 6,
-                    width: this.props.width + 6,
+                    minWidth: this.props.width + 6,
                   },
                 ])
               )}
@@ -170,7 +170,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                   )}
                 </Kb.Box>
               )}
-              {this.state.loadingVideo === 'loading' && <Kb.ProgressIndicator style={styles.progress} />}
+              {Styles.isMobile && this.state.loadingVideo === 'loading' && (
+                <Kb.ProgressIndicator style={styles.progress} />
+              )}
             </Kb.Box>
             <Kb.Box style={styles.progressContainer}>
               {!this.props.onShowInFinder && (

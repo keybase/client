@@ -622,6 +622,14 @@ const zeroSourceAccount = "00000000000000000000000000000000000000000000000000000
 func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *stellarnet.ValidatedStellarURI, error) {
 	validated, err := stellarnet.ValidateStellarURI(uri, getter)
 	if err != nil {
+		switch err.(type) {
+		case stellarnet.ErrNetworkWellKnownOrigin, stellarnet.ErrInvalidWellKnownOrigin:
+			// format these errors a little nicer for frontend to use directly
+			domain, xerr := stellarnet.UnvalidatedStellarURIOriginDomain(uri)
+			if xerr == nil {
+				return nil, nil, fmt.Errorf("This Stellar link claims to be signed by %s, but the Keybase app cannot currently verify the signature came from %s. Sorry, there's nothing you can do with this Stellar link.", domain, domain)
+			}
+		}
 		return nil, nil, err
 	}
 
@@ -637,6 +645,54 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		AssetIssuer:  validated.AssetIssuer,
 		Memo:         validated.Memo,
 		MemoType:     validated.MemoType,
+	}
+
+	if validated.Amount != "" && validated.AssetCode == "" {
+		// show how much validate.Amount XLM is in the user's display currency
+		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, accountID)
+		if err != nil {
+			return nil, nil, err
+		}
+		rate, err := s.remoter.ExchangeRate(mctx.Ctx(), displayCurrency)
+		if err != nil {
+			return nil, nil, err
+		}
+		outsideAmount, err := stellarnet.ConvertXLMToOutside(validated.Amount, rate.Rate)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.DisplayAmountFiat = fmtWorth
+
+		details, err := s.remoter.Details(mctx.Ctx(), accountID)
+		if err != nil {
+			return nil, nil, err
+		}
+		availableXLM := details.Available
+		if availableXLM == "" {
+			availableXLM = "0"
+		}
+		fmtAvailableAmountXLM, err := stellar.FormatAmount(mctx, availableXLM, false, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		availableAmount, err := stellarnet.ConvertXLMToOutside(availableXLM, rate.Rate)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, availableAmount, rate.Currency, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.AvailableToSendNative = fmtAvailableAmountXLM + " XLM"
+		local.AvailableToSendFiat = fmtAvailableWorth
 	}
 
 	if validated.TxEnv != nil {

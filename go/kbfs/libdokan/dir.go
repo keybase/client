@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -209,12 +210,16 @@ func (f *Folder) resolve(ctx context.Context) (*tlfhandle.Handle, error) {
 		handle, err := tlfhandle.ParseHandlePreferred(
 			ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config,
 			string(f.hPreferredName), f.h.Type())
-		if err != nil {
+		switch errors.Cause(err).(type) {
+		case nil:
+			f.TlfHandleChange(ctx, handle)
+			return handle, nil
+		case idutil.NoSuchNameError, idutil.BadTLFNameError,
+			tlf.NoSuchUserError, idutil.NoSuchUserError:
+			return nil, dokan.ErrObjectNameNotFound
+		default:
 			return nil, err
 		}
-		// Update the handle.
-		f.TlfHandleChange(ctx, handle)
-		return handle, nil
 	}
 
 	// In case there were any unresolved assertions, try them again on
@@ -289,7 +294,7 @@ func isSafeFolder(ctx context.Context, f *Folder) bool {
 
 // open tries to open a file.
 func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, dokan.CreateStatus, error) {
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir openDir %v", path)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir openDir %s", path)
 
 	specialNode := handleTLFSpecialFile(lastStr(path), d.folder)
 	if specialNode != nil {
@@ -328,7 +333,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			return NewFileInfoFile(d.folder.fs, d.node, name), 0, nil
 		}
 
-		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
+		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(
+			ctx, d.node, d.node.ChildName(path[0]))
 
 		// If we are in the final component, check if it is a creation.
 		if leaf {
@@ -460,13 +466,14 @@ func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, cst dokan.CreateStatus, err error) {
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Create %s", name)
+	namePPS := d.node.ChildName(name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Create %s", namePPS)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := false // Windows lacks executable modes.
 	excl := getExclFromOpenContext(oc)
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.node, name, isExec, excl)
+		ctx, d.node, namePPS, isExec, excl)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -478,11 +485,12 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (
 	f *Dir, cst dokan.CreateStatus, err error) {
-	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Mkdir %s", name)
+	namePPS := d.node.ChildName(name)
+	d.folder.fs.vlog.CLogf(ctx, libkb.VLog1, "Dir Mkdir %s", namePPS)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
-		ctx, d.node, name)
+		ctx, d.node, namePPS)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -506,10 +514,10 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 	var ns dokan.NamedStat
 	for name, de := range children {
 		empty = false
-		ns.Name = name
+		ns.Name = name.Plaintext()
 		// TODO perhaps resolve symlinks here?
 		fillStat(&ns.Stat, &de)
-		if strings.HasPrefix(name, HiddenFilePrefix) {
+		if strings.HasPrefix(name.Plaintext(), HiddenFilePrefix) {
 			addFileAttribute(&ns.Stat, dokan.FileAttributeHidden)
 		}
 		err = callback(&ns)
@@ -544,12 +552,13 @@ func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err e
 // If Cleanup is called with non-nil FileInfo that has IsDeleteOnClose()
 // no libdokan locks should be held prior to the call.
 func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
+	namePPS := d.node.ChildName(d.name)
 	var err error
 	if fi != nil {
-		d.folder.fs.logEnterf(ctx, "Dir Cleanup %q delete=%v", d.name,
+		d.folder.fs.logEnterf(ctx, "Dir Cleanup %s delete=%v", namePPS,
 			fi.IsDeleteOnClose())
 	} else {
-		d.folder.fs.logEnterf(ctx, "Dir Cleanup %q", d.name)
+		d.folder.fs.logEnterf(ctx, "Dir Cleanup %s", namePPS)
 	}
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
@@ -558,9 +567,9 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		d.folder.fs.renameAndDeletionLock.Lock()
 		defer d.folder.fs.renameAndDeletionLock.Unlock()
 		d.folder.fs.vlog.CLogf(
-			ctx, libkb.VLog1, "Removing (Delete) dir in cleanup %s", d.name)
+			ctx, libkb.VLog1, "Removing (Delete) dir in cleanup %s", namePPS)
 
-		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
+		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, namePPS)
 	}
 
 	if d.refcount.Decrease() {

@@ -7,6 +7,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as WalletsGen from '../wallets-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -81,6 +82,7 @@ function* loadDaemonBootstrapStatus(
       loggedIn: s.loggedIn,
       registered: s.registered,
       uid: s.uid,
+      userReacjis: s.userReacjis,
       username: s.username,
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
@@ -391,6 +393,7 @@ const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
+    return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else {
     const username = Constants.urlToUsername(url)
     if (username) {

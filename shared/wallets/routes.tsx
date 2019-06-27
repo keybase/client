@@ -83,11 +83,13 @@ export const newModalRoutes = {
   receive: {getScreen: () => require('./receive-modal/container').default, upgraded: true},
   removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup, upgraded: true},
   renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup, upgraded: true},
+  sep7Confirm: {getScreen: () => require('./sep7-confirm/container').default, upgraded: true},
   setDefaultAccount: {
     getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup,
     upgraded: true,
   },
   setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination, upgraded: true},
+  trustline: {getScreen: () => require('./trustline/container').default, upgraded: true},
   walletOnboarding: {getScreen: () => require('./onboarding/container').default, upgraded: true},
   whatIsStellarModal: {
     getScreen: () => require('./what-is-stellar-modal').default,

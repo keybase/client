@@ -477,19 +477,15 @@ func addSummaryHash(section *SCTeamSection, boxes *PerTeamSharedSecretBoxes) err
 	return nil
 }
 
-func (t *Team) Rotate(ctx context.Context) (err error) {
-	return t.rotate(ctx, false /* hidden */)
+func (t *Team) Rotate(ctx context.Context, rt keybase1.RotationType) (err error) {
+	return t.rotate(ctx, rt)
 }
 
-func (t *Team) RotateHidden(ctx context.Context) (err error) {
-	return t.rotate(ctx, true)
-}
-
-func (t *Team) rotate(ctx context.Context, isHidden bool) (err error) {
+func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error) {
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
-	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%v)", t.ID, isHidden), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
 
-	if isHidden {
+	if rt == keybase1.RotationType_HIDDEN {
 		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
 		if err != nil {
 			return err
@@ -552,7 +548,7 @@ func (t *Team) rotate(ctx context.Context, isHidden bool) (err error) {
 		teamEKPayload: teamEKPayload,
 	}
 
-	if !isHidden {
+	if rt == keybase1.RotationType_VISIBLE {
 		err = t.rotatePostVisible(mctx.Ctx(), section, mr, payloadArgs)
 	} else {
 		err = t.rotatePostHidden(mctx.Ctx(), section, mr, payloadArgs)
@@ -606,6 +602,9 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	if tmp != nil {
 		mctx.Warning("Failed to ratchet forward team chain: %s", tmp.Error())
 	}
+
+	// We rotated the key but didn't change the visibile chain
+	t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{KeyRotated: true})
 
 	return err
 }
@@ -2182,6 +2181,14 @@ func HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, n keybase1.Seqno) 
 	return e2
 }
 
+func HintLatestHiddenSeqno(m libkb.MetaContext, id keybase1.TeamID, n keybase1.Seqno) error {
+	err := m.G().GetHiddenTeamChainManager().HintLatestSeqno(m, id, n)
+	if err != nil {
+		m.Warning("error in HintLatestHiddenSeqno: %v", err)
+	}
+	return err
+}
+
 func (t *Team) refreshUIDMapper(ctx context.Context, g *libkb.GlobalContext) {
 	for uv := range t.chain().inner.UserLog {
 		g.UIDMapper.InformOfEldestSeqno(ctx, g, uv)
@@ -2271,7 +2278,11 @@ func FreezeTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	if err2 != nil {
 		mctx.Debug("error freezing in fast team cache: %v", err2)
 	}
-	return libkb.CombineErrors(err1, err2)
+	err3 := mctx.G().GetHiddenTeamChainManager().Freeze(mctx, teamID)
+	if err3 != nil {
+		mctx.Debug("error freezing in hidden team chain manager: %v", err3)
+	}
+	return libkb.CombineErrors(err1, err2, err3)
 }
 
 func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
@@ -2283,7 +2294,11 @@ func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	if err2 != nil {
 		mctx.Debug("error tombstoning in fast team cache: %v", err2)
 	}
-	return libkb.CombineErrors(err1, err2)
+	err3 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
+	if err3 != nil {
+		mctx.Debug("error tombstoning in hidden team chain manager: %v", err3)
+	}
+	return libkb.CombineErrors(err1, err2, err3)
 }
 
 type TeamShim struct {

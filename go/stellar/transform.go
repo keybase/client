@@ -117,15 +117,17 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 			}
 		}
 
-		if p.Asset.IsEmpty() && !p.Asset.IsNativeXLM() {
-			// Asset is also expected to be missing.
-			loc.IssuerDescription = FormatAssetIssuerString(p.Asset)
-			issuerAcc := stellar1.AccountID(p.Asset.Issuer)
+		asset := p.Asset // p.Asset is also expected to be missing.
+		if p.Trustline != nil && asset.IsEmpty() {
+			asset = p.Trustline.Asset
+		}
+		if !asset.IsEmpty() && !asset.IsNativeXLM() {
+			loc.IssuerDescription = FormatAssetIssuerString(asset)
+			issuerAcc := stellar1.AccountID(asset.Issuer)
 			loc.IssuerAccountID = &issuerAcc
 		}
-
 	} else {
-		loc, err = newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+		loc, err = newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 		if err != nil {
 			return nil, err
 		}
@@ -150,7 +152,6 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
-	loc.Unread = p.Unread
 	loc.IsInflation = p.IsInflation
 	loc.InflationSource = p.InflationSource
 	loc.SourceAsset = p.SourceAsset
@@ -160,6 +161,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.IsAdvanced = p.IsAdvanced
 	loc.SummaryAdvanced = p.SummaryAdvanced
 	loc.Operations = p.Operations
+	loc.Trustline = p.Trustline
 
 	return loc, nil
 }
@@ -177,7 +179,7 @@ func formatWorthAtSendTime(mctx libkb.MetaContext, p stellar1.PaymentSummaryDire
 
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+	loc, err := newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +244,7 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 
 // transformPaymentRelay converts a stellar1.PaymentSummaryRelay into a stellar1.PaymentLocal.
 func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
+	loc, err := newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +416,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 	return decrypted.Note, ""
 }
 
-func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
+func newPaymentCommonLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
 	formatted, err := FormatAmountDescriptionAsset(mctx, amount, asset)
@@ -537,6 +539,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
+	// 0.5 is the minimum balance necessary to create a trustline
+	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "0.5")
+	if err != nil {
+		return empty, err
+	}
+
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
 		IsDefault:           isPrimary,
@@ -548,6 +556,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
 		CanSubmitTx:         canSubmitTx,
+		CanAddTrustline:     balanceComparedToTrustlineMin == 1,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
@@ -589,6 +598,19 @@ func (a balanceList) balanceDescription(mctx libkb.MetaContext) (res string, err
 		res += " + more"
 	}
 	return res, nil
+}
+
+// Example: "56.0227002"
+func (a balanceList) nativeBalanceDescription(mctx libkb.MetaContext) (res string) {
+	for _, b := range a {
+		if b.Asset.IsNativeXLM() {
+			res = b.Amount
+		}
+	}
+	if res == "" {
+		res = "0"
+	}
+	return res
 }
 
 // TransformToAirdropStatus takes the result from api server status_check

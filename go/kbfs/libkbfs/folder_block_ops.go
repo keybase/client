@@ -1115,8 +1115,9 @@ func (fbo *folderBlockOps) updateParentDirEntryLocked(
 }
 
 func (fbo *folderBlockOps) addDirEntryInCacheLocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadataWithRootDirEntry,
-	dir data.Path, newName string, newDe data.DirEntry) (func(), error) {
+	ctx context.Context, lState *kbfssync.LockState,
+	kmd KeyMetadataWithRootDirEntry, dir data.Path, newName data.PathPartString,
+	newDe data.DirEntry) (func(), error) {
 	fbo.blockLock.AssertLocked(lState)
 
 	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
@@ -1147,8 +1148,9 @@ func (fbo *folderBlockOps) addDirEntryInCacheLocked(
 // and updates the directory's own mtime and ctime.  It returns a
 // function that can be called if the change needs to be undone.
 func (fbo *folderBlockOps) AddDirEntryInCache(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadataWithRootDirEntry,
-	dir data.Path, newName string, newDe data.DirEntry) (dirCacheUndoFn, error) {
+	ctx context.Context, lState *kbfssync.LockState,
+	kmd KeyMetadataWithRootDirEntry, dir data.Path, newName data.PathPartString,
+	newDe data.DirEntry) (dirCacheUndoFn, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	fn, err := fbo.addDirEntryInCacheLocked(
@@ -1160,8 +1162,9 @@ func (fbo *folderBlockOps) AddDirEntryInCache(
 }
 
 func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadataWithRootDirEntry,
-	dir data.Path, oldName string, oldDe data.DirEntry) (func(), error) {
+	ctx context.Context, lState *kbfssync.LockState,
+	kmd KeyMetadataWithRootDirEntry, dir data.Path, oldName data.PathPartString,
+	oldDe data.DirEntry) (func(), error) {
 	fbo.blockLock.AssertLocked(lState)
 
 	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
@@ -1182,7 +1185,9 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 	}
 
 	unlinkUndoFn := fbo.nodeCache.Unlink(
-		oldDe.Ref(), dir.ChildPath(oldName, oldDe.BlockPointer), oldDe)
+		oldDe.Ref(), dir.ChildPath(
+			oldName, oldDe.BlockPointer, fbo.nodeCache.ObfuscatorMaker()()),
+		oldDe)
 
 	parentUndo, err := fbo.updateParentDirEntryLocked(
 		ctx, lState, dir, kmd, true, true)
@@ -1205,8 +1210,9 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 // and updates the directory's own mtime and ctime.  It returns a
 // function that can be called if the change needs to be undone.
 func (fbo *folderBlockOps) RemoveDirEntryInCache(
-	ctx context.Context, lState *kbfssync.LockState, kmd KeyMetadataWithRootDirEntry,
-	dir data.Path, oldName string, oldDe data.DirEntry) (dirCacheUndoFn, error) {
+	ctx context.Context, lState *kbfssync.LockState,
+	kmd KeyMetadataWithRootDirEntry, dir data.Path, oldName data.PathPartString,
+	oldDe data.DirEntry) (dirCacheUndoFn, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	fn, err := fbo.removeDirEntryInCacheLocked(
@@ -1228,9 +1234,10 @@ func (fbo *folderBlockOps) RemoveDirEntryInCache(
 // longer needed.
 func (fbo *folderBlockOps) RenameDirEntryInCache(
 	ctx context.Context, lState *kbfssync.LockState,
-	kmd KeyMetadataWithRootDirEntry, oldParent data.Path, oldName string,
-	newParent data.Path, newName string, newDe data.DirEntry, replacedDe data.DirEntry) (
-	undo dirCacheUndoFn, err error) {
+	kmd KeyMetadataWithRootDirEntry, oldParent data.Path,
+	oldName data.PathPartString, newParent data.Path,
+	newName data.PathPartString, newDe data.DirEntry,
+	replacedDe data.DirEntry) (undo dirCacheUndoFn, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	if newParent.TailPointer() == oldParent.TailPointer() &&
@@ -1299,8 +1306,8 @@ func (fbo *folderBlockOps) RenameDirEntryInCache(
 
 func (fbo *folderBlockOps) setCachedAttrLocked(
 	ctx context.Context, lState *kbfssync.LockState,
-	kmd KeyMetadataWithRootDirEntry, dir data.Path, name string, attr attrChange,
-	realEntry data.DirEntry) (dirCacheUndoFn, error) {
+	kmd KeyMetadataWithRootDirEntry, dir data.Path, name data.PathPartString,
+	attr attrChange, realEntry data.DirEntry) (dirCacheUndoFn, error) {
 	fbo.blockLock.AssertLocked(lState)
 
 	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
@@ -1367,8 +1374,8 @@ func (fbo *folderBlockOps) setCachedAttrLocked(
 // SetAttrInDirEntryInCache updates an entry from the given directory.
 func (fbo *folderBlockOps) SetAttrInDirEntryInCache(
 	ctx context.Context, lState *kbfssync.LockState,
-	kmd KeyMetadataWithRootDirEntry, p data.Path, newDe data.DirEntry, attr attrChange) (
-	dirCacheUndoFn, error) {
+	kmd KeyMetadataWithRootDirEntry, p data.Path, newDe data.DirEntry,
+	attr attrChange) (dirCacheUndoFn, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	return fbo.setCachedAttrLocked(
@@ -1414,7 +1421,7 @@ func (fbo *folderBlockOps) GetDirtyDirCopy(
 // children entries of the given directory.
 func (fbo *folderBlockOps) GetChildren(
 	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
-	dir data.Path) (map[string]data.EntryInfo, error) {
+	dir data.Path) (map[data.PathPartString]data.EntryInfo, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	dd := fbo.newDirDataLocked(lState, dir, keybase1.UserOrTeamID(""), kmd)
@@ -1425,7 +1432,7 @@ func (fbo *folderBlockOps) GetChildren(
 // children entries of the given directory.
 func (fbo *folderBlockOps) GetEntries(
 	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
-	dir data.Path) (map[string]data.DirEntry, error) {
+	dir data.Path) (map[data.PathPartString]data.DirEntry, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	dd := fbo.newDirDataLocked(lState, dir, keybase1.UserOrTeamID(""), kmd)
@@ -1531,8 +1538,8 @@ func (fbo *folderBlockOps) GetEntryEvenIfDeleted(
 }
 
 func (fbo *folderBlockOps) getChildNodeLocked(
-	lState *kbfssync.LockState, dir Node, name string, de data.DirEntry) (
-	Node, error) {
+	lState *kbfssync.LockState, dir Node, name data.PathPartString,
+	de data.DirEntry) (Node, error) {
 	fbo.blockLock.AssertRLocked(lState)
 
 	if de.Type == data.Sym {
@@ -1543,8 +1550,8 @@ func (fbo *folderBlockOps) getChildNodeLocked(
 }
 
 func (fbo *folderBlockOps) GetChildNode(
-	lState *kbfssync.LockState, dir Node, name string, de data.DirEntry) (
-	Node, error) {
+	lState *kbfssync.LockState, dir Node, name data.PathPartString,
+	de data.DirEntry) (Node, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getChildNodeLocked(lState, dir, name, de)
@@ -1556,7 +1563,7 @@ func (fbo *folderBlockOps) GetChildNode(
 // UpdatePointers.
 func (fbo *folderBlockOps) Lookup(
 	ctx context.Context, lState *kbfssync.LockState,
-	kmd KeyMetadataWithRootDirEntry, dir Node, name string) (
+	kmd KeyMetadataWithRootDirEntry, dir Node, name data.PathPartString) (
 	Node, data.DirEntry, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
@@ -1566,7 +1573,7 @@ func (fbo *folderBlockOps) Lookup(
 		return nil, data.DirEntry{}, errors.WithStack(InvalidPathError{dirPath})
 	}
 
-	childPath := dirPath.ChildPathNoPtr(name)
+	childPath := dirPath.ChildPathNoPtr(name, fbo.nodeCache.ObfuscatorMaker()())
 	de, err := fbo.getEntryLocked(ctx, lState, kmd, childPath, false)
 	if err != nil {
 		return nil, data.DirEntry{}, err
@@ -1783,22 +1790,24 @@ func (fbo *folderBlockOps) nowUnixNano() int64 {
 // modified), and what is to be the new DirEntry.
 func (fbo *folderBlockOps) PrepRename(
 	ctx context.Context, lState *kbfssync.LockState,
-	kmd KeyMetadataWithRootDirEntry, oldParent data.Path, oldName string,
-	newParent data.Path, newName string) (
+	kmd KeyMetadataWithRootDirEntry, oldParent data.Path,
+	oldName data.PathPartString, newParent data.Path,
+	newName data.PathPartString) (
 	newDe, replacedDe data.DirEntry, ro *renameOp, err error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
 	// Look up in the old path. Won't be modified, so only fetch for reading.
 	newDe, err = fbo.getEntryLocked(
-		ctx, lState, kmd, oldParent.ChildPathNoPtr(oldName), false)
+		ctx, lState, kmd, oldParent.ChildPathNoPtr(oldName, nil), false)
 	if err != nil {
 		return data.DirEntry{}, data.DirEntry{}, nil, err
 	}
 
 	oldParentPtr := oldParent.TailPointer()
 	newParentPtr := newParent.TailPointer()
-	ro, err = newRenameOp(oldName, oldParentPtr, newName, newParentPtr,
+	ro, err = newRenameOp(
+		oldName.Plaintext(), oldParentPtr, newName.Plaintext(), newParentPtr,
 		newDe.BlockPointer, newDe.Type)
 	if err != nil {
 		return data.DirEntry{}, data.DirEntry{}, nil, err
@@ -1811,7 +1820,7 @@ func (fbo *folderBlockOps) PrepRename(
 	}
 
 	replacedDe, err = fbo.getEntryLocked(
-		ctx, lState, kmd, newParent.ChildPathNoPtr(newName), false)
+		ctx, lState, kmd, newParent.ChildPathNoPtr(newName, nil), false)
 	if _, notExists := errors.Cause(err).(idutil.NoSuchNameError); notExists {
 		return newDe, data.DirEntry{}, ro, nil
 	} else if err != nil {
@@ -2431,7 +2440,9 @@ func (fbo *folderBlockOps) clearAllDirtyDirsLocked(
 		dir := data.Path{
 			FolderBranch: fbo.folderBranch,
 			Path: []data.PathNode{
-				{BlockPointer: ptr, Name: ptr.String()},
+				{BlockPointer: ptr,
+					Name: data.NewPathPartString(ptr.String(), nil),
+				},
 			},
 		}
 		dd := fbo.newDirDataLocked(lState, dir, keybase1.UserOrTeamID(""), kmd)
@@ -3110,8 +3121,8 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 
 	numNodesFound := 0
 	for name, de := range entries {
+		childPath := currDir.ChildPath(name, de.BlockPointer, nil)
 		if _, ok := nodeMap[de.BlockPointer]; ok {
-			childPath := currDir.ChildPath(name, de.BlockPointer)
 			// make a node for every pathnode
 			n := rootNode
 			for i, pn := range childPath.Path[1:] {
@@ -3133,6 +3144,7 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 					return 0, err
 				}
 			}
+			childPath.ChildObfuscator = n.Obfuscator()
 			nodeMap[de.BlockPointer] = n
 			numNodesFound++
 			if numNodesFoundSoFar+numNodesFound >= len(nodeMap) {
@@ -3142,7 +3154,9 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 
 		// otherwise, recurse if this represents an updated block
 		if _, ok := newPtrs[de.BlockPointer]; de.Type == data.Dir && ok {
-			childPath := currDir.ChildPath(name, de.BlockPointer)
+			if childPath.Obfuscator() == nil {
+				childPath.ChildObfuscator = fbo.nodeCache.ObfuscatorMaker()()
+			}
 			n, err := fbo.searchForNodesInDirLocked(ctx, lState, cache,
 				newPtrs, kmd, rootNode, childPath, nodeMap,
 				numNodesFoundSoFar+numNodesFound)
@@ -3214,7 +3228,9 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 		// Root node may or may not exist.
 		var err error
 		node, err = cache.GetOrCreate(rootPtr,
-			string(kmd.GetTlfHandle().GetCanonicalName()), nil, data.Dir)
+			data.NewPathPartString(
+				string(kmd.GetTlfHandle().GetCanonicalName()), nil),
+			nil, data.Dir)
 		if err != nil {
 			return nil, err
 		}
@@ -3550,7 +3566,7 @@ func (fbo *folderBlockOps) makeChildrenTreeFromNodesLocked(
 				}
 				childPNs[pn] = true
 			}
-			prevPath = pathlib.Join(prevPath, pn.Name)
+			prevPath = pathlib.Join(prevPath, pn.Name.Plaintext())
 		}
 	}
 	return rootPath, children
@@ -3747,6 +3763,7 @@ func (fbo *folderBlockOps) MarkNode(
 
 type chainsPathPopulator interface {
 	populateChainPaths(context.Context, logger.Logger, *crChains, bool) error
+	obfuscatorMaker() func() data.Obfuscator
 }
 
 // populateChainPaths updates all the paths in all the ops tracked by
@@ -3757,6 +3774,10 @@ func (fbo *folderBlockOps) populateChainPaths(ctx context.Context,
 		ctx, fbo, log, fbo.nodeCache, includeCreates,
 		fbo.config.Mode().IsTestMode())
 	return err
+}
+
+func (fbo *folderBlockOps) obfuscatorMaker() func() data.Obfuscator {
+	return fbo.nodeCache.ObfuscatorMaker()
 }
 
 var _ chainsPathPopulator = (*folderBlockOps)(nil)

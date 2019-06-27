@@ -18,6 +18,10 @@ import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 
+export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
+const defaultSkinTone = 1
+export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
+
 export const makeState = I.Record<Types._State>({
   accountsInfoMap: I.Map(),
   attachmentFullscreenSelection: null,
@@ -51,6 +55,7 @@ export const makeState = I.Record<Types._State>({
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
@@ -58,9 +63,7 @@ export const makeState = I.Record<Types._State>({
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
   unsentTextMap: I.Map(),
-
-  // Team Building
-  ...TeamBuildingConstants.makeSubState(),
+  userReacjis: defaultUserReacjis,
 })
 
 export const makeQuoteInfo = I.Record<Types._QuoteInfo>({

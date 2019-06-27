@@ -27,6 +27,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
     dispatch(SettingsGen.createLoadHasRandomPw())
   },
   onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
+  onManageContacts: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsManageContacts']})),
   onSetPassword: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: isMobile ? [Constants.passwordTab] : ['changePassword']})

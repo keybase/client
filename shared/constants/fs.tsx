@@ -3,6 +3,7 @@ import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
 import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Flow from '../util/flow'
 import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
@@ -204,6 +205,7 @@ export const makeUploads: I.Record.Factory<Types._Uploads> = I.Record({
 } as Types._Uploads)
 
 export const makeTlfs: I.Record.Factory<Types._Tlfs> = I.Record({
+  loaded: false,
   private: I.Map(),
   public: I.Map(),
   team: I.Map(),
@@ -221,8 +223,8 @@ const _makeError: I.Record.Factory<Types._FsError> = I.Record({
 type _MakeErrorArgs = {
   time?: number
   error: any
-  erroredAction: FsGen.Actions
-  retriableAction?: FsGen.Actions
+  erroredAction: FsGen.Actions | EngineGen.Actions
+  retriableAction?: FsGen.Actions | EngineGen.Actions
 }
 export const makeError = (args?: _MakeErrorArgs): I.RecordOf<Types._FsError> => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
@@ -1104,7 +1106,7 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
   Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
-export const erroredActionToMessage = (action: FsGen.Actions, error: string): string => {
+export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline
   // scenarios, but we still need to keep this timeout check here in case we
   // get a timeout error when we think we think we're online. In this case it's

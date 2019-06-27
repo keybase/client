@@ -128,7 +128,6 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 				if nextPurgeTime == 0 || mvalid.Etime() < nextPurgeTime {
 					nextPurgeTime = mvalid.Etime()
 				}
-				debugPurge("skipping unexpired ephemeral", msg, now)
 			} else if mvalid.MessageBody.IsNil() {
 				// do nothing
 			} else {

@@ -40,11 +40,20 @@ protocol unfurl {
     union { null, string } faviconUrl;
   }
 
+  record UnfurlMapsRaw {
+    string title;
+    string url;
+    string siteName;
+    string imageUrl;
+    union { null, string } historyImageUrl;
+    string description;
+  }
+
   variant UnfurlRaw switch (UnfurlType unfurlType) {
     case GENERIC: UnfurlGenericRaw;
     case YOUTUBE: UnfurlYoutubeRaw;
     case GIPHY: UnfurlGiphyRaw;
-    case MAPS: UnfurlGenericRaw;
+    case MAPS: UnfurlMapsRaw;
   }
 
   record UnfurlGeneric {

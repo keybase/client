@@ -223,7 +223,7 @@ func (t *Tx) AddOfferOp(selling, buying xdr.Asset, amountToSell, priceIn string)
 		return
 	}
 
-	op := xdr.ManageOfferOp{
+	op := xdr.ManageSellOfferOp{
 		Selling: selling,
 		Buying:  buying,
 		Amount:  amountXDR,
@@ -231,7 +231,7 @@ func (t *Tx) AddOfferOp(selling, buying xdr.Asset, amountToSell, priceIn string)
 		OfferId: 0, // for a new offer
 	}
 
-	t.addOp(xdr.OperationTypeManageOffer, op)
+	t.addOp(xdr.OperationTypeManageSellOffer, op)
 }
 
 // AddCreateTrustlineOp adds a change_trust operation that will establish
@@ -396,8 +396,8 @@ func (t *Tx) AddTimeBounds(min, max uint64) {
 	}
 
 	t.internal.TimeBounds = &xdr.TimeBounds{
-		MinTime: xdr.Uint64(min),
-		MaxTime: xdr.Uint64(max),
+		MinTime: xdr.TimePoint(min),
+		MaxTime: xdr.TimePoint(max),
 	}
 }
 

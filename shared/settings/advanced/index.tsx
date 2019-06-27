@@ -15,6 +15,7 @@ type Props = {
   lockdownModeEnabled: boolean | null
   onChangeLockdownMode: (arg0: boolean) => void
   onSetOpenAtLogin: (open: boolean) => void
+  onExtraKBFSLogging: () => void
   onDBNuke: () => void
   onDisableCertPinning: () => void
   onTrace: (durationSeconds: number) => void
@@ -165,6 +166,12 @@ class Developer extends React.Component<Props, State> {
         </Kb.Text>
         <Kb.Divider style={styles.divider} />
         <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={props.onDBNuke} />
+        <Kb.Button
+          style={styles.developerButtons}
+          mode="Secondary"
+          label="Enable Detailed Logging"
+          onClick={props.onExtraKBFSLogging}
+        />
         {this._showPprofControls() && (
           <React.Fragment>
             <StartButton
@@ -220,9 +227,9 @@ class Developer extends React.Component<Props, State> {
 // A list so the order of the elements is fixed
 const proxyTypeList = ['noProxy', 'httpConnect', 'socks']
 const proxyTypeToDisplayName = {
-  httpConnect: 'HTTP Connect',
-  noProxy: 'No Proxy',
-  socks: 'Socks5',
+  httpConnect: 'HTTP(s) Connect',
+  noProxy: 'No proxy',
+  socks: 'SOCKS5',
 }
 
 type ProxyState = {

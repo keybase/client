@@ -260,6 +260,40 @@ const reviewPayment = state =>
 const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
+const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
+  RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link})
+    .then(tx => [
+      WalletsGen.createSetSEP7Tx({confirmURI: action.payload.link, tx: Constants.makeSEP7ConfirmInfo(tx)}),
+      WalletsGen.createValidateSEP7LinkError({error: ''}),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
+    ])
+    .catch(error => [
+      WalletsGen.createValidateSEP7LinkError({
+        error: error.desc,
+      }),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
+    ])
+
+const acceptSEP7Tx = (state, action: WalletsGen.AcceptSEP7TxPayload) =>
+  RPCStellarTypes.localApproveTxURILocalRpcPromise(
+    {
+      inputURI: state.wallets.sep7ConfirmURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => RouteTreeGen.createClearModals())
+
+const acceptSEP7Pay = (state, action: WalletsGen.AcceptSEP7PayPayload) =>
+  RPCStellarTypes.localApprovePayURILocalRpcPromise(
+    {
+      amount: action.payload.amount,
+      fromCLI: false,
+      inputURI: state.wallets.sep7ConfirmURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => RouteTreeGen.createClearModals())
+
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()
 
@@ -913,7 +947,7 @@ const maybeNavToLinkExisting = (state, action: WalletsGen.CheckDisclaimerPayload
   })
 
 const rejectDisclaimer = (state, action: WalletsGen.RejectDisclaimerPayload) =>
-  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
+  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
 
 const loadMobileOnlyMode = (
   state,
@@ -1077,6 +1111,94 @@ const gregorPushState = (_, action: GregorGen.PushStatePayload) =>
   WalletsGen.createUpdateAirdropBannerState({
     show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
   })
+
+const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDescription =>
+  Constants.makeAssetDescription({
+    code: asset.code,
+    issuerAccountID: asset.issuer,
+    issuerName: asset.issuerName,
+    issuerVerifiedDomain: asset.verifiedDomain,
+  })
+
+const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
+  accountID !== Types.noAccountID &&
+  RPCStellarTypes.localGetTrustlinesLocalRpcPromise(
+    {accountID},
+    Constants.refreshTrustlineAcceptedAssetsWaitingKey(accountID)
+  ).then(balances => {
+    const {assets, limitsMutable} = (balances || []).reduce(
+      ({assets, limitsMutable}, balance) => {
+        const assetDescription = rpcAssetToAssetDescription(balance.asset)
+        return {
+          assets: [...assets, assetDescription],
+          limitsMutable: limitsMutable.set(
+            Types.assetDescriptionToAssetID(assetDescription),
+            Number.parseFloat(balance.limit) || 0
+          ),
+        }
+      },
+      {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
+    )
+    return WalletsGen.createSetTrustlineAcceptedAssets({
+      accountID,
+      assets,
+      limits: limitsMutable.asImmutable(),
+    })
+  })
+
+const refreshTrustlinePopularAssets = () =>
+  RPCStellarTypes.localListPopularAssetsLocalRpcPromise().then(({assets, totalCount}) =>
+    WalletsGen.createSetTrustlinePopularAssets({
+      assets: assets ? assets.map((asset: RPCStellarTypes.Asset) => rpcAssetToAssetDescription(asset)) : [],
+      totalCount,
+    })
+  )
+
+const addTrustline = (state, {payload: {accountID, assetID}}) => {
+  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyTrustline)
+  return (
+    asset !== Constants.emptyTrustline &&
+    RPCStellarTypes.localAddTrustlineLocalRpcPromise(
+      {
+        accountID: accountID,
+        limit: '',
+        trustline: {assetCode: asset.code, issuer: asset.issuerAccountID},
+      },
+      Constants.addTrustlineWaitingKey(accountID, assetID)
+    )
+  ).then(() => WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+}
+
+const deleteTrustline = (state, {payload: {accountID, assetID}}) => {
+  const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyTrustline)
+  return (
+    asset !== Constants.emptyTrustline &&
+    RPCStellarTypes.localDeleteTrustlineLocalRpcPromise(
+      {
+        accountID: accountID,
+        trustline: {assetCode: asset.code, issuer: asset.issuerAccountID},
+      },
+      Constants.deleteTrustlineWaitingKey(accountID, assetID)
+    )
+  ).then(() => WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+}
+
+let lastSearchText = ''
+const searchTrustlineAssets = (state, {payload: {text}}) => {
+  lastSearchText = text
+  return text
+    ? RPCStellarTypes.localFuzzyAssetSearchLocalRpcPromise(
+        {searchString: text},
+        Constants.searchTrustlineAssetsWaitingKey
+      ).then(
+        assets =>
+          text === lastSearchText &&
+          WalletsGen.createSetTrustlineSearchResults({
+            assets: assets ? assets.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : [],
+          })
+      )
+    : WalletsGen.createClearTrustlineSearchResults()
+}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
@@ -1443,6 +1565,22 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     paymentReviewed,
     'paymentReviewed'
   )
+  yield* Saga.chainAction<WalletsGen.ValidateSEP7LinkPayload>(
+    WalletsGen.validateSEP7Link,
+    validateSEP7Link,
+    'validateSEP7Link'
+  )
+
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7PayPayload>(
+    WalletsGen.acceptSEP7Pay,
+    acceptSEP7Pay,
+    'acceptSEP7Pay'
+  )
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7TxPayload>(
+    WalletsGen.acceptSEP7Tx,
+    acceptSEP7Tx,
+    'acceptSEP7Tx'
+  )
 
   if (flags.airdrop) {
     yield* Saga.chainAction<GregorGen.PushStatePayload>(
@@ -1471,6 +1609,32 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       'hideAirdropBanner'
     )
   }
+
+  yield* Saga.chainAction<WalletsGen.RefreshTrustlineAcceptedAssetsPayload>(
+    WalletsGen.refreshTrustlineAcceptedAssets,
+    refreshTrustlineAcceptedAssets,
+    'refreshTrustlineAcceptedAssets'
+  )
+  yield* Saga.chainAction<WalletsGen.RefreshTrustlinePopularAssetsPayload>(
+    WalletsGen.refreshTrustlinePopularAssets,
+    refreshTrustlinePopularAssets,
+    'refreshTrustlinePopularAssets'
+  )
+  yield* Saga.chainAction<WalletsGen.AddTrustlinePayload>(
+    WalletsGen.addTrustline,
+    addTrustline,
+    'addTrustline'
+  )
+  yield* Saga.chainAction<WalletsGen.DeleteTrustlinePayload>(
+    WalletsGen.deleteTrustline,
+    deleteTrustline,
+    'deleteTrustline'
+  )
+  yield* Saga.chainAction<WalletsGen.SetTrustlineSearchTextPayload>(
+    WalletsGen.setTrustlineSearchText,
+    searchTrustlineAssets,
+    'searchTrustlineAssets'
+  )
 }
 
 export default walletsSaga

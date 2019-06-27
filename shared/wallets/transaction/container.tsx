@@ -54,6 +54,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     approxWorth: tx.worthAtSendTime,
     counterparty,
     counterpartyType,
+    fromAirdrop: tx.fromAirdrop,
     isAdvanced: tx.isAdvanced,
     issuerDescription: tx.issuerDescription,
     memo,
@@ -71,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     statusDetail: tx.statusDetail,
     summaryAdvanced: tx.summaryAdvanced,
     timestamp: tx.time ? new Date(tx.time) : null,
+    trustline: tx.trustline,
     unread: stateProps._unread,
     yourRole,
   }

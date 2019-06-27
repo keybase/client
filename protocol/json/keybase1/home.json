@@ -136,6 +136,11 @@
         "TEAM_SHOWCASE_10",
         "AVATAR_USER_11",
         "AVATAR_TEAM_12",
+        "ADD_PHONE_NUMBER_13",
+        "VERIFY_ALL_PHONE_NUMBER_14",
+        "VERIFY_ALL_EMAIL_15",
+        "LEGACY_EMAIL_VISIBILITY_16",
+        "ADD_EMAIL_17",
         "ANNONCEMENT_PLACEHOLDER_10000"
       ]
     },
@@ -149,11 +154,33 @@
       "cases": [
         {
           "label": {
+            "name": "VERIFY_ALL_PHONE_NUMBER",
+            "def": false
+          },
+          "body": "PhoneNumber"
+        },
+        {
+          "label": {
+            "name": "VERIFY_ALL_EMAIL",
+            "def": false
+          },
+          "body": "EmailAddress"
+        },
+        {
+          "label": {
+            "name": "LEGACY_EMAIL_VISIBILITY",
+            "def": false
+          },
+          "body": "EmailAddress"
+        },
+        {
+          "label": {
             "def": true
           },
           "body": null
         }
-      ]
+      ],
+      "doc": "Most of TODO items do not carry additional data, but some do. e.g. TODO\n    item to tell user to verify their email address will carry that email\n    address.\n\n    This data does not come from the server."
     },
     {
       "type": "enum",

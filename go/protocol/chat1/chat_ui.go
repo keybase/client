@@ -2140,6 +2140,12 @@ func (o UICommandMarkdown) DeepCopy() UICommandMarkdown {
 	}
 }
 
+type LocationWatchID uint64
+
+func (o LocationWatchID) DeepCopy() LocationWatchID {
+	return o
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -2279,8 +2285,13 @@ type ChatLoadGalleryHitArg struct {
 	Message   UIMessage `codec:"message" json:"message"`
 }
 
-type ChatGetCoordinateArg struct {
+type ChatWatchPositionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type ChatClearWatchArg struct {
+	SessionID int             `codec:"sessionID" json:"sessionID"`
+	Id        LocationWatchID `codec:"id" json:"id"`
 }
 
 type ChatUiInterface interface {
@@ -2311,7 +2322,8 @@ type ChatUiInterface interface {
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
 	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
-	ChatGetCoordinate(context.Context, int) (Coordinate, error)
+	ChatWatchPosition(context.Context, int) (LocationWatchID, error)
+	ChatClearWatch(context.Context, ChatClearWatchArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2723,18 +2735,33 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatGetCoordinate": {
+			"chatWatchPosition": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatGetCoordinateArg
+					var ret [1]ChatWatchPositionArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatGetCoordinateArg)
+					typedArgs, ok := args.(*[1]ChatWatchPositionArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatGetCoordinateArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatWatchPositionArg)(nil), args)
 						return
 					}
-					ret, err = i.ChatGetCoordinate(ctx, typedArgs[0].SessionID)
+					ret, err = i.ChatWatchPosition(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"chatClearWatch": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatClearWatchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatClearWatchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatClearWatchArg)(nil), args)
+						return
+					}
+					err = i.ChatClearWatch(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2885,8 +2912,13 @@ func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGall
 	return
 }
 
-func (c ChatUiClient) ChatGetCoordinate(ctx context.Context, sessionID int) (res Coordinate, err error) {
-	__arg := ChatGetCoordinateArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGetCoordinate", []interface{}{__arg}, &res)
+func (c ChatUiClient) ChatWatchPosition(ctx context.Context, sessionID int) (res LocationWatchID, err error) {
+	__arg := ChatWatchPositionArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil)
 	return
 }

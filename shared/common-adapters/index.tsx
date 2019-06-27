@@ -67,6 +67,7 @@ export type MenuItems = MenuItems
 
 export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'
+export {default as Modal} from './modal'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as ConnectedNameWithIcon} from './name-with-icon/container'
 export {default as NewInput} from './new-input'

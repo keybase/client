@@ -5,21 +5,19 @@ import {SignupScreen, errorBanner} from '../common'
 import {ButtonType} from '../../common-adapters/button'
 
 type Props = {
-  allowSearch: boolean
   error: string
   initialEmail?: string
   onBack?: () => void
-  onChangeAllowSearch?: (allow: boolean) => void
-  onFinish: (email: string) => void
+  onFinish: (email: string, allowSearch: boolean) => void
   onSkip?: () => void
 }
-
 // Parts that are commented out allow skipping entering an email, we don't want
 // to allow skipping for now. TODO Y2K-57 allow skipping.
 const EnterEmail = (props: Props) => {
   const [email, onChangeEmail] = React.useState(props.initialEmail || '')
+  const [allowSearch, onChangeAllowSearch] = React.useState(true)
   const disabled = !email
-  const onContinue = () => (disabled ? {} : props.onFinish(email))
+  const onContinue = () => (disabled ? {} : props.onFinish(email, allowSearch))
   return (
     <SignupScreen
       banners={errorBanner(props.error)}
@@ -51,13 +49,12 @@ const EnterEmail = (props: Props) => {
             textContentType="emailAddress"
             value={email}
           />
-          {/* TODO hook in to "add an email" settings
           <Kb.Checkbox
-          label="Allow friends to find you by this email address"
-          checked={props.allowSearch}
-          onCheck={props.onChangeAllowSearch}
-          style={styles.checkbox}
-        /> */}
+            label="Allow friends to find you by this email address"
+            checked={allowSearch}
+            onCheck={onChangeAllowSearch}
+            style={styles.checkbox}
+          />
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>

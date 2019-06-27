@@ -219,8 +219,8 @@
     "setSendAttachmentToChatFilter": {
       "filter": "string"
     },
-    "setSendAttachmentToChatTitle":{
-      "title":"string"
+    "setSendAttachmentToChatTitle": {
+      "title": "string"
     },
     "sentAttachmentToChat": {},
     "initSendLinkToChat": {
@@ -252,10 +252,10 @@
     },
     "overallSyncStatusChanged": {
       "progress": "Types.SyncingFoldersProgress",
-      "diskSpaceStatus": "Types.DiskSpaceStatus",
+      "diskSpaceStatus": "Types.DiskSpaceStatus"
     },
     "showHideDiskSpaceBanner": {
-      "show": "boolean",
+      "show": "boolean"
     },
     "setPathSoftError": {
       "path": "Types.Path",
@@ -272,7 +272,10 @@
     "setSpaceAvailableNotificationThreshold": {
       "spaceAvailableNotificationThreshold": "number"
     },
-
-    "placeholderAction": {}
+    "setTlfsAsUnloaded": {},
+    "placeholderAction": {},
+    "setDebugLevel": {
+      "level": "string"
+    }
   }
 }

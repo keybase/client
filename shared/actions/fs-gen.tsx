@@ -62,6 +62,7 @@ export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
 export const sentLinkToChat = 'fs:sentLinkToChat'
+export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
@@ -79,6 +80,7 @@ export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
+export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
 export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
@@ -182,6 +184,7 @@ type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
 type _SentAttachmentToChatPayload = void
 type _SentLinkToChatPayload = {readonly convID: ChatTypes.ConversationIDKey}
+type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string}
@@ -199,6 +202,7 @@ type _SetSendLinkToChatConvIDPayload = {readonly convID: ChatTypes.ConversationI
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
+type _SetTlfsAsUnloadedPayload = void
 type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
 type _ShareNativePayload = {readonly path: Types.Path; readonly key: string}
 type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
@@ -409,6 +413,10 @@ export const createSentLinkToChat = (payload: _SentLinkToChatPayload): SentLinkT
   payload,
   type: sentLinkToChat,
 })
+export const createSetDebugLevel = (payload: _SetDebugLevelPayload): SetDebugLevelPayload => ({
+  payload,
+  type: setDebugLevel,
+})
 export const createSetDestinationPickerParentPath = (
   payload: _SetDestinationPickerParentPathPayload
 ): SetDestinationPickerParentPathPayload => ({payload, type: setDestinationPickerParentPath})
@@ -463,6 +471,10 @@ export const createSetTlfSoftError = (payload: _SetTlfSoftErrorPayload): SetTlfS
 export const createSetTlfSyncConfig = (payload: _SetTlfSyncConfigPayload): SetTlfSyncConfigPayload => ({
   payload,
   type: setTlfSyncConfig,
+})
+export const createSetTlfsAsUnloaded = (payload: _SetTlfsAsUnloadedPayload): SetTlfsAsUnloadedPayload => ({
+  payload,
+  type: setTlfsAsUnloaded,
 })
 export const createSettingsLoaded = (
   payload: _SettingsLoadedPayload = Object.freeze({})
@@ -706,6 +718,10 @@ export type SentLinkToChatPayload = {
   readonly payload: _SentLinkToChatPayload
   readonly type: typeof sentLinkToChat
 }
+export type SetDebugLevelPayload = {
+  readonly payload: _SetDebugLevelPayload
+  readonly type: typeof setDebugLevel
+}
 export type SetDestinationPickerParentPathPayload = {
   readonly payload: _SetDestinationPickerParentPathPayload
   readonly type: typeof setDestinationPickerParentPath
@@ -773,6 +789,10 @@ export type SetTlfSoftErrorPayload = {
 export type SetTlfSyncConfigPayload = {
   readonly payload: _SetTlfSyncConfigPayload
   readonly type: typeof setTlfSyncConfig
+}
+export type SetTlfsAsUnloadedPayload = {
+  readonly payload: _SetTlfsAsUnloadedPayload
+  readonly type: typeof setTlfsAsUnloaded
 }
 export type SettingsLoadedPayload = {
   readonly payload: _SettingsLoadedPayload
@@ -892,6 +912,7 @@ export type Actions =
   | SaveMediaPayload
   | SentAttachmentToChatPayload
   | SentLinkToChatPayload
+  | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
@@ -909,6 +930,7 @@ export type Actions =
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
+  | SetTlfsAsUnloadedPayload
   | SettingsLoadedPayload
   | ShareNativePayload
   | ShowHideDiskSpaceBannerPayload

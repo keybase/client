@@ -1,19 +1,37 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/team-building'"
+    "import * as Types from '../constants/types/team-building'",
+    "import {TeamRoleType} from '../constants/types/teams'"
   ],
   "actions": {
-    "fetchedUserRecs": {"users": "Array<Types.User>"},
-    "fetchUserRecs": {},
-    "finishedTeamBuilding": {},
-    "cancelTeamBuilding": {},
-    "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},
-    "addUsersToTeamSoFar": {"users": "Array<Types.User>"},
-    "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
+    "fetchedUserRecs": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
+    "fetchUserRecs": {"namespace": "Types.AllowedNamespace"},
+    "finishedTeamBuilding": {"namespace": "Types.AllowedNamespace", "teamname?": "string"},
+    "cancelTeamBuilding": {"namespace": "Types.AllowedNamespace"},
+    "search": {
+      "namespace": "Types.AllowedNamespace",
+      "query": "string",
+      "service": "Types.ServiceIdWithContact",
+      "limit?": "number"
+    },
+    "addUsersToTeamSoFar": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},
+    "removeUsersFromTeamSoFar": {
+      "namespace": "Types.AllowedNamespace",
+      "users": "Array<Types.UserID>"
+    },
     "searchResultsLoaded": {
+      "namespace": "Types.AllowedNamespace",
       "users": "Array<Types.User>",
       "query": "string",
       "service": "Types.ServiceIdWithContact"
+    },
+    "selectRole": {
+      "namespace": "'teams'",
+      "role": "TeamRoleType"
+    },
+    "changeSendNotification": {
+      "namespace": "'teams'",
+      "sendNotification": "boolean"
     }
   }
 }
