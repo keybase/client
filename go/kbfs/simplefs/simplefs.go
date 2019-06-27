@@ -2626,7 +2626,6 @@ func (k *SimpleFS) SimpleFSObfuscatePath(
 		return "", errors.Errorf("FS was not a KBFS file system: %T", fs)
 	}
 	p := fs.Join(midPath, finalElem)
-	k.log.CDebugf(ctx, "Looking up %s", p)
 	return stdpath.Join(
 		tlfHandle.GetCanonicalPath(), asLibFS.PathForLogging(p)), nil
 }
