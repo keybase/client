@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as I from 'immutable'
 import * as Types from '../../constants/types/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
@@ -36,6 +37,7 @@ export type NotLoadingProps = {
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
   operations?: Array<string>
+  pathIntermediate: I.List<Types.Asset>
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean
@@ -309,7 +311,9 @@ const PaymentPathEnd = (props: any) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
     <Kb.Avatar size={32} borderColor={Styles.globalColors.purpleLight} />
     <Kb.Text type="BodyBigExtrabold">
+      {props.type === 'start' ? '-' : '+'}
       {props.assetLabel}
+
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
     </Kb.Text>
   </Kb.Box2>
@@ -325,20 +329,26 @@ const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
     <Kb.Box style={styles.paymentPathCircle} />
     <Kb.Text type="BodyBigExtrabold">
       {props.assetCode}
-      <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
+      <Kb.Text type="BodySmall">/{props.issuer || 'Unknown Issuer'}</Kb.Text>
     </Kb.Text>
   </Kb.Box2>
 )
 
-const PaymentPath = (props: any) => (
-  <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
-    <PaymentPathEnd assetLabel="-67.34" issuer="nathansmith.io" />
-    <PaymentPathLine />
-    <PaymentPathStop assetCode="USD" issuer="nathansmith.io" />
-    <PaymentPathLine />
-    <PaymentPathEnd assetLabel="+45.00" issuer="nathansmith.io" />
-  </Kb.Box2>
-)
+const PaymentPath = (props: any) => {
+  return (
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
+      <PaymentPathEnd type="start" assetLabel={props.sourceAmount} issuer="nathansmith.io" />
+      <PaymentPathLine />
+      {props.pathIntermediate.map(asset => (
+        <>
+          <PaymentPathStop assetCode={asset.code} issuer={asset.issuerVerifiedDomain} />
+          <PaymentPathLine />
+        </>
+      ))}
+      <PaymentPathEnd type="end" assetLabel={props.amountDescription} issuer={props.issuerDescription} />
+    </Kb.Box2>
+  )
+}
 
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
@@ -404,7 +414,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
-            <PaymentPath />
+            <PaymentPath sourceAmount={props.sourceAmount} pathIntermediate={props.pathIntermediate} />
           </Kb.Box2>
         )}
 
