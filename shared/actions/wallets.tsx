@@ -263,11 +263,9 @@ const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
 const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
   RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link})
     .then(tx => [
-      // Important to clear the modal first, since sep7-confirm doesn't like
-      // sep7confirmInfo becoming null while it's mounted.
-      RouteTreeGen.createClearModals(),
       WalletsGen.createSetSEP7Tx({confirmURI: action.payload.link, tx: Constants.makeSEP7ConfirmInfo(tx)}),
       WalletsGen.createValidateSEP7LinkError({error: ''}),
+      RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
     ])
     .catch(error => [

@@ -1,12 +1,11 @@
-import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
-import SEP7Confirm, {Props} from '.'
+import SEP7Confirm from '.'
 
 const mapStateToProps = (state: Container.TypedState) => ({
-  inputURI: state.wallets.sep7ConfirmURI,
+  _inputURI: state.wallets.sep7ConfirmURI,
   loading: !state.wallets.sep7ConfirmInfo,
   sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
   waitingKey: Constants.sep7WaitingKey,
@@ -19,55 +18,64 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const SEP7ConfirmWrapper = (props: Props) => {
-  const [userAmount, onChangeAmount] = React.useState('')
-  return <SEP7Confirm {...props} userAmount={userAmount} onChangeAmount={onChangeAmount} />
-}
-
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => {
-    const {
-      amount,
-      assetCode,
-      availableToSendFiat,
-      availableToSendNative,
-      assetIssuer,
-      callbackURL,
-      displayAmountFiat,
-      memo,
-      memoType,
-      message,
-      operation,
-      originDomain,
-      recipient,
-      summary,
-      xdr,
-    } = stateProps.sep7ConfirmInfo
+const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  if (stateProps.loading) {
     return {
-      ...ownProps,
-      amount,
-      assetCode,
-      assetIssuer,
-      availableToSendFiat,
-      availableToSendNative,
-      callbackURL,
-      displayAmountFiat,
-      inputURI: stateProps.inputURI,
-      loading: stateProps.loading,
-      memo,
-      memoType,
-      message,
-      onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
-      onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
+      amount: null,
+      availableToSendNative: '',
+      callbackURL: null,
+      displayAmountFiat: '',
+      loading: true,
+      memo: null,
+      memoType: null,
+      message: null,
+      onAcceptPay: (amount: string) => null,
+      onAcceptTx: () => null,
       onBack: dispatchProps.onClose,
-      operation,
-      originDomain,
-      recipient,
-      summary,
+      operation: 'pay',
+      originDomain: '',
+      recipient: null,
+      summary: {
+        fee: '',
+        memo: '',
+        memoType: '',
+        operations: [],
+        source: '',
+      },
       waitingKey: stateProps.waitingKey,
-      xdr,
     }
   }
-)(SEP7ConfirmWrapper)
+  const {
+    amount,
+    availableToSendNative,
+    callbackURL,
+    displayAmountFiat,
+    memo,
+    memoType,
+    message,
+    operation,
+    originDomain,
+    recipient,
+    summary,
+  } = stateProps.sep7ConfirmInfo
+  return {
+    amount,
+    availableToSendNative,
+    callbackURL,
+    displayAmountFiat,
+    loading: stateProps.loading,
+    memo,
+    memoType,
+    message,
+    onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps._inputURI, amount),
+    onAcceptTx: () => dispatchProps._onAcceptTx(stateProps._inputURI),
+    onBack: dispatchProps.onClose,
+    operation,
+    originDomain,
+    recipient,
+    summary,
+    waitingKey: stateProps.waitingKey,
+  }
+})(SEP7Confirm)
+
+export default Connected
