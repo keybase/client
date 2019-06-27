@@ -9,14 +9,16 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
+const empty = {
+  actions: [],
+  displayText: '',
+  displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+}
+
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const info = state.chat2.commandStatusMap.get(ownProps.conversationIDKey)
   return {
-    _info: info || {
-      actions: [],
-      displayText: '',
-      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-    },
+    _info: info || empty,
   }
 }
 

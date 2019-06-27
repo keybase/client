@@ -83,14 +83,9 @@ const styles = Styles.styleSheetCreate({
   close: {
     alignSelf: 'center',
   },
-  container: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      borderRadius: Styles.borderRadius,
-    },
-  }),
+  container: {
+    padding: Styles.globalMargins.tiny,
+  },
   contentContainer: {
     flex: 1,
   },
@@ -102,6 +97,7 @@ const styles = Styles.styleSheetCreate({
       marginBottom: Styles.globalMargins.xtiny,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
+      overflow: 'hidden',
     },
     isMobile: {
       borderColor: Styles.globalColors.black_20,
