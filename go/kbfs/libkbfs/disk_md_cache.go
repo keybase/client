@@ -106,6 +106,7 @@ type DiskMDCacheStatus struct {
 	Hits       MeterStatus
 	Misses     MeterStatus
 	Puts       MeterStatus
+	DBStats    []string `json:",omitempty"`
 }
 
 // newDiskMDCacheLocalFromStorage creates a new *DiskMDCacheLocal
@@ -432,7 +433,7 @@ func (cache *DiskMDCacheLocal) Unstage(
 }
 
 // Status implements the DiskMDCache interface for DiskMDCacheLocal.
-func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
+func (cache *DiskMDCacheLocal) Status(ctx context.Context) DiskMDCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -448,6 +449,14 @@ func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
 		numStaged += uint64(len(mds))
 	}
 
+	var dbStats []string
+	if err := cache.checkCacheLocked(ctx, "MD(Status)"); err == nil {
+		dbStats, err = cache.headsDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get db stats: %+v", err)
+		}
+	}
+
 	return DiskMDCacheStatus{
 		StartState: DiskMDCacheStartStateStarted,
 		NumMDs:     uint64(len(cache.tlfsCached)),
@@ -455,6 +464,7 @@ func (cache *DiskMDCacheLocal) Status(_ context.Context) DiskMDCacheStatus {
 		Hits:       rateMeterToStatus(cache.hitMeter),
 		Misses:     rateMeterToStatus(cache.missMeter),
 		Puts:       rateMeterToStatus(cache.putMeter),
+		DBStats:    dbStats,
 	}
 }
 

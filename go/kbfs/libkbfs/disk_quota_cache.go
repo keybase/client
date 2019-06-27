@@ -94,6 +94,7 @@ type DiskQuotaCacheStatus struct {
 	Hits       MeterStatus
 	Misses     MeterStatus
 	Puts       MeterStatus
+	DBStats    []string `json:",omitempty"`
 }
 
 // newDiskQuotaCacheLocalFromStorage creates a new *DiskQuotaCacheLocal
@@ -322,7 +323,8 @@ func (cache *DiskQuotaCacheLocal) Put(
 }
 
 // Status implements the DiskQuotaCache interface for DiskQuotaCacheLocal.
-func (cache *DiskQuotaCacheLocal) Status(_ context.Context) DiskQuotaCacheStatus {
+func (cache *DiskQuotaCacheLocal) Status(
+	ctx context.Context) DiskQuotaCacheStatus {
 	select {
 	case <-cache.startedCh:
 	case <-cache.startErrCh:
@@ -334,12 +336,21 @@ func (cache *DiskQuotaCacheLocal) Status(_ context.Context) DiskQuotaCacheStatus
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 
+	var dbStats []string
+	if err := cache.checkCacheLocked(ctx, "Quota(Status)"); err == nil {
+		dbStats, err = cache.db.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get db stats: %+v", err)
+		}
+	}
+
 	return DiskQuotaCacheStatus{
 		StartState: DiskQuotaCacheStartStateStarted,
 		NumQuotas:  uint64(len(cache.quotasCached)),
 		Hits:       rateMeterToStatus(cache.hitMeter),
 		Misses:     rateMeterToStatus(cache.missMeter),
 		Puts:       rateMeterToStatus(cache.putMeter),
+		DBStats:    dbStats,
 	}
 }
 
