@@ -134,7 +134,7 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
-    double sourceToDestinationConversionRate; // The amount of the destination asset worth 1 unit of the source asset at the time of the transaction
+    string sourceConvRate; // The amount of the destination asset worth 1 unit of the source asset at the time of the transaction
 
 
     // for non-payment txs, multiple ops:

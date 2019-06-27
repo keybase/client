@@ -333,8 +333,8 @@
           "name": "sourceAsset"
         },
         {
-          "type": "double",
-          "name": "sourceToDestinationConversionRate"
+          "type": "string",
+          "name": "sourceConvRate"
         },
         {
           "type": "boolean",

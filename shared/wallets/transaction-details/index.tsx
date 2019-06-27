@@ -42,8 +42,8 @@ export type NotLoadingProps = {
   senderAccountID: Types.AccountID
   sourceAmount: string
   sourceAsset: string
+  sourceConvRate: string
   sourceIssuer: string
-  sourceToDestinationConversionRate: number
   status: Types.StatusSimplified
   statusDetail: string
   // A null timestamp means the transaction is still pending.
@@ -309,6 +309,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
 
   const isPathPayment = !!props.sourceAmount
+  console.log('props:', props)
 
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
@@ -359,7 +360,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
                 <Kb.Text type="BodyBig">=</Kb.Text>
               </Kb.Box2>
               <ConvertedCurrencyLabel
-                amount={round(props.sourceToDestinationConversionRate, 6)}
+                amount={props.sourceConvRate}
                 assetCode={props.assetCode}
                 issuerDescription={props.assetCode === '' ? 'Stellar Lumens' : props.issuerDescription}
               />

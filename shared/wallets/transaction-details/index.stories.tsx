@@ -42,8 +42,8 @@ const props = {
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
   sourceIssuer: '',
-  sourceToDestinationConversionRate: 0,
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
@@ -204,7 +204,7 @@ const load = () => {
         assetCode="TOAD"
         sourceAmount="0.0222742"
         issuerDescription="anchortoad.com"
-        sourceToDestinationConversionRate={22.447495308473478}
+        sourceConvRate="22.447495308473478"
       />
     ))
     .add('Sent path payment (Asset -> Asset)', () => (
@@ -218,7 +218,7 @@ const load = () => {
         sourceAsset="TOAD"
         sourceIssuer="anchortoad.com"
         issuerDescription="froggycoin.io"
-        sourceToDestinationConversionRate={2.450980392}
+        sourceConvRate="2.450980392"
       />
     ))
     .add('Sent path payment (Asset -> XLM)', () => (
@@ -231,7 +231,7 @@ const load = () => {
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
         sourceIssuer="anchortoad.com"
-        sourceToDestinationConversionRate={53.1688643734}
+        sourceConvRate="53.1688643734"
       />
     ))
     .add('Advanced tx', () => (

@@ -309,8 +309,8 @@ const _defaultPaymentCommon = {
   sourceAccountID: '',
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
   sourceIssuer: '',
-  sourceToDestinationConversionRate: 0,
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -450,8 +450,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAccountID: p.fromAccountID,
     sourceAmount: p.sourceAmountActual,
     sourceAsset: p.sourceAsset.code,
-    sourceIssuer: p.sourceAsset.issuerName,
-    sourceToDestinationConversionRate: p.sourceToDestinationConversionRate,
+    sourceConvRate: p.sourceConvRate,
+    sourceIssuer: p.sourceAsset.verifiedDomain,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
@@ -736,9 +736,9 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   return sign + balanceChange
 }
 
-export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+export const inputPlaceholderForCurrency = (currency: string) => (currency !== 'XLM' ? '0.00' : '0.0000000')
 
-export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
+export const numDecimalsAllowedForCurrency = (currency: string) => (currency !== 'XLM' ? 2 : 7)
 
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets

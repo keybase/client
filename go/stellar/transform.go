@@ -3,7 +3,6 @@ package stellar
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -159,10 +158,11 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.SourceAsset = p.SourceAsset
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
-	destinationAmount, err1 := strconv.ParseFloat(p.Amount, 64)
-	sourceAmount, err2 := strconv.ParseFloat(p.SourceAmountActual, 64)
-	if err1 != nil && err2 != nil && sourceAmount != 0 {
-		loc.SourceToDestinationConversionRate = destinationAmount / sourceAmount
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
 	}
 
 	loc.IsAdvanced = p.IsAdvanced
@@ -247,10 +247,11 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
 	loc.SourceAsset = p.SourceAsset
-	destinationAmount, err1 := strconv.ParseFloat(p.Amount, 64)
-	sourceAmount, err2 := strconv.ParseFloat(p.SourceAmountActual, 64)
-	if err1 == nil && err2 == nil && sourceAmount != 0 {
-		loc.SourceToDestinationConversionRate = destinationAmount / sourceAmount
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
 	}
 
 	return loc, nil
