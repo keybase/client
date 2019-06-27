@@ -245,12 +245,18 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
+    case ConfigGen.link:
+      // Clear out old state, isn't necessary but seems like a good idea.
+      return state.merge({
+        sep7ConfirmError: '',
+        sep7ConfirmInfo: null,
+        sep7ConfirmURI: '',
+      })
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:
-    case ConfigGen.link:
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
