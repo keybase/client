@@ -24,6 +24,9 @@ const SendFeedback = (props: Props) => {
         ...(props.sendError ? errorBanner(props.sendError.message) : []),
       ]}
       title="Send feedback"
+      onBack={props.onBack}
+      showHeaderInfoicon={false}
+      showHeaderInfoiconRow={true}
     >
       <FeedbackForm
         loggedOut={props.loggedOut}

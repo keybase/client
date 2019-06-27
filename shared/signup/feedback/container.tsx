@@ -2,7 +2,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 import * as Constants from '../../constants/settings'
-import SendFeedback from '.'
+import SignupFeedback from '.'
 import * as SettingsGen from '../../actions/settings-gen'
 
 type OwnProps = {}
@@ -23,14 +23,7 @@ const ConnectedSignupFeedback = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o: OwnProps) => ({...s, ...d, ...o}),
-  'SignupFeedback'
-)(SendFeedback)
-
-// @ts-ignore fix this
-ConnectedSignupFeedback.navigationOptions = {
-  header: null,
-  headerBottomStyle: {height: undefined},
-  headerRightActions: null,
-}
+  'ConnectedSignupFeedback'
+)(SignupFeedback)
 
 export default ConnectedSignupFeedback

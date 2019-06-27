@@ -55,6 +55,7 @@ type HeaderProps = {
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
+  showInfoIconRow: boolean
   style: Styles.StylesCrossPlatform
   negative: boolean
 }
@@ -66,9 +67,9 @@ const Header = (props: HeaderProps) => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.headerContainer, props.style])}
   >
-    {props.showInfoIcon && (
+    {(props.showInfoIcon || props.showInfoIconRow) && (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-        <InfoIcon invisible={props.negative as boolean} />
+        <InfoIcon invisible={(props.negative as boolean) || (props.showInfoIconRow && !props.showInfoIcon)} />
       </Kb.Box2>
     )}
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
@@ -121,6 +122,7 @@ type SignupScreenProps = {
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
   showHeaderInfoicon?: boolean
+  showHeaderInfoiconRow?: boolean
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)
@@ -132,6 +134,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
         title={props.title}
         titleComponent={props.titleComponent}
         showInfoIcon={!!props.showHeaderInfoicon}
+        showInfoIconRow={!!props.showHeaderInfoiconRow}
         style={props.headerStyle}
         negative={!!props.negativeHeader}
       />
