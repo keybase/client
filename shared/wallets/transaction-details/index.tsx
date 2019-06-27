@@ -406,7 +406,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
             <PaymentPath
-              sourceAmount={`${props.sourceAmount} ${props.sourceAsset}`}
+              sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
               sourceIssuer={sourceIssuer}
               pathIntermediate={props.pathIntermediate}
               destinationIssuer={destinationIssuer}
