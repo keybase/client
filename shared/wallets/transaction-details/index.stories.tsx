@@ -204,7 +204,7 @@ const load = () => {
         assetCode="TOAD"
         sourceAmount="0.0222742"
         issuerDescription="anchortoad.com"
-        sourceConvRate="22.447495308473478"
+        sourceConvRate="22.4474953"
       />
     ))
     .add('Sent path payment (Asset -> Asset)', () => (
@@ -218,7 +218,7 @@ const load = () => {
         sourceAsset="TOAD"
         sourceIssuer="anchortoad.com"
         issuerDescription="froggycoin.io"
-        sourceConvRate="2.450980392"
+        sourceConvRate="2.450000"
       />
     ))
     .add('Sent path payment (Asset -> XLM)', () => (
@@ -231,7 +231,7 @@ const load = () => {
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
         sourceIssuer="anchortoad.com"
-        sourceConvRate="53.1688643734"
+        sourceConvRate="53.168864"
       />
     ))
     .add('Advanced tx', () => (
