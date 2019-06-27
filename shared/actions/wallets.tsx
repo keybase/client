@@ -273,7 +273,7 @@ const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
         error: error.desc,
       }),
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
+      RouteTreeGen.createNavigateAppend({path: ['sep7ConfirmError']}),
     ])
 
 const acceptSEP7Tx = (state, action: WalletsGen.AcceptSEP7TxPayload) =>

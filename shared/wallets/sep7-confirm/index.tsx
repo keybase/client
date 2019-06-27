@@ -12,7 +12,7 @@ type Summary = {
   source: string
 }
 
-type Props = {
+export type Props = {
   amount: string | null
   availableToSendNative: string
   callbackURL: string | null
@@ -31,6 +31,7 @@ type Props = {
   originDomain: string
   recipient: string | null
   summary: Summary
+  userAmount: string
   waitingKey: string
 }
 
@@ -43,17 +44,6 @@ const CallbackURLBanner = (props: CallbackURLBannerProps) => (
       The payment will be sent to {props.callbackURL}.
     </Kb.Text>
   </Kb.Box2>
-)
-
-type ErrorProps = {error: string; onBack: () => void}
-const Error = (props: ErrorProps) => (
-  <Kb.MaybePopup onClose={props.onBack}>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.dialog}>
-        <Kb.Text type="Body">{props.error}</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
-  </Kb.MaybePopup>
 )
 
 type LoadingProps = {onBack: () => void}
@@ -145,6 +135,7 @@ type PaymentInfoProps = {
   message: string | null
   onChangeAmount: (amount: string) => void
   recipient: string
+  userAmount: string
 }
 const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -169,7 +160,7 @@ const PaymentInfo = (props: PaymentInfoProps) => (
         </>
       )}
     </Kb.Box2>
-    {!props.amount && <AssetInput />}
+    {!props.amount && <AssetInput amount={props.userAmount} onChangeAmount={props.onChangeAmount} />}
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
     {!!props.recipient && (
@@ -198,8 +189,6 @@ const TxInfo = (props: TxInfoProps) => (
 const SEP7Confirm = (props: Props) =>
   props.loading ? (
     <Loading onBack={props.onBack} />
-  ) : props.error ? (
-    <Error error={props.error} onBack={props.onBack} />
   ) : (
     <Kb.MaybePopup onClose={props.onBack}>
       <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
@@ -219,6 +208,7 @@ const SEP7Confirm = (props: Props) =>
               message={props.message}
               onChangeAmount={props.onChangeAmount}
               recipient={props.recipient}
+              userAmount={props.userAmount}
             />
           ) : (
             <TxInfo
@@ -238,7 +228,11 @@ const SEP7Confirm = (props: Props) =>
         >
           <Kb.WaitingButton
             type="Success"
-            onClick={props.operation === 'pay' ? () => props.onAcceptPay(props.amount) : props.onAcceptTx}
+            onClick={
+              props.operation === 'pay'
+                ? () => props.onAcceptPay(props.amount || props.userAmount)
+                : props.onAcceptTx
+            }
             waitingKey={props.waitingKey}
             fullWidth={true}
             style={styles.button}

@@ -18,6 +18,7 @@ const commonProps = {
   onAcceptTx: Sb.action('onAcceptTx'),
   onBack: Sb.action('onBack'),
   onChangeAmount: Sb.action('onChangeAmount'),
+  userAmount: '',
   waiting: false,
   waitingKey: 'false',
 }

@@ -3,20 +3,14 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
-import SEP7Confirm from '.'
+import SEP7Confirm, {Props} from '.'
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const error = state.wallets.sep7ConfirmError
-  if (error) {
-    return {error}
-  }
-  return {
-    inputURI: state.wallets.sep7ConfirmURI,
-    loading: !state.wallets.sep7ConfirmInfo,
-    sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
-    waitingKey: Constants.sep7WaitingKey,
-  }
-}
+const mapStateToProps = (state: Container.TypedState) => ({
+  inputURI: state.wallets.sep7ConfirmURI,
+  loading: !state.wallets.sep7ConfirmInfo,
+  sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
+  waitingKey: Constants.sep7WaitingKey,
+})
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAcceptPay: (inputURI: string, amount: string) =>
@@ -24,6 +18,11 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAcceptTx: (inputURI: string) => dispatch(WalletsGen.createAcceptSEP7Tx({inputURI})),
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
+
+const SEP7ConfirmWrapper = (props: Props) => {
+  const [userAmount, onChangeAmount] = React.useState('')
+  return <SEP7Confirm {...props} userAmount={userAmount} onChangeAmount={onChangeAmount} />
+}
 
 export default Container.connect(
   mapStateToProps,
@@ -55,7 +54,6 @@ export default Container.connect(
       availableToSendNative,
       callbackURL,
       displayAmountFiat,
-      error: stateProps.error,
       inputURI: stateProps.inputURI,
       loading: stateProps.loading,
       memo,
@@ -72,4 +70,4 @@ export default Container.connect(
       xdr,
     }
   }
-)(SEP7Confirm)
+)(SEP7ConfirmWrapper)
