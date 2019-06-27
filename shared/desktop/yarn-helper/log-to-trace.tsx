@@ -164,7 +164,7 @@ const convertLine = isGUI ? convertGuiLine : convertCoreLine
 let lines = fs.readFileSync(logfile, 'utf8').split('\n')
 // to help debug a single line just override it here
 // lines = [
-// '2019-06-26T21:54:45.795427Z ▶ [DEBU keybase inbox.go:774] 8534 ++Chat: - Inbox: Read(23260c2ce19420f97b58d7d95b68ca00) -> ok [time=3.807ms] [tags:chat-trace=83yzFCh84M7q]',
+// 'Line to debug',
 // ]
 let lastGuiLine = null
 const knownIDs = {}
