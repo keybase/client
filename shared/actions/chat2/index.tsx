@@ -2840,6 +2840,18 @@ const onChatCommandMarkdown = (status, action: EngineGen.Chat1ChatUiChatCommandM
   })
 }
 
+const onChatCommandStatus = (status, action: EngineGen.Chat1ChatUiChatCommandStatusPayload) => {
+  const {convID, displayText, typ, actions} = action.payload.params
+  return Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    info: {
+      actions,
+      displayText,
+      displayType: typ,
+    },
+  })
+}
+
 const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
   const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetMaybeMentionInfo({
@@ -2856,7 +2868,10 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
         RPCChatTypes.localLocationUpdateRpcPromise({
           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
         }),
-      err => logger.warn(err.message),
+      err => {
+        logger.warn(err.message)
+        RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
+      },
       {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)
@@ -3519,6 +3534,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown,
     'onChatCommandMarkdown'
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandStatusPayload>(
+    EngineGen.chat1ChatUiChatCommandStatus,
+    onChatCommandStatus,
+    'onChatCommandStatus'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,

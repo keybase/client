@@ -28,6 +28,7 @@ export const makeState = I.Record<Types._State>({
   attachmentViewMap: I.Map(),
   badgeMap: I.Map(),
   commandMarkdownMap: I.Map(),
+  commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
