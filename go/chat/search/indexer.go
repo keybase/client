@@ -151,6 +151,11 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 		}
 	}
 	attemptSync := func(ctx context.Context) {
+		switch netState {
+		case keybase1.MobileNetworkState_WIFI:
+		default:
+			return
+		}
 		l.Lock()
 		defer l.Unlock()
 		if cancelFn != nil {
