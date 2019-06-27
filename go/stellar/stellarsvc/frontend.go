@@ -1189,6 +1189,13 @@ func (s *Server) getTrustlinesAccountID(mctx libkb.MetaContext, accountID stella
 	return ret, nil
 }
 
+func assetToSuffix(asset stellar1.Asset) string {
+	if asset.Type == "native" {
+		return "XLM"
+	}
+	return asset.Code
+}
+
 func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPathLocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "FindPaymentPathLocal",
@@ -1229,7 +1236,7 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 		return stellar1.PaymentPathLocal{}, err
 	}
 	srcAmt.Quo(srcAmt, destAmt)
-	res.ExchangeRate = fmt.Sprintf("1 %s = %s %s", path.DestinationAsset.Code, srcAmt.FloatString(7), path.SourceAsset.Code)
+	res.ExchangeRate = fmt.Sprintf("1 %s = %s %s", assetToSuffix(path.DestinationAsset), srcAmt.FloatString(7), assetToSuffix(path.SourceAsset))
 
 	return res, nil
 }
