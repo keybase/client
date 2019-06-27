@@ -98,6 +98,7 @@ func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, member
 		&members.Admins,
 		&members.Writers,
 		&members.Readers,
+		&members.Bots,
 	}
 	for _, rows := range lists {
 		filtered := []keybase1.TeamMemberDetails{}
@@ -124,6 +125,7 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 		&members.Admins,
 		&members.Writers,
 		&members.Readers,
+		&members.Bots,
 	}
 	// Scan for active rows
 	for _, rows := range lists {
@@ -163,6 +165,10 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 		return ret, err
 	}
 	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
+	if err != nil {
+		return ret, err
+	}
+	ret.Bots, err = userVersionsToDetails(ctx, g, m.Bots)
 	if err != nil {
 		return ret, err
 	}
@@ -235,6 +241,14 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 		return err
 	}
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
+}
+
+func SetRoleBot(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return err
+	}
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Bots: []keybase1.UserVersion{uv}})
 }
 
 func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
@@ -1013,6 +1027,8 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.Team
 		req.Writers = list
 	case keybase1.TeamRole_READER:
 		req.Readers = list
+	case keybase1.TeamRole_BOT:
+		req.Bots = list
 	default:
 		return keybase1.TeamChangeReq{}, errors.New("invalid team role")
 	}

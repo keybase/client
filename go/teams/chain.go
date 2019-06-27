@@ -188,12 +188,7 @@ func (t TeamSigChainState) GetAdminUserLogPoint(user keybase1.UserVersion) *keyb
 }
 
 func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamRole {
-	points := t.inner.UserLog[user]
-	if len(points) == 0 {
-		return keybase1.TeamRole_NONE
-	}
-	role := points[len(points)-1].Role
-	return role
+	return t.inner.UserRole(user)
 }
 
 // assertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
@@ -265,6 +260,10 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 		}
 	}
 	return mkErr("%v role point not found", role)
+}
+
+func (t TeamSigChainState) AssertWasBotAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
+	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_BOT, scl)
 }
 
 func (t TeamSigChainState) AssertWasReaderAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
@@ -1290,14 +1289,18 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 		// Key rotation should never be allowed since FullVerify sometimes does not run on leave links.
 
-		// Check that the signer is at least a reader.
+		// Check that the signer is at least a bot.
 		// Implicit admins cannot leave a subteam.
 		signerRole, err := prevState.GetUserRoleAtSeqno(signer.signer, prevSeqno)
 		if err != nil {
 			return res, err
 		}
 		switch signerRole {
-		case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+		case keybase1.TeamRole_BOT,
+			keybase1.TeamRole_READER,
+			keybase1.TeamRole_WRITER,
+			keybase1.TeamRole_ADMIN,
+			keybase1.TeamRole_OWNER:
 			// ok
 		default:
 			return res, fmt.Errorf("link signer does not have permission to leave: %v is a %v", signer, signerRole)
@@ -1994,6 +1997,12 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 		res[keybase1.TeamRole_READER] = nil
 		for _, m := range *members.Readers {
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
+	}
+	if members.Bots != nil && len(*members.Bots) > 0 {
+		res[keybase1.TeamRole_BOT] = nil
+		for _, m := range *members.Bots {
+			all = append(all, assignment{m, keybase1.TeamRole_BOT})
 		}
 	}
 	if members.None != nil && len(*members.None) > 0 {

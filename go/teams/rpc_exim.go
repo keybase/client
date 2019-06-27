@@ -39,13 +39,13 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		return ret, err
 	}
 
-	var writers []keybase1.UserVersion
-	var onlyReaders []keybase1.UserVersion
+	var writers, onlyReaders, onlyBots []keybase1.UserVersion
 
 	writers = append(writers, members.Writers...)
 	writers = append(writers, members.Admins...)
 	writers = append(writers, members.Owners...)
 	onlyReaders = append(onlyReaders, members.Readers...)
+	onlyReaders = append(onlyBots, members.Bots...)
 
 	ret = keybase1.TeamPlusApplicationKeys{
 		Id:              t.chain().GetID(),
@@ -55,6 +55,7 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		Application:     application,
 		Writers:         writers,
 		OnlyReaders:     onlyReaders,
+		OnlyBots:        onlyBots,
 		ApplicationKeys: applicationKeys,
 	}
 

@@ -778,6 +778,7 @@ func (a *BoxAuditor) shouldAudit(mctx libkb.MetaContext, team Team) (bool, *keyb
 	if err != nil {
 		return false, nil, err
 	}
+	mctx.Debug("ROLE %v", role)
 	if !role.IsOrAbove(keybase1.TeamRole_WRITER) {
 		res := keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE
 		return false, &res, nil

@@ -10,7 +10,8 @@
         "READER_1",
         "WRITER_2",
         "ADMIN_3",
-        "OWNER_4"
+        "OWNER_4",
+        "BOT_5"
       ]
     },
     {
@@ -268,6 +269,13 @@
             "items": "UserVersion"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "bots"
         }
       ]
     },
@@ -338,6 +346,13 @@
             "items": "TeamMemberDetails"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "bots"
         }
       ]
     },
@@ -414,6 +429,13 @@
             "type": "array",
             "items": "UserVersion"
           },
+          "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
           "name": "none"
         },
         {
@@ -463,6 +485,13 @@
             "items": "UserVersion"
           },
           "name": "onlyReaders"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "onlyBots"
         },
         {
           "type": {

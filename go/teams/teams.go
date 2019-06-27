@@ -295,6 +295,11 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Bots = x
 
 	return members, nil
 }
@@ -1683,9 +1688,8 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing members, so remove them from the set
+	// don't need keys for existing or bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
-	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
 		return nil, implicitAdminBoxes, nil, nil, nil
 	}
@@ -1705,7 +1709,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members
+	// rotate the team key for all current members except bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err

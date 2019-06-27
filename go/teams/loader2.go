@@ -257,22 +257,33 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	}
 
 	minRole := link.outerLink.LinkType.RequiresAtLeastRole()
+	linkType := link.outerLink.LinkType
 	// Note: If minRole is OWNER it will be treated as ADMIN here (weaker check).
 	if !ShouldSuppressLogging(ctx) {
-		l.G().Log.CDebugf(ctx, "verifyLink minRole:%v", minRole)
+		l.G().Log.CDebugf(ctx, "verifyLink: %v minRole:%v", linkType, minRole)
 	}
 
 	switch minRole {
 	case keybase1.TeamRole_NONE:
 		// Anyone can make this link. These didn't exist at the time.
 		return &signer, nil
+	case keybase1.TeamRole_BOT:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_BOT)
+		if err == nil {
+			return &signer, err
+		}
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_BOT, err)
+		}
+		// Fall through to a higher role check
+		fallthrough
 	case keybase1.TeamRole_READER:
 		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_READER)
 		if err == nil {
 			return &signer, err
 		}
 		if !ShouldSuppressLogging(ctx) {
-			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_READER, err)
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_READER, err)
 		}
 		// Fall through to a higher role check
 		fallthrough
@@ -282,7 +293,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 			return &signer, err
 		}
 		if !ShouldSuppressLogging(ctx) {
-			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_WRITER, err)
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_WRITER, err)
 		}
 		// Fall through to a higher role check
 		fallthrough
@@ -716,6 +727,15 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 	readerKeyMasks []keybase1.ReaderKeyMask) error {
 
 	state := team.MainChain()
+	stateWrapper := newTeamSigChainState(team)
+	role, err := stateWrapper.GetUserRole(me)
+	if err != nil {
+		role = keybase1.TeamRole_NONE
+	}
+	// Bots don't have any team secrets, so we short circuit.
+	if role.IsBot() {
+		return nil
+	}
 
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(mctx, box, prevs)
 	if err != nil {
@@ -725,8 +745,6 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
-
-	stateWrapper := newTeamSigChainState(team)
 
 	// Latest generation from the sigchain or the hidden chain...
 	latestChainGen := stateWrapper.GetLatestGeneration()
@@ -766,10 +784,6 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 		}
 	}
 
-	role, err := stateWrapper.GetUserRole(me)
-	if err != nil {
-		role = keybase1.TeamRole_NONE
-	}
 	if role.IsReaderOrAbove() {
 		// Insert all reader key masks
 		// Then scan to make sure there are no gaps in generations and no missing application masks.
