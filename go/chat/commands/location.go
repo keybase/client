@@ -64,6 +64,8 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	toks := strings.Split(text, " ")
 	if h.isStop(toks) {
 		h.G().LiveLocationTracker.StopAllTracking(ctx)
+		h.getChatUI().ChatCommandStatus(ctx, convID, "All location tracking stopped",
+			chat1.UICommandStatusDisplayTyp_STATUS, nil)
 		return nil
 	}
 	var liveLocation chat1.LiveLocation
