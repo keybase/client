@@ -89,7 +89,7 @@ export const Phone = () => {
   const [allowSearch, onChangeAllowSearch] = React.useState(false)
   const onContinue = React.useCallback(
     () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-    []
+    [dispatch, allowSearch, phoneNumber]
   ) // TODO
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
