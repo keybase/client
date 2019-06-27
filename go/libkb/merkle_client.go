@@ -1135,14 +1135,6 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot), merkleErrorSkipHashMismatch}
 		}
 
-		// Check that ctimes in the sequence are also strictly ordered
-		thisCTime, prevCTime := ss[index].ctime(), ss[nextIndex].ctime()
-		if thisCTime < prevCTime {
-			return MerkleClientError{
-				fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d", thisRoot, thisCTime, prevRoot, prevCTime),
-				merkleErrorOutOfOrderCtime,
-			}
-		}
 	}
 
 	return nil

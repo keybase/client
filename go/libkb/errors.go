@@ -1228,7 +1228,6 @@ const (
 	merkleErrorKBFSMismatch
 	merkleErrorBadRoot
 	merkleErrorOldTree
-	merkleErrorOutOfOrderCtime
 	merkleErrorWrongSkipSequence
 	merkleErrorWrongRootSkips
 	merkleErrorFailedCheckpoint
