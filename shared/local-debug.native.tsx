@@ -26,7 +26,7 @@ window.console._info = window.console.info
 // require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   allowMultipleInstances: false,
