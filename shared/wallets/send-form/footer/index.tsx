@@ -1,55 +1,16 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/wallets'
-import {anyWaiting} from '../../../constants/waiting'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {
+  calculating: boolean
   disabled?: boolean
-  isAdvanced: boolean
   onClickRequest?: () => void
   onClickSend?: () => void
   thisDeviceIsLockedOut: boolean
   waitingKey: string
-}
-
-const Worth = () => {
-  const calculating = Container.useSelector(
-    state =>
-      !!state.wallets.building.amount &&
-      (anyWaiting(state, Constants.buildPaymentWaitingKey) ||
-        anyWaiting(state, Constants.requestPaymentWaitingKey))
-  )
-  const worthDescription = Container.useSelector(state =>
-    state.wallets.building.isRequest
-      ? state.wallets.builtRequest.worthDescription
-      : state.wallets.builtPayment.worthDescription
-  )
-  return (
-    (!!worthDescription || calculating) && (
-      <Kb.Box2 direction="horizontal">
-        {worthDescription ? (
-          <Kb.Text center={true} type="BodySmall">
-            This is <Kb.Text type="BodySmallExtrabold">{worthDescription}</Kb.Text>.
-          </Kb.Text>
-        ) : (
-          <Kb.Text center={true} type="BodySmall">
-            Calculating...
-          </Kb.Text>
-        )}
-        {/* <Kb.Icon
-            type="iconfont-question-mark"
-            color={Styles.globalColors.black_20}
-            hoverColor={Styles.globalColors.black_50}
-            fontSize={12}
-            style={Kb.iconCastPlatformStyles(styles.questionIcon)}
-            onClick={() => {
-              TODO
-          }/> */}
-      </Kb.Box2>
-    )
-  )
+  worthDescription?: string
 }
 
 const Footer = (props: Props) => {
@@ -81,7 +42,28 @@ const Footer = (props: Props) => {
         fullWidth={true}
         style={styles.background}
       >
-        {!props.isAdvanced && <Worth />}
+        {(!!props.worthDescription || props.calculating) && (
+          <Kb.Box2 direction="horizontal">
+            {props.worthDescription ? (
+              <Kb.Text center={true} type="BodySmall">
+                This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
+              </Kb.Text>
+            ) : (
+              <Kb.Text center={true} type="BodySmall">
+                Calculating...
+              </Kb.Text>
+            )}
+            {/* <Kb.Icon
+            type="iconfont-question-mark"
+            color={Styles.globalColors.black_20}
+            hoverColor={Styles.globalColors.black_50}
+            fontSize={12}
+            style={Kb.iconCastPlatformStyles(styles.questionIcon)}
+            onClick={() => {
+              TODO
+          }/> */}
+          </Kb.Box2>
+        )}
         <Kb.ButtonBar align="center" direction="row" style={styles.buttonBox} fullWidth={true}>
           {!!props.onClickRequest && (
             <Kb.WaitingButton

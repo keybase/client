@@ -2,16 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import AssetInputBasic from '../asset-input/asset-input-basic-container'
-import {
-  AssetInputRecipientAdvanced,
-  AssetInputSenderAdvanced,
-} from '../asset-input/asset-input-advanced-container'
-import {AssetPathIntermediate} from '../asset-input/asset-input-advanced'
 import Banner from '../../banner'
 import Footer from '../footer/container'
 import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
 import {Banner as BannerType} from '../../../constants/types/wallets'
+import {sharedStyles} from './shared'
 
 type SendBodyProps = {
   banners: Array<BannerType>
@@ -33,13 +29,13 @@ const Spinner = () => (
 )
 
 export const SendBody = (props: SendBodyProps) => (
-  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+  <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.Banner
       actions={[{onClick: props.onGoAdvanced, title: 'Request other assets?'}]}
       color="blue"
       text="This user is accepting other assets than XLM Lumens."
     />
-    <Kb.ScrollView style={styles.scrollView}>
+    <Kb.ScrollView style={sharedStyles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
@@ -56,13 +52,13 @@ export const SendBody = (props: SendBodyProps) => (
 )
 
 export const RequestBody = (props: RequestBodyProps) => (
-  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
+  <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.Banner
       actions={[{onClick: props.onGoAdvanced, title: 'Request other assets'}]}
       color="blue"
       text="This user is accepting other assets than XLM Lumens."
     />
-    <Kb.ScrollView style={styles.scrollView}>
+    <Kb.ScrollView style={sharedStyles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
@@ -100,39 +96,11 @@ const Failure = ({onReviewPayments}: {onReviewPayments: () => void}) => (
   </Kb.Box2>
 )
 
-type SendBodyAdvancedProps = {}
-
-export const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
-  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-    <Kb.ScrollView style={styles.scrollView}>
-      <AssetInputRecipientAdvanced />
-      <AssetPathIntermediate />
-      <AssetInputSenderAdvanced />
-      <Kb.Divider />
-      <SecretNote />
-      <PublicMemo />
-    </Kb.ScrollView>
-    <Footer isAdvanced={true} />
-  </Kb.Box2>
-)
-
 const styles = Styles.styleSheetCreate({
-  container: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
   failureContainer: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.white_90,
     padding: Styles.globalMargins.tiny,
   },
-  scrollView: Styles.platformStyles({
-    common: {
-      flexGrow: 1,
-      flexShrink: 1,
-      width: '100%',
-    },
-    isElectron: {minHeight: '100%'},
-  }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 })

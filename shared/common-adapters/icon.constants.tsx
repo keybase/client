@@ -2025,6 +2025,11 @@ const iconMeta_ = {
     gridSize: 24,
     isFont: true,
   },
+  'iconfont-calculator': {
+    charCode: 0xe991,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-camera': {
     charCode: 0xe90a,
     gridSize: 16,

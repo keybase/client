@@ -651,6 +651,7 @@ export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.Accoun
   `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
 export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
+export const sendPaymentAdvancedWaitingKey = 'wallets:sendPaymentAdvanced'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -766,9 +767,9 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   return sign + balanceChange
 }
 
-export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+export const inputPlaceholderForCurrency = (currency: string) => (currency !== 'XLM' ? '0.00' : '0.0000000')
 
-export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
+export const numDecimalsAllowedForCurrency = (currency: string) => (currency !== 'XLM' ? 2 : 7)
 
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets

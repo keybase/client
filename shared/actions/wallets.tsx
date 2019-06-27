@@ -1301,13 +1301,16 @@ const calculateBuildingAdvanced = state =>
   })
 
 const sendPaymentAdvanced = state => {
-  return RPCStellarTypes.localSendPathLocalRpcPromise({
-    note: state.wallets.buildingAdvanced.secretNote.stringValue(),
-    path: paymentPathToRpcPaymentPath(state.wallets.builtPaymentAdvanced.fullPath),
-    publicNote: state.wallets.buildingAdvanced.publicMemo.stringValue(),
-    recipient: state.wallets.buildingAdvanced.recipient,
-    source: state.wallets.buildingAdvanced.senderAccountID,
-  }).then(() => RouteTreeGen.createClearModals())
+  return RPCStellarTypes.localSendPathLocalRpcPromise(
+    {
+      note: state.wallets.buildingAdvanced.secretNote.stringValue(),
+      path: paymentPathToRpcPaymentPath(state.wallets.builtPaymentAdvanced.fullPath),
+      publicNote: state.wallets.buildingAdvanced.publicMemo.stringValue(),
+      recipient: state.wallets.buildingAdvanced.recipient,
+      source: state.wallets.buildingAdvanced.senderAccountID,
+    },
+    Constants.sendPaymentAdvancedWaitingKey
+  ).then(() => RouteTreeGen.createClearModals())
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {

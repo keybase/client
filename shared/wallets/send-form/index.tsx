@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import Root from './root'
-import {SendBody, SendBodyAdvanced, RequestBody, RequestBodyAdvanced} from './body/container'
+import {SendBody, RequestBody} from './body/container'
+import SendBodyAdvanced from './body/advanced'
 
 type Props = {
   isRequest: boolean

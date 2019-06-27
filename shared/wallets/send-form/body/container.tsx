@@ -54,10 +54,3 @@ export const RequestBody = namedConnect(
   mergeProps,
   'ConnectedRequestBody'
 )(RequestBodyComponent)
-
-export const SendBodyAdvanced = namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
-  'ConnectedSendBodyAdvanced'
-)(SendBodyAdvancedComponent)

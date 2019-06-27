@@ -59,6 +59,7 @@ const colors = {
   purpleLighter: '#E8DEFF',
   purple_01: 'rgba(132, 92, 219, 0.01)',
   purple_10: 'rgba(132, 92, 219, 0.1)',
+  purple_30: 'rgba(132, 92, 219, 0.3)',
   purple_40: 'rgba(132, 92, 219, 0.4)',
   red: '#ff4d61',
   redDark: '#D72236',

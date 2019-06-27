@@ -5,9 +5,9 @@ import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as WalletsGen from '../../../actions/wallets-gen'
 import Available from '../available/container'
 import {AmountInput, sharedStyles} from './shared'
+import CalculateAdvancedButton from '../calculate-advanced-button'
 
 type RecipientProps = {
   currencyLoading?: boolean
@@ -88,23 +88,13 @@ const ApproximateBlock = (props: SenderProps) => {
   )
 }
 
-const CalculateButton = (props: SenderProps) => {
-  const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(() => {
-    dispatch(WalletsGen.createCalculateBuildingAdvanced())
-  }, [dispatch])
-  return (
-    <Kb.Icon type="iconfont-calculate" sizeType="Big" color={Styles.globalColors.purple} onClick={onClick} />
-  )
-}
-
 const senderAmount = (props: SenderProps) =>
   props.amountLoading ? (
     <Kb.ProgressIndicator style={styles.amountLoading} />
   ) : props.approximate ? (
     <ApproximateBlock {...props} />
   ) : (
-    <CalculateButton {...props} />
+    <CalculateAdvancedButton isIcon={true} />
   )
 
 export const AssetInputSenderAdvanced = (props: SenderProps) => (
