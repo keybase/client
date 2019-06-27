@@ -12,11 +12,11 @@ const fs = require('fs')
 const moment = require('moment')
 
 // core regs
-const reg = /([^ ]+) ▶ \[DEBU (keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(\[tags:([^\]]+)])?/
+const reg = /([^ ]+) ▶ \[DEBU (keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(.*)?/
 const tagsReg = /\[tags:([^\]]+)]/
 const methodPrefixReg = /^(\+\+Chat: )?/
 const methodResultReg = / -> .*$/
-const typeAndMethodReg = /^(\W*)/
+const typeAndMethodReg = /^(gui|[+-|])/
 // gui regs
 const guiCountTypeTimeReg = /\["(Info|Warn|Action)","([^"]+)","(.*)"]/
 const actionReg = /type: ([^ ]+) (.*)/
@@ -31,7 +31,7 @@ const getSwimlane = line => {
 const convertGuiLine = line => {
   const e = guiCountTypeTimeReg.exec(line)
   if (!e) {
-    console.log('Skipping unparsed line:', line)
+    console.log('🛑 Skipping unparsed line:', line)
     return
   }
   const [, type, time, _data] = e
@@ -53,16 +53,16 @@ const convertGuiLine = line => {
           try {
             args = JSON.parse(payload.replace(actionPayloadReg, '"'))
           } catch (e) {
-            console.log('throw e', e)
+            console.log('🛑 throw e', e)
           }
         } else {
-          console.log('Unparsed action!', line, _data)
+          console.log('🛑 Unparsed action!', line, _data)
           name = 'Unparsed action'
         }
       }
       break
     default:
-      console.log('Unknown inner type', type)
+      console.log('🛑 Unknown inner type', type)
       return
   }
   const app = getSwimlane(line)
@@ -82,7 +82,7 @@ const convertGuiLine = line => {
 const convertCoreLine = line => {
   const e = reg.exec(line)
   if (!e) {
-    console.log('Skipping unparsed line:', line)
+    console.log('🛑 Skipping unparsed line:', line)
     return
   }
   const [, time, _app, file, fileline, counter, _typeAndMethod, _tags] = e
@@ -154,20 +154,25 @@ const buildGood = (old, info) => {
   const s = buildEvent(old, 'B')
   const e = buildEvent(info, 'E')
   if (s.ts > e.ts) {
-    console.log('no time travelers allowed')
+    console.log('🛑 no time travelers allowed')
     return []
   }
   return [s, e]
 }
 
 const convertLine = isGUI ? convertGuiLine : convertCoreLine
-const lines = fs.readFileSync(logfile, 'utf8').split('\n')
+let lines = fs.readFileSync(logfile, 'utf8').split('\n')
+// to help debug a single line just override it here
+// lines = [
+// '2019-06-26T21:54:45.795427Z ▶ [DEBU keybase inbox.go:774] 8534 ++Chat: - Inbox: Read(23260c2ce19420f97b58d7d95b68ca00) -> ok [time=3.807ms] [tags:chat-trace=83yzFCh84M7q]',
+// ]
 let lastGuiLine = null
 const knownIDs = {}
 lines.forEach(line => {
   const info = convertLine(line)
   if (!info) return
 
+  // console.log(`DEBUG line type: '${info.type}' \n${line}\n${JSON.stringify(info, null, 2)}`)
   // Core has start/end marked with +/-. Ui doesn't have any timing like this so we treat them like they're contiguous
   switch (info.type) {
     case '+':
@@ -188,6 +193,9 @@ lines.forEach(line => {
         output.unmatched.push(info)
       }
       break
+    case '|':
+      // We ignore pipes
+      break
     case 'gui':
       // treat all these single fires as a span of time w/ the last item
       if (lastGuiLine) {
@@ -196,18 +204,20 @@ lines.forEach(line => {
       lastGuiLine = info
       break
     default:
-      console.log('Unknown line type:', info.type, ':', line)
+    // Kinda noisy, off for now
+    // console.log(`🛑 Unknown line type: '${info.type}' \n${line}\n${JSON.stringify(info, null, 2)}`)
+    // console.log(`🛑 Unknown line type: '${info.type}' ${line}`)
   }
 })
 
 // Some of these are intended and others are due to parsing errors (etc)
 if (output.unmatched.length) {
-  console.log('Unmatched lines:')
+  console.log('🛑 Unmatched lines:')
   output.unmatched.forEach(u => console.log(u.line))
 }
 
 if (output.collision.length) {
-  console.log('Lines with collisions:')
+  console.log('🛑 Lines with collisions:')
   output.collision.forEach(c => console.log(c.line))
 }
 
