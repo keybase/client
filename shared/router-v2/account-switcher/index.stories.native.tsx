@@ -28,11 +28,12 @@ const props: Props = {
   onSelectAccount: Sb.action('onSelectAccount'),
   rightActions: [
     {
-      // TODO: color: 'red',
+      color: 'red',
       label: 'Sign out',
       onPress: Sb.action('onSignOut'),
     },
   ],
+  title: ' ',
   username: 'alice',
 }
 

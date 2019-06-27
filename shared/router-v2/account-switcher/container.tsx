@@ -61,13 +61,13 @@ export default connect(
       },
       rightActions: [
         {
-          // TODO: color: 'red',
+          color: 'red',
           label: 'Sign out',
           onPress: dispatchProps.onSignOut,
         },
       ],
 
-      title: '',
+      title: ' ',
       username: stateProps.username,
     }
   }

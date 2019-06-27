@@ -85,7 +85,7 @@ const AccountSwitcher = (props: Props) => (
           <AccountsRows {...props} />
         </Kb.ScrollView>
       )}
-      {props.accountRows.length > 0 && <Kb.Divider style={styles.divider} />}
+      {props.accountRows.length > 0 && !Styles.isMobile && <Kb.Divider style={styles.divider} />}
     </Kb.Box2>
   </Kb.ScrollView>
 )
@@ -101,7 +101,7 @@ const styles = Styles.styleSheetCreate({
     width: 200,
   },
   divider: {
-    width: 200,
+    width: '100%',
   },
   nameText: Styles.platformStyles({
     isElectron: {

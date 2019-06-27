@@ -216,7 +216,12 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
       type={action.icon}
     />
   ) : (
-    <Text key={action.label} type="BodyBigLink" style={styles.action} onClick={action.onPress}>
+    <Text
+      key={action.label}
+      type="BodyBigLink"
+      style={Styles.collapseStyles([styles.action, action.color && {color: action.color}])}
+      onClick={action.onPress}
+    >
       {action.label}
     </Text>
   )
