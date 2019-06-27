@@ -99,7 +99,7 @@ const MessageText = ({isEditing, message, reply, text, type}: Props) => {
   )
 
   return Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" style={styles.wrapper}>
+    <Kb.Box2 direction="vertical" style={styles.wrapper} fullWidth={true}>
       {content}
     </Kb.Box2>
   ) : (
