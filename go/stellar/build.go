@@ -301,14 +301,15 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 				}
 
 				offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, arg.To)
-				if err != nil {
-					return res, err
-				}
-				if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
-					res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-						Level:                 "info",
-						OfferAdvancedSendForm: offerAdvancedForm,
-					})
+				if err == nil {
+					if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
+						res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+							Level:                 "info",
+							OfferAdvancedSendForm: offerAdvancedForm,
+						})
+					}
+				} else {
+					log("error determining whether to offer the advanced send page: %v", err)
 				}
 			}
 		}

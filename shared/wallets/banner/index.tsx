@@ -43,7 +43,6 @@ const Banner = (props: Props) => (
           Please review.
         </Text>
       )}
-      {alert(JSON.stringify(props))}
       {(props.offerAdvancedSendForm === AdvancedBanner.receiverBanner ||
         props.offerAdvancedSendForm === AdvancedBanner.senderBanner) &&
         props.onAction && (
@@ -59,7 +58,7 @@ const Banner = (props: Props) => (
               negative={true}
               onClick={props.onAction}
             >
-              Send other assets?
+              Send other assets
             </Text>
           </>
         )}
