@@ -382,13 +382,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         airdropQualifications: I.List(action.payload.airdropQualifications),
         airdropState: action.payload.airdropState,
       })
-    case WalletsGen.validateSEP7Link:
-      // Clear out old state, isn't necessary but seems like a good idea.
-      return state.merge({
-        sep7ConfirmError: '',
-        sep7ConfirmInfo: null,
-        sep7ConfirmURI: '',
-      })
     case WalletsGen.validateSEP7LinkError:
       return state.merge({sep7ConfirmError: action.payload.error})
     case WalletsGen.setSEP7Tx:
@@ -489,6 +482,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadExternalPartners:
     case WalletsGen.acceptSEP7Pay:
     case WalletsGen.acceptSEP7Tx:
+    case WalletsGen.validateSEP7Link:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
       return state
