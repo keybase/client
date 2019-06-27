@@ -37,7 +37,10 @@ export const Email = () => {
   return (
     <Kb.Modal
       onClose={onClose}
-      header={{title: 'Add an email address'}}
+      header={{
+        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        title: 'Add an email address',
+      }}
       footer={{
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
