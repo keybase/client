@@ -1,8 +1,4 @@
-import {
-  SendBody as SendBodyComponent,
-  SendBodyAdvanced as SendBodyAdvancedComponent,
-  RequestBody as RequestBodyComponent,
-} from '.'
+import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from '.'
 import {namedConnect} from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -11,8 +7,8 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 type OwnProps = {}
 
 const mapStateToProps = state => ({
-  _failed: !!state.wallets.sentPaymentError,
   _building: state.wallets.building,
+  _failed: !!state.wallets.sentPaymentError,
   banners: state.wallets.building.isRequest
     ? state.wallets.builtRequest.builtBanners
     : state.wallets.builtPayment.builtBanners,
@@ -21,6 +17,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   _onReviewPayments: () => dispatch(WalletsGen.createExitFailedPayment()),
   onGoAdvanced: (recipient, recipientType, senderAccountID) => {
+    dispatch(WalletsGen.createClearBuildingAdvanced())
     dispatch(WalletsGen.createSetBuildingAdvancedRecipient({recipient}))
     dispatch(WalletsGen.createSetBuildingAdvancedRecipientType({recipientType}))
     dispatch(WalletsGen.createSetBuildingAdvancedSenderAccountID({senderAccountID}))

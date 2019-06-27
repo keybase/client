@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/wallets'
 import {withStateHandlers} from '../../../util/container'
 import AssetInputBasic from './asset-input-basic'
-import {AssetInputRecipientAdvanced, AssetInputSenderAdvanced} from './asset-input-advanced'
 
 const provider = Sb.createPropProviderWithCommon({
   Available: () => ({
@@ -83,6 +82,7 @@ const asStatefulInput: any = withStateHandlers(
 )
 
 const StatefulAssetInputBasic = asStatefulInput(AssetInputBasic)
+/*
 const StatefulAssetInputRecipientAdvanced = asStatefulInput(AssetInputRecipientAdvanced)
 
 export const propsRecipientAdvanced = {
@@ -131,6 +131,7 @@ export const propsSenderAdvancedCalculated = {
   }),
   xlmToRecipientAsset: 0.8347,
 } as const
+   */
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Asset input basic', module)
@@ -145,6 +146,7 @@ const load = () => {
     .add('asset type warning', () => <AssetInputBasic {...props3} {...warning3} />)
     .add('Input validation (XLM)', () => <StatefulAssetInputBasic {...props2} />)
     .add('Input validation (Currency)', () => <StatefulAssetInputBasic {...props1} />)
+  /*
   Sb.storiesOf('Wallets/SendForm/Asset input advanced', module)
     .addDecorator(provider)
     .addDecorator(story => <Kb.Box style={{maxWidth: 500, padding: 20}}>{story()}</Kb.Box>)
@@ -163,6 +165,7 @@ const load = () => {
         <AssetInputSenderAdvanced {...propsSenderAdvancedCalculated} error={true} />
       </Kb.Box2>
     ))
+     */
 }
 
 export default load

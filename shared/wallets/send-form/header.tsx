@@ -5,7 +5,7 @@ import {WalletBackButton} from '../common'
 
 type Props = {
   isRequest: boolean
-  children: React.ReactNode
+  children?: React.ReactNode
   onBack?: (() => void) | null
   whiteBackground?: boolean
 }

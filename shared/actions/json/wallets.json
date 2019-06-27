@@ -347,13 +347,14 @@
       "to": "string"
     },
 
+    "clearBuildingAdvanced": {},
     "setBuildingAdvancedRecipient": {"recipient": "string"},
     "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
-    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "AssetDescription"},
-    "setBuildingAdvancedRecipientType": {"recipientType": "CounterpartyType"},
+    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedRecipientType": {"recipientType": "Types.CounterpartyType"},
     "setBuildingAdvancedPublicMemo": {"publicMemo": "HiddenString"},
-    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "AccountID"},
-    "setBuildingAdvancedSenderAsset": {"senderAsset": "AssetDescription"},
+    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
+    "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
     "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
     "calculateBuildingAdvanced": {},
     "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},

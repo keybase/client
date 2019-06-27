@@ -197,7 +197,9 @@ function* requestPayment(state, _: WalletsGen.RequestPaymentPayload, logger) {
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
-      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${buildRes.secretNoteErrMsg}; toErrMsg: ${buildRes.toErrMsg}`
+      `invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${
+        buildRes.secretNoteErrMsg
+      }; toErrMsg: ${buildRes.toErrMsg}`
     )
     yield Saga.put(
       WalletsGen.createBuiltRequestReceived({
@@ -1135,7 +1137,7 @@ const assetDescriptionOrNativeToRpcAsset = (
         verifiedDomain: '',
       }
 
-const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
+const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
   asset.type === 'native'
     ? 'native'
     : Constants.makeAssetDescription({
@@ -1152,15 +1154,16 @@ const balancesToAction = (
 ) => {
   const {assets, limitsMutable} = balances.reduce(
     ({assets, limitsMutable}, balance) => {
-      console.log({songgao: 'reduce', asset: balance.asset})
-      const assetDescription = rpcAssetToAssetDescription(balance.asset)
-      return {
-        assets: [...assets, assetDescription],
-        limitsMutable: limitsMutable.set(
-          Types.assetDescriptionToAssetID(assetDescription),
-          Number.parseFloat(balance.limit) || 0
-        ),
-      }
+      const assetDescriptionOrNative = rpcAssetToAssetDescriptionOrNative(balance.asset)
+      return assetDescriptionOrNative === 'native'
+        ? {assets, limitsMutable}
+        : {
+            assets: [...assets, assetDescriptionOrNative],
+            limitsMutable: limitsMutable.set(
+              Types.assetDescriptionToAssetID(assetDescriptionOrNative),
+              Number.parseFloat(balance.limit) || 0
+            ),
+          }
     },
     {assets: [], limitsMutable: I.Map<Types.AssetID, number>().asMutable()}
   )
@@ -1203,7 +1206,11 @@ const refreshTrustlineAcceptedAssetsByUsername = (state, {payload: {username}}) 
 const refreshTrustlinePopularAssets = () =>
   RPCStellarTypes.localListPopularAssetsLocalRpcPromise().then(({assets, totalCount}) =>
     WalletsGen.createSetTrustlinePopularAssets({
-      assets: assets ? assets.map((asset: RPCStellarTypes.Asset) => rpcAssetToAssetDescription(asset)) : [],
+      assets: assets
+        ? (assets
+            .map((asset: RPCStellarTypes.Asset) => rpcAssetToAssetDescriptionOrNative(asset))
+            .filter(asset => asset !== 'native') as Array<Types.AssetDescription>)
+        : [],
       totalCount,
     })
   )
@@ -1248,7 +1255,11 @@ const searchTrustlineAssets = (state, {payload: {text}}) => {
         assets =>
           text === lastSearchText &&
           WalletsGen.createSetTrustlineSearchResults({
-            assets: assets ? assets.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : [],
+            assets: assets
+              ? (assets
+                  .map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
+                  .filter(asset => asset !== 'native') as Array<Types.AssetDescription>)
+              : [],
           })
       )
     : WalletsGen.createClearTrustlineSearchResults()
@@ -1266,13 +1277,15 @@ const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellar
 const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath) =>
   Constants.makePaymentPath({
     destinationAmount: rpcPaymentPath.destinationAmount,
-    destinationAsset: rpcAssetToAssetDescription(rpcPaymentPath.destinationAsset),
+    destinationAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.destinationAsset),
     path: I.List(
-      rpcPaymentPath.path ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : []
+      rpcPaymentPath.path
+        ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescriptionOrNative(rpcAsset))
+        : []
     ),
     sourceAmount: rpcPaymentPath.sourceAmount,
     sourceAmountMax: rpcPaymentPath.sourceAmountMax,
-    sourceAsset: rpcAssetToAssetDescription(rpcPaymentPath.sourceAsset),
+    sourceAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.sourceAsset),
   })
 
 const calculateBuildingAdvanced = state =>

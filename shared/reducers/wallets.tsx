@@ -243,6 +243,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         builtPayment: state.get('builtPayment').merge({toErrMsg: ''}),
         builtRequest: state.get('builtRequest').merge({toErrMsg: ''}),
       })
+    case WalletsGen.clearBuildingAdvanced:
+      return state.set('buildingAdvanced', Constants.emptyBuildingAdvanced)
     case WalletsGen.setBuildingAdvancedRecipient:
       return state.update('buildingAdvanced', buildingAdvanced =>
         buildingAdvanced.set('recipient', action.payload.recipient)
@@ -268,11 +270,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         buildingAdvanced.set('publicMemo', action.payload.publicMemo)
       )
     case WalletsGen.setBuildingAdvancedSenderAccountID:
-      return state
-        .update('buildingAdvanced', buildingAdvanced =>
-          buildingAdvanced.set('senderAccountID', action.payload.senderAccountID)
-        )
-        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('senderAccountID', action.payload.senderAccountID)
+      )
     case WalletsGen.setBuildingAdvancedSenderAsset:
       return state
         .update('buildingAdvanced', buildingAdvanced =>

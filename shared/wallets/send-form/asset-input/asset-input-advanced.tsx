@@ -26,7 +26,7 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
       style={Styles.collapseStyles([sharedStyles.container, styles.container])}
       gap="xtiny"
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.topLabel}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.topLabel}>
         {buildingAdvanced.recipientType === 'keybaseUser' ? (
           <>
             <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />
@@ -47,48 +47,42 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
           will receive:
         </Kb.Text>
       </Kb.Box2>
-      <AmountInput
-        numDecimalsAllowed={7}
-        onChangeAmount={onChangeAmount}
-        rightBlock={<PickAssetButton isSender={false} />}
-        value={buildingAdvanced.recipientAmount}
-      />
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <AmountInput
+          numDecimalsAllowed={7}
+          onChangeAmount={onChangeAmount}
+          value={buildingAdvanced.recipientAmount}
+        />
+        <PickAssetButton isSender={false} />
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-type SenderProps = {
-  approximate?: number
-  atMost?: number
-  error?: boolean
-  numDecimals: number
-  recipientAsset?: Types.AssetDescription
-  senderAsset?: Types.AssetDescription | 'native'
-  xlmToRecipientAsset?: number
-}
-
-const LeftBlock = (props: SenderProps) => {
+const LeftBlock = (props: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
-  return props.approximate ? 
-  (
+  return builtPaymentAdvanced.sourceDisplay ? (
     <Kb.Box2 direction="vertical" alignItems="flex-start">
-      <Kb.Text type="HeaderBigExtrabold" style={!!props.error && styles.error}>
-        ~{builtPaymentAdvanced.fullPath.sourceAmount}
+      <Kb.Text type="HeaderBigExtrabold" style={!!builtPaymentAdvanced.amountError && styles.error}>
+        ~{builtPaymentAdvanced.sourceDisplay}
       </Kb.Text>
-      <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.fullPath.sourceAmountMax}</Kb.Text>
+      <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
       {!!buildingAdvanced.recipientAsset && (
-        <Kb.Text type="BodyTiny">
-           {builtPaymentAdvanced.exchangeRate}
+        <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
+      )}
+      {!!builtPaymentAdvanced.amountError && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {builtPaymentAdvanced.amountError}
         </Kb.Text>
       )}
     </Kb.Box2>
-  ) : <CalculateAdvancedButton isIcon={true} />
+  ) : (
+    <CalculateAdvancedButton isIcon={true} />
+  )
 }
 
-const senderAmount = (props: SenderProps) =>
-
-export const AssetInputSenderAdvanced = (props: SenderProps) => (
+export const AssetInputSenderAdvanced = (props: EmptyProps) => (
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
@@ -98,7 +92,7 @@ export const AssetInputSenderAdvanced = (props: SenderProps) => (
       You will send approximately:
     </Kb.Text>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <LeftBlocl {...props}/>
+      <LeftBlock />
       <Kb.Box style={Styles.globalStyles.flexGrow} />
       <PickAssetButton isSender={true} />
     </Kb.Box2>
@@ -177,25 +171,35 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   const goToPickAsset = useGoToPickAssetCallback(_buildingAdvanced, isSender)
   const asset = isSender ? _buildingAdvanced.senderAsset : _buildingAdvanced.recipientAsset
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} alignSelf="flex-start" alignItems="flex-end">
-      <Kb.ClickableBox onClick={goToPickAsset}>
-        <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
-          <Kb.Text type="HeaderBigExtrabold" style={sharedStyles.purple}>
-            {asset !== Constants.emptyAssetDescription
-              ? asset === 'native'
-                ? 'XLM'
-                : asset.code
-              : 'Pick an asset'}
-          </Kb.Text>
-          <Kb.Icon type="iconfont-caret-down" sizeType="Small" color={Styles.globalColors.purple} />
+    <Kb.Box style={styles.pickAssetButtonOverlayOuter}>
+      <Kb.Box style={styles.pickAssetButtonOverlayInner}>
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          alignSelf="flex-start"
+          alignItems="flex-end"
+          style={styles.pickAssetButton}
+        >
+          <Kb.ClickableBox onClick={goToPickAsset}>
+            <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
+              <Kb.Text type="HeaderBigExtrabold" style={sharedStyles.purple}>
+                {asset !== Constants.emptyAssetDescription
+                  ? asset === 'native'
+                    ? 'XLM'
+                    : asset.code
+                  : 'Pick an asset'}
+              </Kb.Text>
+              <Kb.Icon type="iconfont-caret-down" sizeType="Small" color={Styles.globalColors.purple} />
+            </Kb.Box2>
+          </Kb.ClickableBox>
+          {asset !== Constants.emptyAssetDescription && (
+            <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
+              {asset === 'native' ? 'Stellar Lumens' : asset.issuerVerifiedDomain}
+            </Kb.Text>
+          )}
         </Kb.Box2>
-      </Kb.ClickableBox>
-      {asset !== Constants.emptyAssetDescription && (
-        <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
-          {asset === 'native' ? 'Stellar Lumens' : asset.issuerVerifiedDomain}
-        </Kb.Text>
-      )}
-    </Kb.Box2>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
@@ -216,10 +220,10 @@ const styles = Styles.styleSheetCreate({
   },
   container: Styles.platformStyles({
     isElectron: {
-      height: 96,
+      minHeight: 96,
     },
     isMobile: {
-      height: 128,
+      minHeight: 128,
     },
   }),
   error: {
@@ -228,6 +232,13 @@ const styles = Styles.styleSheetCreate({
   noShrink: {
     flexShrink: 0,
   },
+  pickAssetButton: {
+    width: Styles.globalMargins.xlarge * 3,
+  },
+  // We need this to make the PickAssetButton on top of other stuff so amount
+  // error can extend below it.
+  pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
+  pickAssetButtonOverlayOuter: {position: 'relative'},
   topLabel: {
     marginBottom: Styles.globalMargins.xtiny,
   },

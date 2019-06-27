@@ -3,15 +3,14 @@ import * as Kb from '../../../common-adapters'
 import {sharedStyles} from './shared'
 import * as Container from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import * as Constants from '../../../constants/wallets'
 import FooterAdvanced from '../footer/footer-advanced'
 import HiddenString from '../../../util/hidden-string'
-import {AssetPathIntermediate} from '../asset-input/asset-input-advanced'
 import {SecretNote, PublicMemo} from '../note-and-memo'
 import {
   AssetInputRecipientAdvanced,
   AssetInputSenderAdvanced,
-} from '../asset-input/asset-input-advanced-container'
+  AssetPathIntermediate,
+} from '../asset-input/asset-input-advanced'
 
 type SendBodyAdvancedProps = {}
 

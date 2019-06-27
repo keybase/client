@@ -104,6 +104,7 @@ export const makeBuildingAdvanced = I.Record<Types._BuildingAdvanced>({
   senderAccountID: Types.noAccountID,
   senderAsset: emptyAssetDescription,
 })
+export const emptyBuildingAdvanced = makeBuildingAdvanced()
 
 export const makePaymentPath = I.Record<Types._PaymentPath>({
   destinationAmount: '',
@@ -215,7 +216,7 @@ export const makeState = I.Record<Types._State>({
   assetsMap: I.Map(),
   buildCounter: 0,
   building: makeBuilding(),
-  buildingAdvanced: makeBuildingAdvanced(),
+  buildingAdvanced: emptyBuildingAdvanced,
   builtPayment: makeBuiltPayment(),
   builtPaymentAdvanced: emptyBuiltPaymentAdvanced,
   builtRequest: makeBuiltRequest(),

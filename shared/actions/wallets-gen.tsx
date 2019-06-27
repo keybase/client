@@ -33,6 +33,7 @@ export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
 export const checkDisclaimer = 'wallets:checkDisclaimer'
 export const clearBuilding = 'wallets:clearBuilding'
+export const clearBuildingAdvanced = 'wallets:clearBuildingAdvanced'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearBuiltRequest = 'wallets:clearBuiltRequest'
 export const clearErrors = 'wallets:clearErrors'
@@ -160,6 +161,7 @@ type _ChangeMobileOnlyModePayload = {readonly accountID: Types.AccountID; readon
 type _ChangedAccountNamePayload = {readonly accountID: Types.AccountID}
 type _ChangedAccountNamePayloadError = {readonly name: string; readonly error: string}
 type _CheckDisclaimerPayload = {readonly nextScreen: Types.NextScreenAfterAcceptance}
+type _ClearBuildingAdvancedPayload = void
 type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
@@ -297,12 +299,12 @@ type _SentPaymentPayload = {readonly kbTxID: HiddenString; readonly lastSentXLM:
 type _SetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
 type _SetBuildingAdvancedPublicMemoPayload = {readonly publicMemo: HiddenString}
 type _SetBuildingAdvancedRecipientAmountPayload = {readonly recipientAmount: string}
-type _SetBuildingAdvancedRecipientAssetPayload = {readonly recipientAsset: AssetDescription}
+type _SetBuildingAdvancedRecipientAssetPayload = {readonly recipientAsset: Types.AssetDescriptionOrNative}
 type _SetBuildingAdvancedRecipientPayload = {readonly recipient: string}
-type _SetBuildingAdvancedRecipientTypePayload = {readonly recipientType: CounterpartyType}
+type _SetBuildingAdvancedRecipientTypePayload = {readonly recipientType: Types.CounterpartyType}
 type _SetBuildingAdvancedSecretNotePayload = {readonly secretNote: HiddenString}
-type _SetBuildingAdvancedSenderAccountIDPayload = {readonly senderAccountID: AccountID}
-type _SetBuildingAdvancedSenderAssetPayload = {readonly senderAsset: AssetDescription}
+type _SetBuildingAdvancedSenderAccountIDPayload = {readonly senderAccountID: Types.AccountID}
+type _SetBuildingAdvancedSenderAssetPayload = {readonly senderAsset: Types.AssetDescriptionOrNative}
 type _SetBuildingAmountPayload = {readonly amount: string}
 type _SetBuildingCurrencyPayload = {readonly currency: string}
 type _SetBuildingFromPayload = {readonly from: Types.AccountID}
@@ -985,6 +987,9 @@ export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlineP
 export const createCalculateBuildingAdvanced = (
   payload: _CalculateBuildingAdvancedPayload
 ): CalculateBuildingAdvancedPayload => ({payload, type: calculateBuildingAdvanced})
+export const createClearBuildingAdvanced = (
+  payload: _ClearBuildingAdvancedPayload
+): ClearBuildingAdvancedPayload => ({payload, type: clearBuildingAdvanced})
 export const createClearTrustlineSearchResults = (
   payload: _ClearTrustlineSearchResultsPayload
 ): ClearTrustlineSearchResultsPayload => ({payload, type: clearTrustlineSearchResults})
@@ -1161,6 +1166,10 @@ export type ChangedAccountNamePayloadError = {
 export type CheckDisclaimerPayload = {
   readonly payload: _CheckDisclaimerPayload
   readonly type: typeof checkDisclaimer
+}
+export type ClearBuildingAdvancedPayload = {
+  readonly payload: _ClearBuildingAdvancedPayload
+  readonly type: typeof clearBuildingAdvanced
 }
 export type ClearBuildingPayload = {
   readonly payload: _ClearBuildingPayload
@@ -1583,6 +1592,7 @@ export type Actions =
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
   | CheckDisclaimerPayload
+  | ClearBuildingAdvancedPayload
   | ClearBuildingPayload
   | ClearBuiltPaymentPayload
   | ClearBuiltRequestPayload

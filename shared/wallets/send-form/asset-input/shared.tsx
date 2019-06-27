@@ -40,7 +40,7 @@ type AmountInputProps = {
   error?: boolean
   numDecimalsAllowed: number
   onChangeAmount: (amount: string) => void
-  rightBlock: 'loading' | React.ReactNode
+  rightBlock?: 'loading' | React.ReactNode
   value: string
 }
 
