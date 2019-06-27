@@ -87,13 +87,36 @@ export const Phone = () => {
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
   const [allowSearch, onChangeAllowSearch] = React.useState(false)
-  const onContinue = React.useCallback(() => {}, []) // TODO
+  const onContinue = React.useCallback(
+    () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
+    []
+  ) // TODO
+  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
+  const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+  const disabled = !valid
   return (
     <Kb.Modal
       onClose={onClose}
       header={{
         leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
         title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
+      }}
+      footer={{
+        content: (
+          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+            {!Styles.isMobile && (
+              <Kb.Button type="Dim" label="Cancel" fullWidth={true} onClick={onClose} disabled={waiting} />
+            )}
+            <Kb.Button
+              label="Continue"
+              fullWidth={true}
+              onClick={onContinue}
+              disabled={disabled}
+              waiting={waiting}
+            />
+          </Kb.ButtonBar>
+        ),
+        style: styles.footer,
       }}
       mode="Wide"
     >
@@ -110,9 +133,15 @@ export const Phone = () => {
           onContinue={onContinue}
           allowSearch={allowSearch}
           onChangeAllowSearch={onChangeAllowSearch}
-          icon={<Kb.Icon type={Styles.isMobile ? 'icon-number-add-64' : 'icon-number-add-48'} />}
+          icon={
+            <Kb.Icon
+              type={Styles.isMobile ? 'icon-number-add-64' : 'icon-number-add-48'}
+              style={styles.numberIcon}
+            />
+          }
         />
       </Kb.Box2>
+      {!!error && <Kb.Banner color="red" text={error} style={styles.banner} />}
     </Kb.Modal>
   )
 }
@@ -140,4 +169,14 @@ const styles = Styles.styleSheetCreate({
   footer: {
     ...Styles.padding(Styles.globalMargins.small),
   },
+  numberIcon: Styles.platformStyles({
+    isElectron: {
+      height: 48,
+      width: 48,
+    },
+    isMobile: {
+      height: 64,
+      width: 64,
+    },
+  }),
 })
