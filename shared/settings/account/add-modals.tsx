@@ -104,7 +104,7 @@ export const Phone = () => {
   const onContinue = React.useCallback(
     () =>
       // TODO switch back to add
-      disabled || waiting ? null : dispatch(SettingsGen.createAddedPhoneNumber({allowSearch, phoneNumber})),
+      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
     [dispatch, disabled, waiting, allowSearch, phoneNumber]
   )
   return (
@@ -171,6 +171,7 @@ export const VerifyPhone = () => {
     () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
     [dispatch]
   )
+  const resendWaiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
   return (
     <Kb.Modal
       onClose={onClose}
@@ -192,7 +193,7 @@ export const VerifyPhone = () => {
         fullHeight={true}
         centerChildren={true}
       >
-        <VerifyBody />
+        <VerifyBody onResend={onResend} resendWaiting={resendWaiting} />
       </Kb.Box2>
     </Kb.Modal>
   )
