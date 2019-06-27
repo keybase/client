@@ -89,13 +89,13 @@ export const Phone = () => {
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
   const [allowSearch, onChangeAllowSearch] = React.useState(false)
-  const onContinue = React.useCallback(
-    () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-    [dispatch, allowSearch, phoneNumber]
-  ) // TODO
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
   const disabled = !valid
+  const onContinue = React.useCallback(
+    () => disabled || dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']})), // dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
+    [dispatch, allowSearch, phoneNumber]
+  )
   return (
     <Kb.Modal
       onClose={onClose}
@@ -146,6 +146,9 @@ export const Phone = () => {
       {!!error && <Kb.Banner color="red" text={error} style={styles.banner} />}
     </Kb.Modal>
   )
+}
+export const VerifyPhone = () => {
+  return null
 }
 
 const styles = Styles.styleSheetCreate({
