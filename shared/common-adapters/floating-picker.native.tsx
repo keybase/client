@@ -11,7 +11,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
     return null
   }
   return (
-    <Overlay onHidden={props.onHidden}>
+    <Overlay onHidden={props.onHidden} key={props.selectedValue}>
       <Box2 direction="vertical" fullWidth={true} style={styles.menu}>
         {props.header}
         <Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
