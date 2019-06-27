@@ -76,6 +76,7 @@ const load = () => {
         onClose={Sb.action('onClose')}
       />
     ))
+  /*
     .add('Send - advanced', () => (
       <SendRequestForm
         onBack={Sb.action('onBack')}
@@ -92,7 +93,6 @@ const load = () => {
         onClose={Sb.action('onClose')}
       />
     ))
-  /*
     .add('PickAsset - sender', () => <PickAsset isSender={true} />)
     .add('PickAsset - recipient keybaseUser', () => <PickAsset isSender={false} username="songgao" />)
     .add('PickAsset - recipient stellar', () => <PickAsset isSender={false} />)
