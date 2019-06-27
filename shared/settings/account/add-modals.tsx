@@ -76,8 +76,8 @@ export const Email = () => {
           onContinue={onContinue}
           icon={<Kb.Icon type={Styles.isMobile ? 'icon-email-add-64' : 'icon-email-add-48'} />}
         />
-        {!!emailError && <Kb.Banner color="red" text={emailError.message} style={styles.banner} />}
       </Kb.Box2>
+      {!!emailError && <Kb.Banner color="red" text={emailError.message} style={styles.banner} />}
     </Kb.Modal>
   )
 }

@@ -113,7 +113,7 @@ const AccountSettings = (props: Props) => (
     {props.addedEmail && (
       <Kb.Banner
         color="green"
-        text={`A verification link was sent to ${props.addedEmail}.`}
+        text={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
         onClose={props.onClearAddedEmail}
       />
     )}
