@@ -5,7 +5,7 @@ import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../..
 import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
-
+import flags from '../../util/feature-flags'
 import {Props} from './index'
 
 const renderItem = ({item}) => {
@@ -59,23 +59,27 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',
             },
-            {
-              onClick: () => props.onTabChange(Constants.fsTab),
-              text: 'Files',
-            },
+            ...(flags.kbfsOfflineMode
+              ? [
+                  {
+                    onClick: () => props.onTabChange(Constants.fsTab),
+                    text: 'Files',
+                  },
+                ]
+              : []),
             {
               badgeNumber: props.badgeNotifications ? 1 : 0,
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
             },
-            {
-              ...(isAndroid
-                ? {
+            ...(isAndroid
+              ? [
+                  {
                     onClick: () => props.onTabChange(Constants.screenprotectorTab),
                     text: 'Screen Protector',
-                  }
-                : {}),
-            },
+                  },
+                ]
+              : []),
           ],
           title: 'Settings',
         },
