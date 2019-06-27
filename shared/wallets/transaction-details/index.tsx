@@ -303,21 +303,24 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
     <Kb.Text type="BodyBigExtrabold">
       {props.amount} {props.assetCode || 'XLM'}
     </Kb.Text>
-    <Kb.Text type="BodySmall">/{props.issuerDescription || 'Unknown issuer'}</Kb.Text>
-
-const PaymentPathLine = () => <Kb.Box style={styles.paymentPathLine} />
+    <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
+  </Kb.Box2>
+)
 
 const PaymentPathEnd = (props: any) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
     <Kb.Avatar size={32} borderColor={Styles.globalColors.purpleLight} />
-    <Kb.Text type="BodyBigExtrabold">
-      {props.type === 'start' ? '-' : '+'}
+    <Kb.Text
+      type="BodyBigExtrabold"
+      style={{color: props.type === 'destination' ? Styles.globalColors.greenDark : undefined}}
+    >
+      {props.type === 'source' ? '-' : '+'}
       {props.assetLabel}
-
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
     </Kb.Text>
   </Kb.Box2>
 )
+
 const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
   <Kb.Box2
     direction="horizontal"
@@ -329,7 +332,7 @@ const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
     <Kb.Box style={styles.paymentPathCircle} />
     <Kb.Text type="BodyBigExtrabold">
       {props.assetCode}
-      <Kb.Text type="BodySmall">/{props.issuer || 'Unknown Issuer'}</Kb.Text>
+      <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
     </Kb.Text>
   </Kb.Box2>
 )
@@ -337,15 +340,21 @@ const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
 const PaymentPath = (props: any) => {
   return (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
-      <PaymentPathEnd type="start" assetLabel={props.sourceAmount} issuer="nathansmith.io" />
-      <PaymentPathLine />
-      {props.pathIntermediate.map(asset => (
-        <>
-          <PaymentPathStop assetCode={asset.code} issuer={asset.issuerVerifiedDomain} />
-          <PaymentPathLine />
-        </>
-      ))}
-      <PaymentPathEnd type="end" assetLabel={props.amountDescription} issuer={props.issuerDescription} />
+      <PaymentPathEnd type="source" assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
+      <Kb.Box style={styles.paymentPathLine} />
+      {props.pathIntermediate.map(asset => {
+        return (
+          <>
+            <PaymentPathStop assetCode={asset.code} issuer={asset.issuerVerifiedDomain || 'Unknown issuer'} />
+            <Kb.Box style={styles.paymentPathLine} />
+          </>
+        )
+      })}
+      <PaymentPathEnd
+        type="destination"
+        assetLabel={props.amountDescription}
+        issuer={props.destinationIssuer}
+      />
     </Kb.Box2>
   )
 }
@@ -354,6 +363,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
 
   const isPathPayment = !!props.sourceAmount
+
+  // If we don't have a sourceAsset, the source is native Lumens
+  const sourceIssuer = props.sourceAsset === '' ? 'Stellar Lumens' : props.sourceIssuer || 'Unknown issuer'
+  const destinationIssuer =
+    props.assetCode === '' ? 'Stellar Lumens' : props.issuerDescription || 'Unknown issuer'
 
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
@@ -389,16 +403,26 @@ const TransactionDetails = (props: NotLoadingProps) => {
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         {isPathPayment && (
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
+            <PaymentPath
+              sourceAmount={`${props.sourceAmount} ${props.sourceAsset}`}
+              sourceIssuer={sourceIssuer}
+              pathIntermediate={props.pathIntermediate}
+              destinationIssuer={destinationIssuer}
+              amountDescription={props.amountXLM}
+            />
+          </Kb.Box2>
+        )}
+
+        {isPathPayment && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
             <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
               <ConvertedCurrencyLabel
                 amount={1}
                 assetCode={props.sourceAsset}
-                issuerDescription={
-                  // If we don't have a sourceAsset, the source is native Lumens
-                  props.sourceAsset === '' ? 'Stellar Lumens' : props.sourceIssuer
-                }
+                issuerDescription={sourceIssuer}
               />
               <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={{flex: 1}}>
                 <Kb.Text type="BodyBig">=</Kb.Text>
@@ -406,15 +430,9 @@ const TransactionDetails = (props: NotLoadingProps) => {
               <ConvertedCurrencyLabel
                 amount={props.sourceConvRate}
                 assetCode={props.assetCode}
-                issuerDescription={props.assetCode === '' ? 'Stellar Lumens' : props.issuerDescription}
+                issuerDescription={destinationIssuer}
               />
             </Kb.Box2>
-          </Kb.Box2>
-        )}
-        {!!sender && (
-          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-            <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
-            <PaymentPath sourceAmount={props.sourceAmount} pathIntermediate={props.pathIntermediate} />
           </Kb.Box2>
         )}
 
