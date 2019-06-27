@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
@@ -40,30 +40,48 @@ const EnterPhoneNumber = (props: Props) => {
               },
             ]),
       ]}
+      banners={errorBanner(props.error)}
       rightActionLabel="Skip"
       onRightAction={props.onSkip}
       title="Your phone number"
       showHeaderInfoicon={true}
     >
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
-        <PhoneInput
-          style={styles.input}
-          onChangeNumber={onChangePhoneNumber}
-          onChangeValidity={onChangeValidity}
-          onEnterKeyDown={onContinue}
-        />
-        <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>
-        {/*
-          <Kb.Checkbox
-            label="Allow friends to find you by this phone number"
-            checked={allowSearch}
-            onCheck={onChangeAllowSearch}
-            style={styles.checkbox}
-          />
-        */}
-        {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
-      </Kb.Box2>
+      <EnterPhoneNumberBody
+        onChangeNumber={onChangePhoneNumber}
+        onChangeValidity={onChangeValidity}
+        onContinue={onContinue}
+      />
     </SignupScreen>
+  )
+}
+
+type BodyProps = {
+  onChangeNumber: (phoneNumber: string) => void
+  onChangeValidity: (valid: boolean) => void
+  onContinue: () => void
+  allowSearch?: boolean
+  onChangeAllowSearch?: (allow: boolean) => void
+}
+export const EnterPhoneNumberBody = (props: BodyProps) => {
+  const showCheckbox = props.onChangeAllowSearch && props.hasOwnProperty('allowSearch')
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+      <PhoneInput
+        style={styles.input}
+        onChangeNumber={props.onChangeNumber}
+        onChangeValidity={props.onChangeValidity}
+        onEnterKeyDown={props.onContinue}
+      />
+      {!showCheckbox && <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>}
+      {showCheckbox && (
+        <Kb.Checkbox
+          label="Allow friends to find you by this phone number"
+          checked={props.allowSearch}
+          onCheck={props.onChangeAllowSearch}
+          style={styles.checkbox}
+        />
+      )}
+    </Kb.Box2>
   )
 }
 

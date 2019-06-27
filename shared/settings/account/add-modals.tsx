@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email/'
-import AddPhone from '../../signup/phone-number/container'
+import {EnterPhoneNumberBody} from '../../signup/phone-number/'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export const Email = () => {
@@ -39,7 +39,7 @@ export const Email = () => {
       onClose={onClose}
       header={{
         leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
-        title: 'Add an email address',
+        title: Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
       footer={{
         content: (
@@ -81,7 +81,40 @@ export const Email = () => {
     </Kb.Modal>
   )
 }
-export const Phone = AddPhone
+export const Phone = () => {
+  const dispatch = Container.useDispatch()
+  const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const [phoneNumber, onChangeNumber] = React.useState('')
+  const [valid, onChangeValidity] = React.useState(false)
+  const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  const onContinue = React.useCallback(() => {}, []) // TODO
+  return (
+    <Kb.Modal
+      onClose={onClose}
+      header={{
+        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
+      }}
+      mode="Wide"
+    >
+      <Kb.Box2
+        direction="vertical"
+        centerChildren={true}
+        fullWidth={true}
+        fullHeight={true}
+        style={styles.body}
+      >
+        <EnterPhoneNumberBody
+          onChangeNumber={onChangeNumber}
+          onChangeValidity={onChangeValidity}
+          onContinue={onContinue}
+          allowSearch={allowSearch}
+          onChangeAllowSearch={onChangeAllowSearch}
+        />
+      </Kb.Box2>
+    </Kb.Modal>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   banner: {
