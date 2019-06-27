@@ -47,6 +47,11 @@ func (m *mockChatUI) ChatClearWatch(ctx context.Context, watchID chat1.LocationW
 	return nil
 }
 
+func (m *mockChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
+	return nil
+}
+
 type mockUnfurler struct {
 	globals.Contextified
 	types.Unfurler
