@@ -828,6 +828,10 @@
           "name": "destinationDisplay"
         },
         {
+          "type": "string",
+          "name": "exchangeRate"
+        },
+        {
           "type": "AccountID",
           "name": "destinationAccount"
         },

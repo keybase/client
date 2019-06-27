@@ -731,6 +731,7 @@ type PaymentPathLocal struct {
 	SourceDisplay      string      `codec:"sourceDisplay" json:"sourceDisplay"`
 	SourceMaxDisplay   string      `codec:"sourceMaxDisplay" json:"sourceMaxDisplay"`
 	DestinationDisplay string      `codec:"destinationDisplay" json:"destinationDisplay"`
+	ExchangeRate       string      `codec:"exchangeRate" json:"exchangeRate"`
 	DestinationAccount AccountID   `codec:"destinationAccount" json:"destinationAccount"`
 	FullPath           PaymentPath `codec:"fullPath" json:"fullPath"`
 }
@@ -740,6 +741,7 @@ func (o PaymentPathLocal) DeepCopy() PaymentPathLocal {
 		SourceDisplay:      o.SourceDisplay,
 		SourceMaxDisplay:   o.SourceMaxDisplay,
 		DestinationDisplay: o.DestinationDisplay,
+		ExchangeRate:       o.ExchangeRate,
 		DestinationAccount: o.DestinationAccount.DeepCopy(),
 		FullPath:           o.FullPath.DeepCopy(),
 	}

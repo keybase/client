@@ -1207,7 +1207,29 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 
 	res.FullPath = path
 
-	// TODO: need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
+	res.SourceDisplay, err = stellar.FormatAmount(mctx, path.SourceAmount, false, stellarnet.Round)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	res.SourceMaxDisplay, err = stellar.FormatAmount(mctx, path.SourceAmountMax, false, stellarnet.Round)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	res.DestinationDisplay, err = stellar.FormatAmount(mctx, path.DestinationAmount, false, stellarnet.Round)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+
+	destAmt, err := stellarnet.ParseAmount(path.DestinationAmount)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	srcAmt, err := stellarnet.ParseAmount(path.SourceAmount)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	srcAmt.Quo(srcAmt, destAmt)
+	res.ExchangeRate = fmt.Sprintf("1 %s = %s %s", path.DestinationAsset.Code, srcAmt.FloatString(7), path.SourceAsset.Code)
 
 	return res, nil
 }

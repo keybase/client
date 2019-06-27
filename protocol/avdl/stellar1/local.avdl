@@ -530,6 +530,7 @@ protocol local {
     string sourceDisplay;               // for display purposes
     string sourceMaxDisplay;
     string destinationDisplay;
+    string exchangeRate;    // "1 XYZ = 12.1333 ABC"
     AccountID destinationAccount;
     PaymentPath fullPath;   // pass this back when submitting the payment
   }
