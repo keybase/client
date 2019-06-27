@@ -51,18 +51,24 @@ const Banner = (props: Props) => (
               'This user accepts more assets than XLM. '}
             {props.offerAdvancedSendForm === AdvancedBanner.senderBanner &&
               'You can send more assets than XLM. '}
-            <Text
-              type="BodySmallSemiboldPrimaryLink"
-              center={true}
-              style={styles.secondText}
-              negative={true}
-              onClick={props.onAction}
-            >
-              Send other assets
-            </Text>
           </>
         )}
     </Text>
+    {(props.offerAdvancedSendForm === AdvancedBanner.receiverBanner ||
+      props.offerAdvancedSendForm === AdvancedBanner.senderBanner) &&
+      props.onAction && (
+        // Place this text outside of the above text so that we can do a paddingBottom on it in order to
+        // get the underline to show up
+        <Text
+          type="BodySmallSemiboldPrimaryLink"
+          center={true}
+          style={styles.secondText}
+          negative={true}
+          onClick={props.onAction}
+        >
+          Send other assets
+        </Text>
+      )}
     {props.sendFailed && props.onAction && (
       <Text
         type="BodySmallSemiboldPrimaryLink"
@@ -84,7 +90,7 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
-  secondText: {paddingLeft: Styles.globalMargins.xtiny},
+  secondText: {paddingBottom: Styles.globalMargins.xtiny, paddingLeft: Styles.globalMargins.xtiny},
 })
 
 export default Banner
