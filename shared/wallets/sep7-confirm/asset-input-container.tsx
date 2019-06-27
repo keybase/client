@@ -1,4 +1,4 @@
-import AssetInput, {Props} from '../send-form/asset-input/index'
+import AssetInput, {Props} from '../send-form/asset-input/asset-input-basic'
 import * as React from 'react'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
@@ -11,9 +11,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => {
   const currency = 'XLM'
   return {
-    bottomLabel: `Your primary account has ${
-      state.wallets.sep7ConfirmInfo.availableToSendNative
-    } available to send.`,
+    bottomLabel: `Your primary account has ${state.wallets.sep7ConfirmInfo.availableToSendNative} available to send.`,
     currencyLoading: false,
     displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
     inputPlaceholder: Constants.inputPlaceholderForCurrency(currency),

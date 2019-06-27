@@ -34,15 +34,13 @@ const AssetInputBasic = (props: Props) => (
         ) : (
           <Kb.Box2 direction="vertical" style={sharedStyles.currencyContainer}>
             <Kb.Text
-              onClick={
-                this.props.displayUnit && this.props.onChangeDisplayUnit ? props.onChangeDisplayUnit : null
-              }
+              onClick={props.displayUnit && props.onChangeDisplayUnit ? props.onChangeDisplayUnit : null}
               type="HeaderBigExtrabold"
               style={sharedStyles.purple}
             >
               {props.displayUnit}
             </Kb.Text>
-            {this.props.onChangeDisplayUnit && (
+            {props.onChangeDisplayUnit && (
               <Kb.Text
                 type="BodySmallPrimaryLink"
                 onClick={props.displayUnit ? props.onChangeDisplayUnit : null}
