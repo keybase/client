@@ -183,6 +183,10 @@ export type MessageTypes = {
     inParam: {readonly reviewID: Int; readonly bid: BuildPaymentID}
     outParam: void
   }
+  'stellar.1.local.sendPathLocal': {
+    inParam: {readonly source: AccountID; readonly recipient: String; readonly path: PaymentPath; readonly note: String; readonly publicNote: String}
+    outParam: SendPaymentResLocal
+  }
   'stellar.1.local.sendPaymentLocal': {
     inParam: {readonly bid: BuildPaymentID; readonly bypassBid: Boolean; readonly bypassReview: Boolean; readonly from: AccountID; readonly to: String; readonly toIsAccountID: Boolean; readonly amount: String; readonly asset: Asset; readonly worthAmount: String; readonly worthCurrency?: OutsideCurrencyCode | null; readonly secretNote: String; readonly publicMemo: String; readonly quickReturn: Boolean}
     outParam: SendPaymentResLocal
@@ -508,6 +512,7 @@ export const localListPopularAssetsLocalRpcPromise = (params: MessageTypes['stel
 export const localMakeRequestLocalRpcPromise = (params: MessageTypes['stellar.1.local.makeRequestLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.makeRequestLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.makeRequestLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localMarkAsReadLocalRpcPromise = (params: MessageTypes['stellar.1.local.markAsReadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.markAsReadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.markAsReadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localReviewPaymentLocalRpcPromise = (params: MessageTypes['stellar.1.local.reviewPaymentLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.reviewPaymentLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.reviewPaymentLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localSendPathLocalRpcPromise = (params: MessageTypes['stellar.1.local.sendPathLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.sendPathLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.sendPathLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSendPaymentLocalRpcPromise = (params: MessageTypes['stellar.1.local.sendPaymentLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.sendPaymentLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.sendPaymentLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetAccountAllDevicesLocalRpcPromise = (params: MessageTypes['stellar.1.local.setAccountAllDevicesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.setAccountAllDevicesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.setAccountAllDevicesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetAccountMobileOnlyLocalRpcPromise = (params: MessageTypes['stellar.1.local.setAccountMobileOnlyLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.setAccountMobileOnlyLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.setAccountMobileOnlyLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -522,7 +527,6 @@ export const localValidateStellarURILocalRpcPromise = (params: MessageTypes['ste
 // 'stellar.1.local.getGenericPaymentDetailsLocal'
 // 'stellar.1.local.validateAccountIDLocal'
 // 'stellar.1.local.getWalletAccountPublicKeyLocal'
-// 'stellar.1.local.sendPathLocal'
 // 'stellar.1.local.getRequestDetailsLocal'
 // 'stellar.1.local.changeTrustlineLimitLocal'
 // 'stellar.1.local.balancesLocal'

@@ -47,10 +47,10 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
       })
     )
   },
-  onClickSendAdvanced: () => {},
+  onClickSendAdvanced: () => dispatch(WalletsGen.createSendPaymentAdvanced()),
 })
 
-const mergeProps = (s, d, o) => ({
+const mergeProps = (s, d, o: OwnProps) => ({
   disabled: s.disabled,
   isAdvanced: !!o.isAdvanced,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,

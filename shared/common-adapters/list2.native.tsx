@@ -43,7 +43,11 @@ class List2<T> extends PureComponent<Props<T>> {
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}
-          getItemLayout={this._getItemLayout}
+          getItemLayout={(data, index) => {
+            const tmp = this._getItemLayout(data, index)
+            console.log({songgao: '_getItemLayout', tmp})
+            return tmp
+          }}
           keyExtractor={this._keyExtractor}
           keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
           onEndReached={this.props.onEndReached}

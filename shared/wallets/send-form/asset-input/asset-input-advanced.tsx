@@ -22,10 +22,16 @@ type RecipientProps = {
 const recipientTopLabel = (props: RecipientProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.topLabel}>
     {props.recipientType === 'keybaseUser' ? (
-      // <Kb.NameWithIcon size="smaller" horizontal={true} username={props.account.username} />
-      <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle">
-        {props.recipient}
-      </Kb.Text>
+      <>
+        <Kb.Avatar username={props.recipient} size={16} style={styles.avatar} />
+        <Kb.ConnectedUsernames
+          usernames={[props.recipient]}
+          type="BodyTinySemibold"
+          colorBroken={true}
+          colorFollowing={true}
+          underline={false}
+        />
+      </>
     ) : (
       <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle">
         {props.recipient}
@@ -49,7 +55,7 @@ const recipientAmountInput = (props: RecipientProps) => (
 )
 
 export const AssetInputRecipientAdvanced = (props: RecipientProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={sharedStyles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={sharedStyles.container} gap="xtiny">
     {recipientTopLabel(props)}
     {recipientAmountInput(props)}
   </Kb.Box2>
@@ -114,6 +120,35 @@ export const AssetInputSenderAdvanced = (props: SenderProps) => (
     <Available />
   </Kb.Box2>
 )
+
+export const AssetPathIntermediate = () => {
+  const path = Container.useSelector(state => state.wallets.builtPaymentAdvanced.fullPath.path)
+  return (
+    !!path.size && (
+      <Kb.Box2 direction="horizontal" style={styles.assetPathContainer} fullWidth={true}>
+        <Kb.Text type="BodySmallSemibold">Intermediate asset(s): </Kb.Text>
+        <Kb.Box style={Styles.globalStyles.flexGrow} />
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.assetPathItem} gap="xtiny">
+          {path
+            .toArray()
+            .reverse()
+            .map(asset => (
+              <React.Fragment key={Types.assetDescriptionToAssetID(asset)}>
+                <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
+                <Kb.Box2 direction="horizontal">
+                  <Kb.Text type="BodyTinyBold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
+                  <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
+                    {asset !== 'native' && `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
+                  </Kb.Text>
+                </Kb.Box2>
+              </React.Fragment>
+            ))}
+          <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  )
+}
 
 type PickAssetButtonProps = {
   // TODO get this from store after PickAssetButton is connected
@@ -186,6 +221,16 @@ const styles = Styles.styleSheetCreate({
     height: 20,
     width: 20,
   },
+  assetPathContainer: {
+    backgroundColor: Styles.globalColors.blueGrey,
+    padding: Styles.globalMargins.small,
+  },
+  assetPathItem: {
+    maxWidth: Styles.globalMargins.large * 4,
+  },
+  avatar: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   error: {
     color: Styles.globalColors.redDark,
   },
@@ -193,6 +238,6 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
   },
   topLabel: {
-    marginBottom: Styles.globalMargins.tiny,
+    marginBottom: Styles.globalMargins.xtiny,
   },
 })

@@ -95,21 +95,21 @@ export type _Building = {
 export type _BuildingAdvanced = {
   recipient: string
   recipientAmount: string
-  recipientAsset: AssetDescription | 'native'
+  recipientAsset: AssetDescriptionOrNative
   recipientType: CounterpartyType
   publicMemo: HiddenString
   senderAccountID: AccountID
-  senderAsset: AssetDescription | 'native'
+  senderAsset: AssetDescriptionOrNative
   secretNote: HiddenString
 }
 
 export type _PaymentPath = {
   sourceAmount: string
   sourceAmountMax: string
-  sourceAsset: AssetDescription
-  path: I.List<AssetDescription>
+  sourceAsset: AssetDescriptionOrNative
+  path: I.List<AssetDescriptionOrNative>
   destinationAmount: string
-  destinationAsset: AssetDescription
+  destinationAsset: AssetDescriptionOrNative
 }
 
 export type _BuiltPaymentAdvanced = {
@@ -230,6 +230,7 @@ export type _AssetDescription = {
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
+export type AssetDescriptionOrNative = AssetDescription | 'native'
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
@@ -325,8 +326,8 @@ export type AirdropDetails = I.RecordOf<_AirdropDetails>
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
   `${issuerAccountID}-${assetCode}`
-export const assetDescriptionToAssetID = (assetDescription: AssetDescription): AssetID =>
-  makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
+export const assetDescriptionToAssetID = (assetDescription: AssetDescriptionOrNative): AssetID =>
+  assetDescription === 'native' ? 'XLM' : makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
 
 export type _Trustline = {
   acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>

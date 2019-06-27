@@ -19,17 +19,9 @@ type Props = Container.RouteProps<
   {}
 >
 
-const AssetList = ({accountID, isSender, username}) => {
-  const acceptedAssets = Container.useSelector(state =>
-    username
-      ? state.wallets.trustline.acceptedAssetsByUsername.get(username, Constants.emptyAccountAcceptedAssets)
-      : state.wallets.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
-  )
+const Item = ({assetID, selected, isSender}) => {
   const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
-  const selectedAsset = Container.useSelector(state =>
-    isSender ? state.wallets.buildingAdvanced.senderAsset : state.wallets.buildingAdvanced.recipientAsset
-  )
-  const selectedAssetID = selectedAsset !== 'native' && Types.assetDescriptionToAssetID(selectedAsset)
+  const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
   const dispatch = Container.useDispatch()
   const onSelect = React.useCallback(
     asset => {
@@ -42,56 +34,119 @@ const AssetList = ({accountID, isSender, username}) => {
     },
     [dispatch, isSender]
   )
+  return (
+    <Kb.ClickableBox onClick={() => onSelect(asset)} style={styles.itemContainer}>
+      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
+        <Kb.Text
+          type="BodyExtrabold"
+          lineClamp={1}
+          ellipsizeMode="tail"
+          style={selected && styles.textSelected}
+        >
+          {asset === 'native' ? 'XLM' : asset.code}
+        </Kb.Text>
+        {asset !== 'native' && (
+          <Kb.Text
+            type="BodySmall"
+            lineClamp={1}
+            ellipsizeMode="middle"
+            style={selected && styles.textSelected}
+          >
+            {asset.issuerVerifiedDomain || asset.issuerAccountID}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+      {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+    </Kb.ClickableBox>
+  )
+}
+
+const AssetList = ({accountID, isSender, username}) => {
+  const acceptedAssets = Container.useSelector(state =>
+    username
+      ? state.wallets.trustline.acceptedAssetsByUsername.get(username, Constants.emptyAccountAcceptedAssets)
+      : state.wallets.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
+  )
+  const selectedAsset = Container.useSelector(state =>
+    isSender ? state.wallets.buildingAdvanced.senderAsset : state.wallets.buildingAdvanced.recipientAsset
+  )
+  const selectedAssetID = selectedAsset !== 'native' && Types.assetDescriptionToAssetID(selectedAsset)
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     username
       ? dispatch(WalletsGen.createRefreshTrustlineAcceptedAssetsByUsername({username}))
       : dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
   }, [dispatch, username, accountID])
+  const items = acceptedAssets
+    .keySeq()
+    .toArray()
+    .map(assetID => ({
+      assetID,
+      key: assetID,
+      selected: assetID === selectedAssetID,
+    }))
+  const itemsAmended = [
+    ...items.slice(0, 1),
+    {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
+  ]
+  const json = JSON.stringify(itemsAmended)
+  const jsonLiteral =
+    '[{"assetID":"GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD","key":"GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD","selected":false},{"assetID":"XLM","key":" XLM","selected":false}]'
+  const parsedJson = JSON.parse(json)
+  const parsedJsonLiteral = JSON.parse(jsonLiteral)
+  console.log({
+    songgao: 'AssetList',
+    items,
+    itemsAmended,
+    json,
+    jsonLiteral,
+    parsedJson,
+    parsedJsonLiteral,
+    equal: json === jsonLiteral,
+  })
   return (
     <Kb.BoxGrow>
       <Kb.List2
-        items={[
+        items={
+          parsedJsonLiteral /* SONGGAO-for-NOJIMA: this works. `parsedJson` doesn't*/ || [
+            /*
           ...acceptedAssets
             .keySeq()
             .toArray()
             .map(assetID => ({
-              asset: assetMap.get(assetID, Constants.emptyAssetDescription),
+              assetID,
+              key: assetID,
               selected: assetID === selectedAssetID,
             })),
-          {asset: 'native', selected: selectedAsset === 'native'},
-        ]}
+           */
+            ...items,
+            {
+              assetID: 'GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD',
+              key: 'GBSTRUSD7IRX73RQZBL3RQUH6KS3O4NYFY3QCALDLZD77XMZOPWAVTUK-USD',
+              selected: false,
+            },
+            {
+              assetID: 'GDSVWEA7XV6M5XNLODVTPCGMAJTNBLZBXOFNQD3BNPNYALEYBNT6CE2V-WSD',
+              key: 'GDSVWEA7XV6M5XNLODVTPCGMAJTNBLZBXOFNQD3BNPNYALEYBNT6CE2V-WSD',
+              selected: false,
+            },
+            {
+              assetID: 'GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX-USD',
+              key: 'GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX-USD',
+              selected: false,
+            },
+            {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
+          ]
+        }
         bounces={true}
         itemHeight={{
           height: 56, // TODO figure out desktop
           type: 'fixed',
         }}
-        renderItem={(index, {asset, selected}) => {
-          return (
-            <Kb.ClickableBox onClick={() => onSelect(asset)} style={styles.itemContainer}>
-              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
-                <Kb.Text
-                  type="BodyExtrabold"
-                  lineClamp={1}
-                  ellipsizeMode="tail"
-                  style={selected && styles.textSelected}
-                >
-                  {asset === 'native' ? 'XLM' : asset.code}
-                </Kb.Text>
-                {asset !== 'native' && (
-                  <Kb.Text
-                    type="BodySmall"
-                    lineClamp={1}
-                    ellipsizeMode="middle"
-                    style={selected && styles.textSelected}
-                  >
-                    {asset.issuerVerifiedDomain || asset.issuerAccountID}
-                  </Kb.Text>
-                )}
-              </Kb.Box2>
-              {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
-            </Kb.ClickableBox>
-          )
+        renderItem={(index, {assetID, selected}) => {
+          return <Item assetID={assetID} isSelder={isSender} selected={selected} />
         }}
+        keyProperty="key"
       />
     </Kb.BoxGrow>
   )
@@ -147,12 +202,13 @@ const styles = Styles.styleSheetCreate({
   }),
   itemContainer: {
     ...Styles.globalStyles.flexBoxRow,
-    ...Styles.globalStyles.fullWidth,
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
+    width: '100%',
+    height: 56,
   },
   textSelected: {
     color: Styles.globalColors.blueDark,

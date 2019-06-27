@@ -1114,20 +1114,36 @@ const assetDescriptionOrNativeToRpcAsset = (
   asset: 'native' | Types.AssetDescription
 ): RPCStellarTypes.Asset =>
   asset === 'native'
-    ? {type: 'native'}
+    ? {
+        code: '',
+        desc: '',
+        infoUrl: '',
+        infoUrlText: '',
+        issuer: '',
+        issuerName: '',
+        type: 'native',
+        verifiedDomain: '',
+      }
     : {
-        type: asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
         code: asset.code,
+        desc: '',
+        infoUrl: '',
+        infoUrlText: '',
         issuer: asset.issuerAccountID,
+        issuerName: '',
+        type: asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
+        verifiedDomain: '',
       }
 
-const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDescription =>
-  Constants.makeAssetDescription({
-    code: asset.code,
-    issuerAccountID: asset.issuer,
-    issuerName: asset.issuerName,
-    issuerVerifiedDomain: asset.verifiedDomain,
-  })
+const rpcAssetToAssetDescription = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
+  asset.type === 'native'
+    ? 'native'
+    : Constants.makeAssetDescription({
+        code: asset.code,
+        issuerAccountID: asset.issuer,
+        issuerName: asset.issuerName,
+        issuerVerifiedDomain: asset.verifiedDomain,
+      })
 
 const balancesToAction = (
   balances: Array<RPCStellarTypes.Balance>,
@@ -1238,6 +1254,27 @@ const searchTrustlineAssets = (state, {payload: {text}}) => {
     : WalletsGen.createClearTrustlineSearchResults()
 }
 
+const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellarTypes.PaymentPath => ({
+  destinationAmount: paymentPath.destinationAmount,
+  destinationAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.destinationAsset),
+  path: paymentPath.path.toArray().map(ad => assetDescriptionOrNativeToRpcAsset(ad)),
+  sourceAmount: paymentPath.sourceAmount,
+  sourceAmountMax: paymentPath.sourceAmountMax,
+  sourceAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.sourceAsset),
+})
+
+const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath) =>
+  Constants.makePaymentPath({
+    destinationAmount: rpcPaymentPath.destinationAmount,
+    destinationAsset: rpcAssetToAssetDescription(rpcPaymentPath.destinationAsset),
+    path: I.List(
+      rpcPaymentPath.path ? rpcPaymentPath.path.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : []
+    ),
+    sourceAmount: rpcPaymentPath.sourceAmount,
+    sourceAmountMax: rpcPaymentPath.sourceAmountMax,
+    sourceAsset: rpcAssetToAssetDescription(rpcPaymentPath.sourceAsset),
+  })
+
 const calculateBuildingAdvanced = state =>
   RPCStellarTypes.localFindPaymentPathLocalRpcPromise({
     amount: state.wallets.buildingAdvanced.recipientAmount,
@@ -1247,30 +1284,28 @@ const calculateBuildingAdvanced = state =>
     to: state.wallets.buildingAdvanced.recipient,
   }).then(res => {
     console.log({res})
-    const {
-      destinationAccount,
-      destinationDisplay,
-      fullPath: {sourceAmount, sourceAmountMax, sourceAsset, path, destinationAsset},
-      sourceDisplay,
-      sourceMaxDisplay,
-    } = res
+    const {destinationAccount, destinationDisplay, fullPath, sourceDisplay, sourceMaxDisplay} = res
     return WalletsGen.createSetBuiltPaymentAdvanced({
       builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
         destinationAccount,
         destinationDisplay,
-        fullPath: Constants.makePaymentPath({
-          destinationAsset: rpcAssetToAssetDescription(destinationAsset),
-          path: I.List(path ? path.map(rpcAsset => rpcAssetToAssetDescription(rpcAsset)) : []),
-          sourceAmount,
-          sourceAmountMax,
-          sourceAsset: rpcAssetToAssetDescription(sourceAsset),
-        }),
+        fullPath: rpcPaymentPathToPaymentPath(fullPath),
         readyToSend: true,
         sourceDisplay,
         sourceMaxDisplay,
       }),
     })
   })
+
+const sendPaymentAdvanced = state => {
+  return RPCStellarTypes.localSendPathLocalRpcPromise({
+    note: state.wallets.buildingAdvanced.secretNote.stringValue(),
+    path: paymentPathToRpcPaymentPath(state.wallets.builtPaymentAdvanced.fullPath),
+    publicNote: state.wallets.buildingAdvanced.publicMemo.stringValue(),
+    recipient: state.wallets.buildingAdvanced.recipient,
+    source: state.wallets.buildingAdvanced.senderAccountID,
+  }).then(() => RouteTreeGen.createClearModals())
+}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
@@ -1712,10 +1747,15 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     searchTrustlineAssets,
     'searchTrustlineAssets'
   )
-  yield* Saga.chainAction<WalletsGen.SetTrustlineSearchTextPayload>(
+  yield* Saga.chainAction<WalletsGen.CalculateBuildingAdvancedPayload>(
     WalletsGen.calculateBuildingAdvanced,
     calculateBuildingAdvanced,
     'calculateBuildingAdvanced'
+  )
+  yield* Saga.chainAction<WalletsGen.SendPaymentPayload>(
+    WalletsGen.sendPaymentAdvanced,
+    sendPaymentAdvanced,
+    'sendPaymentAdvanced'
   )
 }
 

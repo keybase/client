@@ -87,16 +87,23 @@ export const AmountInput = (props: AmountInputProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  input: {
-    color: Styles.globalColors.purple,
-    position: 'relative',
-    top: -8,
-  },
+  input: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.purple,
+      position: 'relative',
+    },
+    isElectron: {
+      top: -8,
+    },
+    isMobile: {
+      top: -4,
+    },
+  }),
   inputContainer: {
     alignItems: 'flex-start',
     borderWidth: 0,
-    // Because of the "top: -8" on the input inside this is needed; otherwise
-    // the top part goes over and covers part of what's above.
+    // Because of the negative top on the input inside this is needed;
+    // otherwise the top part goes over and covers part of what's above.
     overflow: 'hidden',
     paddingLeft: 0,
     paddingTop: 0,

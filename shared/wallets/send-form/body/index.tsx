@@ -6,6 +6,7 @@ import {
   AssetInputRecipientAdvanced,
   AssetInputSenderAdvanced,
 } from '../asset-input/asset-input-advanced-container'
+import {AssetPathIntermediate} from '../asset-input/asset-input-advanced'
 import Banner from '../../banner'
 import Footer from '../footer/container'
 import {SecretNote, PublicMemo} from '../note-and-memo/container'
@@ -105,6 +106,7 @@ export const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
     <Kb.ScrollView style={styles.scrollView}>
       <AssetInputRecipientAdvanced />
+      <AssetPathIntermediate />
       <AssetInputSenderAdvanced />
       <Kb.Divider />
       <SecretNote />
