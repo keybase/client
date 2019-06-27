@@ -110,6 +110,7 @@ export const Phone = () => {
           onContinue={onContinue}
           allowSearch={allowSearch}
           onChangeAllowSearch={onChangeAllowSearch}
+          icon={<Kb.Icon type={Styles.isMobile ? 'icon-number-add-64' : 'icon-number-add-48'} />}
         />
       </Kb.Box2>
     </Kb.Modal>
