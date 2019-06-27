@@ -82,6 +82,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -97,6 +98,7 @@ const load = () => {
           {
             followingState: 'NotFollowing',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -111,6 +113,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -173,6 +176,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -188,6 +192,7 @@ const load = () => {
           {
             followingState: 'NotFollowing',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -202,6 +207,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -214,6 +220,50 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+      />
+    ))
+    .add('Team Building - Show role picker', () => (
+      <TeamBuilding
+        rolePickerProps={{
+          changeSendNotification: Sb.action('changeSendNotification'),
+          changeShowRolePicker: Sb.action('changeShowRolePicker'),
+          disabledRoles: {},
+          onSelectRole: Sb.action('confirmRolePicker'),
+          selectedRole: 'writer',
+          sendNotification: true,
+          showRolePicker: true,
+        }}
+        searchString=""
+        selectedService="keybase"
+        waitingForCreate={false}
+        onChangeService={Sb.action('onChangeService')}
+        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+        onChangeText={Sb.action('onChangeText')}
+        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onBackspace={Sb.action('onBackspace')}
+        onRemove={Sb.action('onRemove')}
+        onMakeItATeam={Sb.action('onMakeItATeam')}
+        showRecs={false}
+        recommendations={[]}
+        fetchUserRecs={() => {}}
+        onSearchForMore={() => {
+          Sb.action('onSearchForMore')
+        }}
+        teamSoFar={[
+          {
+            prettyName: 'max (Max Krohn)',
+            service: 'keybase',
+            userId: 'max',
+            username: 'max',
+          },
+        ]}
+        serviceResultCount={{}}
+        showServiceResultCount={false}
+        onAdd={Sb.action('onAdd')}
+        highlightedIndex={1}
+        searchResults={[]}
       />
     ))
     .add('Team Building - No search string or results', () => (
@@ -273,6 +323,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -288,6 +339,7 @@ const load = () => {
           {
             followingState: 'NotFollowing',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -302,6 +354,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -345,6 +398,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -360,6 +414,7 @@ const load = () => {
           {
             followingState: 'NotFollowing',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -374,6 +429,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -417,6 +473,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: true,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
@@ -432,6 +489,7 @@ const load = () => {
           {
             followingState: 'NotFollowing',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
@@ -446,6 +504,7 @@ const load = () => {
           {
             followingState: 'Following',
             inTeam: false,
+            isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
@@ -499,7 +558,7 @@ const load = () => {
         ]}
       />
     ))
-    .add('Go Button', () => <GoButton onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Go!" onClick={Sb.action('onClick')} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)
@@ -578,6 +637,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={false}
+        isPreExistingTeamMember={false}
         followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
@@ -597,6 +657,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
+        isPreExistingTeamMember={false}
         followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
@@ -610,6 +671,7 @@ const load = () => {
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
+        isPreExistingTeamMember={false}
         followingState={'Following'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
@@ -626,10 +688,12 @@ const load = () => {
         followingState={'NoState'}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
+        isPreExistingTeamMember={false}
       />
     ))
     .add('Chris Highlighted (already in team)', () => (
       <UserResult
+        isPreExistingTeamMember={false}
         username="chris"
         prettyName="Chris Coyne"
         services={{

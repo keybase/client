@@ -2,13 +2,16 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 
+type Label = 'Go!' | 'Add'
+
 export type Props = {
   onClick: () => void
+  label: Label
 }
 
-const Go = () => (
+const Go = (label: Label) => () => (
   <Kb.Text type="BodyBig" style={styles.go}>
-    Go!
+    {label}
   </Kb.Text>
 )
 
@@ -21,11 +24,12 @@ const GoIcon = () => (
   />
 )
 
-const GoWithIconHover = Kb.HoverHoc(Go, GoIcon)
+const GoWithIconHover = Kb.HoverHoc(Go('Go!'), GoIcon)
+const AddWithIconHover = Kb.HoverHoc(Go('Add'), GoIcon)
 
 const GoButton = (props: Props) => (
   <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
-    <GoWithIconHover />
+    {props.label === 'Go!' ? <GoWithIconHover /> : <AddWithIconHover />}
   </Kb.ClickableBox>
 )
 

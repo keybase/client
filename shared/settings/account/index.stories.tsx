@@ -11,6 +11,7 @@ const props = {
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
+  onManageContacts: Sb.action('onManageContacts'),
   onSetPassword: Sb.action('onSetPassword'),
 }
 

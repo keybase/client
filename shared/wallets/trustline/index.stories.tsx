@@ -60,7 +60,8 @@ const assets = {
 const commonTrustlineProps = {
   acceptedAssets: ['issuer1-KEYZ'],
   accountID: Types.noAccountID,
-  balanceAvailableToSend: 2,
+  balanceAvailableToSend: '2',
+  canAddTrustline: true,
   clearTrustlineModal: Sb.action('clearTrustlineModal'),
   loaded: true,
   onDone: Sb.action('onDone'),
@@ -129,7 +130,8 @@ const load = () => {
     .add('Trustline - search', () => (
       <Trustline {...commonTrustlineProps} searchingAssets={['issuer1-USD', 'issuer2-USD']} />
     ))
-    .add('Trustline - error', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend={0.2} />)
+    .add('Trustline - error', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend="0.2" />)
+    .add('Trustline - unable to add', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend="0.2" canAddTrustline={false} />)
     .add('Trustline - loading', () => <Trustline {...commonTrustlineProps} loaded={false} />)
 }
 

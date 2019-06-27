@@ -22,6 +22,7 @@ export type MenuLayoutProps = {
   onHidden: () => void
   closeOnClick?: boolean
   style?: Object
+  listStyle?: Object
   hoverColor?: string
   closeText?: string | null // mobile only; default to "Close"
 }

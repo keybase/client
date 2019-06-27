@@ -36,7 +36,7 @@ func newMockChatUI() *mockChatUI {
 	}
 }
 
-func (m *mockChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
+func (m *mockChatUI) ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error) {
 	m.watchID++
 	m.watchCh <- m.watchID
 	return m.watchID, nil
@@ -44,6 +44,11 @@ func (m *mockChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, 
 
 func (m *mockChatUI) ChatClearWatch(ctx context.Context, watchID chat1.LocationWatchID) error {
 	m.clearCh <- watchID
+	return nil
+}
+
+func (m *mockChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
 	return nil
 }
 

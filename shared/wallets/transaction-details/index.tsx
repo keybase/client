@@ -19,6 +19,7 @@ export type NotLoadingProps = {
   counterpartyMeta: string | null
   counterpartyType: Types.CounterpartyType
   feeChargedDescription: string
+  fromAirdrop: boolean
   // issuer, for non-xlm assets
   issuerDescription: string
   issuerAccountID: Types.AccountID | null
@@ -207,6 +208,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
       switch (yourRole) {
         case 'senderOnly':
           return 'Sent'
+        case 'airdrop':
         case 'receiverOnly':
           return 'Received'
         case 'senderAndReceiver':
@@ -254,6 +256,8 @@ const propsToParties = (props: NotLoadingProps) => {
   ) : null
 
   switch (props.yourRole) {
+    case 'airdrop':
+      return {receiver: you, sender: counterparty}
     case 'senderOnly':
       return {receiver: counterparty, sender: you}
     case 'receiverOnly':
@@ -316,6 +320,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
+          fromAirdrop={props.fromAirdrop}
           detailView={true}
           memo={props.memo}
           onCancelPayment={null}
@@ -604,7 +609,7 @@ const styles = Styles.styleSheetCreate({
   }),
   tooltipText: Styles.platformStyles({
     isElectron: {
-      wordBreak: 'break-work',
+      wordBreak: 'break-word',
     },
   }),
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),

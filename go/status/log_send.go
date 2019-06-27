@@ -17,12 +17,15 @@ import (
 )
 
 const (
-	LogSendDefaultBytesDesktop = 1024 * 1024 * 16
-	// NOTE: If you increase LogSendDefaultBytesMobile, check
-	// go/libkb/env.go:Env.GetLogFileConfig to make sure we store at least that
-	// much.
-	LogSendDefaultBytesMobile = 1024 * 1024 * 10
-	LogSendMaxBytes           = 1024 * 1024 * 128
+	// After gzipping the logs we compress by this factor on avg. We use this
+	// to calculate the amount of raw log bytes we should read when sending.
+	AvgCompressionRatio        = 10
+	LogSendDefaultBytesDesktop = 1024 * 1024 * 16 * AvgCompressionRatio
+	// NOTE: On mobile we may store less than the number of bytes we attempt to
+	// send. See go/libkb/env.go:Env.GetLogFileConfig
+	LogSendDefaultBytesMobileWifi   = 1024 * 1024 * 10 * AvgCompressionRatio
+	LogSendDefaultBytesMobileNoWifi = 1024 * 1024 * 1 * AvgCompressionRatio
+	LogSendMaxBytes                 = 1024 * 1024 * 128 * AvgCompressionRatio
 )
 
 // Logs is the struct to specify the path of log files

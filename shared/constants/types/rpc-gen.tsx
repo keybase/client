@@ -235,6 +235,10 @@ export type MessageTypes = {
     inParam: {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSSetDebugLevel': {
+    inParam: {readonly level: String}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig': {
     inParam: {readonly path: Path; readonly config: FolderSyncConfig}
     outParam: void
@@ -2570,6 +2574,9 @@ export type TeamShowcase = {readonly isShowcased: Boolean; readonly description?
 export type TeamSigChainState = {readonly reader: UserVersion; readonly id: TeamID; readonly implicit: Boolean; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly nameLog?: Array<TeamNameLogPoint> | null; readonly lastSeqno: Seqno; readonly lastLinkID: LinkID; readonly lastHighSeqno: Seqno; readonly lastHighLinkID: LinkID; readonly parentID?: TeamID | null; readonly userLog: {[key: string]: Array<UserLogPoint> | null}; readonly subteamLog: {[key: string]: Array<SubteamLogPoint> | null}; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly maxPerTeamKeyGeneration: PerTeamKeyGeneration; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly stubbedLinks: {[key: string]: Boolean}; readonly activeInvites: {[key: string]: TeamInvite}; readonly obsoleteInvites: {[key: string]: TeamInvite}; readonly open: Boolean; readonly openTeamJoinAs: TeamRole; readonly tlfIDs?: Array<TLFID> | null; readonly tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}; readonly headMerkle?: MerkleRootV2 | null; readonly merkleRoots: {[key: string]: MerkleRootV2}}
 export type TeamTreeEntry = {readonly name: TeamName; readonly admin: Boolean}
 export type TeamTreeResult = {readonly entries?: Array<TeamTreeEntry> | null}
+export type TeambotEk = {readonly seed: Bytes32; readonly metadata: TeambotEkMetadata}
+export type TeambotEkBoxed = {readonly box: String; readonly metadata: TeambotEkMetadata}
+export type TeambotEkMetadata = {readonly kid: KID; readonly generation: EkGeneration; readonly uid: UID; readonly userEkGeneration: EkGeneration; readonly hashMeta: HashMeta; readonly ctime: Time}
 export type Test = {readonly reply: String}
 export type Text = {readonly data: String; readonly markup: Boolean}
 export type Time = Long
@@ -2866,6 +2873,7 @@ export const SimpleFSSimpleFSMoveRpcPromise = (params: MessageTypes['keybase.1.S
 export const SimpleFSSimpleFSOpenRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSOpen']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSOpen']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSOpen', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSReadListRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSReadList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSReadList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSReadList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSRemoveRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSRemove']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSRemove']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSRemove', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSetDebugLevelRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetDebugLevel']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetDebugLevel']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetDebugLevel', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetFolderSyncConfigRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSettingsRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3336,7 +3344,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.SimpleFS.simpleFSGetUserQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSGetTeamQuotaUsage'
 // 'keybase.1.SimpleFS.simpleFSReset'
-// 'keybase.1.SimpleFS.simpleFSSetDebugLevel'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'

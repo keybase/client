@@ -54,6 +54,10 @@
         {
           "type": "boolean",
           "name": "canSubmitTx"
+        },
+        {
+          "type": "boolean",
+          "name": "canAddTrustline"
         }
       ]
     },
@@ -119,10 +123,6 @@
         {
           "type": "string",
           "name": "infoUrlText"
-        },
-        {
-          "type": "boolean",
-          "name": "canAddTrustline"
         }
       ]
     },
@@ -417,6 +417,13 @@
         {
           "type": "string",
           "name": "feeChargedDescription"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
         }
       ]
     },
@@ -827,6 +834,10 @@
         {
           "type": "string",
           "name": "destinationDisplay"
+        },
+        {
+          "type": "string",
+          "name": "exchangeRate"
         },
         {
           "type": "AccountID",

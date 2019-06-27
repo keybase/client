@@ -83,7 +83,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
             ))}
           </ScrollView>
           <Divider style={styles.divider} />
-          <Box style={styles.menuGroup}>
+          <Box style={Styles.collapseStyles([styles.menuGroup, this.props.listStyle])}>
             <MenuRow
               title={this.props.closeText || 'Close'}
               index={0}

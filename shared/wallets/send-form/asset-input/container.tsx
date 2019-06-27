@@ -13,8 +13,8 @@ const mapStateToProps = state => {
     currencyLoading: currency === '',
     displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
     // TODO differentiate between an asset (7 digits) and a display currency (2 digits) below
-    inputPlaceholder: currency !== 'XLM' ? '0.00' : '0.0000000',
-    numDecimalsAllowed: currency !== 'XLM' ? 2 : 7,
+    inputPlaceholder: Constants.inputPlaceholderForCurrency(currency),
+    numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
     topLabel: '', // TODO
     value: amount,
   }

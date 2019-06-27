@@ -24,6 +24,7 @@ const props = {
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
   feeChargedDescription: '',
+  fromAirdrop: false,
   isAdvanced: false,
   issuerAccountID: null,
   issuerDescription: '',

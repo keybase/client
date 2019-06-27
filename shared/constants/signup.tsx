@@ -21,6 +21,7 @@ export const makeState = I.Record<Types._State>({
   devicenameError: '',
   email: '',
   emailError: '',
+  emailVisible: false,
   inviteCode: '',
   inviteCodeError: '',
   name: '',
