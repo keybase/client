@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Text} from '../../../common-adapters'
-import {globalStyles, globalColors} from '../../../styles'
+import {Box, Button, Text} from '../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
 
 export type BrokenTrackerProps = {
@@ -9,6 +9,8 @@ export type BrokenTrackerProps = {
 }
 
 export type InviteProps = {
+  inviteEnabled: boolean
+  onShareClick: (email: string) => void
   users: Array<string>
 }
 
@@ -72,10 +74,24 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
     </BannerBox>
   )
 
-const InviteBanner = ({users}: InviteProps) => (
-  <BannerBox color={globalColors.blue}>
-    <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
-  </BannerBox>
-)
+const InviteBanner = ({users, inviteEnabled, onShareClick}: InviteProps) =>
+  inviteEnabled && users.length === 1 && users[0].endsWith('@phone') ? (
+    <BannerBox color={globalColors.blue}>
+      <BannerText>Your messages will unlock once they join Keybase and verify their phone number.</BannerText>
+      <BannerText>Help them install Keybase:</BannerText>
+      <Button
+        label="Share install link"
+        onClick={() => onShareClick(users[0].slice(0, -6))}
+        mode="Secondary"
+        style={{
+          marginTop: globalMargins.xxtiny,
+        }}
+      />
+    </BannerBox>
+  ) : (
+    <BannerBox color={globalColors.blue}>
+      <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
+    </BannerBox>
+  )
 
 export {BrokenTrackerBanner, InviteBanner}

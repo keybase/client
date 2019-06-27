@@ -5,6 +5,8 @@ import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as Types from '../../../constants/types/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
 import {connect, isMobile} from '../../../util/container'
+import openSMS from '../../../util/sms'
+import flags from '../../../util/feature-flags'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -14,13 +16,20 @@ type Props = {
   type: 'invite' | 'none' | 'broken'
   onClick: (username: string) => void
   users: Array<string>
+  onShareClick: (email: string) => void
 }
 
 class BannerContainer extends React.PureComponent<Props> {
   render() {
     switch (this.props.type) {
       case 'invite':
-        return <InviteBanner users={this.props.users} />
+        return (
+          <InviteBanner
+            inviteEnabled={flags.sbsContacts}
+            onShareClick={this.props.onShareClick}
+            users={this.props.users}
+          />
+        )
       case 'broken':
         return <BrokenTrackerBanner onClick={this.props.onClick} users={this.props.users} />
       case 'none':
@@ -73,6 +82,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     onClick: dispatchProps.onClick,
+    onShareClick: (phoneNumber: string) => openSMS(['+' + phoneNumber], 'hey bud join keybase'),
     type,
     users: users || [],
   }
