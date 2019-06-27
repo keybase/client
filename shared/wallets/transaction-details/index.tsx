@@ -80,6 +80,12 @@ interface ConvertedCurrencyLabelProps {
   issuerDescription: string
 }
 
+interface PaymentPathEndProps {
+  type: 'source' | 'destination'
+  assetLabel: string
+  issuer: string
+}
+
 const PartyAccount = (props: PartyAccountProps) => {
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
@@ -307,7 +313,8 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
   </Kb.Box2>
 )
 
-const PaymentPathEnd = (props: any) => (
+// A PaymentPathEnd is one of the two ends of the payment path: either the source or destination
+const PaymentPathEnd = (props: PaymentPathEndProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
     <Kb.Avatar size={32} borderColor={Styles.globalColors.purpleLight} />
     <Kb.Text
