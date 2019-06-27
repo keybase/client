@@ -9,6 +9,7 @@ import Overlay from '../overlay'
 import {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {MenuItem, MenuItems} from './menu-layout'
 import {StylesCrossPlatform} from '../../styles'
+import ScrollView from '../scroll-view'
 
 export type Props = {
   closeOnSelect: boolean

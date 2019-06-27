@@ -6,11 +6,13 @@ import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
-import {asRows as accountSwitcherAsRows, RowsProps as AccountSwitcherProps} from '../account-switcher/index'
+import AccountSwitcher from '../account-switcher/container'
 export type Props = {
   badgeNumbers: {[K in string]: number}
   fullname: string
   isWalletsNew?: boolean
+  onAddAccount: () => void
+  onCreateAccount: () => void
   onHelp: () => void
   onProfileClick: () => void
   onQuit: () => void
@@ -20,7 +22,7 @@ export type Props = {
   selectedTab: Tabs.Tab
   uploading: boolean
   username: string
-} & AccountSwitcherProps
+}
 
 const data = {
   [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
@@ -54,23 +56,35 @@ class TabBar extends React.PureComponent<Props, State> {
     onClick: this.props.onProfileClick,
     title: '',
     view: (
-      <Kb.ClickableBox onClick={this._onClickWrapper} style={styles.headerBox}>
-        <Kb.ConnectedNameWithIcon
-          username={this.props.username}
-          onClick={this._onClickWrapper}
-          metaTwo={
-            <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
-              {this.props.fullname}
-            </Kb.Text>
-          }
-        />
-      </Kb.ClickableBox>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={this._onClickWrapper} style={styles.headerBox}>
+          <Kb.ConnectedNameWithIcon
+            username={this.props.username}
+            onClick={this._onClickWrapper}
+            metaTwo={
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                {this.props.fullname}
+              </Kb.Text>
+            }
+          />
+        </Kb.ClickableBox>
+        {flags.fastAccountSwitch && <AccountSwitcher />}
+      </Kb.Box2>
     ),
   })
   _menuItems = () =>
     [
       ...(flags.fastAccountSwitch
-        ? accountSwitcherAsRows(this.props)
+        ? [
+            {
+              onClick: this.props.onAddAccount,
+              title: 'Add another account',
+            },
+            {
+              onClick: this.props.onCreateAccount,
+              title: 'Create a new account',
+            },
+          ]
         : [
             {
               onClick: this.props.onProfileClick,

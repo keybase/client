@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import AccountSwitcherMobile, {Props} from '.'
+import AccountSwitcher, {Props} from '.'
 import * as ConfigConstants from '../../constants/config'
 
 const props: Props = {
@@ -37,7 +37,7 @@ const props: Props = {
 }
 
 const load = () => {
-  Sb.storiesOf('Account Switcher', module).add('Mobile', () => <AccountSwitcherMobile {...props} />)
+  Sb.storiesOf('Account Switcher', module).add('Mobile', () => <AccountSwitcher {...props} />)
 }
 
 export default load

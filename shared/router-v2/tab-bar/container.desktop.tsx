@@ -73,11 +73,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       quit('quitButton')
     }, 2000)
   },
-  onSelectAccountLoggedIn: username => dispatch(LoginGen.createLogin({password: null, username})),
-  onSelectAccountLoggedOut: username => {
-    dispatch(ConfigGen.createSetDefaultUsername({username}))
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: false, path: ''}))
-  },
   onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
@@ -88,12 +83,6 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps): Props => ({
-    accountRows: Constants.prepareAccountRows(stateProps.configuredAccounts, stateProps.username)
-      .map(account => ({
-        account: account,
-        fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
-      }))
-      .toArray(),
     badgeNumbers: getBadges(stateProps._badgeNumbers),
     fullname: stateProps.fullname,
     isWalletsNew: stateProps.isWalletsNew,
@@ -102,13 +91,6 @@ export default connect(
     onHelp: dispatchProps.onHelp,
     onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
     onQuit: dispatchProps.onQuit,
-    onSelectAccount: (username: string) => {
-      const rows = stateProps.configuredAccounts.filter(account => account.username === username)
-      const loggedIn = rows.first({hasStoredSecret: false}).hasStoredSecret
-      return loggedIn
-        ? dispatchProps.onSelectAccountLoggedIn(username)
-        : dispatchProps.onSelectAccountLoggedOut(username)
-    },
     onSettings: dispatchProps.onSettings,
     onSignOut: dispatchProps.onSignOut,
     onTabClick: (tab: Tabs.AppTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),

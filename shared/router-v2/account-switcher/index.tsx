@@ -9,122 +9,100 @@ export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount
   fullName: string
 }
-export type RowsProps = {
-  accountRows: Array<AccountRowItem>
-  onAddAccount: () => void
-  onCreateAccount: () => void
-  onSelectAccount: (username: string) => void
-}
+export type RowsProps = {}
 
 export type Props = {
+  accountRows: Array<AccountRowItem>
   fullname: string
+  onAddAccount: () => void
   onCancel: () => void
+  onCreateAccount: () => void
   onProfileClick: () => void
-  username: string
-} & RowsProps &
-  HeaderHocProps
-
-const AccountRow = ({
-  entry,
-  onSelectAccount,
-}: {
-  entry: AccountRowItem
   onSelectAccount: (username: string) => void
-}) => (
-  <Kb.NameWithIcon
-    clickType="onClick"
-    horizontal={true}
-    username={entry.account.username}
-    metaOne={
-      <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
-        {entry.fullName}
-      </Kb.Text>
-    }
-    onClick={() => {
-      onSelectAccount(entry.account.username)
-    }}
-    containerStyle={styles.row}
-    avatarStyle={!entry.account.hasStoredSecret && styles.avatarSignedOut}
-  />
-)
+  username: string
+} & HeaderHocProps
 
-const AccountSwitcherMobile = (props: Props) => (
-  <Kb.ScrollView>
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true} centerChildren={true}>
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} centerChildren={true} gapEnd={true}>
-        <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
-        <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
-            {props.username}
-          </Kb.Text>
-          <Kb.Text type="BodySmall" lineClamp={1} onClick={props.onProfileClick}>
-            {props.fullname}
-          </Kb.Text>
-        </Kb.Box2>
+const MobileHeader = (props: Props) => (
+  <>
+    <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} centerChildren={true} gapEnd={true}>
+      <Kb.Avatar username={props.username} onClick={props.onProfileClick} size={128} />
+      <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Text type="BodyBig" onClick={props.onProfileClick}>
+          {props.username}
+        </Kb.Text>
+        <Kb.Text type="BodySmall" lineClamp={1} onClick={props.onProfileClick}>
+          {props.fullname}
+        </Kb.Text>
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
-        <Kb.Button onClick={props.onAddAccount} label="Add another account" mode="Primary" fullWidth={true} />
-        <Kb.Button
-          onClick={props.onCreateAccount}
-          label="Create a new account"
-          mode="Secondary"
-          fullWidth={true}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        {props.accountRows.map(entry => (
-          <Kb.ListItem2
-            type="Small"
-            icon={
-              <Kb.Avatar
-                size={32}
-                username={entry.account.username}
-                style={!entry.account.hasStoredSecret && styles.avatarSignedOut}
-              />
-            }
-            firstItem={false}
-            body={
-              <Kb.Box2 direction="vertical" fullWidth={true}>
-                <Kb.Text type="BodySemibold">{entry.account.username}</Kb.Text>
-                <Kb.Text type="BodySmall" lineClamp={1}>
-                  {entry.fullName}
-                </Kb.Text>
-              </Kb.Box2>
-            }
-            key={entry.account.username}
-            onClick={() => props.onSelectAccount(entry.account.username)}
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
+      <Kb.Button onClick={props.onAddAccount} label="Add another account" mode="Primary" fullWidth={true} />
+      <Kb.Button
+        onClick={props.onCreateAccount}
+        label="Create a new account"
+        mode="Secondary"
+        fullWidth={true}
+      />
+    </Kb.Box2>
+  </>
+)
+const AccountsRows = (props: Props) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    {props.accountRows.map(entry => (
+      <Kb.ListItem2
+        type="Small"
+        icon={
+          <Kb.Avatar
+            size={32}
+            username={entry.account.username}
+            style={!entry.account.hasStoredSecret && styles.avatarSignedOut}
           />
-        ))}
-      </Kb.Box2>
+        }
+        firstItem={true}
+        body={
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodySemibold">{entry.account.username}</Kb.Text>
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {entry.fullName}
+            </Kb.Text>
+          </Kb.Box2>
+        }
+        key={entry.account.username}
+        onClick={() => props.onSelectAccount(entry.account.username)}
+      />
+    ))}
+  </Kb.Box2>
+)
+const AccountSwitcher = (props: Props) => (
+  <Kb.ScrollView alwaysBounceVertical={false}>
+    <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true} centerChildren={true}>
+      {Styles.isMobile && <MobileHeader {...props} />}
+      <Kb.Divider style={styles.divider} />
+      {Styles.isMobile ? (
+        <AccountsRows {...props} />
+      ) : (
+        <Kb.ScrollView style={styles.desktopScrollview}>
+          <AccountsRows {...props} />
+        </Kb.ScrollView>
+      )}
+      {props.accountRows.length > 0 && <Kb.Divider style={styles.divider} />}
     </Kb.Box2>
   </Kb.ScrollView>
 )
 
-export default HeaderHOC(AccountSwitcherMobile)
-
-export const asRows = (props: RowsProps): Kb.MenuItems => {
-  const avatarRows: Kb.MenuItems = props.accountRows.map(entry => ({
-    title: entry.account.username,
-    view: <AccountRow entry={entry} onSelectAccount={props.onSelectAccount} />,
-  }))
-  return [
-    'Divider' as const,
-    ...avatarRows,
-    'Divider' as const,
-    {
-      onClick: props.onAddAccount,
-      title: 'Add another account',
-    },
-    {
-      onClick: props.onCreateAccount,
-      title: 'Create a new account',
-    },
-  ]
-}
+export default HeaderHOC(AccountSwitcher)
 
 const styles = Styles.styleSheetCreate({
   avatarSignedOut: {opacity: 0.4},
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
+  desktopScrollview: {
+    ...Styles.padding(0, Styles.globalMargins.tiny),
+    maxHeight: 170,
+    width: 200,
+  },
+  divider: {
+    width: 200,
+  },
   nameText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',

@@ -10,6 +10,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as Constants from '../../constants/config'
+import HiddenString from '../../util/hidden-string'
 
 type OwnProps = {}
 
@@ -25,7 +26,8 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
-  onSelectAccountLoggedIn: username => dispatch(LoginGen.createLogin({password: null, username})),
+  onSelectAccountLoggedIn: username =>
+    dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onSelectAccountLoggedOut: username => {
     dispatch(ConfigGen.createSetDefaultUsername({username}))
     dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: false, path: ''}))
