@@ -5,7 +5,7 @@ import {isIOS} from '../../constants/platform'
 import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-numbers/'
 import {memoize} from '../../util/memoize'
 import emojiData from 'emoji-mart/data/all.json'
-// @ts-ignore
+// @ts-ignore todo fix the typing
 import {getEmojiDataFromNative} from 'emoji-mart'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
