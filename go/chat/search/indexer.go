@@ -138,7 +138,8 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 
 	ticker := libkb.NewBgTicker(time.Hour)
 	after := time.After(idx.startSyncDelay)
-	state := keybase1.MobileAppState_FOREGROUND
+	appState := keybase1.MobileAppState_FOREGROUND
+	netState := keybase1.MobileNetworkState_WIFI
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
 	cancelSync := func() {
@@ -189,10 +190,17 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			attemptSync(ctx)
 		case <-ticker.C:
 			attemptSync(ctx)
-		case state = <-idx.G().MobileAppState.NextUpdate(&state):
-			switch state {
+		case appState = <-idx.G().MobileAppState.NextUpdate(&appState):
+			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
 			// if we enter any state besides foreground cancel any running syncs
+			default:
+				cancelSync()
+			}
+		case netState = <-idx.G().MobileNetState.NextUpdate(&netState):
+			switch netState {
+			case keybase1.MobileNetworkState_WIFI:
+			// if we switch off of wifi cancel any running syncs
 			default:
 				cancelSync()
 			}

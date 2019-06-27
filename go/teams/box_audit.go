@@ -24,9 +24,16 @@ func ShouldRunBoxAudit(mctx libkb.MetaContext) bool {
 	}
 
 	if mctx.G().IsMobileAppType() {
-		state, stateMtime := mctx.G().MobileAppState.StateAndMtime()
-		mctx.Debug("ShouldRunBoxAudit: mobileAppState=%+v, stateMtime=%+v", state, stateMtime)
-		if stateMtime == nil || state != keybase1.MobileAppState_FOREGROUND || time.Now().Sub(*stateMtime) < 3*time.Minute {
+		netState := mctx.G().MobileNetState.State()
+		switch netState {
+		case keybase1.MobileNetworkState_WIFI:
+		default:
+			mctx.Debug("ShouldRunBoxAudit: skipping box audit, network state: %v", netState)
+			return false
+		}
+		appState, stateMtime := mctx.G().MobileAppState.StateAndMtime()
+		mctx.Debug("ShouldRunBoxAudit: mobileAppState=%+v, stateMtime=%+v", appState, stateMtime)
+		if stateMtime == nil || appState != keybase1.MobileAppState_FOREGROUND || time.Now().Sub(*stateMtime) < 3*time.Minute {
 			mctx.Debug("ShouldRunBoxAudit: mobile and backgrounded")
 			return false
 		}

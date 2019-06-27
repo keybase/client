@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -112,6 +113,7 @@ type BackgroundConvLoader struct {
 	resumeCh      chan struct{}
 	loadCh        chan *clTask
 	identNotifier types.IdentifyNotifier
+	eg            errgroup.Group
 
 	clock      clockwork.Clock
 	resumeWait time.Duration
@@ -142,6 +144,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b.identNotifier.ResetOnGUIConnect()
 	b.newQueue()
 	go b.monitorAppState()
+	go b.monitorNetState()
 
 	return b
 }
@@ -156,31 +159,63 @@ func (b *BackgroundConvLoader) removeActiveLoadLocked(key string) {
 	delete(b.activeLoads, key)
 }
 
-func (b *BackgroundConvLoader) monitorAppState() {
+func (b *BackgroundConvLoader) monitorAppState() error {
 	ctx := context.Background()
-	suspended := false
 	b.Debug(ctx, "monitorAppState: starting up")
+
+	suspended := false
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
-		state = <-b.G().MobileAppState.NextUpdate(&state)
-		switch state {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
-			b.Debug(ctx, "monitorAppState: active state: %v", state)
-			// Only resume if we had suspended earlier (frontend can spam us with these)
-			if suspended {
-				b.Debug(ctx, "monitorAppState: resuming load thread")
-				b.Resume(ctx)
-				suspended = false
-			}
-		case keybase1.MobileAppState_BACKGROUND:
-			b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
-			if !suspended {
-				b.Suspend(ctx)
-				suspended = true
+		select {
+		case state = <-b.G().MobileAppState.NextUpdate(&state):
+			switch state {
+			case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+				b.Debug(ctx, "monitorAppState: active state: %v", state)
+				// Only resume if we had suspended earlier (frontend can spam us with these)
+				if suspended {
+					b.Debug(ctx, "monitorAppState: resuming load thread")
+					b.Resume(ctx)
+					suspended = false
+				}
+			case keybase1.MobileAppState_BACKGROUND:
+				b.Debug(ctx, "monitorAppState: backgrounded, suspending load thread")
+				if !suspended {
+					b.Suspend(ctx)
+					suspended = true
+				}
 			}
 		}
 		if b.appStateCh != nil {
 			b.appStateCh <- struct{}{}
+		}
+	}
+}
+
+func (b *BackgroundConvLoader) monitorNetState() error {
+	ctx := context.Background()
+	b.Debug(ctx, "monitorNetState: starting up")
+
+	suspended := false
+	state := keybase1.MobileNetworkState_WIFI
+	for {
+		select {
+		case state = <-b.G().MobileNetState.NextUpdate(&state):
+			switch state {
+			case keybase1.MobileNetworkState_WIFI:
+				b.Debug(ctx, "monitorNetState: connected to wifi: %v")
+				// Only resume if we had suspended earlier (frontend can spam us with these)
+				if suspended {
+					b.Debug(ctx, "monitorNetState: resuming load thread")
+					b.Resume(ctx)
+					suspended = false
+				}
+			default:
+				b.Debug(ctx, "monitorNetState: %v, suspending load thread", state)
+				if !suspended {
+					b.Suspend(ctx)
+					suspended = true
+				}
+			}
 		}
 	}
 }
@@ -201,8 +236,8 @@ func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.newQueue()
 	b.started = true
 	b.uid = uid
-	go b.loop()
-	go b.loadLoop()
+	b.eg.Go(b.loop)
+	b.eg.Go(b.loadLoop)
 }
 
 func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
@@ -215,8 +250,13 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 		close(b.stopCh)
 		b.stopCh = make(chan struct{})
 		b.started = false
+		go func() {
+			b.eg.Wait()
+			close(ch)
+		}()
+	} else {
+		close(ch)
 	}
-	close(ch)
 	return ch
 }
 
@@ -305,7 +345,7 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	return b.queue.Push(task)
 }
 
-func (b *BackgroundConvLoader) loop() {
+func (b *BackgroundConvLoader) loop() error {
 	bgctx := context.Background()
 	uid := b.uid
 	b.Debug(bgctx, "loop: starting conv loader loop for %s", uid)
@@ -363,7 +403,7 @@ func (b *BackgroundConvLoader) loop() {
 			case ch := <-b.suspendCh:
 				b.Debug(bgctx, "loop: pulled queue task, but suspended, so waiting")
 				if !waitForResume(ch) {
-					return
+					return nil
 				}
 			}
 			b.Debug(bgctx, "loop: pulled queued task: %s", task.job)
@@ -375,16 +415,16 @@ func (b *BackgroundConvLoader) loop() {
 		case ch := <-b.suspendCh:
 			b.Debug(bgctx, "loop: received suspend")
 			if !waitForResume(ch) {
-				return
+				return nil
 			}
 		case <-stopCh:
 			b.Debug(bgctx, "loop: shutting down for %s", uid)
-			return
+			return nil
 		}
 	}
 }
 
-func (b *BackgroundConvLoader) loadLoop() {
+func (b *BackgroundConvLoader) loadLoop() error {
 	bgctx := context.Background()
 	uid := b.uid
 	b.Debug(bgctx, "loadLoop: starting for uid: %s", uid)
@@ -404,7 +444,7 @@ func (b *BackgroundConvLoader) loadLoop() {
 				}
 			}
 		case <-stopCh:
-			return
+			return nil
 		}
 	}
 }
