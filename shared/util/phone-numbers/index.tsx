@@ -2,6 +2,7 @@ import {isElectron} from '../../constants/platform'
 import libphonenumber from 'google-libphonenumber'
 import countries from './country-data/countries.json'
 import supportedCodes from './sms-support/data.json'
+import {emojiIndexByChar} from '../../common-adapters/markdown/emoji-gen'
 
 const PNF = libphonenumber.PhoneNumberFormat
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
@@ -21,6 +22,7 @@ export const countryData = countries.reduce((res, curr) => {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
       emoji: curr.emoji,
+      emojiText: emojiIndexByChar[curr.emoji],
       example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
       pickerText:

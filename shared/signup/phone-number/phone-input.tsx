@@ -4,17 +4,9 @@ import * as Styles from '../../styles'
 import {isIOS} from '../../constants/platform'
 import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-numbers/'
 import {memoize} from '../../util/memoize'
-import emojiData from 'emoji-mart/data/all.json'
-// @ts-ignore todo fix the typing
-import {getEmojiDataFromNative} from 'emoji-mart'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
-const getCountryEmoji = countryCode => (
-  <Kb.Emoji
-    size={16}
-    emojiName={getEmojiDataFromNative(countryData[countryCode].emoji, 'apple', emojiData).colons}
-  />
-)
+const getCountryEmoji = countryCode => <Kb.Emoji size={16} emojiName={countryData[countryCode].emojiText} />
 const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
 const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
@@ -36,14 +28,14 @@ const menuItems = memoize((countryData, filter, onClick) =>
     .map((cd: any) => ({
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
-      view: <MenuItem emoji={getEmojiDataFromNative(cd.emoji, 'apple', emojiData)} text={cd.pickerText} />,
+      view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
     }))
 )
 
 const MenuItem = props => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
     <Kb.Text type="Body" center={true}>
-      <Kb.Emoji size={18} emojiName={props.emoji.colons} />
+      <Kb.Emoji size={18} emojiName={props.emoji} />
     </Kb.Text>
     <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
   </Kb.Box2>
