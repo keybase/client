@@ -995,6 +995,10 @@ func (l *TeamLoader) computeSeedChecks(ctx context.Context, state *keybase1.Team
 	)
 }
 
+// consumeRatchets finds the hidden chain ratchets in the given link (if it's not stubbed), and adds them
+// into the hidden.LoaderPackage via the AddRatchets call. This call, in turn, attempts to unblind the ratchet
+// and then checks the ratchets against current state and ratchets. Thus, it can fail in many ways if the server
+// is buggy or dishonest.
 func consumeRatchets(mctx libkb.MetaContext, hiddenPackage *hidden.LoaderPackage, link *ChainLinkUnpacked) (err error) {
 	if link.isStubbed() {
 		return nil
