@@ -22,8 +22,6 @@ const initialStore = {
 
 const startReduxSaga = Testing.makeStartReduxSaga(chatTeamBuildingSaga, initialStore, () => {})
 
-// Maps the user search function to a hashmap, query -> num_wanted -> service -> include_services_summary
-// note the keybase service is a special case where the service is empty string
 const mockResults = [
   {
     keybase: {
@@ -67,6 +65,7 @@ const mockResults = [
   },
 ] as Array<RPCTypes.APIUserSearchResult>
 
+// Maps the user search function to a hashmap, query -> num_wanted -> service -> include_services_summary
 const userSearchMock = {
   marcopolo: {
     '11': {
