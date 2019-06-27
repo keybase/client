@@ -171,7 +171,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
               }
         )
       )
-    case SettingsGen.clearPhoneNumberVerification:
+    case SettingsGen.clearPhoneNumberErrors:
+      return state.update('phoneNumbers', pn => pn.merge({error: ''}))
+    case SettingsGen.clearPhoneNumberAdd:
       return state.update('phoneNumbers', pn =>
         pn.merge({
           error: '',

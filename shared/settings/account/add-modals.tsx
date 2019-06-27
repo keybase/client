@@ -83,6 +83,8 @@ export const Email = () => {
 }
 export const Phone = () => {
   const dispatch = Container.useDispatch()
+  // clean on unmount
+  React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberErrors()), [dispatch])
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)

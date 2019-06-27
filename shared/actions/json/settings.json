@@ -27,8 +27,11 @@
       "error?": "string",
       "phoneNumber": "string"
     },
-    "clearPhoneNumberVerification": {
-      "_description": "Cancel a phone number verification-in-progress."
+    "clearPhoneNumberAdd": {
+      "_description": "Cancel adding a phone number."
+    },
+    "clearPhoneNumberErrors": {
+      "_description": "Clear only error from phone number add flow."
     },
     "dbNuke": {},
     "deleteAccountForever": {},
