@@ -1285,20 +1285,42 @@ const calculateBuildingAdvanced = state =>
       to: state.wallets.buildingAdvanced.recipient,
     },
     Constants.calculateBuildingAdvancedWaitingKey
-  ).then(res => {
-    console.log({res})
-    const {destinationAccount, destinationDisplay, fullPath, sourceDisplay, sourceMaxDisplay} = res
-    return WalletsGen.createSetBuiltPaymentAdvanced({
-      builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
+  )
+    .then(res => {
+      console.log({res})
+      const {
         destinationAccount,
         destinationDisplay,
-        fullPath: rpcPaymentPathToPaymentPath(fullPath),
-        readyToSend: true,
+        exchangeRate,
+        fullPath,
         sourceDisplay,
         sourceMaxDisplay,
-      }),
+      } = res
+      return WalletsGen.createSetBuiltPaymentAdvanced({
+        builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
+          amountError: 'You only have 34.04 EUR/Stonghold.com available to spend.',
+          destinationAccount,
+          destinationDisplay,
+          exchangeRate,
+          fullPath: rpcPaymentPathToPaymentPath(fullPath),
+          noPathFoundError: false,
+          readyToSend: true,
+          sourceDisplay,
+          sourceMaxDisplay,
+        }),
+      })
     })
-  })
+    .catch(error => {
+      if (error && error.desc === 'no payment path found') {
+        return WalletsGen.createSetBuiltPaymentAdvanced({
+          builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
+            noPathFoundError: true,
+            readyToSend: false,
+          }),
+        })
+      }
+      throw error
+    })
 
 const sendPaymentAdvanced = state => {
   return RPCStellarTypes.localSendPathLocalRpcPromise(

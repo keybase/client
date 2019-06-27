@@ -13,7 +13,9 @@ const FooterAdvanced = () => {
   const onClickSendAdvanced = React.useCallback(() => dispatch(WalletsGen.createSendPaymentAdvanced()), [
     dispatch,
   ])
-  return (
+  return builtPaymentAdvanced.noPathFoundError ? (
+    <Kb.Banner color="red" text="No path was found to convert these 2 assets. Please pick other assets." />
+  ) : (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.buttonBox} fullWidth={true}>
       {builtPaymentAdvanced.readyToSend ? (
         <Kb.WaitingButton

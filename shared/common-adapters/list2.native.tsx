@@ -17,7 +17,7 @@ class List2<T> extends PureComponent<Props<T>> {
   _getItemLayout = (data, index) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
-        return {height: this.props.itemHeight.height, index, offset: this.props.itemHeight.height * index}
+        return {length: this.props.itemHeight.height, index, offset: this.props.itemHeight.height * index}
       case 'variable':
         return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
       default:

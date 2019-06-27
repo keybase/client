@@ -116,9 +116,12 @@ export const makePaymentPath = I.Record<Types._PaymentPath>({
 export const emptyPaymentPath = makePaymentPath()
 
 export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
+  amountError: '',
   destinationAccount: Types.noAccountID,
   destinationDisplay: '',
+  exchangeRate: '',
   fullPath: emptyPaymentPath,
+  noPathFoundError: false,
   readyToSend: false,
   sourceDisplay: '',
   sourceMaxDisplay: '',

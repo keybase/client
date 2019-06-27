@@ -113,9 +113,12 @@ export type _PaymentPath = {
 }
 
 export type _BuiltPaymentAdvanced = {
+  amountError: string
   destinationAccount: AccountID
   destinationDisplay: string
+  exchangeRate: string
   fullPath: PaymentPath
+  noPathFoundError: boolean
   readyToSend: boolean
   sourceDisplay: string
   sourceMaxDisplay: string

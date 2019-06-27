@@ -19,48 +19,6 @@ type Props = Container.RouteProps<
   {}
 >
 
-const Item = ({assetID, selected, isSender}) => {
-  const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
-  const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
-  const dispatch = Container.useDispatch()
-  const onSelect = React.useCallback(
-    asset => {
-      dispatch(
-        isSender
-          ? WalletsGen.createSetBuildingAdvancedSenderAsset({senderAsset: asset})
-          : WalletsGen.createSetBuildingAdvancedRecipientAsset({recipientAsset: asset})
-      )
-      !Styles.isMobile && dispatch(RouteTreeGen.createNavigateUp())
-    },
-    [dispatch, isSender]
-  )
-  return (
-    <Kb.ClickableBox onClick={() => onSelect(asset)} style={styles.itemContainer}>
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
-        <Kb.Text
-          type="BodyExtrabold"
-          lineClamp={1}
-          ellipsizeMode="tail"
-          style={selected && styles.textSelected}
-        >
-          {asset === 'native' ? 'XLM' : asset.code}
-        </Kb.Text>
-        {asset !== 'native' && (
-          <Kb.Text
-            type="BodySmall"
-            lineClamp={1}
-            ellipsizeMode="middle"
-            style={selected && styles.textSelected}
-          >
-            {asset.issuerVerifiedDomain || asset.issuerAccountID}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-      {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
-    </Kb.ClickableBox>
-  )
-}
-
 const AssetList = ({accountID, isSender, username}) => {
   const acceptedAssets = Container.useSelector(state =>
     username
@@ -71,7 +29,19 @@ const AssetList = ({accountID, isSender, username}) => {
     isSender ? state.wallets.buildingAdvanced.senderAsset : state.wallets.buildingAdvanced.recipientAsset
   )
   const selectedAssetID = selectedAsset !== 'native' && Types.assetDescriptionToAssetID(selectedAsset)
+  const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
   const dispatch = Container.useDispatch()
+  const onSelect = React.useCallback(
+    asset => {
+      dispatch(
+        isSender
+          ? WalletsGen.createSetBuildingAdvancedSenderAsset({senderAsset: asset})
+          : WalletsGen.createSetBuildingAdvancedRecipientAsset({recipientAsset: asset})
+      )
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
+    [dispatch, isSender]
+  )
   React.useEffect(() => {
     username
       ? dispatch(WalletsGen.createRefreshTrustlineAcceptedAssetsByUsername({username}))
@@ -92,12 +62,34 @@ const AssetList = ({accountID, isSender, username}) => {
           {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
         ]}
         bounces={true}
-        itemHeight={{
-          height: 56, // TODO figure out desktop
-          type: 'fixed',
-        }}
+        itemHeight={{height: 56, type: 'fixed'}}
         renderItem={(index, {assetID, selected}) => {
-          return <Item assetID={assetID} isSender={isSender} selected={selected} />
+          const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
+          return (
+            <Kb.ClickableBox onClick={() => onSelect(asset)} style={styles.itemContainer}>
+              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
+                <Kb.Text
+                  type="BodyExtrabold"
+                  lineClamp={1}
+                  ellipsizeMode="tail"
+                  style={selected && styles.textSelected}
+                >
+                  {asset === 'native' ? 'XLM' : asset.code}
+                </Kb.Text>
+                <Kb.Text
+                  type="BodySmall"
+                  lineClamp={1}
+                  ellipsizeMode="middle"
+                  style={selected && styles.textSelected}
+                >
+                  {asset === 'native'
+                    ? 'Stellar Lumens'
+                    : asset.issuerVerifiedDomain || asset.issuerAccountID}
+                </Kb.Text>
+              </Kb.Box2>
+              {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+            </Kb.ClickableBox>
+          )
         }}
         keyProperty="key"
       />
@@ -116,7 +108,10 @@ const PickAsset = (props: Props) => {
   return (
     <Kb.MaybePopup onClose={onClose}>
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header isRequest={false} onBack={onBack} whiteBackground={true}>
+        <Header isRequest={false} whiteBackground={true}>
+          <Kb.ClickableBox onClick={onBack} style={styles.backClickable}>
+            <Kb.Text type="BodyPrimaryLink">{Styles.isMobile ? 'Back' : 'Cancel'}</Kb.Text>
+          </Kb.ClickableBox>
           {isSender ? (
             <Kb.Text type="BodyTinySemibold">You can send</Kb.Text>
           ) : username ? (
@@ -143,6 +138,12 @@ const PickAsset = (props: Props) => {
 export default PickAsset
 
 const styles = Styles.styleSheetCreate({
+  backClickable: {
+    bottom: Styles.globalMargins.tiny,
+    left: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.xtiny,
+    position: 'absolute',
+  },
   container: Styles.platformStyles({
     isElectron: {
       height: 560,

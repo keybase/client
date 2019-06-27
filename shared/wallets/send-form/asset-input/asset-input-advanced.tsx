@@ -5,64 +5,59 @@ import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import Available from '../available/container'
 import {AmountInput, sharedStyles} from './shared'
 import CalculateAdvancedButton from '../calculate-advanced-button'
 
-type RecipientProps = {
-  currencyLoading?: boolean
-  numDecimalsAllowed: number
-  onChangeAmount: (string) => void
-  recipient: string
-  recipientAsset?: Types.AssetDescription
-  recipientType: Types.CounterpartyType
-  value: string
+type EmptyProps = {}
+
+export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
+  const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const dispatch = Container.useDispatch()
+  const onChangeAmount = React.useCallback(
+    recipientAmount => dispatch(WalletsGen.createSetBuildingAdvancedRecipientAmount({recipientAmount})),
+    [dispatch]
+  )
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Styles.collapseStyles([sharedStyles.container, styles.container])}
+      gap="xtiny"
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.topLabel}>
+        {buildingAdvanced.recipientType === 'keybaseUser' ? (
+          <>
+            <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />
+            <Kb.ConnectedUsernames
+              usernames={[buildingAdvanced.recipient]}
+              type="BodyTinySemibold"
+              colorBroken={true}
+              colorFollowing={true}
+              underline={false}
+            />
+          </>
+        ) : (
+          <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle">
+            {buildingAdvanced.recipient}
+          </Kb.Text>
+        )}
+        <Kb.Text type="BodyTinySemibold" style={styles.noShrink}>
+          will receive:
+        </Kb.Text>
+      </Kb.Box2>
+      <AmountInput
+        numDecimalsAllowed={7}
+        onChangeAmount={onChangeAmount}
+        rightBlock={<PickAssetButton isSender={false} />}
+        value={buildingAdvanced.recipientAmount}
+      />
+    </Kb.Box2>
+  )
 }
 
-const recipientTopLabel = (props: RecipientProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.topLabel}>
-    {props.recipientType === 'keybaseUser' ? (
-      <>
-        <Kb.Avatar username={props.recipient} size={16} style={styles.avatar} />
-        <Kb.ConnectedUsernames
-          usernames={[props.recipient]}
-          type="BodyTinySemibold"
-          colorBroken={true}
-          colorFollowing={true}
-          underline={false}
-        />
-      </>
-    ) : (
-      <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle">
-        {props.recipient}
-      </Kb.Text>
-    )}
-    <Kb.Text type="BodyTinySemibold" style={styles.noShrink}>
-      will receive:
-    </Kb.Text>
-  </Kb.Box2>
-)
-
-const recipientAmountInput = (props: RecipientProps) => (
-  <AmountInput
-    numDecimalsAllowed={props.numDecimalsAllowed}
-    onChangeAmount={props.onChangeAmount}
-    rightBlock={
-      props.currencyLoading ? 'loading' : <PickAssetButton asset={props.recipientAsset} isSender={false} />
-    }
-    value={props.value}
-  />
-)
-
-export const AssetInputRecipientAdvanced = (props: RecipientProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={sharedStyles.container} gap="xtiny">
-    {recipientTopLabel(props)}
-    {recipientAmountInput(props)}
-  </Kb.Box2>
-)
-
 type SenderProps = {
-  amountLoading: boolean
   approximate?: number
   atMost?: number
   error?: boolean
@@ -72,40 +67,40 @@ type SenderProps = {
   xlmToRecipientAsset?: number
 }
 
-const ApproximateBlock = (props: SenderProps) => {
-  return (
+const LeftBlock = (props: SenderProps) => {
+  const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
+  return props.approximate ? 
+  (
     <Kb.Box2 direction="vertical" alignItems="flex-start">
       <Kb.Text type="HeaderBigExtrabold" style={!!props.error && styles.error}>
-        ~{props.approximate}
+        ~{builtPaymentAdvanced.fullPath.sourceAmount}
       </Kb.Text>
-      <Kb.Text type="BodyTiny">At most {props.atMost}</Kb.Text>
-      {!!props.recipientAsset && (
+      <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.fullPath.sourceAmountMax}</Kb.Text>
+      {!!buildingAdvanced.recipientAsset && (
         <Kb.Text type="BodyTiny">
-          1 {props.recipientAsset.code} = {props.xlmToRecipientAsset} XLM
+           {builtPaymentAdvanced.exchangeRate}
         </Kb.Text>
       )}
     </Kb.Box2>
-  )
+  ) : <CalculateAdvancedButton isIcon={true} />
 }
 
 const senderAmount = (props: SenderProps) =>
-  props.amountLoading ? (
-    <Kb.ProgressIndicator style={styles.amountLoading} />
-  ) : props.approximate ? (
-    <ApproximateBlock {...props} />
-  ) : (
-    <CalculateAdvancedButton isIcon={true} />
-  )
 
 export const AssetInputSenderAdvanced = (props: SenderProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={sharedStyles.container}>
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    style={Styles.collapseStyles([sharedStyles.container, styles.container])}
+  >
     <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
       You will send approximately:
     </Kb.Text>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      {senderAmount(props)}
+      <LeftBlocl {...props}/>
       <Kb.Box style={Styles.globalStyles.flexGrow} />
-      <PickAssetButton asset={props.senderAsset} isSender={true} />
+      <PickAssetButton isSender={true} />
     </Kb.Box2>
     <Available />
   </Kb.Box2>
@@ -113,36 +108,34 @@ export const AssetInputSenderAdvanced = (props: SenderProps) => (
 
 export const AssetPathIntermediate = () => {
   const path = Container.useSelector(state => state.wallets.builtPaymentAdvanced.fullPath.path)
-  return (
-    !!path.size && (
-      <Kb.Box2 direction="horizontal" style={styles.assetPathContainer} fullWidth={true}>
-        <Kb.Text type="BodySmallSemibold">Intermediate asset(s): </Kb.Text>
-        <Kb.Box style={Styles.globalStyles.flexGrow} />
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.assetPathItem} gap="xtiny">
-          {path
-            .toArray()
-            .reverse()
-            .map(asset => (
-              <React.Fragment key={Types.assetDescriptionToAssetID(asset)}>
-                <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
-                <Kb.Box2 direction="horizontal">
-                  <Kb.Text type="BodyTinyBold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
-                  <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
-                    {asset !== 'native' && `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
-                  </Kb.Text>
-                </Kb.Box2>
-              </React.Fragment>
-            ))}
-          <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
-        </Kb.Box2>
+  return !path.size ? (
+    <Kb.Divider />
+  ) : (
+    <Kb.Box2 direction="horizontal" style={styles.assetPathContainer} fullWidth={true}>
+      <Kb.Text type="BodySmallSemibold">Intermediate asset(s): </Kb.Text>
+      <Kb.Box style={Styles.globalStyles.flexGrow} />
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.assetPathItem} gap="xtiny">
+        {path
+          .toArray()
+          .reverse()
+          .map(asset => (
+            <React.Fragment key={Types.assetDescriptionToAssetID(asset)}>
+              <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
+              <Kb.Box2 direction="horizontal">
+                <Kb.Text type="BodyTinyBold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
+                <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
+                  {asset !== 'native' && `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
+                </Kb.Text>
+              </Kb.Box2>
+            </React.Fragment>
+          ))}
+        <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
       </Kb.Box2>
-    )
+    </Kb.Box2>
   )
 }
 
 type PickAssetButtonProps = {
-  // TODO get this from store after PickAssetButton is connected
-  asset: Types.AssetDescription | 'native'
   isSender: boolean
 }
 
@@ -197,9 +190,9 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           <Kb.Icon type="iconfont-caret-down" sizeType="Small" color={Styles.globalColors.purple} />
         </Kb.Box2>
       </Kb.ClickableBox>
-      {asset !== Constants.emptyAssetDescription && asset !== 'native' && (
+      {asset !== Constants.emptyAssetDescription && (
         <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
-          {asset.issuerVerifiedDomain}
+          {asset === 'native' ? 'Stellar Lumens' : asset.issuerVerifiedDomain}
         </Kb.Text>
       )}
     </Kb.Box2>
@@ -221,6 +214,14 @@ const styles = Styles.styleSheetCreate({
   avatar: {
     marginRight: Styles.globalMargins.xtiny,
   },
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 96,
+    },
+    isMobile: {
+      height: 128,
+    },
+  }),
   error: {
     color: Styles.globalColors.redDark,
   },

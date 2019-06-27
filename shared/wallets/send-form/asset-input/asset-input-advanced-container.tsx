@@ -18,7 +18,7 @@ const recipientD = dispatch => ({
 })
 
 const recipientM = (s, d, o: OwnProps) => ({
-  numDecimalsAllowed: 2, // TODO
+  numDecimalsAllowed: 7, // TODO
   onChangeAmount: d.onChangeAmount,
   recipient: s._buildingAdvanced.recipient,
   recipientAsset: s._buildingAdvanced.recipientAsset,
