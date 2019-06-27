@@ -8,10 +8,12 @@ import {getEmojiDataFromNative} from 'emoji-mart'
 import emojiData from 'emoji-mart/data/all.json'
 
 const getCallingCode = countryCode => countryData[countryCode].callingCode
-const getCountryEmoji = countryCode => <Kb.Emoji
+const getCountryEmoji = countryCode => (
+  <Kb.Emoji
     size={16}
     emojiName={getEmojiDataFromNative(countryData[countryCode].emoji, 'apple', emojiData).colons}
   />
+)
 const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
 const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
@@ -33,26 +35,14 @@ const menuItems = memoize((countryData, filter, onClick) =>
     .map((cd: any) => ({
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
-      view: <MenuItem
-        emoji={getEmojiDataFromNative(cd.emoji, 'apple', emojiData)}
-        text={cd.pickerText}
-      />,
+      view: <MenuItem emoji={getEmojiDataFromNative(cd.emoji, 'apple', emojiData)} text={cd.pickerText} />,
     }))
 )
 
 const MenuItem = props => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    style={styles.menuItem}
-    gap="xtiny"
-    alignItems="center"
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
     <Kb.Text type="Body" center={true}>
-      <Kb.Emoji
-        size={18}
-        emojiName={props.emoji.colons}
-      />
+      <Kb.Emoji size={18} emojiName={props.emoji.colons} />
     </Kb.Text>
     <Kb.Text type="BodySemibold">{props.text}</Kb.Text>
   </Kb.Box2>
@@ -229,13 +219,8 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               gap="xtiny"
               ref={this.props.setAttachmentRef}
             >
-              <Kb.Text type="Body">
-                {getCountryEmoji(this.state.country)}
-              </Kb.Text>
-              <Kb.Text
-                type="BodySemibold"
-                style={({marginRight: Styles.globalMargins.xtiny})}
-              >
+              <Kb.Text type="Body">{getCountryEmoji(this.state.country)}</Kb.Text>
+              <Kb.Text type="BodySemibold" style={{marginRight: Styles.globalMargins.xtiny}}>
                 {getCallingCode(this.state.country)}
               </Kb.Text>
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
