@@ -450,6 +450,7 @@ func (l *LoaderPackage) SetRatchetBlindingKeySet(r *RatchetBlindingKeySet) {
 	l.rbks = r
 }
 
+// AddRatchets calls AddRatchet on each SCTeamRatchet in v.
 func (l *LoaderPackage) AddRatchets(mctx libkb.MetaContext, v []SCTeamRatchet, ctime int, typ keybase1.RatchetType) (err error) {
 	for _, r := range v {
 		err := l.AddRatchet(mctx, r, ctime, typ)
@@ -460,6 +461,11 @@ func (l *LoaderPackage) AddRatchets(mctx libkb.MetaContext, v []SCTeamRatchet, c
 	return nil
 }
 
+// AddRatchet is called whenever we pull a ratchet out of a visible team link. The first thing we'll need to
+// do is to make sure that we can look the unblinded ratchet up using the blinding keys we got down from the
+// server. Then we'll check the ratchets again the old (loaded) and new (downloaded) data. Finally, we'll
+// ensure that this ratchet doesn't clash another ratchet that came down in this update. If all checks work,
+// then add this ratchet to the set of all new ratchets, and also the max ratchet set that we're keeping locally.
 func (l *LoaderPackage) AddRatchet(mctx libkb.MetaContext, r SCTeamRatchet, ctime int, typ keybase1.RatchetType) (err error) {
 	tail := l.rbks.Get(r)
 	if tail == nil {
