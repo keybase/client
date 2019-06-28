@@ -254,6 +254,7 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	} else {
 		loc.SourceConvRate = ""
 	}
+	loc.Unread = p.Unread
 
 	return loc, nil
 }
