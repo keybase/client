@@ -115,6 +115,8 @@ protocol local {
     ParticipantType fromType; // cannot be SBS
     ParticipantType toType;
 
+    string assetCode; // The code of the destination asset. e.g., "USD", "XLM", etc.
+
     AccountID fromAccountID;   // Always filled
     string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
     string    fromUsername;    // Optional. Filled if KEYBASE.
@@ -132,6 +134,8 @@ protocol local {
     string sourceAmountMax;
     string sourceAmountActual;
     Asset sourceAsset;
+    string sourceConvRate; // The amount of the destination asset worth 1 unit of the source asset at the time of the transaction
+
 
     // for non-payment txs, multiple ops:
     boolean isAdvanced;

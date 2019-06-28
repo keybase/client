@@ -274,6 +274,10 @@
           "name": "toType"
         },
         {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
           "type": "AccountID",
           "name": "fromAccountID"
         },
@@ -327,6 +331,10 @@
         {
           "type": "Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "string",
+          "name": "sourceConvRate"
         },
         {
           "type": "boolean",

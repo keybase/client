@@ -293,6 +293,7 @@ export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
 
 const _defaultPaymentCommon = {
   amountDescription: '',
+  assetCode: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
   fromAirdrop: false,
@@ -308,6 +309,8 @@ const _defaultPaymentCommon = {
   sourceAccountID: '',
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
+  sourceIssuer: '',
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -431,6 +434,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
     amountDescription: p.amountDescription,
+    assetCode: p.assetCode,
     delta: balanceDeltaToString[p.delta],
     error: '',
     fromAirdrop: p.fromAirdrop,
@@ -446,6 +450,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAccountID: p.fromAccountID,
     sourceAmount: p.sourceAmountActual,
     sourceAsset: p.sourceAsset.code,
+    sourceConvRate: p.sourceConvRate,
+    sourceIssuer: p.sourceAsset.verifiedDomain,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
@@ -730,9 +736,9 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   return sign + balanceChange
 }
 
-export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+export const inputPlaceholderForCurrency = (currency: string) => (currency !== 'XLM' ? '0.00' : '0.0000000')
 
-export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
+export const numDecimalsAllowedForCurrency = (currency: string) => (currency !== 'XLM' ? 2 : 7)
 
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets

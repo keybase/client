@@ -267,6 +267,7 @@ type PaymentLocal struct {
 	IssuerAccountID     *AccountID             `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType            ParticipantType        `codec:"fromType" json:"fromType"`
 	ToType              ParticipantType        `codec:"toType" json:"toType"`
+	AssetCode           string                 `codec:"assetCode" json:"assetCode"`
 	FromAccountID       AccountID              `codec:"fromAccountID" json:"fromAccountID"`
 	FromAccountName     string                 `codec:"fromAccountName" json:"fromAccountName"`
 	FromUsername        string                 `codec:"fromUsername" json:"fromUsername"`
@@ -280,6 +281,7 @@ type PaymentLocal struct {
 	SourceAmountMax     string                 `codec:"sourceAmountMax" json:"sourceAmountMax"`
 	SourceAmountActual  string                 `codec:"sourceAmountActual" json:"sourceAmountActual"`
 	SourceAsset         Asset                  `codec:"sourceAsset" json:"sourceAsset"`
+	SourceConvRate      string                 `codec:"sourceConvRate" json:"sourceConvRate"`
 	IsAdvanced          bool                   `codec:"isAdvanced" json:"isAdvanced"`
 	SummaryAdvanced     string                 `codec:"summaryAdvanced" json:"summaryAdvanced"`
 	Operations          []string               `codec:"operations" json:"operations"`
@@ -314,6 +316,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		})(o.IssuerAccountID),
 		FromType:        o.FromType.DeepCopy(),
 		ToType:          o.ToType.DeepCopy(),
+		AssetCode:       o.AssetCode,
 		FromAccountID:   o.FromAccountID.DeepCopy(),
 		FromAccountName: o.FromAccountName,
 		FromUsername:    o.FromUsername,
@@ -333,6 +336,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		SourceAmountMax:     o.SourceAmountMax,
 		SourceAmountActual:  o.SourceAmountActual,
 		SourceAsset:         o.SourceAsset.DeepCopy(),
+		SourceConvRate:      o.SourceConvRate,
 		IsAdvanced:          o.IsAdvanced,
 		SummaryAdvanced:     o.SummaryAdvanced,
 		Operations: (func(x []string) []string {

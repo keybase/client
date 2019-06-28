@@ -19,6 +19,7 @@ const props = {
   amountUser: '',
   amountXLM: '',
   approxWorth: '',
+  assetCode: '',
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
@@ -41,6 +42,8 @@ const props = {
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
+  sourceIssuer: '',
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
@@ -192,7 +195,33 @@ const load = () => {
         yourRole="receiverOnly"
       />
     ))
-    .add('Sent path payment', () => (
+    .add('Sent path payment (XLM -> Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="53.1688643 TOAD"
+        assetCode="TOAD"
+        sourceAmount="0.0222742"
+        issuerDescription="anchortoad.com"
+        sourceConvRate="22.4474953"
+      />
+    ))
+    .add('Sent path payment (Asset -> Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="2.5 FROG"
+        assetCode="FROG"
+        sourceAmount="1.02"
+        sourceAsset="TOAD"
+        sourceIssuer="anchortoad.com"
+        issuerDescription="froggycoin.io"
+        sourceConvRate="2.450000"
+      />
+    ))
+    .add('Sent path payment (Asset -> XLM)', () => (
       <TransactionDetails
         {...props}
         counterpartyMeta="Addie Stokes"
@@ -201,6 +230,8 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
+        sourceIssuer="anchortoad.com"
+        sourceConvRate="53.168864"
       />
     ))
     .add('Advanced tx', () => (
