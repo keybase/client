@@ -535,6 +535,7 @@ protocol local {
     string sourceMaxDisplay;
     string destinationDisplay;
     string exchangeRate;    // "1 XYZ = 12.1333 ABC"
+    string amountError; // empty if no error
     AccountID destinationAccount;
     PaymentPath fullPath;   // pass this back when submitting the payment
   }
