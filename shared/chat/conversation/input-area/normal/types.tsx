@@ -22,6 +22,7 @@ type CommonProps = {
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
   showCommandMarkdown: boolean
+  showCommandStatus: boolean
   showGiphySearch: boolean
   showReplyPreview: boolean
   showTypingStatus: boolean

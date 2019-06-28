@@ -27,7 +27,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     top: 9,
     width: 18,
-    zIndex: 2,
   },
   searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
   sectionTitle: {flexGrow: 1},

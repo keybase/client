@@ -161,12 +161,14 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  _onMakeNotSearchable: () =>
+    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false})),
+  _onMakeSearchable: () =>
+    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
     onDelete: () => dispatch(SettingsGen.createEditEmail({delete: true, email: ownProps.contactKey})),
     onMakePrimary: () =>
       dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
-    onToggleSearchable: () =>
-      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, toggleSearchable: true})),
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
@@ -193,11 +195,13 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         verified: stateProps._phoneRow.verified,
       }
     } else if (stateProps._emailRow) {
+      const searchable = stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
         primary: stateProps._emailRow.isPrimary,
-        searchable: stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public,
+        searchable,
         type: 'email' as const,
         verified: stateProps._emailRow.isVerified,
       }

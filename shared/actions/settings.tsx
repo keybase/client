@@ -410,14 +410,12 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
   if (action.payload.verify) {
     return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
   }
-  if (action.payload.toggleSearchable) {
-    const currentSettings = state.settings.email.emails.get(action.payload.email)
-    const newVisibility = currentSettings
-      ? flipVis(currentSettings.visibility)
-      : ChatTypes.Keybase1.IdentityVisibility.private
+  if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({
       email: action.payload.email,
-      visibility: newVisibility,
+      visibility: action.payload.makeSearchable
+        ? ChatTypes.Keybase1.IdentityVisibility.public
+        : ChatTypes.Keybase1.IdentityVisibility.private,
     })
   }
   logger.warn('Empty editEmail action')
@@ -627,6 +625,65 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
+const loadContactImportEnabled = async (state: TypedState, _, logger) => {
+  if (!state.config.username) {
+    logger.warn('no username')
+    return
+  }
+  let enabled = false
+  try {
+    const res = await RPCTypes.configGetValueRpcPromise(
+      {
+        path: Constants.importContactsConfigKey(state.config.username),
+      },
+      Constants.importContactsWaitingKey
+    ).then(value => (enabled = !!value.b && !value.isNull))
+  } catch (err) {
+    if (!err.message.includes('no such key')) {
+      logger.error(`Error reading config: ${err.message}`)
+    }
+  }
+  return SettingsGen.createLoadedContactImportEnabled({enabled})
+}
+
+const editContactImportEnabled = (
+  state: TypedState,
+  action: SettingsGen.EditContactImportEnabledPayload,
+  logger
+) =>
+  state.config.username
+    ? RPCTypes.configSetValueRpcPromise(
+        {
+          path: Constants.importContactsConfigKey(state.config.username),
+          value: {b: action.payload.enable, isNull: false},
+        },
+        Constants.importContactsWaitingKey
+      ).then(() => SettingsGen.createLoadContactImportEnabled())
+    : logger.warn('no username')
+
+const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger: Saga.SagaLogger) => {
+  if (state.settings.email.error) {
+    logger.info('email error; bailing')
+    return
+  }
+  const {email, searchable} = action.payload
+  return RPCTypes.emailsAddEmailRpcPromise(
+    {
+      email,
+      visibility: searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private,
+    },
+    Constants.addEmailWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createAddedEmail({email})
+    })
+    .catch(err => {
+      logger.warn(`error: ${err.message}`)
+      return SettingsGen.createAddedEmail({email, error: err})
+    })
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -645,8 +702,6 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     deleteAccountForever
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
-  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail
@@ -700,6 +755,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.SaveProxyDataPayload>(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
+  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(
     SettingsGen.addPhoneNumber,
     addPhoneNumber,
@@ -710,6 +766,22 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     verifyPhoneNumber,
     'verifyPhoneNumber'
   )
+
+  // Contacts
+  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
+    SettingsGen.loadContactImportEnabled,
+    loadContactImportEnabled,
+    'loadContactImportEnabled'
+  )
+  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload>(
+    SettingsGen.editContactImportEnabled,
+    editContactImportEnabled,
+    'editContactImportEnabled'
+  )
+
+  // Emails
+  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
+  yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail, 'addEmail')
 }
 
 export default settingsSaga

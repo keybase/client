@@ -199,6 +199,50 @@ func (o TeamEk) DeepCopy() TeamEk {
 	}
 }
 
+type TeambotEkMetadata struct {
+	Kid              KID          `codec:"kid" json:"teambot_dh_public"`
+	Generation       EkGeneration `codec:"generation" json:"generation"`
+	Uid              UID          `codec:"uid" json:"uid"`
+	UserEkGeneration EkGeneration `codec:"userEkGeneration" json:"user_ek_generation"`
+	HashMeta         HashMeta     `codec:"hashMeta" json:"hash_meta"`
+	Ctime            Time         `codec:"ctime" json:"ctime"`
+}
+
+func (o TeambotEkMetadata) DeepCopy() TeambotEkMetadata {
+	return TeambotEkMetadata{
+		Kid:              o.Kid.DeepCopy(),
+		Generation:       o.Generation.DeepCopy(),
+		Uid:              o.Uid.DeepCopy(),
+		UserEkGeneration: o.UserEkGeneration.DeepCopy(),
+		HashMeta:         o.HashMeta.DeepCopy(),
+		Ctime:            o.Ctime.DeepCopy(),
+	}
+}
+
+type TeambotEkBoxed struct {
+	Box      string            `codec:"box" json:"box"`
+	Metadata TeambotEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeambotEkBoxed) DeepCopy() TeambotEkBoxed {
+	return TeambotEkBoxed{
+		Box:      o.Box,
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type TeambotEk struct {
+	Seed     Bytes32           `codec:"seed" json:"seed"`
+	Metadata TeambotEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeambotEk) DeepCopy() TeambotEk {
+	return TeambotEk{
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
 type EphemeralInterface interface {
 }
 

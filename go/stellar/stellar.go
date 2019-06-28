@@ -770,6 +770,10 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 		SignedTransaction: sig.Signed,
 	}
 
+	if recipient.User != nil {
+		post.To = &recipient.User.UV
+	}
+
 	if err := walletState.AddPendingTx(mctx.Ctx(), senderEntry.AccountID, stellar1.TransactionID(sig.TxHash), sig.Seqno); err != nil {
 		mctx.Debug("error calling AddPendingTx: %s", err)
 	}

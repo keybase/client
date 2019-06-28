@@ -260,6 +260,40 @@ const reviewPayment = state =>
 const stopPayment = (state, action: WalletsGen.AbandonPaymentPayload) =>
   RPCStellarTypes.localStopBuildPaymentLocalRpcPromise({bid: state.wallets.building.bid})
 
+const validateSEP7Link = (state, action: WalletsGen.ValidateSEP7LinkPayload) =>
+  RPCStellarTypes.localValidateStellarURILocalRpcPromise({inputURI: action.payload.link})
+    .then(tx => [
+      WalletsGen.createSetSEP7Tx({confirmURI: action.payload.link, tx: Constants.makeSEP7ConfirmInfo(tx)}),
+      WalletsGen.createValidateSEP7LinkError({error: ''}),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
+    ])
+    .catch(error => [
+      WalletsGen.createValidateSEP7LinkError({
+        error: error.desc,
+      }),
+      RouteTreeGen.createClearModals(),
+      RouteTreeGen.createNavigateAppend({path: ['sep7ConfirmError']}),
+    ])
+
+const acceptSEP7Tx = (state, action: WalletsGen.AcceptSEP7TxPayload) =>
+  RPCStellarTypes.localApproveTxURILocalRpcPromise(
+    {
+      inputURI: state.wallets.sep7ConfirmURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
+
+const acceptSEP7Pay = (state, action: WalletsGen.AcceptSEP7PayPayload) =>
+  RPCStellarTypes.localApprovePayURILocalRpcPromise(
+    {
+      amount: action.payload.amount,
+      fromCLI: false,
+      inputURI: state.wallets.sep7ConfirmURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
+
 const clearBuiltPayment = () => WalletsGen.createClearBuiltPayment()
 const clearBuiltRequest = () => WalletsGen.createClearBuiltRequest()
 
@@ -913,7 +947,7 @@ const maybeNavToLinkExisting = (state, action: WalletsGen.CheckDisclaimerPayload
   })
 
 const rejectDisclaimer = (state, action: WalletsGen.RejectDisclaimerPayload) =>
-  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createClearModals()
+  isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
 
 const loadMobileOnlyMode = (
   state,
@@ -1092,7 +1126,7 @@ const refreshTrustlineAcceptedAssets = (state, {payload: {accountID}}) =>
     {accountID},
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(accountID)
   ).then(balances => {
-    const {assets, limitsMutable} = balances.reduce(
+    const {assets, limitsMutable} = (balances || []).reduce(
       ({assets, limitsMutable}, balance) => {
         const assetDescription = rpcAssetToAssetDescription(balance.asset)
         return {
@@ -1530,6 +1564,22 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.stellar1UiPaymentReviewed,
     paymentReviewed,
     'paymentReviewed'
+  )
+  yield* Saga.chainAction<WalletsGen.ValidateSEP7LinkPayload>(
+    WalletsGen.validateSEP7Link,
+    validateSEP7Link,
+    'validateSEP7Link'
+  )
+
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7PayPayload>(
+    WalletsGen.acceptSEP7Pay,
+    acceptSEP7Pay,
+    'acceptSEP7Pay'
+  )
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7TxPayload>(
+    WalletsGen.acceptSEP7Tx,
+    acceptSEP7Tx,
+    'acceptSEP7Tx'
   )
 
   if (flags.airdrop) {

@@ -42,6 +42,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const isExploding = explodingModeSeconds !== 0
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
+  const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey, null)
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
   const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
@@ -64,6 +65,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
+    showCommandStatus,
     showGiphySearch,
     showTypingStatus:
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
@@ -197,6 +199,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
 
   showCommandMarkdown: stateProps.showCommandMarkdown,
+  showCommandStatus: stateProps.showCommandStatus,
   showGiphySearch: stateProps.showGiphySearch,
   showReplyPreview: !!stateProps._replyTo,
   showTypingStatus: stateProps.showTypingStatus,

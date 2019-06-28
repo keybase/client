@@ -532,4 +532,7 @@ protocol SimpleFS {
   FSSettings simpleFSSettings();
 
   void simpleFSSetNotificationThreshold(int64 threshold);
+
+  // simpleFSObfuscatePath returns an obfuscated path for the given KBFS path.
+  string simpleFSObfuscatePath(Path path);
 }

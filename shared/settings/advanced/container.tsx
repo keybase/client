@@ -10,6 +10,7 @@ import {
   createSaveProxyData,
   createCertificatePinningToggled,
 } from '../../actions/settings-gen'
+import * as FSGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
@@ -49,6 +50,7 @@ const mapDispatchToProps = dispatch => ({
   onDisableCertPinning: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
   onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false})),
+  onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),

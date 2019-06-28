@@ -154,7 +154,12 @@ func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (res ke
 	}
 	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
 	if err != nil {
-		return res, err
+		switch err.(type) {
+		case libkb.FeatureFlagError:
+			mctx.Debug("PhoneNumbers feature not enabled - phone number list will be empty")
+		default:
+			return res, err
+		}
 	}
 	res.Emails = emails
 	res.PhoneNumbers = phoneNumbers

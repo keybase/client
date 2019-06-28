@@ -125,12 +125,6 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				return nil, err
 			}
 
-			// 0.5 is the minimum balance necessary to create a trustline
-			balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(d.Amount, "0.5")
-			if err != nil {
-				return nil, err
-			}
-
 			asset := stellar1.AccountAssetLocal{
 				Name:                   "Lumens",
 				AssetCode:              "XLM",
@@ -139,7 +133,6 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				BalanceTotal:           fmtAmount,
 				BalanceAvailableToSend: fmtAvailable,
 				WorthCurrency:          displayCurrency,
-				CanAddTrustline:        balanceComparedToTrustlineMin == 1,
 			}
 			fillWorths := func() (err error) {
 				if rateErr != nil {
@@ -190,7 +183,6 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				Desc:                   d.Asset.Desc,
 				InfoUrl:                d.Asset.InfoUrl,
 				InfoUrlText:            d.Asset.InfoUrlText,
-				CanAddTrustline:        false,
 			})
 		}
 	}
@@ -401,6 +393,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 			PublicNoteType:        details.MemoType,
 			ExternalTxURL:         details.ExternalTxURL,
 			FeeChargedDescription: fee,
+			PathIntermediate:      details.PathIntermediate,
 		},
 	}, nil
 }
@@ -1146,7 +1139,29 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 
 	res.FullPath = path
 
-	// TODO: need sourceDisplay, sourceMaxDisplay, destinationDisplay (waiting on design)
+	res.SourceDisplay, err = stellar.FormatAmount(mctx, path.SourceAmount, false, stellarnet.Round)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	res.SourceMaxDisplay, err = stellar.FormatAmount(mctx, path.SourceAmountMax, false, stellarnet.Round)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	res.DestinationDisplay, err = stellar.FormatAmount(mctx, path.DestinationAmount, false, stellarnet.Round)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+
+	destAmt, err := stellarnet.ParseAmount(path.DestinationAmount)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	srcAmt, err := stellarnet.ParseAmount(path.SourceAmount)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	srcAmt.Quo(srcAmt, destAmt)
+	res.ExchangeRate = fmt.Sprintf("1 %s = %s %s", path.DestinationAsset.Code, srcAmt.FloatString(7), path.SourceAsset.Code)
 
 	return res, nil
 }

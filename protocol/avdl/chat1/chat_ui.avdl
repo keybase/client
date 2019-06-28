@@ -428,7 +428,17 @@ protocol chatUi {
 
   // Location support
   @typedef("uint64") @lint("ignore") record LocationWatchID {}
-  LocationWatchID chatWatchPosition(int sessionID);
+  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
   void chatClearWatch(int sessionID, LocationWatchID id);
 
+  // Slash command feedback
+  enum UICommandStatusDisplayTyp {
+    STATUS_0,
+    WARNING_1,
+    ERROR_2
+  }
+  enum UICommandStatusActionTyp {
+    APPSETTINGS_0
+  }
+  void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
 }

@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 // TODO: This is now desktop-only, so remove references to isMobile.
 
 export type Props = {
+  airdropSelected: boolean
   contents: string
   isSelected: boolean
   keybaseUser: string

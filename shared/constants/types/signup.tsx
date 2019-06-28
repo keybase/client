@@ -9,6 +9,7 @@ export type _State = {
   devicenameError: string
   email: string
   emailError: string
+  emailVisible: boolean
   inviteCode: string
   inviteCodeError: string
   name: string

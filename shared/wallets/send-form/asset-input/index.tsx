@@ -29,14 +29,14 @@ const truncateAmount = (amt, numDecimalsAllowed) => {
   return num.toFixed(numDecimalsAllowed)
 }
 
-type Props = {
+export type Props = {
   bottomLabel: string
   displayUnit: string
   inputPlaceholder: string
   currencyLoading: boolean
   numDecimalsAllowed: number
   onChangeAmount: (amount: string) => void
-  onChangeDisplayUnit: () => void
+  onChangeDisplayUnit?: () => void
   topLabel: string
   value: string
   warningAsset?: string
@@ -89,18 +89,24 @@ class AssetInput extends React.Component<Props> {
             ) : (
               <Kb.Box2 direction="vertical" style={styles.currencyContainer}>
                 <Kb.Text
-                  onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
+                  onClick={
+                    this.props.displayUnit && this.props.onChangeDisplayUnit
+                      ? this.props.onChangeDisplayUnit
+                      : null
+                  }
                   type="HeaderBigExtrabold"
                   style={styles.unit}
                 >
                   {this.props.displayUnit}
                 </Kb.Text>
-                <Kb.Text
-                  type="BodySmallPrimaryLink"
-                  onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
-                >
-                  Change
-                </Kb.Text>
+                {this.props.onChangeDisplayUnit && (
+                  <Kb.Text
+                    type="BodySmallPrimaryLink"
+                    onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
+                  >
+                    Change
+                  </Kb.Text>
+                )}
               </Kb.Box2>
             )
           }

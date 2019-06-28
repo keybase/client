@@ -1,15 +1,14 @@
-import logger from '../../logger'
-import * as Constants from '../../constants/team-building'
-import * as ChatConstants from '../../constants/chat2'
-import * as TeamBuildingTypes from '../../constants/types/team-building'
-import * as TeamBuildingGen from '../team-building-gen'
-import * as Chat2Gen from '../chat2-gen'
-import * as RouteTreeGen from '../route-tree-gen'
-import * as Saga from '../../util/saga'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import {TypedState} from '../../constants/reducer'
+import logger from '../logger'
+import * as Constants from '../constants/team-building'
+import * as TeamBuildingTypes from '../constants/types/team-building'
+import * as TeamBuildingGen from './team-building-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Saga from '../util/saga'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {TypedState} from '../constants/reducer'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
+export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 
 const apiSearch = (
   query: string,
@@ -36,8 +35,9 @@ const apiSearch = (
       return []
     })
 
-function* searchResultCounts(state) {
-  const {teamBuildingSearchQuery, teamBuildingSelectedService} = state.chat2
+function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
+  const teamBuildingState = state[namespace].teamBuilding
+  const {teamBuildingSearchQuery, teamBuildingSelectedService} = teamBuildingState
   const teamBuildingSearchLimit = 11 // Hard coded since this happens for background tabs
 
   if (teamBuildingSearchQuery === '') {
@@ -48,11 +48,11 @@ function* searchResultCounts(state) {
   // Also filter out if we already have that result cached
   const servicesToSearch = Constants.services
     .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
-    .filter(s => !state.chat2.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
+    .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
   const isStillInSameQuery = (state: TypedState): boolean =>
-    state.chat2.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-    state.chat2.teamBuildingSelectedService === teamBuildingSelectedService
+    teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
+    teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
 
   // Defer so we aren't conflicting with the main search
   yield Saga.callUntyped(Saga.delay, 100)
@@ -82,6 +82,7 @@ function* searchResultCounts(state) {
         const action = yield apiSearch(teamBuildingSearchQuery, service, teamBuildingSearchLimit, true).then(
           users =>
             TeamBuildingGen.createSearchResultsLoaded({
+              namespace,
               query: teamBuildingSearchQuery,
               service,
               users,
@@ -93,8 +94,10 @@ function* searchResultCounts(state) {
   }
 }
 
-const search = state => {
-  const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state.chat2
+const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
+  const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state[
+    namespace
+  ].teamBuilding
   // We can only ask the api for at most 100 results
   if (teamBuildingSearchLimit > 100) {
     logger.info('ignoring search request with a limit over 100')
@@ -109,6 +112,7 @@ const search = state => {
   return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true).then(
     users =>
       TeamBuildingGen.createSearchResultsLoaded({
+        namespace,
         query: teamBuildingSearchQuery,
         service: teamBuildingSelectedService,
         users,
@@ -116,7 +120,7 @@ const search = state => {
   )
 }
 
-const fetchUserRecs = state =>
+const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
   RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50})
     .then((suggestions: Array<RPCTypes.InterestingPerson> | null) =>
       (suggestions || []).map(
@@ -131,31 +135,50 @@ const fetchUserRecs = state =>
       logger.error(`Error in fetching recs`)
       return []
     })
-    .then(users => TeamBuildingGen.createFetchedUserRecs({users}))
+    .then(users => TeamBuildingGen.createFetchedUserRecs({namespace, users}))
 
-const createConversation = state => [
-  Chat2Gen.createSelectConversation({
-    conversationIDKey: ChatConstants.pendingWaitingConversationIDKey,
-    reason: 'justCreated',
-  }),
-  Chat2Gen.createCreateConversation({
-    participants: state.chat2.teamBuildingFinishedTeam.toArray().map(u => u.id),
-  }),
-]
+export function filterForNs<S, A, L, R>(
+  namespace: TeamBuildingTypes.AllowedNamespace,
+  fn: (s: S, a: A & NSAction, l: L) => R
+) {
+  return (s, a, l) => {
+    if (a && a.payload && a.payload.namespace === namespace) {
+      return fn(s, a, l)
+    }
+  }
+}
 
-function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<TeamBuildingGen.SearchPayload>(TeamBuildingGen.search, search)
-  yield* Saga.chainAction<TeamBuildingGen.FetchUserRecsPayload>(TeamBuildingGen.fetchUserRecs, fetchUserRecs)
-  yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(TeamBuildingGen.search, searchResultCounts)
+function filterGenForNs<S, A, L, R>(
+  namespace: TeamBuildingTypes.AllowedNamespace,
+  fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
+) {
+  return function*(s, a, l) {
+    if (a && a.payload && a.payload.namespace === namespace) {
+      yield* fn(s, a, l)
+    }
+  }
+}
+
+export default function* commonSagas(
+  namespace: TeamBuildingTypes.AllowedNamespace
+): Saga.SagaGenerator<any, any> {
+  yield* Saga.chainAction<TeamBuildingGen.SearchPayload>(
+    TeamBuildingGen.search,
+    filterForNs(namespace, search)
+  )
+  yield* Saga.chainAction<TeamBuildingGen.FetchUserRecsPayload>(
+    TeamBuildingGen.fetchUserRecs,
+    filterForNs(namespace, fetchUserRecs)
+  )
+  yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(
+    TeamBuildingGen.search,
+    filterGenForNs(namespace, searchResultCounts)
+  )
   // Navigation, before creating
   yield* Saga.chainAction<
     TeamBuildingGen.CancelTeamBuildingPayload | TeamBuildingGen.FinishedTeamBuildingPayload
-  >([TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding], closeTeamBuilding)
-
-  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
-    TeamBuildingGen.finishedTeamBuilding,
-    createConversation
+  >(
+    [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
+    filterForNs(namespace, closeTeamBuilding)
   )
 }
-
-export default chatTeamBuildingSaga
