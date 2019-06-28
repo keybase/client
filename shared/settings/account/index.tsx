@@ -111,7 +111,7 @@ const ManageContacts = (props: Props) => (
 )
 
 const AccountSettings = (props: Props) => (
-  <Kb.ScrollView>
+  <Kb.ScrollView style={{width: '100%'}}>
     {props.addedEmail && (
       <Kb.Banner
         color="green"
