@@ -380,7 +380,7 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
 }
 
 const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(settings => {
+  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey).then(settings => {
     const emailMap: I.Map<string, Types.EmailRow> = I.Map(
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
     )

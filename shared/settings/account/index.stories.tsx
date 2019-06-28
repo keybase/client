@@ -14,7 +14,9 @@ const props = {
   onClearAddedEmail: Sb.action('onClearAddedEmail'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
   onManageContacts: Sb.action('onManageContacts'),
+  onReload: Sb.action('onReload'),
   onSetPassword: Sb.action('onSetPassword'),
+  waiting: false,
 }
 
 const cc = {
