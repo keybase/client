@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as I from 'immutable'
 import {stringToAccountID} from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
@@ -38,7 +37,7 @@ const props = {
   onLoadPaymentDetail: Sb.action('onLoadPaymentDetail'),
   onShowProfile: Sb.action('onShowProfile'),
   onViewTransaction: Sb.action('onViewTransaction'),
-  pathIntermediate: I.List(),
+  pathIntermediate: [],
   recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
   selectableText: true,
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
@@ -221,26 +220,26 @@ const load = () => {
         sourceIssuer="anchortoad.com"
         issuerDescription="froggycoin.io"
         sourceConvRate="2.450000"
-        pathIntermediate={I.List([
-          I.Record({
+        pathIntermediate={[
+          {
             code: 'WHAT',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'whatcoin',
             issuerVerifiedDomain: 'what.com',
-          })(),
-          I.Record({
+          },
+          {
             code: 'NATE',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'natecoin',
             issuerVerifiedDomain: 'nathansmith.io',
-          })(),
-          I.Record({
+          },
+          {
             code: 'BLAH',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'Blahhold.co',
             issuerVerifiedDomain: 'blahhold.co',
-          })(),
-        ])}
+          },
+        ]}
       />
     ))
     .add('Sent path payment (Asset -> XLM)', () => (

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
@@ -9,7 +8,7 @@ import {capitalize} from 'lodash-es'
 import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
-import PaymentPath from './payment-path'
+import PaymentPath, {Asset} from './payment-path'
 
 export type NotLoadingProps = {
   amountUser: string
@@ -38,7 +37,7 @@ export type NotLoadingProps = {
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
   operations?: Array<string>
-  pathIntermediate: I.List<Types.AssetDescription>
+  pathIntermediate: Asset[]
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean

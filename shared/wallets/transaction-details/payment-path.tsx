@@ -4,6 +4,13 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 
+export type Asset = {
+  code: string
+  issuerAccountID: string
+  issuerName: string
+  issuerVerifiedDomain: string
+}
+
 type PaymentPathStartProps = {
   assetLabel: string
   issuer: string
@@ -22,7 +29,7 @@ type PaymentPathStopProps = {
 type PaymentPathProps = {
   sourceAmount: string
   sourceIssuer: string
-  pathIntermediate: I.List<Types.AssetDescription>
+  pathIntermediate: Asset[]
   destinationAmount: string
   destinationIssuer: string
 }
