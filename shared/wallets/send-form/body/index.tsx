@@ -11,7 +11,6 @@ import {sharedStyles} from './shared'
 
 type SendBodyProps = {
   banners: Array<BannerType>
-  onGoAdvanced: () => void
   onReviewPayments: (() => void) | null
   isProcessing?: boolean
 }
@@ -19,7 +18,6 @@ type SendBodyProps = {
 type RequestBodyProps = {
   banners: Array<BannerType>
   isProcessing?: boolean
-  onGoAdvanced: () => void
 }
 
 const Spinner = () => (
@@ -30,11 +28,6 @@ const Spinner = () => (
 
 export const SendBody = (props: SendBodyProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
-    <Kb.Banner
-      actions={[{onClick: props.onGoAdvanced, title: 'Send other assets?'}]}
-      color="blue"
-      text="This user is accepting other assets than XLM Lumens."
-    />
     <Kb.ScrollView style={sharedStyles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
