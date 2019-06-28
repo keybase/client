@@ -29,7 +29,7 @@ export default (props: any) => {
   return <MultiFollowNotification {...props} />
 }
 
-export const FollowNotification = (props: Props) => {
+const FollowNotification = (props: Props) => {
   if (props.newFollows.length !== 1) {
     throw new Error('Single follow notification must have exactly one user supplied')
   }

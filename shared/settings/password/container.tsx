@@ -1,6 +1,6 @@
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Kb from '../../common-adapters'
-import {UpdatePassword} from '.'
+import UpdatePassword from '.'
 import {compose, lifecycle, connect, RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 

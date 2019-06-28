@@ -23,7 +23,7 @@ type State = {
   errorSaving: string
 }
 
-export class UpdatePassword extends Component<Props, State> {
+class UpdatePassword extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
