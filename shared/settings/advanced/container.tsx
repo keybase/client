@@ -55,6 +55,7 @@ const mapDispatchToProps = dispatch => ({
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
+  openPhoneInput: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})),
 })
 
 export default compose(

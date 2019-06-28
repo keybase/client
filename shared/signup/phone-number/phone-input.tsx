@@ -176,6 +176,10 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     this._setFormatted(formatted)
   }
 
+  _reformatCountry = newText => {
+    console.log(newText)
+  }
+
   _updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
     this.props.onChangeNumber(validation.e164)
@@ -196,39 +200,78 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   }
 
   render() {
+    const selectedCountry = countryData[this.state.country]
+
     return (
-      <>
+      <Kb.Box2 direction="vertical" style={({width: '100%'})}>
         <Kb.Box2
           alignItems="center"
           direction="horizontal"
-          style={Styles.collapseStyles([styles.container, this.props.style])}
+          style={Styles.collapseStyles([styles.topContainer, styles.container, this.props.style])}
         >
-          <Kb.ClickableBox onClick={this._toggleShowingMenu} style={styles.fullHeight}>
+          <Kb.ClickableBox
+            onClick={this._toggleShowingMenu} style={styles.fullHeight}>
             <Kb.Box2
               direction="horizontal"
-              style={styles.callingCodeContainer}
+              style={styles.countrySelectorContainer}
               alignItems="center"
               fullHeight={true}
+              fullWidth={true}
               gap="xtiny"
               ref={this.props.setAttachmentRef}
             >
-              <Kb.Text type="Body">{getCountryEmoji(this.state.country)}</Kb.Text>
-              <Kb.Text type="BodySemibold" style={{marginRight: Styles.globalMargins.xtiny}}>
-                {getCallingCode(this.state.country)}
+              <Kb.Text
+                type="BodySemibold"
+                style={{
+                  marginRight: Styles.globalMargins.xtiny,
+                  flexGrow: 1,
+                }}
+              >
+                {selectedCountry.emoji}{' '}
+                {selectedCountry.name}
               </Kb.Text>
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
-          <Kb.PlainInput
-            autoFocus={true}
-            style={styles.input}
-            flexable={true}
-            keyboardType={isIOS ? 'number-pad' : 'numeric'}
-            placeholder={getPlaceholder(this.state.country)}
-            onChangeText={this._reformat}
-            onEnterKeyDown={this.props.onEnterKeyDown}
-            value={this.state.formatted}
-          />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.fullWidth}>
+          <Kb.Box2
+            alignItems="center" direction="horizontal"
+            style={Styles.collapseStyles([styles.prefixContainer, styles.container, this.props.style])}
+          >
+            <Kb.Text
+              type="BodySemibold"
+              style={{
+                marginRight: Styles.globalMargins.xtiny,
+                flexGrow: 0,
+              }}
+            >
+              {'+'}
+            </Kb.Text>
+            <Kb.PlainInput
+              style={Styles.collapseStyles([styles.input, styles.prefixInput])}
+              flexable={true}
+              keyboardType={isIOS ? 'number-pad' : 'numeric'}
+              placeholder={"+1"}
+              onChangeText={this._reformatCountry}
+              value={selectedCountry.callingCode}
+            />
+          </Kb.Box2>
+          <Kb.Box2
+            alignItems="center" direction="horizontal"
+            style={Styles.collapseStyles([styles.phoneNumberContainer, styles.container, this.props.style])}
+          >
+            <Kb.PlainInput
+              autoFocus={true}
+              style={Styles.collapseStyles([styles.input, styles.phoneNumberInput])}
+              flexable={true}
+              keyboardType={isIOS ? 'number-pad' : 'numeric'}
+              placeholder={getPlaceholder(this.state.country)}
+              onChangeText={this._reformat}
+              onEnterKeyDown={this.props.onEnterKeyDown}
+              value={this.state.formatted}
+            />
+          </Kb.Box2>
         </Kb.Box2>
         <CountrySelector
           attachTo={this.props.getAttachmentRef}
@@ -238,18 +281,29 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           visible={this.props.showingMenu}
           ref={this._countrySelectorRef}
         />
-      </>
+      </Kb.Box2>
     )
   }
 }
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 
 const styles = Styles.styleSheetCreate({
-  callingCodeContainer: {
+  countrySelectorContainer: {
     ...Styles.padding(0, Styles.globalMargins.xsmall),
     borderRightColor: Styles.globalColors.black_10,
     borderRightWidth: 1,
     borderStyle: 'solid',
+  },
+  topContainer: {
+    marginBottom: Styles.globalMargins.tiny,
+  },
+  prefixContainer: {
+    flexGrow: 0,
+    width: '20%',
+  },
+  phoneNumberContainer: {
+    flexGrow: 1,
+    width: '80%',
   },
   container: {
     backgroundColor: Styles.globalColors.white,
@@ -281,7 +335,14 @@ const styles = Styles.styleSheetCreate({
     height: 38,
     width: '100%',
   },
-  fullHeight: {height: '100%'},
+  fullWidth: {width: '100%'},
+  fullHeight: {height: '100%', width: '100%'},
+  prefixInput: {
+    flexGrow: 1,
+    width: 30,
+    marginRight: Styles.globalMargins.xtiny,
+  },
+  phoneNumberInput: {},
   input: Styles.platformStyles({
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.xsmall),
