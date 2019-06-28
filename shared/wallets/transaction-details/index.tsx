@@ -80,8 +80,13 @@ interface ConvertedCurrencyLabelProps {
   issuerDescription: string
 }
 
+interface PaymentPathStartProps {
+  you: string
+  assetLabel: string
+  issuer: string
+}
+
 interface PaymentPathEndProps {
-  type: 'source' | 'destination'
   assetLabel: string
   issuer: string
 }
@@ -313,16 +318,34 @@ const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
   </Kb.Box2>
 )
 
-// A PaymentPathEnd is one of the two ends of the payment path: either the source or destination
+const PaymentPathStart = (props: PaymentPathStartProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
+    {/* can also be a wallet? */}
+    <Kb.Avatar username={props.you} size={32} borderColor={Styles.globalColors.purpleLight} />
+    <Kb.Text type="BodyBigExtrabold">
+      -{props.assetLabel}
+      <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
+    </Kb.Text>
+  </Kb.Box2>
+)
+
 const PaymentPathEnd = (props: PaymentPathEndProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
-    <Kb.Avatar size={32} borderColor={Styles.globalColors.purpleLight} />
-    <Kb.Text
-      type="BodyBigExtrabold"
-      style={{color: props.type === 'destination' ? Styles.globalColors.greenDark : undefined}}
-    >
-      {props.type === 'source' ? '-' : '+'}
-      {props.assetLabel}
+    {/* Should be a counterparty icon */}
+    <>
+      <Kb.Icon
+        type="icon-placeholder-secret-user-32"
+        style={{
+          ...styles.icon32,
+          borderColor: Styles.globalColors.purpleLight,
+          borderRadius: 32 / 2,
+          borderStyle: 'solid',
+          borderWidth: 2,
+        }}
+      />
+    </>
+    <Kb.Text type="BodyBigExtrabold" style={{color: Styles.globalColors.greenDark}}>
+      +{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
     </Kb.Text>
   </Kb.Box2>
@@ -347,7 +370,7 @@ const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
 const PaymentPath = (props: any) => {
   return (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
-      <PaymentPathEnd type="source" assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
+      <PaymentPathStart you={props.you} assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
       <Kb.Box style={styles.paymentPathLine} />
       {props.pathIntermediate.map(asset => {
         return (
@@ -357,11 +380,7 @@ const PaymentPath = (props: any) => {
           </>
         )
       })}
-      <PaymentPathEnd
-        type="destination"
-        assetLabel={props.amountDescription}
-        issuer={props.destinationIssuer}
-      />
+      <PaymentPathEnd assetLabel={props.amountDescription} issuer={props.destinationIssuer} />
     </Kb.Box2>
   )
 }
@@ -413,6 +432,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
             <PaymentPath
+              you={props.you}
               sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
               sourceIssuer={sourceIssuer}
               pathIntermediate={props.pathIntermediate}
