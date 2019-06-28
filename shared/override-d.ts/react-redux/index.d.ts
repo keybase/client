@@ -229,13 +229,14 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
   component: C
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
-  : [
-      "just to help you debug what's going on",
-      Exclude<keyof GetProps<C>, keyof TMergedProps>,
-      Exclude<keyof TMergedProps, keyof GetProps<C>>,
-      GetProps<C>,
-      TMergedProps
-    ]
+  : never &
+      [
+        "just to help you debug what's going on",
+        Exclude<keyof GetProps<C>, keyof TMergedProps>,
+        Exclude<keyof TMergedProps, keyof GetProps<C>>,
+        GetProps<C>,
+        TMergedProps
+      ]
 export interface Connect {
   // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
   // when you really didn't. If the types don't match it spits out the missing keys (omit) as a way to help you out but the error cases
