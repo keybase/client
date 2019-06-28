@@ -124,6 +124,25 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.True(t, details.IsFunded)
 	require.False(t, details.CanSubmitTx)
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), details.CurrencyLocal.Code)
+	require.False(t, details.CanAddTrustline)
+
+	// Add another account that we will add 10 XLM, enough to be funded and can create trustlines
+	yetAnotherAccountID := tcs[0].Backend.AddAccountEmpty(t)
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   tcs[0].Backend.SecretKey(yetAnotherAccountID),
+		MakePrimary: false,
+		Name:        "another funded but 0 avail.",
+	})
+	require.NoError(t, err)
+
+	tcs[0].Backend.Gift(yetAnotherAccountID, "10")
+	argDetails.AccountID = yetAnotherAccountID
+	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	require.Equal(t, "10 XLM", details.BalanceDescription)
+	require.True(t, details.IsFunded)
+	require.True(t, details.CanSubmitTx)
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), details.CurrencyLocal.Code)
 	require.True(t, details.CanAddTrustline)
 }
 

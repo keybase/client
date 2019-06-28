@@ -113,6 +113,7 @@ export const makePaymentPath = I.Record<Types._PaymentPath>({
   sourceAmount: '',
   sourceAmountMax: '',
   sourceAsset: emptyAssetDescription,
+  sourceHasSufficientBalance: false,
 })
 export const emptyPaymentPath = makePaymentPath()
 
@@ -340,6 +341,7 @@ export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
 
 const _defaultPaymentCommon = {
   amountDescription: '',
+  assetCode: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
   fromAirdrop: false,
@@ -355,6 +357,8 @@ const _defaultPaymentCommon = {
   sourceAccountID: '',
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
+  sourceIssuer: '',
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -478,6 +482,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
     amountDescription: p.amountDescription,
+    assetCode: p.assetCode,
     delta: balanceDeltaToString[p.delta],
     error: '',
     fromAirdrop: p.fromAirdrop,
@@ -493,6 +498,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAccountID: p.fromAccountID,
     sourceAmount: p.sourceAmountActual,
     sourceAsset: p.sourceAsset.code,
+    sourceConvRate: p.sourceConvRate,
+    sourceIssuer: p.sourceAsset.verifiedDomain,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,

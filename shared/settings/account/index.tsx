@@ -7,10 +7,12 @@ import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 import flags from '../../util/feature-flags'
 
 export type Props = {
+  addedEmail: string | null
   contactKeys: I.List<string>
   hasPassword: boolean
   onAddEmail: () => void
   onAddPhone: () => void
+  onClearAddedEmail: () => void
   onManageContacts: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
@@ -108,6 +110,13 @@ const ManageContacts = (props: Props) => (
 
 const AccountSettings = (props: Props) => (
   <Kb.ScrollView>
+    {props.addedEmail && (
+      <Kb.Banner
+        color="green"
+        text={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
+        onClose={props.onClearAddedEmail}
+      />
+    )}
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <EmailPhone {...props} />
       <Kb.Divider />

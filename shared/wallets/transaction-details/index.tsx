@@ -13,6 +13,7 @@ export type NotLoadingProps = {
   amountUser: string
   amountXLM: string
   approxWorth: string
+  assetCode: string
   counterparty: string
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: string | null
@@ -41,6 +42,8 @@ export type NotLoadingProps = {
   senderAccountID: Types.AccountID
   sourceAmount: string
   sourceAsset: string
+  sourceConvRate: string
+  sourceIssuer: string
   status: Types.StatusSimplified
   statusDetail: string
   // A null timestamp means the transaction is still pending.
@@ -67,6 +70,12 @@ export type Props =
 type PartyAccountProps = {
   accountID: Types.AccountID | null
   accountName: string
+}
+
+interface ConvertedCurrencyLabelProps {
+  amount: string | number
+  assetCode: string
+  issuerDescription: string
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
@@ -287,8 +296,20 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
+  <Kb.Box2 direction="vertical" noShrink={true}>
+    <Kb.Text type="BodyBigExtrabold">
+      {props.amount} {props.assetCode || 'XLM'}
+    </Kb.Text>
+    <Kb.Text type="BodySmall">/{props.issuerDescription || 'Unknown issuer'}</Kb.Text>
+  </Kb.Box2>
+)
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
+
+  const isPathPayment = !!props.sourceAmount
+
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -322,6 +343,29 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        {isPathPayment && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+              <ConvertedCurrencyLabel
+                amount={1}
+                assetCode={props.sourceAsset}
+                issuerDescription={
+                  // If we don't have a sourceAsset, the source is native Lumens
+                  props.sourceAsset === '' ? 'Stellar Lumens' : props.sourceIssuer
+                }
+              />
+              <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={{flex: 1}}>
+                <Kb.Text type="BodyBig">=</Kb.Text>
+              </Kb.Box2>
+              <ConvertedCurrencyLabel
+                amount={props.sourceConvRate}
+                assetCode={props.assetCode}
+                issuerDescription={props.assetCode === '' ? 'Stellar Lumens' : props.issuerDescription}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>

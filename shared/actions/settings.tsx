@@ -661,6 +661,29 @@ const editContactImportEnabled = (
       ).then(() => SettingsGen.createLoadContactImportEnabled())
     : logger.warn('no username')
 
+const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger: Saga.SagaLogger) => {
+  if (state.settings.email.error) {
+    logger.info('email error; bailing')
+    return
+  }
+  const {email, searchable} = action.payload
+  return RPCTypes.emailsAddEmailRpcPromise(
+    {
+      email,
+      visibility: searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private,
+    },
+    Constants.addEmailWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createAddedEmail({email})
+    })
+    .catch(err => {
+      logger.warn(`error: ${err.message}`)
+      return SettingsGen.createAddedEmail({email, error: err})
+    })
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -679,8 +702,6 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     deleteAccountForever
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
-  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail
@@ -734,6 +755,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.SaveProxyDataPayload>(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
+  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(
     SettingsGen.addPhoneNumber,
     addPhoneNumber,
@@ -745,6 +767,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     'verifyPhoneNumber'
   )
 
+  // Contacts
   yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
     SettingsGen.loadContactImportEnabled,
     loadContactImportEnabled,
@@ -755,6 +778,10 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     editContactImportEnabled,
     'editContactImportEnabled'
   )
+
+  // Emails
+  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
+  yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail, 'addEmail')
 }
 
 export default settingsSaga

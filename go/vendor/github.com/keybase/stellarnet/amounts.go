@@ -199,3 +199,23 @@ func FeeString(fee int32) string {
 	n := big.NewRat(int64(fee), StroopsPerLumen)
 	return n.FloatString(7)
 }
+
+// GetStellarExchangeRate takes two amounts, and returns the exchange rate of 1 source unit to destination units.
+// This is useful for comparing two different assets on the Stellar network, say XLM and AnchorUSD.
+func GetStellarExchangeRate(source, destination string) (string, error) {
+	s, err := ParseStellarAmount(source)
+	if err != nil {
+		return "", fmt.Errorf("parsing source amount: %q", err)
+	}
+	if s == 0 {
+		return "", fmt.Errorf("cannot have a source amount of 0")
+	}
+
+	d, err := ParseStellarAmount(destination)
+	if err != nil {
+		return "", fmt.Errorf("parsing destination amount: %q", err)
+	}
+
+	rate := big.NewRat(d, s)
+	return rate.FloatString(7), nil
+}

@@ -1272,6 +1272,7 @@ const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellar
   sourceAmount: paymentPath.sourceAmount,
   sourceAmountMax: paymentPath.sourceAmountMax,
   sourceAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.sourceAsset),
+  sourceHasSufficientBalance: paymentPath.sourceHasSufficientBalance,
 })
 
 const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath) =>
@@ -1286,6 +1287,7 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
     sourceAmount: rpcPaymentPath.sourceAmount,
     sourceAmountMax: rpcPaymentPath.sourceAmountMax,
     sourceAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.sourceAsset),
+    sourceHasSufficientBalance: rpcPaymentPath.sourceHasSufficientBalance,
   })
 
 const calculateBuildingAdvanced = state =>
@@ -1302,6 +1304,7 @@ const calculateBuildingAdvanced = state =>
     .then(res => {
       console.log({res})
       const {
+        amountError,
         destinationAccount,
         destinationDisplay,
         exchangeRate,
@@ -1311,7 +1314,7 @@ const calculateBuildingAdvanced = state =>
       } = res
       return WalletsGen.createSetBuiltPaymentAdvanced({
         builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
-          amountError: 'You only have 34.04 EUR/Stonghold.com available to spend.',
+          amountError,
           destinationAccount,
           destinationDisplay,
           exchangeRate,

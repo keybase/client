@@ -144,6 +144,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
+	loc.AssetCode = p.Asset.Code
 	loc.FromAccountID = p.From
 	loc.FromType = stellar1.ParticipantType_STELLAR
 	loc.ToAccountID = &p.To
@@ -157,6 +158,12 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.SourceAsset = p.SourceAsset
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
 
 	loc.IsAdvanced = p.IsAdvanced
 	loc.SummaryAdvanced = p.SummaryAdvanced
@@ -216,6 +223,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		}
 	}
 
+	loc.AssetCode = p.Asset.Code
+
 	fillOwnAccounts(mctx, loc, oc)
 	switch {
 	case loc.FromAccountName != "":
@@ -238,6 +247,12 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
 	loc.SourceAsset = p.SourceAsset
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
 
 	return loc, nil
 }
@@ -261,6 +276,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		return nil, err
 	}
 
+	loc.AssetCode = "XLM" // We can hardcode relay payments, since the asset will always be XLM
 	loc.FromAccountID = p.FromStellar
 	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
 	if err != nil {
@@ -539,8 +555,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
-	// 0.5 is the minimum balance necessary to create a trustline
-	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "0.5")
+	// 0.5 is the minimum balance necessary to create a trustline and 1.0 is the minimum reserve balance
+	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "1.5")
 	if err != nil {
 		return empty, err
 	}
