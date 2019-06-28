@@ -578,3 +578,15 @@ func (s *SimpleFSHandler) SimpleFSDeobfuscatePath(
 	}
 	return cli.SimpleFSDeobfuscatePath(ctx, path)
 }
+
+// SimpleFSGetStats implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetStats(ctx context.Context) (
+	keybase1.SimpleFSStats, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.SimpleFSStats{}, err
+	}
+	return cli.SimpleFSGetStats(ctx)
+}

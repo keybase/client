@@ -2235,7 +2235,7 @@ export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UI
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}
 export type ErrorNum = Int
-export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly configuredAccounts?: Array<ConfiguredAccount> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
+export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly configuredAccounts?: Array<ConfiguredAccount> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly localBlockCacheDbStats?: Array<String> | null; readonly localSyncCacheDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
 export type ExternalServiceConfig = {readonly schemaVersion: Int; readonly display?: ServiceDisplayConfig | null; readonly config?: ParamProofServiceConfig | null}
 export type FSEditListRequest = {readonly folder: Folder; readonly requestID: Int}
 export type FSFolderEditHistory = {readonly folder: Folder; readonly serverTime: Time; readonly history?: Array<FSFolderWriterEditHistory> | null}
@@ -2507,6 +2507,7 @@ export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolea
 export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
+export type SimpleFSStats = {readonly blockCacheDbStats?: Array<String> | null; readonly syncCacheDbStats?: Array<String> | null}
 export type SizedImage = {readonly path: String; readonly width: Int}
 export type SocialAssertion = {readonly user: String; readonly service: SocialAssertionService}
 export type SocialAssertionService = String
@@ -3363,6 +3364,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.SimpleFS.simpleFSReset'
 // 'keybase.1.SimpleFS.simpleFSObfuscatePath'
 // 'keybase.1.SimpleFS.simpleFSDeobfuscatePath'
+// 'keybase.1.SimpleFS.simpleFSGetStats'
 // 'keybase.1.streamUi.close'
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'
