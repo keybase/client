@@ -37,7 +37,7 @@ const getCode = (props: Props) => (
 )
 
 const getIssuerVerifiedDomain = (props: Props) => (
-  <Kb.Text type="BodySmall">{props.issuerVerifiedDomain || 'Unknown'}</Kb.Text>
+  <Kb.Text type="BodySmall">{props.issuerVerifiedDomain || 'Unknown issuer'}</Kb.Text>
 )
 
 const bodyCollapsed = (props: Props) => (
