@@ -3,7 +3,8 @@ import * as Constants from '../../constants/settings'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
-
+import * as Platform from '../../constants/platform'
+import flags from '../../util/feature-flags'
 import {Props} from './index'
 
 function SettingsNav(props: Props) {
@@ -19,11 +20,13 @@ function SettingsNav(props: Props) {
         selected={props.selectedTab === Constants.chatTab}
         onClick={() => props.onTabChange(Constants.chatTab)}
       />
-      <SettingsItem
-        text="Files"
-        selected={props.selectedTab === Constants.fsTab}
-        onClick={() => props.onTabChange(Constants.fsTab)}
-      />
+      {(!Platform.isLinux || flags.kbfsOfflineMode) && (
+        <SettingsItem
+          text="Files"
+          selected={props.selectedTab === Constants.fsTab}
+          onClick={() => props.onTabChange(Constants.fsTab)}
+        />
+      )}
       <SettingsItem
         text="Notifications"
         selected={props.selectedTab === Constants.notificationsTab}
