@@ -28,9 +28,7 @@ export const Task = (props: Props) => (
     <Kb.Box style={styles.actionContainer}>
       {props.showSearchBar && <PeopleSearch style={styles.search} />}
       {props.buttons.length > 0 &&
-        props.buttons.map(b => (
-          <Kb.Button key={b.label} small={true} style={{marginRight: Styles.globalMargins.tiny}} {...b} />
-        ))}
+        props.buttons.map(b => <Kb.Button key={b.label} small={true} style={styles.button} {...b} />)}
     </Kb.Box>
   </PeopleItem>
 )
@@ -43,6 +41,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     width: 'auto',
   },
+  button: {marginBottom: Styles.globalMargins.xtiny, marginRight: Styles.globalMargins.tiny},
   instructions: {marginTop: 2},
   search: {
     alignSelf: undefined,
