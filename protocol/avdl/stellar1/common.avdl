@@ -169,5 +169,6 @@ protocol common {
     array<Asset> path;
     string destinationAmount;
     Asset destinationAsset;
+    boolean sourceHasSufficientBalance;
   }
 }
