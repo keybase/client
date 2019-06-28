@@ -622,8 +622,9 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
       return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
     })
     .catch(err => {
-      logger.warn('error ', err.message)
-      return SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
+      const message = err.code === 3403 ? 'Incorrect code, please try again.' : err.message
+      logger.warn('error ', message)
+      return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
     })
 }
 

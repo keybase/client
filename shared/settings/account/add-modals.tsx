@@ -186,6 +186,7 @@ export const VerifyPhone = () => {
     [dispatch, code, pendingVerification]
   )
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
+  const disabled = !code
   return (
     <Kb.Modal
       onClose={onClose}
@@ -198,6 +199,7 @@ export const VerifyPhone = () => {
         content: (
           <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
             <Kb.Button
+              disabled={disabled}
               type="Success"
               label="Continue"
               onClick={onContinue}
