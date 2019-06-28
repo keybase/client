@@ -346,6 +346,7 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	// trackers fire after time moves up
 	checkCoords(t, unfurler, coords, timeout)
 	checkCoords(t, unfurler, coords, timeout)
+	checkCoords(t, unfurler, coords, timeout) // tracker 1 and posts again
 	select {
 	case <-unfurler.unfurlCh:
 		require.Fail(t, "no more unfurls here")
