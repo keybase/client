@@ -41,10 +41,9 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    marginRight: Styles.isMobile ? 112 : 80,
     width: 'auto',
   },
-  instructions: {marginRight: Styles.isMobile ? 112 : 80, marginTop: 2},
+  instructions: {marginTop: 2},
   search: {
     alignSelf: undefined,
     flexGrow: 0,
