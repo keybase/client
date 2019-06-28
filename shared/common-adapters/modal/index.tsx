@@ -167,7 +167,7 @@ const styles = Styles.styleSheetCreate({
       width: 560,
     },
   }),
-  scrollContentContainer: {flexGrow: 1, width: '100%'},
+  scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
   scrollWide: Styles.platformStyles({
     isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
   }),

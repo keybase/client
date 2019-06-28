@@ -6,6 +6,7 @@ import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
 import {actionHasError} from '../util/container'
+import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -191,6 +192,32 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
     case SettingsGen.loadedContactPermissions:
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
+    case SettingsGen.addEmail: {
+      const {email} = action.payload
+      const emailError = isValidEmail(email)
+      return state.update('email', emailState =>
+        emailState.merge({addingEmail: email, error: emailError ? new Error(emailError) : null})
+      )
+    }
+    case SettingsGen.addedEmail: {
+      if (action.payload.email !== state.email.addingEmail) {
+        logger.warn("addedEmail: doesn't match")
+        return state
+      }
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.error ? null : action.payload.email,
+          addingEmail: action.payload.error ? emailState.addingEmail : null,
+          error: action.payload.error || null,
+        })
+      )
+    }
+    case SettingsGen.clearAddingEmail: {
+      return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
+    }
+    case SettingsGen.clearAddedEmail: {
+      return state.update('email', emailState => emailState.merge({addedEmail: null}))
+    }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:

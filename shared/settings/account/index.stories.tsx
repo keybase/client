@@ -6,10 +6,12 @@ import ConfirmDelete from './confirm-delete'
 import * as I from 'immutable'
 
 const props = {
+  addedEmail: null,
   contactKeys: I.List(),
   hasPassword: false,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
+  onClearAddedEmail: Sb.action('onClearAddedEmail'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
   onManageContacts: Sb.action('onManageContacts'),
   onSetPassword: Sb.action('onSetPassword'),

@@ -30,36 +30,59 @@ const EnterEmail = (props: Props) => {
       // onRightAction={props.onSkip}
       title="Your email address"
     >
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        gap={Styles.isMobile ? 'small' : 'medium'}
-        fullWidth={true}
-        style={Styles.globalStyles.flexOne}
-      >
-        <Kb.Icon type="icon-email-add-96" />
-        <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
-          <Kb.NewInput
-            autoFocus={true}
-            containerStyle={styles.input}
-            keyboardType="email-address"
-            placeholder="Email address"
-            onChangeText={onChangeEmail}
-            onEnterKeyDown={onContinue}
-            textContentType="emailAddress"
-            value={email}
-          />
-          <Kb.Checkbox
-            label="Allow friends to find you by this email address"
-            checked={allowSearch}
-            onCheck={onChangeAllowSearch}
-            style={styles.checkbox}
-          />
-        </Kb.Box2>
-      </Kb.Box2>
+      <EnterEmailBody
+        onChangeEmail={onChangeEmail}
+        onContinue={onContinue}
+        email={email}
+        showAllowSearch={true}
+        allowSearch={allowSearch}
+        onChangeAllowSearch={onChangeAllowSearch}
+        icon={<Kb.Icon type="icon-email-add-96" />}
+      />
     </SignupScreen>
   )
 }
+
+type BodyProps = {
+  onChangeEmail: (email: string) => void
+  onContinue: () => void
+  email: string
+  allowSearch: boolean
+  onChangeAllowSearch: (allow: boolean) => void
+  showAllowSearch: boolean
+  icon: React.ReactNode
+}
+export const EnterEmailBody = (props: BodyProps) => (
+  <Kb.Box2
+    alignItems="center"
+    direction="vertical"
+    gap={Styles.isMobile ? 'small' : 'medium'}
+    fullWidth={true}
+    style={Styles.globalStyles.flexOne}
+  >
+    {props.icon}
+    <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+      <Kb.NewInput
+        autoFocus={true}
+        containerStyle={styles.input}
+        keyboardType="email-address"
+        placeholder="Email address"
+        onChangeText={props.onChangeEmail}
+        onEnterKeyDown={props.onContinue}
+        textContentType="emailAddress"
+        value={props.email}
+      />
+      {props.showAllowSearch && (
+        <Kb.Checkbox
+          label="Allow friends to find you by this email address"
+          checked={props.allowSearch}
+          onCheck={props.onChangeAllowSearch}
+          style={styles.checkbox}
+        />
+      )}
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
