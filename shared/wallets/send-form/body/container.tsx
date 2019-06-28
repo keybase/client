@@ -15,6 +15,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  // TODO: Swap this path for the path to the advanced send form once it is done
+  _onAdvancedSend: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['sendReceiveForm']})),
   _onReviewPayments: () => dispatch(WalletsGen.createExitFailedPayment()),
   onGoAdvanced: (recipient, recipientType, senderAccountID) => {
     dispatch(WalletsGen.createClearBuildingAdvanced())
@@ -29,8 +31,10 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   banners: (stateProps.banners || []).map(banner => ({
+    action: dispatchProps._onAdvancedSend,
     bannerBackground: Constants.bannerLevelToBackground(banner.level),
     bannerText: banner.message,
+    offerAdvancedSendForm: banner.offerAdvancedSendForm,
   })),
   onGoAdvanced: () =>
     dispatchProps.onGoAdvanced(

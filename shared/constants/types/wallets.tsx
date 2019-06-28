@@ -218,6 +218,7 @@ export type _PaymentResult = {
 
 export type _PaymentDetail = {
   externalTxURL: string
+  pathIntermediate: I.List<AssetDescription>
   publicMemo: HiddenString
   publicMemoType: string
   txID: string
@@ -248,6 +249,7 @@ export type Banner = {
   bannerText: string
   reviewProofs?: boolean
   sendFailed?: boolean
+  offerAdvancedSendForm?: StellarRPCTypes.AdvancedBanner
 }
 
 export type Building = I.RecordOf<_Building>
