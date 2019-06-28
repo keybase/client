@@ -346,8 +346,9 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
-
-    "clearBuildingAdvanced": {},
+    "clearBuildingAdvanced": {
+      "_description": "replace the current buildingAdvanced data with an empty one"
+    },
     "setBuildingAdvancedRecipient": {"recipient": "string"},
     "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
     "setBuildingAdvancedRecipientAsset": {"recipientAsset": "Types.AssetDescriptionOrNative"},
@@ -358,8 +359,7 @@
     "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
     "calculateBuildingAdvanced": {},
     "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
-    "sendPaymentAdvanced": {},
-
+    "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",

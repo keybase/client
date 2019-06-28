@@ -1114,28 +1114,16 @@ const gregorPushState = (_, action: GregorGen.PushStatePayload) =>
 
 const assetDescriptionOrNativeToRpcAsset = (
   asset: 'native' | Types.AssetDescription
-): RPCStellarTypes.Asset =>
-  asset === 'native'
-    ? {
-        code: '',
-        desc: '',
-        infoUrl: '',
-        infoUrlText: '',
-        issuer: '',
-        issuerName: '',
-        type: 'native',
-        verifiedDomain: '',
-      }
-    : {
-        code: asset.code,
-        desc: '',
-        infoUrl: '',
-        infoUrlText: '',
-        issuer: asset.issuerAccountID,
-        issuerName: '',
-        type: asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
-        verifiedDomain: '',
-      }
+): RPCStellarTypes.Asset => ({
+  code: asset === 'native' ? '' : asset.code,
+  desc: '',
+  infoUrl: '',
+  infoUrlText: '',
+  issuer: asset === 'native' ? '' : asset.issuerAccountID,
+  issuerName: '',
+  type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
+  verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
+})
 
 const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types.AssetDescriptionOrNative =>
   asset.type === 'native'
@@ -1302,7 +1290,6 @@ const calculateBuildingAdvanced = state =>
     Constants.calculateBuildingAdvancedWaitingKey
   )
     .then(res => {
-      console.log({res})
       const {
         amountError,
         destinationAccount,
@@ -1338,8 +1325,8 @@ const calculateBuildingAdvanced = state =>
       throw error
     })
 
-const sendPaymentAdvanced = state => {
-  return RPCStellarTypes.localSendPathLocalRpcPromise(
+const sendPaymentAdvanced = state =>
+  RPCStellarTypes.localSendPathLocalRpcPromise(
     {
       note: state.wallets.buildingAdvanced.secretNote.stringValue(),
       path: paymentPathToRpcPaymentPath(state.wallets.builtPaymentAdvanced.fullPath),
@@ -1349,7 +1336,6 @@ const sendPaymentAdvanced = state => {
     },
     Constants.sendPaymentAdvancedWaitingKey
   ).then(() => RouteTreeGen.createClearModals())
-}
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(

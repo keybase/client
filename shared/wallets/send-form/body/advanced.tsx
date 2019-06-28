@@ -38,12 +38,12 @@ const SecretNoteAndPublicMemo = () => {
         secretNote={secretNote}
         onChangeSecretNote={onChangeSecretNote}
         toSelf={false /* TODO */}
-        secretNoteError={null /* TODO */}
+        secretNoteError={null /* TODO PICNIC-142 */}
       />
       <PublicMemo
         publicMemo={publicMemo}
         onChangePublicMemo={onChangePublicMemo}
-        publicMemoError={null /* TODO */}
+        publicMemoError={null /* TODO PICNIC-142 */}
       />
     </>
   )

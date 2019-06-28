@@ -11,10 +11,11 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => {
   const currency = 'XLM'
   return {
-    bottomLabel: `Your primary account has ${state.wallets.sep7ConfirmInfo.availableToSendNative} available to send.`,
+    bottomLabel: `Your primary account has ${
+      state.wallets.sep7ConfirmInfo.availableToSendNative
+    } available to send.`,
     currencyLoading: false,
     displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
-    inputPlaceholder: Constants.inputPlaceholderForCurrency(currency),
     numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
     topLabel: '',
   }
@@ -31,7 +32,6 @@ export default Container.connect(
     bottomLabel: stateProps.bottomLabel,
     currencyLoading: stateProps.currencyLoading,
     displayUnit: stateProps.displayUnit,
-    inputPlaceholder: stateProps.inputPlaceholder,
     numDecimalsAllowed: stateProps.numDecimalsAllowed,
     onChangeAmount: ownProps.onChangeAmount,
     onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,

@@ -283,7 +283,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.update(
         'buildingAdvanced',
         buildingAdvanced => buildingAdvanced.set('secretNote', action.payload.secretNote)
-        // TODO clear error when we have that
+        // TODO PICNIC-142 clear error when we have that
       )
     case WalletsGen.sendAssetChoicesReceived:
       const {sendAssetChoices} = action.payload
