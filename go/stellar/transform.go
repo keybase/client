@@ -276,6 +276,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		return nil, err
 	}
 
+	loc.AssetCode = "XLM" // We can hardcode relay payments, since the asset will always be XLM
 	loc.FromAccountID = p.FromStellar
 	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
 	if err != nil {
