@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/wallets'
 
 type Props = {
-  assets: Array<{code: string; issuerVerifiedDomain: string}>
+  assets: Array<{code: string; desc: string}>
   onSetupTrustline: () => void
   refresh: () => void
 }
@@ -27,13 +27,7 @@ const WalletSettingTrustline = (props: Props) => {
             <Kb.Text type="BodyExtrabold" lineClamp={1} ellipsizeMode="tail" style={styles.code}>
               {asset.code}
             </Kb.Text>
-            {asset.issuerVerifiedDomain ? (
-              <Kb.Text type="BodySmall">{asset.issuerVerifiedDomain}</Kb.Text>
-            ) : (
-              <Kb.Text type="BodySmallItalic" style={styles.textUnknown}>
-                Unknown
-              </Kb.Text>
-            )}
+            <Kb.Text type="BodySmall">{asset.desc}</Kb.Text>
           </React.Fragment>
         ))}
         <Kb.Button
