@@ -1556,3 +1556,27 @@ func TestSyncConfigFavorites(t *testing.T) {
 	}
 	require.Equal(t, 1, numSyncing)
 }
+
+func TestSyncConfigAndStatusNonexistent(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "alice")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_simplefs_sync")
+	defer os.RemoveAll(tempdir)
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Get sync config for TLF that doesn't exist yet")
+	p := keybase1.NewPathWithKbfs(`/public/alice`)
+	syncConfig, err := sfs.SimpleFSFolderSyncConfigAndStatus(ctx, p)
+	// Note that the local keybase daemon for tests doesn't actually
+	// an error when trying to create an implicit team without write
+	// permissions, so this doesn't actually test anything useful in
+	// that case.  But it's a nice thought.
+	require.NoError(t, err)
+	require.Equal(t, keybase1.FolderSyncMode_DISABLED, syncConfig.Config.Mode)
+}

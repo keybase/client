@@ -2285,6 +2285,10 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	_, _, err = k.config.KBFSOps().GetRootNode(
 		ctx, tlfHandle, data.MasterBranch)
 	if err != nil {
+		if exitEarly, _ := libfs.FilterTLFEarlyExitError(
+			ctx, err, k.log, tlfHandle.GetCanonicalName()); exitEarly {
+			return tlf.NullID, keybase1.FolderSyncConfig{}, nil
+		}
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}
 
@@ -2355,6 +2359,9 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 	tlfID, _, err := k.getSyncConfig(ctx, arg.Path)
 	if err != nil {
 		return err
+	}
+	if tlfID == tlf.NullID {
+		return libfs.TlfDoesNotExist{}
 	}
 
 	_, err = k.config.KBFSOps().SetSyncConfig(ctx, tlfID, arg.Config)
