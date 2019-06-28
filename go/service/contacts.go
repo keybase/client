@@ -111,7 +111,8 @@ type ContactsHandler struct {
 	libkb.Contextified
 	*BaseHandler
 
-	contactsProvider *contacts.CachedContactsProvider
+	contactsProvider   *contacts.CachedContactsProvider
+	savedContactsStore *contacts.SavedContactsStore
 }
 
 func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHandler {
@@ -120,10 +121,13 @@ func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHan
 		Store:    contacts.NewContactCacheStore(g),
 	}
 
+	savedContactsStore := contacts.NewSavedContactsStore(g)
+
 	handler := &ContactsHandler{
-		Contextified:     libkb.NewContextified(g),
-		BaseHandler:      NewBaseHandler(g, xp),
-		contactsProvider: contactsProvider,
+		Contextified:       libkb.NewContextified(g),
+		BaseHandler:        NewBaseHandler(g, xp),
+		contactsProvider:   contactsProvider,
+		savedContactsStore: savedContactsStore,
 	}
 	return handler
 }
@@ -135,4 +139,22 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#LookupContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
 	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts, arg.UserRegionCode)
+}
+
+func (h *ContactsHandler) SaveContactsList(ctx context.Context, arg keybase1.SaveContactsListArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactsList(len=%d)", len(arg.Contacts)),
+		func() error { return err })()
+	return h.savedContactsStore.SaveContacts(mctx, arg.Contacts)
+}
+
+func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOOK_S_CON")
+	defer mctx.TraceTimed("ContactsHandler#LookupSavedContactsList", func() error { return err })()
+
+	savedContacts, err := h.savedContactsStore.RetrieveContacts(mctx)
+	if err != nil {
+		return nil, err
+	}
+	return contacts.ResolveContacts(mctx, h.contactsProvider, savedContacts, keybase1.RegionCode(""))
 }

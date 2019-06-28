@@ -118,6 +118,34 @@
         "type": "array",
         "items": "ProcessedContact"
       }
+    },
+    "saveContactsList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "contacts",
+          "type": {
+            "type": "array",
+            "items": "Contact"
+          }
+        }
+      ],
+      "response": null
+    },
+    "lookupSavedContactsList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
     }
   },
   "namespace": "keybase.1"

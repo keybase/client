@@ -55,4 +55,7 @@ protocol contacts {
     // ContactComponent is transformed into ProcessedContact and returned. They are
     // separate because each one can be used in the UI to allow for SBS chat.
     array<ProcessedContact> lookupContactList(int sessionID, array<Contact> contacts, RegionCode userRegionCode);
+
+    void saveContactsList(int sessionID, array<Contact> contacts);
+    array<ProcessedContact> lookupSavedContactsList(int sessionID);
 }

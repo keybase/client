@@ -90,8 +90,19 @@ type LookupContactListArg struct {
 	UserRegionCode RegionCode `codec:"userRegionCode" json:"userRegionCode"`
 }
 
+type SaveContactsListArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Contacts  []Contact `codec:"contacts" json:"contacts"`
+}
+
+type LookupSavedContactsListArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
+	SaveContactsList(context.Context, SaveContactsListArg) error
+	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 }
 
 func ContactsProtocol(i ContactsInterface) rpc.Protocol {
@@ -113,6 +124,36 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"saveContactsList": {
+				MakeArg: func() interface{} {
+					var ret [1]SaveContactsListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaveContactsListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaveContactsListArg)(nil), args)
+						return
+					}
+					err = i.SaveContactsList(ctx, typedArgs[0])
+					return
+				},
+			},
+			"lookupSavedContactsList": {
+				MakeArg: func() interface{} {
+					var ret [1]LookupSavedContactsListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LookupSavedContactsListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LookupSavedContactsListArg)(nil), args)
+						return
+					}
+					ret, err = i.LookupSavedContactsList(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -123,5 +164,16 @@ type ContactsClient struct {
 
 func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ProcessedContact, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ContactsClient) SaveContactsList(ctx context.Context, __arg SaveContactsListArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactsList", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ContactsClient) LookupSavedContactsList(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
+	__arg := LookupSavedContactsListArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupSavedContactsList", []interface{}{__arg}, &res)
 	return
 }
