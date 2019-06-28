@@ -361,9 +361,13 @@ func deTy2Ty(et data.EntryType) keybase1.DirentType {
 }
 
 func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.Type) ([]keybase1.Dirent, error) {
-	session, err := k.config.KBPKI().GetCurrentSession(ctx)
-	// Return empty directory listing if we are not logged in.
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, k.config.KBPKI(), true)
 	if err != nil {
+		return nil, err
+	}
+	// Return empty directory listing if we are not logged in.
+	if session.UID.IsNil() {
 		return nil, nil
 	}
 
@@ -942,6 +946,15 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 // this will trigger a network request.
 func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, k.config.KBPKI(), true)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+	if session.UID.IsNil() {
+		return keybase1.FavoritesResult{}, nil
+	}
+
 	return k.config.KBFSOps().GetFavoritesAll(ctx)
 }
 
