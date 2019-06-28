@@ -174,6 +174,14 @@ func (md modeDefault) DoLogObfuscation() bool {
 	return true
 }
 
+func (md modeDefault) InitialDelayForBackgroundWork() time.Duration {
+	return 0
+}
+
+func (md modeDefault) BackgroundWorkPeriod() time.Duration {
+	return 0
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -325,6 +333,16 @@ func (mm modeMinimal) DoLogObfuscation() bool {
 	return true
 }
 
+func (mm modeMinimal) InitialDelayForBackgroundWork() time.Duration {
+	// No background work
+	return math.MaxInt64
+}
+
+func (mm modeMinimal) BackgroundWorkPeriod() time.Duration {
+	// No background work
+	return math.MaxInt64
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -399,6 +417,16 @@ func (mso modeSingleOp) OldStorageRootCleaningEnabled() bool {
 
 func (mso modeSingleOp) DoRefreshFavoritesOnInit() bool {
 	return false
+}
+
+func (mso modeSingleOp) InitialDelayForBackgroundWork() time.Duration {
+	// No background work
+	return math.MaxInt64
+}
+
+func (mso modeSingleOp) BackgroundWorkPeriod() time.Duration {
+	// No background work
+	return math.MaxInt64
 }
 
 // Constrained mode:
@@ -487,6 +515,14 @@ func (mc modeConstrained) SendEditNotificationsEnabled() bool {
 
 func (mc modeConstrained) LocalHTTPServerEnabled() bool {
 	return true
+}
+
+func (mc modeConstrained) InitialDelayForBackgroundWork() time.Duration {
+	return 10 * time.Second
+}
+
+func (mc modeConstrained) BackgroundWorkPeriod() time.Duration {
+	return 5 * time.Second
 }
 
 // Memory limited mode
