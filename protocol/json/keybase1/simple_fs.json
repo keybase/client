@@ -1223,6 +1223,15 @@
         }
       ],
       "response": null
+    },
+    "simpleFSObfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "keybase.1"

@@ -26,6 +26,8 @@ export const makeChat = I.Record<Types._ChatState>({
 })
 
 export const makeEmail = I.Record<Types._EmailState>({
+  addedEmail: null,
+  addingEmail: null,
   emails: null,
   error: null,
   newEmail: '',
@@ -188,3 +190,4 @@ export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
 export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
+export const addEmailWaitingKey = 'settings:addPhoneNumber'

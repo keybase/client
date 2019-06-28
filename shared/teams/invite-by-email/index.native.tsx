@@ -194,29 +194,30 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             position={'bottom center'}
             open={this.state.isRolePickerOpen}
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
-          >
-            <ClickableBox
-              onClick={() => this.onOpenRolePicker()}
-              style={{
-                ...globalStyles.flexBoxColumn,
-                alignItems: 'center',
-                borderBottomColor: globalColors.black_10,
-                borderBottomWidth: hairlineWidth,
-                justifyContent: 'center',
-                marginBottom: globalMargins.xtiny,
-                padding: globalMargins.small,
-              }}
-            >
-              <Text center={true} type="BodySmall">
-                Users will be invited to {this.props.name} as
-                <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
-              </Text>
-            </ClickableBox>
-          </FloatingRolePicker>
+          />
           <List
             keyProperty="id"
             items={filteredContactRows}
             fixedHeight={56}
+            ListHeaderComponent={
+              <ClickableBox
+                onClick={() => this.onOpenRolePicker()}
+                style={{
+                  ...globalStyles.flexBoxColumn,
+                  alignItems: 'center',
+                  borderBottomColor: globalColors.black_10,
+                  borderBottomWidth: hairlineWidth,
+                  justifyContent: 'center',
+                  marginBottom: globalMargins.xtiny,
+                  padding: globalMargins.small,
+                }}
+              >
+                <Text center={true} type="BodySmall">
+                  Users will be invited to {this.props.name} as
+                  <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
+                </Text>
+              </ClickableBox>
+            }
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}
           />

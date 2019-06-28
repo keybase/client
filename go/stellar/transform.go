@@ -555,8 +555,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
-	// 0.5 is the minimum balance necessary to create a trustline
-	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "0.5")
+	// 0.5 is the minimum balance necessary to create a trustline and 1.0 is the minimum reserve balance
+	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "1.5")
 	if err != nil {
 		return empty, err
 	}

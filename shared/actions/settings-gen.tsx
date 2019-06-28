@@ -8,10 +8,14 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addEmail = 'settings:addEmail'
 export const addPhoneNumber = 'settings:addPhoneNumber'
+export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
+export const clearAddedEmail = 'settings:clearAddedEmail'
+export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
@@ -73,11 +77,13 @@ export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
+type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
 type _AddPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly phoneNumber: string
   readonly resend?: boolean
 }
+type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly error?: string
@@ -85,6 +91,8 @@ type _AddedPhoneNumberPayload = {
 }
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
+type _ClearAddedEmailPayload = void
+type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberVerificationPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
@@ -217,6 +225,20 @@ export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
 /**
+ * Reset state used for adding an email.
+ */
+export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
+  payload,
+  type: clearAddingEmail,
+})
+/**
+ * Reset state used for showing we just added an email.
+ */
+export const createClearAddedEmail = (payload: _ClearAddedEmailPayload): ClearAddedEmailPayload => ({
+  payload,
+  type: clearAddedEmail,
+})
+/**
  * Submit a verification code for a phone number
  */
 export const createVerifyPhoneNumber = (payload: _VerifyPhoneNumberPayload): VerifyPhoneNumberPayload => ({
@@ -242,6 +264,11 @@ export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): Added
 export const createVerifiedPhoneNumber = (
   payload: _VerifiedPhoneNumberPayload
 ): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
+export const createAddEmail = (payload: _AddEmailPayload): AddEmailPayload => ({payload, type: addEmail})
+export const createAddedEmail = (payload: _AddedEmailPayload): AddedEmailPayload => ({
+  payload,
+  type: addedEmail,
+})
 export const createCertificatePinningToggled = (
   payload: _CertificatePinningToggledPayload
 ): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
@@ -422,10 +449,12 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
 export type AddPhoneNumberPayload = {
   readonly payload: _AddPhoneNumberPayload
   readonly type: typeof addPhoneNumber
 }
+export type AddedEmailPayload = {readonly payload: _AddedEmailPayload; readonly type: typeof addedEmail}
 export type AddedPhoneNumberPayload = {
   readonly payload: _AddedPhoneNumberPayload
   readonly type: typeof addedPhoneNumber
@@ -437,6 +466,14 @@ export type CertificatePinningToggledPayload = {
 export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
+}
+export type ClearAddedEmailPayload = {
+  readonly payload: _ClearAddedEmailPayload
+  readonly type: typeof clearAddedEmail
+}
+export type ClearAddingEmailPayload = {
+  readonly payload: _ClearAddingEmailPayload
+  readonly type: typeof clearAddingEmail
 }
 export type ClearPhoneNumberVerificationPayload = {
   readonly payload: _ClearPhoneNumberVerificationPayload
@@ -658,10 +695,14 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddEmailPayload
   | AddPhoneNumberPayload
+  | AddedEmailPayload
   | AddedPhoneNumberPayload
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
+  | ClearAddedEmailPayload
+  | ClearAddingEmailPayload
   | ClearPhoneNumberVerificationPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
