@@ -622,7 +622,10 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
       return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
     })
     .catch(err => {
-      const message = err.code === 3403 ? 'Incorrect code, please try again.' : err.message
+      const message =
+        err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
+          ? 'Incorrect code, please try again.'
+          : err.message
       logger.warn('error ', message)
       return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
     })

@@ -2009,6 +2009,11 @@ export enum StatusCode {
   scnistbadclock = 3219,
   scnistsigbadctime = 3220,
   scbadsignupusernamedeleted = 3221,
+  scphonenumberunknown = 3400,
+  scphonenumberalreadyverified = 3401,
+  scphonenumberverificationcodeexpired = 3402,
+  scphonenumberwrongverificationcode = 3403,
+  scphonenumberlimitexceeded = 3404,
   scnopaperkeys = 3605,
 }
 
