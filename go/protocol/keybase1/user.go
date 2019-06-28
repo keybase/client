@@ -446,7 +446,6 @@ type FindNextMerkleRootAfterResetArg struct {
 type LoadHasRandomPwArg struct {
 	SessionID      int  `codec:"sessionID" json:"sessionID"`
 	ForceRepoll    bool `codec:"forceRepoll" json:"forceRepoll"`
-	ForUID         *UID `codec:"forUID,omitempty" json:"forUID,omitempty"`
 	NoShortTimeout bool `codec:"noShortTimeout" json:"noShortTimeout"`
 }
 

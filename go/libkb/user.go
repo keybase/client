@@ -869,10 +869,6 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 	defer mctx.TraceTimed(fmt.Sprintf("User#LoadHasRandomPw(forceRepoll=%t)", arg.ForceRepoll), func() error { return err })()
 
 	currentUID := mctx.CurrentUID()
-	if arg.ForUID != nil && !arg.ForUID.Equal(currentUID) {
-		return res, errors.New("current user changed")
-	}
-
 	cacheKey := DbKey{
 		Typ: DBHasRandomPW,
 		Key: currentUID.String(),
@@ -920,10 +916,6 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out: %s.", err)
 		}
 		return res, err
-	}
-
-	if arg.ForUID != nil && !arg.ForUID.Equal(currentUID) {
-		return res, errors.New("current user changed")
 	}
 
 	if !hasCache || cachedValue != ret.RandomPW {
