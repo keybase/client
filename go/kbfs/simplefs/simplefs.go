@@ -2668,5 +2668,8 @@ func (k *SimpleFS) SimpleFSDeobfuscatePath(
 	for _, r := range resWithoutPrefix {
 		res = append(res, stdpath.Join(tlfHandle.GetCanonicalPath(), r))
 	}
+	if len(res) == 0 {
+		return nil, errors.New("Found no matching paths")
+	}
 	return res, nil
 }

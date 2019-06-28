@@ -43,16 +43,24 @@ func (c *CmdSimpleFSDebugDeobfuscate) Run() error {
 	}
 
 	ui := c.G().UI.GetTerminalUI()
+	var errors []error
 	for i, p := range c.paths {
 		res, err := cli.SimpleFSDeobfuscatePath(context.TODO(), p)
 		if err != nil {
-			return err
+			if len(c.paths) == 0 {
+				return err
+			}
+			errors = append(errors, err)
 		}
 
 		tab := ""
 		if len(c.paths) > 1 {
 			ui.Printf("%s:\n", path.Join(mountDir, p.String()))
 			tab = "  "
+			if err != nil {
+				ui.Printf("%sError: %v\n\n", tab, err)
+				continue
+			}
 		}
 		for _, r := range res {
 			ui.Printf("%s%s\n", tab, r)
@@ -60,6 +68,9 @@ func (c *CmdSimpleFSDebugDeobfuscate) Run() error {
 		if i+1 != len(c.paths) {
 			ui.Printf("\n")
 		}
+	}
+	if len(errors) == len(c.paths) && len(errors) > 0 {
+		return errors[0]
 	}
 	return nil
 }

@@ -64,8 +64,8 @@ func stripObfuscatedConflictSuffix(s string) string {
 }
 
 func deobfuscate(
-	ctx context.Context, fs *FS, p []string) (res []string, err error) {
-	if len(p) == 0 {
+	ctx context.Context, fs *FS, pathParts []string) (res []string, err error) {
+	if len(pathParts) == 0 {
 		return nil, nil
 	}
 
@@ -74,12 +74,12 @@ func deobfuscate(
 		return nil, err
 	}
 
-	elem := stripObfuscatedConflictSuffix(p[0])
+	elem := stripObfuscatedConflictSuffix(pathParts[0])
 	for _, fi := range fis {
 		name := fi.Name()
 		obsName := stripObfuscatedConflictSuffix(fs.PathForLogging(name))
 		if obsName == elem {
-			if len(p) == 1 || !fi.IsDir() {
+			if len(pathParts) == 1 {
 				res = append(res, name)
 			} else {
 				childFS, err := fs.ChrootAsLibFS(name)
@@ -87,7 +87,7 @@ func deobfuscate(
 					return nil, err
 				}
 
-				children, err := deobfuscate(ctx, childFS, p[1:])
+				children, err := deobfuscate(ctx, childFS, pathParts[1:])
 				if err != nil {
 					return nil, err
 				}
