@@ -1328,8 +1328,7 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 }
 
 // hasRandomPWPrefetcher implements LoginHook and LogoutHook interfaces and is
-// used to ensure that we know current user's NOPW status. If it's already in
-// cache, prefetcher does not have to do any API requests.
+// used to ensure that we know current user's NOPW status.
 type hasRandomPWPrefetcher struct {
 	// cancel func for randompw prefetching context, if currently active.
 	hasRPWCancelFn context.CancelFunc
