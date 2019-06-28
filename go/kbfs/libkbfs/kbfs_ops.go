@@ -75,7 +75,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs: NewFavorites(config),
+		favs:                  NewFavorites(config),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -1507,6 +1507,27 @@ func (fs *KBFSOpsStandard) initTLFWithoutIdentifyPopups(
 	return nil
 }
 
+func (fs *KBFSOpsStandard) startOpsForHistory(
+	ctx context.Context, handle *tlfhandle.Handle) error {
+	if fs.config.Mode().DefaultBlockRequestAction() == BlockRequestSolo {
+		ops := fs.getOpsByHandle(
+			ctx, handle, data.FolderBranch{handle.TlfID(), data.MasterBranch},
+			FavoritesOpNoChange)
+		// Don't initialize the entire TLF, because we don't want
+		// to run identifies on it.  Instead, just start the
+		// chat-monitoring part.
+		ops.startMonitorChat(handle.GetCanonicalName())
+	} else {
+		// Fully initialize the TLF in order to kick off any
+		// necessary prefetches.
+		err := fs.initTLFWithoutIdentifyPopups(ctx, handle)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) NewNotificationChannel(
@@ -1535,9 +1556,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 				handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-			// Fully initialize the TLF in order to kick off any
-			// necessary prefetches.
-			err := fs.initTLFWithoutIdentifyPopups(ctx, handle)
+			err := fs.startOpsForHistory(ctx, handle)
 			if err != nil {
 				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
 			}
@@ -1789,9 +1808,7 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		if h.TlfID() != tlf.NullID {
 			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
 				h.GetCanonicalPath(), h.TlfID())
-			// Fully initialize the TLF in order to kick off any
-			// necessary prefetches.
-			err := fs.initTLFWithoutIdentifyPopups(ctx, h)
+			err := fs.startOpsForHistory(ctx, h)
 			if err != nil {
 				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
 				continue
