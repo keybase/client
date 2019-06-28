@@ -1340,6 +1340,7 @@ func (d *hasRandomPWPrefetcher) prefetchHasRandomPW(g *libkb.GlobalContext, uid 
 
 	mctx := libkb.NewMetaContext(ctx, g).WithLogTag("P_HASRPW")
 	go func() {
+		defer func() { d.hasRPWCancelFn = nil }()
 		mctx.Debug("prefetchHasRandomPW: starting prefetch after two seconds")
 		select {
 		case <-time.After(2 * time.Second):
@@ -1371,7 +1372,6 @@ func (d *hasRandomPWPrefetcher) prefetchHasRandomPW(g *libkb.GlobalContext, uid 
 			return nil
 		}, backoff.NewExponentialBackOff(), nil)
 		mctx.Debug("prefetchHasRandomPW: backoff loop returned: %v", err)
-		d.hasRPWCancelFn = nil
 	}()
 }
 
@@ -1386,6 +1386,7 @@ func (d *hasRandomPWPrefetcher) OnLogin(mctx libkb.MetaContext) error {
 
 func (d *hasRandomPWPrefetcher) OnLogout(mctx libkb.MetaContext) error {
 	if d.hasRPWCancelFn != nil {
+		mctx.Debug("Cancelling prefetcher in OnLogout hook (P_HASRPW)")
 		d.hasRPWCancelFn()
 	}
 	return nil
