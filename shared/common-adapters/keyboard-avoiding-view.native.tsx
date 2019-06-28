@@ -5,6 +5,7 @@ const {StatusBarManager} = NativeModules
 
 class KeyboardAvoidingView extends React.Component<React.ComponentProps<RnKBAV>, {verticalOffset: number}> {
   _listener: EmitterListener
+  _mounted = true
   state = {verticalOffset: 0}
 
   componentWillMount() {
@@ -17,6 +18,7 @@ class KeyboardAvoidingView extends React.Component<React.ComponentProps<RnKBAV>,
   }
 
   componentWillUnmount() {
+    this._mounted = false
     this._listener && this._listener.remove()
   }
 
@@ -25,7 +27,7 @@ class KeyboardAvoidingView extends React.Component<React.ComponentProps<RnKBAV>,
     // and it doesn't increase in height like earlier devices.
     // (so this should always be 0 on an iPhone X, but this should still
     // be correct if it expands)
-    this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
+    this._mounted && this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
   }
 
   render() {
