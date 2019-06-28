@@ -100,6 +100,10 @@ export default PaymentPath
 
 const pathCircleLargeDiameter = 18
 const pathCircleSmallDiameter = 10
+// text line height can vary, so set it to an upper bound here
+// we can then calculate negative margin from this height so that there are no gaps between the
+// circles and lines
+const pathTextHeight = 22
 
 const styles = Styles.styleSheetCreate({
   paymentPathCircleLarge: {
@@ -132,18 +136,15 @@ const styles = Styles.styleSheetCreate({
     width: 2,
   },
   paymentPathStartOrEnd: {
-    // text line height can vary, so set it to an upper bound here
-    // we can then calculate negative margin from this height so that there are no gaps between the
-    // circles and lines
-    height: 22,
-    marginBottom: (pathCircleLargeDiameter - 22) / 2,
-    marginTop: (pathCircleLargeDiameter - 22) / 2,
+    height: pathTextHeight,
+    marginBottom: (pathCircleLargeDiameter - pathTextHeight) / 2,
+    marginTop: (pathCircleLargeDiameter - pathTextHeight) / 2,
   },
   paymentPathStop: {
-    height: 22,
-    marginBottom: (pathCircleSmallDiameter - 22) / 2,
+    height: pathTextHeight,
+    marginBottom: (pathCircleSmallDiameter - pathTextHeight) / 2,
     // Center the small circle
     marginLeft: pathCircleLargeDiameter / 2 - pathCircleSmallDiameter / 2,
-    marginTop: (pathCircleSmallDiameter - 22) / 2,
+    marginTop: (pathCircleSmallDiameter - pathTextHeight) / 2,
   },
 })
