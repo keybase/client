@@ -203,6 +203,7 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
 		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
+		go fs.initSyncedTlfs()
 	}
 }
 
@@ -213,6 +214,7 @@ func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.log.CDebugf(nil, "Asking for an edit re-init after status change")
 	fs.editActivity.Add(1)
 	go fs.initTlfsForEditHistories()
+	go fs.initSyncedTlfs()
 }
 
 // ClearPrivateFolderMD implements the KBFSOps interface for
@@ -1872,6 +1874,10 @@ func (fs *KBFSOpsStandard) startInitSync() (
 }
 
 func (fs *KBFSOpsStandard) initSyncedTlfs() {
+	if fs.config.MDServer() == nil {
+		return
+	}
+
 	tlfs := fs.config.GetAllSyncedTlfs()
 	if len(tlfs) == 0 {
 		return
