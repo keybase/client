@@ -62,6 +62,7 @@ export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
 export const sentLinkToChat = 'fs:sentLinkToChat'
+export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
@@ -183,6 +184,7 @@ type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
 type _SentAttachmentToChatPayload = void
 type _SentLinkToChatPayload = {readonly convID: ChatTypes.ConversationIDKey}
+type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string}
@@ -410,6 +412,10 @@ export const createSentAttachmentToChat = (
 export const createSentLinkToChat = (payload: _SentLinkToChatPayload): SentLinkToChatPayload => ({
   payload,
   type: sentLinkToChat,
+})
+export const createSetDebugLevel = (payload: _SetDebugLevelPayload): SetDebugLevelPayload => ({
+  payload,
+  type: setDebugLevel,
 })
 export const createSetDestinationPickerParentPath = (
   payload: _SetDestinationPickerParentPathPayload
@@ -712,6 +718,10 @@ export type SentLinkToChatPayload = {
   readonly payload: _SentLinkToChatPayload
   readonly type: typeof sentLinkToChat
 }
+export type SetDebugLevelPayload = {
+  readonly payload: _SetDebugLevelPayload
+  readonly type: typeof setDebugLevel
+}
 export type SetDestinationPickerParentPathPayload = {
   readonly payload: _SetDestinationPickerParentPathPayload
   readonly type: typeof setDestinationPickerParentPath
@@ -902,6 +912,7 @@ export type Actions =
   | SaveMediaPayload
   | SentAttachmentToChatPayload
   | SentLinkToChatPayload
+  | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload

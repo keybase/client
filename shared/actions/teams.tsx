@@ -2,15 +2,14 @@
 // not have every handler clear it themselves. this reduces the nubmer of actionChains
 import {map} from 'lodash-es'
 import * as I from 'immutable'
-import * as SearchGen from './search-gen'
 import * as EngineGen from './engine-gen-gen'
+import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
 import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ChatConstants from '../constants/chat2'
 import * as ChatTypes from '../constants/types/chat2'
-import * as SearchConstants from '../constants/search'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
@@ -21,6 +20,8 @@ import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
+import {TypedState} from '../constants/reducer'
+import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import {isMobile} from '../constants/platform'
 import openSMS from '../util/sms'
@@ -136,38 +137,6 @@ const leaveTeam = (state, action: TeamsGen.LeaveTeamPayload, logger) => {
 
 const leftTeam = (state, action: TeamsGen.LeftTeamPayload) =>
   RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
-
-const addPeopleToTeam = (state, action: TeamsGen.AddPeopleToTeamPayload, logger) => {
-  const {role, sendChatNotification, teamname} = action.payload
-  const ids = SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').toArray()
-  logger.info(`Adding ${ids.length} people to ${teamname}`)
-  logger.info(`Adding ${ids.join(',')}`)
-  return RPCTypes.teamsTeamAddMembersRpcPromise(
-    {
-      assertions: ids,
-      name: teamname,
-      role: RPCTypes.TeamRole[role] === undefined ? RPCTypes.TeamRole.none : RPCTypes.TeamRole[role],
-      sendChatNotification,
-    },
-    [Constants.teamWaitingKey(teamname), Constants.addPeopleToTeamWaitingKey(teamname)]
-  )
-    .then(() => {
-      // Success, dismiss the create team dialog and clear out search results
-      logger.info(`Successfully added ${ids.length} users to ${teamname}`)
-      return [
-        RouteTreeGen.createClearModals(),
-        SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}),
-        SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}),
-        TeamsGen.createSetTeamInviteError({error: ''}),
-      ]
-    })
-    .catch(error => {
-      logger.error(`Error adding to ${teamname}: ${error.desc}`)
-      // Some errors, leave the search results so user can figure out what happened
-      logger.info(`Displaying addPeopleToTeam errors...`)
-      return TeamsGen.createSetTeamInviteError({error: error.desc})
-    })
-}
 
 const getTeamRetentionPolicy = (state, action: TeamsGen.GetTeamRetentionPolicyPayload, logger) => {
   const {teamname} = action.payload
@@ -1424,6 +1393,39 @@ const clearNavBadges = () =>
     )
     .then(() => RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'}))
     .catch(err => logError(err))
+
+function addThemToTeamFromTeamBuilder(
+  state: TypedState,
+  {payload: {teamname}}: TeamBuildingGen.FinishedTeamBuildingPayload,
+  logger: Saga.SagaLogger
+) {
+  if (!teamname) {
+    logger.error("Trying to add them to a team, but I don't know what the teamname is.")
+    return
+  }
+
+  const role = state.teams.teamBuilding.teamBuildingFinishedSelectedRole
+  const sendChatNotification = state.teams.teamBuilding.teamBuildingFinishedSendNotification
+
+  return state.teams.teamBuilding.teamBuildingFinishedTeam.toArray().map(user =>
+    TeamsGen.createAddToTeam({
+      role,
+      sendChatNotification,
+      teamname,
+      username: user.id,
+    })
+  )
+}
+
+function* teamBuildingSaga(): Saga.SagaGenerator<any, any> {
+  yield* commonTeamBuildingSaga('teams')
+
+  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
+    TeamBuildingGen.finishedTeamBuilding,
+    filterForNs('teams', addThemToTeamFromTeamBuilder)
+  )
+}
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<TeamsGen.LeaveTeamPayload>(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
@@ -1482,11 +1484,6 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<TeamsGen.AddToTeamPayload>(TeamsGen.addToTeam, addToTeam, 'addToTeam')
   yield* Saga.chainAction<TeamsGen.ReAddToTeamPayload>(TeamsGen.reAddToTeam, reAddToTeam, 'reAddToTeam')
-  yield* Saga.chainAction<TeamsGen.AddPeopleToTeamPayload>(
-    TeamsGen.addPeopleToTeam,
-    addPeopleToTeam,
-    'addPeopleToTeam'
-  )
   yield* Saga.chainGenerator<TeamsGen.AddUserToTeamsPayload>(
     TeamsGen.addUserToTeams,
     addUserToTeams,
@@ -1609,6 +1606,9 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<TeamsGen.ClearNavBadgesPayload>(TeamsGen.clearNavBadges, clearNavBadges)
+
+  // Hook up the team building sub saga
+  yield* teamBuildingSaga()
 }
 
 export default teamsSaga

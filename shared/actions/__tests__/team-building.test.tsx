@@ -2,8 +2,10 @@
 import * as I from 'immutable'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import teamBuildingSaga from '../chat2/team-building'
+import {chatTeamBuildingSaga} from '../chat2'
 import * as Testing from '../../util/testing'
+
+const testNamespace = 'chat2'
 
 jest.mock('../../engine/require')
 
@@ -18,7 +20,7 @@ const initialStore = {
   }),
 }
 
-const startReduxSaga = Testing.makeStartReduxSaga(teamBuildingSaga, initialStore, () => {})
+const startReduxSaga = Testing.makeStartReduxSaga(chatTeamBuildingSaga, initialStore, () => {})
 
 // Maps the user search function to a hashmap, query -> num_wanted -> service -> include_services_summary
 // note the keybase service is a special case where the service is empty string
@@ -87,7 +89,7 @@ const parsedSearchResults = {
 }
 
 describe('Search Actions', () => {
-  let init
+  let init: ReturnType<typeof startReduxSaga> | null
   let rpc
   beforeEach(() => {
     init = startReduxSaga()
@@ -101,7 +103,7 @@ describe('Search Actions', () => {
   it('Calls search', () => {
     const {dispatch} = init
     expect(rpc).not.toHaveBeenCalled()
-    dispatch(TeamBuildingGen.createSearch({query: 'marcopolo', service: 'keybase'}))
+    dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
     expect(rpc).toHaveBeenCalled()
   })
 
@@ -110,52 +112,54 @@ describe('Search Actions', () => {
     const query = 'marcopolo'
     const service = 'keybase'
     expect(rpc).not.toHaveBeenCalled()
-    dispatch(TeamBuildingGen.createSearch({query: 'marcopolo', service: 'keybase'}))
-    expect(getState().chat2.teamBuildingSearchQuery).toEqual('marcopolo')
-    expect(getState().chat2.teamBuildingSelectedService).toEqual('keybase')
+    dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
+    expect(getState().chat2.teamBuilding.teamBuildingSearchQuery).toEqual('marcopolo')
+    expect(getState().chat2.teamBuilding.teamBuildingSelectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingSearchResults).toEqual(parsedSearchResults[query][service])
+      expect(getState().chat2.teamBuilding.teamBuildingSearchResults).toEqual(
+        parsedSearchResults[query][service]
+      )
     })
   })
 
   it('Adds users to the team so far', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
     })
   })
 
   it('Remove users to the team so far', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
-    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: ['marcopolo']}))
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace: testNamespace, users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
     })
   })
 
   it('Moves finished team over and clears the teamSoFar on finished', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
-    dispatch(TeamBuildingGen.createFinishedTeamBuilding())
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
     })
   })
 
   it('Cancel team building clears the state', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
-    dispatch(TeamBuildingGen.createCancelTeamBuilding())
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuildingFinishedTeam).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set())
     })
   })
 })

@@ -8,10 +8,10 @@ export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
-export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver' | 'none'
+export type Role = 'airdrop' | 'senderOnly' | 'receiverOnly' | 'senderAndReceiver' | 'none'
 
 // Possible 'types' of things you can send or receive transactions with
-export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
+export type CounterpartyType = 'airdrop' | 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
 // Reserves held against an account's XLM balance
 export type _Reserve = {
@@ -19,6 +19,12 @@ export type _Reserve = {
   description: string // e.g. 'account' or 'KEYZ/keybase.io trust line'
 }
 export type Reserve = I.RecordOf<_Reserve>
+
+export type _SEP7Summary = StellarRPCTypes.TxDisplaySummary
+export type SEP7Summary = I.RecordOf<_SEP7Summary>
+
+export type _SEP7ConfirmInfo = StellarRPCTypes.ValidateStellarURIResultLocal
+export type SEP7ConfirmInfo = I.RecordOf<_SEP7ConfirmInfo>
 
 export type AccountID = string
 export const stringToAccountID = __DEV__
@@ -52,6 +58,7 @@ export type _Assets = {
   availableToSendWorth: string
   balanceAvailableToSend: string
   balanceTotal: string
+  canAddTrustline: boolean
   infoUrl: string
   infoUrlText: string
   issuerAccountID: string
@@ -137,6 +144,7 @@ export type PaymentSection = 'pending' | 'history' | 'none' // where does the pa
 export type _PaymentCommon = {
   amountDescription: string
   delta: PaymentDelta
+  fromAirdrop: boolean
   error: string | null
   id: PaymentID
   note: HiddenString
@@ -223,6 +231,7 @@ export type Currency = I.RecordOf<_LocalCurrency>
 export type _Account = {
   accountID: AccountID
   balanceDescription: string
+  canAddTrustline: boolean
   canSubmitTx: boolean
   deviceReadOnly: boolean
   displayCurrency: Currency
@@ -337,6 +346,9 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  sep7ConfirmError: string
+  sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmURI: string
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>

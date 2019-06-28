@@ -12,6 +12,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
+import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
 
@@ -462,6 +463,10 @@ const rootReducer = (
         ? state.setIn(['commandMarkdownMap', conversationIDKey], md)
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
+    case Chat2Gen.setCommandStatusInfo:
+      return state.setIn(['commandStatusMap', action.payload.conversationIDKey], action.payload.info)
+    case Chat2Gen.clearCommandStatusInfo:
+      return state.deleteIn(['commandStatusMap', action.payload.conversationIDKey])
     case Chat2Gen.giphyToggleWindow: {
       const conversationIDKey = action.payload.conversationIDKey
       let nextState = state.setIn(['giphyWindowMap', conversationIDKey], action.payload.show)
@@ -1294,7 +1299,11 @@ const rootReducer = (
       })
     }
     case Chat2Gen.updateUserReacjis:
-      return state.set('userReacjis', action.payload.userReacjis)
+      let {skinTone, topReacjis} = action.payload.userReacjis
+      if (!topReacjis) {
+        topReacjis = Constants.defaultTopReacjis
+      }
+      return state.merge({userReacjis: {skinTone, topReacjis}})
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -1328,10 +1337,12 @@ const rootReducer = (
     case TeamBuildingGen.removeUsersFromTeamSoFar:
     case TeamBuildingGen.searchResultsLoaded:
     case TeamBuildingGen.finishedTeamBuilding:
-    case TeamBuildingGen.search:
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
-      return teamBuildingReducer(state, action)
+    case TeamBuildingGen.search:
+    case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.changeSendNotification:
+      return state.update('teamBuilding', teamBuilding => teamBuildingReducer('chat2', teamBuilding, action))
 
     // Saga only actions
     case Chat2Gen.attachmentPreviewSelect:
@@ -1384,6 +1395,7 @@ const rootReducer = (
     case Chat2Gen.resolveMaybeMention:
       return state
     default:
+      ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

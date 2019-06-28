@@ -3,43 +3,55 @@ import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import {TypedActions} from '../actions/typed-actions-gen'
 import {trim} from 'lodash-es'
 
-export default function<X>(
-  state: I.RecordOf<X & Types.TeamBuildingSubState>,
+export default function(
+  namespace: string,
+  state: Types.TeamBuildingSubState,
   action: TeamBuildingGen.Actions
-): I.RecordOf<X & Types.TeamBuildingSubState> {
+): Types.TeamBuildingSubState {
+  if (action.payload.namespace !== namespace) {
+    return state
+  }
+
   switch (action.type) {
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
-      // @ts-ignore investigate
-      return state.merge(Constants.makeSubState())
+      return Constants.makeSubState()
+    case TeamBuildingGen.selectRole:
+      return state.set('teamBuildingSelectedRole', action.payload.role)
+    case TeamBuildingGen.changeSendNotification:
+      return state.set('teamBuildingSendNotification', action.payload.sendNotification)
     case TeamBuildingGen.addUsersToTeamSoFar:
-      return state.mergeIn(['teamBuildingTeamSoFar'], action.payload.users)
+      return state.mergeIn(['teamBuildingTeamSoFar'], I.Set(action.payload.users))
     case TeamBuildingGen.removeUsersFromTeamSoFar: {
       const setToRemove = I.Set(action.payload.users)
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
     }
     case TeamBuildingGen.searchResultsLoaded: {
       const {query, service, users} = action.payload
+      // @ts-ignore tricky when we traverse into map types
       return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
     }
     case TeamBuildingGen.finishedTeamBuilding:
-      // @ts-ignore investigate
+      const initialState = Constants.makeSubState()
       return state.merge({
+        teamBuildingFinishedSelectedRole: state.teamBuildingSelectedRole,
+        teamBuildingFinishedSendNotification: state.teamBuildingSendNotification,
         teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
-        teamBuildingTeamSoFar: I.Set<Types.User>(),
+        teamBuildingSelectedRole: initialState.teamBuildingSelectedRole,
+        teamBuildingSendNotification: initialState.teamBuildingSendNotification,
+        teamBuildingTeamSoFar: initialState.teamBuildingTeamSoFar,
       })
 
     case TeamBuildingGen.fetchedUserRecs:
-      // @ts-ignore todo(mm) investigate
       return state.merge({
         teamBuildingUserRecs: action.payload.users,
       })
 
     case TeamBuildingGen.search: {
       const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
-      // @ts-ignore todo(mm) investigate
       return state.merge({
         teamBuildingSearchLimit: limit,
         teamBuildingSearchQuery: trim(query),

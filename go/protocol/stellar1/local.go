@@ -20,6 +20,7 @@ type WalletAccountLocal struct {
 	DeviceReadOnly      bool          `codec:"deviceReadOnly" json:"deviceReadOnly"`
 	IsFunded            bool          `codec:"isFunded" json:"isFunded"`
 	CanSubmitTx         bool          `codec:"canSubmitTx" json:"canSubmitTx"`
+	CanAddTrustline     bool          `codec:"canAddTrustline" json:"canAddTrustline"`
 }
 
 func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
@@ -35,6 +36,7 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		DeviceReadOnly:      o.DeviceReadOnly,
 		IsFunded:            o.IsFunded,
 		CanSubmitTx:         o.CanSubmitTx,
+		CanAddTrustline:     o.CanAddTrustline,
 	}
 }
 
@@ -53,7 +55,6 @@ type AccountAssetLocal struct {
 	Desc                   string           `codec:"desc" json:"desc"`
 	InfoUrl                string           `codec:"infoUrl" json:"infoUrl"`
 	InfoUrlText            string           `codec:"infoUrlText" json:"infoUrlText"`
-	CanAddTrustline        bool             `codec:"canAddTrustline" json:"canAddTrustline"`
 }
 
 func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
@@ -79,10 +80,9 @@ func (o AccountAssetLocal) DeepCopy() AccountAssetLocal {
 			}
 			return ret
 		})(o.Reserves),
-		Desc:            o.Desc,
-		InfoUrl:         o.InfoUrl,
-		InfoUrlText:     o.InfoUrlText,
-		CanAddTrustline: o.CanAddTrustline,
+		Desc:        o.Desc,
+		InfoUrl:     o.InfoUrl,
+		InfoUrlText: o.InfoUrlText,
 	}
 }
 
@@ -380,10 +380,11 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 }
 
 type PaymentDetailsOnlyLocal struct {
-	PublicNote            string `codec:"publicNote" json:"publicNote"`
-	PublicNoteType        string `codec:"publicNoteType" json:"publicNoteType"`
-	ExternalTxURL         string `codec:"externalTxURL" json:"externalTxURL"`
-	FeeChargedDescription string `codec:"feeChargedDescription" json:"feeChargedDescription"`
+	PublicNote            string  `codec:"publicNote" json:"publicNote"`
+	PublicNoteType        string  `codec:"publicNoteType" json:"publicNoteType"`
+	ExternalTxURL         string  `codec:"externalTxURL" json:"externalTxURL"`
+	FeeChargedDescription string  `codec:"feeChargedDescription" json:"feeChargedDescription"`
+	PathIntermediate      []Asset `codec:"pathIntermediate" json:"pathIntermediate"`
 }
 
 func (o PaymentDetailsOnlyLocal) DeepCopy() PaymentDetailsOnlyLocal {
@@ -392,6 +393,17 @@ func (o PaymentDetailsOnlyLocal) DeepCopy() PaymentDetailsOnlyLocal {
 		PublicNoteType:        o.PublicNoteType,
 		ExternalTxURL:         o.ExternalTxURL,
 		FeeChargedDescription: o.FeeChargedDescription,
+		PathIntermediate: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PathIntermediate),
 	}
 }
 
@@ -719,6 +731,7 @@ type PaymentPathLocal struct {
 	SourceDisplay      string      `codec:"sourceDisplay" json:"sourceDisplay"`
 	SourceMaxDisplay   string      `codec:"sourceMaxDisplay" json:"sourceMaxDisplay"`
 	DestinationDisplay string      `codec:"destinationDisplay" json:"destinationDisplay"`
+	ExchangeRate       string      `codec:"exchangeRate" json:"exchangeRate"`
 	DestinationAccount AccountID   `codec:"destinationAccount" json:"destinationAccount"`
 	FullPath           PaymentPath `codec:"fullPath" json:"fullPath"`
 }
@@ -728,6 +741,7 @@ func (o PaymentPathLocal) DeepCopy() PaymentPathLocal {
 		SourceDisplay:      o.SourceDisplay,
 		SourceMaxDisplay:   o.SourceMaxDisplay,
 		DestinationDisplay: o.DestinationDisplay,
+		ExchangeRate:       o.ExchangeRate,
 		DestinationAccount: o.DestinationAccount.DeepCopy(),
 		FullPath:           o.FullPath.DeepCopy(),
 	}

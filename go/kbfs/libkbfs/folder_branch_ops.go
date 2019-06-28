@@ -3024,8 +3024,8 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	startTime, timer := fbo.startOp(ctx, "getRootNode")
 	defer func() {
 		fbo.endOp(
-			ctx, startTime, timer, "getRootNode done: %s %p %+v",
-			getNodeIDStr(node), node.Obfuscator(), err)
+			ctx, startTime, timer, "getRootNode done: %s %+v",
+			getNodeIDStr(node), err)
 	}()
 
 	lState := makeFBOLockState()

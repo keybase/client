@@ -185,29 +185,30 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             position={'bottom center'}
             open={this.state.isRolePickerOpen}
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
-          >
-            <Kb.ClickableBox
-              onClick={() => this.onOpenRolePicker()}
-              style={{
-                ...globalStyles.flexBoxColumn,
-                alignItems: 'center',
-                borderBottomColor: globalColors.black_10,
-                borderBottomWidth: hairlineWidth,
-                justifyContent: 'center',
-                marginBottom: globalMargins.xtiny,
-                padding: globalMargins.small,
-              }}
-            >
-              <Kb.Text center={true} type="BodySmall">
-                Users will be invited to {this.props.name} as
-                <Kb.Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Kb.Text>.
-              </Kb.Text>
-            </Kb.ClickableBox>
-          </FloatingRolePicker>
+          />
           <Kb.List
             keyProperty="id"
             items={filteredContactRows}
             fixedHeight={56}
+            ListHeaderComponent={
+              <Kb.ClickableBox
+                onClick={() => this.onOpenRolePicker()}
+                style={{
+                  ...globalStyles.flexBoxColumn,
+                  alignItems: 'center',
+                  borderBottomColor: globalColors.black_10,
+                  borderBottomWidth: hairlineWidth,
+                  justifyContent: 'center',
+                  marginBottom: globalMargins.xtiny,
+                  padding: globalMargins.small,
+                }}
+              >
+                <Kb.Text center={true} type="BodySmall">
+                  Users will be invited to {this.props.name} as
+                  <Kb.Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Kb.Text>.
+                </Kb.Text>
+              </Kb.ClickableBox>
+            }
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}
           />

@@ -1,36 +1,49 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as Types from '../constants/types/team-building'
+import {TeamRoleType} from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of team-building but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'team-building:'
 export const addUsersToTeamSoFar = 'team-building:addUsersToTeamSoFar'
 export const cancelTeamBuilding = 'team-building:cancelTeamBuilding'
+export const changeSendNotification = 'team-building:changeSendNotification'
 export const fetchUserRecs = 'team-building:fetchUserRecs'
 export const fetchedUserRecs = 'team-building:fetchedUserRecs'
 export const finishedTeamBuilding = 'team-building:finishedTeamBuilding'
 export const removeUsersFromTeamSoFar = 'team-building:removeUsersFromTeamSoFar'
 export const search = 'team-building:search'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
+export const selectRole = 'team-building:selectRole'
 
 // Payload Types
-type _AddUsersToTeamSoFarPayload = {readonly users: Array<Types.User>}
-type _CancelTeamBuildingPayload = void
-type _FetchUserRecsPayload = void
-type _FetchedUserRecsPayload = {readonly users: Array<Types.User>}
-type _FinishedTeamBuildingPayload = void
-type _RemoveUsersFromTeamSoFarPayload = {readonly users: Array<Types.UserID>}
+type _AddUsersToTeamSoFarPayload = {
+  readonly namespace: Types.AllowedNamespace
+  readonly users: Array<Types.User>
+}
+type _CancelTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace}
+type _ChangeSendNotificationPayload = {readonly namespace: 'teams'; readonly sendNotification: boolean}
+type _FetchUserRecsPayload = {readonly namespace: Types.AllowedNamespace}
+type _FetchedUserRecsPayload = {readonly namespace: Types.AllowedNamespace; readonly users: Array<Types.User>}
+type _FinishedTeamBuildingPayload = {readonly namespace: Types.AllowedNamespace; readonly teamname?: string}
+type _RemoveUsersFromTeamSoFarPayload = {
+  readonly namespace: Types.AllowedNamespace
+  readonly users: Array<Types.UserID>
+}
 type _SearchPayload = {
+  readonly namespace: Types.AllowedNamespace
   readonly query: string
   readonly service: Types.ServiceIdWithContact
   readonly limit?: number
 }
 type _SearchResultsLoadedPayload = {
+  readonly namespace: Types.AllowedNamespace
   readonly users: Array<Types.User>
   readonly query: string
   readonly service: Types.ServiceIdWithContact
 }
+type _SelectRolePayload = {readonly namespace: 'teams'; readonly role: TeamRoleType}
 
 // Action Creators
 export const createAddUsersToTeamSoFar = (
@@ -40,6 +53,9 @@ export const createCancelTeamBuilding = (payload: _CancelTeamBuildingPayload): C
   payload,
   type: cancelTeamBuilding,
 })
+export const createChangeSendNotification = (
+  payload: _ChangeSendNotificationPayload
+): ChangeSendNotificationPayload => ({payload, type: changeSendNotification})
 export const createFetchUserRecs = (payload: _FetchUserRecsPayload): FetchUserRecsPayload => ({
   payload,
   type: fetchUserRecs,
@@ -58,6 +74,10 @@ export const createSearch = (payload: _SearchPayload): SearchPayload => ({payloa
 export const createSearchResultsLoaded = (
   payload: _SearchResultsLoadedPayload
 ): SearchResultsLoadedPayload => ({payload, type: searchResultsLoaded})
+export const createSelectRole = (payload: _SelectRolePayload): SelectRolePayload => ({
+  payload,
+  type: selectRole,
+})
 
 // Action Payloads
 export type AddUsersToTeamSoFarPayload = {
@@ -67,6 +87,10 @@ export type AddUsersToTeamSoFarPayload = {
 export type CancelTeamBuildingPayload = {
   readonly payload: _CancelTeamBuildingPayload
   readonly type: typeof cancelTeamBuilding
+}
+export type ChangeSendNotificationPayload = {
+  readonly payload: _ChangeSendNotificationPayload
+  readonly type: typeof changeSendNotification
 }
 export type FetchUserRecsPayload = {
   readonly payload: _FetchUserRecsPayload
@@ -89,16 +113,19 @@ export type SearchResultsLoadedPayload = {
   readonly payload: _SearchResultsLoadedPayload
   readonly type: typeof searchResultsLoaded
 }
+export type SelectRolePayload = {readonly payload: _SelectRolePayload; readonly type: typeof selectRole}
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | AddUsersToTeamSoFarPayload
   | CancelTeamBuildingPayload
+  | ChangeSendNotificationPayload
   | FetchUserRecsPayload
   | FetchedUserRecsPayload
   | FinishedTeamBuildingPayload
   | RemoveUsersFromTeamSoFarPayload
   | SearchPayload
   | SearchResultsLoadedPayload
+  | SelectRolePayload
   | {type: 'common:resetStore', payload: null}

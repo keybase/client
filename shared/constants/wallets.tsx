@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
+import * as Router2Constants from './router2'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
@@ -104,6 +105,32 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   worthInfo: '',
 })
 
+export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
+  fee: null,
+  memo: '',
+  memoType: '',
+  operations: null,
+  source: '',
+})
+
+export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
+  amount: null,
+  assetCode: '',
+  assetIssuer: '',
+  availableToSendFiat: '',
+  availableToSendNative: '',
+  callbackURL: '',
+  displayAmountFiat: '',
+  memo: '',
+  memoType: '',
+  message: '',
+  operation: '',
+  originDomain: '',
+  recipient: '',
+  summary: makeSEP7Summary(),
+  xdr: '',
+})
+
 export const makeBuiltRequest = I.Record<Types._BuiltRequest>({
   amountErrMsg: '',
   builtBanners: null,
@@ -170,6 +197,9 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep7ConfirmError: '',
+  sep7ConfirmInfo: null,
+  sep7ConfirmURI: '',
   trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })
@@ -211,6 +241,7 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
+    canAddTrustline: w.canAddTrustline,
     canSubmitTx: w.canSubmitTx,
     deviceReadOnly: w.deviceReadOnly,
     displayCurrency: currencyResultToCurrency(w.currencyLocal),
@@ -224,6 +255,7 @@ export const makeAssets = I.Record<Types._Assets>({
   availableToSendWorth: '',
   balanceAvailableToSend: '',
   balanceTotal: '',
+  canAddTrustline: false,
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -263,6 +295,7 @@ const _defaultPaymentCommon = {
   amountDescription: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
+  fromAirdrop: false,
   id: Types.noPaymentID,
   isAdvanced: false,
   issuerAccountID: null,
@@ -326,6 +359,7 @@ export const unknownCurrency = makeCurrency()
 export const makeAccount = I.Record<Types._Account>({
   accountID: Types.noAccountID,
   balanceDescription: '',
+  canAddTrustline: false,
   canSubmitTx: false,
   deviceReadOnly: false,
   displayCurrency: unknownCurrency,
@@ -399,6 +433,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
+    fromAirdrop: p.fromAirdrop,
     id: Types.rpcPaymentIDToPaymentID(p.id),
     isAdvanced: p.isAdvanced,
     issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
@@ -469,6 +504,14 @@ export const paymentToYourInfoAndCounterparty = (
   counterparty: string
   counterpartyType: Types.CounterpartyType
 } => {
+  if (p.fromAirdrop) {
+    return {
+      counterparty: '',
+      counterpartyType: 'airdrop',
+      yourAccountName: '',
+      yourRole: 'airdrop',
+    }
+  }
   switch (p.delta) {
     case 'none':
       // In this case, sourceType and targetType are usually
@@ -552,6 +595,7 @@ export const requestPaymentWaitingKey = 'wallets:requestPayment'
 export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
+export const sep7WaitingKey = 'wallets:sep7'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 export const loadAccountsWaitingKey = 'wallets:loadAccounts'
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
@@ -575,6 +619,11 @@ export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
+
+export const getAirdropSelected = (state: TypedState) => {
+  const path = Router2Constants.getVisibleScreen().routeName
+  return path === 'airdrop' || path === 'airdropQualify'
+}
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
@@ -680,6 +729,10 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   }
   return sign + balanceChange
 }
+
+export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+
+export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
 
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets

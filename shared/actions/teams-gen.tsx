@@ -9,7 +9,6 @@ import {RetentionPolicy} from '../constants/types/retention-policy'
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
 export const addParticipant = 'teams:addParticipant'
-export const addPeopleToTeam = 'teams:addPeopleToTeam'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addUserToTeams = 'teams:addUserToTeams'
@@ -82,14 +81,6 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 type _AddParticipantPayload = {
   readonly teamname: string
   readonly conversationIDKey: ChatTypes.ConversationIDKey
-}
-type _AddPeopleToTeamPayload = {
-  readonly destSubPath?: I.List<string>
-  readonly role: string
-  readonly rootPath?: I.List<string>
-  readonly sendChatNotification: boolean
-  readonly sourceSubPath?: I.List<string>
-  readonly teamname: string
 }
 type _AddTeamWithChosenChannelsPayload = {readonly teamname: string}
 type _AddToTeamPayload = {
@@ -323,10 +314,6 @@ export const createAddParticipant = (payload: _AddParticipantPayload): AddPartic
   payload,
   type: addParticipant,
 })
-export const createAddPeopleToTeam = (payload: _AddPeopleToTeamPayload): AddPeopleToTeamPayload => ({
-  payload,
-  type: addPeopleToTeam,
-})
 export const createAddTeamWithChosenChannels = (
   payload: _AddTeamWithChosenChannelsPayload
 ): AddTeamWithChosenChannelsPayload => ({payload, type: addTeamWithChosenChannels})
@@ -539,10 +526,6 @@ export const createUploadTeamAvatar = (payload: _UploadTeamAvatarPayload): Uploa
 export type AddParticipantPayload = {
   readonly payload: _AddParticipantPayload
   readonly type: typeof addParticipant
-}
-export type AddPeopleToTeamPayload = {
-  readonly payload: _AddPeopleToTeamPayload
-  readonly type: typeof addPeopleToTeam
 }
 export type AddTeamWithChosenChannelsPayload = {
   readonly payload: _AddTeamWithChosenChannelsPayload
@@ -772,7 +755,6 @@ export type UploadTeamAvatarPayload = {
 // prettier-ignore
 export type Actions =
   | AddParticipantPayload
-  | AddPeopleToTeamPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
   | AddUserToTeamsPayload

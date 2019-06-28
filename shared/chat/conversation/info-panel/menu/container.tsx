@@ -3,6 +3,7 @@ import * as ChatConstants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import {namedConnect} from '../../../../util/container'
@@ -89,8 +90,7 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
 
 const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) => ({
   loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  onAddPeople: () =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamAddPeople'}]})),
+  onAddPeople: () => dispatch(appendNewTeamBuilder(teamname)),
   onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
   onInvite: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})),

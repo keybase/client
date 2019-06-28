@@ -3,7 +3,6 @@ import Row from '../result-row/container'
 import * as Kb from '../../common-adapters/mobile.native'
 import {globalColors, globalMargins} from '../../styles'
 import EmptyResults from './empty'
-
 import {Props} from '.'
 
 class SearchResultsList extends Component<Props> {
@@ -31,21 +30,26 @@ class SearchResultsList extends Component<Props> {
       return <EmptyResults style={style} />
     }
 
+    let headerComponent = null
+    if (showSearchSuggestions) {
+      headerComponent = (
+        <Kb.Box style={{padding: globalMargins.tiny}}>
+          <Kb.Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
+            Recommendations
+          </Kb.Text>
+        </Kb.Box>
+      )
+    }
+
     return (
       <Kb.Box style={{width: '100%', ...style}}>
-        {showSearchSuggestions && (
-          <Kb.Box style={{padding: globalMargins.tiny}}>
-            <Kb.Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
-              Recommendations
-            </Kb.Text>
-          </Kb.Box>
-        )}
         <Kb.NativeFlatList
           data={items}
           renderItem={this._renderItem}
           keyExtractor={this._keyExtractor}
           keyboardDismissMode={this.props.keyboardDismissMode}
           keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={headerComponent}
         />
       </Kb.Box>
     )

@@ -150,7 +150,12 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {!p.signedUp && (
-            <Kb.Button type="Success" label="See if you qualify" onClick={this._onCheckQualify} />
+            <Kb.Button
+              style={styles.qualifyButton}
+              type="Success"
+              label="See if you qualify"
+              onClick={this._onCheckQualify}
+            />
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
           <Kb.Box2
@@ -269,6 +274,10 @@ const styles = Styles.styleSheetCreate({
   progress: {
     height: 20,
     width: 20,
+  },
+  qualifyButton: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   scrollView: {
     height: '100%',

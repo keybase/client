@@ -26,4 +26,5 @@ export const newRoutes = {
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
+  settingsManageContacts: {getScreen: () => require('./account/manage-contacts.native').default},
 }

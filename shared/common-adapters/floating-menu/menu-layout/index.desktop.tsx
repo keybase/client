@@ -94,7 +94,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
           {this.props.header && this.props.header.view}
           {/* Display menu items */}
           {this.props.items.length > 0 && (
-            <Box style={styles.menuItemList}>
+            <Box style={Styles.collapseStyles([styles.menuItemList, this.props.listStyle])}>
               {this.props.items
                 .filter(Boolean)
                 .map((item, index) =>

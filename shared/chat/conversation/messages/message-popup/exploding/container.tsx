@@ -139,6 +139,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
           : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
       )
     }
+    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
   } else {
     if (stateProps._canEdit) {
       items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
