@@ -125,15 +125,18 @@ const styles = Styles.styleSheetCreate({
     width: 2,
   },
   paymentPathStartOrEnd: {
-    // The text gives each stop a line height of 19, the negative margin offsets that so there are no gaps between the lines and circles
-    // On mobile, it's 21
-    marginBottom: (pathCircleLargeDiameter - (Styles.isMobile ? 21 : 19)) / 2,
-    marginTop: (pathCircleLargeDiameter - (Styles.isMobile ? 21 : 19)) / 2,
+    // text line height can vary, so set it to an upper bound here
+    // we can then calculate negative margin from this height so that there are no gaps between the
+    // circles and lines
+    height: 22,
+    marginBottom: (pathCircleLargeDiameter - 22) / 2,
+    marginTop: (pathCircleLargeDiameter - 22) / 2,
   },
   paymentPathStop: {
-    marginBottom: (pathCircleSmallDiameter - (Styles.isMobile ? 21 : 19)) / 2,
+    height: 22,
+    marginBottom: (pathCircleSmallDiameter - 22) / 2,
     // Center the small circle
     marginLeft: pathCircleLargeDiameter / 2 - pathCircleSmallDiameter / 2,
-    marginTop: (pathCircleSmallDiameter - (Styles.isMobile ? 21 : 19)) / 2,
+    marginTop: (pathCircleSmallDiameter - 22) / 2,
   },
 })
