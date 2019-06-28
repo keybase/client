@@ -167,11 +167,25 @@ export const VerifyPhone = () => {
     dispatch(RouteTreeGen.createClearModals())
   }, [dispatch])
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
+  const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
+  // Clear on success
+  React.useEffect(() => {
+    if (verificationState === 'success' && !error) {
+      dispatch(RouteTreeGen.createClearModals())
+    }
+  }, [verificationState, error, dispatch])
   const onResend = React.useCallback(
     () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
     [dispatch]
   )
   const resendWaiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+  const [code, onChangeCode] = React.useState('')
+  const onContinue = React.useCallback(
+    () => dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber: pendingVerification})),
+    [dispatch, code, pendingVerification]
+  )
+  const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
   return (
     <Kb.Modal
       onClose={onClose}
@@ -179,6 +193,21 @@ export const VerifyPhone = () => {
         hideBorder: true,
         style: styles.blueBackground,
         title: <Kb.Text type="BodySmall">{pendingVerification || 'wut'}</Kb.Text>,
+      }}
+      footer={{
+        content: (
+          <Kb.ButtonBar style={styles.buttonBar} fullWidth={true}>
+            <Kb.Button
+              type="Success"
+              label="Continue"
+              onClick={onContinue}
+              waiting={verifyWaiting}
+              fullWidth={true}
+            />
+          </Kb.ButtonBar>
+        ),
+        hideBorder: true,
+        style: styles.blueBackground,
       }}
       mode="Wide"
     >
@@ -193,8 +222,14 @@ export const VerifyPhone = () => {
         fullHeight={true}
         centerChildren={true}
       >
-        <VerifyBody onResend={onResend} resendWaiting={resendWaiting} />
+        <VerifyBody
+          onResend={onResend}
+          resendWaiting={resendWaiting}
+          code={code}
+          onChangeCode={onChangeCode}
+        />
       </Kb.Box2>
+      {!!error && <Kb.Banner color="red" text={error} style={styles.banner} />}
     </Kb.Modal>
   )
 }
