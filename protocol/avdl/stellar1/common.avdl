@@ -169,6 +169,8 @@ protocol common {
     array<Asset> path;
     string destinationAmount;
     Asset destinationAsset;
-    boolean sourceHasSufficientBalance;
+    // Populated only if source account balance isn't sufficient to make this
+    // balance. If populated it will be the source account balance.
+    string sourceInsufficientBalance; 
   }
 }
