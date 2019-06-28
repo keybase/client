@@ -176,7 +176,7 @@ func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.
 	}
 }
 
-func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTrack) (err error) {
+func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTrack, done bool) (err error) {
 	ctx = globals.ChatCtx(ctx, l.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer l.Trace(ctx, func() error { return err }, "updateMapUnfurl")()
 	msg, err := l.G().ChatHelper.GetMessage(ctx, l.uid, t.convID, t.msgID, true, nil)
@@ -208,8 +208,8 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	// a large lag after we delete the unfurl and when we post the next one. We link back to the
 	// tracker in the URL so we can get all the coordinates in the scraper. The cb param
 	// makes it so the unfurler doesn't think it has already unfurled this URL and skips it.
-	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&cb=%s", types.MapsDomain,
-		last.Lat, last.Lon, last.Accuracy, libkb.RandStringB64(3))
+	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&cb=%s&done=%v", types.MapsDomain,
+		last.Lat, last.Lon, last.Accuracy, libkb.RandStringB64(3), done)
 	if !t.getCurrentPosition {
 		body += fmt.Sprintf("&livekey=%s", t.Key())
 	}
@@ -300,7 +300,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				l.Debug(ctx, "tracker[%v]: got coords", watchID)
 				if firstUpdate {
 					l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
-					l.updateMapUnfurl(ctx, t)
+					l.updateMapUnfurl(ctx, t, false)
 				}
 				firstUpdate = false
 			} else {
@@ -322,20 +322,18 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				// drain anything in the buffer if we are being updated and posting at the same time
 				t.Drain(chat1.Coordinate{})
 				l.Debug(ctx, "tracker[%v]: updating due to next update", watchID)
-				l.updateMapUnfurl(ctx, t)
+				l.updateMapUnfurl(ctx, t, false)
 				shouldUpdate = false
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
-			l.Debug(ctx, "tracker[%v]: live location complete", watchID)
-			if t.getCurrentPosition || shouldUpdate {
-				t.Drain(chat1.Coordinate{})
-				l.Debug(ctx, "tracker[%v]: updating due to expiration", watchID)
-				l.updateMapUnfurl(ctx, t)
-			}
+			l.Debug(ctx, "tracker[%v]: live location complete, updating", watchID)
+			t.Drain(chat1.Coordinate{})
+			l.updateMapUnfurl(ctx, t, true)
 			return nil
 		case <-t.stopCh:
-			l.Debug(ctx, "tracker[%v]: stopped", watchID)
+			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
+			l.updateMapUnfurl(ctx, t, true)
 			return nil
 		}
 	}
