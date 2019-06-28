@@ -115,6 +115,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@kudo-ci/jsc-android": "245459-fix-clear-cache-no-dfg",
     "@react-native-community/netinfo": "1.2.3",
     "@react-navigation/core": "3.4.0",
     "@react-navigation/native": "3.4.1",
@@ -130,7 +131,6 @@
     "google-libphonenumber": "3.2.2",
     "iced-runtime": "1.0.3",
     "immutable": "4.0.0-rc.12",
-    "@kudo-ci/jsc-android": "245459-fix-clear-cache-no-dfg",
     "lodash-es": "4.17.11",
     "lottie-react-native": "2.6.1",
     "lottie-react-web": "2.1.4",
@@ -212,6 +212,7 @@
     "@types/base64-js": "1.2.5",
     "@types/classnames": "2.2.8",
     "@types/emoji-mart": "2.8.4",
+    "@types/hoist-non-react-statics": "3.3.1",
     "@types/lodash-es": "4.17.3",
     "@types/memoize-one": "4.1.1",
     "@types/moment": "2.13.0",

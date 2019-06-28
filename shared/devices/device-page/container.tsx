@@ -10,7 +10,7 @@ type OwnProps = {}
 // and our store. device id is purely an argument to the screen, the store
 // doesn't care about it.
 export default Container.connect(
-  (_, ownProps: OwnProps) => ({id: Container.getRouteProps(ownProps, 'deviceID')}),
+  (_, ownProps: OwnProps) => ({id: Container.getRouteProps(ownProps, 'deviceID') as string}),
   dispatch => ({
     onBack: () => {
       Container.isMobile && dispatch(RouteTreeGen.createNavigateUp())

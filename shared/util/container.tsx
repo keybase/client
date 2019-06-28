@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {TypedActions} from '../actions/typed-actions-gen'
 import {TypedState} from '../constants/reducer'
 import {RouteProps as _RouteProps} from '../route-tree/render-route'
@@ -27,6 +28,13 @@ export type Dispatch = TypedDispatch
 export const useAnyWaiting = (...waitingKeys: string[]) =>
   useSelector(state => anyWaiting(state, ...waitingKeys))
 export const useAnyErrors = (...waitingKeys: string[]) => useSelector(state => anyErrors(state, waitingKeys))
+
+export type Route = {
+  getScreen: () => React.ComponentType
+  screen?: React.ComponentType
+  upgraded?: boolean
+}
+export type RouteMap = {[K in string]: Route}
 
 export {
   branch,
