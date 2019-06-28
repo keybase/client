@@ -980,6 +980,18 @@ export const createValidateSEP7Link = (payload: _ValidateSEP7LinkPayload): Valid
 export const createAccountUpdateReceived = (
   payload: _AccountUpdateReceivedPayload
 ): AccountUpdateReceivedPayload => ({payload, type: accountUpdateReceived})
+/**
+ * replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones
+ */
+export const createClearBuildingAdvanced = (
+  payload: _ClearBuildingAdvancedPayload
+): ClearBuildingAdvancedPayload => ({payload, type: clearBuildingAdvanced})
+/**
+ * tell service to send this path payment
+ */
+export const createSendPaymentAdvanced = (
+  payload: _SendPaymentAdvancedPayload
+): SendPaymentAdvancedPayload => ({payload, type: sendPaymentAdvanced})
 export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlinePayload => ({
   payload,
   type: addTrustline,
@@ -987,9 +999,6 @@ export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlineP
 export const createCalculateBuildingAdvanced = (
   payload: _CalculateBuildingAdvancedPayload
 ): CalculateBuildingAdvancedPayload => ({payload, type: calculateBuildingAdvanced})
-export const createClearBuildingAdvanced = (
-  payload: _ClearBuildingAdvancedPayload
-): ClearBuildingAdvancedPayload => ({payload, type: clearBuildingAdvanced})
 export const createClearTrustlineSearchResults = (
   payload: _ClearTrustlineSearchResultsPayload
 ): ClearTrustlineSearchResultsPayload => ({payload, type: clearTrustlineSearchResults})
@@ -1013,9 +1022,6 @@ export const createRefreshTrustlineAcceptedAssetsByUsername = (
 export const createRefreshTrustlinePopularAssets = (
   payload: _RefreshTrustlinePopularAssetsPayload
 ): RefreshTrustlinePopularAssetsPayload => ({payload, type: refreshTrustlinePopularAssets})
-export const createSendPaymentAdvanced = (
-  payload: _SendPaymentAdvancedPayload
-): SendPaymentAdvancedPayload => ({payload, type: sendPaymentAdvanced})
 export const createSetBuildingAdvancedPublicMemo = (
   payload: _SetBuildingAdvancedPublicMemoPayload
 ): SetBuildingAdvancedPublicMemoPayload => ({payload, type: setBuildingAdvancedPublicMemo})
