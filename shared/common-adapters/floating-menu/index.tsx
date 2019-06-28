@@ -29,6 +29,15 @@ export default (props: Props) => {
   if (!props.visible) {
     return null
   }
+
+  // Overlay is incorrectly memoizing props somehow, and when items updates
+  // the MenuLayout inside doesn't receive new props.items. So have this used
+  // as key, as a hack to get around that.
+  const [itemChangeCounter, setItemChangeCounter] = React.useState(0)
+  React.useEffect(() => {
+    setItemChangeCounter(itemChangeCounter => itemChangeCounter + 1)
+  }, [props.items])
+
   return (
     <Overlay
       position={props.position}
@@ -38,6 +47,7 @@ export default (props: Props) => {
       attachTo={props.attachTo}
       style={props.containerStyle}
       propagateOutsideClicks={props.propagateOutsideClicks}
+      key={itemChangeCounter.toString()}
     >
       <MenuLayout
         header={props.header}

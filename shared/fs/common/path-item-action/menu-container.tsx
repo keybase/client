@@ -153,7 +153,7 @@ const mergeProps = (
   dispatchProps: ReturnType<typeof mapDispatchToProps>,
   ownProps: OwnProps
 ) => {
-  const getLayout = stateProps._view === 'share' ? getShareLayout : getRootLayout
+  const getLayout = stateProps._view === Types.PathItemActionMenuView.Share ? getShareLayout : getRootLayout
   const {mode, ...rest} = ownProps
   const layout = getLayout(mode, ownProps.path, stateProps._pathItem, stateProps._username)
   const c = action =>
