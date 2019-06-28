@@ -232,7 +232,6 @@ export const makeState = I.Record<Types._State>({
   lastSentXLM: false,
   linkExistingAccountError: '',
   mobileOnlyMap: I.Map(),
-  newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
   paymentOldestUnreadMap: I.Map(),
@@ -739,15 +738,6 @@ export const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =
   state.wallets.accountMap.has(accountID)
 
 export const isFederatedAddress = (address: string | null) => (address ? address.includes('*') : false)
-
-export const isPaymentUnread = (
-  state: TypedState,
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID
-) => {
-  const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
-  return newPaymentsForAccount && newPaymentsForAccount.has(paymentID)
-}
 
 export const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.size > 0
 

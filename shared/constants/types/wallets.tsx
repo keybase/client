@@ -375,7 +375,6 @@ export type _State = {
   inflationDestinationError: string
   lastSentXLM: boolean
   linkExistingAccountError: string
-  newPayments: I.Map<AccountID, I.Set<PaymentID>> // xxx todo remove this field, might be unused
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
   paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: I.Map<AccountID, boolean>
