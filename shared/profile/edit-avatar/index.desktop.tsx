@@ -332,7 +332,7 @@ class EditAvatar extends React.Component<_Props, State> {
             />
             {this.state.loading && (
               <Kb.Box2 direction="vertical" fullHeight={true} style={styles.spinnerContainer}>
-                <Kb.ProgressIndicator style={Kb.iconCastPlatformStyles(styles.spinner)} />
+                <Kb.ProgressIndicator type="Large" style={Kb.iconCastPlatformStyles(styles.spinner)} />
               </Kb.Box2>
             )}
             <Kb.OrientedImage
