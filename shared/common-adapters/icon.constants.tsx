@@ -160,15 +160,20 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-email-add-96.png'),
   },
-  'icon-email-delete-48': {
+  'icon-email-remove-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-delete-48.png'),
+    require: require('../images/icons/icon-email-remove-48.png'),
   },
-  'icon-email-delete-64': {
+  'icon-email-remove-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-delete-64.png'),
+    require: require('../images/icons/icon-email-remove-64.png'),
+  },
+  'icon-email-remove-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-remove-96.png'),
   },
   'icon-facebook-continue': {
     extension: 'png',

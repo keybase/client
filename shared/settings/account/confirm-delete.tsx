@@ -11,7 +11,7 @@ type Props = {
 
 const getIcon = props => {
   if (props.type === 'email') {
-    return Styles.isMobile ? 'icon-email-delete-64' : 'icon-email-delete-48'
+    return Styles.isMobile ? 'icon-email-remove-64' : 'icon-email-remove-48'
   }
   return Styles.isMobile ? 'icon-number-delete-64' : 'icon-number-delete-48'
 }
