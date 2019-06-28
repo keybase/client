@@ -478,7 +478,7 @@ func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
 }
 
 func (mc modeConstrained) TLFEditHistoryEnabled() bool {
-	return false
+	return true
 }
 
 func (mc modeConstrained) SendEditNotificationsEnabled() bool {
