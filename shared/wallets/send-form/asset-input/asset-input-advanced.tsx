@@ -72,7 +72,7 @@ const LeftBlock = (props: EmptyProps) => {
         <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
       )}
       {!!builtPaymentAdvanced.amountError && (
-        <Kb.Text type="BodySmall" style={styles.error}>
+        <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
           {builtPaymentAdvanced.amountError}
         </Kb.Text>
       )}

@@ -347,7 +347,7 @@
       "to": "string"
     },
     "clearBuildingAdvanced": {
-      "_description": "replace the current buildingAdvanced data with an empty one"
+      "_description": "replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones"
     },
     "setBuildingAdvancedRecipient": {"recipient": "string"},
     "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},

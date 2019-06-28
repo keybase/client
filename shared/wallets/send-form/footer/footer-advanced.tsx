@@ -17,7 +17,7 @@ const FooterAdvanced = () => {
     <Kb.Banner color="red" text="No path was found to convert these 2 assets. Please pick other assets." />
   ) : (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.buttonBox} fullWidth={true}>
-      {builtPaymentAdvanced.readyToSend ? (
+      {builtPaymentAdvanced.sourceDisplay ? (
         <Kb.WaitingButton
           type="Wallet"
           label="Send"

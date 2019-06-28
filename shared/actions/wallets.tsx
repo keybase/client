@@ -1307,7 +1307,7 @@ const calculateBuildingAdvanced = state =>
           exchangeRate,
           fullPath: rpcPaymentPathToPaymentPath(fullPath),
           noPathFoundError: false,
-          readyToSend: true,
+          readyToSend: !amountError,
           sourceDisplay,
           sourceMaxDisplay,
         }),

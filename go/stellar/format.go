@@ -103,6 +103,38 @@ func FormatAmountDescriptionAssetEx(mctx libkb.MetaContext, amount string, asset
 	return fmt.Sprintf("%s %s/%s (%s)", amountFormatted, asset.Code, issuerDesc, issuerAccountID.String()), nil
 }
 
+// FormatAmountDescriptionAssetEx2 is like FormatAmountDescriptionAssetEx,
+// except that it only shows one of issuer domain and issuer account ID. When
+// issuer domain is available, the domain is shown. Otherwise account ID is
+// used.
+// Example: "157.5000000 XLM"
+// Example: "1,000.15 CATS/catmoney.example.com
+// Example: "1,000.15 BTC/GBPEHURSE52GCBRPDWNV2VL3HRLCI42367OGRPBOO3AW6VAYEW5EO5PM"
+func FormatAmountDescriptionAssetEx2(mctx libkb.MetaContext, amount string, asset stellar1.Asset) (string, error) {
+	if asset.IsNativeXLM() {
+		return FormatAmountDescriptionXLM(mctx, amount)
+	}
+	if err := assertAssetIsSane(asset); err != nil {
+		return "", err
+	}
+	// Sanity check asset issuer.
+	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
+	if err != nil {
+		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
+	}
+	amountFormatted, err := FormatAmount(mctx, amount, false /* precisionTwo */, stellarnet.Round)
+	if err != nil {
+		return "", err
+	}
+	var issuerDesc string
+	if asset.VerifiedDomain != "" {
+		issuerDesc = asset.VerifiedDomain
+	} else {
+		issuerDesc = issuerAccountID.String()
+	}
+	return fmt.Sprintf("%s %s/%s", amountFormatted, asset.Code, issuerDesc), nil
+}
+
 // FormatAssetIssuerString returns "Unknown issuer" if asset does not have a
 // verified domain, or returns asset verified domain if it does (e.g.
 // "example.com").

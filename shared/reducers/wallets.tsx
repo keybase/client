@@ -244,7 +244,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         builtRequest: state.get('builtRequest').merge({toErrMsg: ''}),
       })
     case WalletsGen.clearBuildingAdvanced:
-      return state.set('buildingAdvanced', Constants.emptyBuildingAdvanced)
+      return state
+        .set('buildingAdvanced', Constants.emptyBuildingAdvanced)
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
     case WalletsGen.setBuildingAdvancedRecipient:
       return state.update('buildingAdvanced', buildingAdvanced =>
         buildingAdvanced.set('recipient', action.payload.recipient)
