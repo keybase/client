@@ -832,6 +832,10 @@
           "name": "exchangeRate"
         },
         {
+          "type": "string",
+          "name": "amountError"
+        },
+        {
           "type": "AccountID",
           "name": "destinationAccount"
         },
