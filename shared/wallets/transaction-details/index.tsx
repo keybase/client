@@ -9,6 +9,7 @@ import {capitalize} from 'lodash-es'
 import Transaction, {TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
+import PaymentPath from './payment-path'
 
 export type NotLoadingProps = {
   amountUser: string
@@ -37,7 +38,7 @@ export type NotLoadingProps = {
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
   operations?: Array<string>
-  pathIntermediate: I.List<Types.Asset>
+  pathIntermediate: I.List<Types.AssetDescription>
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean
@@ -354,12 +355,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
             <PaymentPath
-              you={props.you}
               sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
               sourceIssuer={sourceIssuer}
               pathIntermediate={props.pathIntermediate}
               destinationIssuer={destinationIssuer}
-              amountDescription={props.amountXLM}
+              destinationAmount={props.amountXLM}
             />
           </Kb.Box2>
         )}

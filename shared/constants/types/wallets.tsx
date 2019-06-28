@@ -185,7 +185,7 @@ export type _PaymentResult = {
 
 export type _PaymentDetail = {
   externalTxURL: string
-  pathIntermediate: I.List<Asset>
+  pathIntermediate: I.List<AssetDescription>
   publicMemo: HiddenString
   publicMemoType: string
   txID: string

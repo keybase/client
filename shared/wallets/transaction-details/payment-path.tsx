@@ -1,63 +1,35 @@
 import * as React from 'react'
+import * as I from 'immutable'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 
-interface CounterpartyIconProps {
-  counterpartyType: Types.CounterpartyType
-  counterparty: string
-}
-
 interface PaymentPathStartProps {
-  you: string
   assetLabel: string
   issuer: string
-  counterpartyType: Types.CounterpartyType
 }
 
 interface PaymentPathEndProps {
   assetLabel: string
   issuer: string
-  counterpartyType: Types.CounterpartyType
+}
+
+interface PaymentPathStopProps {
+  assetCode: string
+  issuer: string
 }
 
 interface PaymentPathProps {
-
-}
-
-const CounterpartyIcon = (props: CounterpartyIconProps) => {
-  switch (props.counterpartyType) {
-    case 'keybaseUser':
-      return (
-        <Kb.Avatar username={props.counterparty} size={32} borderColor={Styles.globalColors.purpleLight} />
-      )
-    case 'stellarPublicKey':
-      return (
-        <Kb.Icon
-          type="icon-placeholder-secret-user-32"
-          style={{
-            ...styles.icon32,
-            borderColor: Styles.globalColors.purpleLight,
-            borderRadius: 32 / 2,
-            borderStyle: 'solid',
-            borderWidth: 2,
-          }}
-        />
-      )
-    case 'otherAccount':
-      return <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
-    default:
-      throw new Error(`unknown counterpartyType: ${props}`)
-  }
+  sourceAmount: string
+  sourceIssuer: string
+  pathIntermediate: I.List<Types.AssetDescription>
+  destinationAmount: string
+  destinationIssuer: string
 }
 
 const PaymentPathStart = (props: PaymentPathStartProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
-    {props.counterpartyType === 'otherAccount' ? (
-      <Kb.Icon type="icon-wallet-32" style={styles.icon32} />
-    ) : (
-      <Kb.Avatar username={props.you} size={32} borderColor={Styles.globalColors.purpleLight} />
-    )}
+    <Kb.Box style={styles.paymentPathCircleLarge} />
     <Kb.Text type="BodyBigExtrabold">
       -{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -67,7 +39,7 @@ const PaymentPathStart = (props: PaymentPathStartProps) => (
 
 const PaymentPathEnd = (props: PaymentPathEndProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
-    <CounterpartyIcon counterpartyType={props.counterpartyType} counterparty={props.counterparty} />
+    <Kb.Box style={styles.paymentPathCircleLarge} />
     <Kb.Text type="BodyBigExtrabold" style={{color: Styles.globalColors.greenDark}}>
       +{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -75,7 +47,7 @@ const PaymentPathEnd = (props: PaymentPathEndProps) => (
   </Kb.Box2>
 )
 
-const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
+const PaymentPathStop = (props: PaymentPathStopProps) => (
   <Kb.Box2
     direction="horizontal"
     style={styles.paymentPathStop}
@@ -83,7 +55,7 @@ const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
     fullWidth={true}
     gap="medium"
   >
-    <Kb.Box style={styles.paymentPathCircle} />
+    <Kb.Box style={styles.paymentPathCircleSmall} />
     <Kb.Text type="BodyBigExtrabold">
       {props.assetCode}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -91,10 +63,10 @@ const PaymentPathStop = (props: {assetCode: string; issuer: string}) => (
   </Kb.Box2>
 )
 
-const PaymentPath = (props: any) => {
+const PaymentPath = (props: PaymentPathProps) => {
   return (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
-      <PaymentPathStart you={props.you} assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
+      <PaymentPathStart assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
       <Kb.Box style={styles.paymentPathLine} />
       {props.pathIntermediate.map(asset => {
         return (
@@ -104,28 +76,47 @@ const PaymentPath = (props: any) => {
           </>
         )
       })}
-      <PaymentPathEnd assetLabel={props.amountDescription} issuer={props.destinationIssuer} />
+      <PaymentPathEnd assetLabel={props.destinationAmount} issuer={props.destinationIssuer} />
     </Kb.Box2>
   )
 }
 
+export default PaymentPath
+
+const pathCircleLargeDiameter = 18
+const pathCircleSmallDiameter = 10
+
 const styles = Styles.styleSheetCreate({
-  icon32: {height: 32, width: 32},
-  paymentPathCircle: {
+  paymentPathCircleLarge: {
     backgroundColor: Styles.globalColors.purple,
     borderColor: Styles.globalColors.purpleLighter,
-    borderRadius: 10 / 2,
+    borderRadius: pathCircleLargeDiameter / 2,
+    borderStyle: 'solid',
+    borderWidth: 3,
+    height: pathCircleLargeDiameter,
+    width: pathCircleLargeDiameter,
+  },
+  paymentPathCircleSmall: {
+    backgroundColor: Styles.globalColors.purple,
+    borderColor: Styles.globalColors.purpleLighter,
+    borderRadius: pathCircleSmallDiameter / 2,
     borderStyle: 'solid',
     borderWidth: 2,
-    height: 10,
-    width: 10,
+    height: pathCircleSmallDiameter,
+    width: pathCircleSmallDiameter,
   },
   paymentPathLine: {
     backgroundColor: Styles.globalColors.purpleLight,
     height: Styles.globalMargins.medium,
-    marginLeft: 15,
-    marginRight: 15,
+    // Line width is 2, so to center it between the large circle, divide by 2 and subtract half the width
+    marginLeft: pathCircleLargeDiameter / 2 - 1,
+    marginRight: pathCircleLargeDiameter / 2 - 1,
     width: 2,
   },
-  paymentPathStop: {marginBottom: -4.5, marginLeft: 11, marginTop: -4.5},
+  paymentPathStop: {
+    marginBottom: -4.5,
+    // Center the small circle
+    marginLeft: pathCircleLargeDiameter / 2 - pathCircleSmallDiameter / 2,
+    marginTop: -4.5,
+  },
 })
