@@ -5,6 +5,10 @@ export const newModalRoutes = {
     getScreen: () => require('./send-form/choose-asset/container').default,
     upgraded: true,
   },
+  [Constants.pickAssetFormRouteKey]: {
+    getScreen: () => require('./send-form/pick-asset').default,
+    upgraded: true,
+  },
   [Constants.confirmFormRouteKey]: {
     getScreen: () => require('./confirm-form/container').default,
     upgraded: true,

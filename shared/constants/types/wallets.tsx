@@ -92,6 +92,39 @@ export type _Building = {
   to: string
 }
 
+export type _BuildingAdvanced = {
+  recipient: string
+  recipientAmount: string
+  recipientAsset: AssetDescriptionOrNative
+  recipientType: CounterpartyType
+  publicMemo: HiddenString
+  senderAccountID: AccountID
+  senderAsset: AssetDescriptionOrNative
+  secretNote: HiddenString
+}
+
+export type _PaymentPath = {
+  sourceAmount: string
+  sourceAmountMax: string
+  sourceAsset: AssetDescriptionOrNative
+  sourceInsufficientBalance: string // empty if sufficient
+  path: I.List<AssetDescriptionOrNative>
+  destinationAmount: string
+  destinationAsset: AssetDescriptionOrNative
+}
+
+export type _BuiltPaymentAdvanced = {
+  amountError: string
+  destinationAccount: AccountID
+  destinationDisplay: string
+  exchangeRate: string
+  fullPath: PaymentPath
+  noPathFoundError: boolean
+  readyToSend: boolean
+  sourceDisplay: string
+  sourceMaxDisplay: string
+}
+
 export type _BuiltPayment = {
   amountAvailable: string
   amountErrMsg: string
@@ -202,6 +235,7 @@ export type _AssetDescription = {
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
+export type AssetDescriptionOrNative = AssetDescription | 'native'
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
@@ -219,6 +253,9 @@ export type Banner = {
 }
 
 export type Building = I.RecordOf<_Building>
+export type BuildingAdvanced = I.RecordOf<_BuildingAdvanced>
+export type PaymentPath = I.RecordOf<_PaymentPath>
+export type BuiltPaymentAdvanced = I.RecordOf<_BuiltPaymentAdvanced>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
@@ -295,11 +332,12 @@ export type AirdropDetails = I.RecordOf<_AirdropDetails>
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
   `${issuerAccountID}-${assetCode}`
-export const assetDescriptionToAssetID = (assetDescription: AssetDescription): AssetID =>
-  makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
+export const assetDescriptionToAssetID = (assetDescription: AssetDescriptionOrNative): AssetID =>
+  assetDescription === 'native' ? 'XLM' : makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
 
 export type _Trustline = {
   acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
+  acceptedAssetsByUsername: I.Map<string, I.Map<AssetID, number>>
   assetMap: I.Map<AssetID, AssetDescription>
   expandedAssets: I.Set<AssetID>
   loaded: boolean
@@ -323,7 +361,9 @@ export type _State = {
   assetsMap: I.Map<AccountID, I.List<Assets>>
   buildCounter: number // increments when we call buildPayment / buildRequest,
   building: Building
+  buildingAdvanced: BuildingAdvanced
   builtPayment: BuiltPayment
+  builtPaymentAdvanced: BuiltPaymentAdvanced
   builtRequest: BuiltRequest
   createNewAccountError: string
   currencies: I.List<Currency>

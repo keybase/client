@@ -1173,7 +1173,7 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 	res.ExchangeRate = fmt.Sprintf("%s = %s", exchangeRateLeft, exchangeRateRight)
 
 	if len(path.SourceInsufficientBalance) > 0 {
-		availableToSpend, err := stellar.FormatAmountDescriptionAssetEx(mctx, path.SourceInsufficientBalance, path.SourceAsset)
+		availableToSpend, err := stellar.FormatAmountDescriptionAssetEx2(mctx, path.SourceInsufficientBalance, path.SourceAsset)
 		if err != nil {
 			return stellar1.PaymentPathLocal{}, err
 		}

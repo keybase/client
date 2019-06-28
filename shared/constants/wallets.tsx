@@ -23,6 +23,7 @@ const partyTypeToString = invert(RPCTypes.ParticipantType) as {
 
 export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'
+export const pickAssetFormRouteKey = 'pickAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 export const airdropBannerKey = 'stellarHideAirdropBanner'
@@ -72,6 +73,14 @@ export const makeReserve = I.Record<Types._Reserve>({
   description: '',
 })
 
+export const makeAssetDescription = I.Record<Types._AssetDescription>({
+  code: '',
+  issuerAccountID: Types.noAccountID,
+  issuerName: '',
+  issuerVerifiedDomain: '',
+})
+export const emptyAssetDescription = makeAssetDescription()
+
 export const makeBuilding = I.Record<Types._Building>({
   amount: '',
   bid: '',
@@ -84,6 +93,42 @@ export const makeBuilding = I.Record<Types._Building>({
   sendAssetChoices: null,
   to: '',
 })
+
+export const makeBuildingAdvanced = I.Record<Types._BuildingAdvanced>({
+  publicMemo: new HiddenString(''),
+  recipient: '',
+  recipientAmount: '',
+  recipientAsset: emptyAssetDescription,
+  recipientType: 'keybaseUser',
+  secretNote: new HiddenString(''),
+  senderAccountID: Types.noAccountID,
+  senderAsset: emptyAssetDescription,
+})
+export const emptyBuildingAdvanced = makeBuildingAdvanced()
+
+export const makePaymentPath = I.Record<Types._PaymentPath>({
+  destinationAmount: '',
+  destinationAsset: emptyAssetDescription,
+  path: I.List(),
+  sourceAmount: '',
+  sourceAmountMax: '',
+  sourceAsset: emptyAssetDescription,
+  sourceInsufficientBalance: '',
+})
+export const emptyPaymentPath = makePaymentPath()
+
+export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
+  amountError: '',
+  destinationAccount: Types.noAccountID,
+  destinationDisplay: '',
+  exchangeRate: '',
+  fullPath: emptyPaymentPath,
+  noPathFoundError: false,
+  readyToSend: false,
+  sourceDisplay: '',
+  sourceMaxDisplay: '',
+})
+export const emptyBuiltPaymentAdvanced = makeBuiltPaymentAdvanced()
 
 export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   amountAvailable: '',
@@ -148,6 +193,7 @@ export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 
 export const makeTrustline = I.Record<Types._Trustline>({
   acceptedAssets: I.Map(),
+  acceptedAssetsByUsername: I.Map(),
   assetMap: I.Map(),
   expandedAssets: I.Set(),
   loaded: false,
@@ -171,7 +217,9 @@ export const makeState = I.Record<Types._State>({
   assetsMap: I.Map(),
   buildCounter: 0,
   building: makeBuilding(),
+  buildingAdvanced: emptyBuildingAdvanced,
   builtPayment: makeBuiltPayment(),
+  builtPaymentAdvanced: emptyBuiltPaymentAdvanced,
   builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
@@ -469,14 +517,6 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   }
 }
 
-export const makeAssetDescription = I.Record<Types._AssetDescription>({
-  code: '',
-  issuerAccountID: Types.noAccountID,
-  issuerName: '',
-  issuerVerifiedDomain: '',
-})
-export const emptyAssetDescription = makeAssetDescription()
-
 export const bannerLevelToBackground = (level: string) => {
   switch (level) {
     case 'info':
@@ -623,6 +663,8 @@ export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: T
 export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
   `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
 export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
+export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
+export const sendPaymentAdvancedWaitingKey = 'wallets:sendPaymentAdvanced'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 

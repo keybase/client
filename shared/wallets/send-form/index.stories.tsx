@@ -17,7 +17,7 @@ import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
 const provider = banner =>
   Sb.createPropProviderWithCommon({
     // TODO mock out meaningful values once type `OwnProps` is defined
-    AssetInput: props => assetInputProps,
+    AssetInputBasic: props => assetInputProps,
 
     Available: props => ({
       amountErrMsg: '',
@@ -31,6 +31,10 @@ const provider = banner =>
     ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
     ConnectedSendBody: props => ({
       banners: JSON.stringify(banner) === '{}' ? [] : [banner],
+      isProcessing: props.isProcessing,
+    }),
+    ConnectedSendBodyAdvanced: props => ({
+      banners: [],
       isProcessing: props.isProcessing,
     }),
     Footer: props => ({
@@ -61,9 +65,44 @@ const load = () => {
   participants()
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
+    /*
+    .add('Send - advanced', () => (
+      <SendRequestForm
+        onBack={Sb.action('onBack')}
+        isAdvanced={true}
+        isRequest={false}
+        onClose={Sb.action('onClose')}
+      />
+    ))
+    .add('Request - advanced', () => (
+      <SendRequestForm
+        onBack={Sb.action('onBack')}
+        isAdvanced={true}
+        isRequest={true}
+        onClose={Sb.action('onClose')}
+      />
+    ))
+    .add('PickAsset - sender', () => <PickAsset isSender={true} />)
+    .add('PickAsset - recipient keybaseUser', () => <PickAsset isSender={false} username="songgao" />)
+    .add('PickAsset - recipient stellar', () => <PickAsset isSender={false} />)
+     */
     .addDecorator(provider({}))
-    .add('Send', () => <SendRequestForm isRequest={false} onClose={Sb.action('onClose')} />)
-    .add('Request', () => <SendRequestForm isRequest={true} onClose={Sb.action('onClose')} />)
+    .add('Send', () => (
+      <SendRequestForm
+        isRequest={false}
+        isAdvanced={false}
+        onBack={Sb.action('onBack')}
+        onClose={Sb.action('onClose')}
+      />
+    ))
+    .add('Request', () => (
+      <SendRequestForm
+        isRequest={true}
+        isAdvanced={false}
+        onBack={Sb.action('onBack')}
+        onClose={Sb.action('onClose')}
+      />
+    ))
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(
       provider({
@@ -74,7 +113,12 @@ const load = () => {
       })
     )
     .add('Send with Advanced Send Banner', () => (
-      <SendRequestForm isRequest={false} onClose={Sb.action('onClose')} />
+      <SendRequestForm
+        isRequest={false}
+        isAdvanced={false}
+        onBack={Sb.action('onBack')}
+        onClose={Sb.action('onClose')}
+      />
     ))
 }
 
