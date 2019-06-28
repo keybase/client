@@ -299,6 +299,20 @@
         {
           "type": {
             "type": "array",
+            "items": "string"
+          },
+          "name": "localBlockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localSyncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "DirSizeInfo"
           },
           "name": "cacheDirSizeInfo"

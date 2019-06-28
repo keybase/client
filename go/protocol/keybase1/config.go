@@ -159,6 +159,8 @@ type ExtendedStatus struct {
 	DefaultDeviceID        DeviceID            `codec:"defaultDeviceID" json:"defaultDeviceID"`
 	LocalDbStats           []string            `codec:"localDbStats" json:"localDbStats"`
 	LocalChatDbStats       []string            `codec:"localChatDbStats" json:"localChatDbStats"`
+	LocalBlockCacheDbStats []string            `codec:"localBlockCacheDbStats" json:"localBlockCacheDbStats"`
+	LocalSyncCacheDbStats  []string            `codec:"localSyncCacheDbStats" json:"localSyncCacheDbStats"`
 	CacheDirSizeInfo       []DirSizeInfo       `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
 	UiRouterMapping        map[string]int      `codec:"uiRouterMapping" json:"uiRouterMapping"`
 }
@@ -266,6 +268,28 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.LocalChatDbStats),
+		LocalBlockCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LocalBlockCacheDbStats),
+		LocalSyncCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LocalSyncCacheDbStats),
 		CacheDirSizeInfo: (func(x []DirSizeInfo) []DirSizeInfo {
 			if x == nil {
 				return nil
