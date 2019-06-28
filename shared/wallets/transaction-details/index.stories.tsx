@@ -221,6 +221,26 @@ const load = () => {
         sourceIssuer="anchortoad.com"
         issuerDescription="froggycoin.io"
         sourceConvRate="2.450000"
+        pathIntermediate={I.List([
+          I.Record({
+            code: 'WHAT',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'whatcoin',
+            issuerVerifiedDomain: 'what.com',
+          })(),
+          I.Record({
+            code: 'NATE',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'natecoin',
+            issuerVerifiedDomain: 'nathansmith.io',
+          })(),
+          I.Record({
+            code: 'BLAH',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'Blahhold.co',
+            issuerVerifiedDomain: 'blahhold.co',
+          })(),
+        ])}
       />
     ))
     .add('Sent path payment (Asset -> XLM)', () => (

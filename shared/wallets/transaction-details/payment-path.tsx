@@ -4,22 +4,22 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 
-interface PaymentPathStartProps {
+type PaymentPathStartProps = {
   assetLabel: string
   issuer: string
 }
 
-interface PaymentPathEndProps {
+type PaymentPathEndProps = {
   assetLabel: string
   issuer: string
 }
 
-interface PaymentPathStopProps {
+type PaymentPathStopProps = {
   assetCode: string
   issuer: string
 }
 
-interface PaymentPathProps {
+type PaymentPathProps = {
   sourceAmount: string
   sourceIssuer: string
   pathIntermediate: I.List<Types.AssetDescription>
@@ -28,7 +28,13 @@ interface PaymentPathProps {
 }
 
 const PaymentPathStart = (props: PaymentPathStartProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    alignItems="center"
+    gap="small"
+    style={styles.paymentPathStartOrEnd}
+  >
     <Kb.Box style={styles.paymentPathCircleLarge} />
     <Kb.Text type="BodyBigExtrabold">
       -{props.assetLabel}
@@ -38,9 +44,15 @@ const PaymentPathStart = (props: PaymentPathStartProps) => (
 )
 
 const PaymentPathEnd = (props: PaymentPathEndProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="small">
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    alignItems="center"
+    gap="small"
+    style={styles.paymentPathStartOrEnd}
+  >
     <Kb.Box style={styles.paymentPathCircleLarge} />
-    <Kb.Text type="BodyBigExtrabold" style={{color: Styles.globalColors.greenDark}}>
+    <Kb.Text type="BodyBigExtrabold" style={styles.paymentPathEndText}>
       +{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
     </Kb.Text>
@@ -63,23 +75,19 @@ const PaymentPathStop = (props: PaymentPathStopProps) => (
   </Kb.Box2>
 )
 
-const PaymentPath = (props: PaymentPathProps) => {
-  return (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
-      <PaymentPathStart assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
-      <Kb.Box style={styles.paymentPathLine} />
-      {props.pathIntermediate.map(asset => {
-        return (
-          <>
-            <PaymentPathStop assetCode={asset.code} issuer={asset.issuerVerifiedDomain || 'Unknown issuer'} />
-            <Kb.Box style={styles.paymentPathLine} />
-          </>
-        )
-      })}
-      <PaymentPathEnd assetLabel={props.destinationAmount} issuer={props.destinationIssuer} />
-    </Kb.Box2>
-  )
-}
+const PaymentPath = (props: PaymentPathProps) => (
+  <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
+    <PaymentPathStart assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
+    <Kb.Box style={styles.paymentPathLine} />
+    {props.pathIntermediate.map((asset, i) => (
+      <React.Fragment key={i}>
+        <PaymentPathStop assetCode={asset.code} issuer={asset.issuerVerifiedDomain || 'Unknown issuer'} />
+        <Kb.Box style={styles.paymentPathLine} />
+      </React.Fragment>
+    ))}
+    <PaymentPathEnd assetLabel={props.destinationAmount} issuer={props.destinationIssuer} />
+  </Kb.Box2>
+)
 
 export default PaymentPath
 
@@ -105,6 +113,9 @@ const styles = Styles.styleSheetCreate({
     height: pathCircleSmallDiameter,
     width: pathCircleSmallDiameter,
   },
+  paymentPathEndText: {
+    color: Styles.globalColors.greenDark,
+  },
   paymentPathLine: {
     backgroundColor: Styles.globalColors.purpleLight,
     height: Styles.globalMargins.medium,
@@ -113,10 +124,16 @@ const styles = Styles.styleSheetCreate({
     marginRight: pathCircleLargeDiameter / 2 - 1,
     width: 2,
   },
+  paymentPathStartOrEnd: {
+    // The text gives each stop a line height of 19, the negative margin offsets that so there are no gaps between the lines and circles
+    // On mobile, it's 21
+    marginBottom: (pathCircleLargeDiameter - (Styles.isMobile ? 21 : 19)) / 2,
+    marginTop: (pathCircleLargeDiameter - (Styles.isMobile ? 21 : 19)) / 2,
+  },
   paymentPathStop: {
-    marginBottom: -4.5,
+    marginBottom: (pathCircleSmallDiameter - (Styles.isMobile ? 21 : 19)) / 2,
     // Center the small circle
     marginLeft: pathCircleLargeDiameter / 2 - pathCircleSmallDiameter / 2,
-    marginTop: -4.5,
+    marginTop: (pathCircleSmallDiameter - (Styles.isMobile ? 21 : 19)) / 2,
   },
 })
