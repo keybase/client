@@ -327,6 +327,11 @@ protocol local {
 
     array<SendBannerLocal> banners;
   }
+  enum AdvancedBanner {
+    NO_BANNER_0,
+    SENDER_BANNER_1,
+    RECEIVER_BANNER_2
+  }
   record SendBannerLocal {
     string level; // One of: "info", "warning", "error"
     // Example (info): "Because it’s russel’s first transaction, you must send at least 1 XLM."
@@ -335,6 +340,9 @@ protocol local {
     // Set if this banner means the user's proofs have changed and that is blocking the payment.
     // `message` may be blank in this case.
     boolean proofsChanged;
+    // Set if this banner means there are valid trustlines for non-native assets to be sent from
+    // the from address to the to address. `message` may be blank in this case.
+    AdvancedBanner offerAdvancedSendForm;
   }
 
   // Called when Send is tapped from the build form.

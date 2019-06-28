@@ -214,6 +214,7 @@ export type Banner = {
   bannerText: string
   reviewProofs?: boolean
   sendFailed?: boolean
+  offerAdvancedSendForm?: StellarRPCTypes.AdvancedBanner
 }
 
 export type Building = I.RecordOf<_Building>

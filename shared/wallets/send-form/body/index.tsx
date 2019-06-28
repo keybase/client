@@ -30,7 +30,13 @@ export const SendBody = (props: SendBodyProps) => (
     <Kb.ScrollView style={styles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
-        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        <Banner
+          key={banner.bannerText}
+          background={banner.bannerBackground}
+          text={banner.bannerText}
+          offerAdvancedSendForm={banner.offerAdvancedSendForm}
+          onAction={banner.action}
+        />
       ))}
       <Participants />
       <AssetInput />

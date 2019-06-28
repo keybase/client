@@ -26,6 +26,7 @@ type BuildPaymentCache interface {
 	GetOutsideExchangeRate(libkb.MetaContext, stellar1.OutsideCurrencyCode) (stellar1.OutsideExchangeRate, error)
 	AvailableXLMToSend(libkb.MetaContext, stellar1.AccountID) (string, error)
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
+	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (stellar1.AdvancedBanner, error)
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -37,6 +38,9 @@ type buildPaymentCache struct {
 
 	lookupRecipientLocktab libkb.LockTable
 	lookupRecipientCache   *lru.Cache
+
+	shouldOfferAdvancedSendLocktab libkb.LockTable
+	shouldOfferAdvancedSendCache   *lru.Cache
 }
 
 func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
@@ -44,9 +48,14 @@ func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
 	if err != nil {
 		panic(err)
 	}
+	shouldOfferAdvancedSendCache, err := lru.New(50)
+	if err != nil {
+		panic(err)
+	}
 	return &buildPaymentCache{
-		remoter:              remoter,
-		lookupRecipientCache: lookupRecipientCache,
+		remoter:                      remoter,
+		lookupRecipientCache:         lookupRecipientCache,
+		shouldOfferAdvancedSendCache: shouldOfferAdvancedSendCache,
 	}
 }
 
@@ -98,6 +107,39 @@ func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	c.lookupRecipientCache.Add(to, lookupRecipientCacheEntry{
 		Time:      time.Now().Round(0),
 		Recipient: res,
+	})
+	return res, nil
+}
+
+type shouldOfferAdvancedSendCacheEntry struct {
+	res  stellar1.AdvancedBanner
+	time time.Time
+}
+
+func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (stellar1.AdvancedBanner, error) {
+	fromTo := from.String() + ":" + to
+
+	lock := c.shouldOfferAdvancedSendLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), fromTo)
+	defer lock.Release(mctx.Ctx())
+	if val, ok := c.shouldOfferAdvancedSendCache.Get(fromTo); ok {
+		if entry, ok := val.(shouldOfferAdvancedSendCacheEntry); ok {
+			if mctx.G().GetClock().Now().Sub(entry.time) <= time.Minute {
+				// Cache hit
+				mctx.Debug("bpc.ShouldOfferAdvancedSend cache hit")
+				return entry.res, nil
+			}
+		} else {
+			mctx.Debug("bpc.ShouldOfferAdvancedSend bad cached type: %T", val)
+		}
+		c.shouldOfferAdvancedSendCache.Remove(fromTo)
+	}
+	res, err := ShouldOfferAdvancedSend(mctx, c.remoter, from, to)
+	if err != nil {
+		return res, err
+	}
+	c.shouldOfferAdvancedSendCache.Add(fromTo, shouldOfferAdvancedSendCacheEntry{
+		time: time.Now().Round(0),
+		res:  res,
 	})
 	return res, nil
 }

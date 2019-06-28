@@ -511,17 +511,48 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 	}
 }
 
+type AdvancedBanner int
+
+const (
+	AdvancedBanner_NO_BANNER       AdvancedBanner = 0
+	AdvancedBanner_SENDER_BANNER   AdvancedBanner = 1
+	AdvancedBanner_RECEIVER_BANNER AdvancedBanner = 2
+)
+
+func (o AdvancedBanner) DeepCopy() AdvancedBanner { return o }
+
+var AdvancedBannerMap = map[string]AdvancedBanner{
+	"NO_BANNER":       0,
+	"SENDER_BANNER":   1,
+	"RECEIVER_BANNER": 2,
+}
+
+var AdvancedBannerRevMap = map[AdvancedBanner]string{
+	0: "NO_BANNER",
+	1: "SENDER_BANNER",
+	2: "RECEIVER_BANNER",
+}
+
+func (e AdvancedBanner) String() string {
+	if v, ok := AdvancedBannerRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type SendBannerLocal struct {
-	Level         string `codec:"level" json:"level"`
-	Message       string `codec:"message" json:"message"`
-	ProofsChanged bool   `codec:"proofsChanged" json:"proofsChanged"`
+	Level                 string         `codec:"level" json:"level"`
+	Message               string         `codec:"message" json:"message"`
+	ProofsChanged         bool           `codec:"proofsChanged" json:"proofsChanged"`
+	OfferAdvancedSendForm AdvancedBanner `codec:"offerAdvancedSendForm" json:"offerAdvancedSendForm"`
 }
 
 func (o SendBannerLocal) DeepCopy() SendBannerLocal {
 	return SendBannerLocal{
-		Level:         o.Level,
-		Message:       o.Message,
-		ProofsChanged: o.ProofsChanged,
+		Level:                 o.Level,
+		Message:               o.Message,
+		ProofsChanged:         o.ProofsChanged,
+		OfferAdvancedSendForm: o.OfferAdvancedSendForm.DeepCopy(),
 	}
 }
 
