@@ -48,6 +48,9 @@
       "toggleSearchable?": "boolean",
       "verify?": "boolean"
     },
+    "sentVerificationEmail": {
+      "email": "string"
+    },
     "loadContactImportEnabled": {
       "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
     },

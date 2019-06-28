@@ -66,6 +66,7 @@ export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
+export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
@@ -164,6 +165,7 @@ type _SendFeedbackPayload = {
   readonly sendLogs: boolean
   readonly sendMaxBytes: boolean
 }
+type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
@@ -446,6 +448,9 @@ export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackP
   payload,
   type: sendFeedback,
 })
+export const createSentVerificationEmail = (
+  payload: _SentVerificationEmailPayload
+): SentVerificationEmailPayload => ({payload, type: sentVerificationEmail})
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
@@ -669,6 +674,10 @@ export type SaveProxyDataPayload = {
   readonly type: typeof saveProxyData
 }
 export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
+export type SentVerificationEmailPayload = {
+  readonly payload: _SentVerificationEmailPayload
+  readonly type: typeof sentVerificationEmail
+}
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
@@ -767,6 +776,7 @@ export type Actions =
   | RequestContactPermissionsPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
+  | SentVerificationEmailPayload
   | SetAllowDeleteAccountPayload
   | StopPayload
   | TracePayload

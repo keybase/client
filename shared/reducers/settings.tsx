@@ -214,6 +214,13 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     }
+    case SettingsGen.sentVerificationEmail: {
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.email,
+        })
+      )
+    }
     case SettingsGen.clearAddingEmail: {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
     }

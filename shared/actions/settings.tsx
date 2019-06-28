@@ -408,7 +408,9 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
     return RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
   }
   if (action.payload.verify) {
-    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
+    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email}).then(() =>
+      SettingsGen.createSentVerificationEmail({email: action.payload.email})
+    )
   }
   if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({
