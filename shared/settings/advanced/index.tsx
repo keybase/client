@@ -97,7 +97,7 @@ const Advanced = (props: Props) => {
             />
           </Kb.Box>
         )}
-        <ProxySettings {...props} />
+        {/* <ProxySettings {...props} /> */}
         <Developer {...props} />
       </Kb.Box>
     </Kb.ScrollView>
