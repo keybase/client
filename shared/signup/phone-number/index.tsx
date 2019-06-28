@@ -50,12 +50,7 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangePhoneNumber}
         onChangeValidity={onChangeValidity}
         onContinue={onContinue}
-        icon={
-          <Kb.Icon
-            type={Styles.isMobile ? 'icon-phone-number-add-64' : 'icon-phone-number-add-48'}
-            style={styles.icon}
-          />
-        }
+        icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
       />
     </SignupScreen>
   )
@@ -103,16 +98,10 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
-  icon: Styles.platformStyles({
-    isElectron: {
-      height: 48,
-      width: 48,
-    },
-    isMobile: {
-      height: 64,
-      width: 64,
-    },
-  }),
+  icon: {
+    height: 96,
+    width: 96,
+  },
   input: Styles.platformStyles({
     isElectron: {
       height: 38,
