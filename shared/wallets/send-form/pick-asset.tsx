@@ -157,12 +157,12 @@ const styles = Styles.styleSheetCreate({
   itemContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
+    height: 56,
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
     width: '100%',
-    height: 56,
   },
   textSelected: {
     color: Styles.globalColors.blueDark,
