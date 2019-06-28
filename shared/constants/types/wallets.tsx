@@ -107,7 +107,7 @@ export type _PaymentPath = {
   sourceAmount: string
   sourceAmountMax: string
   sourceAsset: AssetDescriptionOrNative
-  sourceHasSufficientBalance: boolean
+  sourceInsufficientBalance: string // empty if sufficient
   path: I.List<AssetDescriptionOrNative>
   destinationAmount: string
   destinationAsset: AssetDescriptionOrNative

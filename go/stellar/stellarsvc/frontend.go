@@ -1189,13 +1189,6 @@ func (s *Server) getTrustlinesAccountID(mctx libkb.MetaContext, accountID stella
 	return ret, nil
 }
 
-func assetToSuffix(asset stellar1.Asset) string {
-	if asset.Type == "native" {
-		return "XLM"
-	}
-	return asset.Code
-}
-
 func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaymentPathLocalArg) (res stellar1.PaymentPathLocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "FindPaymentPathLocal",
@@ -1236,7 +1229,24 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 		return stellar1.PaymentPathLocal{}, err
 	}
 	srcAmt.Quo(srcAmt, destAmt)
-	res.ExchangeRate = fmt.Sprintf("1 %s = %s %s", assetToSuffix(path.DestinationAsset), srcAmt.FloatString(7), assetToSuffix(path.SourceAsset))
+
+	exchangeRateLeft, err := stellar.FormatAmountDescriptionAsset(mctx, "1", path.DestinationAsset)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	exchangeRateRight, err := stellar.FormatAmountDescriptionAsset(mctx, path.SourceAmount, path.SourceAsset)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	res.ExchangeRate = fmt.Sprintf("%s = %s", exchangeRateLeft, exchangeRateRight)
+
+	if len(path.SourceInsufficientBalance) > 0 {
+		availableToSpend, err := stellar.FormatAmountDescriptionAssetEx(mctx, path.SourceInsufficientBalance, path.SourceAsset)
+		if err != nil {
+			return stellar1.PaymentPathLocal{}, err
+		}
+		res.AmountError = fmt.Sprintf("You only have %s available to spend.", availableToSpend)
+	}
 
 	return res, nil
 }

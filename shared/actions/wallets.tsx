@@ -1260,7 +1260,7 @@ const paymentPathToRpcPaymentPath = (paymentPath: Types.PaymentPath): RPCStellar
   sourceAmount: paymentPath.sourceAmount,
   sourceAmountMax: paymentPath.sourceAmountMax,
   sourceAsset: assetDescriptionOrNativeToRpcAsset(paymentPath.sourceAsset),
-  sourceHasSufficientBalance: paymentPath.sourceHasSufficientBalance,
+  sourceInsufficientBalance: paymentPath.sourceInsufficientBalance,
 })
 
 const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath) =>
@@ -1275,7 +1275,7 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
     sourceAmount: rpcPaymentPath.sourceAmount,
     sourceAmountMax: rpcPaymentPath.sourceAmountMax,
     sourceAsset: rpcAssetToAssetDescriptionOrNative(rpcPaymentPath.sourceAsset),
-    sourceHasSufficientBalance: rpcPaymentPath.sourceHasSufficientBalance,
+    sourceInsufficientBalance: rpcPaymentPath.sourceInsufficientBalance,
   })
 
 const calculateBuildingAdvanced = state =>

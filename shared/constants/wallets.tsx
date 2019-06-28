@@ -113,7 +113,7 @@ export const makePaymentPath = I.Record<Types._PaymentPath>({
   sourceAmount: '',
   sourceAmountMax: '',
   sourceAsset: emptyAssetDescription,
-  sourceHasSufficientBalance: false,
+  sourceInsufficientBalance: '',
 })
 export const emptyPaymentPath = makePaymentPath()
 
