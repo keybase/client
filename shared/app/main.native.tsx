@@ -25,7 +25,7 @@ class Main extends React.Component<Props> {
           pointerEvents="box-none"
           style={Styles.globalStyles.fillAbsolute}
         />
-        <Kb.NativeKeyboardAvoidingView
+        <Kb.KeyboardAvoidingView
           style={Styles.globalStyles.fillAbsolute}
           pointerEvents="box-none"
           behavior={Styles.isIOS ? 'padding' : undefined}
@@ -36,7 +36,7 @@ class Main extends React.Component<Props> {
             pointerEvents="box-none"
             style={styles.gatewayDest}
           />
-        </Kb.NativeKeyboardAvoidingView>
+        </Kb.KeyboardAvoidingView>
         {this.props.showPushPrompt && <PushPrompt />}
       </>
     )

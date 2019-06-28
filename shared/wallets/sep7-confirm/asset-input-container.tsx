@@ -3,6 +3,11 @@ import * as React from 'react'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 
+type OwnProps = {
+  amount: string
+  onChangeAmount: (amount: string) => void
+}
+
 const mapStateToProps = (state: Container.TypedState) => {
   const currency = 'XLM'
   return {
@@ -21,21 +26,18 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onChangeDisplayUnit: undefined, // Add when non-native assets are supported
 })
 
-const AssetInputWrapper = (props: Omit<Props, 'onChangeAmount' | 'value'>) => {
-  const [amount, onChangeAmount] = React.useState('')
-  return <AssetInput {...props} value={amount} onChangeAmount={onChangeAmount} />
-}
-
 export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     bottomLabel: stateProps.bottomLabel,
     currencyLoading: stateProps.currencyLoading,
     displayUnit: stateProps.displayUnit,
     inputPlaceholder: stateProps.inputPlaceholder,
     numDecimalsAllowed: stateProps.numDecimalsAllowed,
+    onChangeAmount: ownProps.onChangeAmount,
     onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
     topLabel: stateProps.topLabel,
+    value: ownProps.amount,
   })
-)(AssetInputWrapper)
+)(AssetInput)
