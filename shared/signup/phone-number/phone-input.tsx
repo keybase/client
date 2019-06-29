@@ -1,13 +1,19 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isIOS} from '../../constants/platform'
-import {countryData, AsYouTypeFormatter, validateNumber} from '../../util/phone-numbers/'
+import {isIOS, isMobile} from '../../constants/platform'
+import {
+  countryData,
+  codeToCountry,
+  areaCodeIsCanadian,
+  AsYouTypeFormatter,
+  validateNumber,
+} from '../../util/phone-numbers'
 import {memoize} from '../../util/memoize'
 
-const getCallingCode = countryCode => countryData[countryCode].callingCode
+const getCallingCode = countryCode => (countryCode !== '' ? countryData[countryCode].callingCode : '')
 const getCountryEmoji = countryCode => <Kb.Emoji size={16} emojiName={countryData[countryCode].emojiText} />
-const getPlaceholder = countryCode => 'Ex: ' + countryData[countryCode].example
+const getPlaceholder = countryCode => (countryCode !== '' ? 'Ex: ' + countryData[countryCode].example : 'N/A')
 const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
 const pickerItems = memoize(countryData =>
@@ -140,15 +146,21 @@ type Props = {
 
 type State = {
   country: string
+  prefix: string
   formatted: string
 }
 
 class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
-  state = {country: this.props.defaultCountry || defaultCountry, formatted: ''}
+  state = {
+    country: this.props.defaultCountry || defaultCountry,
+    formatted: '',
+    prefix: getCallingCode(this.props.defaultCountry || defaultCountry).slice(1),
+  }
   _formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
   _countrySelectorRef = React.createRef<CountrySelector>()
+  _phoneInputRef = React.createRef<Kb.PlainInput>()
 
-  _setFormatted = formatted =>
+  _setFormattedPhoneNumber = formatted =>
     this.setState(s => {
       if (s.formatted === formatted) {
         return null
@@ -162,35 +174,87 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   // 2. Remove any non-numerics from the text
   // 3. Feed the new text into the formatter char by char
   // 4. Set the value of the input to the new formatted
-  _reformat = _newText => {
+  _reformatPhoneNumber = (_newText, skipCountry) => {
     this._formatter.clear()
     const newText = filterNumeric(_newText)
     if (newText.trim().length === 0) {
-      this._setFormatted('')
+      this._setFormattedPhoneNumber('')
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
       this._formatter.inputDigit(newText[i])
     }
     const formatted = this._formatter.inputDigit(newText[newText.length - 1])
-    this._setFormatted(formatted)
+    this._setFormattedPhoneNumber(formatted)
+
+    // Special case for NA area
+    if (this.state.prefix === '1' && !skipCountry) {
+      // Only numeric, trimmed from whitespace
+      const trimmedText = newText.trim()
+      // If the area code is present...
+      if (trimmedText.length >= 3) {
+        // Prepare the potential 4 number prefix
+        const areaCode = trimmedText.slice(0, 3)
+        const extPrefix = this.state.prefix + ' ' + areaCode
+
+        // First look it up against the table
+        const possibleMatch = codeToCountry[extPrefix]
+        if (possibleMatch) {
+          this._setCountry(possibleMatch, false)
+        } else {
+          // Otherwise determine the country using the hardcoded ranges
+          if (areaCodeIsCanadian(areaCode)) {
+            this._setCountry('CA', true)
+          } else {
+            this._setCountry('US', true)
+          }
+        }
+      }
+    }
   }
 
-  _reformatCountry = newText => {
-    console.log(newText)
+  _reformatPrefix = (_newText, skipCountry) => {
+    let newText = filterNumeric(_newText)
+    if (!skipCountry) {
+      const matchedCountry = codeToCountry[newText]
+      if (matchedCountry) {
+        this._setCountry(matchedCountry, false)
+      } else {
+        // Invalid country
+        this._setCountry('', false)
+      }
+    }
+
+    // NA countries that use area codes require special behaviour
+    if (newText.length === 4) {
+      newText = newText[0]
+    }
+    this.setState({
+      prefix: newText,
+    })
   }
 
   _updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
     this.props.onChangeNumber(validation.e164)
     this.props.onChangeValidity(validation.valid)
+    console.log(validation.e164)
   }
 
-  _setCountry = country => {
+  _setCountry = (country, keepPrefix) => {
     if (this.state.country !== country) {
       this.setState({country})
-      this._formatter = new AsYouTypeFormatter(country)
-      this._reformat('')
+      if (country !== '') {
+        this._formatter = new AsYouTypeFormatter(country)
+      }
+
+      // Special behaviour for NA numbers
+      if (getCallingCode(country).length === 6) {
+        this._reformatPhoneNumber(getCallingCode(country).slice(-3), true)
+      } else if (!keepPrefix) {
+        this._reformatPhoneNumber('', true)
+      }
+      this._reformatPrefix(getCallingCode(country).slice(1), true)
     }
   }
 
@@ -199,83 +263,104 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     this.props.toggleShowingMenu()
   }
 
-  render() {
-    const selectedCountry = countryData[this.state.country]
+  _onPrefixEnter = () => {
+    this._phoneInputRef.current.focus()
+  }
+
+  _renderCountrySelector = () => {
+    if (Styles.isMobile) {
+      return (
+        <Kb.Text
+          type="BodySemibold"
+          style={{
+            flexGrow: 1,
+            marginRight: Styles.globalMargins.xtiny,
+          }}
+        >
+          {this.state.country === ''
+            ? 'Invalid country prefix'
+            : countryData[this.state.country].emoji + ' ' + countryData[this.state.country].name}
+        </Kb.Text>
+      )
+    }
 
     return (
-      <Kb.Box2 direction="vertical" style={({width: '100%'})}>
+      <>
+        <Kb.Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
+          {getCountryEmoji(this.state.country)}
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" style={{marginRight: Styles.globalMargins.xtiny}}>
+          {'+' + this.state.prefix}
+        </Kb.Text>
+      </>
+    )
+  }
+
+  render() {
+    return (
+      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={styles.container}>
         <Kb.Box2
           alignItems="center"
           direction="horizontal"
-          style={Styles.collapseStyles([styles.topContainer, styles.container, this.props.style])}
+          style={Styles.collapseStyles([styles.countrySelectorRow, styles.fakeInput])}
         >
-          <Kb.ClickableBox
-            onClick={this._toggleShowingMenu} style={styles.fullHeight}>
+          <Kb.ClickableBox onClick={this._toggleShowingMenu} style={styles.fullWidth}>
             <Kb.Box2
               direction="horizontal"
               style={styles.countrySelectorContainer}
               alignItems="center"
-              fullHeight={true}
-              fullWidth={true}
               gap="xtiny"
               ref={this.props.setAttachmentRef}
             >
-              <Kb.Text
-                type="BodySemibold"
-                style={{
-                  marginRight: Styles.globalMargins.xtiny,
-                  flexGrow: 1,
-                }}
-              >
-                {selectedCountry.emoji}{' '}
-                {selectedCountry.name}
-              </Kb.Text>
+              {this._renderCountrySelector()}
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.fullWidth}>
-          <Kb.Box2
-            alignItems="center" direction="horizontal"
-            style={Styles.collapseStyles([styles.prefixContainer, styles.container, this.props.style])}
-          >
-            <Kb.Text
-              type="BodySemibold"
-              style={{
-                marginRight: Styles.globalMargins.xtiny,
-                flexGrow: 0,
-              }}
+        <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : null} style={styles.fullWidth}>
+          {isMobile && (
+            <Kb.Box2
+              alignItems="center"
+              direction="horizontal"
+              style={Styles.collapseStyles([styles.prefixContainer, styles.fakeInput])}
             >
-              {'+'}
-            </Kb.Text>
-            <Kb.PlainInput
-              style={Styles.collapseStyles([styles.input, styles.prefixInput])}
-              flexable={true}
-              keyboardType={isIOS ? 'number-pad' : 'numeric'}
-              placeholder={"+1"}
-              onChangeText={this._reformatCountry}
-              value={selectedCountry.callingCode}
-            />
-          </Kb.Box2>
+              <Kb.Text type="BodySemibold" style={styles.prefixPlus}>
+                {'+'}
+              </Kb.Text>
+              <Kb.PlainInput
+                style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
+                flexable={true}
+                keyboardType={isIOS ? 'number-pad' : 'numeric'}
+                onChangeText={x => this._reformatPrefix(x, false)}
+                maxLength={3}
+                onEnterKeyDown={this._onPrefixEnter}
+                returnKeyType="next"
+                value={this.state.prefix}
+              />
+            </Kb.Box2>
+          )}
           <Kb.Box2
-            alignItems="center" direction="horizontal"
-            style={Styles.collapseStyles([styles.phoneNumberContainer, styles.container, this.props.style])}
+            alignItems="center"
+            direction="horizontal"
+            style={Styles.collapseStyles([styles.phoneNumberContainer, styles.fakeInput])}
           >
             <Kb.PlainInput
               autoFocus={true}
-              style={Styles.collapseStyles([styles.input, styles.phoneNumberInput])}
+              style={Styles.collapseStyles([styles.plainInput])}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
               placeholder={getPlaceholder(this.state.country)}
-              onChangeText={this._reformat}
+              onChangeText={x => this._reformatPhoneNumber(x, false)}
               onEnterKeyDown={this.props.onEnterKeyDown}
               value={this.state.formatted}
+              disabled={this.state.country === ''}
+              ref={this._phoneInputRef}
             />
           </Kb.Box2>
         </Kb.Box2>
         <CountrySelector
           attachTo={this.props.getAttachmentRef}
-          onSelect={this._setCountry}
+          onSelect={x => this._setCountry(x, false)}
           onHidden={this._toggleShowingMenu}
           selected={this.state.country}
           visible={this.props.showingMenu}
@@ -288,30 +373,17 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 
 const styles = Styles.styleSheetCreate({
-  countrySelectorContainer: {
-    ...Styles.padding(0, Styles.globalMargins.xsmall),
-    borderRightColor: Styles.globalColors.black_10,
-    borderRightWidth: 1,
-    borderStyle: 'solid',
-  },
-  topContainer: {
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  prefixContainer: {
-    flexGrow: 0,
-    width: '20%',
-  },
-  phoneNumberContainer: {
-    flexGrow: 1,
-    width: '80%',
-  },
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-  },
+  container: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      height: 38,
+      width: 368,
+    },
+  }),
   countryLayout: {
     maxHeight: 200,
     overflow: 'hidden',
@@ -328,31 +400,57 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 0,
     },
   }),
-  countrySearch: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.padding(0, Styles.globalMargins.tiny),
-    flexShrink: 0,
-    height: 38,
-    width: '100%',
-  },
+  countrySelectorContainer: Styles.platformStyles({
+    common: {
+      ...Styles.padding(0, Styles.globalMargins.xsmall),
+    },
+    isElectron: {
+      borderRightColor: Styles.globalColors.black_10,
+      borderRightWidth: '1px',
+      borderStyle: 'solid',
+      height: 36,
+    },
+  }),
+  countrySelectorRow: Styles.platformStyles({
+    isMobile: {
+      marginBottom: Styles.globalMargins.tiny,
+    },
+  }),
+  fakeInput: Styles.platformStyles({
+    isMobile: {
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      height: 48,
+    },
+  }),
   fullWidth: {width: '100%'},
-  fullHeight: {height: '100%', width: '100%'},
-  prefixInput: {
-    flexGrow: 1,
-    width: 30,
-    marginRight: Styles.globalMargins.xtiny,
+  menuItem: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
   },
-  phoneNumberInput: {},
-  input: Styles.platformStyles({
+  phoneNumberContainer: {
+    flexGrow: 1,
+  },
+  plainInput: Styles.platformStyles({
     isElectron: {
       ...Styles.padding(0, Styles.globalMargins.xsmall),
+      height: 36,
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small),
+      height: 48,
     },
   }),
-  menuItem: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
+  prefixContainer: {
+    flexGrow: 0,
+  },
+  prefixInput: {
+    textAlign: 'right',
+  },
+  prefixPlus: {
+    paddingLeft: Styles.globalMargins.tiny,
   },
   searchWrapper: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
