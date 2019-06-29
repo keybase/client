@@ -66,11 +66,6 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 
 func (l *TrackerLoader) Queue(ctx context.Context) (err error) {
 	defer l.G().CTrace(ctx, "TrackerLoader.Queue", func() error { return err })()
-	l.Lock()
-	defer l.Unlock()
-	if !l.started {
-		return errors.New("not running")
-	}
 	select {
 	case l.queueCh <- struct{}{}:
 	default:
