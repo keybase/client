@@ -64,6 +64,7 @@ const loadFavorites = (
   action: FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
 ) =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+  state.config.loggedIn &&
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
     .then(results => {
       const mutablePayload = [
@@ -110,14 +111,17 @@ const loadFavorites = (
           team: I.Map().asMutable(),
         }
       )
-      return FsGen.createFavoritesLoaded({
-        // @ts-ignore asImmutable returns a weak type
-        private: mutablePayload.private.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        public: mutablePayload.public.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        team: mutablePayload.team.asImmutable(),
-      })
+      return (
+        mutablePayload.private.size &&
+        FsGen.createFavoritesLoaded({
+          // @ts-ignore asImmutable returns a weak type
+          private: mutablePayload.private.asImmutable(),
+          // @ts-ignore asImmutable returns a weak type
+          public: mutablePayload.public.asImmutable(),
+          // @ts-ignore asImmutable returns a weak type
+          team: mutablePayload.team.asImmutable(),
+        })
+      )
     })
     .catch(makeRetriableErrorHandler(action))
 
