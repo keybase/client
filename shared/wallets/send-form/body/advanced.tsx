@@ -37,14 +37,9 @@ const SecretNoteAndPublicMemo = () => {
       <SecretNote
         secretNote={secretNote}
         onChangeSecretNote={onChangeSecretNote}
-        toSelf={false /* TODO */}
-        secretNoteError={null /* TODO PICNIC-142 */}
+        toSelf={buildingAdvanced.recipientType === 'otherAccount'}
       />
-      <PublicMemo
-        publicMemo={publicMemo}
-        onChangePublicMemo={onChangePublicMemo}
-        publicMemoError={null /* TODO PICNIC-142 */}
-      />
+      <PublicMemo publicMemo={publicMemo} onChangePublicMemo={onChangePublicMemo} />
     </>
   )
 }
