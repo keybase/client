@@ -310,7 +310,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
-			l.Debug(ctx, "tracker[%v]: added %d coords", added)
+			l.Debug(ctx, "tracker[%v]: added %d coords", watchID, added)
 			if l.TestingCoordsAddedCh != nil {
 				for i := 0; i < added; i++ {
 					l.TestingCoordsAddedCh <- struct{}{}
