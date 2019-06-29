@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -118,14 +117,7 @@ func (l *TrackerLoader) loadLoop(stopCh chan struct{}) error {
 		select {
 		case <-l.queueCh:
 			if err := l.load(ctx); err != nil {
-				// if we get an error, just pause for a bit and then go again
-				l.debug(ctx, "loadLoop: failed to load, retrying: %s", err)
-				select {
-				case <-time.After(time.Second):
-				case <-stopCh:
-					return nil
-				}
-				l.Queue(ctx)
+				l.debug(ctx, "loadLoop: failed to load: %s", err)
 			}
 		case <-stopCh:
 			return nil
