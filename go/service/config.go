@@ -292,6 +292,8 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
+	// Queue up a load for follower info
+	h.svc.trackerLoader.Queue(ctx)
 
 	return eng.Status(), nil
 }

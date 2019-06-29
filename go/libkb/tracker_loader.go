@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -20,15 +21,24 @@ type TrackerLoader struct {
 }
 
 func NewTrackerLoader(g *GlobalContext) *TrackerLoader {
-	return &TrackerLoader{
+	l := &TrackerLoader{
 		Contextified: NewContextified(g),
 		shutdownCh:   make(chan struct{}),
 		queueCh:      make(chan struct{}, 100),
 	}
+	g.PushShutdownHook(func() error {
+		<-l.Shutdown(context.Background())
+		return nil
+	})
+	return l
+}
+
+func (l *TrackerLoader) debug(ctx context.Context, msg string, args ...interface{}) {
+	l.G().Log.CDebugf(ctx, "TrackerLoader: %s", fmt.Sprintf(msg, args...))
 }
 
 func (l *TrackerLoader) Run(ctx context.Context) {
-	defer l.G().CTrace(ctx, "Run", func() error { return nil })()
+	defer l.G().CTrace(ctx, "TrackerLoader.Run", func() error { return nil })()
 	l.Lock()
 	defer l.Unlock()
 	l.started = true
@@ -37,7 +47,7 @@ func (l *TrackerLoader) Run(ctx context.Context) {
 }
 
 func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
-	defer l.G().CTrace(ctx, "Shutdown", func() error { return nil })()
+	defer l.G().CTrace(ctx, "TrackerLoader.Shutdown", func() error { return nil })()
 	l.Lock()
 	defer l.Unlock()
 	ch := make(chan struct{})
@@ -55,7 +65,12 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 }
 
 func (l *TrackerLoader) Queue(ctx context.Context) (err error) {
-	defer l.G().CTrace(ctx, "Queue", func() error { return err })()
+	defer l.G().CTrace(ctx, "TrackerLoader.Queue", func() error { return err })()
+	l.Lock()
+	defer l.Unlock()
+	if !l.started {
+		return errors.New("not running")
+	}
 	select {
 	case l.queueCh <- struct{}{}:
 	default:
@@ -78,14 +93,14 @@ func (l *TrackerLoader) argsFromSyncer(syncer *Tracker2Syncer) (followers []stri
 }
 
 func (l *TrackerLoader) load(ctx context.Context) error {
-	defer l.G().CTraceTimed(ctx, "load", func() error { return nil })()
+	defer l.G().CTraceTimed(ctx, "TrackerLoader.load", func() error { return nil })()
 	uid := l.G().ActiveDevice.UID()
 	syncer := NewTracker2Syncer(l.G(), uid, true)
 	mctx := NewMetaContext(ctx, l.G())
 
 	// send up local copy first quickly
 	if err := syncer.loadFromStorage(mctx, uid, false); err != nil {
-		l.G().Log.CDebugf(ctx, "load: failed to load from local storage: %s", err)
+		l.debug(ctx, "load: failed to load from local storage: %s", err)
 	} else {
 		// Notify with results
 		followers, followees := l.argsFromSyncer(syncer)
@@ -94,7 +109,7 @@ func (l *TrackerLoader) load(ctx context.Context) error {
 
 	// go get remote copy
 	if err := syncer.syncFromServer(mctx, uid, false); err != nil {
-		l.G().Log.CDebugf(ctx, "load: failed to load from server: %s", err)
+		l.debug(ctx, "load: failed to load from server: %s", err)
 		return err
 	}
 	followers, followees := l.argsFromSyncer(syncer)
@@ -109,7 +124,7 @@ func (l *TrackerLoader) loadLoop(stopCh chan struct{}) error {
 		case <-l.queueCh:
 			if err := l.load(ctx); err != nil {
 				// if we get an error, just pause for a bit and then go again
-				l.G().Log.CDebugf(ctx, "loadLooop: failed to load, retrying: %s", err)
+				l.debug(ctx, "loadLoop: failed to load, retrying: %s", err)
 				select {
 				case <-time.After(time.Second):
 				case <-stopCh:
