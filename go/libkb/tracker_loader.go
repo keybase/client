@@ -40,6 +40,9 @@ func (l *TrackerLoader) Run(ctx context.Context) {
 	defer l.G().CTrace(ctx, "TrackerLoader.Run", func() error { return nil })()
 	l.Lock()
 	defer l.Unlock()
+	if l.started {
+		return
+	}
 	l.started = true
 	l.shutdownCh = make(chan struct{})
 	l.eg.Go(func() error { return l.loadLoop(l.shutdownCh) })
