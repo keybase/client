@@ -963,6 +963,10 @@
       ],
       "response": "BootstrapStatus"
     },
+    "requestFollowerInfo": {
+      "request": [],
+      "response": null
+    },
     "getRememberPassphrase": {
       "request": [
         {

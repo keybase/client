@@ -258,6 +258,7 @@ protocol config {
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
   }
   BootstrapStatus getBootstrapStatus(int sessionID);
+  void requestFollowerInfo();
 
   boolean getRememberPassphrase(int sessionID);
   void setRememberPassphrase(int sessionID, boolean remember);
