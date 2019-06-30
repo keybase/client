@@ -69,12 +69,7 @@ const getSectionListKey = (props: BodyProps) =>
     props.popularAssets.length ? 'pa' : '_'
   }`
 
-const sectionHeader = section =>
-  !section.title || (
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.sectionHeader}>
-      <Kb.Text type="BodySmall">{section.title}</Kb.Text>
-    </Kb.Box2>
-  )
+const sectionHeader = section => !section.title || <Kb.SectionDivider label={section.title} />
 
 const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.
@@ -227,18 +222,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       padding: Styles.globalMargins.tiny,
-    },
-  }),
-  sectionHeader: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      paddingLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: Styles.globalMargins.mediumLarge,
-    },
-    isMobile: {
-      height: Styles.globalMargins.large,
     },
   }),
 })
