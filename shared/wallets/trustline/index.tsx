@@ -99,6 +99,10 @@ const ListUpdateOnMount = (props: BodyProps) => {
           />
         )}
         renderSectionHeader={({section}) => sectionHeader(section)}
+        // Otherwise on mobile when the search box is focused, two taps are
+        // needed to do anything in this list -- one to lose the focus and one
+        // to actually propagate the click even through.
+        keyboardShouldPersistTaps="handled"
       />
     </Kb.BoxGrow>
   )
