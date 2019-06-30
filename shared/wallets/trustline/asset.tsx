@@ -128,10 +128,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   bodyCollapsed: {
+    paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
   bodyExpanded: Styles.platformStyles({
     common: {
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
