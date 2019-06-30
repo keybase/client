@@ -136,7 +136,7 @@ const Body = (props: BodyProps) => {
           )}
           {props.searchingAssets && !props.searchingAssets.length ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
-              <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
+              <Kb.Text type="BodySmall">Sorry! No assets were found. Please try again.</Kb.Text>
             </Kb.Box2>
           ) : (
             <ListUpdateOnMount {...props} />
