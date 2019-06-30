@@ -43,7 +43,9 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		clock:          clockwork.NewRealClock(),
 		stopCh:         make(chan struct{}),
 	}
-	go ekLib.backgroundKeygen(mctx)
+	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
+		go ekLib.backgroundKeygen(mctx)
+	}
 	return ekLib
 }
 

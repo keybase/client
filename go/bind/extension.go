@@ -189,6 +189,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		DisableTeamAuditor:             true,
 		DisableMerkleAuditor:           true,
 		DisableTeamBoxAuditor:          true,
+		DisableEKBackgroundKeygen:      true,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -226,6 +227,8 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	extensionListener = newExtensionNotifyListener(gc)
 	kbCtx.NotifyRouter.AddListener(extensionListener)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
+	// sub in a bogus purger just to satisfy downstream
+	kbChatCtx.EphemeralPurger = types.DummyEphemeralPurger{}
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	kbChatCtx.MessageDeliverer.Connected(context.Background())

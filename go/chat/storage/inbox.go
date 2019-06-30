@@ -212,6 +212,9 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 			Public:      rc.Conv.IsPublic(),
 			MembersType: rc.Conv.GetMembersType(),
 		})
+		if len(writable) > 200 {
+			break
+		}
 	}
 	sif, err := i.sharedInboxFile(ctx, uid)
 	if err != nil {

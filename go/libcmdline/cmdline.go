@@ -414,6 +414,10 @@ func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
 	return p.GetBool("disable-team-box-auditor", true)
 }
 
+func (p CommandLine) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return p.GetBool("disable-ek-backgorund-keygen", true)
+}
+
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
 	return p.GetBool("disable-merkle-auditor", true)
 }

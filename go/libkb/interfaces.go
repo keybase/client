@@ -107,6 +107,7 @@ type configGetter interface {
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
 	GetDisableTeamBoxAuditor() (bool, bool)
+	GetDisableEKBackgroundKeygen() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)

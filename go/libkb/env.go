@@ -123,6 +123,7 @@ func (n NullConfiguration) GetDisableMerkleAuditor() (bool, bool)           { re
 func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetDisableTeamBoxAuditor() (bool, bool)          { return false, false }
+func (n NullConfiguration) GetDisableEKBackgroundKeygen() (bool, bool)      { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
@@ -989,6 +990,14 @@ func (e *Env) GetDisableTeamBoxAuditor() bool {
 	)
 }
 
+func (e *Env) GetDisableEKBackgroundKeygen() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableEKBackgroundKeygen,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_EK_BACKGROUND_KEYGEN") },
+		e.GetConfig().GetDisableEKBackgroundKeygen,
+	)
+}
+
 func (e *Env) GetDisableMerkleAuditor() bool {
 	return e.GetBool(false,
 		e.cmd.GetDisableMerkleAuditor,
@@ -1674,6 +1683,7 @@ type AppConfig struct {
 	DisableTeamAuditor             bool
 	DisableMerkleAuditor           bool
 	DisableTeamBoxAuditor          bool
+	DisableEKBackgroundKeygen      bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1800,6 +1810,10 @@ func (c AppConfig) GetDisableMerkleAuditor() (bool, bool) {
 
 func (c AppConfig) GetDisableTeamBoxAuditor() (bool, bool) {
 	return c.DisableTeamBoxAuditor, true
+}
+
+func (c AppConfig) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return c.DisableEKBackgroundKeygen, true
 }
 
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {

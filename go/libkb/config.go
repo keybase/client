@@ -885,6 +885,10 @@ func (f *JSONConfigFile) GetDisableTeamBoxAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_team_box_auditor")
 }
 
+func (f *JSONConfigFile) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return f.GetBoolAtPath("disable_ek_background_keygen")
+}
+
 func (f *JSONConfigFile) GetDisableMerkleAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_merkle_auditor")
 }
