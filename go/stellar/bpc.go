@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
@@ -26,7 +26,7 @@ type BuildPaymentCache interface {
 	GetOutsideExchangeRate(libkb.MetaContext, stellar1.OutsideCurrencyCode) (stellar1.OutsideExchangeRate, error)
 	AvailableXLMToSend(libkb.MetaContext, stellar1.AccountID) (string, error)
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
-	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (stellar1.AdvancedBanner, error)
+	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error)
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -116,8 +116,8 @@ type shouldOfferAdvancedSendCacheEntry struct {
 	time time.Time
 }
 
-func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from stellar1.AccountID, to string) (stellar1.AdvancedBanner, error) {
-	fromTo := from.String() + ":" + to
+func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error) {
+	fromTo := from.String() + ":" + to.String()
 
 	lock := c.shouldOfferAdvancedSendLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), fromTo)
 	defer lock.Release(mctx.Ctx())

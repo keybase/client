@@ -32,11 +32,6 @@
       "_description": "We received an updated account record",
       "account": "Types.Account"
     },
-    "addNewPayment": {
-      "_description": "Mark a payment we were just notified about as being unseen",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
-    },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
@@ -75,10 +70,6 @@
     },
     "clearErrors": {
       "_description": "Clear errors from the store at times like opening or closing a form dialog."
-    },
-    "clearNewPayments": {
-      "_description": "Clear our idea of which payments have not been seen by the user yet",
-      "accountID": "Types.AccountID"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",

@@ -15,7 +15,6 @@ export const acceptSEP7Pay = 'wallets:acceptSEP7Pay'
 export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
-export const addNewPayment = 'wallets:addNewPayment'
 export const addTrustline = 'wallets:addTrustline'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
@@ -37,7 +36,6 @@ export const clearBuildingAdvanced = 'wallets:clearBuildingAdvanced'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearBuiltRequest = 'wallets:clearBuiltRequest'
 export const clearErrors = 'wallets:clearErrors'
-export const clearNewPayments = 'wallets:clearNewPayments'
 export const clearTrustlineSearchResults = 'wallets:clearTrustlineSearchResults'
 export const createNewAccount = 'wallets:createNewAccount'
 export const createdNewAccount = 'wallets:createdNewAccount'
@@ -139,7 +137,6 @@ type _AcceptSEP7PayPayload = {readonly amount: string; readonly inputURI: string
 type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
-type _AddNewPaymentPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
 type _AddTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _AssetsReceivedPayload = {readonly accountID: Types.AccountID; readonly assets: Array<Types.Assets>}
 type _BadgesUpdatedPayload = {readonly accounts: Array<RPCTypes.WalletAccountInfo>}
@@ -166,7 +163,6 @@ type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
 type _ClearErrorsPayload = void
-type _ClearNewPaymentsPayload = {readonly accountID: Types.AccountID}
 type _ClearTrustlineSearchResultsPayload = void
 type _CreateNewAccountPayload = {
   readonly name: string
@@ -505,13 +501,6 @@ export const createSecretKeySeen = (payload: _SecretKeySeenPayload): SecretKeySe
   type: secretKeySeen,
 })
 /**
- * Clear our idea of which payments have not been seen by the user yet
- */
-export const createClearNewPayments = (payload: _ClearNewPaymentsPayload): ClearNewPaymentsPayload => ({
-  payload,
-  type: clearNewPayments,
-})
-/**
  * Close the send form and show the user their transactions so they can review.
  */
 export const createExitFailedPayment = (payload: _ExitFailedPaymentPayload): ExitFailedPaymentPayload => ({
@@ -598,13 +587,6 @@ export const createLoadDisplayCurrencies = (
 export const createLoadWalletDisclaimer = (
   payload: _LoadWalletDisclaimerPayload
 ): LoadWalletDisclaimerPayload => ({payload, type: loadWalletDisclaimer})
-/**
- * Mark a payment we were just notified about as being unseen
- */
-export const createAddNewPayment = (payload: _AddNewPaymentPayload): AddNewPaymentPayload => ({
-  payload,
-  type: addNewPayment,
-})
 /**
  * Mark the given payment ID and anything older as read.
  */
@@ -1106,10 +1088,6 @@ export type AccountsReceivedPayload = {
   readonly payload: _AccountsReceivedPayload
   readonly type: typeof accountsReceived
 }
-export type AddNewPaymentPayload = {
-  readonly payload: _AddNewPaymentPayload
-  readonly type: typeof addNewPayment
-}
 export type AddTrustlinePayload = {readonly payload: _AddTrustlinePayload; readonly type: typeof addTrustline}
 export type AssetsReceivedPayload = {
   readonly payload: _AssetsReceivedPayload
@@ -1190,10 +1168,6 @@ export type ClearBuiltRequestPayload = {
   readonly type: typeof clearBuiltRequest
 }
 export type ClearErrorsPayload = {readonly payload: _ClearErrorsPayload; readonly type: typeof clearErrors}
-export type ClearNewPaymentsPayload = {
-  readonly payload: _ClearNewPaymentsPayload
-  readonly type: typeof clearNewPayments
-}
 export type ClearTrustlineSearchResultsPayload = {
   readonly payload: _ClearTrustlineSearchResultsPayload
   readonly type: typeof clearTrustlineSearchResults
@@ -1580,7 +1554,6 @@ export type Actions =
   | AcceptSEP7TxPayload
   | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
-  | AddNewPaymentPayload
   | AddTrustlinePayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
@@ -1603,7 +1576,6 @@ export type Actions =
   | ClearBuiltPaymentPayload
   | ClearBuiltRequestPayload
   | ClearErrorsPayload
-  | ClearNewPaymentsPayload
   | ClearTrustlineSearchResultsPayload
   | CreateNewAccountPayload
   | CreatedNewAccountPayload
