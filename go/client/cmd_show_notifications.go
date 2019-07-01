@@ -167,11 +167,6 @@ func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.Tr
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
 }
 
-func (d *notificationDisplay) TrackingInfo(_ context.Context, arg keybase1.TrackingInfoArg) error {
-	return d.printf("Tracking info for %s followers: %v followees: %v\n", arg.Uid, arg.Followers,
-		arg.Followees)
-}
-
 func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {
 	return d.printf("Merkle root audit error: %s\n", msg)
 }

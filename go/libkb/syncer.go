@@ -5,16 +5,15 @@ package libkb
 
 import (
 	"fmt"
-	"sync"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
+	"sync"
 )
 
 type Syncer interface {
 	Contextifier
 	sync.Locker
-	loadFromStorage(m MetaContext, u keybase1.UID, useExpiration bool) error
+	loadFromStorage(m MetaContext, u keybase1.UID) error
 	syncFromServer(m MetaContext, u keybase1.UID, forceReload bool) error
 	store(m MetaContext, u keybase1.UID) error
 	needsLogin(m MetaContext) bool
@@ -31,7 +30,7 @@ func RunSyncer(m MetaContext, s Syncer, uid keybase1.UID, loggedIn bool, forceRe
 
 	defer m.Trace(fmt.Sprintf("RunSyncer(%s)", uid), func() error { return err })()
 
-	if err = s.loadFromStorage(m, uid, true); err != nil {
+	if err = s.loadFromStorage(m, uid); err != nil {
 		return
 	}
 
@@ -65,5 +64,5 @@ func RunSyncerCached(m MetaContext, s Syncer, uid keybase1.UID) (err error) {
 
 	defer m.Trace(fmt.Sprintf("RunSyncerCached(%s)", uid), func() error { return err })()
 
-	return s.loadFromStorage(m, uid, false)
+	return s.loadFromStorage(m, uid)
 }
