@@ -86,7 +86,7 @@ const AccountPayment = (props: Props) => {
           >
             {props.action}{' '}
             <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
-              {`${props.amount} ${props.sourceAmount ? ` (by converting ${props.sourceAmount})` : ''}`}
+              {`${props.amount}${props.sourceAmount ? ` (by converting ${props.sourceAmount})` : ''}`}
             </Text>
             {props.approxWorth && (
               <Text type="BodySmall" style={styles.purple}>
