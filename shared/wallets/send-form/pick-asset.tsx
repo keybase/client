@@ -1,0 +1,170 @@
+import * as React from 'react'
+import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
+import Header from './header'
+
+type Props = Container.RouteProps<
+  {
+    // ignored if username is set or isSender===true
+    accountID: string
+    // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
+    username: string
+    isSender: boolean
+  },
+  {}
+>
+
+const AssetList = ({accountID, isSender, username}) => {
+  const acceptedAssets = Container.useSelector(state =>
+    username
+      ? state.wallets.trustline.acceptedAssetsByUsername.get(username, Constants.emptyAccountAcceptedAssets)
+      : state.wallets.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets)
+  )
+  const selectedAsset = Container.useSelector(state =>
+    isSender ? state.wallets.buildingAdvanced.senderAsset : state.wallets.buildingAdvanced.recipientAsset
+  )
+  const selectedAssetID = selectedAsset !== 'native' && Types.assetDescriptionToAssetID(selectedAsset)
+  const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
+  const dispatch = Container.useDispatch()
+  const onSelect = React.useCallback(
+    asset => {
+      dispatch(
+        isSender
+          ? WalletsGen.createSetBuildingAdvancedSenderAsset({senderAsset: asset})
+          : WalletsGen.createSetBuildingAdvancedRecipientAsset({recipientAsset: asset})
+      )
+      dispatch(RouteTreeGen.createNavigateUp())
+    },
+    [dispatch, isSender]
+  )
+  React.useEffect(() => {
+    username
+      ? dispatch(WalletsGen.createRefreshTrustlineAcceptedAssetsByUsername({username}))
+      : dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+  }, [dispatch, username, accountID])
+  return (
+    <Kb.BoxGrow>
+      <Kb.List2
+        items={[
+          ...acceptedAssets
+            .keySeq()
+            .toArray()
+            .map(assetID => ({
+              assetID,
+              key: assetID,
+              selected: assetID === selectedAssetID,
+            })),
+          {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
+        ]}
+        bounces={true}
+        itemHeight={{height: 56, type: 'fixed'}}
+        renderItem={(index, {assetID, selected}) => {
+          const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
+          return (
+            <Kb.ClickableBox onClick={() => onSelect(asset)} style={styles.itemContainer}>
+              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
+                <Kb.Text
+                  type="BodyExtrabold"
+                  lineClamp={1}
+                  ellipsizeMode="tail"
+                  style={selected && styles.textSelected}
+                >
+                  {asset === 'native' ? 'XLM' : asset.code}
+                </Kb.Text>
+                <Kb.Text
+                  type="BodySmall"
+                  lineClamp={1}
+                  ellipsizeMode="middle"
+                  style={selected && styles.textSelected}
+                >
+                  {asset === 'native'
+                    ? 'Stellar Lumens'
+                    : asset.issuerVerifiedDomain || asset.issuerAccountID}
+                </Kb.Text>
+              </Kb.Box2>
+              {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+            </Kb.ClickableBox>
+          )
+        }}
+        keyProperty="key"
+      />
+    </Kb.BoxGrow>
+  )
+}
+
+const PickAsset = (props: Props) => {
+  const accountID = props.navigation.getParam('accountID') || Types.noAccountID
+  const isSender = props.navigation.getParam('isSender')
+  const username = props.navigation.getParam('username')
+
+  const dispatch = Container.useDispatch()
+  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onClose = React.useCallback(() => dispatch(RouteTreeGen.createClearModals()), [dispatch])
+  return (
+    <Kb.MaybePopup onClose={onClose}>
+      <Kb.Box2 direction="vertical" style={styles.container}>
+        <Header isRequest={false} whiteBackground={true}>
+          <Kb.ClickableBox onClick={onBack} style={styles.backClickable}>
+            <Kb.Text type="BodyPrimaryLink">{Styles.isMobile ? 'Back' : 'Cancel'}</Kb.Text>
+          </Kb.ClickableBox>
+          {isSender ? (
+            <Kb.Text type="BodyTinySemibold">You can send</Kb.Text>
+          ) : username ? (
+            <Kb.Box2 direction="horizontal" gap="xtiny">
+              <Kb.ConnectedUsernames
+                type="BodyTinySemibold"
+                usernames={[username]}
+                colorBroken={true}
+                colorFollowing={true}
+                underline={false}
+              />
+              <Kb.Text type="BodyTinySemibold">can receive</Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <Kb.Text type="BodyTinySemibold">This account can receive</Kb.Text>
+          )}
+        </Header>
+        <AssetList accountID={accountID} username={username} isSender={isSender} />
+      </Kb.Box2>
+    </Kb.MaybePopup>
+  )
+}
+
+export default PickAsset
+
+const styles = Styles.styleSheetCreate({
+  backClickable: {
+    bottom: Styles.globalMargins.tiny,
+    left: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.xtiny,
+    position: 'absolute',
+  },
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 560,
+      width: 400,
+    },
+    isMobile: {
+      flex: 1,
+      width: '100%',
+    },
+  }),
+  itemContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    height: 56,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    width: '100%',
+  },
+  textSelected: {
+    color: Styles.globalColors.blueDark,
+  },
+})

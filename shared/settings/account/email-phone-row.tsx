@@ -4,6 +4,8 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
+import flags from '../../util/feature-flags'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // props exported for stories
 export type Props = {
@@ -38,7 +40,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     subtitle = addSpacer(subtitle, 'Primary email')
     // TODO 'Check your inbox' if verification email was just sent
   }
-  if (!props.searchable) {
+  if (!props.searchable && flags.sbsContacts) {
     subtitle = addSpacer(subtitle, 'Not searchable')
   }
 
@@ -57,7 +59,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Make primary',
     })
   }
-  if (props.verified) {
+  if (props.verified && flags.sbsContacts) {
     menuItems.push({
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
@@ -80,7 +82,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   let gearIconBadge = null
   if (!props.verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
-  } else if (!props.searchable) {
+  } else if (!props.searchable && flags.sbsContacts) {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 
@@ -105,21 +107,25 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
-      <Kb.Box style={styles.positionRelative}>
-        <Kb.Icon type="iconfont-gear" ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
-        {gearIconBadge}
-      </Kb.Box>
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        closeText="Cancel"
-        containerStyle={styles.menuNoGrow}
-        visible={props.showingMenu}
-        position="bottom right"
-        header={Styles.isMobile ? header : null}
-        items={menuItems}
-        closeOnSelect={true}
-        onHidden={props.toggleShowingMenu}
-      />
+      {!!menuItems.length && (
+        <>
+          <Kb.Box style={styles.positionRelative}>
+            <Kb.Icon type="iconfont-gear" ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+            {gearIconBadge}
+          </Kb.Box>
+          <Kb.FloatingMenu
+            attachTo={props.getAttachmentRef}
+            closeText="Cancel"
+            containerStyle={styles.menuNoGrow}
+            visible={props.showingMenu}
+            position="bottom right"
+            header={Styles.isMobile ? header : null}
+            items={menuItems}
+            closeOnSelect={true}
+            onHidden={props.toggleShowingMenu}
+          />
+        </>
+      )}
     </Kb.Box2>
   )
 }
@@ -172,12 +178,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
+    _onVerify: (phoneNumber, allowSearch) => {
+      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+    },
     onDelete: () => dispatch(SettingsGen.createEditPhone({delete: true, phone: ownProps.contactKey})),
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
-    // TODO: this requires popping up a thing and also sending an RPC, waiting on Danny's existing flow from another PR
-    onVerify: () => {},
   },
 })
 
@@ -186,11 +194,15 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps._phoneRow) {
+      const searchable = stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public
       return {
-        ...dispatchProps.phone,
         address: stateProps._phoneRow.phoneNumber,
+        onDelete: dispatchProps.phone.onDelete,
+        onMakePrimary: dispatchProps.phone.onMakePrimary,
+        onToggleSearchable: dispatchProps.phone.onToggleSearchable,
+        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber, searchable),
         primary: false,
-        searchable: stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public,
+        searchable,
         type: 'phone' as const,
         verified: stateProps._phoneRow.verified,
       }

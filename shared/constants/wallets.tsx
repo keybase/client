@@ -23,6 +23,7 @@ const partyTypeToString = invert(RPCTypes.ParticipantType) as {
 
 export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'
+export const pickAssetFormRouteKey = 'pickAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
 export const airdropBannerKey = 'stellarHideAirdropBanner'
@@ -72,6 +73,14 @@ export const makeReserve = I.Record<Types._Reserve>({
   description: '',
 })
 
+export const makeAssetDescription = I.Record<Types._AssetDescription>({
+  code: '',
+  issuerAccountID: Types.noAccountID,
+  issuerName: '',
+  issuerVerifiedDomain: '',
+})
+export const emptyAssetDescription = makeAssetDescription()
+
 export const makeBuilding = I.Record<Types._Building>({
   amount: '',
   bid: '',
@@ -84,6 +93,42 @@ export const makeBuilding = I.Record<Types._Building>({
   sendAssetChoices: null,
   to: '',
 })
+
+export const makeBuildingAdvanced = I.Record<Types._BuildingAdvanced>({
+  publicMemo: new HiddenString(''),
+  recipient: '',
+  recipientAmount: '',
+  recipientAsset: emptyAssetDescription,
+  recipientType: 'keybaseUser',
+  secretNote: new HiddenString(''),
+  senderAccountID: Types.noAccountID,
+  senderAsset: emptyAssetDescription,
+})
+export const emptyBuildingAdvanced = makeBuildingAdvanced()
+
+export const makePaymentPath = I.Record<Types._PaymentPath>({
+  destinationAmount: '',
+  destinationAsset: emptyAssetDescription,
+  path: I.List(),
+  sourceAmount: '',
+  sourceAmountMax: '',
+  sourceAsset: emptyAssetDescription,
+  sourceInsufficientBalance: '',
+})
+export const emptyPaymentPath = makePaymentPath()
+
+export const makeBuiltPaymentAdvanced = I.Record<Types._BuiltPaymentAdvanced>({
+  amountError: '',
+  destinationAccount: Types.noAccountID,
+  destinationDisplay: '',
+  exchangeRate: '',
+  fullPath: emptyPaymentPath,
+  noPathFoundError: false,
+  readyToSend: false,
+  sourceDisplay: '',
+  sourceMaxDisplay: '',
+})
+export const emptyBuiltPaymentAdvanced = makeBuiltPaymentAdvanced()
 
 export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
   amountAvailable: '',
@@ -148,6 +193,7 @@ export const emptyAccountAcceptedAssets: I.Map<Types.AssetID, number> = I.Map()
 
 export const makeTrustline = I.Record<Types._Trustline>({
   acceptedAssets: I.Map(),
+  acceptedAssetsByUsername: I.Map(),
   assetMap: I.Map(),
   expandedAssets: I.Set(),
   loaded: false,
@@ -171,7 +217,9 @@ export const makeState = I.Record<Types._State>({
   assetsMap: I.Map(),
   buildCounter: 0,
   building: makeBuilding(),
+  buildingAdvanced: emptyBuildingAdvanced,
   builtPayment: makeBuiltPayment(),
+  builtPaymentAdvanced: emptyBuiltPaymentAdvanced,
   builtRequest: makeBuiltRequest(),
   createNewAccountError: '',
   currencies: I.List(),
@@ -184,7 +232,6 @@ export const makeState = I.Record<Types._State>({
   lastSentXLM: false,
   linkExistingAccountError: '',
   mobileOnlyMap: I.Map(),
-  newPayments: I.Map(),
   paymentCursorMap: I.Map(),
   paymentLoadingMoreMap: I.Map(),
   paymentOldestUnreadMap: I.Map(),
@@ -293,6 +340,7 @@ export const currencyResultToCurrency = (w: RPCTypes.CurrencyLocal) =>
 
 const _defaultPaymentCommon = {
   amountDescription: '',
+  assetCode: '',
   delta: 'none' as Types.PaymentDelta,
   error: '',
   fromAirdrop: false,
@@ -308,6 +356,8 @@ const _defaultPaymentCommon = {
   sourceAccountID: '',
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
+  sourceIssuer: '',
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -332,6 +382,7 @@ const _defaultPaymentDetail = {
   ..._defaultPaymentCommon,
   externalTxURL: '',
   feeChargedDescription: '',
+  pathIntermediate: I.List(),
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   txID: '',
@@ -405,6 +456,7 @@ export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal)
     ...rpcPaymentToPaymentCommon(p.summary),
     externalTxURL: p.details.externalTxURL,
     feeChargedDescription: p.details.feeChargedDescription,
+    pathIntermediate: I.List((p.details.pathIntermediate || []).map(makeAssetDescription)),
     publicMemo: new HiddenString(p.details.publicNote),
     publicMemoType: p.details.publicNoteType,
     txID: p.summary.txID,
@@ -431,6 +483,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
   const serviceStatusSimplfied = statusSimplifiedToString[p.statusSimplified]
   return {
     amountDescription: p.amountDescription,
+    assetCode: p.assetCode,
     delta: balanceDeltaToString[p.delta],
     error: '',
     fromAirdrop: p.fromAirdrop,
@@ -446,6 +499,8 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAccountID: p.fromAccountID,
     sourceAmount: p.sourceAmountActual,
     sourceAsset: p.sourceAsset.code,
+    sourceConvRate: p.sourceConvRate,
+    sourceIssuer: p.sourceAsset.verifiedDomain,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
@@ -460,14 +515,6 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     worthAtSendTime: p.worthAtSendTime,
   }
 }
-
-export const makeAssetDescription = I.Record<Types._AssetDescription>({
-  code: '',
-  issuerAccountID: Types.noAccountID,
-  issuerName: '',
-  issuerVerifiedDomain: '',
-})
-export const emptyAssetDescription = makeAssetDescription()
 
 export const bannerLevelToBackground = (level: string) => {
   switch (level) {
@@ -615,6 +662,8 @@ export const deleteTrustlineWaitingKey = (accountID: Types.AccountID, assetID: T
 export const refreshTrustlineAcceptedAssetsWaitingKey = (accountID: Types.AccountID) =>
   `wallets:refreshTrustlineAcceptedAssets:${Types.accountIDToString(accountID)}`
 export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
+export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
+export const sendPaymentAdvancedWaitingKey = 'wallets:sendPaymentAdvanced'
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -690,15 +739,6 @@ export const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =
 
 export const isFederatedAddress = (address: string | null) => (address ? address.includes('*') : false)
 
-export const isPaymentUnread = (
-  state: TypedState,
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID
-) => {
-  const newPaymentsForAccount = state.wallets.newPayments.get(accountID, false)
-  return newPaymentsForAccount && newPaymentsForAccount.has(paymentID)
-}
-
 export const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.size > 0
 
 export const getCurrencyAndSymbol = (state: TypedState, code: string) => {
@@ -730,9 +770,9 @@ export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: stri
   return sign + balanceChange
 }
 
-export const inputPlaceholderForCurrency = (currency: string) => currency !== 'XLM' ? '0.00' : '0.0000000'
+export const inputPlaceholderForCurrency = (currency: string) => (currency !== 'XLM' ? '0.00' : '0.0000000')
 
-export const numDecimalsAllowedForCurrency = (currency: string) => currency !== 'XLM' ? 2 : 7
+export const numDecimalsAllowedForCurrency = (currency: string) => (currency !== 'XLM' ? 2 : 7)
 
 export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTab // tab for wallets
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets

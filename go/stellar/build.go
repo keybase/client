@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/stellar/remote"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -17,6 +19,104 @@ import (
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
 )
+
+func ShouldOfferAdvancedSend(mctx libkb.MetaContext, remoter remote.Remoter, from, to stellar1.AccountID) (shouldShow stellar1.AdvancedBanner, err error) {
+	theirBalances, err := remoter.Balances(mctx.Ctx(), to)
+	if err != nil {
+		return stellar1.AdvancedBanner_NO_BANNER, err
+	}
+	for _, bal := range theirBalances {
+		if !bal.Asset.IsNativeXLM() {
+			return stellar1.AdvancedBanner_RECEIVER_BANNER, nil
+		}
+	}
+
+	// Lookup our assets
+	ourBalances, err := remoter.Balances(mctx.Ctx(), from)
+	if err != nil {
+		return stellar1.AdvancedBanner_NO_BANNER, err
+	}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if !asset.IsNativeXLM() {
+			return stellar1.AdvancedBanner_SENDER_BANNER, nil
+		}
+	}
+
+	// Neither of us have non-native assets so return false
+	return stellar1.AdvancedBanner_NO_BANNER, nil
+}
+
+func GetSendAssetChoicesLocal(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.GetSendAssetChoicesLocalArg) (res []stellar1.SendAssetChoiceLocal, err error) {
+	owns, _, err := OwnAccount(mctx, arg.From)
+	if err != nil {
+		return res, err
+	}
+	if !owns {
+		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
+	}
+
+	ourBalances, err := remoter.Balances(mctx.Ctx(), arg.From)
+	if err != nil {
+		return res, err
+	}
+
+	res = []stellar1.SendAssetChoiceLocal{}
+	for _, bal := range ourBalances {
+		asset := bal.Asset
+		if asset.IsNativeXLM() {
+			// We are only doing non-native assets here.
+			continue
+		}
+		choice := stellar1.SendAssetChoiceLocal{
+			Asset:   asset,
+			Enabled: true,
+			Left:    bal.Asset.Code,
+			Right:   bal.Asset.Issuer,
+		}
+		res = append(res, choice)
+	}
+
+	if arg.To != "" {
+		recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
+		if err != nil {
+			mctx.G().Log.CDebugf(mctx.Ctx(), "Skipping asset filtering: LookupRecipient for %q failed with: %s",
+				arg.To, err)
+			return res, nil
+		}
+
+		theirBalancesHash := make(map[string]bool)
+		assetHashCode := func(a stellar1.Asset) string {
+			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
+		}
+
+		if recipient.AccountID != nil {
+			theirBalances, err := remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
+			if err != nil {
+				mctx.G().Log.CDebugf(mctx.Ctx(), "Skipping asset filtering: remoter.Balances for %q failed with: %s",
+					recipient.AccountID, err)
+				return res, nil
+			}
+			for _, bal := range theirBalances {
+				theirBalancesHash[assetHashCode(bal.Asset)] = true
+			}
+		}
+
+		for i, choice := range res {
+			available := theirBalancesHash[assetHashCode(choice.Asset)]
+			if !available {
+				choice.Enabled = false
+				recipientStr := "Recipient"
+				if recipient.User != nil {
+					recipientStr = recipient.User.Username.String()
+				}
+				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
+				res[i] = choice
+			}
+		}
+	}
+	return res, nil
+}
 
 func StartBuildPaymentLocal(mctx libkb.MetaContext) (res stellar1.BuildPaymentID, err error) {
 	return getGlobal(mctx.G()).startBuildPayment(mctx)
@@ -183,6 +283,21 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						Level:   "info",
 						Message: "Your Keybase username will not be linked to this transaction.",
 					})
+				}
+
+				if recipient.AccountID != nil {
+					tracer.Stage("offer advanced send")
+					offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, stellar1.AccountID(*recipient.AccountID))
+					if err == nil {
+						if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
+							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+								Level:                 "info",
+								OfferAdvancedSendForm: offerAdvancedForm,
+							})
+						}
+					} else {
+						log("error determining whether to offer the advanced send page: %v", err)
+					}
 				}
 			}
 		}

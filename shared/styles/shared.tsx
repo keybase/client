@@ -50,6 +50,7 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   flexGrow: {flexGrow: 1},
   flexOne: {flex: 1},
   fullHeight: {height: '100%'},
+  fullWidth: {width: '100%'},
   rounded: {borderRadius: 3},
 })
 

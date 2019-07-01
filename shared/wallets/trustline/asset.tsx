@@ -36,14 +36,9 @@ const getCode = (props: Props) => (
   </Kb.Box2>
 )
 
-const getIssuerVerifiedDomain = (props: Props) =>
-  props.issuerVerifiedDomain ? (
-    <Kb.Text type="BodySmall">{props.issuerVerifiedDomain}</Kb.Text>
-  ) : (
-    <Kb.Text type="BodySmallItalic" style={styles.textUnknown}>
-      Unknown
-    </Kb.Text>
-  )
+const getIssuerVerifiedDomain = (props: Props) => (
+  <Kb.Text type="BodySmall">{props.issuerVerifiedDomain || 'Unknown issuer'}</Kb.Text>
+)
 
 const bodyCollapsed = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.bodyCollapsed} fullHeight={true}>
@@ -133,10 +128,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   bodyCollapsed: {
+    paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
   bodyExpanded: Styles.platformStyles({
     common: {
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {

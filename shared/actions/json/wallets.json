@@ -32,11 +32,6 @@
       "_description": "We received an updated account record",
       "account": "Types.Account"
     },
-    "addNewPayment": {
-      "_description": "Mark a payment we were just notified about as being unseen",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
-    },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
@@ -75,10 +70,6 @@
     },
     "clearErrors": {
       "_description": "Clear errors from the store at times like opening or closing a form dialog."
-    },
-    "clearNewPayments": {
-      "_description": "Clear our idea of which payments have not been seen by the user yet",
-      "accountID": "Types.AccountID"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
@@ -313,6 +304,7 @@
       "_description": "Failed to send a payment",
       "error": "string"
     },
+
     "setBuildingAmount": {
       "_description": "Set building amount",
       "amount": "string"
@@ -345,6 +337,20 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+    "clearBuildingAdvanced": {
+      "_description": "replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones"
+    },
+    "setBuildingAdvancedRecipient": {"recipient": "string"},
+    "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
+    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedRecipientType": {"recipientType": "Types.CounterpartyType"},
+    "setBuildingAdvancedPublicMemo": {"publicMemo": "HiddenString"},
+    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
+    "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
+    "calculateBuildingAdvanced": {},
+    "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
+    "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",
@@ -451,6 +457,9 @@
     "refreshTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID"
     },
+    "refreshTrustlineAcceptedAssetsByUsername": {
+      "username": "string"
+    },
     "refreshTrustlinePopularAssets": {},
     "addTrustline": {
       "accountID": "Types.AccountID",
@@ -462,6 +471,11 @@
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlineAcceptedAssetsByUsername": {
+      "username": "string",
       "assets": "Array<Types.AssetDescription>",
       "limits": "I.Map<Types.AssetID, number>"
     },
