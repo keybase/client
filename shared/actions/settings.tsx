@@ -381,7 +381,8 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
   )
 }
 
-const loadSettings = () =>
+const loadSettings = (state: TypedState) =>
+  state.config.loggedIn &&
   RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey).then(settings => {
     const emailMap: I.Map<string, Types.EmailRow> = I.Map(
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
@@ -389,28 +390,24 @@ const loadSettings = () =>
     const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
       (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
     )
-    return SettingsGen.createLoadedSettings({
+    const loadedAction = SettingsGen.createLoadedSettings({
       emails: emailMap,
       phones: phoneMap,
     })
-  })
 
-const computeBadgesOnLoadedSettings = (state, action: SettingsGen.LoadedSettingsPayload) => {
-  const emailCount = (action.payload.emails || I.Map()).reduce(
-    (count, row) => (row.isVerified ? count : count + 1),
-    0
-  )
-  const phoneCount = (action.payload.phones || I.Map()).reduce(
-    (count, row) => (row.verified ? count : count + 1),
-    0
-  )
+    const emailCount = (settings.emails || []).reduce((count, row) => (row.isVerified ? count : count + 1), 0)
+    const phoneCount = (settings.phoneNumbers || []).reduce(
+      (count, row) => (row.verified ? count : count + 1),
+      0
+    )
 
-  return NotificationsGen.createSetBadgeCounts({
-    counts: I.Map({
-      [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
-    }) as I.Map<Tabs.Tab, number>,
+    const badgeAction = NotificationsGen.createSetBadgeCounts({
+      counts: I.Map({
+        [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
+      }) as I.Map<Tabs.Tab, number>,
+    })
+    return [loadedAction, badgeAction]
   })
-}
 
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
   visibility === ChatTypes.Keybase1.IdentityVisibility.private
@@ -586,9 +583,6 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
       })
     )
 
-const loadSettingsOnLogin = (state: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
-  action.payload.loggedIn && SettingsGen.createLoadSettings()
-
 // Once loaded, do not issue this RPC again. This field can only go true ->
 // false (never the opposite way), and there are notifications set up when
 // this happens.
@@ -729,14 +723,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.deleteAccountForever,
     deleteAccountForever
   )
-  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
-    ConfigGen.bootstrapStatusLoaded,
-    loadSettingsOnLogin
-  )
-  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(
-    SettingsGen.loadedSettings,
-    computeBadgesOnLoadedSettings
+  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload>(
+    [SettingsGen.loadSettings, ConfigGen.bootstrapStatusLoaded],
+    loadSettings
   )
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
     SettingsGen.onSubmitNewPassword,
