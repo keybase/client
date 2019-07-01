@@ -282,6 +282,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
     },
     isElectron: {
+      borderRadius: Styles.borderRadius,
       height: 560,
       width: 400,
     },
@@ -300,6 +301,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.purpleDark,
     },
     isElectron: {
+      borderRadius: Styles.borderRadius,
       flex: 1,
       minHeight: 160,
     },
