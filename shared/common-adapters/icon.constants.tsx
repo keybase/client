@@ -2360,6 +2360,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-mailbox': {
+    charCode: 0xe98f,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-mention': {
     charCode: 0xe93b,
     gridSize: 16,
@@ -2678,6 +2683,11 @@ const iconMeta_ = {
   'iconfont-wallet-transfer': {
     charCode: 0xe985,
     gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-wave-2': {
+    charCode: 0xe98e,
+    gridSize: 24,
     isFont: true,
   },
   'iconfont-wrenches': {
