@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -16,14 +17,14 @@ type TrackerLoader struct {
 	eg         errgroup.Group
 	started    bool
 	shutdownCh chan struct{}
-	queueCh    chan struct{}
+	queueCh    chan keybase1.UID
 }
 
 func NewTrackerLoader(g *GlobalContext) *TrackerLoader {
 	l := &TrackerLoader{
 		Contextified: NewContextified(g),
 		shutdownCh:   make(chan struct{}),
-		queueCh:      make(chan struct{}, 100),
+		queueCh:      make(chan keybase1.UID, 100),
 	}
 	g.PushShutdownHook(func() error {
 		<-l.Shutdown(context.Background())
@@ -66,10 +67,10 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 	return ch
 }
 
-func (l *TrackerLoader) Queue(ctx context.Context) (err error) {
-	defer l.G().CTrace(ctx, "TrackerLoader.Queue", func() error { return err })()
+func (l *TrackerLoader) Queue(ctx context.Context, uid keybase1.UID) (err error) {
+	defer l.G().CTrace(ctx, fmt.Sprintf("TrackerLoader.Queue: uid: %s", uid), func() error { return err })()
 	select {
-	case l.queueCh <- struct{}{}:
+	case l.queueCh <- uid:
 	default:
 		return errors.New("queue full")
 	}
@@ -89,9 +90,8 @@ func (l *TrackerLoader) argsFromSyncer(syncer *Tracker2Syncer) (followers []stri
 	return followers, followees
 }
 
-func (l *TrackerLoader) load(ctx context.Context) error {
+func (l *TrackerLoader) load(ctx context.Context, uid keybase1.UID) error {
 	defer l.G().CTraceTimed(ctx, "TrackerLoader.load", func() error { return nil })()
-	uid := l.G().ActiveDevice.UID()
 	syncer := NewTracker2Syncer(l.G(), uid, true)
 	mctx := NewMetaContext(ctx, l.G())
 
@@ -121,8 +121,8 @@ func (l *TrackerLoader) loadLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	for {
 		select {
-		case <-l.queueCh:
-			if err := l.load(ctx); err != nil {
+		case uid := <-l.queueCh:
+			if err := l.load(ctx, uid); err != nil {
 				l.debug(ctx, "loadLoop: failed to load: %s", err)
 			}
 		case <-stopCh:

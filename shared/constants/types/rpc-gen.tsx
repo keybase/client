@@ -380,7 +380,7 @@ export type MessageTypes = {
     outParam: LogSendID
   }
   'keybase.1.config.requestFollowerInfo': {
-    inParam: void
+    inParam: {readonly uid: UID}
     outParam: void
   }
   'keybase.1.config.setProxyData': {

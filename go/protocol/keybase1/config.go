@@ -878,6 +878,7 @@ type GetBootstrapStatusArg struct {
 }
 
 type RequestFollowerInfoArg struct {
+	Uid UID `codec:"uid" json:"uid"`
 }
 
 type GetRememberPassphraseArg struct {
@@ -924,7 +925,7 @@ type ConfigInterface interface {
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
-	RequestFollowerInfo(context.Context) error
+	RequestFollowerInfo(context.Context, UID) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
 	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
@@ -1184,7 +1185,12 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.RequestFollowerInfo(ctx)
+					typedArgs, ok := args.(*[1]RequestFollowerInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RequestFollowerInfoArg)(nil), args)
+						return
+					}
+					err = i.RequestFollowerInfo(ctx, typedArgs[0].Uid)
 					return
 				},
 			},
@@ -1365,8 +1371,9 @@ func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (re
 	return
 }
 
-func (c ConfigClient) RequestFollowerInfo(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{RequestFollowerInfoArg{}}, nil)
+func (c ConfigClient) RequestFollowerInfo(ctx context.Context, uid UID) (err error) {
+	__arg := RequestFollowerInfoArg{Uid: uid}
+	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{__arg}, nil)
 	return
 }
 

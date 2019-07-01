@@ -94,7 +94,9 @@ function* loadDaemonBootstrapStatus(
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
     // request follower info in the background
-    yield* Saga.callPromise(RPCTypes.configRequestFollowerInfoRpcPromise)
+    yield* Saga.callPromise(RPCTypes.configRequestFollowerInfoRpcPromise, {
+      uid: s.uid,
+    })
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {

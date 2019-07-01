@@ -295,9 +295,9 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	return eng.Status(), nil
 }
 
-func (h ConfigHandler) RequestFollowerInfo(ctx context.Context) error {
+func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
 	// Queue up a load for follower info
-	h.svc.trackerLoader.Queue(ctx)
+	h.svc.trackerLoader.Queue(ctx, uid)
 	return nil
 }
 

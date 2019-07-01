@@ -964,7 +964,12 @@
       "response": "BootstrapStatus"
     },
     "requestFollowerInfo": {
-      "request": [],
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
       "response": null
     },
     "getRememberPassphrase": {
