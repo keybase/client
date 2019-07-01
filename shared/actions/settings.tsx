@@ -738,12 +738,6 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.loadedSettings,
     computeBadgesOnLoadedSettings
   )
-  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
-  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
-    SettingsGen.onSubmitNewEmail,
-    onSubmitNewEmail
-  )
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
     SettingsGen.onSubmitNewPassword,
     onSubmitNewPassword
@@ -820,6 +814,10 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   // Emails
   yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
   yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail, 'addEmail')
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
+    SettingsGen.onSubmitNewEmail,
+    onSubmitNewEmail
+  )
 }
 
 export default settingsSaga
