@@ -1119,11 +1119,12 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		}
 
 		if prevState.IsImplicit() {
-			// In implicit teams there are only 2 kinds of membership changes allowed:
+			// In implicit teams there are only 3 kinds of membership changes allowed:
 			// 1. Resolve an invite. Adds 1 user and completes 1 invite.
 			//    Though sometimes a new user is not added, due to a conflict.
 			// 2. Accept a reset user. Adds 1 user and removes 1 user.
 			//    Where the new one has the same UID and role as the old and a greater EldestSeqno.
+			// 3. Add/remove a bot user.
 
 			// Here's a case that is not straightforward:
 			// There is an impteam alice,leland%2,bob@twitter.
@@ -1154,9 +1155,10 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 			nCompleted := len(team.CompletedInvites)
 
-			// Check these two properties:
+			// Check these properties:
 			// - Every removal must come with an addition of a successor. Ignore role.
-			// - Every addition must either be paired with a removal, or resolve an invite. Ignore role.
+			// - Every addition must either be paired with a removal, or
+			// resolve an invite. Ignore role when not dealing with bots.
 			// This is a coarse check that ignores role changes.
 
 			type removal struct {
@@ -1193,7 +1195,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 			// All removals must have come with successor.
 			for _, r := range removals {
-				if !r.satisfied {
+				if !(r.satisfied || prevState.getUserRole(r.uv).IsBot()) {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}

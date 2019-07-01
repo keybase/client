@@ -1565,6 +1565,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	alice := tt.addUser("alice")
 	bob := tt.addUser("bob")
 	dodo := tt.addUser("dodo")
+	botua := tt.addUser("botua")
 	john := tt.addPuklessUser("john")
 	tt.logUserNames()
 	teamID, teamName := alice.createTeam2()
@@ -1586,6 +1587,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.Equal(t, members.Admins, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}})
 	require.Equal(t, members.Writers, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}})
 	require.Len(t, members.Readers, 0)
+	require.Equal(t, members.Bots, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}})
 
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))
@@ -1665,6 +1667,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Len(t, members.Admins, 0)
 	require.Len(t, members.Writers, 0)
 	require.Len(t, members.Readers, 0)
+	require.Len(t, members.Bots, 0)
 
 	role = keybase1.TeamRole_ADMIN
 	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), makeUserRolePairs(assertions, role))
@@ -1688,6 +1691,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Equal(t, bob.userVersion(), members.Admins[0])
 	require.Len(t, members.Writers, 0)
 	require.Len(t, members.Readers, 0)
+	require.Len(t, members.Bots, 0)
 
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))

@@ -512,6 +512,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	require.Equal(t, 0, len(details.Members.Admins))
 	require.Equal(t, 0, len(details.Members.Writers))
 	require.Equal(t, 0, len(details.Members.Readers))
+	require.Equal(t, 0, len(details.Members.Bots))
 }
 
 func TestTeamTryAddDeletedUser(t *testing.T) {
@@ -574,7 +575,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 		// Note: any role would do! Does not have to be the same as before
 		// reset. This does not apply to imp-teams though, it requires the
 		// same role there.
-		Role: keybase1.TeamRole_READER,
+		Role: keybase1.TeamRole_BOT,
 	})
 	require.NoError(t, err)
 
@@ -582,7 +583,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 	teams.NewTeamLoaderAndInstall(G)
 	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_READER)
+	require.Equal(t, role, keybase1.TeamRole_BOT)
 
 	bob.readChats(team, 1)
 }

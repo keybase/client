@@ -1299,14 +1299,19 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_ADMIN:
-		invites.Admins = &invList
-	case keybase1.TeamRole_WRITER:
-		invites.Writers = &invList
+	case keybase1.TeamRole_BOT:
+		return fmt.Errorf("bot role disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invList
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invList
 	case keybase1.TeamRole_OWNER:
 		invites.Owners = &invList
+	}
+	if invites.Len() == 0 {
+		return fmt.Errorf("invalid invite, 0 members invited")
 	}
 
 	return t.postTeamInvites(ctx, invites)

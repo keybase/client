@@ -124,6 +124,26 @@ type SCTeamKBFSLegacyUpgrade struct {
 	KeysetHash       keybase1.TeamEncryptedKBFSKeysetHash `json:"encrypted_keyset_hash"`
 }
 
+func (i SCTeamInvites) Len() int {
+	size := 0
+	if i.Owners != nil {
+		size += len(*i.Owners)
+	}
+	if i.Admins != nil {
+		size += len(*i.Admins)
+	}
+	if i.Writers != nil {
+		size += len(*i.Writers)
+	}
+	if i.Readers != nil {
+		size += len(*i.Readers)
+	}
+	if i.Cancel != nil {
+		size += len(*i.Cancel)
+	}
+	return size
+}
+
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
 	return keybase1.SigChainLocation{
 		Seqno:   a.Seqno,

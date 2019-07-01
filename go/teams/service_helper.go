@@ -686,7 +686,21 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return role, err
 }
 
+func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+	return remove(ctx, g, teamGetter, username)
+}
+
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByStringName(ctx, g, teamname, false)
+	}
+	return remove(ctx, g, teamGetter, username)
+}
+
+func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error), username string) error {
 	var inviteRequired bool
 	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
@@ -707,11 +721,11 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	}
 
 	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
-		return Leave(ctx, g, teamname, false)
+		return leave(ctx, g, teamGetter, false)
 	}
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := teamGetter()
 		if err != nil {
 			return err
 		}
@@ -729,7 +743,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
 			return libkb.NotFoundError{Msg: fmt.Sprintf(
-				"user %q is not a member of team %q", username, teamname)}
+				"user %q is not a member of team %q", username, t.Name())}
 		}
 		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 		opts := ChangeMembershipOptions{
@@ -772,9 +786,9 @@ func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname stri
 	})
 }
 
-func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
+func leave(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error), permanent bool) error {
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+		t, err := teamGetter()
 		if err != nil {
 			return err
 		}
@@ -787,6 +801,20 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 
 		return nil
 	})
+}
+
+func LeaveByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, permanent bool) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+	return leave(ctx, g, teamGetter, permanent)
+}
+
+func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByStringName(ctx, g, teamname, false)
+	}
+	return leave(ctx, g, teamGetter, permanent)
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {

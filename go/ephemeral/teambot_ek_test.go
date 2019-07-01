@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO move this test to systests to test with multiple members
 func TestNewTeambotEK(t *testing.T) {
 	tc, mctx, botUser := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
