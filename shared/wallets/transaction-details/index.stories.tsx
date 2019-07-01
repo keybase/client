@@ -37,6 +37,7 @@ const props = {
   onLoadPaymentDetail: Sb.action('onLoadPaymentDetail'),
   onShowProfile: Sb.action('onShowProfile'),
   onViewTransaction: Sb.action('onViewTransaction'),
+  pathIntermediate: [],
   recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
   selectableText: true,
   senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
@@ -219,6 +220,26 @@ const load = () => {
         sourceIssuer="anchortoad.com"
         issuerDescription="froggycoin.io"
         sourceConvRate="2.450000"
+        pathIntermediate={[
+          {
+            code: 'WHAT',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'whatcoin',
+            issuerVerifiedDomain: 'what.com',
+          },
+          {
+            code: 'NATE',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'natecoin',
+            issuerVerifiedDomain: 'nathansmith.io',
+          },
+          {
+            code: 'BLAH',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'Blahhold.co',
+            issuerVerifiedDomain: 'blahhold.co',
+          },
+        ]}
       />
     ))
     .add('Sent path payment (Asset -> XLM)', () => (

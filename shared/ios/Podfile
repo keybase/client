@@ -26,8 +26,7 @@ target 'Keybase' do
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
-  pod 'RNScreens', :podspec => '../node_modules/react-native-screens/RNScreens.podspec'
-
+  
   pod 'lottie-ios', :path => '../node_modules/lottie-ios'
   pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
   pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
@@ -39,7 +38,8 @@ target 'Keybase' do
   pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
   pod 'react-native-webview', :path => '../node_modules/react-native-webview'
   pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
-  pod 'react-native-video', :path => '../node_modules/react-native-video/react-native-video.podspec'
+  pod 'RNScreens', :path => '../node_modules/react-native-screens'
+  pod 'react-native-video', :path => '../node_modules/react-native-video'
 
   use_unimodules!(modules_paths: ['../node_modules'])
 

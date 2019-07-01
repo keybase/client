@@ -27,7 +27,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
     .keySeq()
     .toArray()
     .map(assetID => s.assetMap.get(assetID, Constants.emptyAssetDescription))
-    .map(asset => ({code: asset.code, issuerVerifiedDomain: asset.issuerVerifiedDomain})),
+    .map(asset => ({code: asset.code, desc: asset.issuerVerifiedDomain || asset.issuerAccountID})),
   onSetupTrustline: d.onSetupTrustline,
   refresh: d.refresh,
   thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,

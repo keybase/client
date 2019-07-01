@@ -459,8 +459,8 @@
           "name": "destinationAsset"
         },
         {
-          "type": "boolean",
-          "name": "sourceHasSufficientBalance"
+          "type": "string",
+          "name": "sourceInsufficientBalance"
         }
       ]
     }

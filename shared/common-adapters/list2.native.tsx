@@ -17,7 +17,7 @@ class List2<T> extends PureComponent<Props<T>> {
   _getItemLayout = (data, index) => {
     switch (this.props.itemHeight.type) {
       case 'fixed':
-        return {height: this.props.itemHeight.height, index, offset: this.props.itemHeight.height * index}
+        return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
       case 'variable':
         return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
       default:
@@ -43,7 +43,7 @@ class List2<T> extends PureComponent<Props<T>> {
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}
-          getItemLayout={this._getItemLayout}
+          getItemLayout={(data, index) => this._getItemLayout(data, index)}
           keyExtractor={this._keyExtractor}
           keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
           onEndReached={this.props.onEndReached}

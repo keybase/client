@@ -41,11 +41,13 @@ const Uploading = (props: UploadingProps) => (
     }
     body={
       <Kb.Box key="main" style={rowStyles.itemBox}>
-        <Filename
-          path={props.path}
-          type={Constants.pathTypeToTextType(props.type)}
-          style={rowStyles.rowText_30}
-        />
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Filename
+            path={props.path}
+            type={Constants.pathTypeToTextType(props.type)}
+            style={rowStyles.rowText_30}
+          />
+        </Kb.Box2>
         {props.errorRetry ? (
           <Kb.Text type="BodySmall" style={styles.textFailed}>
             Upload has failed.{' '}

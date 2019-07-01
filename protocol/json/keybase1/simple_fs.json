@@ -1232,6 +1232,18 @@
         }
       ],
       "response": "string"
+    },
+    "simpleFSDeobfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
     }
   },
   "namespace": "keybase.1"
