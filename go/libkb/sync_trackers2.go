@@ -43,7 +43,7 @@ func (t *Tracker2Syncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExp
 		return nil
 	}
 	cachedAt := keybase1.FromTime(tmp.Time)
-	if useExpiration && time.Now().Sub(cachedAt) > cacheTimeout {
+	if useExpiration && time.Since(cachedAt) > cacheTimeout {
 		m.Debug("| expired; cached at %s", cachedAt)
 		return nil
 	}
