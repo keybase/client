@@ -99,7 +99,8 @@ class Search extends React.Component<SearchProps, SearchState> {
             positionFallbacks={[]}
             propagateOutsideClicks={true}
           >
-            {/* If changing layout here, make sure to test on a notched and un-notched phone */}
+            {/* If changing layout here, make sure to test on a notched and un-notched iphone and android */}
+            {Styles.isIOS && <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />}
             <Kb.Box pointerEvents="box-none" style={styles.resultsFloatingContainer}>
               <Kb.Box2 direction="vertical" style={styles.resultsFloatingInnerContainer}>
                 <Kb.Box2 direction="vertical" style={styles.resultsContainer}>
