@@ -29,4 +29,5 @@ export const newModalRoutes = {
   settingsAddEmail: {getScreen: () => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: () => require('./account/add-modals').Phone},
   settingsManageContacts: {getScreen: () => require('./account/manage-contacts.native').default},
+  settingsVerifyPhone: {getScreen: () => require('./account/add-modals').VerifyPhone},
 }

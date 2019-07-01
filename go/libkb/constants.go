@@ -347,6 +347,11 @@ const (
 	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 	SCStellarIncompatibleVersion                = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
 	SCStellarMissingAccount                     = int(keybase1.StatusCode_SCStellarMissingAccount)
+	SCPhoneNumberUnknown                        = int(keybase1.StatusCode_SCPhoneNumberUnknown)
+	SCPhoneNumberAlreadyVerified                = int(keybase1.StatusCode_SCPhoneNumberAlreadyVerified)
+	SCPhoneNumberVerificationCodeExpired        = int(keybase1.StatusCode_SCPhoneNumberVerificationCodeExpired)
+	SCPhoneNumberWrongVerificationCode          = int(keybase1.StatusCode_SCPhoneNumberWrongVerificationCode)
+	SCPhoneNumberLimitExceeded                  = int(keybase1.StatusCode_SCPhoneNumberLimitExceeded)
 	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
 )
 

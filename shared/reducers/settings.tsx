@@ -171,7 +171,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
               }
         )
       )
-    case SettingsGen.clearPhoneNumberVerification:
+    case SettingsGen.clearPhoneNumberErrors:
+      return state.update('phoneNumbers', pn => pn.merge({error: ''}))
+    case SettingsGen.clearPhoneNumberAdd:
       return state.update('phoneNumbers', pn =>
         pn.merge({
           error: '',
@@ -209,6 +211,13 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           addedEmail: action.payload.error ? null : action.payload.email,
           addingEmail: action.payload.error ? emailState.addingEmail : null,
           error: action.payload.error || null,
+        })
+      )
+    }
+    case SettingsGen.sentVerificationEmail: {
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.email,
         })
       )
     }

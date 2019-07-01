@@ -228,6 +228,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             onChangeText={this._reformat}
             onEnterKeyDown={this.props.onEnterKeyDown}
             value={this.state.formatted}
+            textContentType="telephoneNumber"
           />
         </Kb.Box2>
         <CountrySelector
