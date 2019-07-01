@@ -75,7 +75,9 @@ export const Email = () => {
           allowSearch={allowSearch}
           onChangeAllowSearch={onChangeAllowSearch}
           onContinue={onContinue}
-          icon={<Kb.Icon type={Styles.isMobile ? 'icon-email-add-64' : 'icon-email-add-48'} />}
+          icon={
+            <Kb.Icon type={Styles.isMobile ? 'icon-email-add-64' : 'icon-email-add-48'} style={styles.icon} />
+          }
         />
       </Kb.Box2>
       {!!emailError && <Kb.Banner color="red" text={emailError.message} style={styles.banner} />}
@@ -148,8 +150,8 @@ export const Phone = () => {
           onChangeAllowSearch={onChangeAllowSearch}
           icon={
             <Kb.Icon
-              type={Styles.isMobile ? 'icon-number-add-64' : 'icon-number-add-48'}
-              style={styles.numberIcon}
+              type={Styles.isMobile ? 'icon-phone-number-add-64' : 'icon-phone-number-add-48'}
+              style={styles.icon}
             />
           }
         />
@@ -262,7 +264,7 @@ const styles = Styles.styleSheetCreate({
   footer: {
     ...Styles.padding(Styles.globalMargins.small),
   },
-  numberIcon: Styles.platformStyles({
+  icon: Styles.platformStyles({
     isElectron: {
       height: 48,
       width: 48,

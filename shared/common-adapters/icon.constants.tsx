@@ -160,15 +160,20 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-email-add-96.png'),
   },
-  'icon-email-delete-48': {
+  'icon-email-remove-48': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-delete-48.png'),
+    require: require('../images/icons/icon-email-remove-48.png'),
   },
-  'icon-email-delete-64': {
+  'icon-email-remove-64': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-email-delete-64.png'),
+    require: require('../images/icons/icon-email-remove-64.png'),
+  },
+  'icon-email-remove-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-email-remove-96.png'),
   },
   'icon-facebook-continue': {
     extension: 'png',
@@ -990,26 +995,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-nav-settings-selected-40.png'),
   },
-  'icon-number-add-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-number-add-48.png'),
-  },
-  'icon-number-add-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-number-add-64.png'),
-  },
-  'icon-number-delete-48': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-number-delete-48.png'),
-  },
-  'icon-number-delete-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-number-delete-64.png'),
-  },
   'icon-onboarding-chat-32': {
     extension: 'png',
     isFont: false,
@@ -1284,6 +1269,36 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-phone-96.png'),
+  },
+  'icon-phone-number-add-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-number-add-48.png'),
+  },
+  'icon-phone-number-add-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-number-add-64.png'),
+  },
+  'icon-phone-number-add-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-number-add-96.png'),
+  },
+  'icon-phone-number-remove-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-number-remove-48.png'),
+  },
+  'icon-phone-number-remove-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-number-remove-64.png'),
+  },
+  'icon-phone-number-remove-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-number-remove-96.png'),
   },
   'icon-phone-revoke-48': {
     extension: 'png',

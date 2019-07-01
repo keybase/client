@@ -196,7 +196,6 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
     if (stateProps._phoneRow) {
       const searchable = stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public
       return {
-        ...dispatchProps.phone,
         address: stateProps._phoneRow.phoneNumber,
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
