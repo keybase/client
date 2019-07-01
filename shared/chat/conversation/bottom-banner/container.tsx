@@ -6,7 +6,6 @@ import * as Types from '../../../constants/types/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
 import {connect, isMobile} from '../../../util/container'
 import openSMS from '../../../util/sms'
-import flags from '../../../util/feature-flags'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/app`
 
@@ -25,13 +24,7 @@ class BannerContainer extends React.PureComponent<Props> {
   render() {
     switch (this.props.type) {
       case 'invite':
-        return (
-          <InviteBanner
-            inviteEnabled={flags.sbsContacts}
-            onShareClick={this.props.onShareClick}
-            users={this.props.users}
-          />
-        )
+        return <InviteBanner onShareClick={this.props.onShareClick} users={this.props.users} />
       case 'broken':
         return <BrokenTrackerBanner onClick={this.props.onClick} users={this.props.users} />
       case 'none':

@@ -2,6 +2,7 @@ import * as React from 'react'
 import {Box, Button, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
+import flags from '../../../util/feature-flags'
 
 export type BrokenTrackerProps = {
   users: Array<string>
@@ -9,7 +10,6 @@ export type BrokenTrackerProps = {
 }
 
 export type InviteProps = {
-  inviteEnabled: boolean
   onShareClick: (email: string) => void
   users: Array<string>
 }
@@ -74,8 +74,8 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
     </BannerBox>
   )
 
-const InviteBanner = ({users, inviteEnabled, onShareClick}: InviteProps) =>
-  inviteEnabled && users.length === 1 && users[0].endsWith('@phone') ? (
+const InviteBanner = ({users, onShareClick}: InviteProps) =>
+  flags.sbsContacts && users.length === 1 && users[0].endsWith('@phone') ? (
     <BannerBox color={globalColors.blue}>
       <BannerText>Your messages will unlock once they join Keybase and verify their phone number.</BannerText>
       <BannerText>Help them install Keybase:</BannerText>
