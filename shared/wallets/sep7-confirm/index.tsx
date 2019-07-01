@@ -123,7 +123,7 @@ const Header = (props: HeaderProps) => (
         Keybase verified the request's signature.
       </Kb.Text>
     </Kb.Box2>
-    <WalletBackButton onBack={props.onBack} />
+    {Styles.isMobile && <WalletBackButton onBack={props.onBack} />}
   </Kb.Box2>
 )
 
