@@ -216,16 +216,6 @@ const Detail = (props: DetailProps) => {
     ''
   )
 
-  const byConverting = props.sourceAmount ? (
-    <Text type={textType}>
-      {' '}
-      by converting{' '}
-      <Text type={textTypeExtrabold}>
-        {props.sourceAmount} {props.sourceAsset || 'XLM'}
-      </Text>
-    </Text>
-  ) : null
-
   switch (props.yourRole) {
     case 'airdrop':
       return (
@@ -240,7 +230,6 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
             {approxWorth}
-            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -250,7 +239,6 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
             {approxWorth}
-            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -279,7 +267,6 @@ const Detail = (props: DetailProps) => {
       return (
         <Text type={textType} style={textStyle}>
           {verbPhrase} {amount} from this account to itself{approxWorth}
-          {byConverting}
           {textSentenceEnd}
         </Text>
       )
