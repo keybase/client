@@ -458,6 +458,37 @@ function* requestContactPermissions(
   ])
 }
 
+function manageContactsCache(
+  state: TypedState,
+  action: SettingsGen.EditContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  logger: Saga.SagaLogger
+) {
+  switch (action.type) {
+    case SettingsGen.editContactImportEnabled:
+      if (!action.payload.enable) {
+        logger.info('disabling contacts cache')
+        // TODO: Clear cache via RPC
+      }
+      return
+    case ConfigGen.mobileAppState:
+      if (action.payload.nextAppState !== 'active') {
+        return
+      }
+      break
+  }
+
+  const enabled = state.settings.contacts.importEnabled
+  const perm = state.settings.contacts.permissionStatus !== 'granted'
+  if (!enabled || !perm) {
+    if (enabled && !perm) {
+      logger.info('contact import enabled but no contact permissions')
+    }
+    return
+  }
+
+  // feature enabled and permission granted
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
@@ -485,6 +516,11 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.requestContactPermissions,
     requestContactPermissions,
     'requestContactPermissions'
+  )
+  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.editContactImportEnabled, ConfigGen.mobileAppState],
+    manageContactsCache,
+    'manageContactsCache'
   )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
