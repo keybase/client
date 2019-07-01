@@ -698,6 +698,18 @@ func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLo
 	}
 }
 
+type AirdropDetails struct {
+	IsPromoted bool   `codec:"isPromoted" json:"isPromoted"`
+	Details    string `codec:"details" json:"details"`
+}
+
+func (o AirdropDetails) DeepCopy() AirdropDetails {
+	return AirdropDetails{
+		IsPromoted: o.IsPromoted,
+		Details:    o.Details,
+	}
+}
+
 type AirdropState string
 
 func (o AirdropState) DeepCopy() AirdropState {
@@ -1681,7 +1693,7 @@ type LocalInterface interface {
 	GetPredefinedInflationDestinationsLocal(context.Context, int) ([]PredefinedInflationDestination, error)
 	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
 	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (InflationDestinationResultLocal, error)
-	AirdropDetailsLocal(context.Context, int) (string, error)
+	AirdropDetailsLocal(context.Context, int) (AirdropDetails, error)
 	AirdropStatusLocal(context.Context, int) (AirdropStatus, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
 	FuzzyAssetSearchLocal(context.Context, FuzzyAssetSearchLocalArg) ([]Asset, error)
@@ -3077,7 +3089,7 @@ func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg Get
 	return
 }
 
-func (c LocalClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res string, err error) {
+func (c LocalClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res AirdropDetails, err error) {
 	__arg := AirdropDetailsLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.airdropDetailsLocal", []interface{}{__arg}, &res)
 	return
