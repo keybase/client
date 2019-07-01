@@ -21,22 +21,84 @@ const pickerItems = memoize(countryData =>
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
-const menuItems = memoize((countryData, filter, onClick) =>
-  Object.values(countryData)
-    .sort((a: any, b: any) => a.name.localeCompare(b.name))
+const menuItems = memoize((countryData, filter, onClick) => {
+  const strippedFilter = filter.replace(/[^\d]/g, '')
+  const lowercaseFilter = filter.toLowerCase()
+
+  return Object.values(countryData)
     .filter((cd: any) => {
-      const strippedFilter = filter.replace(/[^\d+]/g, '')
-      return (
-        (strippedFilter.length > 0 && cd.callingCode.replace(/[^\d+]/g, '').includes(strippedFilter)) ||
-        cd.pickerText.toLowerCase().includes(filter.toLowerCase())
-      )
+      if (strippedFilter.length > 0) {
+        return cd.callingCode.replace(/[^\d]/g, '').startsWith(strippedFilter)
+      }
+      return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
+    })
+    .sort((a: any, b: any) => {
+      // Numeric prefix matcher
+      if (strippedFilter.length > 0) {
+        if (strippedFilter === '1') {
+          // Special case #1 - United States
+          if (a.name === 'United States') {
+            return -1
+          }
+          if (b.name === 'United States') {
+            return 1
+          }
+          // Special case #2 - Canada
+          if (a.name === 'Canada') {
+            return -1
+          }
+          if (b.name === 'Canada') {
+            return 1
+          }
+        }
+
+        const aCallingCode = a.callingCode.replace(/[^\d]/g, '')
+        const bCallingCode = b.callingCode.replace(/[^\d]/g, '')
+
+        // eq priority - 47 to test
+        if (aCallingCode === strippedFilter && bCallingCode !== strippedFilter) {
+          return -1
+        }
+        if (aCallingCode !== strippedFilter && bCallingCode === strippedFilter) {
+          return 1
+        }
+        if (aCallingCode === strippedFilter && bCallingCode === strippedFilter) {
+          return a.name.localeCompare(b.name)
+        }
+
+        const aCodeMatch = aCallingCode.startsWith(strippedFilter)
+        const bCodeMatch = bCallingCode.startsWith(strippedFilter)
+
+        // Either matches
+        if (aCodeMatch && !bCodeMatch) {
+          return -1
+        }
+        if (!aCodeMatch && !bCodeMatch) {
+          return 1
+        }
+        // Both or none match perfectly, sort alphabetically
+        return a.name.localeCompare(b.name)
+      }
+
+      // Textual prefix matcher
+      const aPrefixMatch = a.name.toLowerCase().startsWith(lowercaseFilter)
+      const bPrefixMatch = b.name.toLowerCase().startsWith(lowercaseFilter)
+      if (aPrefixMatch && !bPrefixMatch) {
+        return -1
+      }
+      if (!aPrefixMatch && bPrefixMatch) {
+        return 1
+      }
+
+      // Fallback to alphabetical sorting
+      return a.name.localeCompare(b.name)
     })
     .map((cd: any) => ({
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
       view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
     }))
-)
+})
 
 const MenuItem = props => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
