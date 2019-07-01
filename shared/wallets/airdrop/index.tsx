@@ -244,6 +244,8 @@ const styles = Styles.styleSheetCreate({
   },
   friendContainer: {
     backgroundColor: Styles.globalColors.blueLighter3,
+    display: 'flex',
+    flexWrap: 'wrap',
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
