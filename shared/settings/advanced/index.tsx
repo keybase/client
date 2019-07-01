@@ -97,6 +97,7 @@ const Advanced = (props: Props) => {
             />
           </Kb.Box>
         )}
+        {/* Removed for this release. Will add back in later. */}
         {/* <ProxySettings {...props} /> */}
         <Developer {...props} />
       </Kb.Box>
