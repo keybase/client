@@ -21,6 +21,7 @@ const pickerItems = memoize(countryData =>
     .sort((a: any, b: any) => a.name.localeCompare(b.name))
     .map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
+const prioritizedCountries = ['United States', 'Canada', 'United Kingdom']
 const menuItems = memoize((countryData, filter, onClick) => {
   const strippedFilter = filter.replace(/[^\d]/g, '')
   const lowercaseFilter = filter.toLowerCase()
@@ -33,25 +34,18 @@ const menuItems = memoize((countryData, filter, onClick) => {
       return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
     })
     .sort((a: any, b: any) => {
+      // Special cases
+      for (const country of prioritizedCountries) {
+        if (a.name === country) {
+          return -1
+        }
+        if (b.name === country) {
+          return 1
+        }
+      }
+
       // Numeric prefix matcher
       if (strippedFilter.length > 0) {
-        if (strippedFilter === '1') {
-          // Special case #1 - United States
-          if (a.name === 'United States') {
-            return -1
-          }
-          if (b.name === 'United States') {
-            return 1
-          }
-          // Special case #2 - Canada
-          if (a.name === 'Canada') {
-            return -1
-          }
-          if (b.name === 'Canada') {
-            return 1
-          }
-        }
-
         const aCallingCode = a.callingCode.replace(/[^\d]/g, '')
         const bCallingCode = b.callingCode.replace(/[^\d]/g, '')
 
