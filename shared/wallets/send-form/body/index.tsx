@@ -4,6 +4,8 @@ import * as Styles from '../../../styles'
 import AssetInputBasic from '../asset-input/asset-input-basic-container'
 import Banner from '../../banner'
 import Footer from '../footer/container'
+import * as Constants from '../../../constants/wallets'
+import * as Container from '../../../util/container'
 import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
 import {Banner as BannerType} from '../../../constants/types/wallets'
@@ -20,16 +22,21 @@ type RequestBodyProps = {
   isProcessing?: boolean
 }
 
-const Spinner = () => (
-  <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
-    <Kb.ProgressIndicator type="Large" />
-  </Kb.Box2>
-)
+const Spinner = () => {
+  const isBuilding = Container.useAnyWaiting(Constants.buildPaymentWaitingKey)
+  return (
+    isBuilding && (
+      <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
+        <Kb.ProgressIndicator type="Large" />
+      </Kb.Box2>
+    )
+  )
+}
 
 export const SendBody = (props: SendBodyProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.ScrollView style={sharedStyles.scrollView}>
-      {props.isProcessing && <Spinner />}
+      <Spinner />
       {props.banners.map(banner => (
         <Banner
           key={banner.bannerText}
@@ -96,5 +103,9 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white_90,
     padding: Styles.globalMargins.tiny,
   },
-  spinnerContainer: {...Styles.globalStyles.fillAbsolute},
+  spinnerContainer: {
+    ...Styles.globalStyles.fillAbsolute,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
 })
