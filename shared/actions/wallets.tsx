@@ -1113,6 +1113,8 @@ const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types
     ? 'native'
     : Constants.makeAssetDescription({
         code: asset.code,
+        infoUrl: asset.infoUrl,
+        infoUrlText: asset.infoUrlText,
         issuerAccountID: asset.issuer,
         issuerName: asset.issuerName,
         issuerVerifiedDomain: asset.verifiedDomain,

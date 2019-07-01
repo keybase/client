@@ -7,6 +7,7 @@ export type Props = {
   cannotAccept: boolean
   expanded: boolean
   firstItem: boolean
+  infoUrlText: string
   issuerAccountID: string
   issuerVerifiedDomain: string
   trusted: boolean // TODO add limit when we support it in GUI
@@ -15,7 +16,7 @@ export type Props = {
   onCollapse: () => void
   onExpand: () => void
   onRemove: () => void
-  onViewDetails: () => void
+  onOpenInfoUrl?: () => void
 
   waitingKeyAdd: string
   waitingKeyDelete: string
@@ -24,7 +25,7 @@ export type Props = {
 
 const stopPropagation = onClick => e => {
   e.stopPropagation()
-  onClick()
+  onClick && onClick()
 }
 
 const getCode = (props: Props) => (
@@ -62,9 +63,10 @@ const bodyExpanded = (props: Props) => (
       mode="Secondary"
       type="Default"
       small={true}
-      label="View details"
+      disabled={!props.onOpenInfoUrl}
+      label={props.infoUrlText}
       style={Styles.collapseStyles([styles.marginTopXtiny, styles.viewDetails])}
-      onClick={stopPropagation(props.onViewDetails)}
+      onClick={stopPropagation(props.onOpenInfoUrl)}
     />
   </Kb.Box2>
 )

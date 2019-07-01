@@ -75,6 +75,8 @@ export const makeReserve = I.Record<Types._Reserve>({
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
   code: '',
+  infoUrl: '',
+  infoUrlText: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
