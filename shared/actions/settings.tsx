@@ -380,7 +380,7 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
 }
 
 const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(settings => {
+  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey).then(settings => {
     const emailMap: I.Map<string, Types.EmailRow> = I.Map(
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
     )
@@ -408,7 +408,9 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
     return RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
   }
   if (action.payload.verify) {
-    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
+    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email}).then(() =>
+      SettingsGen.createSentVerificationEmail({email: action.payload.email})
+    )
   }
   if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({
@@ -620,8 +622,12 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
       return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
     })
     .catch(err => {
-      logger.warn('error ', err.message)
-      return SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
+      const message =
+        err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
+          ? 'Incorrect code, please try again.'
+          : err.message
+      logger.warn('error ', message)
+      return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
     })
 }
 
