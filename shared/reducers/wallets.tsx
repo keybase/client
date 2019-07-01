@@ -266,8 +266,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         buildingAdvanced.set('recipientType', action.payload.recipientType)
       )
     case WalletsGen.setBuildingAdvancedPublicMemo:
-      return state.update('buildingAdvanced', buildingAdvanced =>
-        buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+      return state.update(
+        'buildingAdvanced',
+        buildingAdvanced => buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+        // TODO PICNIC-142 clear error when we have that
       )
     case WalletsGen.setBuildingAdvancedSenderAccountID:
       return state.update('buildingAdvanced', buildingAdvanced =>
