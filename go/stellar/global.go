@@ -137,10 +137,6 @@ func (s *Stellar) clearBids() {
 	s.bids = nil
 }
 
-func (s *Stellar) GetMigrationLock() *sync.Mutex {
-	return &s.migrationLock
-}
-
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
 	s.serverConfLock.Lock()
 	defer s.serverConfLock.Unlock()

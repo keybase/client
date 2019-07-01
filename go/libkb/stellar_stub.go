@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -38,8 +37,6 @@ func (n *nullStellar) KickAutoClaimRunner(MetaContext, gregor.MsgID) {}
 func (n *nullStellar) UpdateUnreadCount(context.Context, stellar1.AccountID, int) error {
 	return errors.New("nullStellar UpdateUnreadCount")
 }
-
-func (n *nullStellar) GetMigrationLock() *sync.Mutex { return new(sync.Mutex) }
 
 func (n *nullStellar) SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error) {
 	return nil, errors.New("nullStellar SendMiniChatPayments")
