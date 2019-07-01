@@ -195,7 +195,12 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 	}
 
 	finder := &pukFinder{}
-	return bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	b, bv, pukGen, accountGens, err = bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	if err != nil {
+		return b, bv, pukGen, accountGens, err
+	}
+	mctx.G().GetStellar().InformBundle(mctx, b.Revision, b.Accounts)
+	return b, bv, pukGen, accountGens, err
 }
 
 // FetchSecretlessBundle gets an account bundle from the server and decrypts it

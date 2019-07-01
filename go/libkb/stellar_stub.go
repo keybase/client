@@ -57,3 +57,5 @@ func (n *nullStellar) RemovePendingTx(MetaContext, stellar1.AccountID, stellar1.
 func (n *nullStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, bool) {
 	return false, false
 }
+
+func (n *nullStellar) InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry) {}
