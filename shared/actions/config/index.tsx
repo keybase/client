@@ -25,6 +25,7 @@ import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import flags from '../../util/feature-flags'
 
 const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -250,7 +251,7 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
         RouteTreeGen.createSwitchRouteDef({loggedIn: true}),
-        ...(action.payload.causedBySignup
+        ...(action.payload.causedBySignup && flags.sbsContacts
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]

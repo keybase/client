@@ -313,6 +313,7 @@
       "_description": "Failed to send a payment",
       "error": "string"
     },
+
     "setBuildingAmount": {
       "_description": "Set building amount",
       "amount": "string"
@@ -345,6 +346,20 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+    "clearBuildingAdvanced": {
+      "_description": "replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones"
+    },
+    "setBuildingAdvancedRecipient": {"recipient": "string"},
+    "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
+    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedRecipientType": {"recipientType": "Types.CounterpartyType"},
+    "setBuildingAdvancedPublicMemo": {"publicMemo": "HiddenString"},
+    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
+    "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
+    "calculateBuildingAdvanced": {},
+    "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
+    "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",
@@ -451,6 +466,9 @@
     "refreshTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID"
     },
+    "refreshTrustlineAcceptedAssetsByUsername": {
+      "username": "string"
+    },
     "refreshTrustlinePopularAssets": {},
     "addTrustline": {
       "accountID": "Types.AccountID",
@@ -462,6 +480,11 @@
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlineAcceptedAssetsByUsername": {
+      "username": "string",
       "assets": "Array<Types.AssetDescription>",
       "limits": "I.Map<Types.AssetID, number>"
     },

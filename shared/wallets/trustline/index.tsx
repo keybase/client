@@ -86,19 +86,21 @@ const ListUpdateOnMount = (props: BodyProps) => {
   ])
 
   return (
-    <Kb.SectionList
-      key={getSectionListKey(props)}
-      sections={makeSections(props)}
-      renderItem={({index, item}) => (
-        <Asset
-          accountID={props.accountID}
-          firstItem={index === 0}
-          assetID={item}
-          cannotAccept={!props.canAddTrustline}
-        />
-      )}
-      renderSectionHeader={({section}) => sectionHeader(section)}
-    />
+    <Kb.BoxGrow>
+      <Kb.SectionList
+        key={getSectionListKey(props)}
+        sections={makeSections(props)}
+        renderItem={({index, item}) => (
+          <Asset
+            accountID={props.accountID}
+            firstItem={index === 0}
+            assetID={item}
+            cannotAccept={!props.canAddTrustline}
+          />
+        )}
+        renderSectionHeader={({section}) => sectionHeader(section)}
+      />
+    </Kb.BoxGrow>
   )
 }
 

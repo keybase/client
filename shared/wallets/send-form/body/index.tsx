@@ -1,12 +1,13 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import AssetInput from '../asset-input/container'
+import AssetInputBasic from '../asset-input/asset-input-basic-container'
 import Banner from '../../banner'
 import Footer from '../footer/container'
 import {SecretNote, PublicMemo} from '../note-and-memo/container'
 import Participants from '../participants/container'
 import {Banner as BannerType} from '../../../constants/types/wallets'
+import {sharedStyles} from './shared'
 
 type SendBodyProps = {
   banners: Array<BannerType>
@@ -26,14 +27,20 @@ const Spinner = () => (
 )
 
 export const SendBody = (props: SendBodyProps) => (
-  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-    <Kb.ScrollView style={styles.scrollView}>
+  <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
+    <Kb.ScrollView style={sharedStyles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
-        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        <Banner
+          key={banner.bannerText}
+          background={banner.bannerBackground}
+          text={banner.bannerText}
+          offerAdvancedSendForm={banner.offerAdvancedSendForm}
+          onAction={banner.action}
+        />
       ))}
       <Participants />
-      <AssetInput />
+      <AssetInputBasic />
       <Kb.Divider />
       <SecretNote />
       <PublicMemo />
@@ -44,14 +51,14 @@ export const SendBody = (props: SendBodyProps) => (
 )
 
 export const RequestBody = (props: RequestBodyProps) => (
-  <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
-    <Kb.ScrollView style={styles.scrollView}>
+  <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
+    <Kb.ScrollView style={sharedStyles.scrollView}>
       {props.isProcessing && <Spinner />}
       {props.banners.map(banner => (
         <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
       ))}
       <Participants />
-      <AssetInput />
+      <AssetInputBasic />
       <Kb.Divider />
       <SecretNote />
     </Kb.ScrollView>
@@ -84,22 +91,10 @@ const Failure = ({onReviewPayments}: {onReviewPayments: () => void}) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
   failureContainer: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.white_90,
     padding: Styles.globalMargins.tiny,
   },
-  scrollView: Styles.platformStyles({
-    common: {
-      flexGrow: 1,
-      flexShrink: 1,
-      width: '100%',
-    },
-    isElectron: {minHeight: '100%'},
-  }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 })

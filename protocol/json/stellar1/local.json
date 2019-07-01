@@ -567,6 +567,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AdvancedBanner",
+      "symbols": [
+        "NO_BANNER_0",
+        "SENDER_BANNER_1",
+        "RECEIVER_BANNER_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "SendBannerLocal",
       "fields": [
@@ -581,6 +590,10 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
+        },
+        {
+          "type": "AdvancedBanner",
+          "name": "offerAdvancedSendForm"
         }
       ]
     },
@@ -838,6 +851,10 @@
         {
           "type": "string",
           "name": "exchangeRate"
+        },
+        {
+          "type": "string",
+          "name": "amountError"
         },
         {
           "type": "AccountID",

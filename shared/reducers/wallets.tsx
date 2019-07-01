@@ -243,6 +243,50 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         builtPayment: state.get('builtPayment').merge({toErrMsg: ''}),
         builtRequest: state.get('builtRequest').merge({toErrMsg: ''}),
       })
+    case WalletsGen.clearBuildingAdvanced:
+      return state
+        .set('buildingAdvanced', Constants.emptyBuildingAdvanced)
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedRecipient:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('recipient', action.payload.recipient)
+      )
+    case WalletsGen.setBuildingAdvancedRecipientAmount:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('recipientAmount', action.payload.recipientAmount)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedRecipientAsset:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('recipientAsset', action.payload.recipientAsset)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedRecipientType:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('recipientType', action.payload.recipientType)
+      )
+    case WalletsGen.setBuildingAdvancedPublicMemo:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+      )
+    case WalletsGen.setBuildingAdvancedSenderAccountID:
+      return state.update('buildingAdvanced', buildingAdvanced =>
+        buildingAdvanced.set('senderAccountID', action.payload.senderAccountID)
+      )
+    case WalletsGen.setBuildingAdvancedSenderAsset:
+      return state
+        .update('buildingAdvanced', buildingAdvanced =>
+          buildingAdvanced.set('senderAsset', action.payload.senderAsset)
+        )
+        .set('builtPaymentAdvanced', Constants.emptyBuiltPaymentAdvanced)
+    case WalletsGen.setBuildingAdvancedSecretNote:
+      return state.update(
+        'buildingAdvanced',
+        buildingAdvanced => buildingAdvanced.set('secretNote', action.payload.secretNote)
+        // TODO PICNIC-142 clear error when we have that
+      )
     case WalletsGen.sendAssetChoicesReceived:
       const {sendAssetChoices} = action.payload
       return state.merge({
@@ -420,6 +464,18 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           )
           .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
       )
+    case WalletsGen.setTrustlineAcceptedAssetsByUsername:
+      return state.update('trustline', trustline =>
+        trustline
+          .update('acceptedAssetsByUsername', acceptedAssetsByUsername =>
+            acceptedAssetsByUsername.update(action.payload.username, accountAcceptedAssets =>
+              action.payload.limits.equals(accountAcceptedAssets)
+                ? accountAcceptedAssets
+                : action.payload.limits
+            )
+          )
+          .update('assetMap', assetMap => reduceAssetMap(assetMap, action.payload.assets))
+      )
     case WalletsGen.setTrustlinePopularAssets:
       return state.update('trustline', trustline =>
         trustline.withMutations(trustline =>
@@ -450,6 +506,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
+    case WalletsGen.setBuiltPaymentAdvanced:
+      return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
@@ -491,6 +549,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
+    case WalletsGen.calculateBuildingAdvanced:
       return state
     default:
       return state
