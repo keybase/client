@@ -150,10 +150,10 @@ const PaymentInfo = (props: PaymentInfoProps) => (
             {props.amount} XLM
           </Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
-            <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
               (Approximately {props.displayAmountFiat})
             </Kb.Text>
-            <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
               Your primary account has {props.availableToSendNative} available to send.
             </Kb.Text>
           </Kb.Box2>
@@ -230,6 +230,7 @@ const SEP7Confirm = (props: Props) => (
           fullWidth={true}
           style={styles.button}
           label={props.operation === 'pay' ? 'Pay' : 'Sign'}
+          disabled={!props.amount && !props.userAmount}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -329,6 +330,7 @@ const styles = Styles.styleSheetCreate({
   },
   stellarIcon: {
     alignSelf: 'flex-start',
+    color: Styles.globalColors.black,
     marginRight: Styles.globalMargins.xxtiny,
   },
   subHeaderText: {
