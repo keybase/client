@@ -26,4 +26,11 @@ const ConnectedSignupFeedback = Container.namedConnect(
   'ConnectedSignupFeedback'
 )(SignupFeedback)
 
+// @ts-ignore fix this
+ConnectedSignupFeedback.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerRightActions: null,
+}
+
 export default ConnectedSignupFeedback
