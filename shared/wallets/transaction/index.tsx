@@ -540,7 +540,9 @@ export const Transaction = (props: Props) => {
                   canceled={props.status === 'canceled'}
                   pending={pending}
                   yourRole={props.yourRole}
-                  sourceAmountDescription={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
+                  sourceAmountDescription={
+                    props.sourceAmount ? `${props.sourceAmount} ${props.sourceAsset || 'XLM'}` : undefined
+                  }
                   amountDescription={props.amountXLM}
                 />
               )}
