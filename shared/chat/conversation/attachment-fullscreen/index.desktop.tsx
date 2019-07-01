@@ -24,12 +24,13 @@ import KeyHandler from '../../../util/key-handler.desktop'
 
 type State = {
   loaded: string
+  isZoomed: boolean
 }
 
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   _vidRef: {current: HTMLVideoElement | null} = React.createRef()
   _mounted = false
-  state = {loaded: ''}
+  state = {loaded: '', isZoomed: false}
   _setLoaded = (path: string) => this.setState({loaded: path})
   _isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
 
@@ -73,12 +74,12 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
           {this.props.path && (
             <Box
               style={collapseStyles([
-                this.props.isZoomed ? styleContentsZoom : styleContentsFit,
+                this.state.isZoomed ? styleContentsZoom : styleContentsFit,
                 this._isLoaded() ? null : {display: 'none'},
               ])}
               onClick={() => {
                 if (!this.props.isVideo) {
-                  this.props.onToggleZoom()
+                  this.setState(p => ({isZoomed: !p.isZoomed}))
                 }
               }}
               key={this.props.path}
@@ -86,7 +87,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               {!this.props.isVideo ? (
                 <OrientedImage
                   src={this.props.path}
-                  style={this.props.isZoomed ? styleImageZoom : styleImageFit}
+                  style={this.state.isZoomed ? styleImageZoom : styleImageFit}
                   onLoad={() => {
                     if (this._mounted) {
                       this._setLoaded(this.props.path)
