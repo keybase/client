@@ -234,6 +234,12 @@ const load = () => {
             issuerVerifiedDomain: 'nathansmith.io',
           },
           {
+            code: '',
+            issuerAccountID: '',
+            issuerName: '',
+            issuerVerifiedDomain: '',
+          },
+          {
             code: 'BLAH',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'Blahhold.co',

@@ -485,9 +485,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setTrustlineSearchText:
       return action.payload.text
         ? state
-        : state.update('trustline', trustline =>
-            trustline.update('searchingAssets', searchingAssets => searchingAssets.clear())
-          )
+        : state.update('trustline', trustline => trustline.set('searchingAssets', I.List()))
     case WalletsGen.setTrustlineSearchResults:
       return state.update('trustline', trustline =>
         trustline
