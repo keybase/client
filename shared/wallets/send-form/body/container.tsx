@@ -1,12 +1,14 @@
 import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from '.'
 import {namedConnect} from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
+import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
 type OwnProps = {}
 
 const mapStateToProps = state => ({
+  _accountMap: state.wallets.accountMap,
   _building: state.wallets.building,
   _failed: !!state.wallets.sentPaymentError,
   banners: state.wallets.building.isRequest
@@ -33,7 +35,13 @@ const mergeProps = (stateProps, dispatchProps) => ({
       dispatchProps._onGoAdvanced(
         stateProps._building.to,
         stateProps._building.recipientType,
-        stateProps._building.from
+        // This can happen when sending from chat. The normal payment path
+        // goes through buildPayment to get the sender AccountID so we don't
+        // have it here.
+        stateProps._building.from === Types.noAccountID
+          ? stateProps._accountMap.find(account => account.isDefault, null, Constants.unknownAccount)
+              .accountID
+          : stateProps._building.from
       ),
     bannerBackground: Constants.bannerLevelToBackground(banner.level),
     bannerText: banner.message,

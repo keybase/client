@@ -394,9 +394,6 @@
         "keybase1NotifyTrackingTrackingChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingChanged']['inParam'] & {sessionID: number}"
         },
-        "keybase1NotifyTrackingTrackingInfo": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void}"
-        },
         "keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged']['inParam'] & {sessionID: number}"
         },

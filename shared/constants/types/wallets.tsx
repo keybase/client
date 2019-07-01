@@ -229,6 +229,8 @@ export type _Payment = {} & _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string
+  infoUrl: string
+  infoUrlText: string
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string

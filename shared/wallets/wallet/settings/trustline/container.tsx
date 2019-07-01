@@ -12,6 +12,7 @@ type OwnProps = {
 const mapStateToProps = (state, {accountID}: OwnProps) => ({
   acceptedAssets: state.wallets.trustline.acceptedAssets.get(accountID, Constants.emptyAccountAcceptedAssets),
   assetMap: state.wallets.trustline.assetMap,
+  thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
 })
 
 const mapDispatchToProps = (dispatch, {accountID}: OwnProps) => ({
@@ -29,6 +30,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
     .map(asset => ({code: asset.code, desc: asset.issuerVerifiedDomain || asset.issuerAccountID})),
   onSetupTrustline: d.onSetupTrustline,
   refresh: d.refresh,
+  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
 })
 
 export default Container.namedConnect(

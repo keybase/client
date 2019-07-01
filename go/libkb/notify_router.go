@@ -34,7 +34,6 @@ type NotifyListener interface {
 	ClientOutOfDate(to, uri, msg string)
 	UserChanged(uid keybase1.UID)
 	TrackingChanged(uid keybase1.UID, username NormalizedUsername)
-	TrackingInfo(uid keybase1.UID, followers, followees []string)
 	FSOnlineStatusChanged(online bool)
 	FSActivity(activity keybase1.FSNotification)
 	FSPathUpdated(path string)
@@ -110,7 +109,6 @@ func (n *NoopNotifyListener) Login(username string)                             
 func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                           {}
 func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
 func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
-func (n *NoopNotifyListener) TrackingInfo(uid keybase1.UID, followers, followees []string)  {}
 func (n *NoopNotifyListener) FSOnlineStatusChanged(online bool)                             {}
 func (n *NoopNotifyListener) FSOverallSyncStatusChanged(status keybase1.FolderSyncStatus)   {}
 func (n *NoopNotifyListener) FSFavoritesChanged()                                           {}
@@ -467,34 +465,6 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username Normaliz
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.TrackingChanged(uid, username)
-	})
-}
-
-func (n *NotifyRouter) HandleTrackingInfo(uid keybase1.UID, followers, followees []string) {
-	if n == nil {
-		return
-	}
-	arg := keybase1.TrackingInfoArg{
-		Uid:       uid,
-		Followees: followees,
-		Followers: followers,
-	}
-	// For all connections we currently have open...
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Tracking` notification type
-		if n.getNotificationChannels(id).Tracking {
-			// In the background do...
-			go func() {
-				// A send of a `TrackingChanged` RPC with the user's UID
-				(keybase1.NotifyTrackingClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).TrackingInfo(context.Background(), arg)
-			}()
-		}
-		return true
-	})
-	n.runListeners(func(listener NotifyListener) {
-		listener.TrackingInfo(uid, followers, followees)
 	})
 }
 

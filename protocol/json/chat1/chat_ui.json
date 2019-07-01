@@ -565,6 +565,14 @@
         {
           "type": "string",
           "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmount"
+        },
+        {
+          "type": "stellar1.Asset",
+          "name": "sourceAsset"
         }
       ]
     },
