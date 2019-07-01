@@ -32,7 +32,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
       onAcceptPay: (amount: string) => null,
       onAcceptTx: () => null,
       onBack: dispatchProps.onClose,
-      operation: 'pay',
+      operation: 'pay' as const,
       originDomain: '',
       recipient: null,
       summary: {
@@ -53,11 +53,19 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     memo,
     memoType,
     message,
-    operation,
     originDomain,
     recipient,
     summary,
   } = stateProps.sep7ConfirmInfo
+
+  const rawOp = stateProps.sep7ConfirmInfo.operation 
+  const operation = rawOp === 'pay' ? 'pay' as const: 
+  rawOp === 'tx' ? 'tx' as const : '' as const
+
+  if (operation === '') {
+    throw new Error('invalid operation' + stateProps.sep7ConfirmInfo.operation)
+  }
+
   return {
     amount,
     availableToSendNative,
