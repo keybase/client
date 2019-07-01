@@ -123,7 +123,7 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 	}
 	if ac == nil {
 		log("no more autoclaims")
-		if trigger.String() != "" {
+		if trigger != nil && trigger.String() != "" {
 			log("dismissing kick: %v", trigger)
 			err = mctx.G().GregorState.DismissItem(mctx.Ctx(), nil, trigger)
 			if err != nil {

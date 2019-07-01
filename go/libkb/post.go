@@ -182,6 +182,7 @@ func checkPostedAPICall(mctx MetaContext, sigID keybase1.SigID) (found bool, sta
 	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
 	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
 	res.Body.AtPath("proof_res.state").GetIntVoid(&rstate, &rerr)
+	mctx.G().GetStellar().KickAutoClaimRunner(mctx, nil)
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
