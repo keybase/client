@@ -87,7 +87,7 @@ class Airdrop extends React.Component<Props> {
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.fullHeight}>
           {p.signedUp ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
                 <Kb.Icon type="icon-airdrop-star-32" />
                 <Kb.Text type="BodySmallSemibold" style={styles.yourIn}>
