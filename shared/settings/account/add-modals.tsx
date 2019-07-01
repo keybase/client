@@ -12,11 +12,18 @@ import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export const Email = () => {
   const dispatch = Container.useDispatch()
+
+  const [email, onChangeEmail] = React.useState('')
+  const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const disabled = !email
+
+  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
+  const emailError = Container.useSelector(state => state.settings.email.error)
+  const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
+
   // clean on unmount
   React.useEffect(() => () => dispatch(SettingsGen.createClearAddingEmail()), [dispatch])
-
   // watch for + nav away on success
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   React.useEffect(() => {
     if (addedEmail) {
       // success
@@ -25,11 +32,6 @@ export const Email = () => {
   }, [addedEmail, dispatch])
 
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
-  const [email, onChangeEmail] = React.useState('')
-  const [allowSearch, onChangeAllowSearch] = React.useState(true)
-  const emailError = Container.useSelector(state => state.settings.email.error)
-  const disabled = !email
-  const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
   const onContinue = React.useCallback(
     () =>
       disabled || waiting ? null : dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch})),
@@ -86,11 +88,19 @@ export const Email = () => {
 }
 export const Phone = () => {
   const dispatch = Container.useDispatch()
+
+  const [phoneNumber, onChangeNumber] = React.useState('')
+  const [valid, onChangeValidity] = React.useState(false)
+  const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  const disabled = !valid
+
+  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
+  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+
   // clean only errors on unmount so verify screen still has info
   React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberErrors()), [dispatch])
   // watch for go to verify
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
@@ -98,11 +108,6 @@ export const Phone = () => {
   }, [dispatch, error, pendingVerification])
 
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
-  const [phoneNumber, onChangeNumber] = React.useState('')
-  const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(false)
-  const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
-  const disabled = !valid
   const onContinue = React.useCallback(
     () =>
       // TODO switch back to add
@@ -162,32 +167,36 @@ export const Phone = () => {
 }
 export const VerifyPhone = () => {
   const dispatch = Container.useDispatch()
-  // clean everything on unmount
-  React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberAdd()), [dispatch])
-  const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
-    dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+
+  const [code, onChangeCode] = React.useState('')
+
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
+  const resendWaiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+  const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
+
+  // clean everything on unmount
+  React.useEffect(() => () => dispatch(SettingsGen.createClearPhoneNumberAdd()), [dispatch])
   // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {
       dispatch(RouteTreeGen.createClearModals())
     }
   }, [verificationState, error, dispatch])
+
   const onResend = React.useCallback(
     () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
     [dispatch]
   )
-  const resendWaiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
-  const [code, onChangeCode] = React.useState('')
+  const onClose = React.useCallback(() => {
+    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    dispatch(RouteTreeGen.createClearModals())
+  }, [dispatch])
   const onContinue = React.useCallback(
     () => dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber: pendingVerification})),
     [dispatch, code, pendingVerification]
   )
-  const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
   const disabled = !code
   return (
     <Kb.Modal
