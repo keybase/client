@@ -15,6 +15,7 @@ export const Email = () => {
 
   const [email, onChangeEmail] = React.useState('')
   const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
   const disabled = !email
 
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
@@ -25,18 +26,20 @@ export const Email = () => {
   React.useEffect(() => () => dispatch(SettingsGen.createClearAddingEmail()), [dispatch])
   // watch for + nav away on success
   React.useEffect(() => {
-    if (addedEmail) {
+    if (addedEmail === addEmailInProgress) {
       // success
       dispatch(RouteTreeGen.createClearModals())
     }
   }, [addedEmail, dispatch])
 
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
-  const onContinue = React.useCallback(
-    () =>
-      disabled || waiting ? null : dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch})),
-    [dispatch, disabled, email, allowSearch, waiting]
-  )
+  const onContinue = React.useCallback(() => {
+    if (disabled || waiting) {
+      return
+    }
+    onAddEmailInProgress(email)
+    dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch}))
+  }, [dispatch, disabled, email, allowSearch, waiting])
   return (
     <Kb.Modal
       onClose={onClose}
@@ -110,7 +113,6 @@ export const Phone = () => {
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onContinue = React.useCallback(
     () =>
-      // TODO switch back to add
       disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
     [dispatch, disabled, waiting, allowSearch, phoneNumber]
   )
