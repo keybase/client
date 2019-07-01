@@ -586,6 +586,9 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
       })
     )
 
+const loadSettingsOnLogin = (state: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
+  action.payload.loggedIn && SettingsGen.createLoadSettings()
+
 // Once loaded, do not issue this RPC again. This field can only go true ->
 // false (never the opposite way), and there are notifications set up when
 // this happens.
@@ -725,6 +728,10 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.DeleteAccountForeverPayload>(
     SettingsGen.deleteAccountForever,
     deleteAccountForever
+  )
+  yield* Saga.chainAction<ConfigGen.BootstrapStatusLoadedPayload>(
+    ConfigGen.bootstrapStatusLoaded,
+    loadSettingsOnLogin
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
   yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(
