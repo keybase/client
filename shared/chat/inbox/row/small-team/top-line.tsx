@@ -12,6 +12,7 @@ type Props = {
   forceShowMenu: boolean
   hasUnread: boolean
   iconHoverColor: string
+  isSelected: boolean
   onForceHideMenu: () => void
   participants: Array<string>
   showBold: boolean
@@ -89,7 +90,7 @@ class _SimpleTopLine extends React.Component<Props> {
           style={Styles.collapseStyles([
             boldStyle,
             styles.timestamp,
-            !this.props.hasBadge && {color: this.props.subColor},
+            (!this.props.hasBadge || this.props.isSelected) && {color: this.props.subColor},
           ])}
         >
           {this.props.timestamp}

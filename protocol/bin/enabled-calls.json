@@ -25,6 +25,7 @@
   "chat.1.local.joinConversationByIDLocal": {"promise": true},
   "chat.1.local.leaveConversationLocal": {"promise": true},
   "chat.1.local.loadGallery": {"engineSaga": true},
+  "chat.1.local.locationDenied": {"promise": true},
   "chat.1.local.locationUpdate": {"promise": true},
   "chat.1.local.makePreview": {"promise": true},
   "chat.1.local.makeUploadTempFile": {"promise": true},
@@ -285,5 +286,8 @@
   "stellar.1.local.addTrustlineLocal": {"promise": true},
   "stellar.1.local.deleteTrustlineLocal": {"promise": true},
   "stellar.1.local.getTrustlinesLocal": {"promise": true},
-  "stellar.1.local.fuzzyAssetSearchLocal": {"promise": true}
+  "stellar.1.local.getTrustlinesForRecipientLocal": {"promise": true},
+  "stellar.1.local.fuzzyAssetSearchLocal": {"promise": true},
+  "stellar.1.local.findPaymentPathLocal": {"promise": true},
+  "stellar.1.local.sendPathLocal": {"promise": true}
 }

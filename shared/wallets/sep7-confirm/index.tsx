@@ -17,8 +17,6 @@ type Props = {
   availableToSendNative: string
   callbackURL: string | null
   displayAmountFiat: string
-  displayAmountNative: string
-  error: string
   loading: boolean
   memo: string | null
   memoType: string | null
@@ -31,6 +29,7 @@ type Props = {
   originDomain: string
   recipient: string | null
   summary: Summary
+  userAmount: string | null
   waitingKey: string
 }
 
@@ -45,18 +44,9 @@ const CallbackURLBanner = (props: CallbackURLBannerProps) => (
   </Kb.Box2>
 )
 
-type ErrorProps = {error: string; onBack: () => void}
-const Error = (props: ErrorProps) => (
-  <Kb.MaybePopup onClose={props.onBack}>
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.dialog}>
-        <Kb.Text type="Body">{props.error}</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
-  </Kb.MaybePopup>
-)
-
-type LoadingProps = {onBack: () => void}
+type LoadingProps = {
+  onBack: () => void
+}
 const Loading = (props: LoadingProps) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
@@ -145,6 +135,7 @@ type PaymentInfoProps = {
   message: string | null
   onChangeAmount: (amount: string) => void
   recipient: string
+  userAmount: string
 }
 const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -169,7 +160,7 @@ const PaymentInfo = (props: PaymentInfoProps) => (
         </>
       )}
     </Kb.Box2>
-    {!props.amount && <AssetInput />}
+    {!props.amount && <AssetInput amount={props.userAmount} onChangeAmount={props.onChangeAmount} />}
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
     {!!props.recipient && (
@@ -195,60 +186,65 @@ const TxInfo = (props: TxInfoProps) => (
   </Kb.Box2>
 )
 
-const SEP7Confirm = (props: Props) =>
-  props.loading ? (
-    <Loading onBack={props.onBack} />
-  ) : props.error ? (
-    <Error error={props.error} onBack={props.onBack} />
-  ) : (
-    <Kb.MaybePopup onClose={props.onBack}>
-      <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
-        <Header
-          isPayment={props.operation === 'pay'}
-          originDomain={props.originDomain}
-          onBack={props.onBack}
-        />
-        {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
-        <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
-          {props.operation === 'pay' ? (
-            <PaymentInfo
-              amount={props.amount}
-              availableToSendNative={props.availableToSendNative}
-              displayAmountFiat={props.displayAmountFiat}
-              memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
-              message={props.message}
-              onChangeAmount={props.onChangeAmount}
-              recipient={props.recipient}
-            />
-          ) : (
-            <TxInfo
-              fee={props.summary.fee}
-              memo={props.summary.memo}
-              source={props.summary.source}
-              operations={props.summary.operations}
-            />
-          )}
-        </Kb.ScrollView>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          centerChildren={true}
-          gap="small"
-          style={styles.buttonContainer}
-        >
-          <Kb.WaitingButton
-            type="Success"
-            onClick={props.operation === 'pay' ? () => props.onAcceptPay(props.amount) : props.onAcceptTx}
-            waitingKey={props.waitingKey}
-            fullWidth={true}
-            style={styles.button}
-            label={props.operation === 'pay' ? 'Pay' : 'Sign'}
+const SEP7Confirm = (props: Props) => (
+  <Kb.MaybePopup onClose={props.onBack}>
+    <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
+      <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} onBack={props.onBack} />
+      {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
+      <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
+        {props.operation === 'pay' ? (
+          <PaymentInfo
+            amount={props.amount}
+            availableToSendNative={props.availableToSendNative}
+            displayAmountFiat={props.displayAmountFiat}
+            memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
+            message={props.message}
+            onChangeAmount={props.onChangeAmount}
+            recipient={props.recipient}
+            userAmount={props.userAmount}
           />
-        </Kb.Box2>
+        ) : (
+          <TxInfo
+            fee={props.summary.fee}
+            memo={props.summary.memo}
+            source={props.summary.source}
+            operations={props.summary.operations}
+          />
+        )}
+      </Kb.ScrollView>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        gap="small"
+        style={styles.buttonContainer}
+      >
+        <Kb.WaitingButton
+          type="Success"
+          onClick={
+            props.operation === 'pay'
+              ? () => props.onAcceptPay(props.amount || props.userAmount)
+              : props.onAcceptTx
+          }
+          waitingKey={props.waitingKey}
+          fullWidth={true}
+          style={styles.button}
+          label={props.operation === 'pay' ? 'Pay' : 'Sign'}
+        />
       </Kb.Box2>
-      <Kb.SafeAreaView />
-    </Kb.MaybePopup>
+    </Kb.Box2>
+    <Kb.SafeAreaView />
+  </Kb.MaybePopup>
+)
+
+const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>) => {
+  const [userAmount, onChangeAmount] = React.useState('')
+  return props.loading ? (
+    <Loading onBack={props.onBack} />
+  ) : (
+    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} />
   )
+}
 
 const styles = Styles.styleSheetCreate({
   bodyText: Styles.platformStyles({
@@ -346,4 +342,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default SEP7Confirm
+export default SEP7ConfirmWrapper

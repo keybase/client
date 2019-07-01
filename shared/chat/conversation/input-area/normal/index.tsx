@@ -10,6 +10,7 @@ import {InputProps} from './types'
 import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 import CommandMarkdown from '../../command-markdown/container'
+import CommandStatus from '../../command-status/container'
 import Giphy from '../../giphy/container'
 import ReplyPreview from '../../reply-preview/container'
 
@@ -508,6 +509,7 @@ class Input extends React.Component<InputProps, InputState> {
         {this.props.showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
         )}
+        {this.props.showCommandStatus && <CommandStatus conversationIDKey={this.props.conversationIDKey} />}
         {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <PlatformInput
           {...platformInputProps}

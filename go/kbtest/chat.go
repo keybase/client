@@ -1184,11 +1184,16 @@ func (c *ChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) er
 	return nil
 }
 
-func (c *ChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
+func (c *ChatUI) ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error) {
 	return chat1.LocationWatchID(0), nil
 }
 
 func (c *ChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error {
+	return nil
+}
+
+func (c *ChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
 	return nil
 }
 

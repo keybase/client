@@ -31,21 +31,24 @@ class SearchResultsList extends Component<Props> {
       return <EmptyResults style={style} />
     }
 
+    let headerComponent = null
+    if (showSearchSuggestions) {
+      headerComponent = <Box style={{padding: globalMargins.tiny}}>
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
+          Recommendations
+        </Text>
+      </Box>
+    }
+
     return (
       <Box style={{width: '100%', ...style}}>
-        {showSearchSuggestions && (
-          <Box style={{padding: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
-              Recommendations
-            </Text>
-          </Box>
-        )}
         <NativeFlatList
           data={items}
           renderItem={this._renderItem}
           keyExtractor={this._keyExtractor}
           keyboardDismissMode={this.props.keyboardDismissMode}
           keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={headerComponent}
         />
       </Box>
     )

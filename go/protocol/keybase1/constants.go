@@ -212,6 +212,11 @@ const (
 	StatusCode_SCNISTBadClock                              StatusCode = 3219
 	StatusCode_SCNISTSigBadCtime                           StatusCode = 3220
 	StatusCode_SCBadSignupUsernameDeleted                  StatusCode = 3221
+	StatusCode_SCPhoneNumberUnknown                        StatusCode = 3400
+	StatusCode_SCPhoneNumberAlreadyVerified                StatusCode = 3401
+	StatusCode_SCPhoneNumberVerificationCodeExpired        StatusCode = 3402
+	StatusCode_SCPhoneNumberWrongVerificationCode          StatusCode = 3403
+	StatusCode_SCPhoneNumberLimitExceeded                  StatusCode = 3404
 	StatusCode_SCNoPaperKeys                               StatusCode = 3605
 )
 
@@ -420,6 +425,11 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNISTBadClock":                              3219,
 	"SCNISTSigBadCtime":                           3220,
 	"SCBadSignupUsernameDeleted":                  3221,
+	"SCPhoneNumberUnknown":                        3400,
+	"SCPhoneNumberAlreadyVerified":                3401,
+	"SCPhoneNumberVerificationCodeExpired":        3402,
+	"SCPhoneNumberWrongVerificationCode":          3403,
+	"SCPhoneNumberLimitExceeded":                  3404,
 	"SCNoPaperKeys":                               3605,
 }
 
@@ -626,6 +636,11 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3219: "SCNISTBadClock",
 	3220: "SCNISTSigBadCtime",
 	3221: "SCBadSignupUsernameDeleted",
+	3400: "SCPhoneNumberUnknown",
+	3401: "SCPhoneNumberAlreadyVerified",
+	3402: "SCPhoneNumberVerificationCodeExpired",
+	3403: "SCPhoneNumberWrongVerificationCode",
+	3404: "SCPhoneNumberLimitExceeded",
 	3605: "SCNoPaperKeys",
 }
 

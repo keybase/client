@@ -14,6 +14,7 @@ export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiCha
 export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
+export const chat1ChatUiChatCommandStatus = 'engine-gen:chat1ChatUiChatCommandStatus'
 export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
 export const chat1ChatUiChatGiphySearchResults = 'engine-gen:chat1ChatUiChatGiphySearchResults'
 export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiChatGiphyToggleResultWindow'
@@ -259,6 +260,13 @@ type _Chat1ChatUiChatCommandMarkdownPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatCommandStatusPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCommandStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatConfirmChannelDeletePayload = {
@@ -1672,6 +1680,9 @@ export const createChat1ChatUiChatCoinFlipStatus = (
 export const createChat1ChatUiChatCommandMarkdown = (
   payload: _Chat1ChatUiChatCommandMarkdownPayload
 ): Chat1ChatUiChatCommandMarkdownPayload => ({payload, type: chat1ChatUiChatCommandMarkdown})
+export const createChat1ChatUiChatCommandStatus = (
+  payload: _Chat1ChatUiChatCommandStatusPayload
+): Chat1ChatUiChatCommandStatusPayload => ({payload, type: chat1ChatUiChatCommandStatus})
 export const createChat1ChatUiChatConfirmChannelDelete = (
   payload: _Chat1ChatUiChatConfirmChannelDeletePayload
 ): Chat1ChatUiChatConfirmChannelDeletePayload => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
@@ -2319,6 +2330,10 @@ export type Chat1ChatUiChatCoinFlipStatusPayload = {
 export type Chat1ChatUiChatCommandMarkdownPayload = {
   readonly payload: _Chat1ChatUiChatCommandMarkdownPayload
   readonly type: typeof chat1ChatUiChatCommandMarkdown
+}
+export type Chat1ChatUiChatCommandStatusPayload = {
+  readonly payload: _Chat1ChatUiChatCommandStatusPayload
+  readonly type: typeof chat1ChatUiChatCommandStatus
 }
 export type Chat1ChatUiChatConfirmChannelDeletePayload = {
   readonly payload: _Chat1ChatUiChatConfirmChannelDeletePayload
@@ -3020,6 +3035,7 @@ export type Actions =
   | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload
+  | Chat1ChatUiChatCommandStatusPayload
   | Chat1ChatUiChatConfirmChannelDeletePayload
   | Chat1ChatUiChatGiphySearchResultsPayload
   | Chat1ChatUiChatGiphyToggleResultWindowPayload

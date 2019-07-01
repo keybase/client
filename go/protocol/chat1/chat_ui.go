@@ -2146,6 +2146,58 @@ func (o LocationWatchID) DeepCopy() LocationWatchID {
 	return o
 }
 
+type UICommandStatusDisplayTyp int
+
+const (
+	UICommandStatusDisplayTyp_STATUS  UICommandStatusDisplayTyp = 0
+	UICommandStatusDisplayTyp_WARNING UICommandStatusDisplayTyp = 1
+	UICommandStatusDisplayTyp_ERROR   UICommandStatusDisplayTyp = 2
+)
+
+func (o UICommandStatusDisplayTyp) DeepCopy() UICommandStatusDisplayTyp { return o }
+
+var UICommandStatusDisplayTypMap = map[string]UICommandStatusDisplayTyp{
+	"STATUS":  0,
+	"WARNING": 1,
+	"ERROR":   2,
+}
+
+var UICommandStatusDisplayTypRevMap = map[UICommandStatusDisplayTyp]string{
+	0: "STATUS",
+	1: "WARNING",
+	2: "ERROR",
+}
+
+func (e UICommandStatusDisplayTyp) String() string {
+	if v, ok := UICommandStatusDisplayTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UICommandStatusActionTyp int
+
+const (
+	UICommandStatusActionTyp_APPSETTINGS UICommandStatusActionTyp = 0
+)
+
+func (o UICommandStatusActionTyp) DeepCopy() UICommandStatusActionTyp { return o }
+
+var UICommandStatusActionTypMap = map[string]UICommandStatusActionTyp{
+	"APPSETTINGS": 0,
+}
+
+var UICommandStatusActionTypRevMap = map[UICommandStatusActionTyp]string{
+	0: "APPSETTINGS",
+}
+
+func (e UICommandStatusActionTyp) String() string {
+	if v, ok := UICommandStatusActionTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -2286,12 +2338,21 @@ type ChatLoadGalleryHitArg struct {
 }
 
 type ChatWatchPositionArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
 }
 
 type ChatClearWatchArg struct {
 	SessionID int             `codec:"sessionID" json:"sessionID"`
 	Id        LocationWatchID `codec:"id" json:"id"`
+}
+
+type ChatCommandStatusArg struct {
+	SessionID   int                        `codec:"sessionID" json:"sessionID"`
+	ConvID      string                     `codec:"convID" json:"convID"`
+	DisplayText string                     `codec:"displayText" json:"displayText"`
+	Typ         UICommandStatusDisplayTyp  `codec:"typ" json:"typ"`
+	Actions     []UICommandStatusActionTyp `codec:"actions" json:"actions"`
 }
 
 type ChatUiInterface interface {
@@ -2322,8 +2383,9 @@ type ChatUiInterface interface {
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
 	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
-	ChatWatchPosition(context.Context, int) (LocationWatchID, error)
+	ChatWatchPosition(context.Context, ChatWatchPositionArg) (LocationWatchID, error)
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
+	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2746,7 +2808,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatWatchPositionArg)(nil), args)
 						return
 					}
-					ret, err = i.ChatWatchPosition(ctx, typedArgs[0].SessionID)
+					ret, err = i.ChatWatchPosition(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2762,6 +2824,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatClearWatch(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatCommandStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatCommandStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatCommandStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatCommandStatusArg)(nil), args)
+						return
+					}
+					err = i.ChatCommandStatus(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2912,13 +2989,17 @@ func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGall
 	return
 }
 
-func (c ChatUiClient) ChatWatchPosition(ctx context.Context, sessionID int) (res LocationWatchID, err error) {
-	__arg := ChatWatchPositionArg{SessionID: sessionID}
+func (c ChatUiClient) ChatWatchPosition(ctx context.Context, __arg ChatWatchPositionArg) (res LocationWatchID, err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res)
 	return
 }
 
 func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []interface{}{__arg}, nil)
 	return
 }

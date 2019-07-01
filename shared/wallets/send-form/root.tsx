@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import Header from './header'
 
 type Props = {
+  onBack: () => void
   onClose: () => void
   children: React.ReactNode
   isRequest: boolean
@@ -28,7 +29,7 @@ const Root = (props: Props) => {
   let child = (
     <>
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header isRequest={props.isRequest} onBack={Styles.isMobile ? props.onClose : null} />
+        <Header isRequest={props.isRequest} onBack={props.onBack} />
         {props.children}
       </Kb.Box2>
       {!Styles.isMobile && <PoweredByStellar />}

@@ -124,6 +124,25 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.True(t, details.IsFunded)
 	require.False(t, details.CanSubmitTx)
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), details.CurrencyLocal.Code)
+	require.False(t, details.CanAddTrustline)
+
+	// Add another account that we will add 10 XLM, enough to be funded and can create trustlines
+	yetAnotherAccountID := tcs[0].Backend.AddAccountEmpty(t)
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   tcs[0].Backend.SecretKey(yetAnotherAccountID),
+		MakePrimary: false,
+		Name:        "another funded but 0 avail.",
+	})
+	require.NoError(t, err)
+
+	tcs[0].Backend.Gift(yetAnotherAccountID, "10")
+	argDetails.AccountID = yetAnotherAccountID
+	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	require.Equal(t, "10 XLM", details.BalanceDescription)
+	require.True(t, details.IsFunded)
+	require.True(t, details.CanSubmitTx)
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), details.CurrencyLocal.Code)
 	require.True(t, details.CanAddTrustline)
 }
 
@@ -1843,6 +1862,133 @@ func TestBuildPaymentLocal(t *testing.T) {
 	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
 }
 
+func TestBuildPaymentLocalAdvancedBanner(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 4)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
+	acceptDisclaimer(tcs[2])
+	acceptDisclaimer(tcs[3])
+	fakeAcct := tcs[0].Backend.ImportAccountsForUser(tcs[0])[0]
+	fakeAcct2 := tcs[1].Backend.ImportAccountsForUser(tcs[1])[0]
+	fakeAcct3 := tcs[2].Backend.ImportAccountsForUser(tcs[2])[0]
+	fakeAcct4 := tcs[3].Backend.ImportAccountsForUser(tcs[3])[0]
+	tcs[0].Backend.Gift(fakeAcct.accountID, "100")
+	tcs[0].Backend.Gift(fakeAcct2.accountID, "100")
+	tcs[0].Backend.Gift(fakeAcct3.accountID, "100")
+	tcs[0].Backend.Gift(fakeAcct4.accountID, "100")
+
+	err := tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAcct.accountID, "test")
+	require.NoError(t, err)
+	err = tcs[1].Srv.walletState.Refresh(tcs[1].MetaContext(), fakeAcct2.accountID, "test")
+	require.NoError(t, err)
+	err = tcs[2].Srv.walletState.Refresh(tcs[2].MetaContext(), fakeAcct3.accountID, "test")
+	require.NoError(t, err)
+	err = tcs[3].Srv.walletState.Refresh(tcs[3].MetaContext(), fakeAcct4.accountID, "test")
+	require.NoError(t, err)
+
+	t.Logf("sending from one account to another that only have native assets")
+	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct.accountID,
+		To:            fakeAcct2.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{})
+
+	t.Logf("sending from an account with non-native assets to an account with only native assets")
+	astro := tcs[0].Backend.CreateFakeAsset("AstroDollars")
+	fakeAcct.AdjustAssetBalance(0, astro)
+	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), fakeAcct.accountID, "test")
+	require.NoError(t, err)
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct.accountID,
+		To:            fakeAcct3.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:                 "info",
+		OfferAdvancedSendForm: stellar1.AdvancedBanner_SENDER_BANNER,
+	}})
+
+	t.Logf("sending from an account with only native assets to an account with non-native assets")
+	bres, err = tcs[2].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct3.accountID,
+		To:            fakeAcct.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:                 "info",
+		OfferAdvancedSendForm: stellar1.AdvancedBanner_RECEIVER_BANNER,
+	}})
+
+	t.Logf("sending from an account with non-native assets to an account with the same non-native asset")
+	fakeAcct4.AdjustAssetBalance(0, astro)
+	err = tcs[3].Srv.walletState.Refresh(tcs[3].MetaContext(), fakeAcct4.accountID, "test")
+	require.NoError(t, err)
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          fakeAcct.accountID,
+		To:            fakeAcct4.accountID.String(),
+		ToIsAccountID: true,
+		Amount:        "8.50",
+		Currency:      &usd,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, true, bres.ReadyToReview)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+	require.False(t, bres.SendingIntentionXLM)
+	require.Equal(t, "26.7020180 XLM", bres.DisplayAmountXLM)
+	require.Equal(t, "$8.50 USD", bres.DisplayAmountFiat)
+	requireBannerSet(t, bres.DeepCopy().Banners, []stellar1.SendBannerLocal{{
+		Level:                 "info",
+		OfferAdvancedSendForm: stellar1.AdvancedBanner_RECEIVER_BANNER,
+	}})
+}
+
 // Simple happy path case.
 func TestBuildPaymentLocalBidHappy(t *testing.T) {
 	testBuildPaymentLocalBidHappy(t, false)
@@ -2252,11 +2398,15 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	defer cleanup()
 
 	acceptDisclaimer(tcs[0])
+	acceptDisclaimer(tcs[1])
 	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
 	require.NoError(t, err)
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	tcs[0].Backend.Gift(senderAccountID, "100")
 	err = tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+	require.NoError(t, err)
+	fakeAcct := tcs[1].Backend.ImportAccountsForUser(tcs[1])[0]
+	err = tcs[1].Srv.walletState.Refresh(tcs[1].MetaContext(), fakeAcct.accountID, "test")
 	require.NoError(t, err)
 
 	send := func(bid stellar1.BuildPaymentID, amount string) (errorString string) {
