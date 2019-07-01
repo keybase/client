@@ -26,7 +26,7 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
       style={Styles.collapseStyles([sharedStyles.container, styles.container])}
       gap="xtiny"
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.topLabel}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.topLabel} gap="xtiny">
         {buildingAdvanced.recipientType === 'keybaseUser' ? (
           <>
             <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />

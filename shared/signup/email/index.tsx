@@ -38,7 +38,7 @@ const EnterEmail = (props: Props) => {
         showAllowSearch={true}
         allowSearch={allowSearch}
         onChangeAllowSearch={onChangeAllowSearch}
-        icon={<Kb.Icon type="icon-email-add-96" />}
+        icon={Styles.isMobile ? <Kb.Icon type="icon-email-add-96" style={styles.icon} /> : null}
       />
     </SignupScreen>
   )
@@ -87,6 +87,10 @@ export const EnterEmailBody = (props: BodyProps) => (
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
+  icon: {
+    height: 96,
+    width: 96,
+  },
   input: Styles.platformStyles({
     common: {},
     isElectron: {

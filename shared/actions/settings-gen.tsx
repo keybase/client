@@ -16,7 +16,8 @@ export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
 export const clearAddedEmail = 'settings:clearAddedEmail'
 export const clearAddingEmail = 'settings:clearAddingEmail'
-export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
+export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
+export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
@@ -65,6 +66,7 @@ export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
+export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
@@ -93,7 +95,8 @@ type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearAddedEmailPayload = void
 type _ClearAddingEmailPayload = void
-type _ClearPhoneNumberVerificationPayload = void
+type _ClearPhoneNumberAddPayload = void
+type _ClearPhoneNumberErrorsPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _EditContactImportEnabledPayload = {readonly enable: boolean}
@@ -162,6 +165,7 @@ type _SendFeedbackPayload = {
   readonly sendLogs: boolean
   readonly sendMaxBytes: boolean
 }
+type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _TracePayload = {readonly durationSeconds: number}
@@ -201,11 +205,17 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
   type: feedbackSent,
 })
 /**
- * Cancel a phone number verification-in-progress.
+ * Cancel adding a phone number.
  */
-export const createClearPhoneNumberVerification = (
-  payload: _ClearPhoneNumberVerificationPayload
-): ClearPhoneNumberVerificationPayload => ({payload, type: clearPhoneNumberVerification})
+export const createClearPhoneNumberAdd = (
+  payload: _ClearPhoneNumberAddPayload
+): ClearPhoneNumberAddPayload => ({payload, type: clearPhoneNumberAdd})
+/**
+ * Clear only error from phone number add flow.
+ */
+export const createClearPhoneNumberErrors = (
+  payload: _ClearPhoneNumberErrorsPayload
+): ClearPhoneNumberErrorsPayload => ({payload, type: clearPhoneNumberErrors})
 /**
  * Load whether config says we've enabled contact importing and check OS contacts permission status.
  */
@@ -438,6 +448,9 @@ export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackP
   payload,
   type: sendFeedback,
 })
+export const createSentVerificationEmail = (
+  payload: _SentVerificationEmailPayload
+): SentVerificationEmailPayload => ({payload, type: sentVerificationEmail})
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
@@ -475,9 +488,13 @@ export type ClearAddingEmailPayload = {
   readonly payload: _ClearAddingEmailPayload
   readonly type: typeof clearAddingEmail
 }
-export type ClearPhoneNumberVerificationPayload = {
-  readonly payload: _ClearPhoneNumberVerificationPayload
-  readonly type: typeof clearPhoneNumberVerification
+export type ClearPhoneNumberAddPayload = {
+  readonly payload: _ClearPhoneNumberAddPayload
+  readonly type: typeof clearPhoneNumberAdd
+}
+export type ClearPhoneNumberErrorsPayload = {
+  readonly payload: _ClearPhoneNumberErrorsPayload
+  readonly type: typeof clearPhoneNumberErrors
 }
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
@@ -657,6 +674,10 @@ export type SaveProxyDataPayload = {
   readonly type: typeof saveProxyData
 }
 export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
+export type SentVerificationEmailPayload = {
+  readonly payload: _SentVerificationEmailPayload
+  readonly type: typeof sentVerificationEmail
+}
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
@@ -703,7 +724,8 @@ export type Actions =
   | CheckPasswordPayload
   | ClearAddedEmailPayload
   | ClearAddingEmailPayload
-  | ClearPhoneNumberVerificationPayload
+  | ClearPhoneNumberAddPayload
+  | ClearPhoneNumberErrorsPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | EditContactImportEnabledPayload
@@ -754,6 +776,7 @@ export type Actions =
   | RequestContactPermissionsPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
+  | SentVerificationEmailPayload
   | SetAllowDeleteAccountPayload
   | StopPayload
   | TracePayload

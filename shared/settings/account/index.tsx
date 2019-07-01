@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
@@ -16,6 +17,8 @@ export type Props = {
   onManageContacts: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
+  onReload: () => void
+  waiting: boolean
 } & HeaderHocProps
 
 export const SettingsSection = ({children}: {children: React.ReactNode}) => (
@@ -27,7 +30,10 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
 const EmailPhone = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-      <Kb.Text type="Header">Email & phone</Kb.Text>
+      <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Text type="Header">Email & phone</Kb.Text>
+        {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
+      </Kb.Box2>
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
         find you by phone number or email.
@@ -111,28 +117,34 @@ const ManageContacts = (props: Props) => (
 )
 
 const AccountSettings = (props: Props) => (
-  <Kb.ScrollView>
-    {props.addedEmail && (
-      <Kb.Banner
-        color="green"
-        text={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
-        onClose={props.onClearAddedEmail}
-      />
-    )}
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <EmailPhone {...props} />
-      <Kb.Divider />
-      <Password {...props} />
-      {Styles.isMobile && flags.sbsContacts && (
-        <>
-          <Kb.Divider />
-          <ManageContacts {...props} />
-        </>
+  <Kb.Reloadable
+    onReload={props.onReload}
+    reloadOnMount={true}
+    waitingKeys={[Constants.loadSettingsWaitingKey]}
+  >
+    <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
+      {props.addedEmail && (
+        <Kb.Banner
+          color="green"
+          text={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
+          onClose={props.onClearAddedEmail}
+        />
       )}
-      <Kb.Divider />
-      <DeleteAccount {...props} />
-    </Kb.Box2>
-  </Kb.ScrollView>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <EmailPhone {...props} />
+        <Kb.Divider />
+        <Password {...props} />
+        {Styles.isMobile && flags.sbsContacts && (
+          <>
+            <Kb.Divider />
+            <ManageContacts {...props} />
+          </>
+        )}
+        <Kb.Divider />
+        <DeleteAccount {...props} />
+      </Kb.Box2>
+    </Kb.ScrollView>
+  </Kb.Reloadable>
 )
 
 const styles = Styles.styleSheetCreate({
@@ -148,6 +160,10 @@ const styles = Styles.styleSheetCreate({
   password: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
+  },
+  progress: {
+    height: 16,
+    width: 16,
   },
   section: Styles.platformStyles({
     isElectron: {
