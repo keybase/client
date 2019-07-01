@@ -109,6 +109,9 @@ func (l *TrackerLoader) load(ctx context.Context) error {
 		l.debug(ctx, "load: failed to load from server: %s", err)
 		return err
 	}
+	if err := syncer.store(mctx, uid); err != nil {
+		l.debug(ctx, "load: failed to store result: %s", err)
+	}
 	followers, followees := l.argsFromSyncer(syncer)
 	l.G().NotifyRouter.HandleTrackingInfo(uid, followers, followees)
 	return nil
