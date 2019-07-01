@@ -1695,6 +1695,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 
 	// don't need keys for existing or bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
+	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
 		return nil, implicitAdminBoxes, nil, nil, nil
 	}
