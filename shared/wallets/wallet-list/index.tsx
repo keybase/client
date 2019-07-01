@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Flow from '../../util/flow'
 import {AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 import flags from '../../util/feature-flags'
@@ -82,12 +81,13 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
 
 export type Props = {
   accountIDs: Array<AccountID>
+  airdropIsLive: boolean
   airdropSelected: boolean
   style?: Styles.StylesCrossPlatform
   loading: boolean
   inAirdrop: boolean
   onAddNew: () => void
-  onJoinAirdrop: () => void
+  onJoinAirdrop: () => void | null
   onLinkExisting: () => void
   onWhatIsStellar: () => void
   title: string
@@ -148,7 +148,7 @@ class WalletList extends React.Component<Props> {
       accountID => ({accountID, key: accountID, type: 'wallet'} as const)
     )
 
-    if (flags.airdrop) {
+    if (flags.airdrop && this.props.airdropIsLive) {
       const joinAirdrop = 'join airdrop'
       rows.push({key: joinAirdrop, type: joinAirdrop})
     }

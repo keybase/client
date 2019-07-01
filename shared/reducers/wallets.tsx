@@ -436,7 +436,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.updateAirdropBannerState:
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails:
-      return state.merge({airdropDetails: action.payload.details})
+      const {details, isPromoted} = action.payload
+      return state.set('airdropDetails', Constants.makeAirdropDetails({details, isPromoted}))
     case WalletsGen.setTrustlineExpanded:
       return state.update('trustline', trustline =>
         trustline.update('expandedAssets', expandedAssets =>

@@ -332,8 +332,8 @@ export type _AirdropDetailsResponse = {
 export type AirdropDetailsResponse = I.RecordOf<_AirdropDetailsResponse>
 
 export type _AirdropDetails = {
-  details: AirdropDetailsResponse,
-  isPromoted: boolean,
+  details: AirdropDetailsResponse
+  isPromoted: boolean
 }
 
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
