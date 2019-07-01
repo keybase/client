@@ -76,9 +76,9 @@ const InfoRow = (props: InfoRowProps) => (
         {props.headerText}
       </Kb.Text>
       {props.showStellarIcon ? (
-        <Kb.Box2 direction="horizontal" gap="xtiny">
+        <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
           <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
-          <Kb.Text lineClamp={2} selectable={true} type="Body">
+          <Kb.Text lineClamp={2} selectable={true} type="Body" style={styles.bodyText}>
             {props.bodyText}
           </Kb.Text>
         </Kb.Box2>
@@ -249,7 +249,11 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>)
 
 const styles = Styles.styleSheetCreate({
   bodyText: Styles.platformStyles({
-    common: {color: Styles.globalColors.black},
+    common: {
+      color: Styles.globalColors.black,
+      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
+    },
     isElectron: {wordBreak: 'break-word'},
   }),
   button: {
