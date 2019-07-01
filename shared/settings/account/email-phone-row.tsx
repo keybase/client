@@ -52,7 +52,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Verify',
     })
   }
-  if (props.type === 'email' && !props.primary && props.verified) {
+  if (props.type === 'email' && !props.primary) {
     menuItems.push({
       onClick: props.onMakePrimary,
       subTitle: 'Use this email for important notifications.',
