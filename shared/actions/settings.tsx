@@ -396,12 +396,14 @@ const loadSettings = () =>
   })
 
 const computeBadgesOnLoadedSettings = (state, action: SettingsGen.LoadedSettingsPayload) => {
-  const emailCount = (action.payload.emails || I.Map())
-    .filter(emailRow => !emailRow.isVerified)
-    .reduce((a, email) => a + 1, 0)
-  const phoneCount = (action.payload.phones || I.Map())
-    .filter(phoneRow => !phoneRow.verified)
-    .reduce((a, phone) => a + 1, 0)
+  const emailCount = (action.payload.emails || I.Map()).reduce(
+    (count, row) => (row.isVerified ? count : count + 1),
+    0
+  )
+  const phoneCount = (action.payload.phones || I.Map()).reduce(
+    (count, row) => (row.verified ? count : count + 1),
+    0
+  )
 
   return NotificationsGen.createSetBadgeCounts({
     counts: I.Map({
