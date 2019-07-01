@@ -323,10 +323,17 @@ export type _AirdropDetailsHeader = {
 }
 type AirdropDetailsHeader = I.RecordOf<_AirdropDetailsHeader>
 
-export type _AirdropDetails = {
+export type _AirdropDetailsResponse = {
   header: AirdropDetailsHeader
   sections: I.List<AirdropDetailsSection>
 }
+export type AirdropDetailsResponse = I.RecordOf<_AirdropDetailsResponse>
+
+export type _AirdropDetails = {
+  details: AirdropDetailsResponse,
+  isPromoted: boolean,
+}
+
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
 export type AssetID = string
