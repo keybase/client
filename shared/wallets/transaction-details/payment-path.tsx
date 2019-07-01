@@ -86,12 +86,17 @@ const PaymentPath = (props: PaymentPathProps) => (
   <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start">
     <PaymentPathStart assetLabel={props.sourceAmount} issuer={props.sourceIssuer} />
     <Kb.Box style={styles.paymentPathLine} />
-    {props.pathIntermediate.map((asset, i) => (
-      <React.Fragment key={i}>
-        <PaymentPathStop assetCode={asset.code} issuer={asset.issuerVerifiedDomain || 'Unknown issuer'} />
-        <Kb.Box style={styles.paymentPathLine} />
-      </React.Fragment>
-    ))}
+    {props.pathIntermediate.map((asset, i) => {
+      // If we don't have a code, then the asset is lumens
+      const code = asset.code || 'XLM'
+      const issuer = code === 'XLM' ? 'Stellar Lumens' : asset.issuerVerifiedDomain
+      return (
+        <React.Fragment key={i}>
+          <PaymentPathStop assetCode={code} issuer={issuer} />
+          <Kb.Box style={styles.paymentPathLine} />
+        </React.Fragment>
+      )
+    })}
     <PaymentPathEnd assetLabel={props.destinationAmount} issuer={props.destinationIssuer} />
   </Kb.Box2>
 )
