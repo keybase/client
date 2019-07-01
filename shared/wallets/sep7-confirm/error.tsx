@@ -12,11 +12,7 @@ const Error = () => {
   return (
     <Kb.MaybePopup onClose={onBack}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.dialog}>
-          <Kb.Text style={styles.text} type="Body">
-            {error}
-          </Kb.Text>
-        </Kb.Box2>
+        <Kb.Banner text={error} color="red" />
       </Kb.Box2>
     </Kb.MaybePopup>
   )
@@ -38,18 +34,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  dialog: {
-    backgroundColor: Styles.globalColors.red,
-    marginTop: Styles.globalMargins.small,
-    minHeight: 40,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  text: {
-    color: Styles.globalColors.white,
-  },
 })
 
 export default Error
