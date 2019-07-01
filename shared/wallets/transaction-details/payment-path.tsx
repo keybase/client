@@ -89,7 +89,7 @@ const PaymentPath = (props: PaymentPathProps) => (
     {props.pathIntermediate.map((asset, i) => {
       // If we don't have a code, then the asset is lumens
       const code = asset.code || 'XLM'
-      const issuer = code === 'XLM' ? 'Stellar Lumens' : asset.issuerVerifiedDomain
+      const issuer = code === 'XLM' ? 'Stellar Lumens' : asset.issuerVerifiedDomain || 'Unknown issuer'
       return (
         <React.Fragment key={i}>
           <PaymentPathStop assetCode={code} issuer={issuer} />
