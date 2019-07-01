@@ -11,6 +11,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
+import * as Tabs from '../constants/tabs'
+import * as NotificationsGen from '../actions/notifications-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
@@ -393,6 +395,21 @@ const loadSettings = () =>
     })
   })
 
+const computeBadgesOnLoadedSettings = (state, action: SettingsGen.LoadedSettingsPayload) => {
+  const emailCount = (action.payload.emails || I.Map())
+    .map(emailRow => (emailRow.isVerified ? 0 : 1))
+    .reduce((a, b) => a + b, 0)
+  const phoneCount = (action.payload.phones || I.Map())
+    .map(phoneRow => (phoneRow.verified ? 0 : 1))
+    .reduce((a, b) => a + b, 0)
+
+  return NotificationsGen.createSetBadgeCounts({
+    counts: I.Map({
+      [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
+    }) as I.Map<Tabs.Tab, number>,
+  })
+}
+
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
   visibility === ChatTypes.Keybase1.IdentityVisibility.private
     ? ChatTypes.Keybase1.IdentityVisibility.public
@@ -708,6 +725,12 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     deleteAccountForever
   )
   yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
+  yield* Saga.chainAction<SettingsGen.LoadedSettingsPayload>(
+    SettingsGen.loadedSettings,
+    computeBadgesOnLoadedSettings
+  )
+  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
+  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
     SettingsGen.onSubmitNewEmail,
     onSubmitNewEmail

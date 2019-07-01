@@ -64,8 +64,8 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
-        ? "Don't let friends find you by this email."
-        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this email.`,
+        ? `Don't let friends find you by this ${props.type}.`
+        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${props.type}.`,
       title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
