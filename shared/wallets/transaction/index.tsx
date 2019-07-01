@@ -74,7 +74,11 @@ type CounterpartyTextProps = {
 export const CounterpartyText = (props: CounterpartyTextProps) => {
   switch (props.counterpartyType) {
     case 'airdrop':
-      return <Text style={{color: globalColors.white}} type={props.textTypeSemibold}>Stellar airdrop</Text>
+      return (
+        <Text style={{color: globalColors.white}} type={props.textTypeSemibold}>
+          Stellar airdrop
+        </Text>
+      )
     case 'keybaseUser':
       return (
         <ConnectedUsernames
@@ -224,9 +228,11 @@ const Detail = (props: DetailProps) => {
 
   switch (props.yourRole) {
     case 'airdrop':
-      return <Text type={textType} style={textStyle}>
-        {counterparty()}
-      </Text>
+      return (
+        <Text type={textType} style={textStyle}>
+          {counterparty()}
+        </Text>
+      )
     case 'senderOnly':
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
@@ -387,7 +393,12 @@ const TimestampLine = (props: TimestampLineProps) => {
       break
   }
   return (
-    <Text selectable={props.selectableText} style={props.reverseColor && {color: globalColors.white}} title={tooltip} type="BodySmall">
+    <Text
+      selectable={props.selectableText}
+      style={props.reverseColor && {color: globalColors.white}}
+      title={tooltip}
+      type="BodySmall"
+    >
       {human}
       {status ? ` • ` : null}
       {!!status && (
@@ -466,7 +477,11 @@ export const Transaction = (props: Props) => {
   }
   const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
-  const backgroundColor = props.fromAirdrop ? globalColors.purpleLight : (props.unread && !props.detailView) ? globalColors.blueLighter2 : globalColors.white
+  const backgroundColor = props.fromAirdrop
+    ? globalColors.purpleLight
+    : (props.unread || pending) && !props.detailView
+    ? globalColors.blueLighter2
+    : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
