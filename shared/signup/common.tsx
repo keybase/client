@@ -7,10 +7,9 @@ import openURL from '../util/open-url'
 import * as Styles from '../styles'
 
 type InfoIconProps = {
-  loggedIn: boolean
   invisible?: boolean
   onDocumentation: () => void
-  onFeedback: (loggedIn: boolean) => void
+  onFeedback: () => void
   style?: Styles.StylesCrossPlatform
 }
 
@@ -30,7 +29,7 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
     />
     <Kb.FloatingMenu
       items={[
-        {onClick: () => props.onFeedback(props.loggedIn), title: 'Send feedback'},
+        {onClick: () => props.onFeedback(), title: 'Send feedback'},
         {onClick: props.onDocumentation, title: 'Documentation'},
       ]}
       attachTo={props.getAttachmentRef}
@@ -42,18 +41,22 @@ const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
 )
 
 export const InfoIcon = Container.namedConnect(
-  state => ({loggedIn: state.config.loggedIn}),
+  state => ({_loggedIn: state.config.loggedIn}),
   dispatch => ({
-    onDocumentation: () => openURL('https://keybase.io/docs'),
-    onFeedback: (loggedIn: boolean) => {
+    _onFeedback: (loggedIn: boolean) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
         })
       )
     },
+    onDocumentation: () => openURL('https://keybase.io/docs'),
   }),
-  (s, d, o: InfoIconOwnProps) => ({...s, ...d, ...o}),
+  (s, d, o: InfoIconOwnProps) => ({
+    ...o,
+    onDocumentation: d.onDocumentation,
+    onFeedback: () => d._onFeedback(s._loggedIn),
+  }),
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
