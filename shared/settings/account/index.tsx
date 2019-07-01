@@ -122,7 +122,7 @@ const AccountSettings = (props: Props) => (
     reloadOnMount={true}
     waitingKeys={[Constants.loadSettingsWaitingKey]}
   >
-    <Kb.ScrollView style={{width: '100%'}}>
+    <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
       {props.addedEmail && (
         <Kb.Banner
           color="green"

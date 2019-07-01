@@ -46,6 +46,9 @@ export declare const globalStyles: {
   fullHeight: {
     height: '100%'
   }
+  fullWidth: {
+    width: '100%'
+  }
   italic: fontShape
   loadingTextStyle: CSS._StylesCrossPlatform
   rounded: {
