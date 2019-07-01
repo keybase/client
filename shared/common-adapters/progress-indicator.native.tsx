@@ -5,7 +5,7 @@ import {globalColors, collapseStyles} from '../styles'
 
 class ProgressIndicator extends Component<Props> {
   render() {
-    const size = this.props.type === 'Small' ? 'small' : 'large'
+    const size = this.props.type === 'Large' ? 'large' : 'small'
 
     return (
       <NativeActivityIndicator
