@@ -142,7 +142,15 @@ func FormatAssetIssuerString(asset stellar1.Asset) string {
 	if asset.VerifiedDomain != "" {
 		return asset.VerifiedDomain
 	}
-	return "Unknown issuer"
+	iaid := asset.IssuerString()
+	iaidLen := len(iaid)
+	if iaidLen > 16 {
+		return iaid[:8] + "..." + iaid[iaidLen-8:]
+	} else if iaidLen > 0 {
+		return iaid
+	} else {
+		return "Unknown issuer"
+	}
 }
 
 // Example: "157.5000000 XLM"

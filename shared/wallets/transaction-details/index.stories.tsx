@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Types from '../../constants/types/wallets'
 import {stringToAccountID} from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
@@ -45,6 +46,7 @@ const props = {
   sourceAsset: '',
   sourceConvRate: '',
   sourceIssuer: '',
+  sourceIssuerAccountID: Types.noAccountID,
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,

@@ -107,6 +107,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     sourceAsset: tx.sourceAsset,
     sourceConvRate: tx.sourceConvRate,
     sourceIssuer: tx.sourceIssuer,
+    sourceIssuerAccountID: tx.sourceIssuerAccountID,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     summaryAdvanced: tx.summaryAdvanced,
