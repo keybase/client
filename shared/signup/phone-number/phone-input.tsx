@@ -11,17 +11,34 @@ import {
 } from '../../util/phone-numbers'
 import {memoize} from '../../util/memoize'
 
-const getCallingCode = countryCode => (countryCode !== '' ? countryData[countryCode].callingCode : '')
-const getCountryEmoji = countryCode => <Kb.Emoji size={16} emojiName={countryData[countryCode].emojiText} />
-const getPlaceholder = countryCode => (countryCode !== '' ? 'Ex: ' + countryData[countryCode].example : 'N/A')
+const normalizeCode = countryCode => (countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode)
+const getCallingCode = countryCode =>
+  countryCode !== '' ? countryData[normalizeCode(countryCode)].callingCode : ''
+const getCountryEmoji = countryCode => (
+  <Kb.Emoji size={16} emojiName={countryData[normalizeCode(countryCode)].emojiText} />
+)
+const getPlaceholder = countryCode =>
+  countryCode !== '' ? 'Ex: ' + countryData[normalizeCode(countryCode)].example : 'N/A'
 const filterNumeric = text => text.replace(/[^0-9]/g, '')
 const defaultCountry = 'US'
+const prioritizedCountries = ['US', 'CA', 'GB']
+
 const pickerItems = memoize(countryData =>
-  Object.values(countryData)
-    .sort((a: any, b: any) => a.name.localeCompare(b.name))
-    .map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
+  [
+    ...prioritizedCountries.map(code => countryData[code]),
+    ...Object.values(countryData)
+      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .map((cd: any) => {
+        if (prioritizedCountries.includes(cd.alpha2)) {
+          return {
+            ...cd,
+            alpha2: cd.alpha2 + '?',
+          }
+        }
+        return cd
+      }),
+  ].map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
-const prioritizedCountries = ['United States', 'Canada', 'United Kingdom']
 const menuItems = memoize((countryData, filter, onClick) => {
   const strippedFilter = filter.replace(/[^\d]/g, '')
   const lowercaseFilter = filter.toLowerCase()
@@ -36,10 +53,11 @@ const menuItems = memoize((countryData, filter, onClick) => {
     .sort((a: any, b: any) => {
       // Special cases
       for (const country of prioritizedCountries) {
-        if (a.name === country) {
+        const countryName = countryData[country].name
+        if (a.name === countryName) {
           return -1
         }
-        if (b.name === country) {
+        if (b.name === countryName) {
           return 1
         }
       }
@@ -294,11 +312,14 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     const validation = validateNumber(this.state.formatted, this.state.country)
     this.props.onChangeNumber(validation.e164)
     this.props.onChangeValidity(validation.valid)
-    console.log(validation.e164)
   }
 
   _setCountry = (country, keepPrefix) => {
     if (this.state.country !== country) {
+      if (country.endsWith('?')) {
+        country = country.slice(0, -1)
+      }
+
       this.setState({country})
       if (country !== '') {
         this._formatter = new AsYouTypeFormatter(country)
@@ -334,7 +355,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           }}
         >
           {this.state.country === ''
-            ? 'Invalid country prefix'
+            ? this.state.prefix === ''
+              ? '- Pick a country -'
+              : '- Invalid country prefix -'
             : countryData[this.state.country].emoji + ' ' + countryData[this.state.country].name}
         </Kb.Text>
       )
@@ -411,6 +434,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               value={this.state.formatted}
               disabled={this.state.country === ''}
               ref={this._phoneInputRef}
+              maxLength={17}
             />
           </Kb.Box2>
         </Kb.Box2>
