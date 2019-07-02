@@ -28,8 +28,11 @@ const FooterAdvanced = () => {
     >
       {builtPaymentAdvanced.sourceDisplay ? (
         <Kb.WaitingButton
-          type="Wallet"
+          type="Success"
           label="Send"
+          children={
+            <Kb.Icon type="iconfont-stellar-send" color={Styles.globalColors.white} style={styles.icon} />
+          }
           waitingKey={Constants.sendPaymentAdvancedWaitingKey}
           onClick={onClickSendAdvanced}
           disabled={!builtPaymentAdvanced.readyToSend}
@@ -53,6 +56,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  icon: {
+    marginRight: Styles.globalMargins.tiny,
+  },
 })
 
 export default FooterAdvanced
