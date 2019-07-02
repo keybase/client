@@ -124,8 +124,8 @@ func (c *CmdLogSend) confirm() error {
 	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("This command will send recent keybase log entries to keybase.io\n")
 	ui.Printf("for debugging purposes only.\n\n")
-	ui.Printf("These logs don’t include your private keys or encrypted data,\n")
-	ui.Printf("but they will include metadata keybase normally can't read\n")
+	ui.Printf("These logs don’t include your private keys, encrypted data or file names,\n")
+	ui.Printf("but they will include metadata Keybase normally can't read\n")
 	ui.Printf("(like file sizes and git repo names), for debugging purposes.\n\n")
 	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
 }
