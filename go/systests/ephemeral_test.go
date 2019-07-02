@@ -59,7 +59,19 @@ func TestEphemeralAddMemberNoTeamEK(t *testing.T) {
 }
 
 func getTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
-	return mctx.G().GetTeamEKBoxStorage().Get(mctx, teamID, generation, nil)
+	ek, err := mctx.G().GetTeamEKBoxStorage().Get(mctx, teamID, generation, nil)
+	if err != nil {
+		return keybase1.TeamEk{}, err
+	}
+
+	typ, err := ek.KeyType()
+	if err != nil {
+		return keybase1.TeamEk{}, err
+	}
+	if !typ.IsTeam() {
+		return keybase1.TeamEk{}, ephemeral.NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
+	}
+	return ek.Team(), nil
 }
 
 func runAddMember(t *testing.T, createTeamEK bool) {
@@ -242,7 +254,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 		require.IsType(t, ephemeral.EphemeralKeyError{}, err)
 		ekErr := err.(ephemeral.EphemeralKeyError)
 		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
-		require.Equal(t, teamEK, keybase1.TeamEk{})
+		require.Equal(t, keybase1.TeamEphemeralKey{}, teamEK)
 	}
 }
 
@@ -284,8 +296,12 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	teamEKBoxStorage.ClearCache()
 	_, err = annMctx.G().LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	teamEKPostRoll, err := teamEKBoxStorage.Get(annMctx, teamID, teamEKPreRoll.Metadata.Generation, nil)
+	ekPostRoll, err := teamEKBoxStorage.Get(annMctx, teamID, teamEKPreRoll.Metadata.Generation, nil)
 	require.NoError(t, err)
+	typ, err := ekPostRoll.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEKPostRoll := ekPostRoll.Team()
 	require.Equal(t, teamEKPreRoll, teamEKPostRoll)
 
 	// After rotating, ensure we can create a new TeamEK without issue.
@@ -297,7 +313,7 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	require.NoError(t, err)
 	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(annMctx, teamID, *merkleRoot)
 	require.NoError(t, err)
-	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation)
+	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation())
 }
 
 func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
@@ -443,22 +459,30 @@ func TestEphemeralAfterEKError(t *testing.T) {
 	// after (they are reboxed for the second as part of the add
 	teamEKMetadata1, err := ephemeral.ForcePublishNewTeamEKForTesting(mctx1, teamID, *merkleRoot)
 	require.NoError(t, err)
-	teamEKMetadata2, err := ephemeral.ForcePublishNewTeamEKForTesting(mctx1, teamID, *merkleRoot)
+	metadata2, err := ephemeral.ForcePublishNewTeamEKForTesting(mctx1, teamID, *merkleRoot)
 	require.NoError(t, err)
+	typ, err := metadata2.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEKMetadata2 := metadata2.Team()
 
 	user2 := tt.addUserWithPaper("u2")
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	mctx2 := libkb.NewMetaContextForTest(*user2.tc)
-	_, err = mctx2.G().GetTeamEKBoxStorage().Get(mctx2, teamID, teamEKMetadata1.Generation, nil)
+	_, err = mctx2.G().GetTeamEKBoxStorage().Get(mctx2, teamID, teamEKMetadata1.Generation(), nil)
 	require.Error(t, err)
 	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
 	ekErr := err.(ephemeral.EphemeralKeyError)
 	require.Equal(t, libkb.SCEphemeralMemberAfterEK, ekErr.StatusCode)
 
-	teamEK2, err := mctx2.G().GetTeamEKBoxStorage().Get(mctx2, teamID, teamEKMetadata2.Generation, nil)
+	ek2, err := mctx2.G().GetTeamEKBoxStorage().Get(mctx2, teamID, metadata2.Generation(), nil)
 	require.NoError(t, err)
+	typ, err = ek2.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK2 := ek2.Team()
 	require.Equal(t, teamEKMetadata2, teamEK2.Metadata)
 
 	// Force a second userEK so when the new device is provisioned it is only

@@ -36,10 +36,21 @@ func verifyUserEK(t *testing.T, metadata keybase1.UserEkMetadata, ek keybase1.Us
 	require.Equal(t, metadata.Kid, keypair.GetKID())
 }
 
-func verifyTeamEK(t *testing.T, metadata keybase1.TeamEkMetadata, ek keybase1.TeamEk) {
-	seed := TeamEKSeed(ek.Seed)
+func verifyTeamEK(t *testing.T, metadata keybase1.TeamEphemeralKeyMetadata,
+	ek keybase1.TeamEphemeralKey) {
+	typ, err := metadata.KeyType()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)
+	teamEKMetadata := metadata.Team()
+
+	typ, err = ek.KeyType()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)
+	teamEK := ek.Team()
+
+	seed := TeamEKSeed(teamEK.Seed)
 	keypair := seed.DeriveDHKey()
-	require.Equal(t, metadata.Kid, keypair.GetKID())
+	require.Equal(t, teamEKMetadata.Kid, keypair.GetKID())
 }
 
 func TestEphemeralCloneError(t *testing.T) {

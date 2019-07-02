@@ -2062,6 +2062,11 @@ export enum TeamApplication {
   stellarRelay = 6,
 }
 
+export enum TeamEphemeralKeyType {
+  team = 0,
+  teambot = 1,
+}
+
 export enum TeamInviteCategory {
   none = 0,
   unknown = 1,
@@ -2556,6 +2561,9 @@ export type TeamEkMetadata = {readonly kid: KID; readonly hashMeta: HashMeta; re
 export type TeamEkStatement = {readonly currentTeamEkMetadata: TeamEkMetadata}
 export type TeamEncryptedKBFSKeyset = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type TeamEncryptedKBFSKeysetHash = String
+export type TeamEphemeralKey = {keyType: TeamEphemeralKeyType.team; team: TeamEk | null} | {keyType: TeamEphemeralKeyType.teambot; teambot: TeambotEk | null}
+export type TeamEphemeralKeyBoxed = {keyType: TeamEphemeralKeyType.team; team: TeamEkBoxed | null} | {keyType: TeamEphemeralKeyType.teambot; teambot: TeambotEkBoxed | null}
+export type TeamEphemeralKeyMetadata = {keyType: TeamEphemeralKeyType.team; team: TeamEkMetadata | null} | {keyType: TeamEphemeralKeyType.teambot; teambot: TeambotEkMetadata | null}
 export type TeamExitRow = {readonly id: TeamID}
 export type TeamGetLegacyTLFUpgrade = {readonly encryptedKeyset: String; readonly teamGeneration: PerTeamKeyGeneration; readonly legacyGeneration: Int; readonly appType: TeamApplication}
 export type TeamID = String

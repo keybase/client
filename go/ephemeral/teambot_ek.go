@@ -40,7 +40,47 @@ func newTeambotEKSeedFromBytes(b []byte) (s TeambotEKSeed, err error) {
 	return TeambotEKSeed(seed), nil
 }
 
-func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string, box string) (err error) {
+type TeambotEphemeralKeyer struct {
+	botUID keybase1.UID
+}
+
+func NewTeambotEphemeralKeyer(botUID keybase1.UID) *TeambotEphemeralKeyer {
+	return &TeambotEphemeralKeyer{
+		botUID: botUID,
+	}
+}
+
+func (k *TeambotEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
+	return keybase1.TeamEphemeralKeyType_TEAMBOT
+}
+
+func (k *TeambotEphemeralKeyer) PublishNewEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEphemeralKeyMetadata, err error) {
+	defer mctx.TraceTimed("Publish", func() error { return err })()
+	if k.botUID.IsNil() {
+		return metadata, fmt.Errorf("unable to publish new EK, missing botUID")
+	}
+
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	if err != nil {
+		return metadata, err
+	}
+
+	sig, box, err := k.prepareNewTeambotEK(mctx, team, k.botUID, merkleRoot)
+	if err != nil {
+		return metadata, err
+	}
+
+	if err = k.postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
+		return metadata, err
+	}
+
+	return keybase1.NewTeamEphemeralKeyMetadataWithTeambot(box.Metadata), nil
+}
+
+func (k *TeambotEphemeralKeyer) postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string, box string) (err error) {
 	defer mctx.TraceTimed("postNewTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -56,7 +96,7 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string
 	return err
 }
 
-func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybase1.UID,
+func (k *TeambotEphemeralKeyer) prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybase1.UID,
 	merkleRoot libkb.MerkleRoot) (sig string, box *keybase1.TeambotEkBoxed, err error) {
 	defer mctx.TraceTimed("prepareNewTeambotEK", func() error { return err })()
 
@@ -130,29 +170,6 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 		return "", nil, err
 	}
 	return sig, &boxed, nil
-}
-
-func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeambotEkMetadata, err error) {
-	defer mctx.TraceTimed("publishNewTeambotEK", func() error { return err })()
-
-	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: teamID,
-	})
-	if err != nil {
-		return metadata, err
-	}
-
-	sig, box, err := prepareNewTeambotEK(mctx, team, botUID, merkleRoot)
-	if err != nil {
-		return metadata, err
-	}
-
-	if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
-		return metadata, err
-	}
-
-	return box.Metadata, nil
 }
 
 type teambotEKResp struct {
@@ -242,20 +259,30 @@ func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, team *teams.Team, sig
 	return metadata, nil
 }
 
-func unboxTeambotEK(mctx libkb.MetaContext, teambotEKGeneration keybase1.EkGeneration,
-	teambotEKBoxed keybase1.TeambotEkBoxed, contentCtime *gregor1.Time) (teambotEK keybase1.TeambotEk, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("unboxTeambotEK: teambotEKGeneration: %v", teambotEKGeneration), func() error { return err })()
+func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEphemeralKeyBoxed,
+	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("unboxTeambotEK: teambotEKGeneration: %v", boxed.Generation()), func() error { return err })()
 
+	typ, err := boxed.KeyType()
+	if err != nil {
+		return ek, err
+	}
+	if !typ.IsTeambot() {
+		return ek, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAMBOT)
+	}
+
+	teambotEKBoxed := boxed.Teambot()
+	teambotEKGeneration := teambotEKBoxed.Metadata.Generation
 	userEKBoxStorage := mctx.G().GetUserEKBoxStorage()
 	userEK, err := userEKBoxStorage.Get(mctx, teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 	if err != nil {
 		mctx.Debug("unable to get from userEKStorage %v", err)
 		switch err.(type) {
 		case EphemeralKeyError:
-			return teambotEK, newEKUnboxErr(mctx, TeambotEKStr, teambotEKGeneration, UserEKStr,
+			return ek, newEKUnboxErr(mctx, TeambotEKStr, teambotEKGeneration, UserEKStr,
 				teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 		}
-		return teambotEK, err
+		return ek, err
 	}
 
 	userSeed := UserEKSeed(userEK.Seed)
@@ -264,19 +291,24 @@ func unboxTeambotEK(mctx libkb.MetaContext, teambotEKGeneration keybase1.EkGener
 	msg, _, err := userKeypair.DecryptFromString(teambotEKBoxed.Box)
 	if err != nil {
 		mctx.Debug("unable to decrypt teambotEKBoxed %v", err)
-		return teambotEK, newEKUnboxErr(mctx, TeambotEKStr, teambotEKGeneration, UserEKStr,
+		return ek, newEKUnboxErr(mctx, TeambotEKStr, teambotEKGeneration, UserEKStr,
 			teambotEKBoxed.Metadata.UserEkGeneration, contentCtime)
 	}
 
 	seed, err := newTeambotEKSeedFromBytes(msg)
 	if err != nil {
-		return teambotEK, err
+		return ek, err
 	}
 
-	return keybase1.TeambotEk{
+	keypair := seed.DeriveDHKey()
+	if !keypair.GetKID().Equal(teambotEKBoxed.Metadata.Kid) {
+		return ek, fmt.Errorf("Failed to verify server given seed against signed KID %s", teambotEKBoxed.Metadata.Kid)
+	}
+
+	return keybase1.NewTeamEphemeralKeyWithTeambot(keybase1.TeambotEk{
 		Seed:     keybase1.Bytes32(seed),
 		Metadata: teambotEKBoxed.Metadata,
-	}, nil
+	}), nil
 }
 
 type teambotEKBoxedResponse struct {
@@ -286,8 +318,8 @@ type teambotEKBoxedResponse struct {
 	} `json:"result"`
 }
 
-func fetchAndUnboxTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
-	contentCtime *gregor1.Time) (teambotEK keybase1.TeambotEk, err error) {
+func (*TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
+	contentCtime *gregor1.Time) (teambotEK keybase1.TeamEphemeralKeyBoxed, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/ek_box",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -334,17 +366,5 @@ func fetchAndUnboxTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gene
 		Box:      resp.Result.Box,
 		Metadata: *metadata,
 	}
-
-	teambotEK, err = unboxTeambotEK(mctx, generation, teambotEKBoxed, contentCtime)
-	if err != nil {
-		return teambotEK, err
-	}
-
-	seed := TeambotEKSeed(teambotEK.Seed)
-	keypair := seed.DeriveDHKey()
-
-	if !keypair.GetKID().Equal(metadata.Kid) {
-		return teambotEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", metadata.Kid)
-	}
-	return teambotEK, nil
+	return keybase1.NewTeamEphemeralKeyBoxedWithTeambot(teambotEKBoxed), nil
 }

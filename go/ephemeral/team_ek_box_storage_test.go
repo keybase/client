@@ -32,8 +32,13 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	teamID := createTeam(tc)
 	invalidID := teamID + keybase1.TeamID("foo")
 
-	teamEKMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
+	keyer := NewTeamEphemeralKeyer()
+	metadata, err := keyer.PublishNewEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
+	typ, err := metadata.KeyType()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)
+	teamEKMetadata := metadata.Team()
 
 	s := tc.G.GetTeamEKBoxStorage()
 
@@ -42,13 +47,21 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.Error(t, err)
 	_, ok := err.(EphemeralKeyError)
 	require.False(t, ok)
-	require.Equal(t, keybase1.TeamEk{}, nonexistent2)
+	require.Equal(t, keybase1.TeamEphemeralKey{}, nonexistent2)
 
 	// Test get valid & unbox
-	teamEK, err := s.Get(mctx, teamID, teamEKMetadata.Generation, nil)
+	ek, err := s.Get(mctx, teamID, teamEKMetadata.Generation, nil)
 	require.NoError(t, err)
 
-	verifyTeamEK(t, teamEKMetadata, teamEK)
+	// Make sure we don't pollute bot storage
+	botS := tc.G.GetTeambotEKBoxStorage()
+	botNonexistant, err := botS.Get(mctx, teamID, teamEKMetadata.Generation, nil)
+	require.Error(t, err)
+	_, ok = err.(EphemeralKeyError)
+	require.False(t, ok)
+	require.Equal(t, keybase1.TeamEphemeralKey{}, botNonexistant)
+
+	verifyTeamEK(t, metadata, ek)
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(mctx, teamID, teamEKMetadata.Generation+1, nil)
@@ -56,7 +69,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, keybase1.TeamEk{}, nonexistent)
+	require.Equal(t, keybase1.TeamEphemeralKey{}, nonexistent)
 
 	// include the cached error in the max
 	maxGeneration, err := s.MaxGeneration(mctx, teamID, true)
@@ -76,15 +89,15 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	//	NOTE: We don't expose Delete on the interface put on the GlobalContext
 	//	since they should never be called, only DeleteExpired should be used.
 	//	GetAll is also not exposed since it' only needed for tests.
-	rawTeamEKBoxStorage := NewTeamEKBoxStorage()
+	rawTeamEKBoxStorage := NewTeamEKBoxStorage(NewTeamEphemeralKeyer())
 	teamEKs, err := rawTeamEKBoxStorage.GetAll(mctx, teamID)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(teamEKs))
 
-	teamEK, ok = teamEKs[teamEKMetadata.Generation]
+	ek, ok = teamEKs[teamEKMetadata.Generation]
 	require.True(t, ok)
 
-	verifyTeamEK(t, teamEKMetadata, teamEK)
+	verifyTeamEK(t, metadata, ek)
 
 	// Test invalid
 	teamEKs2, err := rawTeamEKBoxStorage.GetAll(mctx, invalidID)
@@ -98,9 +111,9 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	userEKBoxStorage.ClearCache()
 
-	teamEK, err = s.Get(mctx, teamID, teamEKMetadata.Generation, nil)
+	ek, err = s.Get(mctx, teamID, teamEKMetadata.Generation, nil)
 	require.NoError(t, err)
-	verifyTeamEK(t, teamEKMetadata, teamEK)
+	verifyTeamEK(t, metadata, ek)
 
 	// No let's the deviceEK which we can't recover from
 	rawDeviceEKStorage := NewDeviceEKStorage(mctx)
@@ -119,7 +132,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, keybase1.TeamEk{}, bad)
+	require.Equal(t, keybase1.TeamEphemeralKey{}, bad)
 
 	// test delete
 	err = rawTeamEKBoxStorage.Delete(mctx, teamID, teamEKMetadata.Generation)
@@ -147,7 +160,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	t.Logf("cache failures")
 	nonexistent, err = rawTeamEKBoxStorage.Get(mctx, teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
-	require.Equal(t, keybase1.TeamEk{}, nonexistent)
+	require.Equal(t, keybase1.TeamEphemeralKey{}, nonexistent)
 	cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(mctx, teamID)
 	require.NoError(t, err)
 	require.True(t, found)
@@ -165,7 +178,7 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	s := NewTeamEKBoxStorage()
+	s := NewTeamEKBoxStorage(NewTeamEphemeralKeyer())
 	uv, err := tc.G.GetMeUV(context.TODO())
 	require.NoError(t, err)
 
@@ -173,6 +186,14 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 
 	key, err := s.dbKey(mctx, teamID)
 	require.NoError(t, err)
-	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%d", teamID, mctx.G().Env.GetUsername(), uv.EldestSeqno, teamEKBoxStorageDBVersion)
+	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%s-%d", keybase1.TeamEphemeralKeyType_TEAM,
+		teamID, mctx.G().Env.GetUsername(), uv.EldestSeqno, teamEKBoxStorageDBVersion)
+	require.Equal(t, expected, key.Key)
+
+	s = NewTeamEKBoxStorage(NewTeambotEphemeralKeyer(""))
+	key, err = s.dbKey(mctx, teamID)
+	require.NoError(t, err)
+	expected = fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%s-%d", keybase1.TeamEphemeralKeyType_TEAMBOT,
+		teamID, mctx.G().Env.GetUsername(), uv.EldestSeqno, teamEKBoxStorageDBVersion)
 	require.Equal(t, expected, key.Key)
 }

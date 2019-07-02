@@ -29,24 +29,38 @@ func TestNewTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, nilMeta)
 
-	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botUID, merkleRoot)
+	keyer := NewTeambotEphemeralKeyer(botUID)
+	publishedMetadata, err := keyer.PublishNewEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
+	typ, err := publishedMetadata.KeyType()
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAMBOT, typ)
 
 	metaPtr, err := fetchLatestTeambotEK(mctx, team, botUID)
 	require.NoError(t, err)
 	require.NotNil(t, metaPtr)
 	metadata := *metaPtr
-	require.Equal(t, metadata, publishedMetadata)
+	require.Equal(t, metadata, publishedMetadata.Teambot())
 	require.EqualValues(t, 1, metadata.Generation)
 
-	teambotEK, err := fetchAndUnboxTeambotEK(mctx, teamID, metadata.Generation, nil)
+	teambotEKBoxed, err := keyer.Fetch(mctx, teamID, metadata.Generation, nil)
 	require.NoError(t, err)
-	require.Equal(t, metadata, teambotEK.Metadata)
+	typ, err = teambotEKBoxed.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeambot())
+	require.Equal(t, metadata, teambotEKBoxed.Teambot().Metadata)
+
+	teambotEK, err := keyer.Unbox(mctx, teambotEKBoxed, nil)
+	require.NoError(t, err)
+	typ, err = teambotEK.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeambot())
+
 	expectedSeed, err := newTeambotEphemeralSeed(mctx, teamID, botUID, 1)
 	require.NoError(t, err)
-	require.Equal(t, keybase1.Bytes32(expectedSeed), teambotEK.Seed)
+	require.Equal(t, keybase1.Bytes32(expectedSeed), teambotEK.Teambot().Seed)
 
 	badSeed, err := newTeambotEphemeralSeed(mctx, teamID, botUID, 2)
 	require.NoError(t, err)
-	require.NotEqual(t, keybase1.Bytes32(badSeed), teambotEK.Seed)
+	require.NotEqual(t, keybase1.Bytes32(badSeed), teambotEK.Teambot().Seed)
 }
