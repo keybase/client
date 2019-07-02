@@ -43,4 +43,4 @@ export default compose(
       this.props.onUpdatePGPSettings()
     },
   })
-)(Kb.HeaderOrPopup(UpdatePassword))
+)(UpdatePassword)

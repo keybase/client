@@ -61,95 +61,102 @@ export class UpdatePassword extends Component<Props, State> {
   }
 
   render() {
-    const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
+    const inputType = this.state.showTyping ? 'text' : 'password'
+    const notification = this.props.error
+      ? this.props.error.message
+      : this.props.hasPGPKeyOnServer
+      ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
+      : null
     return (
-      <Kb.ScrollView contentContainerStyle={styles.container}>
-        <Kb.Box2 centerChildren={true} direction="vertical">
-          <Kb.Text style={styles.headerText} type="Header">
-            {this.props.hasRandomPW ? 'Set a password' : 'Change password'}
-          </Kb.Text>
+      <Kb.Modal
+        banners={notification && [<Kb.Banner color="red" text={notification} />]}
+        footer={{
+          content: (
+            <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+              <Kb.Button
+                fullWidth={true}
+                label={this.props.saveLabel || 'Save'}
+                disabled={
+                  !!this.state.errorSaving ||
+                  this.state.password.length < 8 ||
+                  this.state.password !== this.state.passwordConfirm
+                }
+                onClick={() => this.props.onSave(this.state.password, this.state.passwordConfirm)}
+                waiting={this.props.waitingForResponse}
+              />
+            </Kb.ButtonBar>
+          ),
+        }}
+        header={{
+          leftButton: Styles.isMobile ? (
+            <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
+              Cancel
+            </Kb.Text>
+          ) : null,
+          title: this.props.hasRandomPW ? 'Set a password' : 'Change password',
+        }}
+        onClose={this.props.onCancel}
+      >
+        <Kb.Box2 centerChildren={true} direction="vertical" fullHeight={true} style={styles.container}>
           <Kb.Text type="Body" style={styles.bodyText} center={true}>
             A password allows you to sign out and sign back in, and use the keybase.io website.
           </Kb.Text>
-          <Kb.Input
-            hintText="New password"
-            type={inputType}
-            errorText={this.props.newPasswordError}
-            value={this.state.password}
-            onChangeText={password => this._handlePasswordChange(password)}
-            uncontrolled={false}
-            style={styleInput}
-          />
-          <Kb.Input
-            hintText="Confirm"
-            type={inputType}
-            value={this.state.passwordConfirm}
-            errorText={this.state.errorSaving || this.props.newPasswordConfirmError}
-            onChangeText={password => this._handlePasswordConfirmChange(password)}
-            uncontrolled={false}
-            style={styleInput}
-          />
+          <Kb.RoundedBox side="top">
+            <Kb.PlainInput
+              placeholder="New password"
+              type={inputType}
+              // errorText={this.props.newPasswordError}
+              value={this.state.password}
+              onChangeText={password => this._handlePasswordChange(password)}
+            />
+          </Kb.RoundedBox>
+          <Kb.RoundedBox side="bottom">
+            <Kb.PlainInput
+              placeholder="Confirm password"
+              type={inputType}
+              value={this.state.passwordConfirm}
+              // errorText={this.state.errorSaving || this.props.newPasswordConfirmError}
+              onChangeText={password => this._handlePasswordConfirmChange(password)}
+            />
+          </Kb.RoundedBox>
+          <Kb.Text style={styles.passwordFormat} type="BodySmall">
+            Password must be at least 8 characters.
+          </Kb.Text>
           <Kb.Checkbox
             label="Show typing"
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
+            style={styles.checkbox}
           />
-          <Kb.Text style={styles.passwordFormat} type="BodySmall">
-            (Password must be at least 8 characters.)
-          </Kb.Text>
-          <Kb.ButtonBar align="center" direction="row" fullWidth={true}>
-            <Kb.Button
-              fullWidth={true}
-              label={this.props.saveLabel || 'Save'}
-              disabled={
-                !!this.state.errorSaving ||
-                this.state.password.length < 8 ||
-                this.state.password !== this.state.passwordConfirm
-              }
-              onClick={() => this.props.onSave(this.state.password, this.state.passwordConfirm)}
-              waiting={this.props.waitingForResponse}
-            />
-          </Kb.ButtonBar>
         </Kb.Box2>
-      </Kb.ScrollView>
+      </Kb.Modal>
     )
   }
 }
 
-const styleInput = {
-  marginBottom: Styles.globalMargins.small,
-}
-
-const UpdatePasswordWrapper = (props: Props) => {
-  const notification = props.error
-    ? ({message: props.error.message, type: 'error'} as const)
-    : props.hasPGPKeyOnServer
-    ? ({
-        message:
-          "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
-        type: 'error',
-      } as const)
-    : null
-  return (
-    <Kb.StandardScreen notification={notification} style={{alignItems: 'center', margin: 0}}>
-      <UpdatePassword {...props} />
-    </Kb.StandardScreen>
-  )
-}
 const styles = Styles.styleSheetCreate({
   bodyText: {
+    paddingBottom: Styles.globalMargins.small,
+  },
+  buttonBar: {
+    minHeight: undefined,
+  },
+  checkbox: {
     paddingBottom: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
+    width: '100%',
   },
   container: Styles.platformStyles({
     common: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium,
+      backgroundColor: Styles.globalColors.blueGrey,
+      flexGrow: 1,
     },
     isElectron: {
       width: 560,
     },
     isMobile: {
+      padding: Styles.globalMargins.small,
       width: '100%',
     },
   }),
@@ -157,10 +164,13 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
+  input: {
+    backgroundColor: Styles.globalColors.transparent,
+  },
   passwordFormat: {
-    margin: Styles.globalMargins.small,
-    textAlign: 'center',
+    alignSelf: 'flex-start',
+    marginTop: Styles.globalMargins.xtiny,
   },
 })
 
-export default UpdatePasswordWrapper
+export default UpdatePassword
