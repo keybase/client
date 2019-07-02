@@ -58,6 +58,9 @@ type Stellar struct {
 	disclaimerLock     sync.Mutex
 	disclaimerAccepted *keybase1.UserVersion // A UV who has accepted the disclaimer.
 
+	accountsLock sync.Mutex
+	accounts     *AccountsCache
+
 	// Slot for build payments that do not use BuildPaymentID.
 	buildPaymentSlot *slotctx.PrioritySlot
 
@@ -78,6 +81,12 @@ func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges
 		buildPaymentSlot: slotctx.NewPriority(),
 		badger:           badger,
 	}
+}
+
+type AccountsCache struct {
+	Stored   time.Time
+	Revision stellar1.BundleRevision
+	Accounts []stellar1.BundleEntry
 }
 
 func (s *Stellar) CreateWalletSoft(ctx context.Context) {
@@ -103,6 +112,7 @@ func (s *Stellar) Clear(mctx libkb.MetaContext) {
 	s.deleteBpc()
 	s.deleteDisclaimer()
 	s.clearBids()
+	s.clearAccounts()
 }
 
 func (s *Stellar) shutdownAutoClaimRunner() {
@@ -137,8 +147,10 @@ func (s *Stellar) clearBids() {
 	s.bids = nil
 }
 
-func (s *Stellar) GetMigrationLock() *sync.Mutex {
-	return &s.migrationLock
+func (s *Stellar) clearAccounts() {
+	s.accountsLock.Lock()
+	defer s.accountsLock.Unlock()
+	s.accounts = nil
 }
 
 func (s *Stellar) GetServerDefinitions(ctx context.Context) (ret stellar1.StellarServerDefinitions, err error) {
@@ -555,6 +567,46 @@ func (s *Stellar) RemovePendingTx(mctx libkb.MetaContext, accountID stellar1.Acc
 // BaseFee returns the server-suggested base fee per operation.
 func (s *Stellar) BaseFee(mctx libkb.MetaContext) uint64 {
 	return s.walletState.BaseFee(mctx)
+}
+
+func (s *Stellar) InformBundle(mctx libkb.MetaContext, rev stellar1.BundleRevision, accounts []stellar1.BundleEntry) {
+	go func() {
+		err := libkb.AcquireWithContextAndTimeout(mctx.Ctx(), &s.accountsLock, 5*time.Second)
+		if err != nil {
+			mctx.Debug("InformBundle: error acquiring lock")
+			return
+		}
+		defer s.accountsLock.Unlock()
+		if s.accounts != nil && rev < s.accounts.Revision {
+			return
+		}
+		s.accounts = &AccountsCache{
+			Stored:   mctx.G().Clock().Now(),
+			Revision: rev,
+			Accounts: accounts,
+		}
+	}()
+}
+
+func (s *Stellar) OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
+	err = libkb.AcquireWithContextAndTimeout(mctx.Ctx(), &s.accountsLock, 5*time.Second)
+	if err != nil {
+		mctx.Debug("OwnAccountCached: error acquiring lock")
+		return
+	}
+	if s.accounts != nil && mctx.G().Clock().Now().Sub(s.accounts.Stored.Round(0)) < 2*time.Minute {
+		mctx.Debug("xxx OwnAccountCached hit")
+		for _, acc := range s.accounts.Accounts {
+			if acc.AccountID.Eq(accountID) {
+				s.accountsLock.Unlock()
+				return true, acc.IsPrimary, nil
+			}
+		}
+		s.accountsLock.Unlock()
+		return false, false, nil
+	}
+	s.accountsLock.Unlock()
+	return OwnAccount(mctx, accountID)
 }
 
 // getFederationClient is a helper function used during
