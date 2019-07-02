@@ -976,7 +976,7 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
 
-func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (details string, err error) {
+func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (resp stellar1.AirdropDetails, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "AirdropDetailsLocal",
 		Err:           &err,
@@ -984,10 +984,15 @@ func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (detail
 	})
 	defer fin()
 	if err != nil {
-		return "", err
+		return stellar1.AirdropDetails{}, err
 	}
 
-	return remote.AirdropDetails(mctx)
+	isPromoted, details, err := remote.AirdropDetails(mctx)
+	if err != nil {
+		return stellar1.AirdropDetails{}, err
+	}
+	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details}, nil
+
 }
 
 func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {

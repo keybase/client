@@ -7,6 +7,7 @@ type Props = {
   assets: Array<{code: string; desc: string}>
   onSetupTrustline: () => void
   refresh: () => void
+  thisDeviceIsLockedOut: boolean
 }
 
 const WalletSettingTrustline = (props: Props) => {
@@ -30,9 +31,15 @@ const WalletSettingTrustline = (props: Props) => {
             <Kb.Text type="BodySmall">{asset.desc}</Kb.Text>
           </React.Fragment>
         ))}
+        {props.thisDeviceIsLockedOut && (
+          <Kb.Text style={styles.lockedOut} type="BodySmall">
+            Trustlines can only be managed from a mobile device over 7 days old.
+          </Kb.Text>
+        )}
         <Kb.Button
+          disabled={props.thisDeviceIsLockedOut}
           mode="Secondary"
-          label={props.assets.length ? 'Accept other trustlines' : 'Accept trustlines'}
+          label={props.assets.length ? 'Manage trustlines' : 'Accept trustlines'}
           onClick={props.onSetupTrustline}
           style={styles.button}
         />
@@ -60,6 +67,8 @@ const styles = Styles.styleSheetCreate({
   description: {
     marginTop: Styles.globalMargins.xtiny,
   },
-
+  lockedOut: {
+    marginTop: Styles.globalMargins.tiny,
+  },
   textUnknown: {color: Styles.globalColors.redDark},
 })

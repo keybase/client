@@ -212,6 +212,11 @@ const metaData: {[K in TextType]: MetaType} = {
     fontSize: 12,
     styleOverride: globalStyles.fontBold,
   },
+  BodyTinyExtrabold: {
+    colorForBackground: {...whiteNegative, positive: globalColors.black_50},
+    fontSize: 12,
+    styleOverride: globalStyles.fontExtrabold,
+  },
   BodyTinyLink: {
     colorForBackground: {...whiteNegative, positive: globalColors.black_50},
     fontSize: 12,
