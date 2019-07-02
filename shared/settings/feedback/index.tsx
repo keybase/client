@@ -117,7 +117,7 @@ class Feedback extends React.Component<Props, State> {
               <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
                 <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
-                  This includes some private metadata info (e.g., file sizes, but not contents) but it will
+                  This includes some private metadata info (e.g., file sizes, but not names or contents) but it will
                   help the developers fix bugs more quickly.
                 </Kb.Text>
               </Kb.Box2>
