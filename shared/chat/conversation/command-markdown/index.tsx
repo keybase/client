@@ -40,13 +40,13 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
     },
+    isMobile: {
+      backgroundColor: Styles.globalColors.white,
+    },
   }),
   scrollContainer: Styles.platformStyles({
     isElectron: {
       maxHeight: 300,
-    },
-    isMobile: {
-      maxHeight: 200,
     },
   }),
   title: {

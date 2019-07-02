@@ -465,7 +465,7 @@ export const Transaction = (props: Props) => {
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
   const backgroundColor = props.fromAirdrop
     ? globalColors.purpleLight
-    : props.unread && !props.detailView
+    : (props.unread || pending) && !props.detailView
     ? globalColors.blueLighter2
     : globalColors.white
   return (
