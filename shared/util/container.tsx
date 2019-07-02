@@ -50,7 +50,7 @@ export {
   withPropsOnChange,
   setDisplayName,
 } from 'recompose'
-export {default as connect, namedConnect} from './typed-connect'
+export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'

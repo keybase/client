@@ -3,19 +3,19 @@ import Git, {Props as GitProps} from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
-import {TypedState} from '../constants/reducer'
+import * as Types from '../constants/types/git'
 import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
-import {compose, connect, isMobile, RouteProps} from '../util/container'
+import * as Container from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 import {memoize} from '../util/memoize'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.RouteProps<{}, {}>
 
-const sortRepos = git => sortBy(git, ['teamname', 'name'])
+const sortRepos = (git: Array<Types.GitInfo>) => sortBy(git, ['teamname', 'name'])
 
-const getRepos = memoize(git => {
+const getRepos = memoize((git: I.Map<string, Types.GitInfo>) => {
   if (!git) {
     return {
       personals: [],
@@ -30,7 +30,7 @@ const getRepos = memoize(git => {
   }
 })
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = (state: Container.TypedState) => {
   const {personals, teams} = getRepos(Constants.getIdToGit(state))
   return {
     loading: anyWaiting(state, Constants.loadingWaitingKey),
@@ -39,7 +39,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: (action: any) => void, {navigateAppend, navigateUp}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateAppend, navigateUp}: OwnProps) => ({
   _loadGit: () => dispatch(GitGen.createLoadGit()),
   clearBadges: () => dispatch(GitGen.createClearBadges()),
   onBack: () => dispatch(navigateUp()),
@@ -55,22 +55,6 @@ const mapDispatchToProps = (dispatch: (action: any) => void, {navigateAppend, na
     dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {id}, selected: 'gitDeleteRepo'}]))
   },
-})
-
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  _ownProps
-) => ({
-  _loadGit: dispatchProps._loadGit,
-  clearBadges: dispatchProps.clearBadges,
-  loading: stateProps.loading,
-  onBack: dispatchProps.onBack,
-  onNewPersonalRepo: dispatchProps.onNewPersonalRepo,
-  onNewTeamRepo: dispatchProps.onNewTeamRepo,
-  onShowDelete: dispatchProps.onShowDelete,
-  personals: stateProps.personals,
-  teams: stateProps.teams,
 })
 
 // keep track in the module
@@ -93,7 +77,7 @@ type ExtraProps = {
   onBack: () => void
 }
 
-class GitReloadable extends React.PureComponent<GitProps & ExtraProps, {expandedSet: I.Set<string>}> {
+class GitReloadable extends React.PureComponent<Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleExpand'>, {expandedSet: I.Set<string>}> {
   state = {expandedSet: _expandedSet}
   _toggleExpand = id => {
     _expandedSet = _expandedSet.has(id) ? _expandedSet.delete(id) : _expandedSet.add(id)
@@ -109,7 +93,7 @@ class GitReloadable extends React.PureComponent<GitProps & ExtraProps, {expanded
     return (
       <Kb.Reloadable
         waitingKeys={Constants.loadingWaitingKey}
-        onBack={isMobile ? this.props.onBack : undefined}
+        onBack={Container.isMobile ? this.props.onBack : undefined}
         onReload={_loadGit}
         reloadOnMount={true}
       >
@@ -119,7 +103,7 @@ class GitReloadable extends React.PureComponent<GitProps & ExtraProps, {expanded
   }
 }
 
-if (!isMobile) {
+if (!Container.isMobile) {
   // @ts-ignore lets fix this
   GitReloadable.navigationOptions = {
     header: undefined,
@@ -129,10 +113,23 @@ if (!isMobile) {
   }
 }
 
-export default compose(
-  connect(
+
+export default Container.connect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps
-  )
-)(GitReloadable)
+    (
+      stateProps,
+      dispatchProps,
+      _ownProps
+    ) => ({
+      _loadGit: dispatchProps._loadGit,
+      clearBadges: dispatchProps.clearBadges,
+      loading: stateProps.loading,
+      onBack: dispatchProps.onBack,
+      onNewPersonalRepo: dispatchProps.onNewPersonalRepo,
+      onNewTeamRepo: dispatchProps.onNewTeamRepo,
+      onShowDelete: dispatchProps.onShowDelete,
+      personals: stateProps.personals,
+      teams: stateProps.teams,
+    })
+    )(GitReloadable)
