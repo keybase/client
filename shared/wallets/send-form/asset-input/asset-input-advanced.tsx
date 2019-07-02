@@ -9,6 +9,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import Available from '../available/container'
 import {AmountInput, sharedStyles} from './shared'
 import CalculateAdvancedButton from '../calculate-advanced-button'
+import PaymentPathCircle, {pathCircleSmallDiameter} from '../../common/payment-path-circle'
 
 type EmptyProps = {}
 
@@ -91,7 +92,7 @@ export const AssetInputSenderAdvanced = (props: EmptyProps) => (
     <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
       You will send approximately:
     </Kb.Text>
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
       <LeftBlock />
       <Kb.Box style={Styles.globalStyles.flexGrow} />
       <PickAssetButton isSender={true} />
@@ -101,31 +102,111 @@ export const AssetInputSenderAdvanced = (props: EmptyProps) => (
 )
 
 export const AssetPathIntermediate = () => {
+  const [expanded, setExpanded] = React.useState(false)
   const path = Container.useSelector(state => state.wallets.builtPaymentAdvanced.fullPath.path)
-  return !path.size ? (
-    <Kb.Divider />
-  ) : (
-    <Kb.Box2 direction="horizontal" style={styles.assetPathContainer} fullWidth={true}>
-      <Kb.Text type="BodySmallSemibold">Intermediate asset(s): </Kb.Text>
-      <Kb.Box style={Styles.globalStyles.flexGrow} />
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.assetPathItem} gap="xtiny">
-        {path
-          .toArray()
-          .reverse()
-          .map(asset => (
-            <React.Fragment key={Types.assetDescriptionToAssetID(asset)}>
-              <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
-              <Kb.Box2 direction="horizontal">
-                <Kb.Text type="BodyTinyBold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
-                <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
-                  {asset !== 'native' && `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
-                </Kb.Text>
-              </Kb.Box2>
-            </React.Fragment>
-          ))}
-        <Kb.Icon type="iconfont-arrow-full-up" sizeType="Tiny" />
+  if (!path.size) {
+    return <Kb.Divider />
+  }
+  return (
+    <Kb.Box
+      style={Styles.collapseStyles([
+        styles.intermediateContainer,
+        expanded && styles.intermediateContainerExpanded,
+        !expanded && styles.intermediateContainerCollapsed,
+      ])}
+    >
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        style={Styles.collapseStyles([
+          styles.intermediateAbsoluteBlock,
+          {
+            top: -Styles.globalMargins.medium,
+          },
+        ])}
+      >
+        <PaymentPathCircle isLarge={false} />
       </Kb.Box2>
-    </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        style={Styles.collapseStyles([
+          styles.intermediateAbsoluteBlock,
+          {
+            bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
+          },
+        ])}
+      >
+        <PaymentPathCircle isLarge={false} />
+      </Kb.Box2>
+      <Kb.Box2
+        direction="vertical"
+        alignItems="center"
+        style={Styles.collapseStyles([
+          styles.intermediateAbsoluteBlock,
+          {
+            bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleSmallDiameter),
+            top: -(Styles.globalMargins.medium - pathCircleSmallDiameter),
+          },
+        ])}
+      >
+        <Kb.Box style={styles.intermediateLine} />
+      </Kb.Box2>
+      <Kb.ClickableBox
+        style={Styles.collapseStyles([
+          styles.intermediateAbsoluteBlock,
+          styles.intermediateExpandButton,
+          expanded && styles.intermediateExpandButtonExpanded,
+          !expanded && styles.intermediateExpandButtonCollapsed,
+        ])}
+        onClick={() => setExpanded(expanded => !expanded)}
+      >
+        {expanded ? (
+          <Kb.Icon type="iconfont-collapse" sizeType="Default" color={Styles.globalColors.purple} />
+        ) : (
+          <Kb.Icon type="iconfont-expand" sizeType="Default" color={Styles.globalColors.purple} />
+        )}
+      </Kb.ClickableBox>
+      {expanded && (
+        <Kb.Box2
+          direction="vertical"
+          alignItems="flex-end"
+          fullWidth={true}
+          style={styles.intermediateExpandedContainer}
+        >
+          {path
+            .toArray()
+            .reverse()
+            .map(asset => (
+              <Kb.Box2
+                key={Types.assetDescriptionToAssetID(asset)}
+                alignSelf="flex-end"
+                direction="horizontal"
+                style={styles.intermediateAssetPathItem}
+              >
+                <Kb.Text type="BodyTinyExtrabold">{asset === 'native' ? 'XLM' : `${asset.code}`}</Kb.Text>
+                <Kb.Box style={styles.intermediateAssetPathItemDomainContainer}>
+                  <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
+                    {asset === 'native'
+                      ? '/Stellar Lumens'
+                      : `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
+                  </Kb.Text>
+                </Kb.Box>
+                <Kb.Box2
+                  direction="horizontal"
+                  centerChildren={true}
+                  fullHeight={true}
+                  style={styles.intermediateAssetPathItemCircleContainerOuter}
+                >
+                  <Kb.Box style={styles.intermediateAssetPathItemCircleContainerInner}>
+                    <PaymentPathCircle isLarge={false} />
+                  </Kb.Box>
+                </Kb.Box2>
+              </Kb.Box2>
+            ))}
+        </Kb.Box2>
+      )}
+    </Kb.Box>
   )
 }
 
@@ -215,18 +296,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.blueGrey,
     padding: Styles.globalMargins.small,
   },
-  assetPathItem: {
-    maxWidth: Styles.globalMargins.large * 4,
-  },
   avatar: {
     marginRight: Styles.globalMargins.xtiny,
   },
   container: Styles.platformStyles({
     isElectron: {
-      minHeight: 96,
+      minHeight: 106,
     },
     isMobile: {
-      minHeight: 128,
+      minHeight: 108,
     },
   }),
   disabled: {
@@ -234,6 +312,68 @@ const styles = Styles.styleSheetCreate({
   },
   error: {
     color: Styles.globalColors.redDark,
+  },
+  intermediateAbsoluteBlock: {
+    position: 'absolute',
+    right: Styles.globalMargins.mediumLarge,
+    width: Styles.globalMargins.mediumLarge,
+  },
+  intermediateAssetPathItem: {
+    height: 20,
+    paddingBottom: Styles.globalMargins.xxtiny,
+    paddingTop: Styles.globalMargins.xxtiny,
+  },
+  intermediateAssetPathItemCircleContainerInner: {
+    // This one has to be absolute as well otherwise it goes under the vertical line.
+    position: 'absolute',
+  },
+  intermediateAssetPathItemCircleContainerOuter: {
+    flexShrink: 0,
+    marginRight: Styles.globalMargins.tiny,
+    position: 'relative',
+    width: Styles.globalMargins.small,
+  },
+  intermediateAssetPathItemDomainContainer: {
+    flexShrink: 1,
+    maxWidth: Styles.globalMargins.large * 5,
+  },
+  intermediateContainer: {
+    backgroundColor: Styles.globalColors.blueGrey,
+    position: 'relative',
+    width: '100%',
+  },
+  intermediateContainerCollapsed: {
+    height: Styles.globalMargins.tiny,
+  },
+  intermediateContainerExpanded: {
+    minHeight: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  intermediateExpandButton: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_20,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    height: 28,
+    justifyContent: 'center',
+  },
+  intermediateExpandButtonCollapsed: {
+    top: -10,
+  },
+  intermediateExpandButtonExpanded: {
+    bottom: -14,
+  },
+  intermediateExpandedContainer: {
+    paddingRight: Styles.globalMargins.mediumLarge,
+  },
+  intermediateLine: {
+    backgroundColor: Styles.globalColors.purple,
+    height: '100%',
+    width: 2,
   },
   noShrink: {
     flexShrink: 0,
@@ -245,6 +385,7 @@ const styles = Styles.styleSheetCreate({
   // error can extend below it.
   pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
   pickAssetButtonOverlayOuter: {position: 'relative'},
+  senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
   topLabel: {
     marginBottom: Styles.globalMargins.xtiny,
   },

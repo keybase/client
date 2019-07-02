@@ -3,6 +3,10 @@ import * as I from 'immutable'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
+import PaymentPathCircle, {
+  pathCircleLargeDiameter,
+  pathCircleSmallDiameter,
+} from '../common/payment-path-circle'
 
 export type Asset = {
   code: string
@@ -42,7 +46,7 @@ const PaymentPathStart = (props: PaymentPathStartProps) => (
     gap="small"
     style={styles.paymentPathStartOrEnd}
   >
-    <Kb.Box style={styles.paymentPathCircleLarge} />
+    <PaymentPathCircle isLarge={true} />
     <Kb.Text type="BodyBigExtrabold">
       -{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -58,7 +62,7 @@ const PaymentPathEnd = (props: PaymentPathEndProps) => (
     gap="small"
     style={styles.paymentPathStartOrEnd}
   >
-    <Kb.Box style={styles.paymentPathCircleLarge} />
+    <PaymentPathCircle isLarge={true} />
     <Kb.Text type="BodyBigExtrabold" style={styles.paymentPathEndText}>
       +{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -74,7 +78,7 @@ const PaymentPathStop = (props: PaymentPathStopProps) => (
     fullWidth={true}
     gap="medium"
   >
-    <Kb.Box style={styles.paymentPathCircleSmall} />
+    <PaymentPathCircle isLarge={false} />
     <Kb.Text type="BodyBigExtrabold">
       {props.assetCode}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -103,32 +107,12 @@ const PaymentPath = (props: PaymentPathProps) => (
 
 export default PaymentPath
 
-const pathCircleLargeDiameter = 18
-const pathCircleSmallDiameter = 10
 // text line height can vary, so set it to an upper bound here
 // we can then calculate negative margin from this height so that there are no gaps between the
 // circles and lines
 const pathTextHeight = 22
 
 const styles = Styles.styleSheetCreate({
-  paymentPathCircleLarge: {
-    backgroundColor: Styles.globalColors.purple,
-    borderColor: Styles.globalColors.purpleLighter,
-    borderRadius: pathCircleLargeDiameter / 2,
-    borderStyle: 'solid',
-    borderWidth: 3,
-    height: pathCircleLargeDiameter,
-    width: pathCircleLargeDiameter,
-  },
-  paymentPathCircleSmall: {
-    backgroundColor: Styles.globalColors.purple,
-    borderColor: Styles.globalColors.purpleLighter,
-    borderRadius: pathCircleSmallDiameter / 2,
-    borderStyle: 'solid',
-    borderWidth: 2,
-    height: pathCircleSmallDiameter,
-    width: pathCircleSmallDiameter,
-  },
   paymentPathEndText: {
     color: Styles.globalColors.greenDark,
   },
