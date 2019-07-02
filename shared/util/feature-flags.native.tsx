@@ -19,7 +19,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   sbsContacts: false,
-  stellarExternalPartners: true,
+  stellarExternalPartners: false,
 }
 
 // load overrides
