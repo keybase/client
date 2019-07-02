@@ -2,6 +2,7 @@ import * as React from 'react'
 import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/users'
 import {backgroundModeIsNegative} from '../text.shared'
 
 export type UserListItem = {
@@ -10,6 +11,7 @@ export type UserListItem = {
   broken?: boolean
   you?: boolean
   following?: boolean
+  typ?: Types.UsernameType
 }
 
 export type UserList = Array<UserListItem>

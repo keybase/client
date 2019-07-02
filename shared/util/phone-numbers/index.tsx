@@ -46,4 +46,16 @@ export const validateNumber = (rawNumber: string, region: string) => {
   }
 }
 
+export const validateUniversalNumber = (rawNumber: string) => {
+  try {
+    const number = phoneUtil.parse(rawNumber, '')
+    return {
+      formatted: phoneUtil.format(number, PNF.INTERNATIONAL),
+      valid: true,
+    }
+  } catch (ex) {
+    return {formatted: '', valid: false}
+  }
+}
+
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter

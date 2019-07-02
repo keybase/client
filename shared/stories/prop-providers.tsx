@@ -15,6 +15,8 @@ import {isSpecialMention} from '../constants/chat2'
 import {unescapePath} from '../constants/fs'
 import {OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
 import rootReducer from '../reducers'
+import {validateUniversalNumber} from '../util/phone-numbers'
+import * as UserTypes from '../constants/types/users'
 
 /*
  * Some common prop factory creators.
@@ -33,7 +35,15 @@ export const Usernames = (following: string[] = defaultFollowing, you: string = 
   Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
     const {usernames, onUsernameClicked, skipSelf, ...props} = ownProps
     const users = (usernames || [])
-      .map(username => ({following: following.includes(username), username, you: username === you}))
+      .map(username => {
+        const {formatted, valid} = validateUniversalNumber(username)
+        return {
+          following: following.includes(username),
+          typ: valid ? UserTypes.UsernameType.Phone : UserTypes.UsernameType.Username,
+          username: valid ? formatted : username,
+          you: username === you,
+        }
+      })
       .filter(u => !skipSelf || !u.you)
 
     let mockedOnUsernameClick

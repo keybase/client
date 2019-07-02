@@ -28,6 +28,10 @@ const load = () => {
     .add('Username Header muted', () => <UsernameHeader {...defaultProps} muted={true} />)
     .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)
     .add('Channel Header for big team', () => <ChannelHeader {...defaultProps} smallTeam={false} />)
+    .add('Phone Header', () => <UsernameHeader {...defaultProps} participants={['ayoubd', '+15035035035']} />)
+    .add('Email Header', () => (
+      <UsernameHeader {...defaultProps} participants={['ayoubd', 'john@keyba.se']} />
+    ))
 }
 
 export default load

@@ -3,12 +3,13 @@ import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as UsersConstants from '../../constants/users'
-import {InfoMap as UserInfoMap} from '../../constants/types/users'
+import * as Types from '../../constants/types/users'
 import {Usernames, BaseUsernamesProps, Props, UserList} from '.'
+import {validateUniversalNumber} from '../../util/phone-numbers'
 
 export type StateProps = {
   _following: I.Set<string> | Set<string>
-  _userInfo: UserInfoMap
+  _userInfo: Types.InfoMap
   _you: string
 }
 
@@ -58,17 +59,21 @@ export function connectedPropsToProps<T>(
 }
 
 const userDataFromState = (stateProps, usernames) =>
-  usernames.map(username => ({
-    // Auto generated from flowToTs. Please clean me!
-    broken:
-      UsersConstants.getIsBroken(stateProps._userInfo, username) !== null &&
-      UsersConstants.getIsBroken(stateProps._userInfo, username) !== undefined
-        ? UsersConstants.getIsBroken(stateProps._userInfo, username)
-        : false,
-    following: stateProps._following.has(username),
-    username,
-    you: stateProps._you === username,
-  }))
+  usernames.map(username => {
+    const {formatted, valid} = validateUniversalNumber(username)
+    return {
+      // Auto generated from flowToTs. Please clean me!
+      broken:
+        UsersConstants.getIsBroken(stateProps._userInfo, username) !== null &&
+        UsersConstants.getIsBroken(stateProps._userInfo, username) !== undefined
+          ? UsersConstants.getIsBroken(stateProps._userInfo, username)
+          : false,
+      following: stateProps._following.has(username),
+      typ: valid ? Types.UsernameType.Phone : Types.UsernameType.Username,
+      username: valid ? formatted : username,
+      you: stateProps._you === username,
+    }
+  })
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest

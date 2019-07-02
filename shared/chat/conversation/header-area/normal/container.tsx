@@ -5,6 +5,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
 import * as Container from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
+import {Props} from './index.types'
 
 type OwnProps = Container.PropsWithSafeNavigation<{
   conversationIDKey: Types.ConversationIDKey
@@ -67,5 +68,5 @@ export default Container.compose(
   Container.withSafeNavigation,
   Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   // @ts-ignore
-  Container.branch(props => !!props.teamName, Container.renderComponent(ChannelHeader))
+  Container.branch((props: Props) => !!props.teamName, Container.renderComponent(ChannelHeader))
 )(UsernameHeader) as any
