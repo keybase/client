@@ -57,8 +57,9 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	botS := tc.G.GetTeambotEKBoxStorage()
 	botNonexistant, err := botS.Get(mctx, teamID, teamEKMetadata.Generation, nil)
 	require.Error(t, err)
-	_, ok = err.(EphemeralKeyError)
-	require.False(t, ok)
+	require.IsType(t, EphemeralKeyError{}, err)
+	ekErr := err.(EphemeralKeyError)
+	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEphemeralKey{}, botNonexistant)
 
 	verifyTeamEK(t, metadata, ek)
@@ -67,7 +68,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	nonexistent, err := s.Get(mctx, teamID, teamEKMetadata.Generation+1, nil)
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
-	ekErr := err.(EphemeralKeyError)
+	ekErr = err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEphemeralKey{}, nonexistent)
 
