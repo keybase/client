@@ -100,6 +100,7 @@
   "keybase.1.avatars.loadUserAvatars": {"promise": true},
   "keybase.1.config.getAllProvisionedUsernames": {"promise": true},
   "keybase.1.config.getBootstrapStatus": {"promise": true},
+  "keybase.1.config.requestFollowerInfo": {"promise": true},
   "keybase.1.config.getConfig": {"promise": true},
   "keybase.1.config.getRememberPassphrase": {"promise": true},
   "keybase.1.config.getUpdateInfo": {"promise": true},
