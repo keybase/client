@@ -48,9 +48,9 @@ const Banner = (props: Props) => (
         props.onAction && (
           <>
             {props.offerAdvancedSendForm === AdvancedBanner.receiverBanner &&
-              'This person accepts other assets than XLM. '}
+              'This person accepts assets other than XLM. '}
             {props.offerAdvancedSendForm === AdvancedBanner.senderBanner &&
-              'You can send more assets than XLM. '}
+              'You can send assets other than XLM. '}
           </>
         )}
     </Text>
