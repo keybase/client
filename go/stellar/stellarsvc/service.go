@@ -901,12 +901,16 @@ func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []
 		if err != nil {
 			return nil, err
 		}
-		var s stellar1.PartnerUrl
-		err = json.Unmarshal(asData, &s)
+		var partnerURL stellar1.PartnerUrl
+		err = json.Unmarshal(asData, &partnerURL)
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, s)
+		if partnerURL.AdminOnly && !libkb.IsKeybaseAdmin(s.G().GetMyUID()) {
+			// this external url is intended only to be seen by server admins
+			continue
+		}
+		res = append(res, partnerURL)
 	}
 	return res, nil
 }
