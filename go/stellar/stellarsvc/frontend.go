@@ -1171,7 +1171,8 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 	if err != nil {
 		return stellar1.PaymentPathLocal{}, err
 	}
-	exchangeRateRight, err := stellar.FormatAmountDescriptionAsset(mctx, path.SourceAmount, path.SourceAsset)
+	exchangeRateRight, err := stellar.FormatAmountDescriptionAsset(mctx, srcAmt.FloatString(7), path.SourceAsset)
+
 	if err != nil {
 		return stellar1.PaymentPathLocal{}, err
 	}
