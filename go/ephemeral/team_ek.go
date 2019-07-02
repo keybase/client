@@ -35,6 +35,8 @@ func (s *TeamEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 
 type TeamEphemeralKeyer struct{}
 
+var _ EphemeralKeyer = (*TeamEphemeralKeyer)(nil)
+
 func NewTeamEphemeralKeyer() *TeamEphemeralKeyer {
 	return &TeamEphemeralKeyer{}
 }

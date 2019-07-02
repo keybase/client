@@ -34,6 +34,8 @@ func (r *ekHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, c
 	switch category {
 	case "ephemeral.new_team_ek":
 		return true, r.newTeamEK(ctx, cli, item)
+	case "ephemeral.new_teambot_ek":
+		return true, r.newTeambotEK(ctx, cli, item)
 	default:
 		if strings.HasPrefix(category, "ephemeral.") {
 			return false, fmt.Errorf("unknown ekHandler category: %q", category)
@@ -64,6 +66,23 @@ func (r *ekHandler) newTeamEK(ctx context.Context, cli gregor1.IncomingInterface
 	r.G().Log.CDebugf(ctx, "ephemeral.new_team_ek unmarshaled: %+v", msg)
 
 	if err := ephemeral.HandleNewTeamEK(r.MetaContext(ctx), msg.Id, msg.Generation); err != nil {
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "dismissing ephemeral.new_team_ek item since action succeeded")
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *ekHandler) newTeambotEK(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "ekHandler: ephemeral.new_team_ek received")
+	var msg keybase1.NewTeambotEkArg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling ephemeral.new_team_ek item: %s", err)
+		return err
+	}
+	r.G().Log.CDebugf(ctx, "ephemeral.new_team_ek unmarshaled: %+v", msg)
+
+	if err := ephemeral.HandleNewTeambotEK(r.MetaContext(ctx), msg.Id, msg.Generation); err != nil {
 		return err
 	}
 

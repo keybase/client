@@ -44,6 +44,8 @@ type TeambotEphemeralKeyer struct {
 	botUID keybase1.UID
 }
 
+var _ EphemeralKeyer = (*TeambotEphemeralKeyer)(nil)
+
 func NewTeambotEphemeralKeyer(botUID keybase1.UID) *TeambotEphemeralKeyer {
 	return &TeambotEphemeralKeyer{
 		botUID: botUID,

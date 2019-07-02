@@ -12,6 +12,3 @@ type EphemeralKeyer interface {
 	Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEphemeralKeyBoxed, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	Type() keybase1.TeamEphemeralKeyType
 }
-
-var _ EphemeralKeyer = (*TeambotEphemeralKeyer)(nil)
-var _ EphemeralKeyer = (*TeamEphemeralKeyer)(nil)
