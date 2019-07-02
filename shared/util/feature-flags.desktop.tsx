@@ -35,7 +35,6 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   outOfDateBanner: true,
   proofProviders: true,
   sbsContacts: true,
-  stellarExternalPartners: true,
 }
 
 // load overrides
