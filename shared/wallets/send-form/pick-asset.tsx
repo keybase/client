@@ -54,50 +54,52 @@ const AssetList = ({accountID, isSender, username}) => {
           ...acceptedAssets
             .keySeq()
             .toArray()
-            .map(assetID => ({
-              assetID,
-              key: assetID,
-              selected: assetID === selectedAssetID,
-            })),
-          {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
+            .map(
+              assetID =>
+                ({
+                  asset:
+                    assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription),
+                  key: assetID,
+                  selected: assetID === selectedAssetID,
+                } as const)
+            )
+            .filter(({asset}) => asset !== 'native' && (isSender || !asset.sendDisabled)),
+          {asset: 'native', key: ' XLM', selected: selectedAsset === 'native'} as const,
         ]}
         bounces={true}
         itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
-        renderItem={(index, {assetID, selected}) => {
-          const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
-          return (
-            <Kb.ListItem2
-              onClick={() => onSelect(asset)}
-              type="Small"
-              firstItem={true}
-              body={
-                <Kb.Box2 style={styles.itemContainer} direction="horizontal" alignItems="center">
-                  <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
-                    <Kb.Text
-                      type="BodyExtrabold"
-                      lineClamp={1}
-                      ellipsizeMode="tail"
-                      style={selected && styles.textSelected}
-                    >
-                      {asset === 'native' ? 'XLM' : asset.code}
-                    </Kb.Text>
-                    <Kb.Text
-                      type="BodySmall"
-                      lineClamp={1}
-                      ellipsizeMode="middle"
-                      style={selected && styles.textSelected}
-                    >
-                      {asset === 'native'
-                        ? 'Stellar Lumens'
-                        : asset.issuerVerifiedDomain || asset.issuerAccountID}
-                    </Kb.Text>
-                  </Kb.Box2>
-                  {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+        renderItem={(index, {asset, selected}) => (
+          <Kb.ListItem2
+            onClick={() => onSelect(asset)}
+            type="Small"
+            firstItem={true}
+            body={
+              <Kb.Box2 style={styles.itemContainer} direction="horizontal" alignItems="center">
+                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
+                  <Kb.Text
+                    type="BodyExtrabold"
+                    lineClamp={1}
+                    ellipsizeMode="tail"
+                    style={selected && styles.textSelected}
+                  >
+                    {asset === 'native' ? 'XLM' : asset.code}
+                  </Kb.Text>
+                  <Kb.Text
+                    type="BodySmall"
+                    lineClamp={1}
+                    ellipsizeMode="middle"
+                    style={selected && styles.textSelected}
+                  >
+                    {asset === 'native'
+                      ? 'Stellar Lumens'
+                      : asset.issuerVerifiedDomain || asset.issuerAccountID}
+                  </Kb.Text>
                 </Kb.Box2>
-              }
-            />
-          )
-        }}
+                {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+              </Kb.Box2>
+            }
+          />
+        )}
         keyProperty="key"
       />
     </Kb.BoxGrow>

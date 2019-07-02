@@ -85,6 +85,7 @@ export const makeAssetDescription = I.Record<Types._AssetDescription>({
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
+  sendDisabled: false,
 })
 export const emptyAssetDescription = makeAssetDescription()
 

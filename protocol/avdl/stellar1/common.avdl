@@ -21,6 +21,7 @@ protocol common {
     string desc; // 'Worthwhile token' or empty
     string infoUrl; // 'https://...' or empty
     string infoUrlText; // 'Exchange' for an exchange, 'View details' for anything else
+    boolean sendDisabled; // set to true if we can't send this as destination asset when we don't own it. For example when auth is required
   }
 
   record AssetListResult {
