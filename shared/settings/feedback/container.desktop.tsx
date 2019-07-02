@@ -23,6 +23,8 @@ const mergeProps = (s, d, o: OwnProps) => ({
   ...s,
   ...d,
   feedback: getRouteProps(o, 'feedback') || '',
+  onFeedbackDone: () => null,
+  showInternalSuccessBanner: true,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Feedback')(Feedback)

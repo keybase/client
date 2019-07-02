@@ -30,6 +30,7 @@ export const allTextTypes = {
   BodyTinyLink: 'BodyTinyLink',
   BodyTinySemibold: 'BodyTinySemibold',
   BodyTinyBold: 'BodyTinyBold',
+  BodyTinyExtrabold: 'BodyTinyBold',
   Header: 'Header',
   HeaderItalic: 'HeaderItalic',
   HeaderExtrabold: 'HeaderExtrabold',

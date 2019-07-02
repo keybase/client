@@ -500,7 +500,11 @@ protocol local {
   // airdropDetailsLocal returns a json blob of details about the current
   // airdrop.  If the current airdrop has expired, it will return an
   // expired error.
-  string airdropDetailsLocal(int sessionID);
+  record AirdropDetails {
+    boolean isPromoted;
+    string details;
+  }
+  AirdropDetails airdropDetailsLocal(int sessionID);
 
   @typedef("string") record AirdropState {}
 

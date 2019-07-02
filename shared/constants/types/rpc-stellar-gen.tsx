@@ -33,7 +33,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.airdropDetailsLocal': {
     inParam: void
-    outParam: String
+    outParam: AirdropDetails
   }
   'stellar.1.local.airdropRegisterLocal': {
     inParam: {readonly register: Boolean}
@@ -362,6 +362,7 @@ export type AccountBundleSecretVersioned = {version: AccountBundleVersion.v1; v1
 export type AccountDetails = {readonly accountID: AccountID; readonly seqno: String; readonly balances?: Array<Balance> | null; readonly subentryCount: Int; readonly available: String; readonly reserves?: Array<AccountReserve> | null; readonly readTransactionID?: TransactionID | null; readonly unreadPayments: Int; readonly displayCurrency: String; readonly inflationDestination?: AccountID | null}
 export type AccountID = String
 export type AccountReserve = {readonly amount: String; readonly description: String}
+export type AirdropDetails = {readonly isPromoted: Boolean; readonly details: String}
 export type AirdropQualification = {readonly title: String; readonly subtitle: String; readonly valid: Boolean}
 export type AirdropState = String
 export type AirdropStatus = {readonly state: AirdropState; readonly rows?: Array<AirdropQualification> | null}

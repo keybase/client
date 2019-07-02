@@ -173,7 +173,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 		from      stellar1.AccountID
 	}{}
 	if arg.FromPrimaryAccount != arg.From.IsNil() {
-		// Exactly one of `from` and `fromPrimaryAccount` must be set.
+		// Exactly one of `arg.From` and `arg.FromPrimaryAccount` must be set.
 		return res, fmt.Errorf("invalid build payment parameters")
 	}
 	fromPrimaryAccount := arg.FromPrimaryAccount
@@ -190,7 +190,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			fromInfo.available = true
 		}
 	} else {
-		owns, fromPrimary, err := bpc.OwnsAccount(mctx, arg.From)
+		owns, fromPrimary, err := getGlobal(mctx.G()).OwnAccountCached(mctx, arg.From)
 		if err != nil || !owns {
 			log("OwnsAccount (from) -> owns:%v err:[%T] %v", owns, err, err)
 			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
@@ -258,7 +258,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 					minAmountXLM = "2.01"
 					addMinBanner(bannerTheir, minAmountXLM)
 				} else {
-					sendingToSelf, _, selfSendErr = bpc.OwnsAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
+					sendingToSelf, _, selfSendErr = getGlobal(mctx.G()).OwnAccountCached(mctx, stellar1.AccountID(recipient.AccountID.String()))
 					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()))
 					if err != nil {
 						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)

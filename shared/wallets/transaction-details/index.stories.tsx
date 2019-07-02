@@ -225,13 +225,19 @@ const load = () => {
             code: 'WHAT',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'whatcoin',
-            issuerVerifiedDomain: 'what.com',
+            issuerVerifiedDomain: '',
           },
           {
             code: 'NATE',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'natecoin',
             issuerVerifiedDomain: 'nathansmith.io',
+          },
+          {
+            code: '',
+            issuerAccountID: '',
+            issuerName: '',
+            issuerVerifiedDomain: '',
           },
           {
             code: 'BLAH',

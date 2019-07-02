@@ -50,9 +50,14 @@ export const makeAirdropDetailsSection = I.Record<Types._AirdropDetailsSection>(
   section: '',
 })
 
-export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
+export const makeAirdropDetailsResponse = I.Record<Types._AirdropDetailsResponse>({
   header: makeAirdropDetailsHeader({}),
   sections: I.List(),
+})
+
+export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
+  details: makeAirdropDetailsResponse(),
+  isPromoted: false,
 })
 
 export const makeInflationDestination = I.Record<Types._InflationDestination>({
@@ -75,6 +80,8 @@ export const makeReserve = I.Record<Types._Reserve>({
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
   code: '',
+  infoUrl: '',
+  infoUrlText: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',

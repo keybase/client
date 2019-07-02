@@ -2135,6 +2135,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-collapse': {
+    charCode: 0xe993,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-compose': {
     charCode: 0xe913,
     gridSize: 16,
@@ -2197,6 +2202,11 @@ const iconMeta_ = {
   },
   'iconfont-exclamation': {
     charCode: 0xe91c,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-expand': {
+    charCode: 0xe992,
     gridSize: 16,
     isFont: true,
   },

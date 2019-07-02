@@ -216,16 +216,6 @@ const Detail = (props: DetailProps) => {
     ''
   )
 
-  const byConverting = props.sourceAmount ? (
-    <Text type={textType}>
-      {' '}
-      by converting{' '}
-      <Text type={textTypeExtrabold}>
-        {props.sourceAmount} {props.sourceAsset || 'XLM'}
-      </Text>
-    </Text>
-  ) : null
-
   switch (props.yourRole) {
     case 'airdrop':
       return (
@@ -240,7 +230,6 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
             {approxWorth}
-            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -250,7 +239,6 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
             {approxWorth}
-            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -261,7 +249,6 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
-            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -271,7 +258,6 @@ const Detail = (props: DetailProps) => {
           <Text type={textType} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}
             {approxWorth}
-            {byConverting}
             {textSentenceEnd}
           </Text>
         )
@@ -281,7 +267,6 @@ const Detail = (props: DetailProps) => {
       return (
         <Text type={textType} style={textStyle}>
           {verbPhrase} {amount} from this account to itself{approxWorth}
-          {byConverting}
           {textSentenceEnd}
         </Text>
       )
@@ -290,9 +275,10 @@ const Detail = (props: DetailProps) => {
   }
 }
 
-type AmountXLMProps = {
+type AmountProps = {
   yourRole: Types.Role
-  amountXLM: string
+  amountDescription: string
+  sourceAmountDescription?: string
   canceled: boolean
   pending: boolean
   selectableText: boolean
@@ -315,13 +301,13 @@ const roleToColor = (role: Types.Role): string => {
   }
 }
 
-const getAmount = (role: Types.Role, amountXLM: string): string => {
+const getAmount = (role: Types.Role, amount: string, sourceAmount?: string): string => {
   switch (role) {
     case 'senderOnly':
-      return `- ${amountXLM}`
+      return `- ${sourceAmount || amount}`
     case 'airdrop':
     case 'receiverOnly':
-      return `+ ${amountXLM}`
+      return `+ ${amount}`
     case 'senderAndReceiver':
       return '0 XLM'
     default:
@@ -329,10 +315,10 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
   }
 }
 
-const AmountXLM = (props: AmountXLMProps) => {
+const Amount = (props: AmountProps) => {
   const color = props.pending || props.canceled ? globalColors.black_20 : roleToColor(props.yourRole)
 
-  const amount = getAmount(props.yourRole, props.amountXLM)
+  const amount = getAmount(props.yourRole, props.amountDescription, props.sourceAmountDescription)
   return (
     <Text
       selectable={props.selectableText}
@@ -549,16 +535,15 @@ export const Transaction = (props: Props) => {
               )}
               <Box2 direction="horizontal" style={styles.marginLeftAuto} />
               {props.status !== 'error' && !props.isAdvanced && (
-                <AmountXLM
+                <Amount
                   selectableText={props.selectableText}
                   canceled={props.status === 'canceled'}
                   pending={pending}
                   yourRole={props.yourRole}
-                  amountXLM={
-                    props.sourceAmount
-                      ? `${props.sourceAmount} ${props.sourceAsset || 'XLM'}`
-                      : props.amountXLM
+                  sourceAmountDescription={
+                    props.sourceAmount ? `${props.sourceAmount} ${props.sourceAsset || 'XLM'}` : undefined
                   }
+                  amountDescription={props.amountXLM}
                 />
               )}
             </Box2>
