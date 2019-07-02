@@ -70,7 +70,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const canceled = paymentInfo.status === 'canceled'
       const completed = paymentInfo.status === 'completed'
       const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
-      const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code}`
+      const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
       const balanceChangeAmount =
         paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
           ? sourceAmountDesc

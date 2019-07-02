@@ -1024,10 +1024,10 @@ const updateAirdropDetails = (
   logger
 ) =>
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
-    .then(s => {
-      const json: AirdropDetailsJSONType = JSON.parse(s)
+    .then(response => {
+      const json: AirdropDetailsJSONType = JSON.parse(response.details)
       return WalletsGen.createUpdatedAirdropDetails({
-        details: Constants.makeAirdropDetails({
+        details: Constants.makeAirdropDetailsResponse({
           header: Constants.makeAirdropDetailsHeader({
             body: (json && json.header && json.header.body) || '',
             title: (json && json.header && json.header.title) || '',
@@ -1049,6 +1049,7 @@ const updateAirdropDetails = (
             )
           ),
         }),
+        isPromoted: response.isPromoted,
       })
     })
     .catch(e => {

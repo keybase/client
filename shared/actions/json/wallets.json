@@ -453,7 +453,10 @@
       "airdropState": "Types.AirdropState"
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": {"details": "Types.AirdropDetails"},
+    "updatedAirdropDetails": {
+      "details": "Types.AirdropDetailsResponse",
+      "isPromoted": "boolean"
+    },
     "refreshTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID"
     },

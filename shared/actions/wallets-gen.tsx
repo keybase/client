@@ -339,7 +339,10 @@ type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly pa
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
 type _UpdateAirdropStatePayload = void
-type _UpdatedAirdropDetailsPayload = {readonly details: Types.AirdropDetails}
+type _UpdatedAirdropDetailsPayload = {
+  readonly details: Types.AirdropDetailsResponse
+  readonly isPromoted: boolean
+}
 type _UpdatedAirdropStatePayload = {
   readonly airdropQualifications: Array<Types.AirdropQualification>
   readonly airdropState: Types.AirdropState
