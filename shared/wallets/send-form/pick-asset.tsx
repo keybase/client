@@ -62,33 +62,40 @@ const AssetList = ({accountID, isSender, username}) => {
           {assetID: 'XLM', key: ' XLM', selected: selectedAsset === 'native'},
         ]}
         bounces={true}
-        itemHeight={{height: 56, type: 'fixed'}}
+        itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
         renderItem={(index, {assetID, selected}) => {
           const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
           return (
-            <Kb.ClickableBox onClick={() => onSelect(asset)} style={styles.itemContainer}>
-              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
-                <Kb.Text
-                  type="BodyExtrabold"
-                  lineClamp={1}
-                  ellipsizeMode="tail"
-                  style={selected && styles.textSelected}
-                >
-                  {asset === 'native' ? 'XLM' : asset.code}
-                </Kb.Text>
-                <Kb.Text
-                  type="BodySmall"
-                  lineClamp={1}
-                  ellipsizeMode="middle"
-                  style={selected && styles.textSelected}
-                >
-                  {asset === 'native'
-                    ? 'Stellar Lumens'
-                    : asset.issuerVerifiedDomain || asset.issuerAccountID}
-                </Kb.Text>
-              </Kb.Box2>
-              {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
-            </Kb.ClickableBox>
+            <Kb.ListItem2
+              onClick={() => onSelect(asset)}
+              type="Small"
+              firstItem={true}
+              body={
+                <Kb.Box2 style={styles.itemContainer} direction="horizontal" alignItems="center">
+                  <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow}>
+                    <Kb.Text
+                      type="BodyExtrabold"
+                      lineClamp={1}
+                      ellipsizeMode="tail"
+                      style={selected && styles.textSelected}
+                    >
+                      {asset === 'native' ? 'XLM' : asset.code}
+                    </Kb.Text>
+                    <Kb.Text
+                      type="BodySmall"
+                      lineClamp={1}
+                      ellipsizeMode="middle"
+                      style={selected && styles.textSelected}
+                    >
+                      {asset === 'native'
+                        ? 'Stellar Lumens'
+                        : asset.issuerVerifiedDomain || asset.issuerAccountID}
+                    </Kb.Text>
+                  </Kb.Box2>
+                  {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+                </Kb.Box2>
+              }
+            />
           )
         }}
         keyProperty="key"
@@ -155,14 +162,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   itemContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    height: 56,
-    paddingBottom: Styles.globalMargins.tiny,
+    ...Styles.globalStyles.flexGrow,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-    width: '100%',
   },
   textSelected: {
     color: Styles.globalColors.blueDark,
