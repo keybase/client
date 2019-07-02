@@ -795,6 +795,7 @@ type Stellar interface {
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
 	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
 	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
+	InformDefaultCurrencyChange(MetaContext)
 }
 
 type DeviceEKStorage interface {
