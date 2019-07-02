@@ -1,9 +1,11 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
 import {BrowserWindow} from '../../util/safe-electron.desktop'
+import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
 import AppState from '../../app/app-state.desktop'
@@ -152,6 +154,7 @@ class Header extends React.PureComponent<Props> {
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
+        {flags.airdrop && this.props.loggedIn && <AirdropBanner />}
         <Kb.Box2
           noShrink={true}
           direction="vertical"
@@ -191,7 +194,7 @@ class Header extends React.PureComponent<Props> {
                 />
               )}
               {!title && rightActions}
-              {!Platform.isDarwin && !initialUseNativeFrame && <SystemButtons />}
+              {Platform.isDarwin && <SystemButtons />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -282,4 +285,7 @@ const styles = Styles.styleSheetCreate({
   topRightContainer: {flex: 1, justifyContent: 'flex-end'},
 })
 
-export default Header
+const mapStateToProps = () => ({})
+const mapDispatchToProps = () => ({})
+
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(Header)

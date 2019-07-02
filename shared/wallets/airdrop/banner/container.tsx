@@ -7,14 +7,18 @@ import flags from '../../../util/feature-flags'
 
 type OwnProps = {}
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  headerBody: state.wallets.airdropDetails.details.header.body,
-  show:
-    flags.airdrop &&
-    state.wallets.airdropDetails.isPromoted &&
-    state.wallets.airdropShowBanner &&
-    (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified'),
-})
+const mapStateToProps = (state: Container.TypedState) => {
+  console.warn('airdrop container')
+  return {
+    headerBody: state.wallets.airdropDetails.details.header.body,
+    show: true, /*
+      flags.airdrop &&
+      state.wallets.airdropDetails.isPromoted &&
+      state.wallets.airdropShowBanner &&
+      (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified'),
+      */
+  }
+}
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCancel: () => dispatch(WalletsGen.createHideAirdropBanner()),

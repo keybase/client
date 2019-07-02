@@ -31,7 +31,9 @@ type RoleRowProps = {
   onSelect: (() => void) | null
 }
 
-const RoleRow = (p: RoleRowProps) => (
+const RoleRow = (p: RoleRowProps) => {
+  console.warn('in rolerow', p)
+  return (
   <Kb.Box2 direction={'vertical'} fullWidth={true} alignItems={'flex-start'} style={styles.row}>
     <Kb.Box2 direction={'vertical'} fullWidth={true} style={styles.rowChild}>
       <Kb.Box2
@@ -56,6 +58,8 @@ const RoleRow = (p: RoleRowProps) => (
     </Kb.Box2>
   </Kb.Box2>
 )
+  }
+  
 
 type RolesMetaInfo = {
   cans: Array<string>

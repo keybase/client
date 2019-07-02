@@ -10,13 +10,15 @@ type Props = {
 }
 
 const Banner = (p: Props) => {
+  console.warn('in Banner', p)
   if (!p.show) return null
 
+  console.warn('in Banner', p)
   const join = (
     <Kb.Button backgroundColor="purple" label="Join the airdrop" onClick={p.onCheckQualify} small={true} />
   )
 
-  const textAndButtons = Styles.isMobile ? (
+  const textAndButtons = (
     <Kb.Box2 direction="horizontal" style={styles.grow}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
@@ -33,21 +35,6 @@ const Banner = (p: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.grow}
-      centerChildren={true}
-      alignItems="flex-start"
-      gap="small"
-    >
-      <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
-        {p.headerBody}
-      </Kb.Markdown>
-      {join}
-      <Kb.Box2 direction="vertical" style={styles.grow} />
-      <Kb.Icon type="iconfont-close" onClick={p.onCancel} style={styles.close} />
     </Kb.Box2>
   )
 
@@ -90,7 +77,10 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.tiny,
   },
   grow: {flexGrow: 1, flexShrink: 1},
-  markdown: {alignSelf: 'center'},
+  markdown: Styles.platformStyles({
+    isElectron: {alignSelf: 'flex-start', paddingBottom: Styles.globalMargins.tiny, width: 400},
+    isMobile: {alignSelf: 'center'},
+  }),
   textContainer: {
     flexGrow: 1,
     flexShrink: 1,
