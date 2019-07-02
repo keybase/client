@@ -261,7 +261,10 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
         >
           <Kb.ClickableBox onClick={goToPickAsset} style={!goToPickAsset && styles.disabled}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
-              <Kb.Text type="HeaderExtrabold" style={sharedStyles.purple}>
+              <Kb.Text
+                type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}
+                style={Styles.collapseStyles([sharedStyles.purple, styles.pickAssetButtonTopText])}
+              >
                 {asset !== Constants.emptyAssetDescription
                   ? asset === 'native'
                     ? 'XLM'
@@ -383,13 +386,22 @@ const styles = Styles.styleSheetCreate({
   noShrink: {
     flexShrink: 0,
   },
-  pickAssetButton: {
-    width: Styles.globalMargins.xlarge * 3,
-  },
+  pickAssetButton: Styles.platformStyles({
+    common: {
+      width: Styles.globalMargins.xlarge * 3,
+    },
+    isMobile: {
+      //    paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   // We need this to make the PickAssetButton on top of other stuff so amount
   // error can extend below it.
   pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
   pickAssetButtonOverlayOuter: {position: 'relative'},
+  pickAssetButtonTopText: Styles.platformStyles({
+    isElectron: {lineHeight: '24px'},
+    isMobile: {lineHeight: 32},
+  }),
   senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
   shrink: {flexShrink: 1},
   topLabel: {
