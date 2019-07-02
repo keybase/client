@@ -254,14 +254,14 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
         >
           <Kb.ClickableBox onClick={goToPickAsset} style={!goToPickAsset && styles.disabled}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
-              <Kb.Text type="HeaderBigExtrabold" style={sharedStyles.purple}>
+              <Kb.Text type="HeaderExtrabold" style={sharedStyles.purple}>
                 {asset !== Constants.emptyAssetDescription
                   ? asset === 'native'
                     ? 'XLM'
                     : asset.code
                   : 'Pick an asset'}
               </Kb.Text>
-              <Kb.Icon type="iconfont-caret-down" sizeType="Small" color={Styles.globalColors.purple} />
+              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" color={Styles.globalColors.purple} />
             </Kb.Box2>
           </Kb.ClickableBox>
           {asset !== Constants.emptyAssetDescription && (
