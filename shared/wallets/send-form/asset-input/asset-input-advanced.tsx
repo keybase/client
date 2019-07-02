@@ -15,11 +15,14 @@ type EmptyProps = {}
 
 export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const accountMap = Container.useSelector(state => state.wallets.accountMap)
   const dispatch = Container.useDispatch()
   const onChangeAmount = React.useCallback(
     recipientAmount => dispatch(WalletsGen.createSetBuildingAdvancedRecipientAmount({recipientAmount})),
     [dispatch]
   )
+  const accountName =
+    buildingAdvanced.recipientType === 'otherAccount' ? accountMap.get(buildingAdvanced.recipient).name : ''
   return (
     <Kb.Box2
       direction="vertical"
@@ -39,6 +42,10 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
               underline={false}
             />
           </>
+        ) : accountName ? (
+          <Kb.Text type="BodyTinySemiboldItalic" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
+            {accountName}
+          </Kb.Text>
         ) : (
           <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
             {Constants.shortenAccountID(buildingAdvanced.recipient)}
