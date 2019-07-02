@@ -110,7 +110,7 @@ const PickAsset = (props: Props) => {
       <Kb.Box2 direction="vertical" style={styles.container}>
         <Header isRequest={false} whiteBackground={true}>
           <Kb.ClickableBox onClick={onBack} style={styles.backClickable}>
-            <Kb.Text type="BodyPrimaryLink">{Styles.isMobile ? 'Back' : 'Cancel'}</Kb.Text>
+            <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
           </Kb.ClickableBox>
           {isSender ? (
             <Kb.Text type="BodyTinySemibold">You can send</Kb.Text>
