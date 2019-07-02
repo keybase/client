@@ -87,7 +87,7 @@ export type Props = {
   loading: boolean
   inAirdrop: boolean
   onAddNew: () => void
-  onJoinAirdrop: () => void | null
+  onJoinAirdrop: (() => void) | null
   onLinkExisting: () => void
   onWhatIsStellar: () => void
   title: string
