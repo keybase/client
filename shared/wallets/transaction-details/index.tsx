@@ -192,13 +192,13 @@ const YourAccount = (props: YourAccountProps) => {
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
-      return Styles.globalColors.green
+      return Styles.globalColors.greenDark
     case 'pending':
     case 'claimable':
       return Styles.globalColors.purple
     case 'error':
     case 'canceled':
-      return Styles.globalColors.red
+      return Styles.globalColors.redDark
     default:
       return Styles.globalColors.black
   }
