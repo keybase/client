@@ -28,6 +28,13 @@ export type Dispatch = TypedDispatch
 export const useAnyWaiting = (...waitingKeys: string[]) =>
   useSelector(state => anyWaiting(state, ...waitingKeys))
 export const useAnyErrors = (...waitingKeys: string[]) => useSelector(state => anyErrors(state, waitingKeys))
+export function usePrevious<T>(value: T) {
+  const ref = React.useRef<T>()
+  React.useEffect(() => {
+    ref.current = value
+  })
+  return ref.current
+}
 
 export type Route = {
   getScreen: () => React.ComponentType

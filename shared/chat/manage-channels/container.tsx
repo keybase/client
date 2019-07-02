@@ -110,7 +110,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
           path: [{props: {teamname}, selected: 'chatCreateChannel'}],
         })
       ),
-    onEdit: conversationIDKey =>
+    onEdit: (conversationIDKey: ChatTypes.ConversationIDKey) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
@@ -169,17 +169,18 @@ const Wrapper = (p: Props) => {
     _saveSubscriptions,
     channels,
     selectedChatID,
+    ...rest
   } = p
   const oldChannelState = React.useMemo(
     () =>
-      channels.reduce((acc, c) => {
+      channels.reduce<{[key: string]: boolean}>((acc, c) => {
         acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected
         return acc
       }, {}),
     [channels]
   )
 
-  const [nextChannelState, setNextChannelState] = React.useState(oldChannelState)
+  const [nextChannelState, setNextChannelState] = React.useState<ChannelMembershipState>(oldChannelState)
 
   const onClickChannel = React.useCallback(
     (channelname: string) => {
@@ -207,30 +208,74 @@ const Wrapper = (p: Props) => {
   React.useEffect(() => {
     _loadChannels()
     !_hasOperations && _loadOperations()
+    // eslint-disable-next-line
   }, [])
 
+  const prevOldChannelState = Container.usePrevious(oldChannelState)
   React.useEffect(() => {
-    if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
-      this.props.setNextChannelState(this.props.oldChannelState)
+    if (!isEqual(oldChannelState, prevOldChannelState)) {
+      setNextChannelState(oldChannelState)
     }
-  }, [oldChannelState])
+  }, [prevOldChannelState, oldChannelState])
+
+  const unsavedSubscriptions = React.useMemo(() => !isEqual(oldChannelState, nextChannelState), [
+    oldChannelState,
+    nextChannelState,
+  ])
 
   return (
     <ManageChannels
+      waitingKey={rest.waitingKey}
+      waitingForGet={rest.waitingForGet}
+      teamname={rest.teamname}
+      onEdit={rest.onEdit}
+      onClose={rest.onClose}
+      onCreate={rest.onCreate}
+      canEditChannels={rest.canEditChannels}
+      canCreateChannels={rest.canCreateChannels}
+      channels={channels}
       nextChannelState={nextChannelState}
-      setNextChannelState={setNextChannelState}
       onClickChannel={onClickChannel}
       onSaveSubscriptions={onSaveSubscriptions}
       onToggle={onToggle}
+      unsavedSubscriptions={unsavedSubscriptions}
     />
   )
 }
 
-// Container.withPropsOnChange(['oldChannelState', 'nextChannelState'], (props: any) => ({
-// unsavedSubscriptions: !isEqual(props.oldChannelState, props.nextChannelState),
-// }))
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+const C = Container.connectDEBUG(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
   ...o,
   ...s,
   ...d,
 }))(Wrapper)
+
+export default C
+
+// export type RowProps = {
+// description: string
+// hasAllMembers: boolean
+// name: string
+// numParticipants: number
+// mtimeHuman: string
+// }
+
+// export type Props = {
+// canCreateChannels: boolean
+// canEditChannels: boolean
+// channels: Array<
+// RowProps & {
+// convID: ConversationIDKey
+// }
+// >
+// onCreate: () => void
+// onToggle: (convID: ConversationIDKey) => void
+// onEdit: (convID: ConversationIDKey) => void
+// onClose: () => void
+// onClickChannel: (channelname: string) => void
+// teamname: string
+// unsavedSubscriptions: boolean
+// onSaveSubscriptions: () => void
+// waitingForGet: boolean
+// waitingKey: string
+// nextChannelState: ChannelMembershipState
+// }
