@@ -32,6 +32,8 @@ type Props = {
   saveProxyData: (proxyData: RPCTypes.ProxyData) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
+  rememberPassword: boolean
+  onChangeRememberPassword: (checked: boolean) => void
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -79,7 +81,6 @@ const Advanced = (props: Props) => {
               (props.hasRandomPW ? ' (you need to set a password first)' : '')
             }
             onCheck={props.onChangeLockdownMode}
-            style={styles.checkbox}
           />
         </Kb.Box>
         {!!props.setLockdownModeError && (
@@ -87,9 +88,18 @@ const Advanced = (props: Props) => {
             {props.setLockdownModeError}
           </Kb.Text>
         )}
+        {!props.hasRandomPW && (
+          <Kb.Box style={styles.checkboxContainer}>
+            <Kb.Checkbox
+              checked={props.rememberPassword}
+              label="Remember your password"
+              onCheck={props.onChangeRememberPassword}
+            />
+          </Kb.Box>
+        )}
         {isLinux && <UseNativeFrame {...props} />}
         {!Styles.isMobile && !isLinux && (
-          <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+          <Kb.Box style={styles.checkboxContainer}>
             <Kb.Checkbox
               label="Open Keybase on startup"
               checked={props.openAtLogin}
@@ -362,6 +372,7 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.medium,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
+    width: '100%',
   },
   checkbox: {
     flex: 1,
@@ -373,6 +384,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     maxHeight: 48,
     minHeight: 48,
+    width: '100%',
   },
   developerButtons: {
     marginTop: Styles.globalMargins.small,
@@ -402,11 +414,6 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     flexWrap: 'wrap',
     marginTop: Styles.globalMargins.tiny,
-  },
-  openAtLoginCheckboxContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    flex: 1,
   },
   progressContainer: {
     ...Styles.globalStyles.flexBoxRow,

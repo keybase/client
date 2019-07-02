@@ -6,7 +6,9 @@ import {
   createLoadHasRandomPw,
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
+  createOnChangeRememberPassword,
   createLoadProxyData,
+  createLoadRememberPassword,
   createSaveProxyData,
   createCertificatePinningToggled,
 } from '../../actions/settings-gen'
@@ -17,11 +19,11 @@ import * as Constants from '../../constants/settings'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from './index'
-import {connect, lifecycle} from '../../util/container'
+import {connect, lifecycle, TypedState} from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 type OwnProps = {}
-const mapStateToProps = state => {
+const mapStateToProps = (state: TypedState) => {
   const settingLockdownMode = anyWaiting(state, Constants.setLockdownModeWaitingKey)
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
@@ -31,6 +33,7 @@ const mapStateToProps = state => {
     openAtLogin: state.config.openAtLogin,
     processorProfileInProgress: Constants.processorProfileInProgress(state),
     proxyData: state.settings.proxyData,
+    rememberPassword: state.settings.password.rememberPassword,
     setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
@@ -42,9 +45,12 @@ const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   _loadProxyData: () => dispatch(createLoadProxyData()),
+  _loadRememberPassword: () => dispatch(createLoadRememberPassword()),
   _resetCertPinningToggle: () => dispatch(createCertificatePinningToggled({toggled: null})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
+  onChangeRememberPassword: (checked: boolean) =>
+    dispatch(createOnChangeRememberPassword({remember: checked})),
   onChangeUseNativeFrame: (checked: boolean) => dispatch(createOnChangeUseNativeFrame({enabled: checked})),
   onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
   onDisableCertPinning: () =>
@@ -68,6 +74,7 @@ export default compose(
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
       this.props._loadProxyData()
+      this.props._loadRememberPassword()
     },
     componentWillUnmount() {
       this.props._resetCertPinningToggle()
