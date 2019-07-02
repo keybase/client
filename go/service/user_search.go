@@ -111,10 +111,6 @@ func matchAndScoreContact(rxx *regexp.Regexp, query string, contact keybase1.Pro
 }
 
 func contactSearch(mctx libkb.MetaContext, store *contacts.SavedContactsStore, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
-	if arg.Query == "" {
-		return res, nil
-	}
-
 	contactsRes, err := store.RetrieveContacts(mctx)
 	if err != nil {
 		return res, err
@@ -152,17 +148,26 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
 		func() error { return err })()
 
+	if arg.Query == "" {
+		return res, nil
+	}
+
 	res, err = doSearchRequest(mctx, arg)
 	if arg.IncludeContacts {
 		contactsRes, err := contactSearch(mctx, h.savedContacts, arg)
-		if err != nil {
+		switch err.(type) {
+		case nil, contacts.NoSavedContactsErr:
+		default:
 			return res, err
 		}
 
-		var res2 []keybase1.APIUserSearchResult
-		res2 = append(res2, contactsRes...)
-		res2 = append(res2, res...)
-		res = res2
+		if len(contactsRes) > 0 {
+			var res2 []keybase1.APIUserSearchResult
+			res2 = append(res2, contactsRes...)
+			res2 = append(res2, res...)
+			res = res2
+		}
 	}
+
 	return res, nil
 }
