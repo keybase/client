@@ -4,18 +4,24 @@ import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 
+type ErrorBodyProps = {
+  errorText: string
+}
+
+const ErrorBody = (props: ErrorBodyProps) => {
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Banner text={props.errorText} color="red" />
+    </Kb.Box2>
+  )
+}
+
 const Error = () => {
+  const Body = Kb.HeaderOrPopup(ErrorBody)
   const error = Container.useSelector(s => s.wallets.sep7ConfirmError)
   const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-
-  return (
-    <Kb.MaybePopup onClose={onBack}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Banner text={error} color="red" />
-      </Kb.Box2>
-    </Kb.MaybePopup>
-  )
+  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
+  return <Body onCancel={onClose} customCancelText="Close" errorText={error} />
 }
 
 const styles = Styles.styleSheetCreate({
