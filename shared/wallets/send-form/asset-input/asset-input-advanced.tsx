@@ -40,8 +40,8 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
             />
           </>
         ) : (
-          <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle">
-            {buildingAdvanced.recipient}
+          <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
+            {Constants.shortenAccountID(buildingAdvanced.recipient)}
           </Kb.Text>
         )}
         <Kb.Text type="BodyTinySemibold" style={styles.noShrink}>
@@ -177,7 +177,7 @@ export const AssetPathIntermediate = () => {
                   <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
                     {asset === 'native'
                       ? '/Stellar Lumens'
-                      : `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
+                      : `/${asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}`}
                   </Kb.Text>
                 </Kb.Box>
                 <Kb.Box2
@@ -384,7 +384,9 @@ const styles = Styles.styleSheetCreate({
   pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
   pickAssetButtonOverlayOuter: {position: 'relative'},
   senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
+  shrink: {flexShrink: 1},
   topLabel: {
     marginBottom: Styles.globalMargins.xtiny,
+    maxWidth: '100%',
   },
 })
