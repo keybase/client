@@ -50,9 +50,14 @@ export const makeAirdropDetailsSection = I.Record<Types._AirdropDetailsSection>(
   section: '',
 })
 
-export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
+export const makeAirdropDetailsResponse = I.Record<Types._AirdropDetailsResponse>({
   header: makeAirdropDetailsHeader({}),
   sections: I.List(),
+})
+
+export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
+  details: makeAirdropDetailsResponse(),
+  isPromoted: false,
 })
 
 export const makeInflationDestination = I.Record<Types._InflationDestination>({

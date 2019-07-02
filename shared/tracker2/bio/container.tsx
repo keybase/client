@@ -10,6 +10,7 @@ type OwnProps = {
 const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)
   return {
+    airdropIsLive: state.wallets.airdropDetails.isPromoted,
     bio: d.bio,
     followThem: Constants.followThem(state, ownProps.username),
     followersCount: d.followersCount,
@@ -22,6 +23,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  airdropIsLive: stateProps.airdropIsLive,
   bio: stateProps.bio,
   followThem: stateProps.followThem,
   followersCount: stateProps.followersCount,

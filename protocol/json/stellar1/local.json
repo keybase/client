@@ -776,6 +776,20 @@
     },
     {
       "type": "record",
+      "name": "AirdropDetails",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPromoted"
+        },
+        {
+          "type": "string",
+          "name": "details"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AirdropState",
       "fields": [],
       "typedef": "string"
@@ -2133,7 +2147,7 @@
           "type": "int"
         }
       ],
-      "response": "string"
+      "response": "AirdropDetails"
     },
     "airdropStatusLocal": {
       "request": [
