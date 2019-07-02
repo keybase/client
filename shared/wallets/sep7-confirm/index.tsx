@@ -78,7 +78,7 @@ const InfoRow = (props: InfoRowProps) => (
       {props.showStellarIcon ? (
         <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
           <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
-          <Kb.Text lineClamp={2} selectable={true} type="Body" style={styles.bodyText}>
+          <Kb.Text lineClamp={2} selectable={true} type="Body" style={styles.bodyTextWithIcon}>
             {props.bodyText}
           </Kb.Text>
         </Kb.Box2>
@@ -251,11 +251,13 @@ const styles = Styles.styleSheetCreate({
   bodyText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black,
-      marginLeft: Styles.globalMargins.tiny,
-      marginRight: Styles.globalMargins.tiny,
     },
     isElectron: {wordBreak: 'break-word'},
   }),
+  bodyTextWithIcon: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
