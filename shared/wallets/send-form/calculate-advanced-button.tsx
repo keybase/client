@@ -22,12 +22,14 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     buildingAdvanced.senderAsset === Constants.emptyAssetDescription
   return !isLoading ? (
     props.isIcon ? (
-      <Kb.Icon
-        type="iconfont-calculate"
-        sizeType="Big"
-        color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
-        onClick={isDisabled ? null : onClick}
-      />
+      <Kb.WithTooltip text="Calculate the amount you will send" position="bottom left" disabled={isDisabled}>
+        <Kb.Icon
+          type="iconfont-calculate"
+          sizeType="Big"
+          color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
+          onClick={isDisabled ? null : onClick}
+        />
+      </Kb.WithTooltip>
     ) : (
       <Kb.Button
         type="Wallet"
