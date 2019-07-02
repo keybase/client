@@ -10,8 +10,7 @@ type Props = {
 const PaymentPathCircle = (props: Props) => (
   <Kb.Box
     style={Styles.collapseStyles([
-      props.isLarge && styles.paymentPathCircleLarge,
-      !props.isLarge && styles.paymentPathCircleSmall,
+      props.isLarge ? styles.paymentPathCircleLarge : styles.paymentPathCircleSmall,
       props.style,
     ])}
   />

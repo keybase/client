@@ -111,8 +111,7 @@ export const AssetPathIntermediate = () => {
     <Kb.Box
       style={Styles.collapseStyles([
         styles.intermediateContainer,
-        expanded && styles.intermediateContainerExpanded,
-        !expanded && styles.intermediateContainerCollapsed,
+        expanded ? styles.intermediateContainerExpanded : styles.intermediateContainerCollapsed,
       ])}
     >
       <Kb.Box2
@@ -120,9 +119,7 @@ export const AssetPathIntermediate = () => {
         alignItems="center"
         style={Styles.collapseStyles([
           styles.intermediateAbsoluteBlock,
-          {
-            top: -Styles.globalMargins.medium,
-          },
+          styles.intermediateTopCircleContainer,
         ])}
       >
         <PaymentPathCircle isLarge={false} />
@@ -132,9 +129,7 @@ export const AssetPathIntermediate = () => {
         alignItems="center"
         style={Styles.collapseStyles([
           styles.intermediateAbsoluteBlock,
-          {
-            bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
-          },
+          styles.intermediateBottomCircleContainer,
         ])}
       >
         <PaymentPathCircle isLarge={false} />
@@ -142,13 +137,7 @@ export const AssetPathIntermediate = () => {
       <Kb.Box2
         direction="vertical"
         alignItems="center"
-        style={Styles.collapseStyles([
-          styles.intermediateAbsoluteBlock,
-          {
-            bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleSmallDiameter),
-            top: -(Styles.globalMargins.medium - pathCircleSmallDiameter),
-          },
-        ])}
+        style={Styles.collapseStyles([styles.intermediateAbsoluteBlock, styles.intermediateLineContainer])}
       >
         <Kb.Box style={styles.intermediateLine} />
       </Kb.Box2>
@@ -156,16 +145,15 @@ export const AssetPathIntermediate = () => {
         style={Styles.collapseStyles([
           styles.intermediateAbsoluteBlock,
           styles.intermediateExpandButton,
-          expanded && styles.intermediateExpandButtonExpanded,
-          !expanded && styles.intermediateExpandButtonCollapsed,
+          expanded ? styles.intermediateExpandButtonExpanded : styles.intermediateExpandButtonCollapsed,
         ])}
         onClick={() => setExpanded(expanded => !expanded)}
       >
-        {expanded ? (
-          <Kb.Icon type="iconfont-collapse" sizeType="Default" color={Styles.globalColors.purple} />
-        ) : (
-          <Kb.Icon type="iconfont-expand" sizeType="Default" color={Styles.globalColors.purple} />
-        )}
+        <Kb.Icon
+          type={expanded ? 'iconfont-collapse' : 'iconfont-expand'}
+          sizeType="Default"
+          color={Styles.globalColors.purple}
+        />
       </Kb.ClickableBox>
       {expanded && (
         <Kb.Box2
@@ -337,6 +325,9 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 1,
     maxWidth: Styles.globalMargins.large * 5,
   },
+  intermediateBottomCircleContainer: {
+    bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
+  },
   intermediateContainer: {
     backgroundColor: Styles.globalColors.blueGrey,
     position: 'relative',
@@ -374,6 +365,13 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.purple,
     height: '100%',
     width: 2,
+  },
+  intermediateLineContainer: {
+    bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleSmallDiameter),
+    top: -(Styles.globalMargins.medium - pathCircleSmallDiameter),
+  },
+  intermediateTopCircleContainer: {
+    top: -Styles.globalMargins.medium,
   },
   noShrink: {
     flexShrink: 0,
