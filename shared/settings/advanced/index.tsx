@@ -51,7 +51,6 @@ const UseNativeFrame = (props: Props) => {
             checked={!props.useNativeFrame}
             label={'Hide system window frame'}
             onCheck={x => props.onChangeUseNativeFrame(!x)}
-            style={styles.checkbox}
           />
         </Kb.Box>
         {initialUseNativeFrame !== props.useNativeFrame && (
@@ -92,7 +91,14 @@ const Advanced = (props: Props) => {
           <Kb.Box style={styles.checkboxContainer}>
             <Kb.Checkbox
               checked={props.rememberPassword}
-              label="Remember your password"
+              labelComponent={
+                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                  <Kb.Text type="BodySmall">
+                    You won't be asked for your password when restarting the app or your device.
+                  </Kb.Text>
+                </Kb.Box2>
+              }
               onCheck={props.onChangeRememberPassword}
             />
           </Kb.Box>
@@ -374,16 +380,11 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.medium,
     width: '100%',
   },
-  checkbox: {
-    flex: 1,
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
   checkboxContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    maxHeight: 48,
-    minHeight: 48,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
     width: '100%',
   },
   developerButtons: {
