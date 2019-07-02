@@ -595,7 +595,6 @@ func (s *Stellar) OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.Ac
 		return
 	}
 	if s.accounts != nil && mctx.G().Clock().Now().Sub(s.accounts.Stored.Round(0)) < 2*time.Minute {
-		mctx.Debug("xxx OwnAccountCached hit")
 		for _, acc := range s.accounts.Accounts {
 			if acc.AccountID.Eq(accountID) {
 				s.accountsLock.Unlock()
