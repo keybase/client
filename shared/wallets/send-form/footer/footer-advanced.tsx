@@ -14,9 +14,18 @@ const FooterAdvanced = () => {
     dispatch,
   ])
   return builtPaymentAdvanced.noPathFoundError ? (
-    <Kb.Banner color="red" text="No path was found to convert these 2 assets. Please pick other assets." />
+    <Kb.Banner
+      style={Styles.globalStyles.rounded}
+      color="red"
+      text="No path was found to convert these 2 assets. Please pick other assets."
+    />
   ) : (
-    <Kb.Box2 direction="horizontal" alignItems="center" style={styles.buttonBox} fullWidth={true}>
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
+      style={Styles.collapseStyles([Styles.globalStyles.rounded, styles.buttonBox])}
+      fullWidth={true}
+    >
       {builtPaymentAdvanced.sourceDisplay ? (
         <Kb.WaitingButton
           type="Wallet"
