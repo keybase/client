@@ -79,6 +79,7 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		SkipMail:                 arg.SkipMail,
 		GenPGPBatch:              arg.GenPGPBatch,
 		SkipPaper:                !arg.GenPaper,
+		VerifyEmail:              arg.VerifyEmail,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewSignupEngine(h.G(), &runarg)
