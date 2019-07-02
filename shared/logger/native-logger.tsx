@@ -1,4 +1,4 @@
-import {log, dump} from '../native/logger'
+import {log, dump, flush} from '../native/logger'
 import {Logger, LogLine, LogLevel, Timestamp} from './types'
 import {toStringForLog} from '../util/string'
 
@@ -50,8 +50,8 @@ class NativeLogger implements Logger {
   }
 
   flush() {
-    const p: Promise<void> = Promise.resolve()
-    return p
+    flush()
+    return Promise.resolve()
   }
 }
 

@@ -15,6 +15,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class NativeLogger extends ReactContextBaseJavaModule {
@@ -98,16 +100,17 @@ public class NativeLogger extends ReactContextBaseJavaModule {
     @ReactMethod
     public void dump(String tagPrefix, Promise promise) {
         try {
-            String cmd = "logcat -m 10000 -d " + tagPrefix + NAME + ":I *:S";
+            String cmd = "logcat -m 10000 -d " + "ReactNativeJS" + ":I *:S";
 
             Process process = Runtime.getRuntime().exec(cmd);
             BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             final WritableArray totalArray = Arguments.createArray();
+            final Pattern pattern = Pattern.compile(".*" + tagPrefix + NAME + ": (.*)");
             while ((line = r.readLine()) != null) {
-                final int startIdx = line.indexOf(tagPrefix + NAME);
-                if (startIdx > 0) {
-                    totalArray.pushString(line.substring(startIdx + tagPrefix.length() + NAME.length() + 2)); // + 2 for the ': ' part
+                Matcher m = pattern.matcher(line);
+                if (m.matches()) {
+                    totalArray.pushString(m.group(1));
                 }
             }
             promise.resolve(totalArray);
