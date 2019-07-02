@@ -52,6 +52,7 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
+              badgeNumber: props.badgeNumbers[TabConstants.settingsTab],
               onClick: () => props.onTabChange(Constants.accountTab),
               text: 'Account',
             },
