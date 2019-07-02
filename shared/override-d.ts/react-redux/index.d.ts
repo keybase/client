@@ -229,15 +229,9 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
   component: C
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
-  : never &
-      [
-        "just to help you debug what's going on",
-        Exclude<keyof GetProps<C>, keyof TMergedProps>,
-        Exclude<keyof TMergedProps, keyof GetProps<C>>,
-        GetProps<C>,
-        TMergedProps
-      ]
+  : never 
 
+// To debug why the connect is returning never
 export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
   component: C
 ) => TMergedProps extends React.ComponentProps<C>
