@@ -896,6 +896,7 @@ func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []
 	if !ok {
 		return nil, fmt.Errorf("no external URLs to parse")
 	}
+	userIsKeybaseAdmin := s.G().Env.GetFeatureFlags().Admin(s.G().GetMyUID())
 	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarPartners] {
 		asData, err := json.Marshal(asInterface)
 		if err != nil {
@@ -906,8 +907,8 @@ func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []
 		if err != nil {
 			return nil, err
 		}
-		if partnerURL.AdminOnly && !libkb.IsKeybaseAdmin(s.G().GetMyUID()) {
-			// this external url is intended only to be seen by server admins
+		if partnerURL.AdminOnly && !userIsKeybaseAdmin {
+			// this external url is intended only to be seen by admins for now
 			continue
 		}
 		res = append(res, partnerURL)
