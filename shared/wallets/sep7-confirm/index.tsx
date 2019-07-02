@@ -92,7 +92,6 @@ const InfoRow = (props: InfoRowProps) => (
 )
 
 type HeaderProps = {
-  onBack: () => void
   originDomain: string
   isPayment: boolean
 }
@@ -123,7 +122,6 @@ const Header = (props: HeaderProps) => (
         Keybase verified the request's signature.
       </Kb.Text>
     </Kb.Box2>
-    {Styles.isMobile && <WalletBackButton onBack={props.onBack} />}
   </Kb.Box2>
 )
 
@@ -189,9 +187,14 @@ const TxInfo = (props: TxInfoProps) => (
 const SEP7Confirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
-      <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} onBack={props.onBack} />
-      {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
+      {Styles.isMobile && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.backButtonBox}>
+          <WalletBackButton onBack={props.onBack} />
+        </Kb.Box2>
+      )}
       <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
+        <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} />
+        {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         {props.operation === 'pay' ? (
           <PaymentInfo
             amount={props.amount}
@@ -248,6 +251,10 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>)
 }
 
 const styles = Styles.styleSheetCreate({
+  backButtonBox: {
+    backgroundColor: Styles.globalColors.purpleDark,
+    minHeight: 46,
+  },
   bodyText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black,
@@ -335,7 +342,7 @@ const styles = Styles.styleSheetCreate({
   }),
   scrollView: {
     flexBasis: 'auto',
-    flexGrow: 0,
+    flexGrow: 1,
     flexShrink: 1,
   },
   stellarIcon: {
