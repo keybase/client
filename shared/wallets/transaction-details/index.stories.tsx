@@ -64,7 +64,6 @@ const partialAsset = {
   infoUrlText: '',
   issuerName: '',
   type: '',
-  sendDisabled: false,
 }
 
 const load = () => {

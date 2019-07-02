@@ -141,7 +141,6 @@ const emptyAsset = {
   infoUrlText: '',
   issuer: '',
   issuerName: '',
-  sendDisabled: false,
   type: 'native',
   verifiedDomain: '',
 }
@@ -1106,7 +1105,6 @@ const assetDescriptionOrNativeToRpcAsset = (
   infoUrlText: '',
   issuer: asset === 'native' ? '' : asset.issuerAccountID,
   issuerName: '',
-  sendDisabled: asset === 'native' ? false : asset.sendDisabled,
   type: asset === 'native' ? 'native' : asset.code.length > 4 ? 'credit_alphanum12' : 'credit_alphanum4',
   verifiedDomain: asset === 'native' ? '' : asset.issuerVerifiedDomain,
 })
@@ -1121,7 +1119,6 @@ const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types
         issuerAccountID: asset.issuer,
         issuerName: asset.issuerName,
         issuerVerifiedDomain: asset.verifiedDomain,
-        sendDisabled: asset.sendDisabled,
       })
 
 const balancesToAction = (

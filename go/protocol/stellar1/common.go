@@ -76,7 +76,6 @@ type Asset struct {
 	Desc           string `codec:"desc" json:"desc"`
 	InfoUrl        string `codec:"infoUrl" json:"infoUrl"`
 	InfoUrlText    string `codec:"infoUrlText" json:"infoUrlText"`
-	SendDisabled   bool   `codec:"sendDisabled" json:"sendDisabled"`
 }
 
 func (o Asset) DeepCopy() Asset {
@@ -89,7 +88,6 @@ func (o Asset) DeepCopy() Asset {
 		Desc:           o.Desc,
 		InfoUrl:        o.InfoUrl,
 		InfoUrlText:    o.InfoUrlText,
-		SendDisabled:   o.SendDisabled,
 	}
 }
 

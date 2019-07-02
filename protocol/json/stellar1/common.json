@@ -97,10 +97,6 @@
         {
           "type": "string",
           "name": "infoUrlText"
-        },
-        {
-          "type": "boolean",
-          "name": "sendDisabled"
         }
       ]
     },

@@ -237,7 +237,6 @@ export type _AssetDescription = {
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string
-  sendDisabled: boolean
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
