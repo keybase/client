@@ -78,7 +78,7 @@ class TabBar extends React.PureComponent<Props, State> {
         ? [
             {
               onClick: this.props.onAddAccount,
-              title: 'Add another account',
+              title: 'Log in as another user',
             },
             {
               onClick: this.props.onCreateAccount,

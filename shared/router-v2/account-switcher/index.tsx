@@ -36,7 +36,7 @@ const MobileHeader = (props: Props) => (
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
-      <Kb.Button onClick={props.onAddAccount} label="Add another account" mode="Primary" fullWidth={true} />
+      <Kb.Button onClick={props.onAddAccount} label="Log in as another user" mode="Primary" fullWidth={true} />
       <Kb.Button
         onClick={props.onCreateAccount}
         label="Create a new account"
