@@ -84,12 +84,21 @@ func cachedResultFromLookupResult(v ContactLookupResult, now time.Time) cachedLo
 	}
 }
 
-const contactCacheFreshness = 30 * 24 * time.Hour // approx a month
+const contactCacheFreshness = 30 * 24 * time.Hour      // approx a month
+const unresolvedContactCacheFreshness = 24 * time.Hour // approx a day
+
+func (c cachedLookupResult) getFreshness() time.Duration {
+
+	if c.Resolved {
+		return contactCacheFreshness
+	}
+	return unresolvedContactCacheFreshness
+}
 
 func (c *lookupResultCache) findFreshOrSetEmpty(mctx libkb.MetaContext, key string) (res cachedLookupResult, found bool) {
 	clock := mctx.G().Clock()
 	res, found = c.Lookups[key]
-	if !found || clock.Since(res.CachedAt) > contactCacheFreshness {
+	if !found || clock.Since(res.CachedAt) > res.getFreshness() {
 		// Pre-insert to the cache. If Provider.LookupAll does not find
 		// these, they will stay in the cache as unresolved, otherwise they
 		// are overwritten.

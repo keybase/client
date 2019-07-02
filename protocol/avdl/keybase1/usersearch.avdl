@@ -48,4 +48,5 @@ protocol userSearch {
     }
 
     array<APIUserSearchResult> userSearch(string query, string service, int maxResults, boolean includeServicesSummary);
+    array<APIUserSearchResult> userSearchKeybase(string query, int maxResults, boolean includeServicesSummary, boolean includeContacts);
 }

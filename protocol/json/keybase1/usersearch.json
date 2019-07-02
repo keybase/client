@@ -177,6 +177,30 @@
         "type": "array",
         "items": "APIUserSearchResult"
       }
+    },
+    "userSearchKeybase": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "maxResults",
+          "type": "int"
+        },
+        {
+          "name": "includeServicesSummary",
+          "type": "boolean"
+        },
+        {
+          "name": "includeContacts",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "APIUserSearchResult"
+      }
     }
   },
   "namespace": "keybase.1"

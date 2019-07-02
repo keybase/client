@@ -111,23 +111,21 @@ type ContactsHandler struct {
 	libkb.Contextified
 	*BaseHandler
 
-	contactsProvider   *contacts.CachedContactsProvider
-	savedContactsStore *contacts.SavedContactsStore
+	contactsProvider *contacts.CachedContactsProvider
+	savedContacts    *contacts.SavedContactsStore
 }
 
-func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHandler {
+func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext, pbs *contacts.SavedContactsStore) *ContactsHandler {
 	contactsProvider := &contacts.CachedContactsProvider{
 		Provider: &bulkLookupContactsProvider{},
 		Store:    contacts.NewContactCacheStore(g),
 	}
 
-	savedContactsStore := contacts.NewSavedContactsStore(g)
-
 	handler := &ContactsHandler{
-		Contextified:       libkb.NewContextified(g),
-		BaseHandler:        NewBaseHandler(g, xp),
-		contactsProvider:   contactsProvider,
-		savedContactsStore: savedContactsStore,
+		Contextified:     libkb.NewContextified(g),
+		BaseHandler:      NewBaseHandler(g, xp),
+		contactsProvider: contactsProvider,
+		savedContacts:    pbs,
 	}
 	return handler
 }
@@ -142,19 +140,19 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 }
 
 func (h *ContactsHandler) SaveContactsList(ctx context.Context, arg keybase1.SaveContactsListArg) (err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactsList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
-	return h.savedContactsStore.SaveContacts(mctx, arg.Contacts)
+	return h.savedContacts.SaveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
 func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOOK_S_CON")
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOADCON")
 	defer mctx.TraceTimed("ContactsHandler#LookupSavedContactsList", func() error { return err })()
 
-	savedContacts, err := h.savedContactsStore.RetrieveContacts(mctx)
+	savedContacts, err := h.savedContacts.RetrieveContacts(mctx)
 	if err != nil {
 		return nil, err
 	}
-	return contacts.ResolveContacts(mctx, h.contactsProvider, savedContacts, keybase1.RegionCode(""))
+	return savedContacts, nil
 }

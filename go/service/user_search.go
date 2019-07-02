@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -15,12 +16,14 @@ import (
 type UserSearchHandler struct {
 	libkb.Contextified
 	*BaseHandler
+	savedContacts *contacts.SavedContactsStore
 }
 
-func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserSearchHandler {
+func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, pbs *contacts.SavedContactsStore) *UserSearchHandler {
 	handler := &UserSearchHandler{
-		Contextified: libkb.NewContextified(g),
-		BaseHandler:  NewBaseHandler(g, xp),
+		Contextified:  libkb.NewContextified(g),
+		BaseHandler:   NewBaseHandler(g, xp),
+		savedContacts: pbs,
 	}
 	return handler
 }
@@ -60,9 +63,31 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
 		func() error { return err })()
 
-	searchRes, err := doSearchRequest(mctx, arg)
+	return doSearchRequest(mctx, arg)
+}
+
+func (h *UserSearchHandler) UserSearchKeybase(ctx context.Context, arg keybase1.UserSearchKeybaseArg) (res []keybase1.APIUserSearchResult, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("USEARCH2")
+	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearchKeybase(%q)", arg.Query),
+		func() error { return err })()
+
+	keybaseResults, err := doSearchRequest(mctx, keybase1.UserSearchArg{
+		IncludeServicesSummary: arg.IncludeServicesSummary,
+		MaxResults:             arg.MaxResults,
+		Query:                  arg.Query,
+		Service:                "keybase",
+	})
 	if err != nil {
 		return res, err
 	}
-	return searchRes, nil
+
+	contactsRes, err := h.savedContacts.RetrieveContacts(mctx)
+	if err != nil {
+		return res, err
+	}
+
+	_ = keybaseResults
+	_ = contactsRes
+
+	return res, nil
 }

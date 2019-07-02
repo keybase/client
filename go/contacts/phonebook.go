@@ -13,8 +13,10 @@ import (
 
 // Saving contact list into encrypted db.
 
-// So this is caching the inputs - unlike cache.go which caches contact
-// resolutions (the outputs).
+// Cache resolutions of a lookup ran on entire contact list provided by the
+// frontend. Assume every time SaveContacts is called, entire contact list is
+// passed as an argument. Always cache the result of last resolution, do not do
+// any result merging.
 
 type SavedContactsStore struct {
 	encryptedDB *encrypteddb.EncryptedDB
@@ -40,15 +42,20 @@ func savedContactsDbKey(uid keybase1.UID) libkb.DbKey {
 }
 
 type savedContactsCache struct {
-	Contacts []keybase1.Contact
+	Contacts []keybase1.ProcessedContact
 	Version  int
 }
 
 const savedContactsCurrentVer = 1
 
-func (s *SavedContactsStore) SaveContacts(mctx libkb.MetaContext, contacts []keybase1.Contact) (err error) {
+func (s *SavedContactsStore) SaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
+	results, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
+	if err != nil {
+		return err
+	}
+
 	val := savedContactsCache{
-		Contacts: contacts,
+		Contacts: results,
 	}
 	val.Version = savedContactsCurrentVer
 	cacheKey := savedContactsDbKey(mctx.CurrentUID())
@@ -64,7 +71,7 @@ func (e NoSavedContactsErr) Error() string {
 	return e.Msg
 }
 
-func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []keybase1.Contact, err error) {
+func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []keybase1.ProcessedContact, err error) {
 	cacheKey := savedContactsDbKey(mctx.CurrentUID())
 	var cache savedContactsCache
 	found, err := s.encryptedDB.Get(mctx.Ctx(), cacheKey, &cache)

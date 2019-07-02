@@ -30,6 +30,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/unfurl"
 	"github.com/keybase/client/go/chat/wallet"
+	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/externals"
@@ -110,6 +111,7 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister) (shutdowners []Shutdowner, err error) {
 	g := d.G()
 	cg := globals.NewContext(g, d.ChatG())
+	pbs := contacts.NewSavedContactsStore(g)
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewCryptocurrencyHandler(xp, g)),
@@ -160,11 +162,11 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.HomeProtocol(NewHomeHandler(xp, g, d.home)),
 		keybase1.AvatarsProtocol(NewAvatarHandler(xp, g, d.avatarLoader)),
 		keybase1.PhoneNumbersProtocol(NewPhoneNumbersHandler(xp, g)),
-		keybase1.ContactsProtocol(NewContactsHandler(xp, g)),
+		keybase1.ContactsProtocol(NewContactsHandler(xp, g, pbs)),
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
-		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g)),
+		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, pbs)),
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
