@@ -504,7 +504,7 @@ class Input extends React.Component<InputProps, InputState> {
       ...platformInputProps
     } = this.props
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
         {this.props.showReplyPreview && <ReplyPreview conversationIDKey={this.props.conversationIDKey} />}
         {this.props.showCommandMarkdown && (
           <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
@@ -538,6 +538,12 @@ const styles = Styles.styleSheetCreate({
   boldStyle: {
     fontWeight: '700',
   },
+  container: Styles.platformStyles({
+    isMobile: {
+      justifyContent: 'flex-end',
+      maxHeight: '70%',
+    },
+  }),
   fixSuggestionHeight: Styles.platformStyles({
     isElectron: {height: 40},
     isMobile: {height: 48},
