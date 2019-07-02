@@ -59,18 +59,18 @@ const Banner = (props: Props) => (
       props.onAction && (
         // Place this text outside of the above text so that we can do a paddingBottom on it in order to
         // get the underline to show up
-        <Text
-          type="BodySmallSemiboldPrimaryLink"
-          center={true}
-          style={styles.secondText}
-          negative={true}
-          onClick={props.onAction}
-        >
+        <Text type="BodySmallSemiboldPrimaryLink" center={true} negative={true} onClick={props.onAction}>
           Send other assets
         </Text>
       )}
     {props.sendFailed && props.onAction && (
-      <Text type="BodySmallSemiboldPrimaryLink" center={true} negative={true} onClick={props.onAction}>
+      <Text
+        type="BodySmallSemiboldPrimaryLink"
+        center={true}
+        style={styles.secondText}
+        negative={true}
+        onClick={props.onAction}
+      >
         Review payments
       </Text>
     )}
