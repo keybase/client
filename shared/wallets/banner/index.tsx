@@ -70,13 +70,7 @@ const Banner = (props: Props) => (
         </Text>
       )}
     {props.sendFailed && props.onAction && (
-      <Text
-        type="BodySmallSemiboldPrimaryLink"
-        center={true}
-        style={styles.secondText}
-        negative={true}
-        onClick={props.onAction}
-      >
+      <Text type="BodySmallSemiboldPrimaryLink" center={true} negative={true} onClick={props.onAction}>
         Review payments
       </Text>
     )}
@@ -84,13 +78,21 @@ const Banner = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    minHeight: 40,
-    padding: Styles.globalMargins.small,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  secondText: {paddingBottom: Styles.globalMargins.xtiny, paddingLeft: Styles.globalMargins.xtiny},
+  container: Styles.platformStyles({
+    common: {
+      minHeight: 40,
+      padding: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      paddingLeft: Styles.globalMargins.xlarge,
+      paddingRight: Styles.globalMargins.xlarge,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
+  }),
+  secondText: {paddingLeft: Styles.globalMargins.xtiny},
 })
 
 export default Banner
