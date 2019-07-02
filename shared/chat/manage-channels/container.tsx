@@ -1,24 +1,20 @@
-import {isEqual} from 'lodash-es'
-import * as ChatTypes from '../../constants/types/chat2'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import {ChannelMembershipState} from '../../constants/types/teams'
-import ManageChannels from '.'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Container from '../../util/container'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as TeamsGen from '../../actions/teams-gen'
+import ManageChannels from '.'
+import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
-import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
+import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
+import {isEqual} from 'lodash-es'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')
   const waitingKey = getChannelsWaitingKey(teamname)
   const waitingForGet = anyWaiting(state, waitingKey)
@@ -63,7 +59,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
@@ -123,55 +119,118 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  Container.withPropsOnChange(['channels'], (props: any) => ({
-    oldChannelState: props.channels.reduce((acc, c) => {
-      acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected
-      return acc
-    }, {}),
-  })),
-  Container.withStateHandlers(
-    (props: any) => ({
-      nextChannelState: props.oldChannelState,
-    }),
-    {
-      setNextChannelState: () => nextChannelState => ({nextChannelState}),
-    }
-  ),
-  Container.withHandlers({
-    onClickChannel: props => (channelname: string) => {
-      props._onView(props.oldChannelState, props.nextChannelState, channelname)
+type Channel = {
+  description: string
+  hasAllMembers: boolean
+  name: string
+  numParticipants: number
+  mtimeHuman: string
+  convID: ChatTypes.ConversationIDKey
+  selected: boolean
+}
+
+type Props = {
+  selectedChatID: ChatTypes.ConversationIDKey
+  _hasOperations: () => void
+  _loadChannels: () => void
+  _loadOperations: () => void
+  _onView: (
+    oldChannelState: ChannelMembershipState,
+    nextChannelState: ChannelMembershipState,
+    channelname: string
+  ) => void
+  _saveSubscriptions: (
+    oldChannelState: ChannelMembershipState,
+    nextChannelState: ChannelMembershipState,
+    selectedChatID: ChatTypes.ConversationIDKey
+  ) => void
+  canCreateChannels: boolean
+  canEditChannels: boolean
+  channels: Array<Channel>
+  nextChannelState: ChannelMembershipState
+  onClickChannel: (channelname: string) => void
+  onClose: () => void
+  onCreate: () => void
+  onEdit: (convID: ChatTypes.ConversationIDKey) => void
+  onSaveSubscriptions: () => void
+  onToggle: (convID: ChatTypes.ConversationIDKey) => void
+  teamname: string
+  unsavedSubscriptions: boolean
+  waitingForGet: boolean
+  waitingKey: string
+}
+
+const Wrapper = (p: Props) => {
+  const {
+    _hasOperations,
+    _loadOperations,
+    _loadChannels,
+    _onView,
+    _saveSubscriptions,
+    channels,
+    selectedChatID,
+  } = p
+  const oldChannelState = React.useMemo(
+    () =>
+      channels.reduce((acc, c) => {
+        acc[ChatTypes.conversationIDKeyToString(c.convID)] = c.selected
+        return acc
+      }, {}),
+    [channels]
+  )
+
+  const [nextChannelState, setNextChannelState] = React.useState(oldChannelState)
+
+  const onClickChannel = React.useCallback(
+    (channelname: string) => {
+      _onView(oldChannelState, nextChannelState, channelname)
     },
-    onSaveSubscriptions: props => () =>
-      props._saveSubscriptions(props.oldChannelState, props.nextChannelState, props.selectedChatID),
-    onToggle: props => (convID: ChatTypes.ConversationIDKey) =>
-      props.setNextChannelState({
-        ...props.nextChannelState,
-        [ChatTypes.conversationIDKeyToString(convID)]: !props.nextChannelState[
+    [_onView, oldChannelState, nextChannelState]
+  )
+
+  const onSaveSubscriptions = React.useCallback(() => {
+    _saveSubscriptions(oldChannelState, nextChannelState, selectedChatID)
+  }, [_saveSubscriptions, oldChannelState, nextChannelState, selectedChatID])
+
+  const onToggle = React.useCallback(
+    (convID: ChatTypes.ConversationIDKey) => {
+      setNextChannelState({
+        ...nextChannelState,
+        [ChatTypes.conversationIDKeyToString(convID)]: !nextChannelState[
           ChatTypes.conversationIDKeyToString(convID)
         ],
-      }),
-  } as any),
-  Container.lifecycle({
-    componentDidMount() {
-      // @ts-ignore NO recompose
-      this.props._loadChannels()
-      // @ts-ignore NO recompose
-      if (!this.props._hasOperations) {
-        // @ts-ignore NO recompose
-        this.props._loadOperations()
-      }
+      })
     },
-    componentDidUpdate(prevProps) {
-      // @ts-ignore NO recompose
-      if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
-        // @ts-ignore NO recompose
-        this.props.setNextChannelState(this.props.oldChannelState)
-      }
-    },
-  }),
-  Container.withPropsOnChange(['oldChannelState', 'nextChannelState'], (props: any) => ({
-    unsavedSubscriptions: !isEqual(props.oldChannelState, props.nextChannelState),
-  }))
-)(ManageChannels)
+    [setNextChannelState, nextChannelState]
+  )
+
+  React.useEffect(() => {
+    _loadChannels()
+    !_hasOperations && _loadOperations()
+  }, [])
+
+  React.useEffect(() => {
+    if (!isEqual(this.props.oldChannelState, prevProps.oldChannelState)) {
+      this.props.setNextChannelState(this.props.oldChannelState)
+    }
+  }, [oldChannelState])
+
+  return (
+    <ManageChannels
+      nextChannelState={nextChannelState}
+      setNextChannelState={setNextChannelState}
+      onClickChannel={onClickChannel}
+      onSaveSubscriptions={onSaveSubscriptions}
+      onToggle={onToggle}
+    />
+  )
+}
+
+// Container.withPropsOnChange(['oldChannelState', 'nextChannelState'], (props: any) => ({
+// unsavedSubscriptions: !isEqual(props.oldChannelState, props.nextChannelState),
+// }))
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
+  ...o,
+  ...s,
+  ...d,
+}))(Wrapper)
