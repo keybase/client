@@ -17,8 +17,6 @@ type Props = {
 }
 
 const Wrapped = (p: Props) => {
-  React.useEffect(() => p._onSetChannelCreationError(''))
-
   const [channelname, onChannelnameChange] = React.useState<string>(null)
   const [description, onDescriptionChange] = React.useState<string>(null)
 
@@ -26,6 +24,10 @@ const Wrapped = (p: Props) => {
   const onSubmit = React.useCallback(() => {
     channelname && _onCreateChannel({channelname, description, teamname})
   }, [channelname, _onCreateChannel, description, teamname])
+
+  React.useEffect(() => {
+    _onSetChannelCreationError('')
+  }, [_onSetChannelCreationError])
 
   return (
     <CreateChannel
@@ -40,17 +42,24 @@ const Wrapped = (p: Props) => {
   )
 }
 
-export default  Container.connect(
+export default Container.connect(
   (state, ownProps: OwnProps) => ({
     errorText: upperFirst(state.teams.channelCreationError),
     teamname: Container.getRouteProps(ownProps, 'teamname'),
   }),
   dispatch => ({
-    _onCreateChannel: ({channelname, description, teamname}: {channelname: string; description: string; teamname: string}) =>
-      dispatch(TeamsGen.createCreateChannel({channelname, description, teamname})),
+    _onCreateChannel: ({
+      channelname,
+      description,
+      teamname,
+    }: {
+      channelname: string
+      description: string
+      teamname: string
+    }) => dispatch(TeamsGen.createCreateChannel({channelname, description, teamname})),
     _onSetChannelCreationError: (error: string) => dispatch(TeamsGen.createSetChannelCreationError({error})),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
-  (s, d, o: OwnProps) => ({...s, ...d})
+  (s, d, _: OwnProps) => ({...s, ...d})
 )(Wrapped)
