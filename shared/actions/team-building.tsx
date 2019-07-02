@@ -17,6 +17,7 @@ const apiSearch = (
   includeServicesSummary: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
   return RPCTypes.userSearchUserSearchRpcPromise({
+    includeContacts: service === 'keybase',
     includeServicesSummary,
     maxResults,
     query,

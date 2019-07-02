@@ -86,6 +86,10 @@
         },
         {
           "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
           "name": "displayName"
         },
         {

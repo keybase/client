@@ -5,10 +5,23 @@ package contacts
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+func formatSBSAssertion(c keybase1.ContactComponent) string {
+	switch {
+	case c.Email != nil:
+		return fmt.Sprintf("[%s]@email", *c.Email)
+	case c.PhoneNumber != nil:
+		return fmt.Sprintf("%s@phone", strings.TrimLeft(string(*c.PhoneNumber), "+"))
+	default:
+		return ""
+	}
+}
 
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
@@ -110,19 +123,21 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 		// And now that we have Keybase names and following information, make a
 		// decision about displayName and displayLabel.
-		for i, v := range res {
+		for i := range res {
+			v := &res[i]
 			if !v.Resolved || v.Uid.IsNil() {
 				// Sanity check - should only have resolveds now.
 				return res, errors.New("found unresolved contact in display name processing")
 			}
 
-			res[i].DisplayName = v.Username
+			v.Assertion = v.Username
+			v.DisplayName = v.Username
 			if v.Following && v.FullName != "" {
-				res[i].DisplayLabel = v.FullName
+				v.DisplayLabel = v.FullName
 			} else if v.ContactName != "" {
-				res[i].DisplayLabel = v.ContactName
+				v.DisplayLabel = v.ContactName
 			} else {
-				res[i].DisplayLabel = v.Component.ValueString()
+				v.DisplayLabel = v.Component.ValueString()
 			}
 		}
 	}
@@ -143,6 +158,8 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				ContactName:  c.Name,
 				Component:    component,
 				Resolved:     false,
+
+				Assertion: formatSBSAssertion(component),
 
 				DisplayName:  c.Name,
 				DisplayLabel: component.FormatDisplayLabel(addLabel),

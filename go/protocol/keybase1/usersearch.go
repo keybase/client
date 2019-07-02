@@ -98,6 +98,7 @@ type APIUserSearchResult struct {
 	Score           float64                                               `codec:"score" json:"score"`
 	Keybase         *APIUserKeybaseResult                                 `codec:"keybase,omitempty" json:"keybase,omitempty"`
 	Service         *APIUserServiceResult                                 `codec:"service,omitempty" json:"service,omitempty"`
+	Contact         *ProcessedContact                                     `codec:"contact,omitempty" json:"contact,omitempty"`
 	ServicesSummary map[APIUserServiceIDWithContact]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
 }
 
@@ -118,6 +119,13 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Service),
+		Contact: (func(x *ProcessedContact) *ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Contact),
 		ServicesSummary: (func(x map[APIUserServiceIDWithContact]APIUserServiceSummary) map[APIUserServiceIDWithContact]APIUserServiceSummary {
 			if x == nil {
 				return nil
@@ -138,18 +146,11 @@ type UserSearchArg struct {
 	Service                string `codec:"service" json:"service"`
 	MaxResults             int    `codec:"maxResults" json:"maxResults"`
 	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
-}
-
-type UserSearchKeybaseArg struct {
-	Query                  string `codec:"query" json:"query"`
-	MaxResults             int    `codec:"maxResults" json:"maxResults"`
-	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
 	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
 }
 
 type UserSearchInterface interface {
 	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
-	UserSearchKeybase(context.Context, UserSearchKeybaseArg) ([]APIUserSearchResult, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
@@ -171,21 +172,6 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 					return
 				},
 			},
-			"userSearchKeybase": {
-				MakeArg: func() interface{} {
-					var ret [1]UserSearchKeybaseArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UserSearchKeybaseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]UserSearchKeybaseArg)(nil), args)
-						return
-					}
-					ret, err = i.UserSearchKeybase(ctx, typedArgs[0])
-					return
-				},
-			},
 		},
 	}
 }
@@ -196,10 +182,5 @@ type UserSearchClient struct {
 
 func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserSearchClient) UserSearchKeybase(ctx context.Context, __arg UserSearchKeybaseArg) (res []APIUserSearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearchKeybase", []interface{}{__arg}, &res)
 	return
 }

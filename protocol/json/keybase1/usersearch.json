@@ -142,6 +142,13 @@
           "name": "service"
         },
         {
+          "type": [
+            null,
+            "ProcessedContact"
+          ],
+          "name": "contact"
+        },
+        {
           "type": {
             "type": "map",
             "values": "APIUserServiceSummary",
@@ -162,26 +169,6 @@
         },
         {
           "name": "service",
-          "type": "string"
-        },
-        {
-          "name": "maxResults",
-          "type": "int"
-        },
-        {
-          "name": "includeServicesSummary",
-          "type": "boolean"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "APIUserSearchResult"
-      }
-    },
-    "userSearchKeybase": {
-      "request": [
-        {
-          "name": "query",
           "type": "string"
         },
         {

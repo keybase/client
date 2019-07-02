@@ -65,6 +65,7 @@ type ProcessedContact struct {
 	Username     string           `codec:"username" json:"username"`
 	FullName     string           `codec:"fullName" json:"fullName"`
 	Following    bool             `codec:"following" json:"following"`
+	Assertion    string           `codec:"assertion" json:"assertion"`
 	DisplayName  string           `codec:"displayName" json:"displayName"`
 	DisplayLabel string           `codec:"displayLabel" json:"displayLabel"`
 }
@@ -79,6 +80,7 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 		Username:     o.Username,
 		FullName:     o.FullName,
 		Following:    o.Following,
+		Assertion:    o.Assertion,
 		DisplayName:  o.DisplayName,
 		DisplayLabel: o.DisplayLabel,
 	}
