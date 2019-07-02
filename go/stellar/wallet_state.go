@@ -963,10 +963,8 @@ func detailsChanged(a, b *stellar1.AccountDetails) bool {
 	if a.Available != b.Available {
 		return true
 	}
-	if a.ReadTransactionID != nil && b.ReadTransactionID != nil {
-		if *a.ReadTransactionID != *b.ReadTransactionID {
-			return true
-		}
+	if b.ReadTransactionID != nil && (a.ReadTransactionID == nil || *a.ReadTransactionID != *b.ReadTransactionID) {
+		return true
 	}
 	if a.SubentryCount != b.SubentryCount {
 		return true

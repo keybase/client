@@ -26,7 +26,7 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
       style={Styles.collapseStyles([sharedStyles.container, styles.container])}
       gap="xtiny"
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.topLabel}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.topLabel} gap="xtiny">
         {buildingAdvanced.recipientType === 'keybaseUser' ? (
           <>
             <Kb.Avatar username={buildingAdvanced.recipient} size={16} style={styles.avatar} />
@@ -145,22 +145,25 @@ const useGoToPickAssetCallback = (buildingAdvanced: Types.BuildingAdvanced, isSe
       : ''
     : ''
   const dispatch = Container.useDispatch()
-  return React.useCallback(
+  return React.useMemo(
     () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                accountID,
-                isSender,
-                username,
-              },
-              selected: Constants.pickAssetFormRouteKey,
-            },
-          ],
-        })
-      ),
+      accountID === Types.noAccountID && !username
+        ? null
+        : () =>
+            dispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  {
+                    props: {
+                      accountID,
+                      isSender,
+                      username,
+                    },
+                    selected: Constants.pickAssetFormRouteKey,
+                  },
+                ],
+              })
+            ),
     [dispatch, accountID, username, isSender]
   )
 }
@@ -180,7 +183,7 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           alignItems="flex-end"
           style={styles.pickAssetButton}
         >
-          <Kb.ClickableBox onClick={goToPickAsset}>
+          <Kb.ClickableBox onClick={goToPickAsset} style={!goToPickAsset && styles.disabled}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
               <Kb.Text type="HeaderBigExtrabold" style={sharedStyles.purple}>
                 {asset !== Constants.emptyAssetDescription
@@ -226,6 +229,9 @@ const styles = Styles.styleSheetCreate({
       minHeight: 128,
     },
   }),
+  disabled: {
+    opacity: 0.3,
+  },
   error: {
     color: Styles.globalColors.redDark,
   },

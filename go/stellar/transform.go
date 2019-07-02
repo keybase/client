@@ -168,6 +168,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.IsAdvanced = p.IsAdvanced
 	loc.SummaryAdvanced = p.SummaryAdvanced
 	loc.Operations = p.Operations
+	loc.Unread = p.Unread
 	loc.Trustline = p.Trustline
 
 	return loc, nil
@@ -253,6 +254,7 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	} else {
 		loc.SourceConvRate = ""
 	}
+	loc.Unread = p.Unread
 
 	return loc, nil
 }

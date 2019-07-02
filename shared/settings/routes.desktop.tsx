@@ -60,4 +60,5 @@ export const newModalRoutes = {
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
   settingsAddEmail: {getScreen: () => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: () => require('./account/add-modals').Phone},
+  settingsVerifyPhone: {getScreen: () => require('./account/add-modals').VerifyPhone},
 }

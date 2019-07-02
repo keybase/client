@@ -229,6 +229,8 @@ export type _Payment = {} & _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string
+  infoUrl: string
+  infoUrlText: string
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string
@@ -375,7 +377,6 @@ export type _State = {
   inflationDestinationError: string
   lastSentXLM: boolean
   linkExistingAccountError: string
-  newPayments: I.Map<AccountID, I.Set<PaymentID>>
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
   paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: I.Map<AccountID, boolean>

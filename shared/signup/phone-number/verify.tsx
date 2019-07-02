@@ -44,48 +44,65 @@ const VerifyPhoneNumber = (props: Props) => {
       skipMobileHeader={true}
       showHeaderInfoicon={true}
     >
-      <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
-        <Kb.Text type="Body" negative={true} center={true}>
-          Enter the code in the SMS you received:
-        </Kb.Text>
-        <Kb.PlainInput
-          autoFocus={true}
-          style={styles.input}
-          flexable={true}
-          keyboardType="numeric"
-          onChangeText={onChangeCode}
-          textType="Header"
-          textContentType="oneTimeCode"
-        >
-          <Kb.Text type="Header" style={styles.inputText}>
-            {/* We put this child in Input because some text styles don't work on RN input itself - the one we need here is letterSpacing */}
-            {code}
-          </Kb.Text>
-        </Kb.PlainInput>
-        <Kb.ClickableBox onClick={props.onResend} style={styles.positionRelative}>
-          <Kb.Box2
-            alignItems="center"
-            direction="horizontal"
-            gap="tiny"
-            style={Styles.collapseStyles([styles.resend, props.resendWaiting && styles.opacity30])}
-          >
-            <Kb.Icon
-              type="iconfont-reload"
-              color={Styles.globalColors.white}
-              style={styles.iconVerticalAlign}
-            />
-            <Kb.Text type="BodySemibold" negative={true}>
-              Resend SMS
-            </Kb.Text>
-          </Kb.Box2>
-          {props.resendWaiting && (
-            <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
-              <Kb.ProgressIndicator type="Small" white={true} />
-            </Kb.Box2>
-          )}
-        </Kb.ClickableBox>
-      </Kb.Box2>
+      <VerifyBody
+        onChangeCode={onChangeCode}
+        code={code}
+        onResend={props.onResend}
+        resendWaiting={props.resendWaiting}
+      />
     </SignupScreen>
+  )
+}
+
+type BodyProps = {
+  onChangeCode: (code: string) => void
+  code: string
+  onResend: () => void
+  resendWaiting: boolean
+}
+export const VerifyBody = (props: BodyProps) => {
+  return (
+    <Kb.Box2 alignItems="center" direction="vertical" fullWidth={true} gap="small" style={styles.body}>
+      <Kb.Text type="Body" negative={true} center={true}>
+        Enter the code in the SMS you received:
+      </Kb.Text>
+      <Kb.PlainInput
+        autoFocus={true}
+        style={styles.input}
+        flexable={true}
+        keyboardType="numeric"
+        onChangeText={props.onChangeCode}
+        textType="Header"
+        textContentType="oneTimeCode"
+      >
+        <Kb.Text type="Header" style={styles.inputText}>
+          {/* We put this child in Input because some text styles don't work on RN input itself - the one we need here is letterSpacing */}
+          {props.code}
+        </Kb.Text>
+      </Kb.PlainInput>
+      <Kb.ClickableBox onClick={props.onResend} style={styles.positionRelative}>
+        <Kb.Box2
+          alignItems="center"
+          direction="horizontal"
+          gap="tiny"
+          style={Styles.collapseStyles([styles.resend, props.resendWaiting && styles.opacity30])}
+        >
+          <Kb.Icon
+            type="iconfont-reload"
+            color={Styles.globalColors.white}
+            style={styles.iconVerticalAlign}
+          />
+          <Kb.Text type="BodySemibold" negative={true}>
+            Resend SMS
+          </Kb.Text>
+        </Kb.Box2>
+        {props.resendWaiting && (
+          <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
+            <Kb.ProgressIndicator type="Small" white={true} />
+          </Kb.Box2>
+        )}
+      </Kb.ClickableBox>
+    </Kb.Box2>
   )
 }
 

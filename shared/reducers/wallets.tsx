@@ -111,7 +111,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       )
     case WalletsGen.recentPaymentsReceived:
       const newPayments = I.Map(action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)]))
-      const unreadPaymentIDs = I.Set.fromKeys(newPayments.filter(p => p.unread))
       return state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
           paymentsMap.merge(newPayments)
@@ -121,7 +120,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           cursor => cursor || action.payload.paymentCursor
         )
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
-        .setIn(['newPayments', action.payload.accountID], unreadPaymentIDs)
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
     case WalletsGen.displayCurrencyReceived: {
@@ -268,8 +266,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         buildingAdvanced.set('recipientType', action.payload.recipientType)
       )
     case WalletsGen.setBuildingAdvancedPublicMemo:
-      return state.update('buildingAdvanced', buildingAdvanced =>
-        buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+      return state.update(
+        'buildingAdvanced',
+        buildingAdvanced => buildingAdvanced.set('publicMemo', action.payload.publicMemo)
+        // TODO PICNIC-142 clear error when we have that
       )
     case WalletsGen.setBuildingAdvancedSenderAccountID:
       return state.update('buildingAdvanced', buildingAdvanced =>
@@ -335,13 +335,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKeyError: actionHasError(action) ? action.payload.error : '',
         secretKeyValidationState: actionHasError(action) ? 'error' : 'valid',
       })
-    case WalletsGen.addNewPayment:
-      const {accountID, paymentID} = action.payload
-      return state.updateIn(['newPayments', accountID], newTxs =>
-        newTxs ? newTxs.add(paymentID) : I.Set([paymentID])
-      )
-    case WalletsGen.clearNewPayments:
-      return state.setIn(['newPayments', action.payload.accountID], I.Set())
     case WalletsGen.clearErrors:
       return state.merge({
         accountName: '',
@@ -492,9 +485,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.setTrustlineSearchText:
       return action.payload.text
         ? state
-        : state.update('trustline', trustline =>
-            trustline.update('searchingAssets', searchingAssets => searchingAssets.clear())
-          )
+        : state.update('trustline', trustline => trustline.set('searchingAssets', I.List()))
     case WalletsGen.setTrustlineSearchResults:
       return state.update('trustline', trustline =>
         trustline

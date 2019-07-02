@@ -895,23 +895,6 @@ const paymentReviewed = (_, action: EngineGen.Stellar1UiPaymentReviewedPayload) 
 // maybe just clear always?
 const maybeClearErrors = state => WalletsGen.createClearErrors()
 
-const maybeClearNewTxs = (state, action: RouteTreeGen.SwitchToPayload) => {
-  // TODO fix
-  // const rootTab = I.List(action.payload.path).first()
-  // // If we're leaving from the Wallets tab, and the Wallets tab route
-  // // was the main transaction list for an account, clear new txs.
-  // if (
-  // state.routeTree.previousTab === Constants.rootWalletTab &&
-  // rootTab !== Constants.rootWalletTab
-  // // Constants.isLookingAtWallet(state.routeTree.routeState)
-  // ) {
-  // const accountID = state.wallets.selectedAccount
-  // if (accountID !== Types.noAccountID) {
-  // return WalletsGen.createClearNewPayments({accountID})
-  // }
-  // }
-}
-
 const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
@@ -1130,6 +1113,8 @@ const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types
     ? 'native'
     : Constants.makeAssetDescription({
         code: asset.code,
+        infoUrl: asset.infoUrl,
+        infoUrlText: asset.infoUrlText,
         issuerAccountID: asset.issuer,
         issuerName: asset.issuerName,
         issuerVerifiedDomain: asset.verifiedDomain,
@@ -1617,12 +1602,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     RouteTreeGen.navigateUp,
     maybeClearErrors,
     'maybeClearErrors'
-  )
-  // TODO fix
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(
-    RouteTreeGen.switchTo,
-    maybeClearNewTxs,
-    'maybeClearNewTxs'
   )
 
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(

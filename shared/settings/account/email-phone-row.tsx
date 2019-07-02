@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import flags from '../../util/feature-flags'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // props exported for stories
 export type Props = {
@@ -51,7 +52,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Verify',
     })
   }
-  if (props.type === 'email' && !props.primary && props.verified) {
+  if (props.type === 'email' && !props.primary) {
     menuItems.push({
       onClick: props.onMakePrimary,
       subTitle: 'Use this email for important notifications.',
@@ -161,8 +162,10 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _emailRow: state.settings.email.emails.get(ownProps.contactKey) || null,
-  _phoneRow: state.settings.phoneNumbers.phones.get(ownProps.contactKey) || null,
+  _emailRow: (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null,
+  _phoneRow:
+    (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
+    null,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -177,12 +180,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
+    _onVerify: (phoneNumber, allowSearch) => {
+      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+    },
     onDelete: () => dispatch(SettingsGen.createEditPhone({delete: true, phone: ownProps.contactKey})),
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
-    // TODO: this requires popping up a thing and also sending an RPC, waiting on Danny's existing flow from another PR
-    onVerify: () => {},
   },
 })
 
@@ -191,11 +196,15 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps._phoneRow) {
+      const searchable = stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public
       return {
-        ...dispatchProps.phone,
         address: stateProps._phoneRow.phoneNumber,
+        onDelete: dispatchProps.phone.onDelete,
+        onMakePrimary: dispatchProps.phone.onMakePrimary,
+        onToggleSearchable: dispatchProps.phone.onToggleSearchable,
+        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber, searchable),
         primary: false,
-        searchable: stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public,
+        searchable,
         type: 'phone' as const,
         verified: stateProps._phoneRow.verified,
       }

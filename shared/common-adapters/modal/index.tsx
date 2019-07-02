@@ -14,10 +14,12 @@ const Kb = {
 }
 
 type HeaderProps = {
+  hideBorder?: boolean
   icon?: React.ReactNode // above center
   leftButton?: React.ReactNode
   rightButton?: React.ReactNode
   title?: React.ReactNode // center; be sure to lineClamp any long / dynamic strings
+  style?: Styles.StylesCrossPlatform
 }
 
 type FooterProps = {
@@ -68,7 +70,15 @@ Modal.defaultProps = {
 
 // TODO centering title on mobile, maybe make a separate component? might be hard to do cross platform.
 const Header = (props: HeaderProps) => (
-  <Kb.Box2 direction="vertical" style={props.icon ? styles.headerWithIcon : styles.header} fullWidth={true}>
+  <Kb.Box2
+    direction="vertical"
+    style={Styles.collapseStyles([
+      props.icon ? styles.headerWithIcon : styles.header,
+      props.hideBorder && styles.headerHideBorder,
+      props.style,
+    ])}
+    fullWidth={true}
+  >
     {!!props.icon && props.icon}
     <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Styles.globalStyles.flexOne}>
       {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
@@ -134,6 +144,9 @@ const styles = Styles.styleSheetCreate({
   header: {
     ...headerCommon,
     minHeight: 48,
+  },
+  headerHideBorder: {
+    borderWidth: 0,
   },
   headerLeft: {
     flex: 1,
