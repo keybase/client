@@ -440,7 +440,6 @@ func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.
 		return teamEK, false, err
 	}
 
-	keyer := NewTeamEphemeralKeyer()
 	err = teamEKRetryWrapper(mctx, func() error {
 		var ek keybase1.TeamEphemeralKey
 		ek, created, err = e.getOrCreateLatestTeamEKInner(mctx, teamID)
@@ -473,7 +472,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
 		if cacheEntry, expired := e.isEntryExpired(val); !expired || cacheEntry.CreationInProgress {
-			teamEK, err = storage.Get(mctx, teamID, cacheEntry.Generation, nil)
+			teamEK, err = teamEKBoxStorage.Get(mctx, teamID, cacheEntry.Generation, nil)
 			if err == nil {
 				return teamEK, false, nil
 			}
@@ -488,7 +487,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 	}
 	merkleRoot := *merkleRootPtr
 	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(mctx, merkleRoot) }()
-	defer storage.DeleteExpired(mctx, teamID, merkleRoot)
+	defer teamEKBoxStorage.DeleteExpired(mctx, teamID, merkleRoot)
 
 	// First publish new device or userEKs if we need to. We pass shouldCleanup
 	// = false so we can run deletion in the background ourselves and not block
@@ -545,7 +544,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 		latestGeneration = publishedMetadata.Generation()
 	}
 
-	teamEK, err = storage.Get(mctx, teamID, latestGeneration, nil)
+	teamEK, err = teamEKBoxStorage.Get(mctx, teamID, latestGeneration, nil)
 	if err != nil {
 		return teamEK, false, err
 	}
