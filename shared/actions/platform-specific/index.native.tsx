@@ -28,6 +28,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import ImagePicker from 'react-native-image-picker'
 import {TypedActions, TypedState} from 'util/container'
+import * as Contacts from 'expo-contacts'
 
 type NextURI = string
 
@@ -458,27 +459,17 @@ function* requestContactPermissions(
   ])
 }
 
-function manageContactsCache(
+async function manageContactsCache(
   state: TypedState,
-  action: SettingsGen.EditContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger: Saga.SagaLogger
 ) {
-  switch (action.type) {
-    case SettingsGen.editContactImportEnabled:
-      if (!action.payload.enable) {
-        logger.info('disabling contacts cache')
-        // TODO: Clear cache via RPC
-      }
-      return
-    case ConfigGen.mobileAppState:
-      if (action.payload.nextAppState !== 'active') {
-        return
-      }
-      break
+  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
+    return
   }
 
   const enabled = state.settings.contacts.importEnabled
-  const perm = state.settings.contacts.permissionStatus !== 'granted'
+  const perm = state.settings.contacts.permissionStatus === 'granted'
   if (!enabled || !perm) {
     if (enabled && !perm) {
       logger.info('contact import enabled but no contact permissions')
@@ -487,6 +478,21 @@ function manageContactsCache(
   }
 
   // feature enabled and permission granted
+  const contacts = await Contacts.getContactsAsync()
+  const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
+    const {name, phoneNumbers = [], emails = []} = contact
+    // TODO figure out e164 formatting
+    const components: Array<RPCTypes.ContactComponent> = phoneNumbers.map(pn => ({
+      label: pn.label,
+      phoneNumber: pn.number,
+    }))
+    components.push(...emails.map(e => ({label: e.label, email: e.email})))
+    if (components.length) {
+      ret.push({name, components})
+    }
+    return ret
+  }, [])
+  debugger
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
@@ -517,8 +523,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     requestContactPermissions,
     'requestContactPermissions'
   )
-  yield* Saga.chainAction<SettingsGen.EditContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
-    [SettingsGen.editContactImportEnabled, ConfigGen.mobileAppState],
+  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     manageContactsCache,
     'manageContactsCache'
   )
