@@ -164,6 +164,12 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"checksumSHA1": "R63XtjI80tdwGivF/unYVbDokFE=",
+			"path": "github.com/blevesearch/bleve",
+			"revision": "0a3c1766fe434ec6d045be3dce4ae6c96cee3115",
+			"revisionTime": "2019-06-28T08:36:01Z"
+		},
+		{
 			"checksumSHA1": "BBnsAiKyNfocRwmEav5EJpVCwzk=",
 			"path": "github.com/btcsuite/btcutil/bech32",
 			"revision": "ab6388e0c60ae4834a1f57511e20c17b5f78be4b",
@@ -840,6 +846,12 @@
 			"path": "github.com/mitchellh/go-homedir",
 			"revision": "ae18d6b8b3205b561c79e8e5f69bff09736185f4",
 			"revisionTime": "2018-08-24T00:42:36Z"
+		},
+		{
+			"checksumSHA1": "QQtjav/Dlyny0j50nAw9dsXDAIs=",
+			"path": "github.com/mschoch/smat",
+			"revision": "90eadee771aeab36e8bf796039b8c261bebebe4f",
+			"revisionTime": "2016-05-14T03:14:55Z"
 		},
 		{
 			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
