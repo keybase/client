@@ -103,8 +103,10 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	if idx.started {
 		return
 	}
-	idx.started = true
-	go idx.SyncLoop(ctx, uid)
+	if !idx.G().IsMobileAppType() {
+		idx.started = true
+		go idx.SyncLoop(ctx, uid)
+	}
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {
@@ -126,11 +128,6 @@ func (idx *Indexer) PokeSync(ctx context.Context) {
 }
 
 func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
-	if idx.G().IsMobileAppType() {
-		idx.Debug(ctx, "aborting SelectiveSync bg loop on mobile")
-		return
-	}
-
 	idx.Lock()
 	stopCh := idx.stopCh
 	suspendCh := idx.suspendCh
