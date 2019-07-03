@@ -459,6 +459,7 @@ function* requestContactPermissions(
   ])
 }
 
+// TODO: this can race with `loadContactPermissions`. maybe this can get permissions itself?
 async function manageContactsCache(
   state: TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
@@ -473,6 +474,9 @@ async function manageContactsCache(
   if (!enabled || !perm) {
     if (enabled && !perm) {
       logger.info('contact import enabled but no contact permissions')
+    }
+    if (enabled === null) {
+      logger.info("haven't loaded contact import enabled")
     }
     return
   }

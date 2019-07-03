@@ -657,7 +657,14 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
-const loadContactImportEnabled = async (state: TypedState, _, logger) => {
+const loadContactImportEnabled = async (
+  state: TypedState,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload,
+  logger
+) => {
+  if (action.type === ConfigGen.bootstrapStatusLoaded && !action.payload.loggedIn) {
+    return
+  }
   if (!state.config.username) {
     logger.warn('no username')
     return
@@ -805,8 +812,10 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Contacts
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
-    SettingsGen.loadContactImportEnabled,
+  yield* Saga.chainAction<
+    SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload
+  >(
+    [SettingsGen.loadContactImportEnabled, ConfigGen.bootstrapStatusLoaded],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )
