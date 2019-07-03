@@ -1935,6 +1935,10 @@ type InitMode interface {
 	// DoLogObfuscation indicates whether senstive data like filenames
 	// should be obfuscated in log messages.
 	DoLogObfuscation() bool
+	// DiskCacheWriteBufferSize indicates how large the write buffer
+	// should be on disk caches -- this also controls how big the
+	// on-disk tables are before compaction.
+	DiskCacheWriteBufferSize() int
 }
 
 type initModeGetter interface {
