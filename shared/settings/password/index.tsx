@@ -6,8 +6,8 @@ type Props = {
   error?: Error | null
   hasPGPKeyOnServer?: boolean
   hasRandomPW: boolean
-  newPasswordError?: string | null
-  newPasswordConfirmError?: string | null
+  newPasswordError?: string
+  newPasswordConfirmError?: string
   onBack?: () => void
   onSave: (password: string, passwordConfirm: string) => void
   saveLabel?: string
@@ -69,7 +69,14 @@ export class UpdatePassword extends Component<Props, State> {
       : null
     return (
       <Kb.Modal
-        banners={notification && [<Kb.Banner color="red" text={notification} />]}
+        banners={[
+          notification && <Kb.Banner color="yellow" text={notification} />,
+          !!this.props.newPasswordError && <Kb.Banner color="red" text={this.props.newPasswordError} />,
+          !!this.state.errorSaving && <Kb.Banner color="red" text={this.state.errorSaving} />,
+          !!this.props.newPasswordConfirmError && (
+            <Kb.Banner color="red" text={this.props.newPasswordConfirmError} />
+          ),
+        ]}
         footer={{
           content: (
             <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
@@ -105,7 +112,6 @@ export class UpdatePassword extends Component<Props, State> {
             <Kb.PlainInput
               placeholder="New password"
               type={inputType}
-              // errorText={this.props.newPasswordError}
               value={this.state.password}
               onChangeText={password => this._handlePasswordChange(password)}
             />
@@ -115,7 +121,6 @@ export class UpdatePassword extends Component<Props, State> {
               placeholder="Confirm password"
               type={inputType}
               value={this.state.passwordConfirm}
-              // errorText={this.state.errorSaving || this.props.newPasswordConfirmError}
               onChangeText={password => this._handlePasswordConfirmChange(password)}
             />
           </Kb.RoundedBox>
@@ -123,6 +128,7 @@ export class UpdatePassword extends Component<Props, State> {
             Password must be at least 8 characters.
           </Kb.Text>
           <Kb.Checkbox
+            boxBackgroundColor={Styles.globalColors.white}
             label="Show typing"
             onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
@@ -147,19 +153,11 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.small,
     width: '100%',
   },
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      flexGrow: 1,
-    },
-    isElectron: {
-      width: 560,
-    },
-    isMobile: {
-      padding: Styles.globalMargins.small,
-      width: '100%',
-    },
-  }),
+  container: {
+    backgroundColor: Styles.globalColors.blueGrey,
+    flexGrow: 1,
+    padding: Styles.globalMargins.small,
+  },
   headerText: {
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
