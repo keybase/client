@@ -1466,11 +1466,6 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@kudo-ci/jsc-android@245459-fix-clear-cache-no-dfg":
-  version "245459.9000.0"
-  resolved "https://registry.yarnpkg.com/@kudo-ci/jsc-android/-/jsc-android-245459.9000.0.tgz#2620f6e1a775902c4869f1ab59a410f475f5295d"
-  integrity sha512-McyqU5jCVxxfSJ9XzrcUe0/Rkew4ZqBBDlTio/66aH4I6EbBzsGri/1sU+0SXY3BOy++wrqdSJDAmB3k3AVP6Q==
-
 "@most/multicast@^1.2.5":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@most/multicast/-/multicast-1.3.0.tgz#e01574840df634478ac3fabd164c6e830fb3b966"
