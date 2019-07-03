@@ -20,14 +20,25 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     !buildingAdvanced.recipientAmount ||
     buildingAdvanced.recipientAsset === Constants.emptyAssetDescription ||
     buildingAdvanced.senderAsset === Constants.emptyAssetDescription
+  const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   return !isLoading ? (
     props.isIcon ? (
-      <Kb.Icon
-        type="iconfont-calculate"
-        sizeType="Big"
-        color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
-        onClick={isDisabled ? null : onClick}
-      />
+      builtPaymentAdvanced.noPathFoundError ? (
+        <Kb.Icon type="iconfont-remove" sizeType="Big" color={Styles.globalColors.red} />
+      ) : (
+        <Kb.WithTooltip
+          text="Calculate the amount you will send"
+          position="bottom left"
+          disabled={isDisabled}
+        >
+          <Kb.Icon
+            type="iconfont-calculate"
+            sizeType="Big"
+            color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
+            onClick={isDisabled ? null : onClick}
+          />
+        </Kb.WithTooltip>
+      )
     ) : (
       <Kb.Button
         type="Wallet"
