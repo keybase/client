@@ -244,7 +244,24 @@ func (p *Loader) runRequests() {
 	}
 }
 
-func (p *Loader) loadPayment(id stellar1.PaymentID) {
+func (p *Loader) LoadPaymentSync(ctx context.Context, paymentID stellar1.PaymentID) {
+	mctx := libkb.NewMetaContext(ctx, p.G())
+	defer mctx.TraceTimed(fmt.Sprintf("LoadPaymentSync(%s)", paymentID), func() error { return nil })()
+
+	backoffPolicy := libkb.BackoffPolicy{
+		Millis: []int{500, 500, 500, 500, 500, 500, 500, 1000},
+	}
+	for i := 0; i <= 30; i++ {
+		err := p.loadPayment(paymentID)
+		if err == nil {
+			break
+		}
+		mctx.Debug("error on attempt %d to load payment %s: %s. sleep and retry.", i, paymentID, err)
+		time.Sleep(backoffPolicy.Duration(i))
+	}
+}
+
+func (p *Loader) loadPayment(id stellar1.PaymentID) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -255,19 +272,20 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
 		mctx.Debug("error getting payment details for %s: %s", id, err)
-		return
+		return err
 	}
 
 	oc := NewOwnAccountLookupCache(mctx)
 	summary, err := TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	if err != nil {
 		mctx.Debug("error transforming details for %s: %s", id, err)
-		return
+		return err
 	}
 
 	p.storePayment(id, summary)
 
 	p.sendPaymentNotification(mctx, id, summary)
+	return nil
 }
 
 func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
@@ -307,6 +325,8 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		Delta:             summary.Delta,
 		Note:              summary.Note,
 		PaymentID:         summary.Id,
+		SourceAmount:      summary.SourceAmountActual,
+		SourceAsset:       summary.SourceAsset,
 		Status:            summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
 		StatusDetail:      summary.StatusDetail,

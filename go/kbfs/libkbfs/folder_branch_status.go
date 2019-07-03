@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -50,7 +51,8 @@ type FolderBranchStatus struct {
 	Unmerged []*crChainSummary
 	Merged   []*crChainSummary
 
-	ConflictResolutionAttempts []conflictRecord `json:",omitempty"`
+	ConflictResolutionAttempts []conflictRecord            `json:",omitempty"`
+	ConflictStatus             keybase1.FolderConflictType `json:",omitempty"`
 
 	Journal *TLFJournalStatus `json:",omitempty"`
 
@@ -284,6 +286,11 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 		log := fbsk.config.MakeLogger("")
 		log.CDebugf(ctx, "Getting CR status error: %+v", crErr)
 	}
+	if isCRStuckFromRecords(fbs.ConflictResolutionAttempts) {
+		fbs.ConflictStatus = keybase1.FolderConflictType_IN_CONFLICT_AND_STUCK
+	} else if fbs.BranchID != kbfsmd.NullBranchID.String() {
+		fbs.ConflictStatus = keybase1.FolderConflictType_IN_CONFLICT
+	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
 
@@ -325,11 +332,9 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 
 	var jStatus TLFJournalStatus
 	if blocks != nil {
-		jStatus, err =
-			jManager.JournalStatusWithPaths(ctx, tlfID, blocks)
+		jStatus, err = jManager.JournalStatusWithPaths(ctx, tlfID, blocks)
 	} else {
-		jStatus, err =
-			jManager.JournalStatus(tlfID)
+		jStatus, err = jManager.JournalStatus(tlfID)
 	}
 	if err != nil {
 		log := fbsk.config.MakeLogger("")

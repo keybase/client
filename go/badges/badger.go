@@ -43,7 +43,7 @@ type Badger struct {
 func NewBadger(g *libkb.GlobalContext) *Badger {
 	b := &Badger{
 		Contextified:   libkb.NewContextified(g),
-		badgeState:     NewBadgeState(g.Log),
+		badgeState:     NewBadgeState(g),
 		iboxVersSource: nullInboxVersionSource{},
 		notifyCh:       make(chan keybase1.BadgeState, 1000),
 		shutdownCh:     make(chan struct{}),
@@ -67,13 +67,19 @@ func (b *Badger) notifyLoop() {
 	}
 }
 
+func (b *Badger) SetLocalChatState(s LocalChatState) {
+	b.badgeState.SetLocalChatState(s)
+}
+
 func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 	b.iboxVersSource = s
 }
 
 func (b *Badger) PushState(ctx context.Context, state gregor.State) {
 	b.G().Log.CDebugf(ctx, "Badger update with gregor state")
-	b.badgeState.UpdateWithGregor(ctx, state)
+	if err := b.badgeState.UpdateWithGregor(ctx, state); err != nil {
+		b.G().Log.Warning("Badger (PushState) UpdateWithGregor failed: %v", err)
+	}
 	if err := b.Send(ctx); err != nil {
 		b.G().Log.Warning("Badger send (PushState) failed: %v", err)
 	}
@@ -130,7 +136,7 @@ func (b *Badger) Clear(ctx context.Context) {
 
 // Send the badgestate to electron
 func (b *Badger) Send(ctx context.Context) error {
-	state, err := b.badgeState.Export()
+	state, err := b.badgeState.Export(ctx)
 	if err != nil {
 		return err
 	}

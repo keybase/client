@@ -34,6 +34,7 @@ type NotifyListener interface {
 	ClientOutOfDate(to, uri, msg string)
 	UserChanged(uid keybase1.UID)
 	TrackingChanged(uid keybase1.UID, username NormalizedUsername)
+	TrackingInfo(uid keybase1.UID, followers, followees []string)
 	FSOnlineStatusChanged(online bool)
 	FSActivity(activity keybase1.FSNotification)
 	FSPathUpdated(path string)
@@ -42,6 +43,7 @@ type NotifyListener interface {
 	FSSyncEvent(arg keybase1.FSPathSyncStatus)
 	FSEditListRequest(arg keybase1.FSEditListRequest)
 	FSOverallSyncStatusChanged(arg keybase1.FolderSyncStatus)
+	FSFavoritesChanged()
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
@@ -91,10 +93,9 @@ type NotifyListener interface {
 	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
-	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
-	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
-	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
+	PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber)
 	EmailAddressVerified(emailAddress keybase1.EmailAddress)
+	EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress)
 	PasswordChanged()
 	RootAuditError(msg string)
 	BoxAuditError(msg string)
@@ -109,8 +110,10 @@ func (n *NoopNotifyListener) Login(username string)                             
 func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                           {}
 func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
 func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
+func (n *NoopNotifyListener) TrackingInfo(uid keybase1.UID, followers, followees []string)  {}
 func (n *NoopNotifyListener) FSOnlineStatusChanged(online bool)                             {}
 func (n *NoopNotifyListener) FSOverallSyncStatusChanged(status keybase1.FolderSyncStatus)   {}
+func (n *NoopNotifyListener) FSFavoritesChanged()                                           {}
 func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                   {}
 func (n *NoopNotifyListener) FSPathUpdated(path string)                                     {}
 func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
@@ -192,15 +195,16 @@ func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.Acco
 }
 func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
 }
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)               {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                   {}
-func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)       {}
-func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)    {}
-func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)  {}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string) {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)     {}
+func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
+}
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
-func (n *NoopNotifyListener) PasswordChanged()                                        {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                               {}
-func (n *NoopNotifyListener) BoxAuditError(msg string)                                {}
+func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
+}
+func (n *NoopNotifyListener) PasswordChanged()          {}
+func (n *NoopNotifyListener) RootAuditError(msg string) {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)  {}
 
 type NotifyListenerID string
 
@@ -324,13 +328,32 @@ func (n *NotifyRouter) HandleLogout(ctx context.Context) {
 	})
 }
 
-// HandleLogin is called whenever a user logs in. It will broadcast
-// the message to all connections who care about such a message.
+// HandleLogin is called when a user logs in.
 func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q", u)
+	n.G().Log.CDebugf(ctx, "+ Sending login notification for user %q", u)
+	n.SendLogin(ctx, u, false)
+}
+
+// HandleSignup is called when a user is signed up. It will broadcast a loggedIn
+// notification with a flag to signify this was because of a signup.
+func (n *NotifyRouter) HandleSignup(ctx context.Context, u string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending login notification for signup, as user %q", u)
+	n.SendLogin(ctx, u, true)
+}
+
+// SendLogin is called whenever a user logs in. It will broadcast
+// the message to all connections who care about such a message.
+func (n *NotifyRouter) SendLogin(ctx context.Context, u string, signedUp bool) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending login notification, as user %q, signedUp %t", u, signedUp)
 	// For all connections we currently have open...
 	ctx = CopyTagsToBackground(ctx)
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -341,7 +364,10 @@ func (n *NotifyRouter) HandleLogin(ctx context.Context, u string) {
 				// A send of a `LoggedIn` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).LoggedIn(ctx, u)
+				}).LoggedIn(ctx, keybase1.LoggedInArg{
+					Username: u,
+					SignedUp: signedUp,
+				})
 			}()
 		}
 		return true
@@ -444,6 +470,34 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username Normaliz
 	})
 }
 
+func (n *NotifyRouter) HandleTrackingInfo(uid keybase1.UID, followers, followees []string) {
+	if n == nil {
+		return
+	}
+	arg := keybase1.TrackingInfoArg{
+		Uid:       uid,
+		Followees: followees,
+		Followers: followers,
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Tracking` notification type
+		if n.getNotificationChannels(id).Tracking {
+			// In the background do...
+			go func() {
+				// A send of a `TrackingChanged` RPC with the user's UID
+				(keybase1.NotifyTrackingClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).TrackingInfo(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.TrackingInfo(uid, followers, followees)
+	})
+}
+
 // HandleBadgeState is called whenever the badge state changes
 // It will broadcast the messages to all curious listeners.
 func (n *NotifyRouter) HandleBadgeState(badgeState keybase1.BadgeState) {
@@ -519,6 +573,32 @@ func (n *NotifyRouter) HandleFSOverallSyncStatusChanged(status keybase1.FolderSy
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.FSOverallSyncStatusChanged(status)
+	})
+}
+
+// HandleFSFavoritesChanged is called when the overall sync status
+// changes. It will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleFSFavoritesChanged() {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSFavoritesChanged` RPC with the
+				// notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FSFavoritesChanged(context.Background())
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FSFavoritesChanged()
 	})
 }
 
@@ -1975,7 +2055,7 @@ func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, for
 	})
 }
 
-func (n *NotifyRouter) HandlePhoneNumberAdded(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
+func (n *NotifyRouter) HandlePhoneNumbersChanged(ctx context.Context, list []keybase1.UserPhoneNumber, category string, phoneNumber keybase1.PhoneNumber) {
 	if n == nil {
 		return
 	}
@@ -1984,54 +2064,18 @@ func (n *NotifyRouter) HandlePhoneNumberAdded(ctx context.Context, phoneNumber k
 			go func() {
 				(keybase1.NotifyPhoneNumberClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PhoneNumberAdded(context.Background(), phoneNumber)
+				}).PhoneNumbersChanged(context.Background(), keybase1.PhoneNumbersChangedArg{
+					List:        list,
+					Category:    category,
+					PhoneNumber: phoneNumber,
+				})
 			}()
 		}
 		return true
 	})
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.PhoneNumberAdded(phoneNumber)
-	})
-}
-
-func (n *NotifyRouter) HandlePhoneNumberVerified(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
-	if n == nil {
-		return
-	}
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Team {
-			go func() {
-				(keybase1.NotifyPhoneNumberClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PhoneNumberVerified(context.Background(), phoneNumber)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.PhoneNumberVerified(phoneNumber)
-	})
-}
-
-func (n *NotifyRouter) HandlePhoneNumberSuperseded(ctx context.Context, phoneNumber keybase1.PhoneNumber) {
-	if n == nil {
-		return
-	}
-	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Team {
-			go func() {
-				(keybase1.NotifyPhoneNumberClient{
-					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PhoneNumberSuperseded(context.Background(), phoneNumber)
-			}()
-		}
-		return true
-	})
-
-	n.runListeners(func(listener NotifyListener) {
-		listener.PhoneNumberSuperseded(phoneNumber)
+		listener.PhoneNumbersChanged(list, category, phoneNumber)
 	})
 }
 
@@ -2052,6 +2096,30 @@ func (n *NotifyRouter) HandleEmailAddressVerified(ctx context.Context, emailAddr
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.EmailAddressVerified(emailAddress)
+	})
+}
+
+func (n *NotifyRouter) HandleEmailAddressChanged(ctx context.Context, list []keybase1.Email, category string, emailAddress keybase1.EmailAddress) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			go func() {
+				(keybase1.NotifyEmailAddressClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).EmailsChanged(context.Background(), keybase1.EmailsChangedArg{
+					List:     list,
+					Category: category,
+					Email:    emailAddress,
+				})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.EmailsChanged(list, category, emailAddress)
 	})
 }
 

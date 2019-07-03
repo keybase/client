@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/encrypteddb"
@@ -99,8 +98,6 @@ type Inbox struct {
 	flushMode InboxFlushMode
 }
 
-var addInboxMemCacheHookOnce sync.Once
-
 func FlushMode(mode InboxFlushMode) func(*Inbox) {
 	return func(i *Inbox) {
 		i.SetFlushMode(mode)
@@ -108,12 +105,6 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 }
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
-	// add a logout hook to clear the in-memory inbox cache, but only add it once:
-	addInboxMemCacheHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(inboxMemCache, "chat/storage/inbox")
-		g.ExternalG().AddDbNukeHook(inboxMemCache, "chat/storage/inbox")
-	})
-
 	i := &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
@@ -208,8 +199,6 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 		}
 		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
 			// need local metadata for channel names, so skip if we don't have it
-			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, big team missing local metadata",
-				rc.GetConvID())
 			continue
 		}
 		name := rc.GetName()
@@ -564,6 +553,10 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
 			continue
 		}
+		if query.TopicName != nil && rc.LocalMetadata != nil &&
+			*query.TopicName != rc.LocalMetadata.TopicName {
+			continue
+		}
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
@@ -667,6 +660,18 @@ func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
 	return true
 }
 
+func (i *Inbox) queryNameExists(ctx context.Context, ibox inboxDiskData,
+	tlfID chat1.TLFID, membersType chat1.ConversationMembersType, topicName string,
+	topicType chat1.TopicType) bool {
+	for _, conv := range ibox.Conversations {
+		if conv.Conv.Metadata.IdTriple.Tlfid.Eq(tlfID) && conv.GetMembersType() == membersType &&
+			conv.GetTopicName() == topicName && conv.GetTopicType() == topicType {
+			return true
+		}
+	}
+	return false
+}
+
 func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) bool {
 
@@ -679,6 +684,16 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		}
 		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(convIDs))
 		return i.queryConvIDsExist(ctx, ibox, convIDs)
+	}
+
+	// Check for a name query that is after a single conversation
+	if query != nil && query.TlfID != nil && query.TopicType != nil && query.TopicName != nil &&
+		len(query.MembersTypes) == 1 {
+		if i.queryNameExists(ctx, ibox, *query.TlfID, query.MembersTypes[0], *query.TopicName,
+			*query.TopicType) {
+			i.Debug(ctx, "Read: queryExists: single name query hit")
+			return true
+		}
 	}
 
 	hquery, err := i.hashQuery(ctx, query)
@@ -959,6 +974,28 @@ func (i *Inbox) IncrementLocalConvVersion(ctx context.Context, uid gregor1.UID, 
 		return nil
 	}
 	conv.Conv.Metadata.LocalVersion++
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
+func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "MarkLocalRead")()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "MarkLocalRead: no conversation found: convID: %s", convID)
+		return nil
+	}
+	conv.LocalReadMsgID = msgID
 	return i.writeDiskInbox(ctx, uid, ibox)
 }
 
@@ -1482,12 +1519,13 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return 0, nil
+		}
 		return 0, err
 	}
-
 	vers = chat1.InboxVers(ibox.InboxVersion)
 	return vers, nil
 }
@@ -1497,12 +1535,13 @@ func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, e
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return 0, nil
+		}
 		return 0, err
 	}
-
 	vers = ibox.ServerVersion
 	return vers, nil
 }
@@ -1648,9 +1687,27 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		if removedMap[conv.GetConvID().String()] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()
+			var newAllList []gregor1.UID
+			for _, u := range conv.Conv.Metadata.AllList {
+				if !u.Eq(uid) {
+					newAllList = append(newAllList, u)
+				}
+			}
+			conv.Conv.Metadata.AllList = newAllList
 		} else if resetMap[conv.GetConvID().String()] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			conv.Conv.Metadata.Version = vers.ToConvVers()
+			// Double check this user isn't already in here
+			exists := false
+			for _, u := range conv.Conv.Metadata.ResetList {
+				if u.Eq(uid) {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				conv.Conv.Metadata.ResetList = append(conv.Conv.Metadata.ResetList, uid)
+			}
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
 	}

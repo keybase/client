@@ -54,7 +54,7 @@ func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilte
 		if v.MembersType != "TEAM" {
 			// We are looking in inbox for conversations between users
 			// to normalize display name without using resolve RPC.
-			conv, _, err := d.svc.findConversation(ctx, v)
+			conv, _, err := d.svc.findConversation(ctx, "", v)
 			if err != nil {
 				return fmt.Errorf("Unable to find chat channel for %q: %s", v.Name, err.Error())
 			}
@@ -86,7 +86,8 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 		}
 		mv := inMsg.Message.Valid()
 		summary := &MsgSummary{
-			ID: mv.MessageID,
+			ID:     mv.MessageID,
+			ConvID: inMsg.ConvID.String(),
 			Channel: ChatChannel{
 				Name:        inMsg.Conv.Name,
 				MembersType: strings.ToLower(inMsg.Conv.MembersType.String()),

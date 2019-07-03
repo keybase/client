@@ -18,6 +18,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"regexp"
@@ -28,7 +29,6 @@ import (
 	"time"
 	"unicode"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
@@ -1012,53 +1012,14 @@ func RuntimeGroup() keybase1.RuntimeGroup {
 	}
 }
 
-// DirSize walks the file tree the size of the given directory
-func DirSize(dirPath string) (size uint64, numFiles int, err error) {
-	err = filepath.Walk(dirPath, func(_ string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			size += uint64(info.Size())
-			numFiles++
-		}
-		return nil
-	})
-	return size, numFiles, err
-}
-
-func CacheSizeInfo(g *GlobalContext) (info []keybase1.DirSizeInfo, err error) {
-	cacheDir := g.GetCacheDir()
-	files, err := ioutil.ReadDir(cacheDir)
+// execToString returns the space-trimmed output of a command or an error.
+func execToString(bin string, args []string) (string, error) {
+	result, err := exec.Command(bin, args...).Output()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	var totalSize uint64
-	var totalFiles int
-	for _, file := range files {
-		if !file.IsDir() {
-			totalSize += uint64(file.Size())
-			continue
-		}
-		dirPath := filepath.Join(cacheDir, file.Name())
-		size, numFiles, err := DirSize(dirPath)
-		if err != nil {
-			return nil, err
-		}
-		totalSize += size
-		totalFiles += numFiles
-		info = append(info, keybase1.DirSizeInfo{
-			Name:      dirPath,
-			NumFiles:  numFiles,
-			HumanSize: humanize.Bytes(size),
-		})
+	if result == nil {
+		return "", fmt.Errorf("Nil result")
 	}
-	info = append(info, keybase1.DirSizeInfo{
-		Name:      cacheDir,
-		NumFiles:  totalFiles,
-		HumanSize: humanize.Bytes(totalSize),
-	})
-	return info, nil
-
+	return strings.TrimSpace(string(result)), nil
 }

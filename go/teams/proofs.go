@@ -156,7 +156,6 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 	}
 	action = "added"
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-	return
 }
 
 // Set the latest link map for the team
@@ -203,7 +202,7 @@ func (p *proofSetT) AllProofs() []proof {
 // lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
 // to this proof. It will contact the API server.  Returns the sigchain tail on success.
 func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (ret *libkb.MerkleTriple, err error) {
-	return world.merkleLookupTripleAtHashMeta(ctx, p.a.isPublic(), p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
+	return world.merkleLookupTripleInPast(ctx, p.a.isPublic(), p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned)
 }
 
 // check a single proof. Call to the merkle API endpoint, and then ensure that the

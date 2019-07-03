@@ -8,20 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Tracker struct {
-	Tracker UID  `codec:"tracker" json:"tracker"`
-	Status  int  `codec:"status" json:"status"`
-	MTime   Time `codec:"mTime" json:"mTime"`
-}
-
-func (o Tracker) DeepCopy() Tracker {
-	return Tracker{
-		Tracker: o.Tracker.DeepCopy(),
-		Status:  o.Status,
-		MTime:   o.MTime.DeepCopy(),
-	}
-}
-
 type TrackProof struct {
 	ProofType string `codec:"proofType" json:"proofType"`
 	ProofName string `codec:"proofName" json:"proofName"`
@@ -151,7 +137,8 @@ func (o Email) DeepCopy() Email {
 }
 
 type UserSettings struct {
-	Emails []Email `codec:"emails" json:"emails"`
+	Emails       []Email           `codec:"emails" json:"emails"`
+	PhoneNumbers []UserPhoneNumber `codec:"phoneNumbers" json:"phoneNumbers"`
 }
 
 func (o UserSettings) DeepCopy() UserSettings {
@@ -167,6 +154,17 @@ func (o UserSettings) DeepCopy() UserSettings {
 			}
 			return ret
 		})(o.Emails),
+		PhoneNumbers: (func(x []UserPhoneNumber) []UserPhoneNumber {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserPhoneNumber, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PhoneNumbers),
 	}
 }
 
@@ -334,20 +332,6 @@ func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	}
 }
 
-type ListTrackersArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-	Uid       UID `codec:"uid" json:"uid"`
-}
-
-type ListTrackersByNameArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-}
-
-type ListTrackersSelfArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type LoadUncheckedUserSummariesArg struct {
 	SessionID int   `codec:"sessionID" json:"sessionID"`
 	Uids      []UID `codec:"uids" json:"uids"`
@@ -468,10 +452,21 @@ type CanLogoutArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type UserCardArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	UseSession bool   `codec:"useSession" json:"useSession"`
+}
+
+type BlockUserArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
+type UnblockUserArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type UserInterface interface {
-	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
-	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
-	ListTrackersSelf(context.Context, int) ([]Tracker, error)
 	// Load user summaries for the supplied uids.
 	// They are "unchecked" in that the client is not verifying the info from the server.
 	// If len(uids) > 500, the first 500 will be returned.
@@ -517,57 +512,15 @@ type UserInterface interface {
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
 	LoadHasRandomPw(context.Context, LoadHasRandomPwArg) (bool, error)
 	CanLogout(context.Context, int) (CanLogoutRes, error)
+	UserCard(context.Context, UserCardArg) (*UserCard, error)
+	BlockUser(context.Context, string) error
+	UnblockUser(context.Context, string) error
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.user",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"listTrackers": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackersArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackersArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackersArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackers(ctx, typedArgs[0])
-					return
-				},
-			},
-			"listTrackersByName": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackersByNameArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackersByNameArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackersByNameArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackersByName(ctx, typedArgs[0])
-					return
-				},
-			},
-			"listTrackersSelf": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackersSelfArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackersSelfArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackersSelfArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackersSelf(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"loadUncheckedUserSummaries": {
 				MakeArg: func() interface{} {
 					var ret [1]LoadUncheckedUserSummariesArg
@@ -913,28 +866,57 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"userCard": {
+				MakeArg: func() interface{} {
+					var ret [1]UserCardArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UserCardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UserCardArg)(nil), args)
+						return
+					}
+					ret, err = i.UserCard(ctx, typedArgs[0])
+					return
+				},
+			},
+			"blockUser": {
+				MakeArg: func() interface{} {
+					var ret [1]BlockUserArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BlockUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BlockUserArg)(nil), args)
+						return
+					}
+					err = i.BlockUser(ctx, typedArgs[0].Username)
+					return
+				},
+			},
+			"unblockUser": {
+				MakeArg: func() interface{} {
+					var ret [1]UnblockUserArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UnblockUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UnblockUserArg)(nil), args)
+						return
+					}
+					err = i.UnblockUser(ctx, typedArgs[0].Username)
+					return
+				},
+			},
 		},
 	}
 }
 
 type UserClient struct {
 	Cli rpc.GenericClient
-}
-
-func (c UserClient) ListTrackers(ctx context.Context, __arg ListTrackersArg) (res []Tracker, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) ListTrackersByName(ctx context.Context, __arg ListTrackersByNameArg) (res []Tracker, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersByName", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) ListTrackersSelf(ctx context.Context, sessionID int) (res []Tracker, err error) {
-	__arg := ListTrackersSelfArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersSelf", []interface{}{__arg}, &res)
-	return
 }
 
 // Load user summaries for the supplied uids.
@@ -1078,5 +1060,22 @@ func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwAr
 func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
 	__arg := CanLogoutArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) UserCard(ctx context.Context, __arg UserCardArg) (res *UserCard, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) BlockUser(ctx context.Context, username string) (err error) {
+	__arg := BlockUserArg{Username: username}
+	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) UnblockUser(ctx context.Context, username string) (err error) {
+	__arg := UnblockUserArg{Username: username}
+	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil)
 	return
 }

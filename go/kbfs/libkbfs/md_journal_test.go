@@ -44,6 +44,12 @@ func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
 	return g.k, nil
 }
 
+func (g singleEncryptionKeyGetter) GetFirstTLFCryptKey(
+	ctx context.Context, kmd libkey.KeyMetadata) (
+	kbfscrypto.TLFCryptKey, error) {
+	return g.k, nil
+}
+
 func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
@@ -77,7 +83,7 @@ func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	ctx := context.Background()
 	j, err = makeMDJournal(
 		ctx, uid, verifyingKey, codec, crypto, data.WallClock{}, nil,
-		&testSyncedTlfGetterSetter{}, tlfID, ver, tempdir, log)
+		&testSyncedTlfGetterSetter{}, tlfID, ver, tempdir, log, tlf.NullID)
 	require.NoError(t, err)
 
 	bsplit, err = data.NewBlockSplitterSimpleExact(
@@ -562,7 +568,7 @@ func testMDJournalGCd(t *testing.T, j *mdJournal) {
 }
 
 func flushAllMDs(
-	t *testing.T, ctx context.Context, signer kbfscrypto.Signer, j *mdJournal) {
+	ctx context.Context, t *testing.T, signer kbfscrypto.Signer, j *mdJournal) {
 	end, err := j.end()
 	require.NoError(t, err)
 	for {
@@ -616,7 +622,7 @@ func testMDJournalFlushAll(t *testing.T, ver kbfsmd.MetadataVer) {
 	err := ioutil.WriteFile(filepath.Join(j.dir, "extra_file"), nil, 0600)
 	require.NoError(t, err)
 
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 
 	// The flush shouldn't remove the entire directory.
 	names = listDir(t, j.dir)
@@ -671,7 +677,7 @@ func testMDJournalBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 
 	// Has the cache entry been replaced?
 	newlyCachedMd, err := mdcache.Get(id, firstRevision, bid)
@@ -734,7 +740,7 @@ func testMDJournalResolveAndClear(t *testing.T, ver kbfsmd.MetadataVer, bid kbfs
 	require.NoError(t, err)
 	require.Equal(t, md.Revision(), head.RevisionNumber())
 
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 }
 
 func testMDJournalResolveAndClearRemoteBranch(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -805,7 +811,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
 	// Flush all MDs so we can check garbage collection.
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 }
 
 type mdIDJournalEntryExtra struct {
@@ -867,7 +873,7 @@ func testMDJournalBranchConversionPreservesUnknownFields(t *testing.T, ver kbfsm
 	}
 	require.Equal(t, expectedEntries, entries)
 
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 }
 
 func testMDJournalClear(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -937,13 +943,13 @@ func testMDJournalClear(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NotEqual(t, kbfsmd.NullBranchID, j.branchID)
 
 	bid = j.branchID
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 	require.Equal(t, bid, j.branchID)
 	err = j.clear(ctx, bid)
 	require.NoError(t, err)
 	require.Equal(t, kbfsmd.NullBranchID, j.branchID)
 
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 }
 
 func testMDJournalClearPendingWithMaster(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -1009,7 +1015,8 @@ func testMDJournalRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 	// Restart journal.
 	ctx := context.Background()
 	j, err := makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
-		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log)
+		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log,
+		j.overrideTlfID)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(mdCount), j.length())
@@ -1022,7 +1029,7 @@ func testMDJournalRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Merged, kbfsmd.NullBranchID)
 
-	flushAllMDs(t, context.Background(), signer, j)
+	flushAllMDs(context.Background(), t, signer, j)
 }
 
 func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.MetadataVer) {
@@ -1051,7 +1058,8 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.Metadata
 	// Restart journal.
 
 	j, err = makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
-		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log)
+		j.teamMemChecker, j.osg, j.tlfID, j.mdVer, j.dir, j.log,
+		j.overrideTlfID)
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(mdCount), j.length())
@@ -1064,7 +1072,7 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver kbfsmd.Metadata
 	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, kbfsmd.Unmerged, ibrmds[0].BID())
 
-	flushAllMDs(t, ctx, signer, j)
+	flushAllMDs(ctx, t, signer, j)
 }
 
 func TestMDJournal(t *testing.T) {

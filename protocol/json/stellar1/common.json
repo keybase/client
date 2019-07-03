@@ -93,6 +93,27 @@
         {
           "type": "string",
           "name": "infoUrl"
+        },
+        {
+          "type": "string",
+          "name": "infoUrlText"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "assets"
+        },
+        {
+          "type": "int",
+          "name": "totalCount"
         }
       ]
     },
@@ -436,6 +457,10 @@
         {
           "type": "Asset",
           "name": "destinationAsset"
+        },
+        {
+          "type": "string",
+          "name": "sourceInsufficientBalance"
         }
       ]
     }

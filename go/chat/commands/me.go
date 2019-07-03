@@ -20,7 +20,7 @@ func NewMe(g *globals.Context) *Me {
 }
 
 func (s *Me) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Execute")()
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
@@ -32,6 +32,7 @@ func (s *Me) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if len(msg) == 0 {
 		return nil
 	}
-	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg), nil)
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg), nil,
+		replyTo)
 	return err
 }

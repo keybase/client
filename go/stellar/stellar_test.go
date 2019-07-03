@@ -70,6 +70,8 @@ var fmtTests = []fmtTest{
 
 func TestFormatAmount(t *testing.T) {
 	tc := libkb.SetupTest(t, "fmt", 1)
+	defer tc.Cleanup()
+
 	for i, test := range fmtTests {
 		switch test.rounding {
 		case "", "round", "truncate":

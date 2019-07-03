@@ -149,7 +149,7 @@ We host the electron binaries used for our build process in keybase.pub. If you 
 
 The app uses [storybook](https://storybook.js.org/) snapshots. If you make a change that changes the html output of a story, tests will catch the difference.
 
-To update the stories, first determine which stories changed. Run the tests `yarn test Storyshots` and look for lines containing:
+To update the stories, first determine which stories changed. Run the tests `yarn test Storyshots` and look for lines containing '●':
 
 Run the local storybook server. Verify that the affected stories look correct.
 
@@ -162,3 +162,12 @@ To update the snapshot file run:
 ```
 yarn test -u Storyshots
 ```
+
+## Misc
+
+### Updating the list of countries with SMS support
+
+In order to update the list of countries supported by Amazon SNS, run
+the [update-data.sh](https://github.com/keybase/client/blob/master/shared/util/phone-numbers/sms-support/update-data.sh)
+script. It will first fetch the JSON from Amazon's public S3 bucket and
+transform it for use in our internal country filtering code.

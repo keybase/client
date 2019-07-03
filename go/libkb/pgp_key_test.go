@@ -55,7 +55,6 @@ HKfiyXs8709e067vsE5FCTMvZCq4vt/lkEJ59xn58QBfEILMwQDNLqVGyA54MPwh
 			t.Errorf("Expected '%s' as a primary UID; got '%s'", expected, primary)
 		}
 	}
-	return
 }
 
 func TestOpenPGPMultipleArmored(t *testing.T) {

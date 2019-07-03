@@ -555,7 +555,7 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	q := newBlockRetrievalQueue(
 		0, 0, 0, newTestBlockRetrievalConfig(t, bg, cache))
 	require.NotNil(t, q)
-	defer q.Shutdown()
+	defer endBlockRetrievalQueueTest(t, q)
 
 	ctx := context.Background()
 	kmd := makeKMD()
@@ -579,7 +579,7 @@ func TestDiskBlockCacheWithRetrievalQueue(t *testing.T) {
 	require.Equal(t, block1, block)
 }
 
-func seedDiskBlockCacheForTest(t *testing.T, ctx context.Context,
+func seedDiskBlockCacheForTest(ctx context.Context, t *testing.T,
 	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, numTlfs,
 	numBlocksPerTlf int) {
 	t.Log("Seed the cache with some blocks.")
@@ -599,12 +599,12 @@ func seedDiskBlockCacheForTest(t *testing.T, ctx context.Context,
 }
 
 func testPutBlockWhenSyncCacheFull(
-	t *testing.T, ctx context.Context, putCache *DiskBlockCacheLocal,
+	ctx context.Context, t *testing.T, putCache *DiskBlockCacheLocal,
 	cache *diskBlockCacheWrapped, config *testDiskBlockCacheConfig) {
 	numTlfs := 10
 	numBlocksPerTlf := 5
 	numBlocks := numTlfs * numBlocksPerTlf
-	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
+	seedDiskBlockCacheForTest(ctx, t, cache, config, numTlfs, numBlocksPerTlf)
 
 	t.Log("Set the cache maximum bytes to the current total.")
 	require.Equal(t, 0, putCache.numBlocks)
@@ -632,7 +632,7 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 	defer shutdownDiskBlockCacheTest(cache)
 	ctx := context.Background()
 
-	testPutBlockWhenSyncCacheFull(t, ctx, cache.workingSetCache, cache, config)
+	testPutBlockWhenSyncCacheFull(ctx, t, cache.workingSetCache, cache, config)
 }
 
 func TestCrDirtyBlockCacheStaticLimit(t *testing.T) {
@@ -649,7 +649,7 @@ func TestCrDirtyBlockCacheStaticLimit(t *testing.T) {
 	err = crCache.WaitUntilStarted()
 	require.NoError(t, err)
 
-	testPutBlockWhenSyncCacheFull(t, ctx, crCache, cache, config)
+	testPutBlockWhenSyncCacheFull(ctx, t, crCache, cache, config)
 }
 
 func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {
@@ -710,7 +710,7 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	// Use a real config, since we need the real SetTlfSyncState
 	// implementation.
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "u1")
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
 
 	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
@@ -728,7 +728,7 @@ func TestDiskBlockCacheUnsyncTlf(t *testing.T) {
 	numTlfs := 3
 	numBlocksPerTlf := 5
 	numBlocks := numTlfs * numBlocksPerTlf
-	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
+	seedDiskBlockCacheForTest(ctx, t, cache, config, numTlfs, numBlocksPerTlf)
 	require.Equal(t, numBlocks, standardCache.numBlocks)
 
 	standardCache.clearTickerDuration = 0
@@ -786,7 +786,7 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 // seedTlf seeds the cache with blocks from a given TLF ID. Notably,
 // it does NOT give them different times,
 // because that makes TLFs filled first more likely to face eviction.
-func seedTlf(t *testing.T, ctx context.Context,
+func seedTlf(ctx context.Context, t *testing.T,
 	cache *diskBlockCacheWrapped, config diskBlockCacheConfig, tlfID tlf.ID,
 	numBlocksPerTlf int) {
 	for j := 0; j < numBlocksPerTlf; j++ {
@@ -827,8 +827,8 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 		homeTLF:       homeTLFBlocksEach,
 	}
 
-	seedTlf(t, ctx, cache, config, homePublicTLF, homeTLFBlocksEach)
-	seedTlf(t, ctx, cache, config, homeTLF, homeTLFBlocksEach)
+	seedTlf(ctx, t, cache, config, homePublicTLF, homeTLFBlocksEach)
+	seedTlf(ctx, t, cache, config, homeTLF, homeTLFBlocksEach)
 	totalBlocks += 2 * homeTLFBlocksEach
 	otherTlfIds := []tlf.ID{
 		tlf.FakeID(1, tlf.Private),
@@ -842,7 +842,7 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 	// Use LOTS of blocks to get better statistical behavior.
 	nextTlfSize := 200
 	for _, tlfID := range otherTlfIds {
-		seedTlf(t, ctx, cache, config, tlfID, nextTlfSize)
+		seedTlf(ctx, t, cache, config, tlfID, nextTlfSize)
 		originalSizes[tlfID] = nextTlfSize
 		totalBlocks += nextTlfSize
 		nextTlfSize *= 2
@@ -859,12 +859,12 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 
 	t.Log("Verify that the non-home TLFs have been reduced in size by about" +
 		" half")
-	// Allow a tolerance of .4, so 30-70% of the original size.
+	// Allow a tolerance of .5, so 25-75% of the original size.
 	for _, tlfID := range otherTlfIds {
 		original := originalSizes[tlfID]
 		current := cache.syncCache.tlfCounts[tlfID]
 		t.Logf("ID: %v, Current: %d, Original: %d", tlfID, current, original)
-		require.InEpsilon(t, original/2, current, 0.4)
+		require.InEpsilon(t, original/2, current, 0.5)
 	}
 	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homeTLF])
 	require.Equal(t, homeTLFBlocksEach, cache.syncCache.tlfCounts[homePublicTLF])
@@ -916,7 +916,7 @@ func TestDiskBlockCacheMark(t *testing.T) {
 	numTlfs := 3
 	numBlocksPerTlf := 5
 	numBlocks := numTlfs * numBlocksPerTlf
-	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
+	seedDiskBlockCacheForTest(ctx, t, cache, config, numTlfs, numBlocksPerTlf)
 	require.Equal(t, numBlocks, standardCache.numBlocks)
 
 	t.Log("Generate some blocks we can mark.")

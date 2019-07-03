@@ -11,15 +11,16 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
 )
 
-const reacjiDiskVersion = 2
+const reacjiDiskVersion = 3
+
+var codeMap map[string]string
 
 // If the user has less than 5 favorite reacjis we stuff these defaults in.
-var DefaultTopReacjis = []string{":+1:", ":-1:", ":tada:", ":joy:", ":sunglasses:"}
-
-var addReacjiMemCacheHookOnce sync.Once
+var DefaultTopReacjis = []string{":+1:", ":-1:", ":joy:", ":sunglasses:", ":tada:"}
 
 type ReacjiInternalStorage struct {
 	FrequencyMap map[string]int
@@ -49,7 +50,7 @@ func (i *reacjiMemCacheImpl) Get(uid gregor1.UID) (bool, *ReacjiInternalStorage)
 	i.RLock()
 	defer i.RUnlock()
 	if !uid.Eq(i.uid) {
-		return false, nil
+		return false, NewReacjiInternalStorage()
 	}
 	return true, i.data
 }
@@ -112,11 +113,6 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalChatDb
 	}
-	// add a logout hook to clear the in-memory cache, but only add it once:
-	addReacjiMemCacheHookOnce.Do(func() {
-		g.ExternalG().AddLogoutHook(reacjiMemCache, "reacjiMemCache")
-		g.ExternalG().AddDbNukeHook(reacjiMemCache, "reacjiMemCache")
-	})
 	return &ReacjiStore{
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReacjiStore", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
@@ -161,6 +157,12 @@ func (s *ReacjiStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) 
 func (s *ReacjiStore) PutReacji(ctx context.Context, uid gregor1.UID, reacji string) error {
 	s.Lock()
 	defer s.Unlock()
+	if codeMap == nil {
+		codeMap = emoji.CodeMap()
+	}
+	if _, ok := codeMap[reacji]; !ok {
+		return nil
+	}
 
 	cache := s.populateCacheLocked(ctx, uid)
 	cache.FrequencyMap[reacji]++
@@ -201,6 +203,16 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 
 	cache := s.populateCacheLocked(ctx, uid)
 	pairs := []reacjiPair{}
+	// add defaults if needed so we always return some values
+	for _, el := range DefaultTopReacjis {
+		if len(cache.FrequencyMap) >= len(DefaultTopReacjis) {
+			break
+		}
+		if _, ok := cache.FrequencyMap[el]; !ok {
+			cache.FrequencyMap[el] = 0
+		}
+	}
+
 	for name, freq := range cache.FrequencyMap {
 		pairs = append(pairs, reacjiPair{name: name, freq: freq})
 	}
@@ -214,11 +226,13 @@ func (s *ReacjiStore) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1
 
 	reacjis := []string{}
 	for _, p := range pairs {
-		reacjis = append(reacjis, p.name)
+		if len(reacjis) >= len(DefaultTopReacjis) && p.freq == 0 {
+			delete(cache.FrequencyMap, p.name)
+		} else {
+			reacjis = append(reacjis, p.name)
+		}
 	}
-	if len(reacjis) < len(DefaultTopReacjis) {
-		reacjis = append(reacjis, DefaultTopReacjis[:len(DefaultTopReacjis)-len(reacjis)]...)
-	}
+
 	return keybase1.UserReacjis{
 		TopReacjis: reacjis,
 		SkinTone:   cache.SkinTone,

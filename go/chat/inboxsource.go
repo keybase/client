@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
@@ -131,6 +132,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v", tlfName, info.ID)
 	}
+	rquery.TopicName = lquery.TopicName
 	rquery.After = lquery.After
 	rquery.Before = lquery.Before
 	rquery.TlfVisibility = lquery.TlfVisibility
@@ -263,6 +265,10 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 	b.localizer.Disconnected()
 }
 
+func (b *baseInboxSource) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo {
+	return i
+}
+
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	lquery *chat1.GetInboxLocalQuery) (res types.NameInfo, err error) {
 	if lquery.Name == nil {
@@ -355,8 +361,24 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	}, nil
 }
 
+func (s *RemoteInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
+	if _, err = s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
+		ConversationID: convID,
+		MsgID:          msgID,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
 	return nil, errors.New("not implemented")
+}
+
+func (s *RemoteInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item string) (bool, error) {
+	return false, errors.New("not implemented")
 }
 
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -448,11 +470,16 @@ type HybridInboxSource struct {
 	utils.DebugLabeler
 	*baseInboxSource
 
-	badger      *badges.Badger
-	started     bool
-	stopCh      chan struct{}
-	flushDelay  time.Duration
-	testFlushCh chan struct{} // testing only
+	uid            gregor1.UID
+	badger         *badges.Badger
+	started        bool
+	stopCh         chan struct{}
+	eg             errgroup.Group
+	flushDelay     time.Duration
+	readOutbox     *storage.ReadOutbox
+	readFlushDelay time.Duration
+	readFlushCh    chan struct{}
+	testFlushCh    chan struct{} // testing only
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
@@ -461,10 +488,12 @@ func NewHybridInboxSource(g *globals.Context, badger *badges.Badger,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
 	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: labeler,
-		flushDelay:   time.Minute,
-		badger:       badger,
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   labeler,
+		flushDelay:     time.Minute,
+		badger:         badger,
+		readFlushDelay: 5 * time.Second,
+		readFlushCh:    make(chan struct{}, 10),
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
 	return s
@@ -478,34 +507,168 @@ func (s *HybridInboxSource) Clear(ctx context.Context, uid gregor1.UID) error {
 	return s.createInbox().Clear(ctx, uid)
 }
 
+func (s *HybridInboxSource) Connected(ctx context.Context) {
+	defer s.Trace(ctx, func() error { return nil }, "Connected")()
+	s.baseInboxSource.Connected(ctx)
+	s.flushMarkAsRead(ctx)
+}
+
 func (s *HybridInboxSource) Start(ctx context.Context, uid gregor1.UID) {
+	defer s.Trace(ctx, func() error { return nil }, "Start")()
 	s.baseInboxSource.Start(ctx, uid)
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "Start")
 	if s.started {
 		return
 	}
 	s.stopCh = make(chan struct{})
 	s.started = true
-	go s.inboxFlushLoop(uid, s.stopCh)
+	s.uid = uid
+	s.readOutbox = storage.NewReadOutbox(s.G(), uid)
+	s.eg.Go(func() error { return s.inboxFlushLoop(uid, s.stopCh) })
+	s.eg.Go(func() error { return s.markAsReadDeliverLoop(uid, s.stopCh) })
 }
 
 func (s *HybridInboxSource) Stop(ctx context.Context) chan struct{} {
+	defer s.Trace(ctx, func() error { return nil }, "Stop")()
 	<-s.baseInboxSource.Stop(ctx)
 	s.Lock()
 	defer s.Unlock()
-	s.Debug(ctx, "Stop")
+	ch := make(chan struct{})
 	if s.started {
 		close(s.stopCh)
 		s.started = false
+		go func() {
+			s.eg.Wait()
+			close(ch)
+		}()
+	} else {
+		close(ch)
 	}
-	ch := make(chan struct{})
-	close(ch)
 	return ch
 }
 
-func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) {
+func (s *HybridInboxSource) flushMarkAsRead(ctx context.Context) {
+	select {
+	case s.readFlushCh <- struct{}{}:
+	default:
+		s.Debug(ctx, "flushMarkAsRead: channel full, dropping")
+	}
+}
+
+func (s *HybridInboxSource) markAsReadDeliver(ctx context.Context) (err error) {
+	defer func() {
+		if err != nil {
+			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: %s", err)
+		}
+	}()
+	recs, err := s.readOutbox.GetRecords(ctx)
+	if err != nil {
+		return err
+	}
+	for _, rec := range recs {
+		shouldRemove := false
+		if _, err := s.getChatInterface().MarkAsRead(ctx, chat1.MarkAsReadArg{
+			ConversationID: rec.ConvID,
+			MsgID:          rec.MsgID,
+		}); err != nil {
+			s.Debug(ctx, "markAsReadDeliver: failed to mark as read: convID: %s msgID: %s err: %s",
+				rec.ConvID, rec.MsgID, err)
+			// check for an immediate failure from the server, and get the attempt out if it fails
+			if berr, ok := err.(DelivererInfoError); ok {
+				if _, ok := berr.IsImmediateFail(); ok {
+					s.Debug(ctx, "markAsReadDeliver: error is an immediate failure, not retrying")
+					shouldRemove = true
+				}
+			}
+		} else {
+			shouldRemove = true
+		}
+		if shouldRemove {
+			if err := s.readOutbox.RemoveRecord(ctx, rec.ID); err != nil {
+				s.Debug(ctx, "markAsReadDeliver: failed to remove record: %s", err)
+			}
+		}
+	}
+	return nil
+}
+
+func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan struct{}) error {
+	ctx := context.Background()
+	for {
+		select {
+		case <-s.readFlushCh:
+			s.markAsReadDeliver(ctx)
+		case <-s.G().Clock().After(s.readFlushDelay):
+			s.markAsReadDeliver(ctx)
+		case <-stopCh:
+			return nil
+		}
+	}
+}
+
+var emptyBadgeCounts = map[keybase1.DeviceType]int{
+	keybase1.DeviceType_DESKTOP: 0,
+	keybase1.DeviceType_MOBILE:  0,
+}
+
+func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
+	var convIDs []chat1.ConversationID
+	for _, info := range infos {
+		if info.UnreadMessages > 0 {
+			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
+		}
+	}
+	_, convs, _, err := s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
+		ConvIDs: convIDs,
+	}, nil)
+	if err != nil {
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %s", err)
+		return infos
+	}
+	convMap := make(map[string]bool)
+	for _, conv := range convs {
+		if conv.IsLocallyRead() {
+			convMap[conv.GetConvID().String()] = true
+		}
+	}
+	for _, info := range infos {
+		if convMap[info.ConvID.String()] {
+			res = append(res, keybase1.BadgeConversationInfo{
+				ConvID:         info.ConvID,
+				BadgeCounts:    emptyBadgeCounts,
+				UnreadMessages: 0,
+			})
+		} else {
+			res = append(res, info)
+		}
+	}
+	return res
+}
+
+func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
+	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
+	readRes, err := s.createInbox().GetConversation(ctx, uid, convID)
+	if err == nil && readRes.GetConvID().Eq(convID) &&
+		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
+		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
+		return nil
+	}
+	if err := s.createInbox().MarkLocalRead(ctx, uid, convID, msgID); err != nil {
+		s.Debug(ctx, "MarkAsRead: failed to mark local read: %s", err)
+	} else {
+		s.badger.Send(ctx)
+	}
+	if err := s.readOutbox.PushRead(ctx, convID, msgID); err != nil {
+		return err
+	}
+	s.flushMarkAsRead(ctx)
+	return nil
+}
+
+func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}) error {
 	ctx := globals.ChatCtx(context.Background(), s.G(),
 		keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	appState := s.G().MobileAppState.State()
@@ -526,7 +689,7 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 			}
 		case <-stopCh:
 			doFlush()
-			return
+			return nil
 		}
 	}
 }
@@ -809,6 +972,8 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 	if err != nil {
 		return res, err
 	}
+	// normalize the search query to lowercase
+	query = strings.ToLower(query)
 	var queryToks []string
 	for _, t := range strings.FieldsFunc(query, func(r rune) bool {
 		return r == ',' || r == ' '
@@ -843,6 +1008,20 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 		return res[:limit], nil
 	}
 	return res, nil
+}
+
+func (s *HybridInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item string) (res bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "IsTeam")()
+	_, convs, err := s.createInbox().ReadAll(ctx, uid, true)
+	if err != nil {
+		return res, err
+	}
+	for _, conv := range convs {
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM && conv.GetTLFName() == item {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid gregor1.UID) (ferr error) {

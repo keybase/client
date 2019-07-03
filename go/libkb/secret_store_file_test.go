@@ -42,6 +42,10 @@ func testSSDir(t *testing.T) (string, func()) {
 }
 
 func TestSecretStoreFileRetrieveSecret(t *testing.T) {
+	tc := SetupTest(t, "SecretStoreFile", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
 	td, tdClean := testSSDir(t)
 	defer tdClean()
 
@@ -56,7 +60,6 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 	}
 
 	ss := NewSecretStoreFile(td)
-	m := newNilMetaContext()
 
 	for _, test := range cases {
 		secret, err := ss.RetrieveSecret(m, test.username)
@@ -66,6 +69,10 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 }
 
 func TestSecretStoreFileStoreSecret(t *testing.T) {
+	tc := SetupTest(t, "SecretStoreFile", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
 	td, tdClean := testSSDir(t)
 	defer tdClean()
 
@@ -78,7 +85,6 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 	}
 
 	ss := NewSecretStoreFile(td)
-	m := newNilMetaContext()
 
 	for _, test := range cases {
 		fs, err := newLKSecFullSecretFromBytes(test.secret)
@@ -93,11 +99,14 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 }
 
 func TestSecretStoreFileClearSecret(t *testing.T) {
+	tc := SetupTest(t, "SecretStoreFile", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
 	td, tdClean := testSSDir(t)
 	defer tdClean()
 
 	ss := NewSecretStoreFile(td)
-	m := newNilMetaContext()
 
 	err := ss.ClearSecret(m, "alice")
 	require.NoError(t, err)
@@ -108,11 +117,14 @@ func TestSecretStoreFileClearSecret(t *testing.T) {
 }
 
 func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
+	tc := SetupTest(t, "SecretStoreFile", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
 	td, tdClean := testSSDir(t)
 	defer tdClean()
 
 	ss := NewSecretStoreFile(td)
-	m := newNilMetaContext()
 
 	users, err := ss.GetUsersWithStoredSecrets(m)
 	require.NoError(t, err)
@@ -161,6 +173,10 @@ func assertNotExists(t *testing.T, path string) {
 }
 
 func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
+	tc := SetupTest(t, "SecretStoreFile", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
 	td, tdClean := testSSDir(t)
 	defer tdClean()
 
@@ -172,7 +188,6 @@ func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
 	assertNotExists(t, filepath.Join(td, "bob.ns2"))
 
 	ss := NewSecretStoreFile(td)
-	m := newNilMetaContext()
 
 	// retrieve secret for alice should upgrade from alice.ss to alice.ss2
 	secret, err := ss.RetrieveSecret(m, "alice")
@@ -193,6 +208,10 @@ func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
 }
 
 func TestSecretStoreFileNoise(t *testing.T) {
+	tc := SetupTest(t, "SecretStoreFile", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+
 	td, tdClean := testSSDir(t)
 	defer tdClean()
 
@@ -203,7 +222,6 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	require.NoError(t, err)
 
 	ss := NewSecretStoreFile(td)
-	m := newNilMetaContext()
 	ss.StoreSecret(m, "ogden", lksec)
 	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
 	require.NoError(t, err)
@@ -226,6 +244,7 @@ func TestPrimeSecretStoreFile(t *testing.T) {
 
 	tc := SetupTest(t, "secret_store_file", 1)
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	mctx := NewMetaContextForTest(tc)
 	secretStore := NewSecretStoreFile(td)
@@ -240,6 +259,7 @@ func TestPrimeSecretStoreFileFail(t *testing.T) {
 
 	tc := SetupTest(t, "secret_store_file", 1)
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	td, cleanup := CreateReadOnlySecretStoreDir(tc)
 	defer cleanup()

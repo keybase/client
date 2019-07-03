@@ -1,6 +1,8 @@
 package stellarnet
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -15,6 +17,8 @@ import (
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 	snetwork "github.com/stellar/go/network"
+	horizonProtocol "github.com/stellar/go/protocols/horizon"
+	"github.com/stellar/go/protocols/horizon/base"
 	"github.com/stellar/go/xdr"
 )
 
@@ -104,7 +108,7 @@ func NetworkPassphrase() string {
 // Account represents a Stellar account.
 type Account struct {
 	address  AddressStr
-	internal *horizon.Account
+	internal *horizonProtocol.Account
 }
 
 // NewAccount makes a new Account item for address.
@@ -139,7 +143,10 @@ func (a *Account) internalNativeBalance() string {
 		return "0"
 	}
 
-	balance := a.internal.GetNativeBalance()
+	balance, err := a.internal.GetNativeBalance()
+	if err != nil {
+		return "0"
+	}
 	if balance == "" {
 		// There seem to be situations where this returns an
 		// empty string instead of "0", so this will fix that.
@@ -154,7 +161,7 @@ func (a *Account) internalNativeBalance() string {
 }
 
 // Balances returns all the balances for an account.
-func (a *Account) Balances() ([]horizon.Balance, error) {
+func (a *Account) Balances() ([]horizonProtocol.Balance, error) {
 	if err := a.load(); err != nil {
 		return nil, err
 	}
@@ -164,7 +171,7 @@ func (a *Account) Balances() ([]horizon.Balance, error) {
 
 // Trustline describes a stellar trustline.  It contains an asset and a limit.
 type Trustline struct {
-	horizon.Asset
+	base.Asset
 	Limit string
 }
 
@@ -233,7 +240,7 @@ type AccountDetails struct {
 	Seqno                string
 	SubentryCount        int
 	Available            string
-	Balances             []horizon.Balance
+	Balances             []horizonProtocol.Balance
 	InflationDestination string
 }
 
@@ -333,7 +340,7 @@ func (a *Account) RecentPayments(cursor string, limit int) ([]horizon.Payment, e
 // Transactions returns some of the account's transactions.
 // cursor is optional. if specified, it is used for pagination.
 // limit is optional. if not specified, default is 10.  max limit is 100.
-func (a *Account) Transactions(cursor string, limit int) (res []horizon.Transaction, finalPage bool, err error) {
+func (a *Account) Transactions(cursor string, limit int) (res []horizonProtocol.Transaction, finalPage bool, err error) {
 	if limit <= 0 {
 		limit = 10
 	} else if limit > 100 {
@@ -349,7 +356,7 @@ func (a *Account) Transactions(cursor string, limit int) (res []horizon.Transact
 	}
 
 	finalPage = len(page.Embedded.Records) < limit
-	res = make([]horizon.Transaction, len(page.Embedded.Records))
+	res = make([]horizonProtocol.Transaction, len(page.Embedded.Records))
 	for i, record := range page.Embedded.Records {
 		res[i] = record.Transaction
 	}
@@ -407,11 +414,11 @@ func TxPayments(txID string) ([]horizon.Payment, error) {
 	return page.Embedded.Records, nil
 }
 
-// TxDetails gets a horizon.Transaction for txID.
-func TxDetails(txID string) (horizon.Transaction, error) {
+// TxDetails gets a horizonProtocol.Transaction for txID.
+func TxDetails(txID string) (horizonProtocol.Transaction, error) {
 	var embed TransactionEmbed
 	if err := getDecodeJSONStrict(Client().URL+"/transactions/"+txID, Client().HTTP.Get, &embed); err != nil {
-		return horizon.Transaction{}, errMap(err)
+		return horizonProtocol.Transaction{}, errMap(err)
 	}
 	return embed.Transaction, nil
 }
@@ -521,18 +528,26 @@ func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger in
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // PaymentXLMTransaction creates a signed transaction to send a payment from 'from' to 'to' for 'amount' lumens.
 func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
+	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
+	memo := NewMemoText(memoText)
+	return PaymentXLMTransactionWithMemo(from, to, amount, memo, seqnoProvider, timeBounds, baseFee)
+}
+
+// PaymentXLMTransactionWithMemo creates a signed transaction to send a payment
+// from 'from' to 'to' for 'amount' lumens.  It supports all the memo types.
+func PaymentXLMTransactionWithMemo(from SeedStr, to AddressStr, amount string, memo *Memo,
 	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return res, err
 	}
 	t.AddPaymentOp(to, amount)
-	t.AddMemoText(memoText)
+	t.AddMemo(memo)
 	t.AddBuiltTimeBounds(timeBounds)
 	return t.Sign(from)
 }
@@ -543,7 +558,7 @@ func payment(from SeedStr, to AddressStr, asset AssetBase, amount, memoText stri
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // PaymentTransaction creates a signed transaction to send a payment from 'from' to 'to' for a custom asset.
@@ -569,18 +584,25 @@ func pathPayment(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // PathPaymentTransaction creates a signed transaction for a path payment.
 func PathPaymentTransaction(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax string, destAsset AssetBase, destAmount string, path []AssetBase, memoText string, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
+	memo := NewMemoText(memoText)
+	return PathPaymentTransactionWithMemo(from, to, sendAsset, sendAmountMax, destAsset, destAmount, path, memo, seqnoProvider, timeBounds, baseFee)
+}
+
+// PathPaymentTransactionWithMemo creates a signed transaction for a path payment.
+// It supports all memo types.
+func PathPaymentTransactionWithMemo(from SeedStr, to AddressStr, sendAsset AssetBase, sendAmountMax string, destAsset AssetBase, destAmount string, path []AssetBase, memo *Memo, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (SignResult, error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return SignResult{}, err
 	}
 
 	t.AddPathPaymentOp(to, sendAsset, sendAmountMax, destAsset, destAmount, path)
-	t.AddMemoText(memoText)
+	t.AddMemo(memo)
 	t.AddBuiltTimeBounds(timeBounds)
 
 	return t.Sign(from)
@@ -593,19 +615,27 @@ func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (led
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // CreateAccountXLMTransaction creates a signed transaction to fund an new account 'to' from 'from'
 // with a starting balance of 'amount'.
 func CreateAccountXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
+	memo := NewMemoText(memoText)
+	return CreateAccountXLMTransactionWithMemo(from, to, amount, memo, seqnoProvider, timeBounds, baseFee)
+}
+
+// CreateAccountXLMTransactionWithMemo creates a signed transaction to fund an new
+// account 'to' from 'from' with a starting balance of 'amount'.  It supports all
+// memo types.
+func CreateAccountXLMTransactionWithMemo(from SeedStr, to AddressStr, amount string, memo *Memo, seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return res, err
 	}
 	t.AddCreateAccountOp(to, amount)
-	t.AddMemoText(memoText)
+	t.AddMemo(memo)
 	t.AddBuiltTimeBounds(timeBounds)
 	return t.Sign(from)
 }
@@ -642,7 +672,7 @@ func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid st
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // SetHomeDomainTransaction creates a "set options" transaction that will set the
@@ -663,7 +693,7 @@ func setHomeDomain(from SeedStr, domain string) (ledger int32, txid string, atte
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // MakeOfferTransaction creates a new offer transaction.
@@ -683,7 +713,7 @@ func makeOffer(from SeedStr, selling, buying xdr.Asset, amountToSell, price stri
 	if err != nil {
 		return 0, "", 0, errMap(err)
 	}
-	return Submit(sig.Signed)
+	return submitNoResultXDR(sig.Signed)
 }
 
 // RelocateTransaction creates a signed transaction to merge the account `from` into `to`.
@@ -712,8 +742,8 @@ func CreateTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, lim
 	if err != nil {
 		return "", err
 	}
-	_, txID, _, err = Submit(sig.Signed)
-	return txID, err
+	res, err := Submit(sig.Signed)
+	return res.TxID, err
 }
 
 // CreateTrustlineTransaction create a signed transaction to establish a trustline from
@@ -734,8 +764,8 @@ func DeleteTrustline(from SeedStr, assetCode string, assetIssuer AddressStr, bas
 	if err != nil {
 		return "", err
 	}
-	_, txID, _, err = Submit(sig.Signed)
-	return txID, err
+	res, err := Submit(sig.Signed)
+	return res.TxID, err
 }
 
 // DeleteTrustlineTransaction create a signed transaction to remove a trustline from
@@ -749,9 +779,55 @@ func DeleteTrustlineTransaction(from SeedStr, assetCode string, assetIssuer Addr
 	return t.Sign(from)
 }
 
+// SignEnvelope signs an xdr.TransactionEnvelope.
+func SignEnvelope(from SeedStr, txEnv xdr.TransactionEnvelope) (SignResult, error) {
+	hash, err := snetwork.HashTransaction(&txEnv.Tx, NetworkPassphrase())
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	kp, err := keypair.Parse(from.SecureNoLogString())
+	if err != nil {
+		return SignResult{}, err
+	}
+	sig, err := kp.SignDecorated(hash[:])
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	txEnv.Signatures = append(txEnv.Signatures, sig)
+
+	var buf bytes.Buffer
+	_, err = xdr.Marshal(&buf, txEnv)
+	if err != nil {
+		return SignResult{}, err
+	}
+	signed := base64.StdEncoding.EncodeToString(buf.Bytes())
+	txHashHex := hex.EncodeToString(hash[:])
+
+	return SignResult{
+		Seqno:  uint64(txEnv.Tx.SeqNum),
+		Signed: signed,
+		TxHash: txHashHex,
+	}, nil
+}
+
+func submitNoResultXDR(signed string) (ledger int32, txid string, attempt int, err error) {
+	res, err := Submit(signed)
+	return res.Ledger, res.TxID, res.Attempt, err
+}
+
+// SubmitResult contains information about a tx after submission to the stellar network.
+type SubmitResult struct {
+	Ledger    int32
+	TxID      string
+	Attempt   int
+	ResultXDR string
+}
+
 // Submit submits a signed transaction to horizon.
-func Submit(signed string) (ledger int32, txid string, attempt int, err error) {
-	var resp horizon.TransactionSuccess
+func Submit(signed string) (res SubmitResult, err error) {
+	var resp horizonProtocol.TransactionSuccess
 	for i := 0; i < submitAttempts; i++ {
 		resp, err = Client().SubmitTransaction(signed)
 		if err != nil {
@@ -773,13 +849,13 @@ func Submit(signed string) (ledger int32, txid string, attempt int, err error) {
 				}
 			}
 
-			return 0, "", i, errMap(err)
+			return SubmitResult{Attempt: i}, errMap(err)
 		}
 
-		return resp.Ledger, resp.Hash, i, nil
+		return SubmitResult{Ledger: resp.Ledger, TxID: resp.Hash, Attempt: i, ResultXDR: resp.Result}, nil
 	}
 
-	return 0, "", submitAttempts, errMap(err)
+	return SubmitResult{Attempt: submitAttempts}, errMap(err)
 }
 
 // FindPaymentPaths searches for path payments from the account object ownere and `to`, for a specific

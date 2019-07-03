@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	teamStorage "github.com/keybase/client/go/teams/storage"
 	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -75,6 +76,17 @@ func (h *KBFSHandler) FSSyncStatus(ctx context.Context, arg keybase1.FSSyncStatu
 
 func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncStatus) (err error) {
 	h.G().NotifyRouter.HandleFSSyncEvent(ctx, arg)
+	return nil
+}
+
+func (h *KBFSHandler) FSOverallSyncEvent(
+	_ context.Context, arg keybase1.FolderSyncStatus) (err error) {
+	h.G().NotifyRouter.HandleFSOverallSyncStatusChanged(arg)
+	return nil
+}
+
+func (h *KBFSHandler) FSFavoritesChangedEvent(_ context.Context) (err error) {
+	h.G().NotifyRouter.HandleFSFavoritesChanged()
 	return nil
 }
 
@@ -151,7 +163,7 @@ func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg
 // favorites.
 func (h *KBFSHandler) getKeyFn() func(context.Context) ([32]byte, error) {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(), favoritesEncryptionReason)
+		return teamStorage.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(), favoritesEncryptionReason)
 	}
 	return keyFn
 }

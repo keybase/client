@@ -460,7 +460,7 @@ func AddNewAssertionForTest(
 	// configs, it may end up invoking the following call more than
 	// once on the shared md databases.  That's ok though, it's an
 	// idempotent call.
-	newSocialAssertion, ok := externals.NormalizeSocialAssertionStatic(newAssertion)
+	newSocialAssertion, ok := externals.NormalizeSocialAssertionStatic(context.Background(), newAssertion)
 	if !ok {
 		return errors.Errorf("%s couldn't be parsed as a social assertion", newAssertion)
 	}
@@ -779,14 +779,14 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 // SetCRFailureForTesting sets whether CR should always fail on the folder
 // branch.
 func SetCRFailureForTesting(ctx context.Context, config Config,
-	folderBranch data.FolderBranch, fail failModeForTest) error {
+	folderBranch data.FolderBranch, fail failModeForTesting) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
 	ops := kbfsOps.getOpsNoAdd(ctx, folderBranch)
-	ops.cr.failModeForTest = fail
+	ops.cr.setFailModeForTesting(fail)
 	return nil
 }
 
@@ -808,7 +808,11 @@ func ForceQuotaReclamationForTesting(config Config,
 // test if there's an error.
 func CheckConfigAndShutdown(
 	ctx context.Context, t logger.TestLogBackend, config Config) {
-	if err := config.Shutdown(ctx); err != nil {
+	err := config.Shutdown(ctx)
+	switch errors.Cause(err).(type) {
+	case data.ShutdownHappenedError:
+	case nil:
+	default:
 		t.Errorf("err=%+v", err)
 	}
 }

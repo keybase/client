@@ -66,6 +66,10 @@
         },
         {
           "type": "string",
+          "name": "headlineDecorated"
+        },
+        {
+          "type": "string",
           "name": "snippet"
         },
         {
@@ -270,6 +274,10 @@
         {
           "type": "string",
           "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "headlineDecorated"
         },
         {
           "type": "keybase1.TLFVisibility",
@@ -557,6 +565,14 @@
         {
           "type": "string",
           "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmount"
+        },
+        {
+          "type": "stellar1.Asset",
+          "name": "sourceAsset"
         }
       ]
     },
@@ -923,12 +939,119 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UITeamMention",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
         "PAYMENT_0",
         "ATMENTION_1",
-        "CHANNELNAMEMENTION_2"
+        "CHANNELNAMEMENTION_2",
+        "MAYBEMENTION_3",
+        "LINK_4",
+        "MAILTO_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UIMaybeMentionStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "USER_1",
+        "TEAM_2",
+        "NOTHING_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UILinkDecoration",
+      "fields": [
+        {
+          "type": "string",
+          "name": "display"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMaybeMentionInfo",
+      "switch": {
+        "type": "UIMaybeMentionStatus",
+        "name": "status"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UNKNOWN",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "USER",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "TEAM",
+            "def": false
+          },
+          "body": "UITeamMention"
+        },
+        {
+          "label": {
+            "name": "NOTHING",
+            "def": false
+          },
+          "body": null
+        }
       ]
     },
     {
@@ -959,6 +1082,27 @@
             "def": false
           },
           "body": "UIChannelNameMention"
+        },
+        {
+          "label": {
+            "name": "MAYBEMENTION",
+            "def": false
+          },
+          "body": "MaybeMention"
+        },
+        {
+          "label": {
+            "name": "LINK",
+            "def": false
+          },
+          "body": "UILinkDecoration"
+        },
+        {
+          "label": {
+            "name": "MAILTO",
+            "def": false
+          },
+          "body": "UILinkDecoration"
         }
       ]
     },
@@ -1396,6 +1540,29 @@
           "name": "title"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LocationWatchID",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "UICommandStatusDisplayTyp",
+      "symbols": [
+        "STATUS_0",
+        "WARNING_1",
+        "ERROR_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UICommandStatusActionTyp",
+      "symbols": [
+        "APPSETTINGS_0"
+      ]
     }
   ],
   "messages": {
@@ -1740,6 +1907,94 @@
             null,
             "UICommandMarkdown"
           ]
+        }
+      ],
+      "response": null
+    },
+    "chatMaybeMentionUpdate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "channel",
+          "type": "string"
+        },
+        {
+          "name": "info",
+          "type": "UIMaybeMentionInfo"
+        }
+      ],
+      "response": null
+    },
+    "chatLoadGalleryHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "UIMessage"
+        }
+      ],
+      "response": null
+    },
+    "chatWatchPosition": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "LocationWatchID"
+    },
+    "chatClearWatch": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "LocationWatchID"
+        }
+      ],
+      "response": null
+    },
+    "chatCommandStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "displayText",
+          "type": "string"
+        },
+        {
+          "name": "typ",
+          "type": "UICommandStatusDisplayTyp"
+        },
+        {
+          "name": "actions",
+          "type": {
+            "type": "array",
+            "items": "UICommandStatusActionTyp"
+          }
         }
       ],
       "response": null

@@ -378,20 +378,63 @@ func (a *ActiveDevice) valid() bool {
 }
 
 func (a *ActiveDevice) Ctime(m MetaContext) (keybase1.Time, error) {
-	a.Lock()
-	defer a.Unlock()
-	if a.deviceCtime > 0 {
-		return a.deviceCtime, nil
+	// make sure the device id doesn't change throughout this function
+	deviceID := a.DeviceID()
+
+	// check if we have a cached ctime already
+	ctime, err := a.ctimeCached(deviceID)
+	if err != nil {
+		return 0, err
 	}
-	if !a.valid() {
-		return 0, fmt.Errorf("Active device is not valid")
+	if ctime > 0 {
+		return ctime, nil
 	}
-	decKeys := NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey)
+
+	// need to build a device and ask the server for ctimes
+	decKeys, err := a.deviceKeys(deviceID)
+	if err != nil {
+		return 0, err
+	}
+	// Note: decKeys.Populate() makes a network API call
 	if _, err := decKeys.Populate(m); err != nil {
 		return 0, nil
 	}
+
+	// set the ctime value under a write lock
+	a.Lock()
+	defer a.Unlock()
+	if !a.deviceID.Eq(deviceID) {
+		return 0, errors.New("active device changed during ctime lookup")
+	}
 	a.deviceCtime = decKeys.DeviceCtime()
+
 	return a.deviceCtime, nil
+}
+
+func (a *ActiveDevice) ctimeCached(deviceID keybase1.DeviceID) (keybase1.Time, error) {
+	a.RLock()
+	defer a.RUnlock()
+
+	if !a.deviceID.Eq(deviceID) {
+		return 0, errors.New("active device changed during ctime lookup")
+	}
+
+	return a.deviceCtime, nil
+}
+
+func (a *ActiveDevice) deviceKeys(deviceID keybase1.DeviceID) (*DeviceWithKeys, error) {
+	a.RLock()
+	defer a.RUnlock()
+
+	if !a.valid() {
+		return nil, errors.New("active device is not valid")
+	}
+
+	if !a.deviceID.Eq(deviceID) {
+		return nil, errors.New("active device changed")
+	}
+
+	return NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey), nil
 }
 
 func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {
@@ -412,14 +455,30 @@ func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) 
 func (a *ActiveDevice) NIST(ctx context.Context) (*NIST, error) {
 	a.RLock()
 	defer a.RUnlock()
-	return a.nistFactory.NIST(ctx)
+	return a.nistLocked(ctx)
 }
 
-func (a *ActiveDevice) NISTAndUID(ctx context.Context) (*NIST, keybase1.UID, error) {
+func (a *ActiveDevice) nistLocked(ctx context.Context) (*NIST, error) {
+	nist, err := a.nistFactory.NIST(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if nist == nil {
+		return nil, nil
+	}
+	uid := a.nistFactory.UID()
+	if !uid.Equal(a.uv.Uid) {
+		return nil, NewUIDMismatchError(fmt.Sprintf("NIST generation error, UIDs didn't match; ActiveDevice said %s, but NIST factory said %s", a.uv.Uid, uid))
+	}
+
+	return nist, nil
+}
+
+func (a *ActiveDevice) NISTAndUIDDeviceID(ctx context.Context) (*NIST, keybase1.UID, keybase1.DeviceID, error) {
 	a.RLock()
 	defer a.RUnlock()
-	nist, err := a.nistFactory.NIST(ctx)
-	return nist, a.uv.Uid, err
+	nist, err := a.nistLocked(ctx)
+	return nist, a.uv.Uid, a.deviceID, err
 }
 
 func (a *ActiveDevice) SyncSecretsForUID(m MetaContext, u keybase1.UID, force bool) (ret *SecretSyncer, err error) {
@@ -533,6 +592,23 @@ func (a *ActiveDevice) ClearPassphraseStreamCache() {
 	a.Lock()
 	defer a.Unlock()
 	a.passphrase = nil
+}
+
+func (a *ActiveDevice) ClearPassphraseStreamCacheIfOutdated(mctx MetaContext) error {
+	pps := a.PassphraseStream()
+	if pps == nil {
+		return nil
+	}
+
+	outdated, err := pps.SyncAndCheckIfOutdated(mctx)
+	if err != nil {
+		return err
+	}
+
+	if outdated {
+		a.ClearPassphraseStreamCache()
+	}
+	return nil
 }
 
 func (a *ActiveDevice) SigningKeyForUID(u keybase1.UID) GenericKey {

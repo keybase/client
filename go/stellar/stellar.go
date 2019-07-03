@@ -223,7 +223,12 @@ func ImportSecretKey(mctx libkb.MetaContext, secretKey stellar1.SecretKey, makeP
 		mctx.Debug("ImportSecretKey, failed to parse secret key after import: %s", err)
 		return nil
 	}
-	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), accountID, nil, 0, true)
+	arg := remote.RecentPaymentsArg{
+		AccountID:       accountID,
+		SkipPending:     true,
+		IncludeAdvanced: true,
+	}
+	page, err := remote.RecentPayments(mctx.Ctx(), mctx.G(), arg)
 	if err != nil {
 		mctx.Debug("ImportSecretKey, RecentPayments error: %s", err)
 		return nil
@@ -411,7 +416,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return res, err
 	}
 	if maybeUsername == "" {
-		expr, err := externals.AssertionParse(m.G(), string(to))
+		expr, err := externals.AssertionParse(m, string(to))
 		if err != nil {
 			m.Debug("error parsing assertion: %s", err)
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
@@ -498,8 +503,8 @@ type SendPaymentArg struct {
 	To             stellarcommon.RecipientInput
 	Amount         string // Amount of XLM to send.
 	DisplayBalance DisplayBalance
-	SecretNote     string // Optional.
-	PublicMemo     string // Optional.
+	SecretNote     string           // Optional.
+	PublicMemo     *stellarnet.Memo // Optional.
 	ForceRelay     bool
 	QuickReturn    bool
 }
@@ -612,7 +617,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	var seqno uint64
 	if !funded {
 		// if no balance, create_account operation
-		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
+		sig, err := stellarnet.CreateAccountXLMTransactionWithMemo(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
 		if err != nil {
 			return res, err
 		}
@@ -621,7 +626,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		seqno = sig.Seqno
 	} else {
 		// if balance, payment operation
-		sig, err := stellarnet.PaymentXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
+		sig, err := stellarnet.PaymentXLMTransactionWithMemo(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb, baseFee)
 		if err != nil {
 			return res, err
 		}
@@ -701,7 +706,7 @@ type SendPathPaymentArg struct {
 	To          stellarcommon.RecipientInput
 	Path        stellar1.PaymentPath
 	SecretNote  string
-	PublicMemo  string
+	PublicMemo  *stellarnet.Memo
 	QuickReturn bool
 }
 
@@ -715,44 +720,58 @@ func SendPathPaymentGUI(mctx libkb.MetaContext, walletState *WalletState, sendAr
 	return sendPathPayment(mctx, walletState, sendArg)
 }
 
-func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+// PathPaymentTx reutrns a signed path payment tx.
+func PathPaymentTx(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (*stellarnet.SignResult, *stellar1.BundleEntry, *stellarcommon.Recipient, error) {
 	senderEntry, senderAccountBundle, err := LookupSender(mctx, sendArg.From)
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
-	senderAccountID := senderEntry.AccountID
 
 	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(sendArg.To), false)
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
 	if recipient.AccountID == nil {
-		return res, errors.New("cannot send a path payment to a user without a stellar account")
+		return nil, nil, nil, errors.New("cannot send a path payment to a user without a stellar account")
 	}
 
 	baseFee := walletState.BaseFee(mctx)
 
 	to, err := stellarnet.NewAddressStr(recipient.AccountID.String())
 	if err != nil {
-		return res, err
+		return nil, nil, nil, err
 	}
 
 	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	defer unlock()
 
-	sig, err := stellarnet.PathPaymentTransaction(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
+	sig, err := stellarnet.PathPaymentTransactionWithMemo(senderSeed, to, sendArg.Path.SourceAsset, sendArg.Path.SourceAmountMax, sendArg.Path.DestinationAsset, sendArg.Path.DestinationAmount, AssetSliceToAssetBase(sendArg.Path.Path), sendArg.PublicMemo, sp, nil, baseFee)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return &sig, &senderEntry, &recipient, nil
+}
+
+func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendPathPaymentArg) (res SendPaymentResult, err error) {
+	sig, senderEntry, recipient, err := PathPaymentTx(mctx, walletState, sendArg)
 	if err != nil {
 		return res, err
 	}
+	senderAccountID := senderEntry.AccountID
 
 	post := stellar1.PathPaymentPost{
 		FromDeviceID:      mctx.G().ActiveDevice.DeviceID(),
 		QuickReturn:       sendArg.QuickReturn,
 		SignedTransaction: sig.Signed,
+	}
+
+	if recipient.User != nil {
+		post.To = &recipient.User.UV
 	}
 
 	if err := walletState.AddPendingTx(mctx.Ctx(), senderEntry.AccountID, stellar1.TransactionID(sig.TxHash), sig.Seqno); err != nil {
@@ -799,7 +818,7 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 
 	if senderEntry.IsPrimary {
 		sendChat := func(mctx libkb.MetaContext) {
-			if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
+			if err := chatSendPaymentMessage(mctx, *recipient, rres.StellarID); err != nil {
 				// if the chat message fails to send, just log the error
 				mctx.Debug("failed to send chat SendPathPayment message: %s", err)
 			}
@@ -953,10 +972,10 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 			mcpResult.Error = prepared[i].Error
 		} else {
 			// submit the transaction
-			m.Debug("SEQNO ics %d submitting payment seqno %d", i, prepared[i].Seqno)
+			m.Debug("SEQNO ics %d submitting payment seqno %d (txid %s)", i, prepared[i].Seqno, prepared[i].TxID)
 
 			if err := walletState.AddPendingTx(m.Ctx(), senderAccountID, prepared[i].TxID, prepared[i].Seqno); err != nil {
-				m.Debug("error calling AddPendingTx: %s", err)
+				m.Debug("SEQNO ics %d error calling AddPendingTx: %s", i, err)
 			}
 
 			var submitRes stellar1.PaymentResult
@@ -972,6 +991,9 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 			if err != nil {
 				mcpResult.Error = err
 				m.Debug("SEQNO ics %d submit error for txid %s, seqno %d: %s", i, prepared[i].TxID, prepared[i].Seqno, err)
+				if rerr := walletState.RemovePendingTx(m.Ctx(), senderAccountID, prepared[i].TxID); rerr != nil {
+					m.Debug("SEQNO ics %d error calling RemovePendingTx: %s", i, rerr)
+				}
 			} else {
 				mcpResult.PaymentID = stellar1.NewPaymentID(submitRes.StellarID)
 				m.Debug("SEQNO ics %d submit success txid %s, seqno %d", i, prepared[i].TxID, prepared[i].Seqno)
@@ -1163,7 +1185,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
-	secretNote string, publicMemo string, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
+	secretNote string, publicMemo *stellarnet.Memo, quickReturn bool, senderEntryPrimary bool, baseFee uint64) (res SendPaymentResult, err error) {
 	defer mctx.TraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
@@ -1380,7 +1402,11 @@ func GetOwnPrimaryAccountID(mctx libkb.MetaContext) (res stellar1.AccountID, err
 
 func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res []stellar1.PaymentOrErrorCLILocal, err error) {
 	defer mctx.TraceTimed("Stellar.RecentPaymentsCLILocal", func() error { return err })()
-	page, err := remoter.RecentPayments(mctx.Ctx(), accountID, nil, 0, false)
+	arg := remote.RecentPaymentsArg{
+		AccountID:       accountID,
+		IncludeAdvanced: true,
+	}
+	page, err := remoter.RecentPayments(mctx.Ctx(), arg)
 	if err != nil {
 		return nil, err
 	}
@@ -1407,139 +1433,21 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 		return res, err
 	}
 	mctx := libkb.NewMetaContext(ctx, g)
-	return localizePayment(mctx, payment.Summary)
-}
-
-func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
-	typ, err := p.Typ()
+	p, err := localizePayment(mctx, payment.Summary)
 	if err != nil {
-		return res, fmt.Errorf("malformed payment summary: %v", err)
+		return res, err
 	}
-	username := func(uid keybase1.UID) (username *string, err error) {
-		uname, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), uid)
-		if err != nil {
-			return nil, err
-		}
-		tmp := uname.String()
-		return &tmp, nil
-	}
-	switch typ {
-	case stellar1.PaymentSummaryType_STELLAR:
-		p := p.Stellar()
-		return stellar1.PaymentCLILocal{
-			TxID:        p.TxID,
-			Time:        p.Ctime,
-			Status:      "Completed",
-			Amount:      p.Amount,
-			Asset:       p.Asset,
-			FromStellar: p.From,
-			ToStellar:   &p.To,
-			Unread:      p.Unread,
-		}, nil
-	case stellar1.PaymentSummaryType_DIRECT:
-		p := p.Direct()
-		res = stellar1.PaymentCLILocal{
-			TxID:            p.TxID,
-			Time:            p.Ctime,
-			Amount:          p.Amount,
-			Asset:           p.Asset,
-			DisplayAmount:   p.DisplayAmount,
-			DisplayCurrency: p.DisplayCurrency,
-			FromStellar:     p.FromStellar,
-			ToStellar:       &p.ToStellar,
-		}
-		res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
-		res.FromUsername, err = username(p.From.Uid)
+
+	p.PublicNote = payment.Memo
+	p.PublicNoteType = payment.MemoType
+	if payment.FeeCharged != "" {
+		p.FeeChargedDescription, err = FormatAmountDescriptionXLM(mctx, payment.FeeCharged)
 		if err != nil {
 			return res, err
 		}
-		if p.To != nil {
-			res.ToUsername, err = username(p.To.Uid)
-			if err != nil {
-				return res, err
-			}
-		}
-		if len(p.NoteB64) > 0 {
-			note, err := NoteDecryptB64(mctx, p.NoteB64)
-			if err != nil {
-				res.NoteErr = fmt.Sprintf("failed to decrypt payment note: %v", err)
-			} else {
-				if note.StellarID != p.TxID {
-					res.NoteErr = "discarded note for wrong transaction ID"
-				} else {
-					res.Note = note.Note
-				}
-			}
-			if len(res.NoteErr) > 0 {
-				mctx.Warning(res.NoteErr)
-			}
-		}
-		return res, nil
-	case stellar1.PaymentSummaryType_RELAY:
-		p := p.Relay()
-		res = stellar1.PaymentCLILocal{
-			TxID:            p.TxID,
-			Time:            p.Ctime,
-			Amount:          p.Amount,
-			Asset:           stellar1.AssetNative(),
-			DisplayAmount:   p.DisplayAmount,
-			DisplayCurrency: p.DisplayCurrency,
-			FromStellar:     p.FromStellar,
-		}
-		if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
-			// If the funding tx is not complete
-			res.Status, res.StatusDetail = p.TxStatus.Details(p.TxErrMsg)
-		} else {
-			res.Status = "Claimable"
-			res.StatusDetail = "Waiting for the recipient to open the app to claim, or the sender to cancel."
-		}
-		res.FromUsername, err = username(p.From.Uid)
-		if err != nil {
-			return res, err
-		}
-		if p.To != nil {
-			res.ToUsername, err = username(p.To.Uid)
-			if err != nil {
-				return res, err
-			}
-		}
-		if p.ToAssertion != "" {
-			res.ToAssertion = &p.ToAssertion
-		}
-		// Override status with claim status
-		if p.Claim != nil {
-			if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
-				// If the claim succeeded, the relay payment is done.
-				switch p.Claim.Dir {
-				case stellar1.RelayDirection_CLAIM:
-					res.Status = "Completed"
-				case stellar1.RelayDirection_YANK:
-					res.Status = "Canceled"
-				}
-				res.ToStellar = &p.Claim.ToStellar
-				res.ToUsername, err = username(p.Claim.To.Uid)
-				if err != nil {
-					return res, err
-				}
-			} else {
-				claimantUsername, err := username(p.Claim.To.Uid)
-				if err != nil {
-					return res, err
-				}
-				res.Status, res.StatusDetail = p.Claim.TxStatus.Details(p.Claim.TxErrMsg)
-				res.Status = fmt.Sprintf("Funded. Claim by %v is: %v", *claimantUsername, res.Status)
-			}
-		}
-		relaySecrets, err := relays.DecryptB64(mctx, p.TeamID, p.BoxB64)
-		if err == nil {
-			res.Note = relaySecrets.Note
-		} else {
-			res.NoteErr = fmt.Sprintf("error decrypting note box: %v", err)
-		}
-		return res, nil
-	default:
-		return res, fmt.Errorf("unrecognized payment summary type: %v", typ)
 	}
+
+	return p, nil
 }
 
 // When isCLI : Identifies the recipient checking track breaks and all.
@@ -1601,138 +1509,6 @@ func lookupRecipientAssertion(m libkb.MetaContext, assertion string, isCLI bool)
 		return "", libkb.TrackingBrokeError{}
 	}
 	return username, nil
-}
-
-func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding stellarnet.FmtRoundingBehavior) (string, error) {
-	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
-	if err != nil {
-		return "", err
-	}
-	currency, ok := conf.Currencies[code]
-	if !ok {
-		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
-	}
-
-	return stellarnet.FmtCurrency(amount, rounding, currency.Symbol.Symbol, currency.Symbol.Postfix)
-}
-
-// FormatCurrencyWithCodeSuffix will return a fiat currency amount formatted with
-// its currency code suffix at the end, like "$123.12 CLP"
-func FormatCurrencyWithCodeSuffix(mctx libkb.MetaContext, amount string, code stellar1.OutsideCurrencyCode, rounding stellarnet.FmtRoundingBehavior) (string, error) {
-	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
-	if err != nil {
-		return "", err
-	}
-	currency, ok := conf.Currencies[code]
-	if !ok {
-		return "", fmt.Errorf("FormatCurrencyWithCodeSuffix error: cannot find curency code %q", code)
-	}
-	return stellarnet.FmtCurrencyWithCodeSuffix(amount, rounding, string(code), currency.Symbol.Symbol, currency.Symbol.Postfix)
-}
-
-// Return an error if asset is completely outside of what we understand, like
-// asset unknown types or unexpected length.
-func assertAssetIsSane(asset stellar1.Asset) error {
-	switch asset.Type {
-	case "credit_alphanum4", "credit_alphanum12":
-	case "alphanum4", "alphanum12": // These prefixes that are missing "credit_" shouldn't show up, but just to be on the safe side.
-	default:
-		return fmt.Errorf("unrecognized asset type: %v", asset.Type)
-	}
-	// Sanity check asset code very loosely. We know tighter bounds but there's no need to fail here.
-	if len(asset.Code) == 0 || len(asset.Code) >= 20 {
-		return fmt.Errorf("invalid asset code: %v", asset.Code)
-	}
-	return nil
-}
-
-// Example: "157.5000000 XLM"
-// Example: "12.9000000 USD"
-//   (where USD is a non-native asset issued by someone).
-// User interfaces should be careful to never give user just amount + asset
-// code, but annotate when it's a non-native asset and make Issuer ID and
-// Verified Domain visible.
-// If you are coming from CLI, FormatAmountDescriptionAssetEx might be a better
-// choice which is more verbose about non-native assets.
-func FormatAmountDescriptionAsset(mctx libkb.MetaContext, amount string, asset stellar1.Asset) (string, error) {
-	if asset.IsNativeXLM() {
-		return FormatAmountDescriptionXLM(mctx, amount)
-	}
-	if err := assertAssetIsSane(asset); err != nil {
-		return "", err
-	}
-	// Sanity check asset issuer.
-	if _, err := libkb.ParseStellarAccountID(asset.Issuer); err != nil {
-		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
-	}
-	return FormatAmountWithSuffix(mctx, amount, false /* precisionTwo */, false /* simplify */, asset.Code)
-}
-
-// FormatAmountDescriptionAssetEx is a more verbose version of FormatAmountDescriptionAsset.
-// In case of non-native asset, it includes issuer domain (or "Unknown") and issuer ID.
-// Example: "157.5000000 XLM"
-// Example: "1,000.15 CATS/catmoney.example.com (GDWVJEG7CMYKRYGB2MWSRZNSPCWIGGA4FRNFTQBIR6RAEPNEGGEH4XYZ)"
-// Example: "1,000.15 BTC/Unknown (GBPEHURSE52GCBRPDWNV2VL3HRLCI42367OGRPBOO3AW6VAYEW5EO5PM)"
-func FormatAmountDescriptionAssetEx(mctx libkb.MetaContext, amount string, asset stellar1.Asset) (string, error) {
-	if asset.IsNativeXLM() {
-		return FormatAmountDescriptionXLM(mctx, amount)
-	}
-	if err := assertAssetIsSane(asset); err != nil {
-		return "", err
-	}
-	// Sanity check asset issuer.
-	issuerAccountID, err := libkb.ParseStellarAccountID(asset.Issuer)
-	if err != nil {
-		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
-	}
-	amountFormatted, err := FormatAmount(mctx, amount, false /* precisionTwo */, stellarnet.Round)
-	if err != nil {
-		return "", err
-	}
-	var issuerDesc string
-	if asset.VerifiedDomain != "" {
-		issuerDesc = asset.VerifiedDomain
-	} else {
-		issuerDesc = "Unknown"
-	}
-	return fmt.Sprintf("%s %s/%s (%s)", amountFormatted, asset.Code, issuerDesc, issuerAccountID.String()), nil
-}
-
-// FormatAssetIssuerString returns "Unknown issuer" if asset does not have a
-// verified domain, or returns asset verified domain if it does (e.g.
-// "example.com").
-func FormatAssetIssuerString(asset stellar1.Asset) string {
-	if asset.VerifiedDomain != "" {
-		return asset.VerifiedDomain
-	}
-	return "Unknown issuer"
-}
-
-// Example: "157.5000000 XLM"
-func FormatAmountDescriptionXLM(mctx libkb.MetaContext, amount string) (string, error) {
-	// Do not simplify XLM amounts, all zeroes are important because
-	// that's the exact number of digits that Stellar protocol
-	// supports.
-	return FormatAmountWithSuffix(mctx, amount, false /* precisionTwo */, false /* simplify */, "XLM")
-}
-
-func FormatAmountWithSuffix(mctx libkb.MetaContext, amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
-	formatted, err := FormatAmount(mctx, amount, precisionTwo, stellarnet.Round)
-	if err != nil {
-		return "", err
-	}
-	if simplify {
-		formatted = libkb.StellarSimplifyAmount(formatted)
-	}
-	return fmt.Sprintf("%s %s", formatted, suffix), nil
-}
-
-func FormatAmount(mctx libkb.MetaContext, amount string, precisionTwo bool, rounding stellarnet.FmtRoundingBehavior) (string, error) {
-	if amount == "" {
-		EmptyAmountStack(mctx)
-		return "", fmt.Errorf("empty amount")
-	}
-	return stellarnet.FmtAmount(amount, precisionTwo, rounding)
 }
 
 // ChangeAccountName changes the name of an account.
@@ -2280,4 +2056,12 @@ func FindPaymentPath(mctx libkb.MetaContext, remoter remote.Remoter, source stel
 		Amount:           amount,
 	}
 	return remoter.FindPaymentPath(mctx, query)
+}
+
+func FuzzyAssetSearch(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	return remoter.FuzzyAssetSearch(mctx, arg)
+}
+
+func ListPopularAssets(mctx libkb.MetaContext, remoter remote.Remoter, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
+	return remoter.ListPopularAssets(mctx, arg)
 }

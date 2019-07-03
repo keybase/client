@@ -734,6 +734,7 @@ func TestInboxSync(t *testing.T) {
 
 func TestInboxServerVersion(t *testing.T) {
 	tc, inbox, uid := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -904,13 +905,15 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		Uid:    uid4,
 		ConvID: otherResetConvID,
 	}}
+	userRemovedConvID := convs[5].GetConvID()
 	userRemovedConvs := []chat1.ConversationMember{chat1.ConversationMember{
 		Uid:    uid,
-		ConvID: convs[5].GetConvID(),
+		ConvID: userRemovedConvID,
 	}}
+	userResetConvID := convs[6].GetConvID()
 	userResetConvs := []chat1.ConversationMember{chat1.ConversationMember{
 		Uid:    uid,
-		ConvID: convs[6].GetConvID(),
+		ConvID: userResetConvID,
 	}}
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, utils.PluckConvs(joinedConvs),
 		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
@@ -942,14 +945,29 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			allUsers := []gregor1.UID{uid, uid2, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+			require.Zero(t, len(res[i].Conv.Metadata.ResetList))
 		} else if res[i].GetConvID().Eq(otherRemovedConvID) {
 			allUsers := []gregor1.UID{uid, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+			require.Zero(t, len(res[i].Conv.Metadata.ResetList))
 		} else if res[i].GetConvID().Eq(otherResetConvID) {
 			allUsers := []gregor1.UID{uid, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			resetUsers := []gregor1.UID{uid4}
+			require.Len(t, res[i].Conv.Metadata.AllList, len(allUsers))
+			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+			require.Equal(t, resetUsers, res[i].Conv.Metadata.ResetList)
+		} else if res[i].GetConvID().Eq(userRemovedConvID) {
+			allUsers := []gregor1.UID{uid3, uid4}
+			sort.Sort(chat1.ByUID(allUsers))
+			require.Len(t, res[i].Conv.Metadata.AllList, len(allUsers))
+			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+			require.Zero(t, len(res[i].Conv.Metadata.ResetList))
+		} else if res[i].GetConvID().Eq(userResetConvID) {
+			allUsers := []gregor1.UID{uid, uid3, uid4}
+			sort.Sort(chat1.ByUID(allUsers))
+			resetUsers := []gregor1.UID{uid}
 			require.Len(t, res[i].Conv.Metadata.AllList, len(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
 			require.Equal(t, resetUsers, res[i].Conv.Metadata.ResetList)

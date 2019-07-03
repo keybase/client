@@ -75,6 +75,7 @@ type Asset struct {
 	IssuerName     string `codec:"issuerName" json:"issuerName"`
 	Desc           string `codec:"desc" json:"desc"`
 	InfoUrl        string `codec:"infoUrl" json:"infoUrl"`
+	InfoUrlText    string `codec:"infoUrlText" json:"infoUrlText"`
 }
 
 func (o Asset) DeepCopy() Asset {
@@ -86,6 +87,29 @@ func (o Asset) DeepCopy() Asset {
 		IssuerName:     o.IssuerName,
 		Desc:           o.Desc,
 		InfoUrl:        o.InfoUrl,
+		InfoUrlText:    o.InfoUrlText,
+	}
+}
+
+type AssetListResult struct {
+	Assets     []Asset `codec:"assets" json:"assets"`
+	TotalCount int     `codec:"totalCount" json:"totalCount"`
+}
+
+func (o AssetListResult) DeepCopy() AssetListResult {
+	return AssetListResult{
+		Assets: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Assets),
+		TotalCount: o.TotalCount,
 	}
 }
 
@@ -471,12 +495,13 @@ func (o Trustline) DeepCopy() Trustline {
 }
 
 type PaymentPath struct {
-	SourceAmount      string  `codec:"sourceAmount" json:"sourceAmount"`
-	SourceAmountMax   string  `codec:"sourceAmountMax" json:"sourceAmountMax"`
-	SourceAsset       Asset   `codec:"sourceAsset" json:"sourceAsset"`
-	Path              []Asset `codec:"path" json:"path"`
-	DestinationAmount string  `codec:"destinationAmount" json:"destinationAmount"`
-	DestinationAsset  Asset   `codec:"destinationAsset" json:"destinationAsset"`
+	SourceAmount              string  `codec:"sourceAmount" json:"sourceAmount"`
+	SourceAmountMax           string  `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAsset               Asset   `codec:"sourceAsset" json:"sourceAsset"`
+	Path                      []Asset `codec:"path" json:"path"`
+	DestinationAmount         string  `codec:"destinationAmount" json:"destinationAmount"`
+	DestinationAsset          Asset   `codec:"destinationAsset" json:"destinationAsset"`
+	SourceInsufficientBalance string  `codec:"sourceInsufficientBalance" json:"sourceInsufficientBalance"`
 }
 
 func (o PaymentPath) DeepCopy() PaymentPath {
@@ -495,8 +520,9 @@ func (o PaymentPath) DeepCopy() PaymentPath {
 			}
 			return ret
 		})(o.Path),
-		DestinationAmount: o.DestinationAmount,
-		DestinationAsset:  o.DestinationAsset.DeepCopy(),
+		DestinationAmount:         o.DestinationAmount,
+		DestinationAsset:          o.DestinationAsset.DeepCopy(),
+		SourceInsufficientBalance: o.SourceInsufficientBalance,
 	}
 }
 

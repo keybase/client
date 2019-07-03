@@ -159,3 +159,45 @@ func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.Con
 		Md:        md,
 	})
 }
+
+func (r *RemoteChatUI) ChatMaybeMentionUpdate(ctx context.Context, teamName, channel string,
+	info chat1.UIMaybeMentionInfo) error {
+	return r.cli.ChatMaybeMentionUpdate(ctx, chat1.ChatMaybeMentionUpdateArg{
+		SessionID: r.sessionID,
+		TeamName:  teamName,
+		Channel:   channel,
+		Info:      info,
+	})
+}
+
+func (r *RemoteChatUI) ChatLoadGalleryHit(ctx context.Context, msg chat1.UIMessage) error {
+	return r.cli.ChatLoadGalleryHit(ctx, chat1.ChatLoadGalleryHitArg{
+		SessionID: r.sessionID,
+		Message:   msg,
+	})
+}
+
+func (r *RemoteChatUI) ChatWatchPosition(ctx context.Context, convID chat1.ConversationID) (chat1.LocationWatchID, error) {
+	return r.cli.ChatWatchPosition(ctx, chat1.ChatWatchPositionArg{
+		SessionID: r.sessionID,
+		ConvID:    convID,
+	})
+}
+
+func (r *RemoteChatUI) ChatClearWatch(ctx context.Context, watchID chat1.LocationWatchID) error {
+	return r.cli.ChatClearWatch(ctx, chat1.ChatClearWatchArg{
+		SessionID: r.sessionID,
+		Id:        watchID,
+	})
+}
+
+func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.ConversationID, displayText string,
+	typ chat1.UICommandStatusDisplayTyp, actions []chat1.UICommandStatusActionTyp) error {
+	return r.cli.ChatCommandStatus(ctx, chat1.ChatCommandStatusArg{
+		SessionID:   r.sessionID,
+		ConvID:      convID.String(),
+		DisplayText: displayText,
+		Typ:         typ,
+		Actions:     actions,
+	})
+}

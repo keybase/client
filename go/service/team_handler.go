@@ -195,12 +195,7 @@ func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterf
 	}
 	r.G().Log.CDebugf(ctx, "teamHandler: team.delete unmarshaled: %+v", rows)
 
-	err := teams.HandleDeleteNotification(ctx, r.G(), rows)
-	if err != nil {
-		return err
-	}
-
-	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return teams.HandleDeleteNotification(ctx, r.G(), rows)
 }
 
 func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -231,10 +226,8 @@ func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.Incoming
 		return err
 	}
 
-	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: locally dismissing %s", nm)
-	if err := r.G().GregorState.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
-		r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
-	}
+	// Note there used to be a local dismissal here, but the newly_added_to_team needs
+	// to stay in the gregor state for badging to work.
 
 	return nil
 }

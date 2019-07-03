@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
@@ -96,10 +97,16 @@ type TestContext struct {
 	PrevGlobal *GlobalContext
 	Tp         *TestParameters
 	// TODO: Rename this to TB.
-	T TestingTB
+	T         TestingTB
+	eg        *errgroup.Group
+	cleanupCh chan struct{}
 }
 
 func (tc *TestContext) Cleanup() {
+	// stop the background logger
+	close(tc.cleanupCh)
+	tc.eg.Wait()
+
 	tc.G.Log.Debug("global context shutdown:")
 	tc.G.Shutdown()
 	if len(tc.Tp.Home) > 0 {
@@ -190,12 +197,16 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 	return nil
 }
 
+func (tc TestContext) MetaContext() MetaContext { return NewMetaContextForTest(tc) }
+
 var setupTestMu sync.Mutex
 
 func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
-	tc.Tp = &TestParameters{}
+	tc.Tp = &TestParameters{
+		SecretStorePrimingDisabled: true,
+	}
 
 	g := NewGlobalContext()
 
@@ -273,6 +284,26 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
+
+	// Periodically log in the background until `Cleanup` is called. Tests that
+	// forget to call this will panic because of logging after the test
+	// completes.
+	cleanupCh := make(chan struct{})
+	tc.cleanupCh = cleanupCh
+	tc.eg = &errgroup.Group{}
+	tc.eg.Go(func() error {
+		log := g.Log.CloneWithAddedDepth(1)
+		log.Debug("TestContext bg loop starting up")
+		for {
+			select {
+			case <-cleanupCh:
+				log.Debug("TestContext bg loop shutting down")
+				return nil
+			case <-time.After(time.Second):
+				log.Debug("TestContext bg loop not cleaned up yet")
+			}
+		}
+	})
 
 	return
 }
@@ -431,6 +462,7 @@ type TestLoginUI struct {
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
 	ResetAccount             bool
+	PassphraseRecovery       bool
 }
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
@@ -458,6 +490,14 @@ func (t *TestLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.Displ
 	return nil
 }
 
+func (t *TestLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+
+func (t *TestLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return t.PassphraseRecovery, nil
+}
+
 type TestLoginCancelUI struct {
 	TestLoginUI
 }
@@ -474,6 +514,11 @@ var _ GregorState = (*FakeGregorState)(nil)
 
 func (f *FakeGregorState) State(_ context.Context) (gregor.State, error) {
 	return gregor1.State{}, nil
+}
+
+func (f *FakeGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	return gregor1.MsgID{}, nil
 }
 
 func (f *FakeGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -509,6 +554,13 @@ func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperConte
 
 func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
 	return true
+}
+
+func (t TestUIDMapper) MapHardcodedUsernameToUID(un NormalizedUsername) keybase1.UID {
+	if un.String() == "max" {
+		return keybase1.UID("dbb165b7879fe7b1174df73bed0b9500")
+	}
+	return keybase1.UID("")
 }
 
 func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {

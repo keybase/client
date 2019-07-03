@@ -2,9 +2,13 @@ package stellarsvc
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
+	"net/url"
 	"sort"
 
 	"github.com/keybase/client/go/libkb"
@@ -13,6 +17,7 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/xdr"
 )
 
 type UISource interface {
@@ -204,7 +209,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 		SecretNote:     arg.Note,
 		ForceRelay:     arg.ForceRelay,
 		QuickReturn:    false,
-		PublicMemo:     arg.PublicNote,
+		PublicMemo:     stellarnet.NewMemoText(arg.PublicNote),
 	})
 	if err != nil {
 		return res, err
@@ -236,7 +241,7 @@ func (s *Server) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLIL
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  arg.PublicNote,
+		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
 		QuickReturn: false,
 	})
 	if err != nil {
@@ -595,10 +600,487 @@ func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (re
 	return stellar.Batch(mctx, s.walletState, arg)
 }
 
+func (s *Server) ValidateStellarURILocal(ctx context.Context, arg stellar1.ValidateStellarURILocalArg) (res stellar1.ValidateStellarURIResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ValidateStellarURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return stellar1.ValidateStellarURIResultLocal{}, err
+	}
+
+	vp, _, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return stellar1.ValidateStellarURIResultLocal{}, err
+	}
+	return *vp, nil
+}
+
+const zeroSourceAccount = "00000000000000000000000000000000000000000000000000000000"
+
+func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter stellarnet.HTTPGetter) (*stellar1.ValidateStellarURIResultLocal, *stellarnet.ValidatedStellarURI, error) {
+	validated, err := stellarnet.ValidateStellarURI(uri, getter)
+	if err != nil {
+		switch err.(type) {
+		case stellarnet.ErrNetworkWellKnownOrigin, stellarnet.ErrInvalidWellKnownOrigin:
+			// format these errors a little nicer for frontend to use directly
+			domain, xerr := stellarnet.UnvalidatedStellarURIOriginDomain(uri)
+			if xerr == nil {
+				return nil, nil, fmt.Errorf("This Stellar link claims to be signed by %s, but the Keybase app cannot currently verify the signature came from %s. Sorry, there's nothing you can do with this Stellar link.", domain, domain)
+			}
+		}
+		return nil, nil, err
+	}
+
+	local := stellar1.ValidateStellarURIResultLocal{
+		Operation:    validated.Operation,
+		OriginDomain: validated.OriginDomain,
+		Message:      validated.Message,
+		CallbackURL:  validated.CallbackURL,
+		Xdr:          validated.XDR,
+		Recipient:    validated.Recipient,
+		Amount:       validated.Amount,
+		AssetCode:    validated.AssetCode,
+		AssetIssuer:  validated.AssetIssuer,
+		Memo:         validated.Memo,
+		MemoType:     validated.MemoType,
+	}
+
+	if validated.AssetCode == "" {
+		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, accountID)
+		if err != nil {
+			return nil, nil, err
+		}
+		rate, err := s.remoter.ExchangeRate(mctx.Ctx(), displayCurrency)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if validated.Amount != "" {
+			// show how much validate.Amount XLM is in the user's display currency
+			outsideAmount, err := stellarnet.ConvertXLMToOutside(validated.Amount, rate.Rate)
+			if err != nil {
+				return nil, nil, err
+			}
+			fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
+			if err != nil {
+				return nil, nil, err
+			}
+			local.DisplayAmountFiat = fmtWorth
+		}
+
+		// include user's XLM available to send
+		details, err := s.remoter.Details(mctx.Ctx(), accountID)
+		if err != nil {
+			return nil, nil, err
+		}
+		availableXLM := details.Available
+		if availableXLM == "" {
+			availableXLM = "0"
+		}
+		fmtAvailableAmountXLM, err := stellar.FormatAmount(mctx, availableXLM, false, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		availableAmount, err := stellarnet.ConvertXLMToOutside(availableXLM, rate.Rate)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmtAvailableWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, availableAmount, rate.Currency, stellarnet.Round)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.AvailableToSendNative = fmtAvailableAmountXLM + " XLM"
+		local.AvailableToSendFiat = fmtAvailableWorth
+	}
+
+	if validated.TxEnv != nil {
+		tx := validated.TxEnv.Tx
+		if tx.SourceAccount.Address() != "" && tx.SourceAccount.Address() != zeroSourceAccount {
+			local.Summary.Source = stellar1.AccountID(tx.SourceAccount.Address())
+		}
+		local.Summary.Fee = int(tx.Fee)
+		local.Summary.Memo, local.Summary.MemoType, err = memoStrings(tx.Memo)
+		if err != nil {
+			return nil, nil, err
+		}
+		local.Summary.Operations = make([]string, len(tx.Operations))
+		for i, op := range tx.Operations {
+			const pastTense = false
+			local.Summary.Operations[i] = stellarnet.OpSummary(op, pastTense)
+		}
+	}
+
+	return &local, validated, nil
+}
+
+func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApproveTxURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, validated, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	txEnv := validated.TxEnv
+	if txEnv == nil {
+		return "", errors.New("no tx envelope in URI")
+	}
+
+	if vp.Summary.Source == "" {
+		// need to fill in SourceAccount
+		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
+		if err != nil {
+			return "", err
+		}
+		address, err := stellarnet.NewAddressStr(accountID.String())
+		if err != nil {
+			return "", err
+		}
+		txEnv.Tx.SourceAccount, err = address.AccountID()
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if txEnv.Tx.SeqNum == 0 {
+		// need to fill in SeqNum
+		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
+		defer unlock()
+
+		txEnv.Tx.SeqNum, err = sp.SequenceForAccount(txEnv.Tx.SourceAccount.Address())
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// sign it
+	_, seed, err := stellar.LookupSenderSeed(mctx)
+	if err != nil {
+		return "", err
+	}
+	sig, err := stellarnet.SignEnvelope(seed, *txEnv)
+	if err != nil {
+		return "", err
+	}
+
+	if vp.CallbackURL == "" {
+		_, err := stellarnet.Submit(sig.Signed)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+	}
+
+	return stellar1.TransactionID(sig.TxHash), nil
+}
+
+func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePayURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApprovePayURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, validated, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	if vp.Amount == "" {
+		vp.Amount = arg.Amount
+	}
+	memo, err := validated.MemoExport()
+	if err != nil {
+		return "", err
+	}
+
+	if vp.CallbackURL != "" {
+		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(vp.Recipient), arg.FromCLI)
+		if err != nil {
+			return "", err
+		}
+		if recipient.AccountID == nil {
+			return "", errors.New("recipient lookup failed to find an account")
+		}
+		recipientAddr, err := stellarnet.NewAddressStr(recipient.AccountID.String())
+		if err != nil {
+			return "", err
+		}
+
+		_, senderSeed, err := stellar.LookupSenderSeed(mctx)
+		if err != nil {
+			return "", err
+		}
+
+		sp, unlock := stellar.NewSeqnoProvider(mctx, s.walletState)
+		defer unlock()
+
+		baseFee := s.walletState.BaseFee(mctx)
+
+		sig, err := stellarnet.PaymentXLMTransactionWithMemo(senderSeed, recipientAddr, vp.Amount, memo, sp, nil, baseFee)
+		if err != nil {
+			return "", err
+		}
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+		return stellar1.TransactionID(sig.TxHash), nil
+	}
+
+	sendArg := stellar.SendPaymentArg{
+		To:         stellarcommon.RecipientInput(vp.Recipient),
+		Amount:     vp.Amount,
+		PublicMemo: memo,
+	}
+
+	var res stellar.SendPaymentResult
+	if arg.FromCLI {
+		sendArg.QuickReturn = false
+		res, err = stellar.SendPaymentCLI(mctx, s.walletState, sendArg)
+	} else {
+		sendArg.QuickReturn = true
+		res, err = stellar.SendPaymentGUI(mctx, s.walletState, sendArg)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: handle callback path
+
+	return res.TxID, nil
+}
+
+func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []stellar1.PartnerUrl, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:        "GetPartnerUrlsLocal",
+		Err:            &err,
+		AllowLoggedOut: true,
+	})
+	defer fin()
+	if err != nil {
+		return nil, err
+	}
+	// Pull back all of the external_urls, but only look at the partner_urls.
+	// To ensure we have flexibility in the future, only type check the objects
+	// under the key we care about here.
+	entry, err := s.G().GetExternalURLStore().GetLatestEntry(mctx)
+	if err != nil {
+		return nil, err
+	}
+	var externalURLs map[string]map[string][]interface{}
+	if err := json.Unmarshal([]byte(entry.Entry), &externalURLs); err != nil {
+		return nil, err
+	}
+	externalURLGroups, ok := externalURLs[libkb.ExternalURLsBaseKey]
+	if !ok {
+		return nil, fmt.Errorf("no external URLs to parse")
+	}
+	userIsKeybaseAdmin := s.G().Env.GetFeatureFlags().Admin(s.G().GetMyUID())
+	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarPartners] {
+		asData, err := json.Marshal(asInterface)
+		if err != nil {
+			return nil, err
+		}
+		var partnerURL stellar1.PartnerUrl
+		err = json.Unmarshal(asData, &partnerURL)
+		if err != nil {
+			return nil, err
+		}
+		if partnerURL.AdminOnly && !userIsKeybaseAdmin {
+			// this external url is intended only to be seen by admins for now
+			continue
+		}
+		res = append(res, partnerURL)
+	}
+	return res, nil
+}
+
+func (s *Server) ApprovePathURILocal(ctx context.Context, arg stellar1.ApprovePathURILocalArg) (txID stellar1.TransactionID, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "ApprovePathURILocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	// revalidate the URI
+	vp, validated, err := s.validateStellarURI(mctx, arg.InputURI, http.DefaultClient)
+	if err != nil {
+		return "", err
+	}
+
+	memo, err := validated.MemoExport()
+	if err != nil {
+		return "", err
+	}
+
+	sendArg := stellar.SendPathPaymentArg{
+		To:         stellarcommon.RecipientInput(vp.Recipient),
+		Path:       arg.FullPath,
+		PublicMemo: memo,
+	}
+
+	if vp.CallbackURL != "" {
+		sig, _, _, err := stellar.PathPaymentTx(mctx, s.walletState, sendArg)
+		if err != nil {
+			return "", err
+		}
+		if err := postXDRToCallback(sig.Signed, vp.CallbackURL); err != nil {
+			return "", err
+		}
+		return stellar1.TransactionID(sig.TxHash), nil
+	}
+
+	var res stellar.SendPaymentResult
+	if arg.FromCLI {
+		sendArg.QuickReturn = false
+		res, err = stellar.SendPathPaymentCLI(mctx, s.walletState, sendArg)
+	} else {
+		sendArg.QuickReturn = true
+		res, err = stellar.SendPathPaymentGUI(mctx, s.walletState, sendArg)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return res.TxID, nil
+}
+
+func (s *Server) SignTransactionXdrLocal(ctx context.Context, arg stellar1.SignTransactionXdrLocalArg) (res stellar1.SignXdrResult, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "SignTransactionXdrLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	unpackedTx, txIDPrecalc, err := unpackTx(arg.EnvelopeXdr)
+	if err != nil {
+		return res, err
+	}
+
+	var accountID stellar1.AccountID
+	if arg.AccountID == nil {
+		// Derive signer account id from transaction's sourceAccount.
+		accountID = stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
+		mctx.Debug("Trying to sign with SourceAccount: %s", accountID.String())
+	} else {
+		// We were provided with specific AccountID we want to sign with.
+		accountID = *arg.AccountID
+		mctx.Debug("Trying to sign with (passed as argument): %s", accountID.String())
+	}
+
+	_, acctBundle, err := stellar.LookupSender(mctx, accountID)
+	if err != nil {
+		return res, err
+	}
+
+	senderSeed, err := stellarnet.NewSeedStr(acctBundle.Signers[0].SecureNoLogString())
+	if err != nil {
+		return res, err
+	}
+
+	signRes, err := stellarnet.SignEnvelope(senderSeed, unpackedTx)
+	if err != nil {
+		return res, err
+	}
+
+	res.SingedTx = signRes.Signed
+	res.AccountID = accountID
+
+	if arg.Submit {
+		submitErr := s.remoter.PostAnyTransaction(mctx, signRes.Signed)
+		if submitErr != nil {
+			errStr := submitErr.Error()
+			mctx.Debug("Submit failed with: %s\n", errStr)
+			res.SubmitErr = &errStr
+		} else {
+			txID := stellar1.TransactionID(txIDPrecalc)
+			mctx.Debug("Submit successful. Tx ID is: %s", txID.String())
+			res.SubmitTxID = &txID
+		}
+	}
+
+	return res, nil
+}
+
+func postXDRToCallback(signed, callbackURL string) error {
+	u, err := url.Parse(callbackURL)
+	if err != nil {
+		return err
+	}
+
+	// take any values that are in the URL
+	values := u.Query()
+	// remove the RawQuery so we can POST them all as a form
+	u.RawQuery = ""
+
+	// put the signed tx in the values
+	values.Set("xdr", signed)
+
+	// POST it
+	_, err = http.PostForm(callbackURL, values)
+	return err
+}
+
 func percentageAmountChange(a, b int64) float64 {
 	if a == 0 && b == 0 {
 		return 0.0
 	}
 	mid := 0.5 * float64(a+b)
 	return math.Abs(100.0 * float64(a-b) / mid)
+}
+
+func memoStrings(x xdr.Memo) (string, string, error) {
+	switch x.Type {
+	case xdr.MemoTypeMemoNone:
+		return "", "MEMO_NONE", nil
+	case xdr.MemoTypeMemoText:
+		return x.MustText(), "MEMO_TEXT", nil
+	case xdr.MemoTypeMemoId:
+		return fmt.Sprintf("%d", x.MustId()), "MEMO_ID", nil
+	case xdr.MemoTypeMemoHash:
+		hash := x.MustHash()
+		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_HASH", nil
+	case xdr.MemoTypeMemoReturn:
+		hash := x.MustRetHash()
+		return base64.StdEncoding.EncodeToString(hash[:]), "MEMO_RETURN", nil
+	default:
+		return "", "", errors.New("invalid memo type")
+	}
+}
+
+func unpackTx(envelopeXdr string) (unpackedTx xdr.TransactionEnvelope, txIDPrecalc string, err error) {
+	err = xdr.SafeUnmarshalBase64(envelopeXdr, &unpackedTx)
+	if err != nil {
+		return unpackedTx, txIDPrecalc, fmt.Errorf("decoding tx: %v", err)
+	}
+	txIDPrecalc, err = stellarnet.HashTx(unpackedTx.Tx)
+	return unpackedTx, txIDPrecalc, err
 }

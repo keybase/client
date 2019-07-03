@@ -1,10 +1,10 @@
 {
   "prelude": [
-    "import * as Types from '../constants/types/config'",
+    "import {ConnectionType} from '@react-native-community/netinfo'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as FsTypes from '../constants/types/fs'",
-    "import {RPCError} from '../util/errors'",
+    "import {RPCError} from '../util/errors'"
   ],
   "actions": {
     "startHandshake": {
@@ -23,7 +23,7 @@
       "name": "string",
       "version": "number",
       "increment": "boolean",
-      "failedReason?": "?string",
+      "failedReason?": "string | null",
       "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
@@ -64,15 +64,19 @@
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
-      "followers": "Array<string>",
-      "following": "Array<string>",
       "fullname": "string",
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
-      "username": "string"
+      "username": "string",
+      "userReacjis": "RPCTypes.UserReacjis"
     },
-    "daemonError": {"daemonError": "?Error"},
+    "followerInfoUpdated": {
+      "uid": "string",
+      "followers": "Array<string>",
+      "followees": "Array<string>"
+    },
+    "daemonError": {"daemonError": "Error | null"},
     "setAccounts": {
       "defaultUsername": "string",
       "usernames": "Array<string>"
@@ -81,11 +85,11 @@
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
-      "startupConversation": "?ChatTypes.ConversationIDKey",
+      "startupConversation": "ChatTypes.ConversationIDKey | null",
       "startupLink": "string",
-      "startupTab": "?Tabs.Tab",
+      "startupTab": "Tabs.Tab | null",
       "startupFollowUser": "string",
-      "startupSharePath": "?FsTypes.LocalPath"
+      "startupSharePath": "FsTypes.LocalPath | null"
     },
     "setOpenAtLogin": {
       "open": "boolean",
@@ -96,11 +100,14 @@
       "writeFile": "boolean"
     },
     "setDeletedSelf": {"deletedUsername": "string"},
-    "swapRouter": {"useNewRouter": "boolean"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
-    "loggedIn": {"causedByStartup": "boolean"},
+    "loggedIn": {
+      "_description": "Used internally to know we were logged in. if you want to react to being logged in likely you want bootstrapStatusLoaded",
+      "causedBySignup": "boolean",
+      "causedByStartup": "boolean"
+    },
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
@@ -112,7 +119,12 @@
     "updateCriticalCheckStatus": {
       "_description": "Save critical check status",
       "status": "'critical' | 'suggested' | 'ok'",
-      "message": "string",
+      "message": "string"
+    },
+    "osNetworkStatusChanged": {
+      "online": "boolean",
+      "type": "ConnectionType",
+      "isInit?": "boolean"
     }
   }
 }

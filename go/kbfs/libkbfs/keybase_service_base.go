@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -55,11 +56,6 @@ type KeybaseServiceBase struct {
 	teamCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
 	teamCache map[keybase1.TeamID]idutil.TeamInfo
-
-	lastNotificationFilenameLock sync.Mutex
-	lastNotificationFilename     string
-	lastPathUpdated              string
-	lastSyncNotificationPath     string
 }
 
 // Wrapper over `KeybaseServiceBase` implementing a `merkleRootGetter`
@@ -334,8 +330,8 @@ func (k *KeybaseServiceBase) ClearCaches(ctx context.Context) {
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
-func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
-	k.log.CDebugf(ctx, "Current session logged in: %s", name)
+func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, arg keybase1.LoggedInArg) error {
+	k.log.CDebugf(ctx, "Current session logged in: %s, signedUp: %t", arg.Username, arg.SignedUp)
 	// Since we don't have the whole session, just clear the cache and
 	// repopulate it.  The `CurrentSession` call executes the "logged
 	// in" flow.
@@ -345,7 +341,7 @@ func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
 	if err != nil {
 		k.log.CDebugf(ctx, "Getting current session failed when %s is logged "+
 			"in, so pretending user has logged out: %v",
-			name, err)
+			arg.Username, err)
 		if k.config != nil {
 			serviceLoggedOut(ctx, k.config)
 		}
@@ -576,6 +572,11 @@ func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(
 	res, err := k.identifyClient.ResolveIdentifyImplicitTeam(ctx, arg)
 	if err != nil {
 		return idutil.ImplicitTeamInfo{}, ConvertIdentifyError(assertions, err)
+	}
+	if strings.Contains(res.DisplayName, "_implicit_team_") {
+		k.log.CWarningf(
+			ctx, "Got display name %s for assertions %s",
+			res.DisplayName, assertions)
 	}
 	name := kbname.NormalizedUsername(res.DisplayName)
 
@@ -1129,12 +1130,12 @@ func (k *KeybaseServiceBase) CurrentSession(
 }
 
 // FavoriteAdd implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseServiceBase) FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.favoriteClient.FavoriteAdd(ctx, keybase1.FavoriteAddArg{Folder: folder})
 }
 
 // FavoriteDelete implements the KeybaseService interface for KeybaseServiceBase.
-func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
+func (k *KeybaseServiceBase) FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error {
 	return k.favoriteClient.FavoriteIgnore(ctx,
 		keybase1.FavoriteIgnoreArg{Folder: folder})
 }
@@ -1165,18 +1166,6 @@ func (k *KeybaseServiceBase) NotifyOnlineStatusChanged(ctx context.Context,
 
 // Notify implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
-	// Reduce log spam by not repeating log lines for
-	// notifications with the same filename.
-	//
-	// TODO: Only do this in debug mode.
-	func() {
-		k.lastNotificationFilenameLock.Lock()
-		defer k.lastNotificationFilenameLock.Unlock()
-		if notification.Filename != k.lastNotificationFilename {
-			k.lastNotificationFilename = notification.Filename
-			k.log.CDebugf(ctx, "Sending notification for %s", notification.Filename)
-		}
-	}()
 	return k.kbfsClient.FSEvent(ctx, *notification)
 }
 
@@ -1184,18 +1173,6 @@ func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifyPathUpdated(
 	ctx context.Context, path string) error {
-	// Reduce log spam by not repeating log lines for
-	// notifications with the same filename.
-	//
-	// TODO: Only do this in debug mode.
-	func() {
-		k.lastNotificationFilenameLock.Lock()
-		defer k.lastNotificationFilenameLock.Unlock()
-		if path != k.lastPathUpdated {
-			k.lastPathUpdated = path
-			k.log.CDebugf(ctx, "Sending path updated notification for %s", path)
-		}
-	}()
 	return k.kbfsClient.FSPathUpdate(ctx, path)
 }
 
@@ -1203,19 +1180,20 @@ func (k *KeybaseServiceBase) NotifyPathUpdated(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) NotifySyncStatus(ctx context.Context,
 	status *keybase1.FSPathSyncStatus) error {
-	// Reduce log spam by not repeating log lines for
-	// notifications with the same pathname.
-	//
-	// TODO: Only do this in debug mode.
-	func() {
-		k.lastNotificationFilenameLock.Lock()
-		defer k.lastNotificationFilenameLock.Unlock()
-		if status.Path != k.lastSyncNotificationPath {
-			k.lastSyncNotificationPath = status.Path
-			k.log.CDebugf(ctx, "Sending notification for %s", status.Path)
-		}
-	}()
 	return k.kbfsClient.FSSyncEvent(ctx, *status)
+}
+
+// NotifyOverallSyncStatus implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) error {
+	return k.kbfsClient.FSOverallSyncEvent(ctx, status)
+}
+
+// NotifyFavoritesChanged implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifyFavoritesChanged(ctx context.Context) error {
+	return k.kbfsClient.FSFavoritesChangedEvent(ctx)
 }
 
 // FlushUserFromLocalCache implements the KeybaseService interface for
@@ -1513,7 +1491,7 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 // PutGitMetadata implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) PutGitMetadata(
-	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) error {
 	return k.gitClient.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
 		Folder:   folder,

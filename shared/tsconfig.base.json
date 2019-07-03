@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "checkJs": false,
+    "incremental": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "module": "commonjs",
+    "noFallthroughCasesInSwitch": true,
+    "outDir": "./.tsOuts/.tsOut/emit",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "target": "es2017",
+    "tsBuildInfoFile": "./.tsOuts/.tsOut/cache"
+  },
+  "include": ["globals.d.ts"],
+  "exclude": [
+    "node_modules",
+    "node_modules/popper.js/index.d.ts",
+    "react-native",
+    "desktop/dist",
+    "desktop/build"
+  ]
+}

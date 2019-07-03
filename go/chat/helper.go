@@ -73,14 +73,15 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error) {
 	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
-	}), chat1.MessageType_TEXT, outboxID)
+	}), chat1.MessageType_TEXT, outboxID, replyTo)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID,
+	replyTo *chat1.MessageID) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
@@ -91,8 +92,41 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil, nil)
+	prepareOpts := chat1.SenderPrepareOptions{
+		ReplyTo: replyTo,
+	}
+	outboxID, _, err := sender.Send(ctx, convID, msg, 0, inOutboxID, nil, &prepareOpts)
 	return outboxID, err
+}
+
+func (h *Helper) DeleteMsg(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	msgID chat1.MessageID) error {
+	boxer := NewBoxer(h.G())
+	sender := NewBlockingSender(h.G(), boxer, h.ri)
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			TlfName:     tlfName,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  msgID,
+		},
+	}
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil, nil)
+	return err
+}
+
+func (h *Helper) DeleteMsgNonblock(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	msgID chat1.MessageID) error {
+	boxer := NewBoxer(h.G())
+	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), boxer, h.ri))
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			TlfName:     tlfName,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  msgID,
+		},
+	}
+	_, _, err := sender.Send(ctx, convID, msg, 0, nil, nil, nil)
+	return err
 }
 
 func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *string,
@@ -441,7 +475,7 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
 		}
 	} else {
-		pc := utils.PresentConversationLocal(conv, g.Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, conv, g.Env.GetUsername().String())
 		res = &pc
 	}
 	return res

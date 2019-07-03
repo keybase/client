@@ -449,7 +449,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 		m.Debug("- Released singleflight lock")
 	}()
 
-	if err = e.loadAssertion(); err != nil {
+	if err = e.loadAssertion(m); err != nil {
 		return err
 	}
 
@@ -628,7 +628,6 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 			m.Debug("| Error in storing slow cache to db: %s", err)
 		}
 	}
-	return
 }
 
 func (e *Identify2WithUID) insertTrackToken(m libkb.MetaContext, outcome *libkb.IdentifyOutcome) (err error) {
@@ -709,11 +708,11 @@ func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState)
 	return nil
 }
 
-func (e *Identify2WithUID) loadAssertion() (err error) {
+func (e *Identify2WithUID) loadAssertion(mctx libkb.MetaContext) (err error) {
 	if len(e.arg.UserAssertion) == 0 {
 		return nil
 	}
-	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), e.arg.UserAssertion)
+	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(mctx), e.arg.UserAssertion)
 	if err == nil {
 		e.remoteAssertion, e.localAssertion = libkb.CollectAssertions(e.themAssertion)
 	}
@@ -769,7 +768,7 @@ func (e *Identify2WithUID) displayUserCardAsync(m libkb.MetaContext) <-chan erro
 	if e.arg.IdentifyBehavior.SkipUserCard() || e.G().Env.GetReadDeletedSigChain() {
 		return nil
 	}
-	return displayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
+	return libkb.DisplayUserCardAsync(m, e.them.GetUID(), (e.me != nil))
 }
 
 func (e *Identify2WithUID) setupIdentifyUI(m libkb.MetaContext) libkb.MetaContext {
@@ -811,7 +810,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 		return err
 	}
 	m.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
-	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(e.G()), e.them.Export()); err != nil {
+	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(m), e.them.Export()); err != nil {
 		return err
 	}
 
@@ -969,7 +968,7 @@ func (e *Identify2WithUID) loadThem(m libkb.MetaContext) (err error) {
 			return libkb.NoSigChainError{}
 		case libkb.NotFoundError:
 			return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
-		default: // including libkb.DeletedError
+		default: // including libkb.UserDeletedError
 			return err
 		}
 	}

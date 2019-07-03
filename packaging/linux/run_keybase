@@ -16,7 +16,7 @@ systemd_stop_if_active() {
 # This works no matter how the services were started, because our
 # Restart=on-failure systemd unit configuration won't restart after SIGTERM.
 kill_all() {
-  # systemd will restart services if they failed to stop, so do this explicitly
+  # systemd will restart services if they failed to stop cleanly, so do this explicitly
   # first to make the rest of a function a no-op.
   if [ "$KEYBASE_KILL" = "1" ]; then
       systemd_stop_if_active "keybase"
@@ -25,7 +25,13 @@ kill_all() {
       systemd_stop_if_active "keybase-redirector"
   fi
 
-  killall Keybase &> /dev/null && echo Shutting down Keybase GUI...
+  # Only stop main Electron process; others have additional flags after the process name
+  # Child Electron processes will be stopped by main process' handler
+  if main_electron_pids="$(pgrep 'Keybase$')"; then
+      # intentionally splitting pids
+      # shellcheck disable=SC2046
+      kill $(echo "$main_electron_pids" | xargs) &> /dev/null && echo Shutting down Keybase GUI...
+  fi
 
   # mountdir may be empty on the initial install, so don't try to unmount in that case.
   if mountdir="$(keybase config get --direct --bare mountdir 2> /dev/null)" && [ -n "$mountdir" ]; then
@@ -56,12 +62,12 @@ start_systemd() {
   # systemctl calls don't have it set.
   systemctl --user import-environment "KEYBASE_AUTOSTART"
 
-  # The keybase.gui.service unit has keybase.service and kbfs.service as
-  # dependencies, so we don't have to list them here. But including them lets
-  # us report an error if they fail to start. Also prefer `restart` to `start`
-  # so that we don't race against the service shutting down.
-  # kbfs.service will attempt to start the redirector, but it isn't an error if
-  # it fails to start, which happens if it is disabled.
+  # The keybase.gui.service unit has keybase.service as dependencies, so we
+  # don't have to list them here. But including them lets us report an error if
+  # they fail to start. Also prefer `restart` to `start` so that we don't race
+  # against the service shutting down.  kbfs.service will attempt to start the
+  # redirector, but it isn't an error if it fails to start, which happens if it
+  # is disabled.
   systemctl --user restart keybase.service
 
   [ "$KEYBASE_NO_KBFS" == "1" ] || systemctl --user restart kbfs.service
@@ -114,12 +120,7 @@ start_background() {
 
       echo Launching Keybase GUI...
       gui_log="$logdir/Keybase.app.log"
-      # Allow distributions to change the location of the gui as long as it's in PATH.
-      if command -v Keybase &> /dev/null; then
-          Keybase &>> "$gui_log" &
-      else
-          /opt/keybase/Keybase &>> "$gui_log" &
-      fi
+      "$KEYBASE" &>> "$gui_log" &
   fi
 }
 
@@ -137,7 +138,9 @@ warn_if_weird_path() {
 }
 
 show_cryptosquirrel() {
-  [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  if n_colors="$(tput colors 2> /dev/null)" && [ "$n_colors" -gt 2 ]; then
+      [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ] && cat /opt/keybase/crypto_squirrel.txt
+  fi
 }
 
 warn_if_exists_and_unwritable() {
@@ -168,6 +171,30 @@ init() {
 
   # Remove legacy envfiles; now stored in config directory by ctl init
   rm -f "$runtime_dir/keybase.env" "$runtime_dir/keybase.kbfs.env" "$runtime_dir/keybase.gui.env"
+
+  # Allow distributions to change the location of the gui as long as it's in PATH.
+  if command -v Keybase &> /dev/null; then
+      KEYBASE=Keybase
+  else
+      KEYBASE=/opt/keybase/Keybase
+  fi
+}
+
+check_for_url_scheme_launch() {
+  # We set a URL scheme handler on our .desktop file, and since that file
+  # points to this script, that's what gets called with URL links. We can
+  # differentiate between a normal run_keybase invocation and a URL launch
+  # by checking argv.
+
+  # If Keybase is already running, then pass it the link and exit.
+  if [[ $# -eq 1 && "$1" =~ ^web+.* ]]; then
+      if pgrep -u "$USER" -f 'Keybase$' &> /dev/null; then
+          "$KEYBASE" "$1" &
+          exit
+      fi
+  fi
+
+  # Since we didn't exit, fall through to a normal startup.
 }
 
 startup_all() {
@@ -199,17 +226,18 @@ usage() {
   echo "If services are already running, they will be restarted."
   echo ""
   echo "Options can also be controlled by setting related environment variables to 1"
-  echo "  -a  keep the GUI minimized in system tray after startup (KEYBASE_AUTOSTART)"
-  echo "  -f  do not start KBFS (only effective with -g, KEYBASE_NO_KBFS)"
-  echo "  -g  do not start the gui (KEYBASE_NO_GUI)"
+  echo "  -a  keep the GUI minimized in system tray after startup (env KEYBASE_AUTOSTART=1)"
+  echo "  -f  do not start KBFS (env KEYBASE_NO_KBFS=1)"
+  echo "  -g  do not start the gui (env KEYBASE_NO_GUI=1)"
   echo "  -h  print this help text"
-  echo "  -k  shut down all Keybase services (KEYBASE_KILL)"
+  echo "  -k  shut down all Keybase services (env KEYBASE_KILL=1)"
 }
 
 KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
 KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
+
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
 #   http://keybase.io/docs/linux-user-guide
 while getopts "afghk" flag; do
@@ -224,6 +252,11 @@ while getopts "afghk" flag; do
 done
 
 init
+
+# Exit early if run caused by a URL scheme invocation and Keybase is already
+# running; otherwise fall through to start Keybase.
+check_for_url_scheme_launch "$@"
+
 # Always stop any running services. With systemd, we could've decided to just
 # `start` services and no-op if they're already running, however:
 # 1) We still need to handle the case where services started outside systemd

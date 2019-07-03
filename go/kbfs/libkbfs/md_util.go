@@ -520,8 +520,9 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		},
 		Path: []data.PathNode{{
 			BlockPointer: info.BlockPointer,
-			Name: fmt.Sprintf("<MD with block change pointer %s>",
-				info.BlockPointer),
+			Name: data.NewPathPartString(
+				fmt.Sprintf("<MD with block change pointer %s>",
+					info.BlockPointer), nil),
 		}},
 	}
 	getter := func(ctx context.Context, kmd libkey.KeyMetadata, ptr data.BlockPointer,
@@ -605,6 +606,35 @@ func reembedBlockChangesIntoCopyIfNeeded(
 		rmd.localTimestamp, rmd.putToServer), nil
 }
 
+func getMDObfuscationSecret(
+	ctx context.Context, keyGetter mdDecryptionKeyGetter,
+	kmd libkey.KeyMetadata) (data.NodeObfuscatorSecret, error) {
+	if kmd.TlfID().Type() == tlf.Public {
+		return nil, nil
+	}
+	key, err := keyGetter.GetFirstTLFCryptKey(ctx, kmd)
+	if err != nil {
+		return nil, err
+	}
+	secret, err := key.DeriveSecret(obfuscatorDerivationString)
+	if err != nil {
+		return nil, err
+	}
+	return data.NodeObfuscatorSecret(secret), nil
+}
+
+func makeMDObfuscatorFromSecret(
+	secret data.NodeObfuscatorSecret, mode InitMode) data.Obfuscator {
+	if !mode.DoLogObfuscation() {
+		return nil
+	}
+
+	if secret == nil {
+		return nil
+	}
+	return data.NewNodeObfuscator(secret)
+}
+
 // decryptMDPrivateData does not use uid if the handle is a public one.
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache data.BlockCache, bops BlockOps,
@@ -615,6 +645,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	handle := rmdToDecrypt.GetTlfHandle()
 
 	var pmd PrivateMetadata
+	keyedForDevice := true
 	if handle.TypeForKeying() == tlf.PublicKeying {
 		if err := codec.Decode(serializedPrivateMetadata,
 			&pmd); err != nil {
@@ -645,6 +676,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 				// Rekey errors are expected if this client is a
 				// valid folder participant but doesn't have the
 				// shared crypt key.
+				keyedForDevice = false
 			} else {
 				return PrivateMetadata{}, err
 			}
@@ -652,6 +684,9 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 			pmd, err = crypto.DecryptPrivateMetadata(
 				encryptedPrivateMetadata, k)
 			if err != nil {
+				log.CDebugf(
+					ctx, "Failed to decrypt MD for id=%s, keygen=%d",
+					rmdToDecrypt.TlfID(), rmdToDecrypt.LatestKeyGeneration())
 				return PrivateMetadata{}, err
 			}
 		}
@@ -662,7 +697,38 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 		ctx, codec, bcache, bops, mode, rmdWithKeys.TlfID(),
 		&pmd, rmdWithKeys, log)
 	if err != nil {
+		log.CDebugf(
+			ctx, "Failed to re-embed block changes for id=%s, keygen=%d, info pointer=%v",
+			rmdToDecrypt.TlfID(), rmdToDecrypt.LatestKeyGeneration(),
+			pmd.Changes.Info)
 		return PrivateMetadata{}, err
+	}
+
+	var obfuscator data.Obfuscator
+	if keyedForDevice {
+		secret, err := getMDObfuscationSecret(ctx, keyGetter, rmdWithKeys)
+		if err != nil {
+			return PrivateMetadata{}, err
+		}
+		obfuscator = makeMDObfuscatorFromSecret(secret, mode)
+	}
+	for _, op := range pmd.Changes.Ops {
+		// Add a temporary path with an obfuscator.  When we
+		// deserialize the ops from the raw byte buffer of the MD
+		// object, they don't have proper `data.Path`s set in them yet
+		// -- that's an unexported field. The path is required for
+		// obfuscation, so here we're just making sure that they all
+		// have one. In places where a perfectly-accurate path is
+		// required (like in conflict resolution), the code there will
+		// need to add a proper path. Note that here the level of the
+		// obfuscator might be wrong, and so might result in
+		// inconsistent suffixes for obfuscated names that conflict.
+		if !op.getFinalPath().IsValid() {
+			op.setFinalPath(data.Path{Path: []data.PathNode{{
+				BlockPointer: data.ZeroPtr,
+				Name:         data.NewPathPartString("", obfuscator),
+			}}})
+		}
 	}
 
 	return pmd, nil

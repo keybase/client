@@ -190,6 +190,9 @@ func GetPGPExportPassphrase(m libkb.MetaContext, ui libkb.SecretUI, desc string)
 
 	desc = "Please reenter your passphrase for confirmation"
 	pRes2, err := libkb.GetSecret(m, ui, "PGP key passphrase", desc, "", false)
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
 	if pRes.Passphrase != pRes2.Passphrase {
 		return keybase1.GetPassphraseRes{}, errors.New("Passphrase mismatch")
 	}

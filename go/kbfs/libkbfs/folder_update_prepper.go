@@ -94,7 +94,8 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 		FolderBranch: fup.folderBranch,
 		Path: []data.PathNode{{
 			BlockPointer: ptr,
-			Name:         fmt.Sprintf("<MD rev %d>", md.Revision()),
+			Name: data.NewPathPartString(
+				fmt.Sprintf("<MD rev %d>", md.Revision()), nil),
 		},
 		}}
 
@@ -212,9 +213,9 @@ func (idwl isDirtyWithDBM) IsDirty(
 func (fup *folderUpdatePrepper) prepUpdateForPath(
 	ctx context.Context, lState *kbfssync.LockState,
 	chargedTo keybase1.UserOrTeamID, md *RootMetadata, newBlock data.Block,
-	newBlockPtr data.BlockPointer, dir data.Path, name string, entryType data.EntryType,
-	mtime bool, ctime bool, stopAt data.BlockPointer, dbm dirBlockMap,
-	bps blockPutState) (data.Path, data.DirEntry, error) {
+	newBlockPtr data.BlockPointer, dir data.Path, name data.PathPartString,
+	entryType data.EntryType, mtime bool, ctime bool, stopAt data.BlockPointer,
+	dbm dirBlockMap, bps blockPutState) (data.Path, data.DirEntry, error) {
 	// now ready each dblock and write the DirEntry for the next one
 	// in the path
 	currBlock := newBlock
@@ -227,7 +228,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		}
 	}()
 	if _, isDir := newBlock.(*data.DirBlock); isDir {
-		newPath := dir.ChildPath(name, newBlockPtr)
+		newPath := dir.ChildPath(
+			name, newBlockPtr, fup.blocks.nodeCache.ObfuscatorMaker()())
 		currDD, cleanupFn = fup.blocks.newDirDataWithDBM(
 			lState, newPath, chargedTo, md, dbm)
 		currDDPtr = newPath.TailPointer()
@@ -283,7 +285,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		// get the parent block
 		prevIdx := len(dir.Path) - len(newPath.Path)
 		var de data.DirEntry
-		var nextName string
+		var nextName data.PathPartString
 		nextDoSetTime := false
 		if prevIdx < 0 {
 			// root dir, update the MD instead
@@ -303,7 +305,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 				// around, we have an error.
 				if len(newPath.Path) > 1 {
 					return data.Path{}, data.DirEntry{},
-						idutil.NoSuchNameError{Name: currName}
+						idutil.NoSuchNameError{Name: currName.String()}
 				}
 
 				// If this is a file, the size should be 0. (TODO:
@@ -472,7 +474,7 @@ func (fup *folderUpdatePrepper) prepTree(
 
 			var err error
 			fblock, err = newFileBlocks.GetTopBlock(
-				ctx, node.parent.ptr, node.mergedPath.TailName())
+				ctx, node.parent.ptr, node.mergedPath.TailName().Plaintext())
 			if err != nil {
 				return err
 			}
@@ -951,21 +953,22 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 }
 
 func (fup *folderUpdatePrepper) setChildrenNodes(
-	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata, p data.Path,
-	indexInPath int, dbm dirBlockMap, nextNode *pathTreeNode, currPath data.Path,
-	names []string) {
+	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
+	p data.Path, indexInPath int, dbm dirBlockMap, nextNode *pathTreeNode,
+	currPath data.Path, names []string) {
 	dd, cleanupFn := fup.blocks.newDirDataWithDBM(
 		lState, currPath, keybase1.UserOrTeamID(""), kmd, dbm)
 	defer cleanupFn()
 
 	pnode := p.Path[indexInPath]
-	for _, name := range names {
-		if _, ok := nextNode.children[name]; ok {
+	for _, namePlain := range names {
+		if _, ok := nextNode.children[namePlain]; ok {
 			continue
 		}
 		// Try to lookup the block pointer, but this might be
 		// for a new file.
 		var filePtr data.BlockPointer
+		name := data.NewPathPartString(namePlain, currPath.Obfuscator())
 		de, err := dd.Lookup(ctx, name)
 		switch errors.Cause(err).(type) {
 		case nil:
@@ -991,7 +994,7 @@ func (fup *folderUpdatePrepper) setChildrenNodes(
 			children:   make(map[string]*pathTreeNode),
 			mergedPath: childPath,
 		}
-		nextNode.children[name] = childNode
+		nextNode.children[namePlain] = childNode
 	}
 }
 
@@ -1013,7 +1016,7 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 		for i, pnode := range p.Path {
 			var nextNode *pathTreeNode
 			if parent != nil {
-				nextNode = parent.children[pnode.Name]
+				nextNode = parent.children[pnode.Name.Plaintext()]
 			} else if root != nil {
 				nextNode = root
 			}
@@ -1030,7 +1033,7 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 					mergedPath: p,
 				}
 				if parent != nil {
-					parent.children[pnode.Name] = nextNode
+					parent.children[pnode.Name.Plaintext()] = nextNode
 				}
 			}
 			if parent == nil && root == nil {
@@ -1061,9 +1064,16 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				// can skip it completely.
 				continue
 			}
+			var ob data.Obfuscator
+			if i+1 < len(p.Path) {
+				ob = p.Path[i+1].Name.Obfuscator()
+			} else {
+				ob = p.Obfuscator()
+			}
 			currPath := data.Path{
-				FolderBranch: p.FolderBranch,
-				Path:         p.Path[:i+1],
+				FolderBranch:    p.FolderBranch,
+				Path:            p.Path[:i+1],
+				ChildObfuscator: ob,
 			}
 			fup.setChildrenNodes(
 				ctx, lState, kmd, p, i, dbm, nextNode, currPath, names)

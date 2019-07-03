@@ -375,7 +375,6 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
 	root keybase1.MerkleRootV2, timeToCheck time.Time) (err error) {
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
-
 	kbfsRoot, merkleNodes, rootSeqno, err :=
 		md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
 	switch errors.Cause(err).(type) {
@@ -739,14 +738,23 @@ func (mbtc merkleBasedTeamChecker) IsTeamWriter(
 			"MD was written.", uid, tid)
 	root, err := mbtc.teamMembershipChecker.NoLongerTeamWriter(
 		ctx, tid, mbtc.irmd.TlfID().Type(), uid, verifyingKey, offline)
-	if err != nil {
-		return false, err
-	}
-
-	// TODO(CORE-8199): pass in the time for the writer downgrade.
-	err = mbtc.md.checkRevisionCameBeforeMerkle(
-		ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root, time.Time{})
-	if err != nil {
+	switch e := errors.Cause(err).(type) {
+	case nil:
+		// TODO(CORE-8199): pass in the time for the writer downgrade.
+		err = mbtc.md.checkRevisionCameBeforeMerkle(
+			ctx, mbtc.rmds, verifyingKey, mbtc.irmd, root, time.Time{})
+		if err != nil {
+			return false, err
+		}
+	case libkb.MerkleClientError:
+		if e.IsOldTree() {
+			mbtc.md.vlog.CLogf(
+				ctx, libkb.VLog1, "Merkle root is too old for checking "+
+					"the revoked key: %+v", err)
+		} else {
+			return false, err
+		}
+	default:
 		return false, err
 	}
 
@@ -893,7 +901,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Han
 	}
 
 	// Check for handle readership, to give a nice error early.
-	if handle.Type() == tlf.Private {
+	if handle.Type() == tlf.Private && !handle.IsBackedByTeam() {
 		session, err := md.config.KBPKI().GetCurrentSession(ctx)
 		if err != nil {
 			return tlf.ID{}, ImmutableRootMetadata{}, err
@@ -929,6 +937,11 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *tlfhandle.Han
 	bh, err := handle.ToBareHandle()
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
+	}
+	if handle.IsLocalConflict() {
+		md.log.CDebugf(ctx, "Stripping out local conflict info from %s "+
+			"before fetching the ID", handle.GetCanonicalPath())
+		bh.ConflictInfo = nil
 	}
 
 	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus, lockBeforeGet)
@@ -1006,9 +1019,11 @@ func (md *MDOpsStandard) GetIDForHandle(
 	default:
 		return tlf.NullID, err
 	}
-	err = mdcache.PutIDForHandle(handle, id)
-	if err != nil {
-		return tlf.NullID, err
+	if !handle.IsLocalConflict() {
+		err = mdcache.PutIDForHandle(handle, id)
+		if err != nil {
+			return tlf.NullID, err
+		}
 	}
 	return id, nil
 }
@@ -1047,10 +1062,9 @@ func (md *MDOpsStandard) processSignedMD(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	handle, err := tlfhandle.MakeHandle(
+	handle, err := tlfhandle.MakeHandleWithTlfID(
 		ctx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-		md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
-		md.config.OfflineAvailabilityForID(id))
+		md.config.KBPKI(), id, md.config.OfflineAvailabilityForID(id))
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1143,10 +1157,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 			if err != nil {
 				return err
 			}
-			handle, err := tlfhandle.MakeHandle(
+			handle, err := tlfhandle.MakeHandleWithTlfID(
 				groupCtx, bareHandle, rmds.MD.TlfID().Type(), md.config.KBPKI(),
-				md.config.KBPKI(), tlfhandle.ConstIDGetter{ID: id},
-				md.config.OfflineAvailabilityForID(id))
+				md.config.KBPKI(), id, md.config.OfflineAvailabilityForID(id))
 			if err != nil {
 				return err
 			}

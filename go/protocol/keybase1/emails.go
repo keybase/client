@@ -36,6 +36,16 @@ func (o EmailAddressVerifiedMsg) DeepCopy() EmailAddressVerifiedMsg {
 	}
 }
 
+type EmailAddressChangedMsg struct {
+	Email EmailAddress `codec:"email" json:"email"`
+}
+
+func (o EmailAddressChangedMsg) DeepCopy() EmailAddressChangedMsg {
+	return EmailAddressChangedMsg{
+		Email: o.Email.DeepCopy(),
+	}
+}
+
 type AddEmailArg struct {
 	SessionID  int                `codec:"sessionID" json:"sessionID"`
 	Email      EmailAddress       `codec:"email" json:"email"`
@@ -64,11 +74,6 @@ type SendVerificationEmailArg struct {
 	Email     EmailAddress `codec:"email" json:"email"`
 }
 
-type BulkLookupEmailsArg struct {
-	SessionID     int      `codec:"sessionID" json:"sessionID"`
-	EmailContacts []string `codec:"emailContacts" json:"emailContacts"`
-}
-
 type SetVisibilityEmailArg struct {
 	SessionID  int                `codec:"sessionID" json:"sessionID"`
 	Email      EmailAddress       `codec:"email" json:"email"`
@@ -90,7 +95,6 @@ type EmailsInterface interface {
 	EditEmail(context.Context, EditEmailArg) error
 	SetPrimaryEmail(context.Context, SetPrimaryEmailArg) error
 	SendVerificationEmail(context.Context, SendVerificationEmailArg) error
-	BulkLookupEmails(context.Context, BulkLookupEmailsArg) ([]EmailLookupResult, error)
 	SetVisibilityEmail(context.Context, SetVisibilityEmailArg) error
 	SetVisibilityAllEmail(context.Context, SetVisibilityAllEmailArg) error
 	GetEmails(context.Context, int) ([]Email, error)
@@ -175,21 +179,6 @@ func EmailsProtocol(i EmailsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"bulkLookupEmails": {
-				MakeArg: func() interface{} {
-					var ret [1]BulkLookupEmailsArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]BulkLookupEmailsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]BulkLookupEmailsArg)(nil), args)
-						return
-					}
-					ret, err = i.BulkLookupEmails(ctx, typedArgs[0])
-					return
-				},
-			},
 			"setVisibilityEmail": {
 				MakeArg: func() interface{} {
 					var ret [1]SetVisibilityEmailArg
@@ -265,11 +254,6 @@ func (c EmailsClient) SetPrimaryEmail(ctx context.Context, __arg SetPrimaryEmail
 
 func (c EmailsClient) SendVerificationEmail(ctx context.Context, __arg SendVerificationEmailArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.emails.sendVerificationEmail", []interface{}{__arg}, nil)
-	return
-}
-
-func (c EmailsClient) BulkLookupEmails(ctx context.Context, __arg BulkLookupEmailsArg) (res []EmailLookupResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.bulkLookupEmails", []interface{}{__arg}, &res)
 	return
 }
 

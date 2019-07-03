@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedModules": false,
+    "tsBuildInfoFile": "./.tsOuts/.tsOutFast/cache",
+    "outDir": "./.tsOuts/.tsOutFast/emit"
+  }
+}

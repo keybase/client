@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 )
 
 // Things TeamLoader uses that are mocked out for tests.
@@ -27,7 +29,8 @@ type LoaderContext interface {
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
-	merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
+	merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error)
+	merkleLookupTripleInPast(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
@@ -35,6 +38,12 @@ type LoaderContext interface {
 // The main LoaderContext is G.
 type LoaderContextG struct {
 	libkb.Contextified
+
+	// Cache of size=1 for caching merkle leaf lookups at the checkpoint, since in practice
+	// we hit this is rapid succession.
+	cacheMu     sync.RWMutex
+	cachedSeqno keybase1.Seqno
+	cachedLeaf  *libkb.MerkleGenericLeaf
 }
 
 var _ LoaderContext = (*LoaderContextG)(nil)
@@ -58,10 +67,18 @@ type rawTeam struct {
 	SubteamReader    bool                               `json:"subteam_reader"`
 	Showcase         keybase1.TeamShowcase              `json:"showcase"`
 	LegacyTLFUpgrade []keybase1.TeamGetLegacyTLFUpgrade `json:"legacy_tlf_upgrade"`
+	HiddenChain      []sig3.ExportJSON                  `json:"hidden"`
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
+}
+
+func (r *rawTeam) GetHiddenChain() []sig3.ExportJSON {
+	if r == nil {
+		return nil
+	}
+	return r.HiddenChain
 }
 
 func (r *rawTeam) unpackLinks(ctx context.Context) ([]*ChainLinkUnpacked, error) {
@@ -134,6 +151,7 @@ func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
 		// At some point to save bandwidth these could be hooked up.
 		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
 		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
+		arg.Args["hidden_low"] = libkb.I{Val: int(lows.HiddenChainSeqno)}
 	}
 	if len(requestSeqnos) > 0 {
 		arg.Args["seqnos"] = libkb.S{Val: seqnosToString(requestSeqnos)}
@@ -192,31 +210,94 @@ func perUserEncryptionKey(m libkb.MetaContext, userSeqno keybase1.Seqno) (*libkb
 	return kr.GetEncryptionKeyBySeqnoOrSync(m, userSeqno)
 }
 
+func (l *LoaderContextG) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
+	leaf, err := l.G().GetMerkleClient().LookupTeamWithHidden(l.MetaContext(ctx), teamID, harg)
+	if err != nil {
+		return r1, r2, false, err
+	}
+	r1, r2, hiddenIsFresh, err = l.processMerkleReply(ctx, teamID, public, leaf)
+	return r1, r2, hiddenIsFresh, err
+}
+
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeam(l.MetaContext(ctx), teamID)
 	if err != nil {
 		return r1, r2, err
 	}
+	r1, r2, _, err = l.processMerkleReply(ctx, teamID, public, leaf)
+	return r1, r2, err
+}
+
+func (l *LoaderContextG) processMerkleReply(ctx context.Context, teamID keybase1.TeamID, public bool, leaf *libkb.MerkleTeamLeaf) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenIsFresh bool, err error) {
+
 	if !leaf.TeamID.Eq(teamID) {
-		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
+		return r1, r2, false, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
 	}
 
 	if public {
 		if leaf.Public == nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
-			return r1, r2, NewTeamDoesNotExistError(public, teamID.String())
+			return r1, r2, false, NewTeamDoesNotExistError(public, teamID.String())
 		}
-		return leaf.Public.Seqno, leaf.Public.LinkID.Export(), nil
+		return leaf.Public.Seqno, leaf.Public.LinkID.Export(), leaf.HiddenIsFresh, nil
 	}
 	if leaf.Private == nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
-		return r1, r2, NewTeamDoesNotExistError(public, teamID.String())
+		return r1, r2, false, NewTeamDoesNotExistError(public, teamID.String())
 	}
-	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
+	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), leaf.HiddenIsFresh, nil
 }
 
-func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
-	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(l.MetaContext(ctx), leafID, hm)
+func (l *LoaderContextG) getCachedCheckpointLookup(leafID keybase1.UserOrTeamID, seqno keybase1.Seqno) *libkb.MerkleGenericLeaf {
+	l.cacheMu.RLock()
+	defer l.cacheMu.RUnlock()
+	if l.cachedLeaf == nil || !l.cachedLeaf.LeafID.Equal(leafID) || !l.cachedSeqno.Eq(seqno) {
+		return nil
+	}
+	ret := l.cachedLeaf.PartialClone()
+	return &ret
+}
+
+func (l *LoaderContextG) putCachedCheckpoint(seqno keybase1.Seqno, leaf *libkb.MerkleGenericLeaf) {
+	l.cacheMu.Lock()
+	defer l.cacheMu.Unlock()
+	tmp := leaf.PartialClone()
+	l.cachedLeaf = &tmp
+	l.cachedSeqno = seqno
+}
+
+func (l *LoaderContextG) merkleLookupTripleAtCheckpoint(mctx libkb.MetaContext, leafID keybase1.UserOrTeamID, seqno keybase1.Seqno) (leaf *libkb.MerkleGenericLeaf, err error) {
+
+	ret := l.getCachedCheckpointLookup(leafID, seqno)
+	if ret != nil {
+		mctx.VLogf(libkb.VLog0, "hit checkpoint cache")
+		return ret, nil
+	}
+
+	mc := l.G().MerkleClient
+	leaf, _, err = mc.LookupLeafAtSeqno(mctx, leafID, seqno)
+	if leaf != nil && err == nil {
+		l.putCachedCheckpoint(seqno, leaf)
+	}
+	return leaf, err
+}
+
+func (l *LoaderContextG) merkleLookupTripleInPast(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error) {
+	mctx := l.MetaContext(ctx)
+
+	mc := l.G().MerkleClient
+	checkpoint := mc.FirstExaminableHistoricalRoot(mctx)
+	var leaf *libkb.MerkleGenericLeaf
+
+	// If we're trying to lookup a leaf from before the checkpoint, just bump forward to the checkpoint.
+	// The checkpoint is consindered to be a legitimate version of Tree.
+	if checkpoint != nil && root.Seqno < *checkpoint {
+		mctx.Debug("Bumping up pre-checkpoint merkle fetch to checkpoint at %d for %s", *checkpoint, leafID)
+		leaf, err = l.merkleLookupTripleAtCheckpoint(mctx, leafID, *checkpoint)
+	} else {
+		leaf, err = mc.LookupLeafAtHashMeta(mctx, leafID, root.HashMeta)
+	}
+
 	if err != nil {
 		return nil, err
 	}

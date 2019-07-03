@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
-func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bool, dui libkb.DumbOutputUI) {
+func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose, details bool, dui libkb.DumbOutputUI) {
 	lineUnescaped := func(format string, args ...interface{}) {
 		dui.PrintfUnescaped(format+"\n", args...)
 	}
@@ -25,8 +25,40 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	if p.Unread {
 		timeStr += " *"
 	}
-	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.TODO(), g), p.Amount, p.Asset)
+	lineUnescaped(ColorString(g, "bold", timeStr))
+
+	if details {
+		if p.PublicNote != "" {
+			line("Memo: %s (%s)", p.PublicNote, p.PublicNoteType)
+		}
+		line("Fee charged: %s", p.FeeChargedDescription)
+	}
+
+	if p.IsAdvanced {
+		line("Account: %s", p.FromStellar.String())
+		line("Transaction ID: %v", p.TxID)
+		line(p.SummaryAdvanced)
+		if verbose {
+			line("Operations: %d", len(p.Operations))
+			for _, op := range p.Operations {
+				line("\t%s", op)
+			}
+		}
+		return
+	}
+
+	// if path payment, show the source asset amount
+	if p.SourceAmountActual != "" {
+		sourceAmount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.Background(), g), p.SourceAmountActual, p.SourceAsset)
+		if err != nil {
+			lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
+		} else {
+			lineUnescaped("%v", ColorString(g, "yellow", sourceAmount))
+		}
+	}
+
+	// destination amount, asset
+	amount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.Background(), g), p.Amount, p.Asset)
 	if err == nil {
 		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
 			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
@@ -35,6 +67,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 	}
 	lineUnescaped("%v", ColorString(g, "green", amount))
+
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
 	var showedAbbreviation bool
 	var from string
@@ -90,7 +123,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		}
 	}
 	if verbose {
-		line("Transaction Hash: %v", p.TxID)
+		line("Transaction ID: %v", p.TxID)
 	}
 	switch {
 	case p.Status == "":

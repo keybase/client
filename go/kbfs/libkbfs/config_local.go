@@ -152,6 +152,9 @@ type ConfigLocal struct {
 	// conflictResolutionDB stores information about failed CRs
 	conflictResolutionDB *LevelDb
 
+	// settingsDB stores information about local KBFS settings
+	settingsDB *SettingsDB
+
 	mode InitMode
 
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
@@ -290,6 +293,7 @@ func NewConfigLocal(mode InitMode,
 	config.blockCryptVersion = defaultBlockCryptVersion
 
 	config.conflictResolutionDB = openCRDB(config)
+	config.settingsDB = openSettingsDB(config)
 
 	return config
 }
@@ -1110,8 +1114,15 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if bms != nil {
 		bms.Shutdown()
 	}
-	if err := c.conflictResolutionDB.Close(); err != nil {
-		errorList = append(errorList, err)
+	if c.conflictResolutionDB != nil {
+		if err := c.conflictResolutionDB.Close(); err != nil {
+			errorList = append(errorList, err)
+		}
+	}
+	if c.settingsDB != nil {
+		if err := c.settingsDB.Close(); err != nil {
+			errorList = append(errorList, err)
+		}
 	}
 	kbfsServ := c.kbfsService
 	if kbfsServ != nil {
@@ -1423,7 +1434,9 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	}
 	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
 	if err != nil {
-		// TODO: open read-only instead KBFS-3659
+		// TODO (KBFS-3659): when we can open levelDB read-only,
+		//  do that instead of returning a Noop version.
+		c.blockMetadataStore = &NoopBlockMetadataStore{}
 		return err
 	}
 	return nil
@@ -1669,6 +1682,11 @@ func (c *ConfigLocal) GetConflictResolutionDB() (db *LevelDb) {
 	return c.conflictResolutionDB
 }
 
+// GetSettingsDB implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetSettingsDB() (db *SettingsDB) {
+	return c.settingsDB
+}
+
 // SetKBFSService sets the KBFSService for this ConfigLocal.
 func (c *ConfigLocal) SetKBFSService(k *KBFSService) {
 	c.lock.Lock()
@@ -1691,6 +1709,9 @@ func (c *ConfigLocal) AddRootNodeWrapper(f func(Node) Node) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.rootNodeWrappers = append(c.rootNodeWrappers, f)
+	if c.kbfs != nil {
+		c.kbfs.AddRootNodeWrapper(f)
+	}
 }
 
 // SetVLogLevel implements the Config interface for ConfigLocal.
@@ -1708,4 +1729,15 @@ func (c *ConfigLocal) VLogLevel() string {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.vdebugSetting
+}
+
+// SetDiskCacheMode sets the disk cache mode for this config, after
+// construction.  Mostly useful for tests.
+func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.diskCacheMode = m
+	if c.diskCacheMode == DiskCacheModeLocal {
+		c.loadSyncedTlfsLocked()
+	}
 }

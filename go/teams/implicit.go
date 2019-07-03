@@ -339,7 +339,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 		return "", fmt.Errorf("invalid implicit team name: no writers")
 	}
 
-	return tlf.NormalizeNamesInTLF(g, writerNames, readerNames, suffix)
+	return tlf.NormalizeNamesInTLF(libkb.NewMetaContext(ctx, g), writerNames, readerNames, suffix)
 }
 
 // Sort a list of strings but order `front` in front IF it appears.

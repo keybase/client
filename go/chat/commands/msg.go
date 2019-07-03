@@ -21,11 +21,17 @@ func NewMsg(g *globals.Context) *Msg {
 }
 
 func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	defer d.Trace(ctx, func() error { return err }, "Execute")()
 	if !d.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
+	defer func() {
+		if err != nil {
+			d.getChatUI().ChatCommandStatus(ctx, convID, "Failed to send message",
+				chat1.UICommandStatusDisplayTyp_ERROR, nil)
+		}
+	}()
 	toks, err := d.tokenize(text, 3)
 	if err != nil {
 		return err
@@ -35,6 +41,7 @@ func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 		return err
 	}
 	text = strings.Join(toks[2:], " ")
-	_, err = d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text, nil)
+	_, err = d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text, nil,
+		replyTo)
 	return err
 }

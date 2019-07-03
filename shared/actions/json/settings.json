@@ -5,8 +5,77 @@
     "import HiddenString from '../util/hidden-string'"
   ],
   "actions": {
+    "addPhoneNumber": {
+      "_description": "Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.",
+      "allowSearch": "boolean",
+      "phoneNumber": "string",
+      "resend?": "boolean"
+    },
+    "addedPhoneNumber": {
+      "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
+      "allowSearch": "boolean",
+      "error?": "string",
+      "phoneNumber": "string"
+    },
+    "verifyPhoneNumber": {
+      "_description": "Submit a verification code for a phone number",
+      "phoneNumber": "string",
+      "code": "string"
+    },
+    "verifiedPhoneNumber": {
+      "_description": "We verified a phone number or hit an error.",
+      "error?": "string",
+      "phoneNumber": "string"
+    },
+    "clearPhoneNumberAdd": {
+      "_description": "Cancel adding a phone number."
+    },
+    "clearPhoneNumberErrors": {
+      "_description": "Clear only error from phone number add flow."
+    },
     "dbNuke": {},
     "deleteAccountForever": {},
+    "editEmail": {
+      "email": "string",
+      "delete?": "boolean",
+      "makePrimary?": "boolean",
+      "makeSearchable?": "boolean | null",
+      "verify?": "boolean"
+    },
+    "editPhone": {
+      "phone": "string",
+      "delete?": "boolean",
+      "toggleSearchable?": "boolean",
+      "verify?": "boolean"
+    },
+    "sentVerificationEmail": {
+      "email": "string"
+    },
+    "loadContactImportEnabled": {
+      "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
+    },
+    "loadedContactImportEnabled": {
+      "enabled": "boolean"
+    },
+    "loadedContactPermissions": {
+      "status": ["'granted'", "'never_ask_again'", "'undetermined'"]
+    },
+    "requestContactPermissions": {
+      "thenToggleImportOn?": "boolean"
+    },
+    "editContactImportEnabled": {
+      "enable": "boolean"
+    },
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
+    "addedEmail": {
+      "email": "string",
+      "error?": "Error"
+    },
+    "clearAddingEmail": {"_description": "Reset state used for adding an email."},
+    "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
@@ -22,7 +91,7 @@
     },
     "invitesSend": {
       "email": "string",
-      "message": "?string"
+      "message": "string | null"
     },
     "invitesSent": {
       "canError": {
@@ -35,13 +104,17 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emails": "?I.List<Types.EmailRow>"
+      "emails": "I.Map<string, Types.EmailRow> | null",
+      "phones": "I.Map<string, Types.PhoneRow> | null"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
-      "status": "?boolean"
+      "status": "boolean | null"
     },
     "onChangeLockdownMode": {
+      "enabled": "boolean"
+    },
+    "onChangeUseNativeFrame": {
       "enabled": "boolean"
     },
     "notificationsRefresh": {},
@@ -51,7 +124,7 @@
     "notificationsSaved": {},
     "notificationsToggle": {
       "group": "string",
-      "name?": "?string"
+      "name?": "string | null"
     },
     "onChangeNewEmail": {
       "email": "string"
@@ -120,7 +193,26 @@
       "password": "HiddenString"
     },
     "loadedCheckPassword": {
-      "checkPasswordIsCorrect": "?boolean"
+      "checkPasswordIsCorrect": "boolean | null"
+    },
+    "sendFeedback": {
+      "feedback": "string",
+      "sendLogs": "boolean",
+      "sendMaxBytes": "boolean"
+    },
+    "feedbackSent": {
+      "_description": "An error occurred while trying to send feedback to Keybase",
+      "error": "Error | null"
+    },
+    "loadProxyData": {},
+    "loadedProxyData": {
+      "proxyData": "RPCTypes.ProxyData"
+    },
+    "saveProxyData": {
+      "proxyData": "RPCTypes.ProxyData"
+    },
+    "certificatePinningToggled": {
+      "toggled": "boolean | null"
     }
   }
 }

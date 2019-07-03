@@ -30,11 +30,13 @@ type testBlockRetrievalConfig struct {
 	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock Clock
+	clock    Clock
+	reporter Reporter
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
+	clock := clocktest.NewTestClockNow()
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
 		newTestLogMakerWithVDebug(t, libkb.VLog2String),
@@ -43,7 +45,8 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 		newTestDiskBlockCacheGetter(t, dbc),
 		newTestSyncedTlfGetterSetter(),
 		testInitModeGetter{InitDefault},
-		clocktest.NewTestClockNow(),
+		clock,
+		NewReporterSimple(clock, 1),
 	}
 }
 
@@ -59,12 +62,20 @@ func (c testBlockRetrievalConfig) Clock() Clock {
 	return c.clock
 }
 
+func (c testBlockRetrievalConfig) Reporter() Reporter {
+	return c.reporter
+}
+
 func (c testBlockRetrievalConfig) blockGetter() blockGetter {
 	return c.bg
 }
 
+func (c testBlockRetrievalConfig) GetSettingsDB() *SettingsDB {
+	return nil
+}
+
 func makeRandomBlockPointer(t *testing.T) data.BlockPointer {
-	id, err := kbfsblock.MakeTemporaryID()
+	id, err := kbfsblock.MakeFakeID()
 	require.NoError(t, err)
 	return data.BlockPointer{
 		ID:         id,

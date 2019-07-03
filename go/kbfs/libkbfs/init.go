@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode:                           InitDefaultString,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -410,11 +410,11 @@ func makeMDServer(config Config, mdserverAddr string,
 func makeKeyServer(
 	config Config, keyserverAddr string, log logger.Logger) (
 	libkey.KeyServer, error) {
-	kConfig := keyOpsConfigWrapper{config}
+	keyOpsConfig := keyOpsConfigWrapper{config}
 	if keyserverAddr == memoryAddr {
 		log.Debug("Using in-memory keyserver")
 		// local in-memory key server
-		return libkey.NewKeyServerMemory(kConfig, log)
+		return libkey.NewKeyServerMemory(keyOpsConfig, log)
 	}
 
 	if len(keyserverAddr) == 0 {
@@ -425,7 +425,7 @@ func makeKeyServer(
 		log.Debug("Using on-disk keyserver at %s", serverRootDir)
 		// local persistent key server
 		keyPath := filepath.Join(serverRootDir, "kbfs_key")
-		return libkey.NewKeyServerDir(kConfig, log, keyPath)
+		return libkey.NewKeyServerDir(keyOpsConfig, log, keyPath)
 	}
 
 	log.Debug("Using remote keyserver %s (same as mdserver)", keyserverAddr)
@@ -660,11 +660,6 @@ func doInit(
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 	config.SetVLogLevel(kbCtx.GetVDebugSetting())
-	if mode == InitConstrained {
-		// Until we have a way to turn on debug logging for mobile,
-		// log everything.
-		config.SetVLogLevel(libkb.VLog1String)
-	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -738,6 +733,17 @@ func doInit(
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
+	// Enable the disk limiter before the keybase service, since if
+	// that service receives a logged-in event it will create a disk
+	// block cache, which requires the disk limiter.
+	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
+	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
+	err = config.EnableDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
+		return nil, err
+	}
+
 	if registry := config.MetricsRegistry(); registry != nil {
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
@@ -788,9 +794,6 @@ func doInit(
 	}
 	config.SetBlockServer(bserv)
 
-	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
-	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
-
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
@@ -835,9 +838,6 @@ func doInit(
 	if err != nil {
 		log.CWarningf(ctx,
 			"Could not initialize block metadata store: %+v", err)
-		return nil, err
-		// TODO (KBFS-3659): when we can open levelDB read-only, re-enable
-		//                   this, instead of failing the init.
 		/*
 			notification := &keybase1.FSNotification{
 				StatusCode:       keybase1.FSStatusCode_ERROR,
@@ -863,18 +863,13 @@ func doInit(
 		}
 	}
 
-	err = config.EnableDiskLimiter(params.StorageRoot)
-	if err != nil {
-		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
-		return nil, err
-	}
-	ctx10s, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx60s, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
 	if params.EnableJournal && config.Mode().JournalEnabled() {
 		journalRoot := filepath.Join(params.StorageRoot, "kbfs_journal")
-		err = config.EnableJournaling(ctx10s, journalRoot,
+		err = config.EnableJournaling(ctx60s, journalRoot,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.CWarningf(ctx, "Could not initialize journal server: %+v", err)

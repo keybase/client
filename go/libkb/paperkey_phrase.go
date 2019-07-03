@@ -61,7 +61,7 @@ func (p PaperKeyPhrase) Version() (uint8, error) {
 func (p PaperKeyPhrase) InvalidWords() (words []string) {
 	for _, w := range p.words() {
 		// in secwords.go:
-		if !validWord(w) {
+		if !ValidSecWord(w) {
 			words = append(words, w)
 		}
 	}

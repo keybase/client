@@ -11,19 +11,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func assertCanUserPerformTeamDelete(t *testing.T, g *libkb.GlobalContext, teamname string) {
+	teamOp, err := CanUserPerform(context.Background(), g, teamname)
+	require.NoError(t, err)
+	require.True(t, teamOp.DeleteTeam)
+}
+
 func TestDeleteRoot(t *testing.T) {
 	tc, u, teamname := memberSetup(t)
 	defer tc.Cleanup()
 
 	assertRole(tc, teamname, u.Username, keybase1.TeamRole_OWNER)
 
+	assertCanUserPerformTeamDelete(t, tc.G, teamname)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, teamname); err != nil {
 		t.Fatal(err)
 	}
 
 	_, err := GetTeamByNameForTest(context.Background(), tc.G, teamname, false, false)
 	require.Error(t, err, "no error getting deleted team")
-	require.True(t, IsTeamReadError(err))
+	_, ok := err.(*TeamTombstonedError)
+	require.True(t, ok) // ensure server cannot temporarily pretend a team was deleted
 }
 
 func TestDeleteSubteamAdmin(t *testing.T) {
@@ -46,6 +54,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
@@ -78,6 +87,7 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
@@ -105,6 +115,7 @@ func TestRecreateSubteam(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	assertCanUserPerformTeamDelete(t, tc.G, sub)
 	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
@@ -142,6 +153,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 deletes A.B")
+	assertCanUserPerformTeamDelete(t, tcs[0].G, subteamName1.String())
 	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName1.String())
 	require.NoError(t, err)
 
@@ -150,6 +162,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 deletes A.C")
+	assertCanUserPerformTeamDelete(t, tcs[0].G, subteamName2.String())
 	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName2.String())
 	require.NoError(t, err)
 

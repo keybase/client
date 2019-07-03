@@ -1,4 +1,3 @@
-// @noflow
 const webpack = require('webpack')
 const path = require('path')
 // you can use this file to add your custom webpack plugins, loaders and anything you like.
@@ -12,34 +11,46 @@ const fileLoaderRule = {
   },
 }
 
-module.exports = (storybookBaseConfig, configType) => {
-  storybookBaseConfig.resolve = {
-    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+const babelRule = {
+  loader: 'babel-loader',
+  options: {
+    cacheDirectory: true,
+    ignore: [/\.(native|ios|android)\.js$/],
+    plugins: ['react-hot-loader/babel'],
+    presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.0.1'}}]],
+  },
+}
+
+module.exports = ({config, mode}) => {
+  config.resolve = {
+    extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.json', '.flow', '.ts', '.tsx'],
   }
 
-  storybookBaseConfig.plugins.push(
+  config.plugins = [
+    ...config.plugins,
     new webpack.DefinePlugin({
       __DEV__: true,
       __STORYBOOK__: true,
       __STORYSHOT__: false,
       'process.platform': JSON.stringify('darwin'),
     }),
-    new webpack.NormalModuleReplacementPlugin(/^react-redux$/, __dirname + '/../__mocks__/react-redux.js'),
-    new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.js'),
-    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
-    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
-    new webpack.NormalModuleReplacementPlugin(/route-tree/, __dirname + '/../__mocks__/empty.js'),
-    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.js')
-  )
+    new webpack.NormalModuleReplacementPlugin(
+      /typed-connect/,
+      __dirname + '/../util/__mocks__/typed-connect.tsx'
+    ),
+    new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.tsx'),
+    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.tsx'),
+  ]
 
   // Override default ignoring node_modules
-  storybookBaseConfig.module.rules[0].exclude = /((node_modules\/(?!universalify|fs-extra|react-redux|@storybook))|\/dist\/)/
-  storybookBaseConfig.module.rules.push(
+  config.module.rules = [
     {
       // Don't include large mock images in a prod build
       include: path.resolve(__dirname, '../images/mock'),
       test: /\.jpg$/,
-      use: [fileLoaderRule],
+      use: ['null-loader'],
     },
     {
       include: path.resolve(__dirname, '../images/icons'),
@@ -47,24 +58,38 @@ module.exports = (storybookBaseConfig, configType) => {
       use: ['null-loader'],
     },
     {
-      include: path.resolve(__dirname, '../images/illustrations'),
-      test: [/.*\.(gif|png)$/],
-      use: [fileLoaderRule],
+      exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|react-gateway))|\/dist\/)/,
+      test: /\.jsx?$/,
+      use: [babelRule],
     },
     {
       test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
       use: [fileLoaderRule],
     },
     {
+      include: path.resolve(__dirname, '../images/illustrations'),
+      test: [/.*\.(gif|png)$/],
+      use: [fileLoaderRule],
+    },
+    {
+      include: path.resolve(__dirname, '../images/install'),
+      test: [/.*\.(gif|png)$/],
+      use: [fileLoaderRule],
+    },
+    {
       test: /\.css$/,
       use: ['style-loader', 'css-loader'],
-    }
-  )
+    },
+    {
+      test: /\.(ts|tsx)$/,
+      use: ['babel-loader'],
+    },
+  ]
 
-  storybookBaseConfig.node = {
+  config.node = {
     __dirname: true,
     fs: 'empty',
   }
 
-  return storybookBaseConfig
+  return config
 }

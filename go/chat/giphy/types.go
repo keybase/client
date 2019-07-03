@@ -1,6 +1,7 @@
 package giphy
 
 type gifImage struct {
+	URL    string
 	MP4    string
 	Width  string
 	Height string

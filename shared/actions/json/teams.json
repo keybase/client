@@ -2,7 +2,7 @@
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
-    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
+    "import {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     "addUserToTeams": {
@@ -25,7 +25,7 @@
     "createChannel": {
       "teamname": "string",
       "channelname": "string",
-      "description": "?string",
+      "description": "string | null",
       "rootPath?": "I.List<string>",
       "sourceSubPath?": "I.List<string>",
       "destSubPath?": "I.List<string>"
@@ -48,9 +48,7 @@
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamname": "string"
     },
-    "getTeams": {
-      "clearNavBadges?": "boolean"
-    },
+    "getTeams": {},
     "getDetails": {
       "teamname": "string"
     },
@@ -77,25 +75,17 @@
     "saveChannelMembership": {
       "teamname": "string",
       "oldChannelState": "Types.ChannelMembershipState",
-      "newChannelState": "Types.ChannelMembershipState",
-      "you": "string"
+      "newChannelState": "Types.ChannelMembershipState"
     },
     "addParticipant": {
       "teamname": "string",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "participant": "string"
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "removeParticipant": {
       "teamname": "string",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "participant": "string"
+      "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
-    "addPeopleToTeam": {
-      "destSubPath?": "I.List<string>",
-      "role": "string",
-      "rootPath?": "I.List<string>",
-      "sendChatNotification": "boolean",
-      "sourceSubPath?": "I.List<string>",
+    "deleteTeam": {
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
@@ -239,6 +229,7 @@
       "accessRequestsPending": "I.Set<Types.Teamname>"
     },
     "setNewTeamInfo": {
+      "deletedTeams": "I.List<RPCTypes.DeletedTeamInfo>",
       "newTeams": "I.Set<string>",
       "newTeamRequests": "I.List<string>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
@@ -274,9 +265,10 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
-      "newTeamNames": "Array<string>",
-      "newTeamAccessRequests": "Array<string>",
-      "teamsWithResetUsers": "Array<$ReadOnly<{id: Buffer, teamname: string, username: string, uid: string}>>"
+      "deletedTeams": "I.List<RPCTypes.DeletedTeamInfo>",
+      "newTeamNames": "I.List<string>",
+      "newTeamAccessRequests": "I.List<string>",
+      "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {
       "teamname": "string"

@@ -15,11 +15,6 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
-    "loadingPath": {
-      "path": "Types.Path",
-      "id": "string",
-      "done": "boolean"
-    },
     "favoritesLoad": {},
     "favoritesLoaded": {
       "private": "I.Map<string, Types.Tlf>",
@@ -27,20 +22,15 @@
       "team": "I.Map<string, Types.Tlf>"
     },
     "setFolderViewFilter": {
-      "filter": "string",
+      "filter": "string"
     },
     "tlfSyncConfigLoaded": {
       "tlfType": "Types.TlfType",
       "tlfName": "string",
-      "syncConfig": "Types.TlfSyncConfig",
-    },
-    "tlfSyncConfigsLoaded": {
-      "private": "I.Map<string, Types.TlfSyncConfig>",
-      "public": "I.Map<string, Types.TlfSyncConfig>",
-      "team": "I.Map<string, Types.TlfSyncConfig>"
+      "syncConfig": "Types.TlfSyncConfig"
     },
     "loadTlfSyncConfig": {
-      "tlfPath": "Types.Path",
+      "tlfPath": "Types.Path"
     },
     "setTlfSyncConfig": {
       "enabled": "boolean",
@@ -52,7 +42,7 @@
     },
     "loadPathMetadata": {
       "path": "Types.Path",
-      "refreshTag?": "?Types.RefreshTag"
+      "refreshTag?": "Types.RefreshTag | null"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -107,7 +97,7 @@
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
       "totalSyncingBytes": "number",
-      "endEstimate?": "?number"
+      "endEstimate?": "number | null"
     },
     "openLocalPathInSystemFileManager": {
       "localPath": "string"
@@ -124,17 +114,25 @@
     "hideSystemFileManagerIntegrationBanner": {},
     "showSystemFileManagerIntegrationBanner": {},
     "driverEnable": {
-      "isRetry?": "?boolean"
+      "isRetry?": "boolean | null"
     },
     "driverDisable": {},
     "driverDisabling": {},
     "driverKextPermissionError": {},
 
+    "startManualConflictResolution": {
+      "tlfPath": "Types.Path"
+    },
+    "finishManualConflictResolution": {
+      "localViewTlfPath": "Types.Path"
+    },
+
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
     "openSecurityPreferences": {},
-    "refreshLocalHTTPServerInfo": {}, "localHTTPServerInfo": {
+    "refreshLocalHTTPServerInfo": {},
+    "localHTTPServerInfo": {
       "address": "string",
       "token": "string"
     },
@@ -163,10 +161,14 @@
       "editID": "Types.EditID"
     },
     "fsError": {
-      "error": "Types.FsError"
+      "error": "Types.FsError",
+      "expectedIfOffline": "boolean"
     },
     "dismissFsError": {
       "key": "string"
+    },
+    "setLastPublicBannerClosedTlf": {
+      "tlf": "string"
     },
 
     "openFilesFromWidget": {
@@ -209,7 +211,7 @@
     "copy": {"destinationParentPath": "Types.Path"},
 
     "initSendAttachmentToChat": {
-      "path": "Types.Path",
+      "path": "Types.Path"
     },
     "setSendAttachmentToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
@@ -217,9 +219,12 @@
     "setSendAttachmentToChatFilter": {
       "filter": "string"
     },
-    "sentAttachmentToChat":{},
+    "setSendAttachmentToChatTitle": {
+      "title": "string"
+    },
+    "sentAttachmentToChat": {},
     "initSendLinkToChat": {
-      "path": "Types.Path",
+      "path": "Types.Path"
     },
     "setSendLinkToChatConvID": {
       "convID": "ChatTypes.ConversationIDKey"
@@ -227,8 +232,8 @@
     "setSendLinkToChatChannels": {
       "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
     },
-    "triggerSendLinkToChat":{},
-    "sentLinkToChat":{
+    "triggerSendLinkToChat": {},
+    "sentLinkToChat": {
       "convID": "ChatTypes.ConversationIDKey"
     },
 
@@ -236,19 +241,41 @@
       "view": "Types.PathItemActionMenuView"
     },
     "setPathItemActionMenuDownloadKey": {
-      "key": "?string"
+      "key": "string | null"
     },
     "waitForKbfsDaemon": {},
     "kbfsDaemonRpcStatusChanged": {
       "rpcStatus": "Types.KbfsDaemonRpcStatus"
     },
     "kbfsDaemonOnlineStatusChanged": {
-      "online": "boolean",
+      "online": "boolean"
     },
     "overallSyncStatusChanged": {
-      "progress": "Types.SyncingFoldersProgress"
+      "progress": "Types.SyncingFoldersProgress",
+      "diskSpaceStatus": "Types.DiskSpaceStatus"
     },
-
-    "placeholderAction": {}
+    "showHideDiskSpaceBanner": {
+      "show": "boolean"
+    },
+    "setPathSoftError": {
+      "path": "Types.Path",
+      "softError": "Types.SoftError | null"
+    },
+    "setTlfSoftError": {
+      "path": "Types.Path",
+      "softError": "Types.SoftError | null"
+    },
+    "loadSettings": {},
+    "settingsLoaded": {
+      "settings?": "Types.Settings"
+    },
+    "setSpaceAvailableNotificationThreshold": {
+      "spaceAvailableNotificationThreshold": "number"
+    },
+    "setTlfsAsUnloaded": {},
+    "placeholderAction": {},
+    "setDebugLevel": {
+      "level": "string"
+    }
   }
 }

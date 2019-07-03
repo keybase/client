@@ -186,7 +186,7 @@ func TestImplicitPukless(t *testing.T) {
 	u1Role, err := team.chain().GetUserRole(fus[1].GetUserVersion())
 	require.True(t, err != nil || u1Role == keybase1.TeamRole_NONE, "u1 should not yet be a member")
 	t.Logf("invites: %v", spew.Sdump(team.chain().inner.ActiveInvites))
-	itype, err := keybase1.TeamInviteTypeFromString("keybase", true)
+	itype, err := TeamInviteTypeFromString(tcs[0].MetaContext(), "keybase")
 	require.NoError(t, err, "should be able to make invite type for 'keybase'")
 	invite, err := team.chain().FindActiveInvite(fus[1].GetUserVersion().TeamInviteName(), itype)
 	require.NoError(t, err, "team should have invite for the puk-less user")
@@ -232,7 +232,7 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 	// It will probably fail because <uid>@keybase is the wrong format.
 
 	makeAssertionContext := func() libkb.AssertionContext {
-		return libkb.MakeAssertionContext(externals.NewProofServices(tc.G))
+		return libkb.MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G), externals.NewProofServices(tc.G))
 	}
 
 	for _, public := range []bool{true, false} {
@@ -339,7 +339,7 @@ func TestImplicitTeamRotate(t *testing.T) {
 		require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
 
 		t.Logf("rotate the key")
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 
 		t.Logf("load as other member")

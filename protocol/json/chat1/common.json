@@ -403,6 +403,13 @@
           "name": "oneChatTypePerTLF"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "topicName"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationStatus"
@@ -1439,6 +1446,10 @@
           "name": "sentTo"
         },
         {
+          "type": "boolean",
+          "name": "matchMentions"
+        },
+        {
           "type": "gregor1.Time",
           "name": "sentBefore"
         },
@@ -1461,6 +1472,13 @@
         {
           "type": "int",
           "name": "afterContext"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "initialPagination"
         },
         {
           "type": "ReIndexingMode",
@@ -1606,6 +1624,10 @@
         {
           "type": "int",
           "name": "percentIndexed"
+        },
+        {
+          "type": "boolean",
+          "name": "delegated"
         }
       ]
     },

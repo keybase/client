@@ -13,11 +13,12 @@ import (
 
 func TestTeamPlusApplicationKeysExim(t *testing.T) {
 	tc := SetupTest(t, "TestTeamPlusApplicationKeysExim", 1)
+	defer tc.Cleanup()
+
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer tc.Cleanup()
 
 	name := createTeam(tc)
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
@@ -50,6 +51,7 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 func TestImplicitTeamLTPAK(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
+
 	u0, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 	u1, err := kbtest.CreateAndSignupFakeUser("t", tc.G)

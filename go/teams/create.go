@@ -161,7 +161,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	}
 
 	// These boxes will get posted along with the sig below.
-	m, err := NewTeamKeyManager(mctx.G())
+	m, err := NewTeamKeyManager(mctx.G(), teamID)
 	if err != nil {
 		return err
 	}
@@ -247,6 +247,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 			Encryption: perTeamEncryptionKey.GetKID(),
 			Signing:    perTeamSigningKey.GetKID(),
 		},
+		Version: libkb.KeybaseSignatureV2,
 	}
 
 	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
@@ -492,6 +493,7 @@ func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSi
 		SeqType:    seqType,
 		SigInner:   string(newSubteamSigJSON),
 		TeamID:     parentTeam.GetID(),
+		Version:    libkb.KeybaseSignatureV2,
 	}
 	return item, nil
 }
@@ -535,7 +537,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	// These boxes will get posted along with the sig below.
-	m, err := NewTeamKeyManager(g)
+	m, err := NewTeamKeyManager(g, subteamID)
 	if err != nil {
 		return nil, nil, err
 	}

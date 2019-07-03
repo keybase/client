@@ -9,24 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "Tracker",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "tracker"
-        },
-        {
-          "type": "int",
-          "name": "status"
-        },
-        {
-          "type": "Time",
-          "name": "mTime"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "TrackProof",
       "fields": [
         {
@@ -167,6 +149,13 @@
             "items": "Email"
           },
           "name": "emails"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserPhoneNumber"
+          },
+          "name": "phoneNumbers"
         }
       ]
     },
@@ -336,50 +325,6 @@
     }
   ],
   "messages": {
-    "listTrackers": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "uid",
-          "type": "UID"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "Tracker"
-      }
-    },
-    "listTrackersByName": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "Tracker"
-      }
-    },
-    "listTrackersSelf": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "Tracker"
-      }
-    },
     "loadUncheckedUserSummaries": {
       "request": [
         {
@@ -736,6 +681,44 @@
         }
       ],
       "response": "CanLogoutRes"
+    },
+    "userCard": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "useSession",
+          "type": "boolean"
+        }
+      ],
+      "response": [
+        null,
+        "UserCard"
+      ]
+    },
+    "blockUser": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "unblockUser": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

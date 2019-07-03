@@ -43,7 +43,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	tlfID := cres.NameIDBreaks.TlfID
 	t.Logf("TLFID: %s", tlfID)
 	require.Equal(t, info.Triple.Tlfid, chat1.TLFID(tlfID.ToBytes()))
-	conv, err := utils.GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id,
+	conv, err := utils.GetVerifiedConv(context.TODO(), tc.Context(), uid, info.Id,
 		types.InboxSourceDataSourceAll)
 	require.NoError(t, err)
 
@@ -56,7 +56,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 
 	boxer := NewBoxer(tc.Context())
 	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
-	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv, nil)
+	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv, nil)
 	require.NoError(t, err)
 	kbfsBoxed := prepareRes.Boxed
 	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -67,7 +67,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	require.NoError(t, teams.UpgradeTLFIDToImpteam(ctx, tc.G, u.Username, tlfID, false,
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
-	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
+	conv.Info.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
 	ctx = globals.CtxAddOverrideNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
@@ -76,7 +76,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	}
 	teamPlain := textMsgWithHeader(t, "team", header)
 	prepareRes, err = sender.Prepare(ctx, teamPlain,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv, nil)
+		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv, nil)
 	require.NoError(t, err)
 	teamBoxed := prepareRes.Boxed
 	teamBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -85,7 +85,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	}
 
 	checkUnbox := func() {
-		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{teamBoxed, kbfsBoxed}, conv.Conv)
+		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{teamBoxed, kbfsBoxed}, conv)
 		require.NoError(t, err)
 		require.Len(t, unboxed, 2)
 		for _, u := range unboxed {

@@ -132,6 +132,7 @@ func (i *SCChainLinkPayload) SignatureMetadata() keybase1.SignatureMetadata {
 	return keybase1.SignatureMetadata{
 		PrevMerkleRootSigned: i.Body.MerkleRoot.ToMerkleRootV2(),
 		SigChainLocation:     i.SigChainLocation(),
+		Time:                 keybase1.TimeFromSeconds(int64(i.Ctime)),
 	}
 }
 

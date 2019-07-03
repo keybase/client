@@ -846,6 +846,35 @@ func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayR
 	return nil
 }
 
+func (l LoginUI) ExplainDeviceRecovery(ctx context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	if arg.Name == "" {
+		arg.Name = "your device"
+	}
+	switch arg.Kind {
+	case keybase1.DeviceType_DESKTOP:
+		l.parent.Printf("On %q, go to \"Settings > Your account\" to change your password.\n", arg.Name)
+		return nil
+	case keybase1.DeviceType_MOBILE:
+		l.parent.Printf("On %q, go to the \"menu > Change password\" to change your password.\n", arg.Name)
+		return nil
+	default:
+		return fmt.Errorf("Invalid device type passed: %v", arg.Kind)
+	}
+}
+
+func (l LoginUI) PromptPassphraseRecovery(ctx context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	var msg string
+	switch arg.Kind {
+	case keybase1.PassphraseRecoveryPromptType_ENCRYPTED_PGP_KEYS:
+		msg = `You have uploaded an encrypted PGP private key, it will be lost.
+
+		Continue with password recovery?`
+	default:
+		return false, fmt.Errorf("Unknown prompt type - got %v", arg.Kind)
+	}
+	return l.parent.PromptYesNo(PromptDescriptorPassphraseRecovery, msg, libkb.PromptDefaultNo)
+}
+
 type SecretUI struct {
 	parent *UI
 }

@@ -18,6 +18,7 @@ func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
 type UserPhoneNumber struct {
 	PhoneNumber PhoneNumber        `codec:"phoneNumber" json:"phone_number"`
 	Verified    bool               `codec:"verified" json:"verified"`
+	Superseded  bool               `codec:"superseded" json:"superseded"`
 	Visibility  IdentityVisibility `codec:"visibility" json:"visibility"`
 	Ctime       UnixTime           `codec:"ctime" json:"ctime"`
 }
@@ -26,6 +27,7 @@ func (o UserPhoneNumber) DeepCopy() UserPhoneNumber {
 	return UserPhoneNumber{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 		Verified:    o.Verified,
+		Superseded:  o.Superseded,
 		Visibility:  o.Visibility.DeepCopy(),
 		Ctime:       o.Ctime.DeepCopy(),
 	}
@@ -59,32 +61,12 @@ func (o PhoneNumberLookupResult) DeepCopy() PhoneNumberLookupResult {
 	}
 }
 
-type PhoneNumberAddedMsg struct {
+type PhoneNumberChangedMsg struct {
 	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
 }
 
-func (o PhoneNumberAddedMsg) DeepCopy() PhoneNumberAddedMsg {
-	return PhoneNumberAddedMsg{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-	}
-}
-
-type PhoneNumberVerifiedMsg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
-}
-
-func (o PhoneNumberVerifiedMsg) DeepCopy() PhoneNumberVerifiedMsg {
-	return PhoneNumberVerifiedMsg{
-		PhoneNumber: o.PhoneNumber.DeepCopy(),
-	}
-}
-
-type PhoneNumberSupersededMsg struct {
-	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phone"`
-}
-
-func (o PhoneNumberSupersededMsg) DeepCopy() PhoneNumberSupersededMsg {
-	return PhoneNumberSupersededMsg{
+func (o PhoneNumberChangedMsg) DeepCopy() PhoneNumberChangedMsg {
+	return PhoneNumberChangedMsg{
 		PhoneNumber: o.PhoneNumber.DeepCopy(),
 	}
 }
@@ -128,13 +110,6 @@ type SetVisibilityAllPhoneNumberArg struct {
 	Visibility IdentityVisibility `codec:"visibility" json:"visibility"`
 }
 
-type BulkLookupPhoneNumbersArg struct {
-	SessionID           int              `codec:"sessionID" json:"sessionID"`
-	PhoneNumberContacts []RawPhoneNumber `codec:"phoneNumberContacts" json:"phoneNumberContacts"`
-	RegionCodes         []RegionCode     `codec:"regionCodes" json:"regionCodes"`
-	UserRegionCode      *RegionCode      `codec:"userRegionCode,omitempty" json:"userRegionCode,omitempty"`
-}
-
 type PhoneNumbersInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	EditPhoneNumber(context.Context, EditPhoneNumberArg) error
@@ -143,7 +118,6 @@ type PhoneNumbersInterface interface {
 	DeletePhoneNumber(context.Context, DeletePhoneNumberArg) error
 	SetVisibilityPhoneNumber(context.Context, SetVisibilityPhoneNumberArg) error
 	SetVisibilityAllPhoneNumber(context.Context, SetVisibilityAllPhoneNumberArg) error
-	BulkLookupPhoneNumbers(context.Context, BulkLookupPhoneNumbersArg) ([]PhoneNumberLookupResult, error)
 }
 
 func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
@@ -255,21 +229,6 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 					return
 				},
 			},
-			"bulkLookupPhoneNumbers": {
-				MakeArg: func() interface{} {
-					var ret [1]BulkLookupPhoneNumbersArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]BulkLookupPhoneNumbersArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]BulkLookupPhoneNumbersArg)(nil), args)
-						return
-					}
-					ret, err = i.BulkLookupPhoneNumbers(ctx, typedArgs[0])
-					return
-				},
-			},
 		},
 	}
 }
@@ -311,10 +270,5 @@ func (c PhoneNumbersClient) SetVisibilityPhoneNumber(ctx context.Context, __arg 
 
 func (c PhoneNumbersClient) SetVisibilityAllPhoneNumber(ctx context.Context, __arg SetVisibilityAllPhoneNumberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.setVisibilityAllPhoneNumber", []interface{}{__arg}, nil)
-	return
-}
-
-func (c PhoneNumbersClient) BulkLookupPhoneNumbers(ctx context.Context, __arg BulkLookupPhoneNumbersArg) (res []PhoneNumberLookupResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.bulkLookupPhoneNumbers", []interface{}{__arg}, &res)
 	return
 }

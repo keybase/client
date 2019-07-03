@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 	"math"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -164,6 +166,22 @@ func (md modeDefault) OldStorageRootCleaningEnabled() bool {
 	return true
 }
 
+func (md modeDefault) DoRefreshFavoritesOnInit() bool {
+	return true
+}
+
+func (md modeDefault) DoLogObfuscation() bool {
+	return true
+}
+
+func (md modeDefault) InitialDelayForBackgroundWork() time.Duration {
+	return 0
+}
+
+func (md modeDefault) BackgroundWorkPeriod() time.Duration {
+	return 0
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -307,6 +325,24 @@ func (mm modeMinimal) OldStorageRootCleaningEnabled() bool {
 	return false
 }
 
+func (mm modeMinimal) DoRefreshFavoritesOnInit() bool {
+	return false
+}
+
+func (mm modeMinimal) DoLogObfuscation() bool {
+	return true
+}
+
+func (mm modeMinimal) InitialDelayForBackgroundWork() time.Duration {
+	// No background work
+	return math.MaxInt64
+}
+
+func (mm modeMinimal) BackgroundWorkPeriod() time.Duration {
+	// No background work
+	return math.MaxInt64
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -377,6 +413,20 @@ func (mso modeSingleOp) LocalHTTPServerEnabled() bool {
 
 func (mso modeSingleOp) OldStorageRootCleaningEnabled() bool {
 	return false
+}
+
+func (mso modeSingleOp) DoRefreshFavoritesOnInit() bool {
+	return false
+}
+
+func (mso modeSingleOp) InitialDelayForBackgroundWork() time.Duration {
+	// No background work
+	return math.MaxInt64
+}
+
+func (mso modeSingleOp) BackgroundWorkPeriod() time.Duration {
+	// No background work
+	return math.MaxInt64
 }
 
 // Constrained mode:
@@ -456,7 +506,7 @@ func (mc modeConstrained) ServiceKeepaliveEnabled() bool {
 }
 
 func (mc modeConstrained) TLFEditHistoryEnabled() bool {
-	return false
+	return true
 }
 
 func (mc modeConstrained) SendEditNotificationsEnabled() bool {
@@ -465,6 +515,14 @@ func (mc modeConstrained) SendEditNotificationsEnabled() bool {
 
 func (mc modeConstrained) LocalHTTPServerEnabled() bool {
 	return true
+}
+
+func (mc modeConstrained) InitialDelayForBackgroundWork() time.Duration {
+	return 10 * time.Second
+}
+
+func (mc modeConstrained) BackgroundWorkPeriod() time.Duration {
+	return 5 * time.Second
 }
 
 // Memory limited mode
@@ -509,6 +567,10 @@ func (mml modeMemoryLimited) MaxCleanBlockCacheCapacity() uint64 {
 	return 1 * (1 << 20) // 1 MB
 }
 
+func (mml modeMemoryLimited) TLFEditHistoryEnabled() bool {
+	return false
+}
+
 // Wrapper for tests.
 
 type modeTest struct {
@@ -533,4 +595,9 @@ func (mt modeTest) QuotaReclamationMinUnrefAge() time.Duration {
 func (mt modeTest) QuotaReclamationMinHeadAge() time.Duration {
 	// No min head age during testing.
 	return 0
+}
+
+func (mt modeTest) DoLogObfuscation() bool {
+	e := os.Getenv("KEYBASE_TEST_OBFUSCATE_LOGS")
+	return e != "" && e != "0" && strings.ToLower(e) != "false"
 }

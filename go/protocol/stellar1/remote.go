@@ -369,16 +369,23 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryStellar struct {
-	TxID            TransactionID `codec:"txID" json:"txID"`
-	From            AccountID     `codec:"from" json:"from"`
-	To              AccountID     `codec:"to" json:"to"`
-	Amount          string        `codec:"amount" json:"amount"`
-	Asset           Asset         `codec:"asset" json:"asset"`
-	Ctime           TimeMs        `codec:"ctime" json:"ctime"`
-	CursorToken     string        `codec:"cursorToken" json:"cursorToken"`
-	Unread          bool          `codec:"unread" json:"unread"`
-	IsInflation     bool          `codec:"isInflation" json:"isInflation"`
-	InflationSource *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
+	TxID               TransactionID          `codec:"txID" json:"txID"`
+	From               AccountID              `codec:"from" json:"from"`
+	To                 AccountID              `codec:"to" json:"to"`
+	Amount             string                 `codec:"amount" json:"amount"`
+	Asset              Asset                  `codec:"asset" json:"asset"`
+	Ctime              TimeMs                 `codec:"ctime" json:"ctime"`
+	CursorToken        string                 `codec:"cursorToken" json:"cursorToken"`
+	Unread             bool                   `codec:"unread" json:"unread"`
+	IsInflation        bool                   `codec:"isInflation" json:"isInflation"`
+	InflationSource    *string                `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
+	SourceAmountMax    string                 `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual string                 `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset        Asset                  `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced         bool                   `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced    string                 `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations         []string               `codec:"operations" json:"operations"`
+	Trustline          *PaymentTrustlineLocal `codec:"trustline,omitempty" json:"trustline,omitempty"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -399,6 +406,29 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 			tmp := (*x)
 			return &tmp
 		})(o.InflationSource),
+		SourceAmountMax:    o.SourceAmountMax,
+		SourceAmountActual: o.SourceAmountActual,
+		SourceAsset:        o.SourceAsset.DeepCopy(),
+		IsAdvanced:         o.IsAdvanced,
+		SummaryAdvanced:    o.SummaryAdvanced,
+		Operations: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Operations),
+		Trustline: (func(x *PaymentTrustlineLocal) *PaymentTrustlineLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Trustline),
 	}
 }
 
@@ -424,9 +454,13 @@ type PaymentSummaryDirect struct {
 	Ctime               TimeMs                `codec:"ctime" json:"ctime"`
 	Rtime               TimeMs                `codec:"rtime" json:"rtime"`
 	CursorToken         string                `codec:"cursorToken" json:"cursorToken"`
+	Unread              bool                  `codec:"unread" json:"unread"`
 	FromPrimary         bool                  `codec:"fromPrimary" json:"fromPrimary"`
 	BatchID             string                `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
+	SourceAmountMax     string                `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual  string                `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset         Asset                 `codec:"sourceAsset" json:"sourceAsset"`
 }
 
 func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
@@ -470,9 +504,13 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		Ctime:               o.Ctime.DeepCopy(),
 		Rtime:               o.Rtime.DeepCopy(),
 		CursorToken:         o.CursorToken,
+		Unread:              o.Unread,
 		FromPrimary:         o.FromPrimary,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
+		SourceAmountMax:     o.SourceAmountMax,
+		SourceAmountActual:  o.SourceAmountActual,
+		SourceAsset:         o.SourceAsset.DeepCopy(),
 	}
 }
 
@@ -571,10 +609,12 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 }
 
 type PaymentDetails struct {
-	Summary       PaymentSummary `codec:"summary" json:"summary"`
-	Memo          string         `codec:"memo" json:"memo"`
-	MemoType      string         `codec:"memoType" json:"memoType"`
-	ExternalTxURL string         `codec:"externalTxURL" json:"externalTxURL"`
+	Summary          PaymentSummary `codec:"summary" json:"summary"`
+	Memo             string         `codec:"memo" json:"memo"`
+	MemoType         string         `codec:"memoType" json:"memoType"`
+	ExternalTxURL    string         `codec:"externalTxURL" json:"externalTxURL"`
+	FeeCharged       string         `codec:"feeCharged" json:"feeCharged"`
+	PathIntermediate []Asset        `codec:"pathIntermediate" json:"pathIntermediate"`
 }
 
 func (o PaymentDetails) DeepCopy() PaymentDetails {
@@ -583,6 +623,18 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 		Memo:          o.Memo,
 		MemoType:      o.MemoType,
 		ExternalTxURL: o.ExternalTxURL,
+		FeeCharged:    o.FeeCharged,
+		PathIntermediate: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PathIntermediate),
 	}
 }
 
@@ -860,18 +912,20 @@ type BalancesArg struct {
 }
 
 type DetailsArg struct {
-	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID    AccountID            `codec:"accountID" json:"accountID"`
-	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	IncludeMulti    bool                 `codec:"includeMulti" json:"includeMulti"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type RecentPaymentsArg struct {
-	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID    AccountID            `codec:"accountID" json:"accountID"`
-	Cursor       *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit        int                  `codec:"limit" json:"limit"`
-	SkipPending  bool                 `codec:"skipPending" json:"skipPending"`
-	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	Cursor          *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit           int                  `codec:"limit" json:"limit"`
+	SkipPending     bool                 `codec:"skipPending" json:"skipPending"`
+	IncludeMulti    bool                 `codec:"includeMulti" json:"includeMulti"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type PendingPaymentsArg struct {
@@ -968,13 +1022,23 @@ type NetworkOptionsArg struct {
 }
 
 type DetailsPlusPaymentsArg struct {
-	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	Caller          keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID       AccountID            `codec:"accountID" json:"accountID"`
+	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
 type AssetSearchArg struct {
 	AssetCode       string `codec:"assetCode" json:"assetCode"`
 	IssuerAccountID string `codec:"issuerAccountID" json:"issuerAccountID"`
+}
+
+type FuzzyAssetSearchArg struct {
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	SearchString string               `codec:"searchString" json:"searchString"`
+}
+
+type ListPopularAssetsArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 }
 
 type ChangeTrustlineArg struct {
@@ -985,6 +1049,11 @@ type ChangeTrustlineArg struct {
 type FindPaymentPathArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 	Query  PaymentPathQuery     `codec:"query" json:"query"`
+}
+
+type PostAnyTransactionArg struct {
+	Caller            keybase1.UserVersion `codec:"caller" json:"caller"`
+	SignedTransaction string               `codec:"signedTransaction" json:"signedTransaction"`
 }
 
 type RemoteInterface interface {
@@ -1012,8 +1081,11 @@ type RemoteInterface interface {
 	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
 	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
 	AssetSearch(context.Context, AssetSearchArg) ([]Asset, error)
+	FuzzyAssetSearch(context.Context, FuzzyAssetSearchArg) ([]Asset, error)
+	ListPopularAssets(context.Context, keybase1.UserVersion) (AssetListResult, error)
 	ChangeTrustline(context.Context, ChangeTrustlineArg) error
 	FindPaymentPath(context.Context, FindPaymentPathArg) (PaymentPath, error)
+	PostAnyTransaction(context.Context, PostAnyTransactionArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1375,6 +1447,36 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"fuzzyAssetSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]FuzzyAssetSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FuzzyAssetSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FuzzyAssetSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.FuzzyAssetSearch(ctx, typedArgs[0])
+					return
+				},
+			},
+			"listPopularAssets": {
+				MakeArg: func() interface{} {
+					var ret [1]ListPopularAssetsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListPopularAssetsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListPopularAssetsArg)(nil), args)
+						return
+					}
+					ret, err = i.ListPopularAssets(ctx, typedArgs[0].Caller)
+					return
+				},
+			},
 			"changeTrustline": {
 				MakeArg: func() interface{} {
 					var ret [1]ChangeTrustlineArg
@@ -1402,6 +1504,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.FindPaymentPath(ctx, typedArgs[0])
+					return
+				},
+			},
+			"postAnyTransaction": {
+				MakeArg: func() interface{} {
+					var ret [1]PostAnyTransactionArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]PostAnyTransactionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PostAnyTransactionArg)(nil), args)
+						return
+					}
+					err = i.PostAnyTransaction(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1536,6 +1653,17 @@ func (c RemoteClient) AssetSearch(ctx context.Context, __arg AssetSearchArg) (re
 	return
 }
 
+func (c RemoteClient) FuzzyAssetSearch(ctx context.Context, __arg FuzzyAssetSearchArg) (res []Asset, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.fuzzyAssetSearch", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) ListPopularAssets(ctx context.Context, caller keybase1.UserVersion) (res AssetListResult, err error) {
+	__arg := ListPopularAssetsArg{Caller: caller}
+	err = c.Cli.Call(ctx, "stellar.1.remote.listPopularAssets", []interface{}{__arg}, &res)
+	return
+}
+
 func (c RemoteClient) ChangeTrustline(ctx context.Context, __arg ChangeTrustlineArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.changeTrustline", []interface{}{__arg}, nil)
 	return
@@ -1543,5 +1671,10 @@ func (c RemoteClient) ChangeTrustline(ctx context.Context, __arg ChangeTrustline
 
 func (c RemoteClient) FindPaymentPath(ctx context.Context, __arg FindPaymentPathArg) (res PaymentPath, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.findPaymentPath", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) PostAnyTransaction(ctx context.Context, __arg PostAnyTransactionArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.postAnyTransaction", []interface{}{__arg}, nil)
 	return
 }

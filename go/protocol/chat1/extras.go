@@ -83,7 +83,11 @@ const DbShortFormLen = 10
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() ConvIDShort {
-	return cid[:DbShortFormLen]
+	end := DbShortFormLen
+	if end > len(cid) {
+		end = len(cid)
+	}
+	return cid[:end]
 }
 
 func (cid ConversationID) DbShortFormString() string {
@@ -462,6 +466,13 @@ func (m MessageUnboxed) AtMentionUsernames() []string {
 		return nil
 	}
 	return m.Valid().AtMentionUsernames
+}
+
+func (m MessageUnboxed) ChannelMention() ChannelMention {
+	if !m.IsValid() {
+		return ChannelMention_NONE
+	}
+	return m.Valid().ChannelMention
 }
 
 func (m *MessageUnboxed) DebugString() string {
@@ -1467,7 +1478,11 @@ func (r *DeleteConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
-func (r *GetInboxUILocalRes) SetOffline() {
+func (r *SearchRegexpRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SearchInboxRes) SetOffline() {
 	r.Offline = true
 }
 
@@ -1594,6 +1609,35 @@ func humanizeDuration(duration time.Duration) string {
 	return fmt.Sprintf("%.0f %s", value, unit)
 }
 
+func (p RetentionPolicy) Eq(o RetentionPolicy) bool {
+	typ1, err := p.Typ()
+	if err != nil {
+		return false
+	}
+
+	typ2, err := o.Typ()
+	if err != nil {
+		return false
+	}
+	if typ1 != typ2 {
+		return false
+	}
+	switch typ1 {
+	case RetentionPolicyType_NONE:
+		return true
+	case RetentionPolicyType_RETAIN:
+		return p.Retain() == o.Retain()
+	case RetentionPolicyType_EXPIRE:
+		return p.Expire() == o.Expire()
+	case RetentionPolicyType_INHERIT:
+		return p.Inherit() == o.Inherit()
+	case RetentionPolicyType_EPHEMERAL:
+		return p.Ephemeral() == o.Ephemeral()
+	default:
+		return false
+	}
+}
+
 func (p RetentionPolicy) HumanSummary() (summary string) {
 	typ, err := p.Typ()
 	if err != nil {
@@ -1668,6 +1712,14 @@ func (r *GetInboxAndUnboxLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *LoadFlipRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *LoadFlipRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1999,11 +2051,11 @@ func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
 }
 
-func (r *GetInboxUILocalRes) GetRateLimit() (res []RateLimit) {
+func (r *LoadGalleryRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
-func (r *GetInboxUILocalRes) SetRateLimits(rl []RateLimit) {
+func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -2036,11 +2088,11 @@ func (i *ConversationMinWriterRoleInfoLocal) String() string {
 	if i == nil {
 		return "Minimum writer role for this conversation is not set."
 	}
-	usernameSuffix := "."
-	if i.Username != "" {
-		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	changedBySuffix := "."
+	if i.ChangedBy != "" {
+		changedBySuffix = fmt.Sprintf(", last set by %v.", i.ChangedBy)
 	}
-	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, changedBySuffix)
 }
 
 func (s *ConversationSettings) IsNil() bool {
@@ -2057,7 +2109,14 @@ func (o SearchOpts) Matches(msg MessageUnboxed) bool {
 	if o.SentBy != "" && msg.SenderUsername() != o.SentBy {
 		return false
 	}
+	// Check if the user was @mentioned or there was a @here/@channel.
 	if o.SentTo != "" {
+		if o.MatchMentions {
+			switch msg.ChannelMention() {
+			case ChannelMention_ALL, ChannelMention_HERE:
+				return true
+			}
+		}
 		for _, username := range msg.AtMentionUsernames() {
 			if o.SentTo == username {
 				return true
@@ -2109,7 +2168,9 @@ func (u UnfurlRaw) GetUrl() string {
 	case UnfurlType_GENERIC:
 		return u.Generic().Url
 	case UnfurlType_GIPHY:
-		return u.Giphy().ImageUrl
+		if u.Giphy().ImageUrl != nil {
+			return *u.Giphy().ImageUrl
+		}
 	}
 	return ""
 }
@@ -2157,7 +2218,7 @@ func (g UnfurlGiphyRaw) UnsafeDebugString() string {
 	return fmt.Sprintf(`GIPHY SPECIAL
 FaviconUrl: %s
 ImageUrl: %s
-Video: %s`, yieldStr(g.FaviconUrl), g.ImageUrl, g.Video)
+Video: %s`, yieldStr(g.FaviconUrl), yieldStr(g.ImageUrl), g.Video)
 }
 
 func (v UnfurlVideo) String() string {
@@ -2189,6 +2250,8 @@ func (g GlobalAppNotificationSetting) Usage() string {
 	switch g {
 	case GlobalAppNotificationSetting_NEWMESSAGES:
 		return "Show notifications for new messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "Show plaintext notifications on desktop devices"
 	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
 		return "Show plaintext notifications on mobile devices"
 	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
@@ -2204,6 +2267,8 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 	switch g {
 	case GlobalAppNotificationSetting_NEWMESSAGES:
 		return "new-messages"
+	case GlobalAppNotificationSetting_PLAINTEXTDESKTOP:
+		return "plaintext-desktop"
 	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
 		return "plaintext-mobile"
 	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
@@ -2312,4 +2377,12 @@ func (o *SenderSendOptions) GetJoinMentionsAs() *ConversationMemberStatus {
 		return nil
 	}
 	return o.JoinMentionsAs
+}
+
+func (c Coordinate) IsZero() bool {
+	return c.Lat == 0 && c.Lon == 0
+}
+
+func (c Coordinate) Eq(o Coordinate) bool {
+	return c.Lat == o.Lat && c.Lon == o.Lon
 }

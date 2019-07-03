@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/keybase/client/go/externalstest"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -197,6 +198,9 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 }
 
 func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
+	etc := externalstest.SetupTest(t, "chat", 1)
+	defer etc.Cleanup()
+
 	ctc := makeChatTestContext(t, "TestChatSrvAttachmentUploadPreviewCached", 1)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -206,7 +210,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	}()
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
-	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil)
+	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil, etc.G)
 	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 5)
 	ri := ctc.as(t, users[0]).ri
 	d, err := libkb.RandHexString("", 8)
@@ -218,7 +222,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
 		fetcher, func() chat1.RemoteInterface { return mockSigningRemote{} })
 	uploader := attachments.NewUploader(tc.Context(), store, mockSigningRemote{},
-		func() chat1.RemoteInterface { return ri })
+		func() chat1.RemoteInterface { return ri }, 1)
 	uploader.SetPreviewTempDir(fetcher.tempDir)
 	tc.ChatG.AttachmentUploader = uploader
 

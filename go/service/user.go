@@ -12,8 +12,10 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
+	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -36,39 +38,6 @@ func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.C
 		ChatContextified: globals.NewChatContextified(chatG),
 		service:          s,
 	}
-}
-
-// ListTrackers gets the list of trackers for a user by uid.
-func (h *UserHandler) ListTrackers(ctx context.Context, arg keybase1.ListTrackersArg) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackers(h.G(), arg.Uid)
-	return h.listTrackers(ctx, arg.SessionID, eng)
-}
-
-// ListTrackersByName gets the list of trackers for a user by
-// username.
-func (h *UserHandler) ListTrackersByName(ctx context.Context, arg keybase1.ListTrackersByNameArg) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackersByName(arg.Username)
-	return h.listTrackers(ctx, arg.SessionID, eng)
-}
-
-// ListTrackersSelf gets the list of trackers for the logged in
-// user.
-func (h *UserHandler) ListTrackersSelf(ctx context.Context, sessionID int) ([]keybase1.Tracker, error) {
-	eng := engine.NewListTrackersSelf()
-	return h.listTrackers(ctx, sessionID, eng)
-}
-
-func (h *UserHandler) listTrackers(ctx context.Context, sessionID int, eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
-	uis := libkb.UIs{
-		LogUI:     h.getLogUI(sessionID),
-		SessionID: sessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
-		return nil, err
-	}
-	res := eng.ExportedList()
-	return res, nil
 }
 
 func (h *UserHandler) LoadUncheckedUserSummaries(ctx context.Context, arg keybase1.LoadUncheckedUserSummariesArg) ([]keybase1.UserSummary, error) {
@@ -166,7 +135,7 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 
 	if err == nil {
 		// ret.Status might indicate an error we should return
-		// (like libkb.DeletedError, for example)
+		// (like libkb.UserDeletedError, for example)
 		err = libkb.UserErrorFromStatus(ret.Status)
 		if err != nil {
 			h.G().Log.CDebugf(netCtx, "using error from StatusCode: %v => %s", ret.Status, err)
@@ -177,14 +146,24 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 	return ret, err
 }
 
-func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
+func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (res keybase1.UserSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	emails, err := libkb.LoadUserEmails(mctx)
 	if err != nil {
-		return
+		return res, err
 	}
-	us.Emails = emails
-	return
+	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		switch err.(type) {
+		case libkb.FeatureFlagError:
+			mctx.Debug("PhoneNumbers feature not enabled - phone number list will be empty")
+		default:
+			return res, err
+		}
+	}
+	res.Emails = emails
+	res.PhoneNumbers = phoneNumbers
+	return res, nil
 }
 
 func (h *UserHandler) LoadPublicKeys(ctx context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
@@ -380,7 +359,7 @@ func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret 
 		return ret, err
 	}
 	tracer.Stage("fold-pri")
-	foldPriority := mctx.G().GetProofServices().SuggestionFoldPriority()
+	foldPriority := mctx.G().GetProofServices().SuggestionFoldPriority(h.MetaContext(ctx))
 	tracer.Stage("fold-loop")
 	for _, suggestion := range suggestions {
 		if foldPriority > 0 && suggestion.Priority >= foldPriority {
@@ -443,7 +422,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	if err != nil {
 		return ret, err
 	}
-	if user == nil {
+	if user == nil || user.IDTable() == nil {
 		return ret, fmt.Errorf("could not load logged-in user")
 	}
 
@@ -458,7 +437,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 			// "web" is added below.
 			continue
 		}
-		serviceType := mctx.G().GetProofServices().GetServiceType(service)
+		serviceType := mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), service)
 		if serviceType == nil {
 			mctx.Debug("missing proof service type: %v", service)
 			continue
@@ -517,7 +496,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	tracer.Stage("prioritize-server")
 	serverPriority := make(map[string]int) // key -> server priority
 	maxServerPriority := 0
-	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
+	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs(mctx) {
 		if displayConfig.Priority <= 0 {
 			continue
 		}
@@ -601,46 +580,48 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 }
 
 func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {
-	if !h.G().ActiveDevice.Valid() {
-		h.G().Log.CDebugf(ctx, "CanLogout: looks like user is not logged in")
-		res.CanLogout = true
-		return res, nil
-	}
-
-	if err := libkb.CheckCurrentUIDDeviceID(libkb.NewMetaContext(ctx, h.G())); err != nil {
-		switch err.(type) {
-		case libkb.DeviceNotFoundError, libkb.UserNotFoundError,
-			libkb.KeyRevokedError, libkb.NoDeviceError, libkb.NoUIDError:
-			h.G().Log.CDebugf(ctx, "CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
-			return keybase1.CanLogoutRes{CanLogout: true}, nil
-		default:
-			// Unexpected error like network connectivity issue, fall through.
-			// Even if we are offline here, we may be able to get cached value
-			// `false` from LoadHasRandomPw and be allowed to log out.
-			h.G().Log.CDebugf(ctx, "CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
-		}
-	}
-
-	hasRandomPW, err := h.LoadHasRandomPw(ctx, keybase1.LoadHasRandomPwArg{
-		SessionID:   sessionID,
-		ForceRepoll: false,
-	})
-
-	if err != nil {
-		return keybase1.CanLogoutRes{
-			CanLogout: false,
-			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
-		}, nil
-	}
-
-	if hasRandomPW {
-		return keybase1.CanLogoutRes{
-			CanLogout:     false,
-			SetPassphrase: true,
-			Reason:        "You signed up without a password and need to set a password first.",
-		}, nil
-	}
-
-	res.CanLogout = true
+	m := libkb.NewMetaContext(ctx, h.G())
+	res = libkb.CanLogout(m)
 	return res, nil
+}
+
+func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (res *keybase1.UserCard, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UserCard", func() error { return err })()
+
+	uid := mctx.G().UIDMapper.MapHardcodedUsernameToUID(kbun.NewNormalizedUsername(arg.Username))
+	if !uid.Exists() {
+		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
+	}
+	return libkb.UserCard(mctx, uid, arg.UseSession)
+}
+
+func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#BlockUser", func() error { return err })()
+	return h.setUserBlock(mctx, username, true)
+}
+
+func (h *UserHandler) UnblockUser(ctx context.Context, username string) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("UserHandler#UnblockUser", func() error { return err })()
+	return h.setUserBlock(mctx, username, false)
+}
+
+func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, block bool) error {
+	uid, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(username))
+	if err != nil {
+		return err
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/block",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"block_uid": libkb.S{Val: uid.String()},
+			"unblock":   libkb.B{Val: !block},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	mctx.G().CardCache().Delete(uid)
+	return err
 }

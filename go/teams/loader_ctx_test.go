@@ -226,6 +226,11 @@ func (l *MockLoaderContext) perUserEncryptionKey(ctx context.Context, userSeqno 
 	return key, err
 }
 
+func (l *MockLoaderContext) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool, harg *libkb.LookupTeamHiddenArg) (r1 keybase1.Seqno, r2 keybase1.LinkID, isFresh bool, err error) {
+	r1, r2, err = l.merkleLookup(ctx, teamID, public)
+	return r1, r2, true, err
+}
+
 func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	key := fmt.Sprintf("%s", teamID)
 	if l.state.loadSpec.Upto > 0 {
@@ -238,9 +243,10 @@ func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.Te
 	return x.Seqno, x.LinkID, nil
 }
 
-func (l *MockLoaderContext) merkleLookupTripleAtHashMeta(ctx context.Context,
-	isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
+func (l *MockLoaderContext) merkleLookupTripleInPast(ctx context.Context,
+	isPublic bool, leafID keybase1.UserOrTeamID, root keybase1.MerkleRootV2) (triple *libkb.MerkleTriple, err error) {
 
+	hm := root.HashMeta
 	key := fmt.Sprintf("%s-%s", leafID, hm)
 	triple1, ok := l.unit.MerkleTriples[key]
 	if !ok {

@@ -566,6 +566,18 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	return ret
 }
 
+func (l *TrackChainLink) GetTrackedLinkSeqno() (seqno keybase1.Seqno, err error) {
+	seqnoJSON := l.UnmarshalPayloadJSON().AtPath("body.track.seq_tail.seqno")
+	if seqnoJSON.IsNil() {
+		return seqno, nil
+	}
+	i64, err := seqnoJSON.GetInt64()
+	if err != nil {
+		return seqno, err
+	}
+	return keybase1.Seqno(i64), nil
+}
+
 // convertTrackedProofToServiceBlock will take a JSON stanza from a track statement, and convert it
 // to a ServiceBlock if it fails some important sanity checks. We check that the JSON stanza is
 // well-formed, and that it's not for a defunct proof type (like Coinbase). If all succeeds,
@@ -1660,7 +1672,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 
 	// Call the Global context's version of what a proof checker is. We might want to stub it out
 	// for the purposes of testing.
-	pc, res.err = MakeProofChecker(m.G().GetProofServices(), p)
+	pc, res.err = MakeProofChecker(m, m.G().GetProofServices(), p)
 
 	if res.err != nil || pc == nil {
 		return
@@ -1719,8 +1731,6 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	}
 
 	m.Debug("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
-
-	return
 }
 
 // VerifyReverseSig checks reverse signature using the key provided.

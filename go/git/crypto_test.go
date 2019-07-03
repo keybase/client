@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams/hidden"
 	"github.com/stretchr/testify/require"
 
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
@@ -32,6 +33,7 @@ func setupTest(tb testing.TB, name string) libkb.TestContext {
 	InstallInsecureTriplesec(tc.G)
 	teams.NewTeamLoaderAndInstall(tc.G)
 	teams.NewAuditorAndInstall(tc.G)
+	hidden.NewChainManagerAndInstall(tc.G)
 	return tc
 }
 
@@ -47,6 +49,7 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 
 func createImplicitTeam(tc libkb.TestContext, public bool) keybase1.TeamID {
 	u, err := kbtest.CreateAndSignupFakeUser("c", tc.G)
+	require.NoError(tc.T, err)
 	team, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, public, team.ID.IsPublic())
@@ -152,7 +155,7 @@ func testCryptoUnbox(t *testing.T, implicit, public bool) {
 		require.Equal(t, public, canOpenWithPublicKey, "should only be able to open with public key if public")
 
 		team := loadTeam()
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 		loadTeam() // load again to get the new key
 	}

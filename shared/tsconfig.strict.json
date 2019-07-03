@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "isolatedModules": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "tsBuildInfoFile": "./.tsOuts/.tsOutStrict/cache",
+    "outDir": "./.tsOuts/.tsOutStrict/emit",
+    "paths": {
+      "rn-fetch-blob": ["override-d.ts/rn-fetch-blob/index.d.ts"],
+      "react-redux": ["override-d.ts/react-redux/index.d.ts"]
+    },
+    "typeRoots": [
+      "./node_modules/@types/",
+      "./custom-d.ts/"
+    ]
+  },
+  "files": [],
+  "include": [
+    "globals.d.ts",
+    "constants/types/chat2/common.tsx",
+    "constants/types/rpc-*.tsx",
+    "actions/*-gen.tsx",
+    "common-adapters/icon.constants.tsx"
+  ]
+}

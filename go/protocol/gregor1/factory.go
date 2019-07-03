@@ -21,11 +21,11 @@ func (o ObjFactory) MakeCategory(s string) (gregor.Category, error) { return Cat
 
 func castMsgID(msgid gregor.MsgID) (ret MsgID, err error) {
 	if msgid == nil {
-		return ret, err
+		return nil, nil
 	}
 	ret, ok := msgid.(MsgID)
 	if !ok {
-		err = errors.New("bad Msg ID; wrong type")
+		return nil, errors.New("bad Msg ID; wrong type")
 	}
 	return ret, nil
 }

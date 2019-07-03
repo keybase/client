@@ -176,6 +176,7 @@
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
+    union { null, string } topicName; // used only by local inbox cache
 
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
@@ -553,6 +554,8 @@
     // message filters
     string sentBy;
     string sentTo;
+    // only set to true if sentTo is the current user.
+    boolean matchMentions;
     gregor1.Time sentBefore;
     gregor1.Time sentAfter;
 
@@ -562,6 +565,7 @@
     int maxMessages;
     int beforeContext;
     int afterContext;
+    union { null, Pagination } initialPagination;
     // only used by in inbox search
     ReIndexingMode reindexMode;
     int maxConvsSearched;
@@ -606,6 +610,7 @@
     int numHits;
     int numConvs;
     int percentIndexed;
+    boolean delegated;
   }
 
   record ChatSearchIndexStatus {

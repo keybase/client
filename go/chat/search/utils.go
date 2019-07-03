@@ -27,6 +27,8 @@ var stripSeps = []string{
 	"\\{", "\\}",
 	"\"",
 	"'",
+	// phone number delimiter
+	"-",
 	// mentions
 	"@",
 	"#",
@@ -39,11 +41,11 @@ var stripSeps = []string{
 var stripExpr = regexp.MustCompile(strings.Join(stripSeps, "|"))
 
 func prefixes(token string) (res []string) {
-	if len(token) < minTokenLength {
+	if len(token) < MinTokenLength {
 		return nil
 	}
 	for i := range token {
-		if i < minTokenLength {
+		if i < MinTokenLength {
 			continue
 		}
 		// Skip any prefixes longer than `maxPrefixLength` to limit the index size.
@@ -68,7 +70,7 @@ func tokenize(msgText string) tokenMap {
 	tokens := splitExpr.Split(msgText, -1)
 	tokenMap := tokenMap{}
 	for _, token := range tokens {
-		if len(token) < minTokenLength {
+		if len(token) < MinTokenLength {
 			continue
 		}
 
@@ -185,6 +187,9 @@ func UpgradeSearchOptsFromQuery(query string, opts chat1.SearchOpts, username st
 		case toFilter:
 			opts.SentTo = sender
 		}
+	}
+	if opts.SentTo == username {
+		opts.MatchMentions = true
 	}
 
 	matches = dateRangeRegex.FindAllStringSubmatch(query, 2)

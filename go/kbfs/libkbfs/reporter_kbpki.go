@@ -80,14 +80,17 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config             Config
-	log                logger.Logger
-	vlog               *libkb.VDebugLog
-	notifyBuffer       chan *keybase1.FSNotification
-	onlineStatusBuffer chan bool
-	notifyPathBuffer   chan string
-	notifySyncBuffer   chan *keybase1.FSPathSyncStatus
-	canceler           func()
+	config                  Config
+	log                     logger.Logger
+	vlog                    *libkb.VDebugLog
+	notifyBuffer            chan *keybase1.FSNotification
+	onlineStatusBuffer      chan bool
+	notifyPathBuffer        chan string
+	notifySyncBuffer        chan *keybase1.FSPathSyncStatus
+	notifyOverallSyncBuffer chan keybase1.FolderSyncStatus
+	notifyFavsBuffer        chan struct{}
+	shutdownCh              chan struct{}
+	canceler                func()
 
 	lastNotifyPathLock sync.Mutex
 	lastNotifyPath     string
@@ -97,14 +100,17 @@ type ReporterKBPKI struct {
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	log := config.MakeLogger("")
 	r := &ReporterKBPKI{
-		ReporterSimple:     NewReporterSimple(config.Clock(), maxErrors),
-		config:             config,
-		log:                log,
-		vlog:               config.MakeVLogger(log),
-		notifyBuffer:       make(chan *keybase1.FSNotification, bufSize),
-		onlineStatusBuffer: make(chan bool, bufSize),
-		notifyPathBuffer:   make(chan string, 1),
-		notifySyncBuffer:   make(chan *keybase1.FSPathSyncStatus, 1),
+		ReporterSimple:          NewReporterSimple(config.Clock(), maxErrors),
+		config:                  config,
+		log:                     log,
+		vlog:                    config.MakeVLogger(log),
+		notifyBuffer:            make(chan *keybase1.FSNotification, bufSize),
+		onlineStatusBuffer:      make(chan bool, bufSize),
+		notifyPathBuffer:        make(chan string, 1),
+		notifySyncBuffer:        make(chan *keybase1.FSPathSyncStatus, 1),
+		notifyOverallSyncBuffer: make(chan keybase1.FolderSyncStatus, 1),
+		notifyFavsBuffer:        make(chan struct{}, 1),
+		shutdownCh:              make(chan struct{}),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -250,7 +256,12 @@ func (r *ReporterKBPKI) NotifyPathUpdated(ctx context.Context, path string) {
 				ctx, libkb.VLog1,
 				"ReporterKBPKI: notify path buffer full, but path is "+
 					"different from last one, so send in a goroutine %s", path)
-			go func() { r.notifyPathBuffer <- path }()
+			go func() {
+				select {
+				case r.notifyPathBuffer <- path:
+				case <-r.shutdownCh:
+				}
+			}()
 		}
 	}
 }
@@ -271,21 +282,66 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	}
 }
 
+// NotifyFavoritesChanged implements the Reporter interface for
+// ReporterSimple.
+func (r *ReporterKBPKI) NotifyFavoritesChanged(ctx context.Context) {
+	select {
+	case r.notifyFavsBuffer <- struct{}{}:
+	default:
+		r.vlog.CLogf(
+			ctx, libkb.VLog1, "ReporterKBPKI: notify favs buffer full, "+
+				"dropping")
+	}
+}
+
+// NotifyOverallSyncStatus implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) {
+	select {
+	case r.notifyOverallSyncBuffer <- status:
+	default:
+		// If this represents a "complete" status, we can't drop it.
+		// Instead launch a goroutine to make sure it gets sent
+		// eventually.
+		if status.PrefetchStatus == keybase1.PrefetchStatus_COMPLETE {
+			go func() {
+				select {
+				case r.notifyOverallSyncBuffer <- status:
+				case <-r.shutdownCh:
+				}
+			}()
+		} else {
+			r.vlog.CLogf(
+				ctx, libkb.VLog1,
+				"ReporterKBPKI: notify overall sync buffer dropping %+v",
+				status)
+		}
+	}
+}
+
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
+	close(r.shutdownCh)
 	close(r.notifyBuffer)
 	close(r.onlineStatusBuffer)
 	close(r.notifySyncBuffer)
+	close(r.notifyOverallSyncBuffer)
+	close(r.notifyFavsBuffer)
 }
 
-const reporterSendInterval = time.Second
+const (
+	reporterSendInterval    = time.Second
+	reporterFavSendInterval = 5 * time.Second
+)
 
 // send takes notifications out of notifyBuffer, notifyPathBuffer, and
 // notifySyncBuffer and sends them to the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	sendTicker := time.NewTicker(reporterSendInterval)
 	defer sendTicker.Stop()
+	favSendTicker := time.NewTicker(reporterFavSendInterval)
+	defer favSendTicker.Stop()
 
 	for {
 		select {
@@ -300,6 +356,7 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 			if nt != keybase1.FSNotificationType_REKEYING &&
 				nt != keybase1.FSNotificationType_INITIALIZED &&
 				nt != keybase1.FSNotificationType_CONNECTION &&
+				nt != keybase1.FSNotificationType_SYNC_CONFIG_CHANGED &&
 				st != keybase1.FSStatusCode_ERROR {
 				continue
 			}
@@ -341,6 +398,32 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 					status); err != nil {
 					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 						"sync status: %s", err)
+				}
+			default:
+			}
+
+			select {
+			case status, ok := <-r.notifyOverallSyncBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyOverallSyncStatus(
+					ctx, status); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"overall sync status: %s", err)
+				}
+			default:
+			}
+		case <-favSendTicker.C:
+			select {
+			case _, ok := <-r.notifyFavsBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifyFavoritesChanged(
+					ctx); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"favorites changed notification: %s", err)
 				}
 			default:
 			}
@@ -431,7 +514,9 @@ func fileRenameNotification(oldFile data.Path, newFile data.Path, writer keybase
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(newFile, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
-	n.Params = map[string]string{errorParamRenameOldFilename: oldFile.CanonicalPathString()}
+	n.Params = map[string]string{
+		errorParamRenameOldFilename: oldFile.CanonicalPathPlaintext(),
+	}
 	return n
 }
 
@@ -454,7 +539,7 @@ func baseNotification(file data.Path, finish bool) *keybase1.FSNotification {
 	}
 
 	return &keybase1.FSNotification{
-		Filename:   file.CanonicalPathString(),
+		Filename:   file.CanonicalPathPlaintext(),
 		StatusCode: code,
 	}
 }
@@ -507,6 +592,20 @@ func mdReadSuccessNotification(handle *tlfhandle.Handle,
 		Filename:         string(handle.GetCanonicalPath()),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
+		Params:           params,
+	}
+}
+
+func syncConfigChangeNotification(handle *tlfhandle.Handle,
+	fsc keybase1.FolderSyncConfig) *keybase1.FSNotification {
+	params := map[string]string{
+		"syncMode": fsc.Mode.String(),
+	}
+	return &keybase1.FSNotification{
+		FolderType:       handle.Type().FolderType(),
+		Filename:         string(handle.GetCanonicalPath()),
+		StatusCode:       keybase1.FSStatusCode_START,
+		NotificationType: keybase1.FSNotificationType_SYNC_CONFIG_CHANGED,
 		Params:           params,
 	}
 }

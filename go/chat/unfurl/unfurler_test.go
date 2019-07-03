@@ -69,10 +69,12 @@ type dummyDeliverer struct {
 func (d dummyDeliverer) ForceDeliverLoop(ctx context.Context) {}
 
 func TestUnfurler(t *testing.T) {
-	log := logger.NewTestLogger(t)
-	store := attachments.NewStoreTesting(log, nil)
-	s3signer := &ptsigner{}
 	tc := externalstest.SetupTest(t, "unfurler", 0)
+	defer tc.Cleanup()
+
+	log := logger.NewTestLogger(t)
+	store := attachments.NewStoreTesting(log, nil, tc.G)
+	s3signer := &ptsigner{}
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	notifier := makeDummyActivityNotifier()
 	g.ChatContext.ActivityNotifier = notifier
@@ -172,4 +174,5 @@ func TestUnfurler(t *testing.T) {
 	status, _, err = unfurler.Status(context.TODO(), outboxID)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+	require.Equal(t, types.UnfurlerTaskStatusFailed, status)
 }

@@ -68,6 +68,9 @@ func (u *smuUser) cleanup() {
 			d.service.Stop(0)
 			d.stop()
 		}
+		for _, cl := range d.clones {
+			cl.Cleanup()
+		}
 	}
 }
 
@@ -129,7 +132,7 @@ func (t smuTerminalUI) PromptPasswordMaybeScripted(libkb.PromptDescriptor, strin
 func (t smuTerminalUI) PromptYesNo(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error) {
 	return false, nil
 }
-func (t smuTerminalUI) Tablify(headings []string, rowfunc func() []string) { return }
+func (t smuTerminalUI) Tablify(headings []string, rowfunc func() []string) {}
 func (t smuTerminalUI) TerminalSize() (width int, height int)              { return }
 
 type signupInfoSecretUI struct {
@@ -168,6 +171,12 @@ func (s usernameLoginUI) PromptResetAccount(_ context.Context, arg keybase1.Prom
 }
 func (s usernameLoginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil
+}
+func (s usernameLoginUI) ExplainDeviceRecovery(_ context.Context, arg keybase1.ExplainDeviceRecoveryArg) error {
+	return nil
+}
+func (s usernameLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.PromptPassphraseRecoveryArg) (bool, error) {
+	return false, nil
 }
 
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {

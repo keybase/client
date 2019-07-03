@@ -190,6 +190,9 @@ type PushHandler struct {
 	identNotifier types.IdentifyNotifier
 	orderer       *gregorMessageOrderer
 	typingMonitor *TypingMonitor
+
+	// testing only
+	testingIgnoreBroadcasts bool
 }
 
 func NewPushHandler(g *globals.Context) *PushHandler {
@@ -516,8 +519,9 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: error decoding newMessage: %v", err)
 				return
 			}
-			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s msgID: %d",
-				nm.ConvID, nm.Message.ClientHeader.Sender, nm.Message.GetMessageID())
+			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s msgID: %d typ: %v",
+				nm.ConvID, nm.Message.ClientHeader.Sender, nm.Message.GetMessageID(),
+				nm.Message.GetMessageType())
 			if nm.Message.ClientHeader.OutboxID != nil {
 				g.Debug(ctx, "chat activity: newMessage: outboxID: %s",
 					hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
@@ -542,6 +546,9 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if nm.Message.GetMessageType() == chat1.MessageType_LEAVE &&
 				nm.Message.ClientHeader.Sender.Eq(uid) {
 				g.Debug(ctx, "chat activity: ignoring leave message from oursevles")
+				if err := g.G().InboxSource.UpdateInboxVersion(ctx, uid, nm.InboxVers); err != nil {
+					g.Debug(ctx, "chat activity: failed to update inbox version: %s", err)
+				}
 				return
 			}
 
@@ -574,8 +581,12 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				notificationSnippet := ""
 				if desktopNotification {
+					plaintextDesktopDisabled, err := getPlaintextDesktopDisabled(ctx, g.G())
+					if err != nil {
+						g.Debug(ctx, "chat activity: unable to get app notification settings: %v defaulting to disable plaintext", err)
+					}
 					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
-						g.G().Env.GetUsername().String(), &decmsg)
+						g.G().Env.GetUsername().String(), &decmsg, plaintextDesktopDisabled)
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
@@ -1208,11 +1219,33 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 
 		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		convIDs := make(map[chat1.TopicType][]chat1.ConversationID)
+		tlfIDs := make(map[string]struct{})
 		for _, conv := range convs {
+			tlfIDs[conv.Info.Triple.Tlfid.String()] = struct{}{}
 			uiItem := g.presentUIItem(ctx, &conv, uid)
 			if uiItem != nil {
 				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
 				convIDs[uiItem.TopicType] = append(convIDs[uiItem.TopicType], conv.GetConvID())
+			}
+		}
+
+		// force refresh any affected teams
+		m := libkb.NewMetaContext(ctx, g.G().ExternalG())
+		for tlfID := range tlfIDs {
+			teamID, err := keybase1.TeamIDFromString(tlfID)
+			if err != nil {
+				g.Debug(ctx, "SubteamRename: unable to get teamID: %v", err)
+				continue
+			}
+
+			_, err = m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
+				ID:           teamID,
+				Public:       teamID.IsPublic(),
+				ForceRefresh: true,
+			})
+			if err != nil {
+				g.Debug(ctx, "SubteamRename: unable to force-refresh team: %v", err)
+				continue
 			}
 		}
 		for topicType, items := range convUIItems {
@@ -1225,6 +1258,9 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 }
 
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
+	if g.testingIgnoreBroadcasts {
+		return false, errors.New("ignoring broadcasts for tests")
+	}
 	if obm.System() == nil {
 		return false, errors.New("nil system in out of band message")
 	}

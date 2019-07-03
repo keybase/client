@@ -11,6 +11,7 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 	subcommands := []cli.Command{
 		newCmdWalletAddTrustline(cl, g),
 		newCmdWalletAPI(cl, g),
+		newCmdWalletAssetSearch(cl, g),
 		newCmdWalletBalances(cl, g),
 		newCmdWalletCancel(cl, g),
 		newCmdWalletCancelRequest(cl, g),
@@ -20,9 +21,11 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletExport(cl, g),
 		newCmdWalletGetInflation(cl, g),
 		newCmdWalletGetStarted(cl, g),
+		newCmdWalletHandleURI(cl, g),
 		newCmdWalletHistory(cl, g),
 		newCmdWalletImport(cl, g),
 		newCmdWalletLookup(cl, g),
+		newCmdWalletPopularAssets(cl, g),
 		newCmdWalletRename(cl, g),
 		newCmdWalletRequest(cl, g),
 		newCmdWalletSend(cl, g),
@@ -31,6 +34,7 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletSetInflation(cl, g),
 		newCmdWalletSetMobileOnly(cl, g),
 		newCmdWalletSetPrimary(cl, g),
+		newCmdWalletSign(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificWalletCommands(cl, g)...)
 	return cli.Command{

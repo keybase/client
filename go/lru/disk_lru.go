@@ -149,6 +149,12 @@ func NewDiskLRU(name string, version, maxSize int) *DiskLRU {
 	}
 }
 
+func (d *DiskLRU) MaxSize() int {
+	d.Lock()
+	defer d.Unlock()
+	return d.maxSize
+}
+
 func (d *DiskLRU) debug(ctx context.Context, lctx libkb.LRUContext, msg string, args ...interface{}) {
 	lctx.GetLog().CDebugf(ctx, fmt.Sprintf("DiskLRU: %s(%d): ", d.name, d.version)+msg, args...)
 }
@@ -416,6 +422,9 @@ func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (e
 func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir string) (err error) {
 	d.Lock()
 	defer d.Unlock()
+
+	// clear our inmemory cache without flushing to disk to force a new read
+	d.index = nil
 
 	// reverse map of filepaths to lru keys
 	cacheRevMap := map[string]string{}

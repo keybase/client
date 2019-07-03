@@ -476,6 +476,10 @@ func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
 	return makeNaclDHKeyPair(rand.Reader)
 }
 
+func GenerateNaclSigningKeyPairFromSeed(seed [ed25519.SeedSize]byte) (NaclSigningKeyPair, error) {
+	return makeNaclSigningKeyPair(bytes.NewReader(seed[:]))
+}
+
 func KbOpenSig(armored string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(armored)
 }

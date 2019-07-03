@@ -5,16 +5,12 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
-	"os/exec"
-	"path/filepath"
 	"reflect"
 	"strings"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -49,11 +45,47 @@ func (c *CmdStatus) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-type fstatus struct {
+func (c *CmdStatus) Run() error {
+	status, err := c.load()
+	if err != nil {
+		return err
+	}
+
+	return c.output(status)
+}
+
+func (c *CmdStatus) load() (*keybase1.FullStatus, error) {
+	cli, err := GetConfigClient(c.G())
+	if err != nil {
+		return nil, err
+	}
+
+	fstatus, err := cli.GetFullStatus(context.TODO(), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	if fstatus != nil {
+		fstatus.Client.Version = libkb.VersionString()
+	}
+	return fstatus, nil
+}
+
+func (c *CmdStatus) output(status *keybase1.FullStatus) error {
+	if c.json {
+		return c.outputJSON(status)
+	}
+
+	return c.outputTerminal(status)
+}
+
+// Used when outputting the status as json. Human-readable/legacy format
+// preceding keybase1.FullStatus
+type jsonStatus struct {
 	Username               string
 	UserID                 string
 	Device                 *keybase1.Device
-	LoggedInProvisioned    bool `json:"LoggedIn"`
+	LoggedIn               bool
 	PassphraseStreamCached bool
 	TsecCached             bool
 	DeviceSigKeyCached     bool
@@ -100,6 +132,7 @@ type fstatus struct {
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
+	ConfiguredAccounts   []keybase1.ConfiguredAccount
 	Clients              []keybase1.ClientStatus
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
@@ -110,137 +143,61 @@ type fstatus struct {
 	UIRouterMapping      map[string]int
 }
 
-func (c *CmdStatus) Run() error {
-	status, err := c.load()
-	if err != nil {
-		return err
+func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
+	status := jsonStatus{}
+	status.Username = fstatus.Username
+	status.ConfigPath = fstatus.ConfigPath
+
+	var uid keybase1.UID
+	if fstatus.CurStatus.User != nil {
+		uid = fstatus.CurStatus.User.Uid
 	}
+	status.UserID = uid.String()
+	status.SessionIsValid = fstatus.CurStatus.SessionIsValid
+	status.LoggedIn = fstatus.CurStatus.LoggedIn
 
-	return c.output(status)
-}
+	status.Device = fstatus.ExtStatus.Device
+	status.DeviceSigKeyCached = fstatus.ExtStatus.DeviceSigKeyCached
+	status.DeviceEncKeyCached = fstatus.ExtStatus.DeviceEncKeyCached
+	status.PaperSigKeyCached = fstatus.ExtStatus.PaperSigKeyCached
+	status.PaperEncKeyCached = fstatus.ExtStatus.PaperEncKeyCached
+	status.StoredSecret = fstatus.ExtStatus.StoredSecret
+	status.SecretPromptSkip = fstatus.ExtStatus.SecretPromptSkip
+	status.DefaultUsername = fstatus.ExtStatus.DefaultUsername
+	status.ProvisionedUsernames = fstatus.ExtStatus.ProvisionedUsernames
+	status.ConfiguredAccounts = fstatus.ExtStatus.ConfiguredAccounts
+	status.Clients = fstatus.ExtStatus.Clients
+	status.PlatformInfo = fstatus.ExtStatus.PlatformInfo
+	status.OSVersion = fstatus.ExtStatus.PlatformInfo.OsVersion
+	status.DeviceEKNames = fstatus.ExtStatus.DeviceEkNames
+	status.LocalDbStats = fstatus.ExtStatus.LocalDbStats
+	status.LocalChatDbStats = fstatus.ExtStatus.LocalChatDbStats
+	status.CacheDirSizeInfo = fstatus.ExtStatus.CacheDirSizeInfo
+	status.UIRouterMapping = fstatus.ExtStatus.UiRouterMapping
 
-func getFirstClient(v []keybase1.ClientStatus, typ keybase1.ClientType) *keybase1.ClientDetails {
-	for _, cli := range v {
-		if cli.Details.ClientType == typ {
-			return &cli.Details
-		}
-	}
-	return nil
-}
+	status.Client.Version = fstatus.Client.Version
 
-func (c *CmdStatus) load() (*fstatus, error) {
-	var status fstatus
+	status.Service.Version = fstatus.Service.Version
+	status.Service.Running = fstatus.Service.Running
+	status.Service.Pid = fstatus.Service.Pid
+	status.Service.Log = fstatus.Service.Log
+	status.Service.EKLog = fstatus.Service.EkLog
 
-	status.Client.Version = libkb.VersionString()
+	status.KBFS.Version = fstatus.Kbfs.Version
+	status.KBFS.InstalledVersion = fstatus.Kbfs.InstalledVersion
+	status.KBFS.Running = fstatus.Kbfs.Running
+	status.KBFS.Pid = fstatus.Kbfs.Pid
+	status.KBFS.Log = fstatus.Kbfs.Log
+	status.KBFS.Mount = fstatus.Kbfs.Mount
 
-	cli, err := GetConfigClient(c.G())
-	if err != nil {
-		return nil, err
-	}
+	status.Desktop.Version = fstatus.Desktop.Version
+	status.Desktop.Running = fstatus.Desktop.Running
+	status.Desktop.Log = fstatus.Desktop.Log
 
-	curStatus, err := cli.GetCurrentStatus(context.TODO(), 0)
-	if err != nil {
-		return nil, err
-	}
+	status.Updater.Log = fstatus.Updater.Log
+	status.Start.Log = fstatus.Start.Log
+	status.Git.Log = fstatus.Git.Log
 
-	status.LoggedInProvisioned = curStatus.LoggedIn
-	status.SessionIsValid = curStatus.SessionIsValid
-	if curStatus.User != nil {
-		status.Username = curStatus.User.Username
-		status.UserID = curStatus.User.Uid.String()
-	}
-
-	extStatus, err := cli.GetExtendedStatus(context.TODO(), 0)
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := cli.GetConfig(context.TODO(), 0)
-	if err != nil {
-		return nil, err
-	}
-
-	status.ConfigPath = config.ConfigPath
-	status.Service.Version = config.Version
-
-	status.Device = extStatus.Device
-
-	if extStatus.Standalone {
-		status.Service.Running = false
-	} else {
-		status.Service.Running = true
-		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
-		status.Service.EKLog = filepath.Join(extStatus.LogDir, libkb.EKLogFileName)
-	}
-
-	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
-	status.TsecCached = extStatus.TsecCached
-	status.DeviceSigKeyCached = extStatus.DeviceSigKeyCached
-	status.DeviceEncKeyCached = extStatus.DeviceEncKeyCached
-	status.PaperSigKeyCached = extStatus.PaperSigKeyCached
-	status.PaperEncKeyCached = extStatus.PaperEncKeyCached
-	status.StoredSecret = extStatus.StoredSecret
-	status.SecretPromptSkip = extStatus.SecretPromptSkip
-
-	kbfsInstalledVersion, err := install.KBFSBundleVersion(c.G(), "")
-	if err == nil {
-		status.KBFS.InstalledVersion = kbfsInstalledVersion
-	}
-	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
-		status.KBFS.Version = kbfs.Version
-		status.KBFS.Running = true
-		// This just gets the mountpoint from the environment; the
-		// user could have technically passed a different mountpoint
-		// to KBFS on macOS or Linux.  TODO(KBFS-2723): fetch the
-		// actual mountpoint with a new RPC from KBFS.
-		mountDir, err := c.G().Env.GetMountDir()
-		if err != nil {
-			return nil, err
-		}
-		status.KBFS.Mount = mountDir
-	} else {
-		status.KBFS.Version = kbfsInstalledVersion
-	}
-
-	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
-		status.Desktop.Running = true
-		status.Desktop.Version = desktop.Version
-	}
-
-	status.KBFS.Log = filepath.Join(extStatus.LogDir, libkb.KBFSLogFileName)
-	status.Desktop.Log = filepath.Join(extStatus.LogDir, libkb.DesktopLogFileName)
-	status.Updater.Log = filepath.Join(extStatus.LogDir, libkb.UpdaterLogFileName)
-
-	status.Start.Log = filepath.Join(extStatus.LogDir, libkb.StartLogFileName)
-	status.Git.Log = filepath.Join(extStatus.LogDir, libkb.GitLogFileName)
-
-	status.DefaultUsername = extStatus.DefaultUsername
-	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
-	status.Clients = extStatus.Clients
-	status.PlatformInfo = extStatus.PlatformInfo
-	status.DeviceEKNames = extStatus.DeviceEkNames
-	status.LocalDbStats = extStatus.LocalDbStats
-	status.LocalChatDbStats = extStatus.LocalChatDbStats
-	status.CacheDirSizeInfo = extStatus.CacheDirSizeInfo
-	status.UIRouterMapping = extStatus.UiRouterMapping
-
-	// set anything os-specific:
-	if err := c.osSpecific(&status); err != nil {
-		return nil, err
-	}
-
-	return &status, nil
-}
-
-func (c *CmdStatus) output(status *fstatus) error {
-	if c.json {
-		return c.outputJSON(status)
-	}
-
-	return c.outputTerminal(status)
-}
-
-func (c *CmdStatus) outputJSON(status *fstatus) error {
 	b, err := json.MarshalIndent(status, "", "    ")
 	if err != nil {
 		return err
@@ -250,30 +207,31 @@ func (c *CmdStatus) outputJSON(status *fstatus) error {
 	return err
 }
 
-func (c *CmdStatus) outputTerminal(status *fstatus) error {
+func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
+	extStatus := status.ExtStatus
 	dui := c.G().UI.GetDumbOutputUI()
 	dui.Printf("Username:      %s\n", status.Username)
-	dui.Printf("Logged in:     %s\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
-	if status.Device != nil {
+	dui.Printf("Logged in:     %s\n", BoolString(status.CurStatus.LoggedIn, "yes", "no"))
+	if extStatus.Device != nil {
 		dui.Printf("\nDevice:\n")
-		dui.Printf("    name:      %s\n", status.Device.Name)
-		dui.Printf("    ID:        %s\n", status.Device.DeviceID)
-		dui.Printf("    status:    %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
+		dui.Printf("    name:      %s\n", extStatus.Device.Name)
+		dui.Printf("    ID:        %s\n", extStatus.Device.DeviceID)
+		dui.Printf("    status:    %s\n\n", libkb.DeviceStatusToString(&extStatus.Device.Status))
 	}
 	dui.Printf("Session:\n")
-	dui.Printf("    is valid:  %s\n", BoolString(status.SessionIsValid, "yes", "no"))
+	dui.Printf("    is valid:  %s\n", BoolString(status.CurStatus.SessionIsValid, "yes", "no"))
 
 	var deviceKeysLockStatus string
 	switch {
-	case status.PassphraseStreamCached:
+	case extStatus.PassphraseStreamCached:
 		deviceKeysLockStatus = "unlocked"
-	case status.DeviceSigKeyCached && status.DeviceEncKeyCached:
+	case extStatus.DeviceSigKeyCached && extStatus.DeviceEncKeyCached:
 		deviceKeysLockStatus = "unlocked"
-	case status.StoredSecret:
+	case extStatus.StoredSecret:
 		deviceKeysLockStatus = "unlockable via stored secret"
-	case status.DeviceSigKeyCached:
+	case extStatus.DeviceSigKeyCached:
 		deviceKeysLockStatus = "signing only"
-	case status.DeviceEncKeyCached:
+	case extStatus.DeviceEncKeyCached:
 		deviceKeysLockStatus = "encryption only"
 	default:
 		deviceKeysLockStatus = "locked"
@@ -281,34 +239,34 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    keys:      %s\n", deviceKeysLockStatus)
 
 	dui.Printf("\nKey status:\n")
-	dui.Printf("    stream:    %s\n", BoolString(status.PassphraseStreamCached, "cached", "not cached"))
-	dui.Printf("    secret:    %s\n", BoolString(status.StoredSecret, "stored", "not stored"))
-	dui.Printf("    dev sig:   %s\n", BoolString(status.DeviceSigKeyCached, "cached", "not cached"))
-	dui.Printf("    dev enc:   %s\n", BoolString(status.DeviceEncKeyCached, "cached", "not cached"))
-	dui.Printf("    paper sig: %s\n", BoolString(status.PaperSigKeyCached, "cached", "not cached"))
-	dui.Printf("    paper enc: %s\n", BoolString(status.PaperEncKeyCached, "cached", "not cached"))
-	dui.Printf("    prompt:    %s\n", BoolString(status.SecretPromptSkip, "skip", "show"))
-	dui.Printf("    tsec:      %s\n", BoolString(status.TsecCached, "cached", "not cached"))
+	dui.Printf("    stream:    %s\n", BoolString(extStatus.PassphraseStreamCached, "cached", "not cached"))
+	dui.Printf("    secret:    %s\n", BoolString(extStatus.StoredSecret, "stored", "not stored"))
+	dui.Printf("    dev sig:   %s\n", BoolString(extStatus.DeviceSigKeyCached, "cached", "not cached"))
+	dui.Printf("    dev enc:   %s\n", BoolString(extStatus.DeviceEncKeyCached, "cached", "not cached"))
+	dui.Printf("    paper sig: %s\n", BoolString(extStatus.PaperSigKeyCached, "cached", "not cached"))
+	dui.Printf("    paper enc: %s\n", BoolString(extStatus.PaperEncKeyCached, "cached", "not cached"))
+	dui.Printf("    prompt:    %s\n", BoolString(extStatus.SecretPromptSkip, "skip", "show"))
+	dui.Printf("    tsec:      %s\n", BoolString(extStatus.TsecCached, "cached", "not cached"))
 
 	dui.Printf("\nKBFS:\n")
-	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
-	dui.Printf("    version:   %s\n", status.KBFS.Version)
-	dui.Printf("    installed: %s\n", status.KBFS.InstalledVersion)
-	dui.Printf("    log:       %s\n", status.KBFS.Log)
-	dui.Printf("    mount:     %s\n", status.KBFS.Mount)
+	dui.Printf("    status:    %s\n", BoolString(status.Kbfs.Running, "running", "not running"))
+	dui.Printf("    version:   %s\n", status.Kbfs.Version)
+	dui.Printf("    installed: %s\n", status.Kbfs.InstalledVersion)
+	dui.Printf("    log:       %s\n", status.Kbfs.Log)
+	dui.Printf("    mount:     %s\n", status.Kbfs.Mount)
 	dui.Printf("\nService:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
-	dui.Printf("    eklog:     %s\n", status.Service.EKLog)
+	dui.Printf("    eklog:     %s\n", status.Service.EkLog)
 	dui.Printf("\nUpdater:\n")
 	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")
-	dui.Printf("    OS:        %s\n", status.PlatformInfo.Os)
-	dui.Printf("    OS vers:   %s\n", status.OSVersion)
+	dui.Printf("    OS:        %s\n", extStatus.PlatformInfo.Os)
+	dui.Printf("    OS vers:   %s\n", extStatus.PlatformInfo.OsVersion)
 
-	dui.Printf("    Runtime:   %s\n", status.PlatformInfo.GoVersion)
-	dui.Printf("    Arch:      %s\n", status.PlatformInfo.Arch)
+	dui.Printf("    Runtime:   %s\n", extStatus.PlatformInfo.GoVersion)
+	dui.Printf("    Arch:      %s\n", extStatus.PlatformInfo.Arch)
 	dui.Printf("\nClient:\n")
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop app:\n")
@@ -316,18 +274,33 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    version:   %s\n", status.Desktop.Version)
 	dui.Printf("    log:       %s\n\n", status.Desktop.Log)
 	dui.Printf("Config path:   %s\n", status.ConfigPath)
-	dui.Printf("Default user:  %s\n", status.DefaultUsername)
-	dui.Printf("Other users:   %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+	dui.Printf("Default user:  %s\n", extStatus.DefaultUsername)
+	dui.Printf("Other users:   %s\n", strings.Join(extStatus.ProvisionedUsernames, ", "))
+	dui.Printf("Configured accounts:\n")
+	for _, account := range extStatus.ConfiguredAccounts {
+		var details []string
+		if account.IsCurrent {
+			details = append(details, "current")
+		}
+		if account.HasStoredSecret {
+			details = append(details, "logged in")
+		}
+		var detailsStr string
+		if len(details) > 0 {
+			detailsStr = " (" + strings.Join(details, ", ") + ")"
+		}
+		dui.Printf("    %s%s\n", account.Username, detailsStr)
+	}
 	dui.Printf("Known DeviceEKs:\n")
-	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
-	dui.Printf("LocalDbStats:\n%s \n", strings.Join(status.LocalDbStats, "\n"))
-	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(status.LocalChatDbStats, "\n"))
+	dui.Printf("    %s \n", strings.Join(extStatus.DeviceEkNames, "\n    "))
+	dui.Printf("LocalDbStats:\n%s \n", strings.Join(extStatus.LocalDbStats, "\n"))
+	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(extStatus.LocalChatDbStats, "\n"))
 	dui.Printf("CacheDirSizeInfo:\n")
-	for _, dirInfo := range status.CacheDirSizeInfo {
+	for _, dirInfo := range extStatus.CacheDirSizeInfo {
 		dui.Printf("%s: %s, (%d files)\n", dirInfo.Name, dirInfo.HumanSize, dirInfo.NumFiles)
 	}
 
-	c.outputClients(dui, status.Clients, status.UIRouterMapping)
+	c.outputClients(dui, extStatus.Clients, extStatus.UiRouterMapping)
 	return nil
 }
 
@@ -387,27 +360,9 @@ func formatNotificationChannels(channels keybase1.NotificationChannels) string {
 	return strings.Join(items, ", ")
 }
 
-func (c *CmdStatus) client() {
-	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Client:\n")
-	dui.Printf("\tversion:\t%s\n", libkb.VersionString())
-}
-
 func (c *CmdStatus) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
 	}
-}
-
-// execToString returns the space-trimmed output of a command or an error.
-func (c *CmdStatus) execToString(bin string, args []string) (string, error) {
-	result, err := exec.Command(bin, args...).Output()
-	if err != nil {
-		return "", err
-	}
-	if result == nil {
-		return "", fmt.Errorf("Nil result")
-	}
-	return strings.TrimSpace(string(result)), nil
 }

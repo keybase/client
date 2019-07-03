@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	dbus "github.com/guelfey/go.dbus"
 	secsrv "github.com/keybase/go-keychain/secretservice"
+	dbus "github.com/keybase/go.dbus"
 	"golang.org/x/crypto/hkdf"
 )
 

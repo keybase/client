@@ -2,16 +2,6 @@
 protocol user {
   import idl "common.avdl";
 
-  record Tracker {
-    UID tracker;
-    int status; // 0 == none, 1 == tracking
-    Time mTime;
-  }
-
-  array<Tracker> listTrackers(int sessionID, UID uid);
-  array<Tracker> listTrackersByName(int sessionID, string username);
-  array<Tracker> listTrackersSelf(int sessionID);
-
   record TrackProof {
     string proofType;
     string proofName;
@@ -53,6 +43,7 @@ protocol user {
 
   record UserSettings {
     array<Email> emails;
+    array<UserPhoneNumber> phoneNumbers;
   }
 
   /**
@@ -195,4 +186,9 @@ protocol user {
     boolean setPassphrase; // GUI is driven by this boolean.
   }
   CanLogoutRes canLogout(int sessionID);
+
+  union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
+
+  void blockUser(string username);
+  void unblockUser(string username);
 }

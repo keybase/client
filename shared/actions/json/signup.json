@@ -1,13 +1,16 @@
 {
-  "prelude": ["import HiddenString from '../util/hidden-string'"],
+  "prelude": [
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
+  ],
   "actions": {
     "goBackAndClearErrors": {},
     "requestAutoInvite": {},
     "requestedAutoInvite": {
       "inviteCode": "string",
-      "canError": { }
+      "canError": {}
     },
-    "checkInviteCode": { "inviteCode": "string" },
+    "checkInviteCode": {"inviteCode": "string"},
     "checkedInviteCode": {
       "inviteCode": "string",
       "canError": {
@@ -19,19 +22,17 @@
       "pass1": "HiddenString",
       "pass2": "HiddenString"
     },
-    "checkUsernameEmail": {
-      "username": "string",
-      "email": "string"
+    "checkUsername": {
+      "username": "string"
     },
-    "checkedUsernameEmail": {
+    "checkedUsername": {
       "username": "string",
-      "email": "string",
-      "canError": {
-        "emailError": "string",
-        "usernameError": "string",
-        "email": "string",
-        "username": "string"
-      }
+      "usernameTaken?": "string",
+      "error": "string"
+    },
+    "checkEmail": {
+      "allowSearch": "boolean",
+      "email": "string"
     },
     "requestInvite": {
       "email": "string",
@@ -50,7 +51,7 @@
     "restartSignup": {},
     "signedup": {
       "canError": {
-        "error": "HiddenString"
+        "error": "RPCError | null"
       }
     },
     "checkDevicename": {

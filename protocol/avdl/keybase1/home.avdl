@@ -61,10 +61,25 @@ protocol home {
     TEAM_SHOWCASE_10,
     AVATAR_USER_11,
     AVATAR_TEAM_12,
+    ADD_PHONE_NUMBER_13,
+    VERIFY_ALL_PHONE_NUMBER_14,
+    VERIFY_ALL_EMAIL_15,
+    LEGACY_EMAIL_VISIBILITY_16,
+    ADD_EMAIL_17,
     ANNONCEMENT_PLACEHOLDER_10000
   }
 
+  /**
+    Most of TODO items do not carry additional data, but some do. e.g. TODO
+    item to tell user to verify their email address will carry that email
+    address.
+
+    This data does not come from the server.
+  */
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
+    case VERIFY_ALL_PHONE_NUMBER: PhoneNumber;
+    case VERIFY_ALL_EMAIL: EmailAddress;
+    case LEGACY_EMAIL_VISIBILITY: EmailAddress;
     default: void;
   }
 

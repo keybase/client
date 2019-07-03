@@ -8,7 +8,7 @@ kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
 rn_dir="$gopath/src/github.com/keybase/client/shared/react-native"
-android_dir="$gopath/src/github.com/keybase/client/shared/react-native/android"
+android_dir="$gopath/src/github.com/keybase/client/shared/android"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
@@ -54,7 +54,7 @@ if [ ! "$cache_npm" = "1" ]; then
   echo "Cleaning up main node_modules from previous runs"
   rm -rf "$shared_dir/node_modules"
 
-  yarn install --pure-lockfile
+  yarn install --frozen-lockfile --prefer-offline
   yarn global add react-native-cli
 fi
 
@@ -74,7 +74,7 @@ echo "Packager running with PID $rn_packager_pid"
 # Build and publish the apk
 cd "$android_dir"
 ./gradlew clean
-./gradlew publishApkRelease
+./gradlew publishReleaseBundle
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing android"
 

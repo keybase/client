@@ -60,6 +60,7 @@ func TestGregorHandler(t *testing.T) {
 	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	h.resetGregorClient(context.TODO(), gregor1.UID(user.User.GetUID().ToBytes()), gregor1.DeviceID{})
 	require.Equal(t, "gregor", h.HandlerName(), "wrong name")
 
 	kbUID := user.User.GetUID()
@@ -191,6 +192,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	h.resetGregorClient(context.TODO(), gregor1.UID(tracker.User.GetUID().ToBytes()), gregor1.DeviceID{})
 
 	h.PushHandler(idhandler)
 
@@ -404,11 +406,13 @@ func setupSyncTests(t *testing.T, g *globals.Context) (*gregorHandler, mockGrego
 	user, err := kbtest.CreateAndSignupFakeUser("gregr", g.ExternalG())
 	require.NoError(t, err)
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
+	deviceID := gregor1.DeviceID{}
 
 	var h *gregorHandler
 	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	h.resetGregorClient(context.TODO(), uid, deviceID)
 
 	server := newGregordMock(g.ExternalG().Log)
 
@@ -427,7 +431,7 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 }
 
 func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InBandMessage, []gregor.InBandMessage) {
-	_, token, _, _ := h.loggedIn(context.TODO())
+	_, token, _, _, _ := h.loggedIn(context.TODO())
 	pctime := h.gregorCli.StateMachineLatestCTime(context.TODO())
 	ctime := gregor1.Time(0)
 	if pctime != nil {
@@ -553,6 +557,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	h = newGregorHandler(g)
 	h.testingEvents = newTestingEvents()
 	h.Init()
+	h.resetGregorClient(context.TODO(), uid, gregor1.DeviceID{})
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -600,6 +605,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	h = newGregorHandler(g)
 	h.testingEvents = newTestingEvents()
 	h.Init()
+	h.resetGregorClient(context.TODO(), uid, gregor1.DeviceID{})
 
 	// Turn off fresh replay
 	h.firstConnect = false
@@ -917,13 +923,15 @@ func TestBroadcastRepeat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	uid := gregor1.UID(u.GetUID().ToBytes())
 
 	var h *gregorHandler
 	h = newGregorHandler(g)
 	h.Init()
 	h.testingEvents = newTestingEvents()
+	h.resetGregorClient(context.TODO(), uid, gregor1.DeviceID{})
 
-	m, err := grutils.TemplateMessage(u.GetUID().ToBytes())
+	m, err := grutils.TemplateMessage(uid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -932,7 +940,7 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike")),
 	}
 
-	m2, err := grutils.TemplateMessage(u.GetUID().ToBytes())
+	m2, err := grutils.TemplateMessage(uid)
 	if err != nil {
 		t.Fatal(err)
 	}

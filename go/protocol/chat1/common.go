@@ -615,6 +615,7 @@ type GetInboxQuery struct {
 	Before            *gregor1.Time              `codec:"before,omitempty" json:"before,omitempty"`
 	After             *gregor1.Time              `codec:"after,omitempty" json:"after,omitempty"`
 	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	TopicName         *string                    `codec:"topicName,omitempty" json:"topicName,omitempty"`
 	Status            []ConversationStatus       `codec:"status" json:"status"`
 	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
 	Existences        []ConversationExistence    `codec:"existences" json:"existences"`
@@ -678,6 +679,13 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			tmp := (*x)
 			return &tmp
 		})(o.OneChatTypePerTLF),
+		TopicName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.TopicName),
 		Status: (func(x []ConversationStatus) []ConversationStatus {
 			if x == nil {
 				return nil
@@ -1949,33 +1957,43 @@ func (e ReIndexingMode) String() string {
 }
 
 type SearchOpts struct {
-	IsRegex          bool            `codec:"isRegex" json:"isRegex"`
-	SentBy           string          `codec:"sentBy" json:"sentBy"`
-	SentTo           string          `codec:"sentTo" json:"sentTo"`
-	SentBefore       gregor1.Time    `codec:"sentBefore" json:"sentBefore"`
-	SentAfter        gregor1.Time    `codec:"sentAfter" json:"sentAfter"`
-	MaxHits          int             `codec:"maxHits" json:"maxHits"`
-	MaxMessages      int             `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext    int             `codec:"beforeContext" json:"beforeContext"`
-	AfterContext     int             `codec:"afterContext" json:"afterContext"`
-	ReindexMode      ReIndexingMode  `codec:"reindexMode" json:"reindexMode"`
-	MaxConvsSearched int             `codec:"maxConvsSearched" json:"maxConvsSearched"`
-	MaxConvsHit      int             `codec:"maxConvsHit" json:"maxConvsHit"`
-	ConvID           *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
-	MaxNameConvs     int             `codec:"maxNameConvs" json:"maxNameConvs"`
+	IsRegex           bool            `codec:"isRegex" json:"isRegex"`
+	SentBy            string          `codec:"sentBy" json:"sentBy"`
+	SentTo            string          `codec:"sentTo" json:"sentTo"`
+	MatchMentions     bool            `codec:"matchMentions" json:"matchMentions"`
+	SentBefore        gregor1.Time    `codec:"sentBefore" json:"sentBefore"`
+	SentAfter         gregor1.Time    `codec:"sentAfter" json:"sentAfter"`
+	MaxHits           int             `codec:"maxHits" json:"maxHits"`
+	MaxMessages       int             `codec:"maxMessages" json:"maxMessages"`
+	BeforeContext     int             `codec:"beforeContext" json:"beforeContext"`
+	AfterContext      int             `codec:"afterContext" json:"afterContext"`
+	InitialPagination *Pagination     `codec:"initialPagination,omitempty" json:"initialPagination,omitempty"`
+	ReindexMode       ReIndexingMode  `codec:"reindexMode" json:"reindexMode"`
+	MaxConvsSearched  int             `codec:"maxConvsSearched" json:"maxConvsSearched"`
+	MaxConvsHit       int             `codec:"maxConvsHit" json:"maxConvsHit"`
+	ConvID            *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	MaxNameConvs      int             `codec:"maxNameConvs" json:"maxNameConvs"`
 }
 
 func (o SearchOpts) DeepCopy() SearchOpts {
 	return SearchOpts{
-		IsRegex:          o.IsRegex,
-		SentBy:           o.SentBy,
-		SentTo:           o.SentTo,
-		SentBefore:       o.SentBefore.DeepCopy(),
-		SentAfter:        o.SentAfter.DeepCopy(),
-		MaxHits:          o.MaxHits,
-		MaxMessages:      o.MaxMessages,
-		BeforeContext:    o.BeforeContext,
-		AfterContext:     o.AfterContext,
+		IsRegex:       o.IsRegex,
+		SentBy:        o.SentBy,
+		SentTo:        o.SentTo,
+		MatchMentions: o.MatchMentions,
+		SentBefore:    o.SentBefore.DeepCopy(),
+		SentAfter:     o.SentAfter.DeepCopy(),
+		MaxHits:       o.MaxHits,
+		MaxMessages:   o.MaxMessages,
+		BeforeContext: o.BeforeContext,
+		AfterContext:  o.AfterContext,
+		InitialPagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.InitialPagination),
 		ReindexMode:      o.ReindexMode.DeepCopy(),
 		MaxConvsSearched: o.MaxConvsSearched,
 		MaxConvsHit:      o.MaxConvsHit,
@@ -2110,9 +2128,10 @@ func (o ChatSearchInboxResults) DeepCopy() ChatSearchInboxResults {
 }
 
 type ChatSearchInboxDone struct {
-	NumHits        int `codec:"numHits" json:"numHits"`
-	NumConvs       int `codec:"numConvs" json:"numConvs"`
-	PercentIndexed int `codec:"percentIndexed" json:"percentIndexed"`
+	NumHits        int  `codec:"numHits" json:"numHits"`
+	NumConvs       int  `codec:"numConvs" json:"numConvs"`
+	PercentIndexed int  `codec:"percentIndexed" json:"percentIndexed"`
+	Delegated      bool `codec:"delegated" json:"delegated"`
 }
 
 func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
@@ -2120,6 +2139,7 @@ func (o ChatSearchInboxDone) DeepCopy() ChatSearchInboxDone {
 		NumHits:        o.NumHits,
 		NumConvs:       o.NumConvs,
 		PercentIndexed: o.PercentIndexed,
+		Delegated:      o.Delegated,
 	}
 }
 

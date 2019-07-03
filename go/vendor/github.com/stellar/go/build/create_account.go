@@ -21,6 +21,7 @@ type CreateAccountMutator interface {
 }
 
 // CreateAccountBuilder helps to build CreateAccountOp structs.
+// Deprecated use txnbuild.CreateAccount instead
 type CreateAccountBuilder struct {
 	O   xdr.Operation
 	CA  xdr.CreateAccountOp

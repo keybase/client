@@ -1231,6 +1231,7 @@ const (
 	merkleErrorOutOfOrderCtime
 	merkleErrorWrongSkipSequence
 	merkleErrorWrongRootSkips
+	merkleErrorFailedCheckpoint
 )
 
 type MerkleClientError struct {
@@ -1248,6 +1249,13 @@ func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
 func NewClientMerkleSkipMissingError(m string) MerkleClientError {
 	return MerkleClientError{
 		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
+func NewClientMerkleFailedCheckpointError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorFailedCheckpoint,
 		m: m,
 	}
 }
@@ -1573,6 +1581,10 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_IDENTIFY, true
 }
 
+func (e IdentifySummaryError) Problems() []string {
+	return e.problems
+}
+
 func IsIdentifyProofError(err error) bool {
 	switch err.(type) {
 	case ProofError, IdentifySummaryError:
@@ -1871,9 +1883,6 @@ func (e UserDeletedError) Error() string {
 	}
 	return e.Msg
 }
-
-// Keep the previous name around until KBFS revendors and updates.
-type DeletedError = UserDeletedError
 
 //=============================================================================
 

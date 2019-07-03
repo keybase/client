@@ -92,6 +92,14 @@ func (m MetaContext) TraceTimed(msg string, f func() error) func() {
 func (m MetaContext) TraceOK(msg string, f func() bool) func() {
 	return CTraceOK(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
 }
+func (m MetaContext) TimeBuckets() (MetaContext, *profiling.TimeBuckets) {
+	var ret *profiling.TimeBuckets
+	m.ctx, ret = m.G().CTimeBuckets(m.ctx)
+	return m, ret
+}
+func (m MetaContext) TimeTracer(label string, enabled bool) profiling.TimeTracer {
+	return m.G().CTimeTracer(m.Ctx(), label, enabled)
+}
 
 func (m MetaContext) Debug(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CDebugf(m.ctx, f, args...)
@@ -119,7 +127,7 @@ func (m MetaContext) ActiveDevice() *ActiveDevice {
 }
 
 func (m MetaContext) NIST() (*NIST, error) {
-	nist, uid, err := m.ActiveDevice().NISTAndUID(m.Ctx())
+	nist, uid, _, err := m.ActiveDevice().NISTAndUIDDeviceID(m.Ctx())
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +147,6 @@ func NewMetaContextBackground(g *GlobalContext) MetaContext {
 
 func (m MetaContext) WithDelegatedIdentifyUI(u IdentifyUI) MetaContext {
 	m.uis.IdentifyUI = u
-	m.uis.IdentifyUIIsDelegated = true
 	return m
 }
 
@@ -288,10 +295,6 @@ type UIs struct {
 	// since some things like GPG shell-out work differently
 	// depending.
 	ClientType keybase1.ClientType
-
-	// Special-case flag for identifyUI -- if it's been delegated
-	// to the electron UI, then it's rate-limitable
-	IdentifyUIIsDelegated bool
 
 	SessionID int
 }

@@ -100,8 +100,8 @@ func (d *notificationDisplay) printf(fmt string, args ...interface{}) error {
 func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 	return d.printf("Logged out\n")
 }
-func (d *notificationDisplay) LoggedIn(_ context.Context, un string) error {
-	return d.printf("Logged in as %q\n", un)
+func (d *notificationDisplay) LoggedIn(_ context.Context, arg keybase1.LoggedInArg) error {
+	return d.printf("Logged in as %q, signedUp: %t\n", arg.Username, arg.SignedUp)
 }
 func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) (err error) {
 	if arg.UpgradeMsg != "" {
@@ -136,6 +136,10 @@ func (d *notificationDisplay) FSOverallSyncStatusChanged(_ context.Context,
 	return d.printf("KBFS overall sync status: %+v\n", status)
 }
 
+func (d *notificationDisplay) FSFavoritesChanged(_ context.Context) error {
+	return d.printf("KBFS favorites changed\n")
+}
+
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
 }
@@ -161,6 +165,11 @@ func (d *notificationDisplay) FSSyncStatusResponse(
 
 func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
+}
+
+func (d *notificationDisplay) TrackingInfo(_ context.Context, arg keybase1.TrackingInfoArg) error {
+	return d.printf("Tracking info for %s followers: %v followees: %v\n", arg.Uid, arg.Followers,
+		arg.Followees)
 }
 
 func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {

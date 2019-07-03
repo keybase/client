@@ -100,7 +100,7 @@ func (i *UIAdapter) Start(mctx libkb.MetaContext, user string, reason keybase1.I
 func (i *UIAdapter) initPriorityMap(mctx libkb.MetaContext) {
 	i.priorityMap = make(map[string]int)
 	var haveDisplayConfigs bool
-	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
+	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs(mctx) {
 		haveDisplayConfigs = true
 		i.priorityMap[displayConfig.Key] = displayConfig.Priority
 		var altKey string
@@ -247,14 +247,19 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 		row.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
 		iconKey = "reddit"
 	case keybase1.ProofType_HACKERNEWS:
-		row.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", proof.Value)
+		// hackernews profile urls must have the username in its original casing.
+		username := proof.Value
+		if libkb.Cicmp(proof.Value, proof.DisplayMarkup) {
+			username = proof.DisplayMarkup
+		}
+		row.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", username)
 		iconKey = "hackernews"
 	case keybase1.ProofType_FACEBOOK:
 		row.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)
 		iconKey = "facebook"
 	case keybase1.ProofType_GENERIC_SOCIAL:
 		row.SiteURL = humanURLOrSigchainURL
-		serviceType := mctx.G().GetProofServices().GetServiceType(proof.Key)
+		serviceType := mctx.G().GetProofServices().GetServiceType(mctx.Ctx(), proof.Key)
 		if serviceType != nil {
 			if serviceType, ok := serviceType.(*externals.GenericSocialProofServiceType); ok {
 				profileURL, err := serviceType.ProfileURL(proof.Value)

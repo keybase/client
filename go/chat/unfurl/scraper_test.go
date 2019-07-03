@@ -9,10 +9,17 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
+
+	"github.com/keybase/client/go/chat/maps"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -85,7 +92,10 @@ func createTestCaseHTTPSrv(t *testing.T) *dummyHTTPSrv {
 }
 
 func TestScraper(t *testing.T) {
-	scraper := NewScraper(logger.NewTestLogger(t))
+	tc := libkb.SetupTest(t, "scraper", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
@@ -257,7 +267,7 @@ func TestScraper(t *testing.T) {
 		FaviconUrl:  strPtr("http://127.0.0.1/images/favicon.ico"),
 	}), true, nil, nil)
 	testCase("giphy0.html", chat1.NewUnfurlRawWithGiphy(chat1.UnfurlGiphyRaw{
-		ImageUrl:   "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif",
+		ImageUrl:   strPtr("https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy-downsized-large.gif"),
 		FaviconUrl: strPtr("https://giphy.com/static/img/icons/apple-touch-icon-180px.png"),
 		Video: &chat1.UnfurlVideo{
 			Url:    "https://media.giphy.com/media/5C3Zrs5xUg5fHV4Kcf/giphy.mp4",
@@ -287,4 +297,139 @@ func TestScraper(t *testing.T) {
 	srv.shouldServeAppleTouchIcon = true
 	testCase("slim.html", chat1.NewUnfurlRawWithGeneric(chat1.UnfurlGenericRaw{}), false, nil, nil)
 
+}
+
+func TestGiphySearchScrape(t *testing.T) {
+	tc := libkb.SetupTest(t, "giphyScraper", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	scraper := NewScraper(g)
+
+	clock := clockwork.NewFakeClock()
+	scraper.cache.setClock(clock)
+	scraper.giphyProxy = false
+
+	url := "https://media0.giphy.com/media/iJDLBX5GY8niCpZYkR/giphy.mp4#height=360&width=640&isvideo=true"
+	res, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := res.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_GIPHY, typ)
+	require.Nil(t, res.Giphy().ImageUrl)
+	require.NotNil(t, res.Giphy().Video)
+	require.Equal(t, res.Giphy().Video.Url, url)
+	require.Equal(t, 360, res.Giphy().Video.Height)
+	require.Equal(t, 640, res.Giphy().Video.Width)
+
+	url = "https://media0.giphy.com/media/iJDLBX5GY8niCpZYkR/giphy.mp4#height=360&width=640&isvideo=false"
+	res, err = scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err = res.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_GIPHY, typ)
+	require.NotNil(t, res.Giphy().ImageUrl)
+	require.Nil(t, res.Giphy().Video)
+	require.Equal(t, *res.Giphy().ImageUrl, url)
+}
+
+func TestMapScraper(t *testing.T) {
+	tc := libkb.SetupTest(t, "mapScraper", 1)
+	defer tc.Cleanup()
+	g := globals.NewContext(tc.G, &globals.ChatContext{
+		ExternalAPIKeySource: types.DummyExternalAPIKeySource{},
+	})
+	scraper := NewScraper(g)
+	lat := 40.800099
+	lon := -73.969341
+	acc := 65.00
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&done=true", types.MapsDomain, lat, lon, acc)
+	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(unfurl.Maps().Url, fmt.Sprintf("%f", lon)))
+	require.NotNil(t, unfurl.Maps().ImageUrl)
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, maps.MapsProxy))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lat)))
+	require.True(t, strings.Contains(unfurl.Maps().ImageUrl, fmt.Sprintf("%f", lon)))
+}
+
+type testingLiveLocationTracker struct {
+	coords []chat1.Coordinate
+}
+
+func (t *testingLiveLocationTracker) Start(ctx context.Context, uid gregor1.UID) {}
+func (t *testingLiveLocationTracker) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (t *testingLiveLocationTracker) StartTracking(ctx context.Context, convID chat1.ConversationID,
+	msgID chat1.MessageID, endTime time.Time) {
+}
+
+func (t *testingLiveLocationTracker) GetCurrentPosition(ctx context.Context, convID chat1.ConversationID,
+	msgID chat1.MessageID) {
+}
+
+func (t *testingLiveLocationTracker) LocationUpdate(ctx context.Context, coord chat1.Coordinate) {
+	t.coords = append(t.coords, coord)
+}
+
+func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key types.LiveLocationKey) []chat1.Coordinate {
+	return t.coords
+}
+
+func (t *testingLiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
+	return false
+}
+
+func (t *testingLiveLocationTracker) StopAllTracking(ctx context.Context) {}
+
+func TestLiveMapScraper(t *testing.T) {
+	tc := libkb.SetupTest(t, "liveMapScraper", 1)
+	defer tc.Cleanup()
+	liveLocation := &testingLiveLocationTracker{}
+	g := globals.NewContext(tc.G, &globals.ChatContext{
+		ExternalAPIKeySource: types.DummyExternalAPIKeySource{},
+		LiveLocationTracker:  liveLocation,
+	})
+	scraper := NewScraper(g)
+	first := chat1.Coordinate{
+		Lat:      40.800099,
+		Lon:      -73.969341,
+		Accuracy: 65.00,
+	}
+	watchID := chat1.LocationWatchID(20)
+	liveLocation.LocationUpdate(context.TODO(), chat1.Coordinate{
+		Lat:      40.756325,
+		Lon:      -73.992533,
+		Accuracy: 65,
+	})
+	liveLocation.LocationUpdate(context.TODO(), chat1.Coordinate{
+		Lat:      40.704454,
+		Lon:      -74.010893,
+		Accuracy: 65,
+	})
+	url := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&done=false&livekey=mike",
+		types.MapsDomain, first.Lat, first.Lon, first.Accuracy, watchID)
+	unfurl, err := scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err := unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.NotZero(t, len(unfurl.Maps().ImageUrl))
+	require.Equal(t, "Live Location Share", unfurl.Maps().SiteName)
+
+	url = fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&watchID=%d&done=true&livekey=mike", types.MapsDomain,
+		first.Lat, first.Lon, first.Accuracy, watchID)
+	unfurl, err = scraper.Scrape(context.TODO(), url, nil)
+	require.NoError(t, err)
+	typ, err = unfurl.UnfurlType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UnfurlType_MAPS, typ)
+	require.Equal(t, "Live Location Share (finished)", unfurl.Maps().SiteName)
 }

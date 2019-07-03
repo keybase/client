@@ -105,10 +105,32 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 }
 
 // transformPaymentStellar converts a stellar1.PaymentSummaryStellar into a stellar1.PaymentLocal.
-func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
-	if err != nil {
-		return nil, err
+func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (res *stellar1.PaymentLocal, err error) {
+	loc := stellar1.NewPaymentLocal(p.TxID, p.Ctime)
+	if p.IsAdvanced {
+		if len(p.Amount) > 0 {
+			// It is expected that there is no amount.
+			// But might as well future proof it so that if an amount shows up it gets formatted.
+			loc.AmountDescription, err = FormatAmountDescriptionAsset(mctx, p.Amount, p.Asset)
+			if err != nil {
+				loc.AmountDescription = ""
+			}
+		}
+
+		asset := p.Asset // p.Asset is also expected to be missing.
+		if p.Trustline != nil && asset.IsEmpty() {
+			asset = p.Trustline.Asset
+		}
+		if !asset.IsEmpty() && !asset.IsNativeXLM() {
+			loc.IssuerDescription = FormatAssetIssuerString(asset)
+			issuerAcc := stellar1.AccountID(asset.Issuer)
+			loc.IssuerAccountID = &issuerAcc
+		}
+	} else {
+		loc, err = newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	isSender := p.From.Eq(acctID)
@@ -122,6 +144,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
+	loc.AssetCode = p.Asset.Code
 	loc.FromAccountID = p.From
 	loc.FromType = stellar1.ParticipantType_STELLAR
 	loc.ToAccountID = &p.To
@@ -130,9 +153,23 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
-	loc.Unread = p.Unread
 	loc.IsInflation = p.IsInflation
 	loc.InflationSource = p.InflationSource
+	loc.SourceAsset = p.SourceAsset
+	loc.SourceAmountMax = p.SourceAmountMax
+	loc.SourceAmountActual = p.SourceAmountActual
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
+
+	loc.IsAdvanced = p.IsAdvanced
+	loc.SummaryAdvanced = p.SummaryAdvanced
+	loc.Operations = p.Operations
+	loc.Unread = p.Unread
+	loc.Trustline = p.Trustline
 
 	return loc, nil
 }
@@ -150,7 +187,7 @@ func formatWorthAtSendTime(mctx libkb.MetaContext, p stellar1.PaymentSummaryDire
 
 // transformPaymentDirect converts a stellar1.PaymentSummaryDirect into a stellar1.PaymentLocal.
 func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
+	loc, err := newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 	if err != nil {
 		return nil, err
 	}
@@ -187,6 +224,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		}
 	}
 
+	loc.AssetCode = p.Asset.Code
+
 	fillOwnAccounts(mctx, loc, oc)
 	switch {
 	case loc.FromAccountName != "":
@@ -206,12 +245,23 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 
 	loc.Note, loc.NoteErr = decryptNote(mctx, p.TxID, p.NoteB64)
 
+	loc.SourceAmountMax = p.SourceAmountMax
+	loc.SourceAmountActual = p.SourceAmountActual
+	loc.SourceAsset = p.SourceAsset
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
+	loc.Unread = p.Unread
+
 	return loc, nil
 }
 
 // transformPaymentRelay converts a stellar1.PaymentSummaryRelay into a stellar1.PaymentLocal.
 func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
-	loc, err := newPaymentLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
+	loc, err := newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, stellar1.AssetNative())
 	if err != nil {
 		return nil, err
 	}
@@ -228,6 +278,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		return nil, err
 	}
 
+	loc.AssetCode = "XLM" // We can hardcode relay payments, since the asset will always be XLM
 	loc.FromAccountID = p.FromStellar
 	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
 	if err != nil {
@@ -383,7 +434,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 	return decrypted.Note, ""
 }
 
-func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
+func newPaymentCommonLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
 	formatted, err := FormatAmountDescriptionAsset(mctx, amount, asset)
@@ -458,12 +509,37 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 	isMobile := activeDeviceType == libkb.DeviceTypeMobile
-	ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
-	if err != nil {
-		return empty, err
+
+	// AccountModeEditable - can user change "account mode" to mobile only or
+	// back? This setting can only be changed from a mobile device that's over
+	// 7 days old (since provisioning).
+	editable := false
+	if isMobile {
+		ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
+		if err != nil {
+			return empty, err
+		}
+		deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
+		deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
+		if deviceAge > 7*24*time.Hour {
+			editable = true
+		}
 	}
-	deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
-	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
+
+	// AccountDeviceReadOnly - if account is mobileOnly and current device is
+	// either desktop, or mobile but not only enough (7 days since
+	// provisioning).
+	readOnly := false
+	if accountMode == stellar1.AccountMode_MOBILE {
+		if isMobile {
+			// Mobile devices eligible to edit are also eligible to do
+			// transactions.
+			readOnly = !editable
+		} else {
+			// All desktop devices are read only.
+			readOnly = true
+		}
+	}
 
 	// Is there enough to make any transaction?
 	var availableInt int64
@@ -481,6 +557,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
+	// 0.5 is the minimum balance necessary to create a trustline and 1.0 is the minimum reserve balance
+	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "1.5")
+	if err != nil {
+		return empty, err
+	}
+
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
 		IsDefault:           isPrimary,
@@ -488,17 +570,25 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		BalanceDescription:  balance,
 		Seqno:               details.Seqno,
 		AccountMode:         accountMode,
-		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
+		AccountModeEditable: editable,
+		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
 		CanSubmitTx:         canSubmitTx,
+		CanAddTrustline:     balanceComparedToTrustlineMin == 1,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
 	if err == nil {
-		currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(details.DisplayCurrency))
-		if ok {
-			acct.CurrencyLocal = currency
+		for _, currency := range []string{details.DisplayCurrency, DefaultCurrencySetting} {
+			currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(currency))
+			if ok {
+				acct.CurrencyLocal = currency
+				break
+			}
 		}
+	}
+	if acct.CurrencyLocal.Code == "" {
+		mctx.Debug("warning: AccountDetails for %v has empty currency code", details.AccountID)
 	}
 
 	return acct, nil
@@ -526,6 +616,19 @@ func (a balanceList) balanceDescription(mctx libkb.MetaContext) (res string, err
 		res += " + more"
 	}
 	return res, nil
+}
+
+// Example: "56.0227002"
+func (a balanceList) nativeBalanceDescription(mctx libkb.MetaContext) (res string) {
+	for _, b := range a {
+		if b.Asset.IsNativeXLM() {
+			res = b.Amount
+		}
+	}
+	if res == "" {
+		res = "0"
+	}
+	return res
 }
 
 // TransformToAirdropStatus takes the result from api server status_check

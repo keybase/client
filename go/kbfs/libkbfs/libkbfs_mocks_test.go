@@ -896,6 +896,18 @@ func (mr *MockKBFSOpsMockRecorder) AddFavorite(arg0, arg1, arg2 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), arg0, arg1, arg2)
 }
 
+// AddRootNodeWrapper mocks base method
+func (m *MockKBFSOps) AddRootNodeWrapper(arg0 func(Node) Node) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddRootNodeWrapper", arg0)
+}
+
+// AddRootNodeWrapper indicates an expected call of AddRootNodeWrapper
+func (mr *MockKBFSOpsMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockKBFSOps)(nil).AddRootNodeWrapper), arg0)
+}
+
 // ClearCachedFavorites mocks base method
 func (m *MockKBFSOps) ClearCachedFavorites(arg0 context.Context) {
 	m.ctrl.T.Helper()
@@ -935,7 +947,7 @@ func (mr *MockKBFSOpsMockRecorder) ClearPrivateFolderMD(arg0 interface{}) *gomoc
 }
 
 // CreateDir mocks base method
-func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 string) (Node, data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateDir(arg0 context.Context, arg1 Node, arg2 data.PathPartString) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateDir", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
@@ -951,7 +963,7 @@ func (mr *MockKBFSOpsMockRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // CreateFile mocks base method
-func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 string, arg3 bool, arg4 Excl) (Node, data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateFile(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 bool, arg4 Excl) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateFile", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(Node)
@@ -967,7 +979,7 @@ func (mr *MockKBFSOpsMockRecorder) CreateFile(arg0, arg1, arg2, arg3, arg4 inter
 }
 
 // CreateLink mocks base method
-func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 string) (data.EntryInfo, error) {
+func (m *MockKBFSOps) CreateLink(arg0 context.Context, arg1 Node, arg2, arg3 data.PathPartString) (data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLink", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(data.EntryInfo)
@@ -993,6 +1005,35 @@ func (m *MockKBFSOps) DeleteFavorite(arg0 context.Context, arg1 favorites.Folder
 func (mr *MockKBFSOpsMockRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavorite", reflect.TypeOf((*MockKBFSOps)(nil).DeleteFavorite), arg0, arg1)
+}
+
+// FinishResolvingConflict mocks base method
+func (m *MockKBFSOps) FinishResolvingConflict(arg0 context.Context, arg1 data.FolderBranch) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinishResolvingConflict", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FinishResolvingConflict indicates an expected call of FinishResolvingConflict
+func (mr *MockKBFSOpsMockRecorder) FinishResolvingConflict(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishResolvingConflict", reflect.TypeOf((*MockKBFSOps)(nil).FinishResolvingConflict), arg0, arg1)
+}
+
+// FolderConflictStatus mocks base method
+func (m *MockKBFSOps) FolderConflictStatus(arg0 context.Context, arg1 data.FolderBranch) (keybase1.FolderConflictType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FolderConflictStatus", arg0, arg1)
+	ret0, _ := ret[0].(keybase1.FolderConflictType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FolderConflictStatus indicates an expected call of FolderConflictStatus
+func (mr *MockKBFSOpsMockRecorder) FolderConflictStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FolderConflictStatus", reflect.TypeOf((*MockKBFSOps)(nil).FolderConflictStatus), arg0, arg1)
 }
 
 // FolderStatus mocks base method
@@ -1023,11 +1064,25 @@ func (mr *MockKBFSOpsMockRecorder) ForceFastForward(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceFastForward", reflect.TypeOf((*MockKBFSOps)(nil).ForceFastForward), arg0)
 }
 
+// ForceStuckConflictForTesting mocks base method
+func (m *MockKBFSOps) ForceStuckConflictForTesting(arg0 context.Context, arg1 tlf.ID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ForceStuckConflictForTesting", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ForceStuckConflictForTesting indicates an expected call of ForceStuckConflictForTesting
+func (mr *MockKBFSOpsMockRecorder) ForceStuckConflictForTesting(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceStuckConflictForTesting", reflect.TypeOf((*MockKBFSOps)(nil).ForceStuckConflictForTesting), arg0, arg1)
+}
+
 // GetDirChildren mocks base method
-func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[string]data.EntryInfo, error) {
+func (m *MockKBFSOps) GetDirChildren(arg0 context.Context, arg1 Node) (map[data.PathPartString]data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDirChildren", arg0, arg1)
-	ret0, _ := ret[0].(map[string]data.EntryInfo)
+	ret0, _ := ret[0].(map[data.PathPartString]data.EntryInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1251,7 +1306,7 @@ func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
 }
 
 // Lookup mocks base method
-func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 string) (Node, data.EntryInfo, error) {
+func (m *MockKBFSOps) Lookup(arg0 context.Context, arg1 Node, arg2 data.PathPartString) (Node, data.EntryInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lookup", arg0, arg1, arg2)
 	ret0, _ := ret[0].(Node)
@@ -1332,15 +1387,15 @@ func (mr *MockKBFSOpsMockRecorder) Read(arg0, arg1, arg2, arg3 interface{}) *gom
 }
 
 // RefreshCachedFavorites mocks base method
-func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context) {
+func (m *MockKBFSOps) RefreshCachedFavorites(arg0 context.Context, arg1 FavoritesRefreshMode) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "RefreshCachedFavorites", arg0)
+	m.ctrl.Call(m, "RefreshCachedFavorites", arg0, arg1)
 }
 
 // RefreshCachedFavorites indicates an expected call of RefreshCachedFavorites
-func (mr *MockKBFSOpsMockRecorder) RefreshCachedFavorites(arg0 interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) RefreshCachedFavorites(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).RefreshCachedFavorites), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshCachedFavorites", reflect.TypeOf((*MockKBFSOps)(nil).RefreshCachedFavorites), arg0, arg1)
 }
 
 // RefreshEditHistory mocks base method
@@ -1356,7 +1411,7 @@ func (mr *MockKBFSOpsMockRecorder) RefreshEditHistory(arg0 interface{}) *gomock.
 }
 
 // RemoveDir mocks base method
-func (m *MockKBFSOps) RemoveDir(arg0 context.Context, arg1 Node, arg2 string) error {
+func (m *MockKBFSOps) RemoveDir(arg0 context.Context, arg1 Node, arg2 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDir", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -1370,7 +1425,7 @@ func (mr *MockKBFSOpsMockRecorder) RemoveDir(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // RemoveEntry mocks base method
-func (m *MockKBFSOps) RemoveEntry(arg0 context.Context, arg1 Node, arg2 string) error {
+func (m *MockKBFSOps) RemoveEntry(arg0 context.Context, arg1 Node, arg2 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveEntry", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
@@ -1384,7 +1439,7 @@ func (mr *MockKBFSOpsMockRecorder) RemoveEntry(arg0, arg1, arg2 interface{}) *go
 }
 
 // Rename mocks base method
-func (m *MockKBFSOps) Rename(arg0 context.Context, arg1 Node, arg2 string, arg3 Node, arg4 string) error {
+func (m *MockKBFSOps) Rename(arg0 context.Context, arg1 Node, arg2 data.PathPartString, arg3 Node, arg4 data.PathPartString) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Rename", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(error)
@@ -1655,7 +1710,7 @@ func (mr *MockKBPKIMockRecorder) CreateTeamTLF(arg0, arg1, arg2 interface{}) *go
 }
 
 // FavoriteAdd mocks base method
-func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKBPKI) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1669,7 +1724,7 @@ func (mr *MockKBPKIMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // FavoriteDelete mocks base method
-func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKBPKI) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -1923,7 +1978,7 @@ func (mr *MockKBPKIMockRecorder) NotifyPathUpdated(arg0, arg1 interface{}) *gomo
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.Folder, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
+func (m *MockKBPKI) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -2121,7 +2176,7 @@ func (mr *MockKeybaseServiceMockRecorder) EstablishMountDir(arg0 interface{}) *g
 }
 
 // FavoriteAdd mocks base method
-func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKeybaseService) FavoriteAdd(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteAdd", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2135,7 +2190,7 @@ func (mr *MockKeybaseServiceMockRecorder) FavoriteAdd(arg0, arg1 interface{}) *g
 }
 
 // FavoriteDelete mocks base method
-func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.Folder) error {
+func (m *MockKeybaseService) FavoriteDelete(arg0 context.Context, arg1 keybase1.FolderHandle) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteDelete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2281,6 +2336,20 @@ func (mr *MockKeybaseServiceMockRecorder) Notify(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockKeybaseService)(nil).Notify), arg0, arg1)
 }
 
+// NotifyFavoritesChanged mocks base method
+func (m *MockKeybaseService) NotifyFavoritesChanged(arg0 context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyFavoritesChanged", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged
+func (mr *MockKeybaseServiceMockRecorder) NotifyFavoritesChanged(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyFavoritesChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyFavoritesChanged), arg0)
+}
+
 // NotifyOnlineStatusChanged mocks base method
 func (m *MockKeybaseService) NotifyOnlineStatusChanged(arg0 context.Context, arg1 bool) error {
 	m.ctrl.T.Helper()
@@ -2293,6 +2362,20 @@ func (m *MockKeybaseService) NotifyOnlineStatusChanged(arg0 context.Context, arg
 func (mr *MockKeybaseServiceMockRecorder) NotifyOnlineStatusChanged(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOnlineStatusChanged", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOnlineStatusChanged), arg0, arg1)
+}
+
+// NotifyOverallSyncStatus mocks base method
+func (m *MockKeybaseService) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockKeybaseServiceMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockKeybaseService)(nil).NotifyOverallSyncStatus), arg0, arg1)
 }
 
 // NotifyPathUpdated mocks base method
@@ -2324,7 +2407,7 @@ func (mr *MockKeybaseServiceMockRecorder) NotifySyncStatus(arg0, arg1 interface{
 }
 
 // PutGitMetadata mocks base method
-func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.Folder, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
+func (m *MockKeybaseService) PutGitMetadata(arg0 context.Context, arg1 keybase1.FolderHandle, arg2 keybase1.RepoID, arg3 keybase1.GitLocalMetadata) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutGitMetadata", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -2482,6 +2565,21 @@ func NewMockKeyManager(ctrl *gomock.Controller) *MockKeyManager {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockKeyManager) EXPECT() *MockKeyManagerMockRecorder {
 	return m.recorder
+}
+
+// GetFirstTLFCryptKey mocks base method
+func (m *MockKeyManager) GetFirstTLFCryptKey(arg0 context.Context, arg1 libkey.KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFirstTLFCryptKey", arg0, arg1)
+	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFirstTLFCryptKey indicates an expected call of GetFirstTLFCryptKey
+func (mr *MockKeyManagerMockRecorder) GetFirstTLFCryptKey(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFirstTLFCryptKey", reflect.TypeOf((*MockKeyManager)(nil).GetFirstTLFCryptKey), arg0, arg1)
 }
 
 // GetTLFCryptKeyForBlockDecryption mocks base method
@@ -3324,6 +3422,20 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 	return m.recorder
 }
 
+// ChildName mocks base method
+func (m *MockNode) ChildName(arg0 string) data.PathPartString {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChildName", arg0)
+	ret0, _ := ret[0].(data.PathPartString)
+	return ret0
+}
+
+// ChildName indicates an expected call of ChildName
+func (mr *MockNodeMockRecorder) ChildName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChildName", reflect.TypeOf((*MockNode)(nil).ChildName), arg0)
+}
+
 // EntryType mocks base method
 func (m *MockNode) EntryType() data.EntryType {
 	m.ctrl.T.Helper()
@@ -3351,10 +3463,10 @@ func (mr *MockNodeMockRecorder) FillCacheDuration(arg0 interface{}) *gomock.Call
 }
 
 // GetBasename mocks base method
-func (m *MockNode) GetBasename() string {
+func (m *MockNode) GetBasename() data.PathPartString {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBasename")
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(data.PathPartString)
 	return ret0
 }
 
@@ -3434,6 +3546,20 @@ func (mr *MockNodeMockRecorder) GetID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockNode)(nil).GetID))
 }
 
+// Obfuscator mocks base method
+func (m *MockNode) Obfuscator() data.Obfuscator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Obfuscator")
+	ret0, _ := ret[0].(data.Obfuscator)
+	return ret0
+}
+
+// Obfuscator indicates an expected call of Obfuscator
+func (mr *MockNodeMockRecorder) Obfuscator() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Obfuscator", reflect.TypeOf((*MockNode)(nil).Obfuscator))
+}
+
 // Readonly mocks base method
 func (m *MockNode) Readonly(arg0 context.Context) bool {
 	m.ctrl.T.Helper()
@@ -3449,7 +3575,7 @@ func (mr *MockNodeMockRecorder) Readonly(arg0 interface{}) *gomock.Call {
 }
 
 // RemoveDir mocks base method
-func (m *MockNode) RemoveDir(arg0 context.Context, arg1 string) (bool, error) {
+func (m *MockNode) RemoveDir(arg0 context.Context, arg1 data.PathPartString) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveDir", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -3464,14 +3590,14 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 string) (bool, context.Context, data.EntryType, os.FileInfo, string) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(context.Context)
 	ret2, _ := ret[2].(data.EntryType)
 	ret3, _ := ret[3].(os.FileInfo)
-	ret4, _ := ret[4].(string)
+	ret4, _ := ret[4].(data.PathPartString)
 	return ret0, ret1, ret2, ret3, ret4
 }
 
@@ -3601,7 +3727,7 @@ func (mr *MockNodeCacheMockRecorder) Get(arg0 interface{}) *gomock.Call {
 }
 
 // GetOrCreate mocks base method
-func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 string, arg2 Node, arg3 data.EntryType) (Node, error) {
+func (m *MockNodeCache) GetOrCreate(arg0 data.BlockPointer, arg1 data.PathPartString, arg2 Node, arg3 data.EntryType) (Node, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrCreate", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(Node)
@@ -3630,7 +3756,7 @@ func (mr *MockNodeCacheMockRecorder) IsUnlinked(arg0 interface{}) *gomock.Call {
 }
 
 // Move mocks base method
-func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 string) (func(), error) {
+func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 data.PathPartString) (func(), error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Move", arg0, arg1, arg2)
 	ret0, _ := ret[0].(func())
@@ -3642,6 +3768,20 @@ func (m *MockNodeCache) Move(arg0 data.BlockRef, arg1 Node, arg2 string) (func()
 func (mr *MockNodeCacheMockRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockNodeCache)(nil).Move), arg0, arg1, arg2)
+}
+
+// ObfuscatorMaker mocks base method
+func (m *MockNodeCache) ObfuscatorMaker() func() data.Obfuscator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ObfuscatorMaker")
+	ret0, _ := ret[0].(func() data.Obfuscator)
+	return ret0
+}
+
+// ObfuscatorMaker indicates an expected call of ObfuscatorMaker
+func (mr *MockNodeCacheMockRecorder) ObfuscatorMaker() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ObfuscatorMaker", reflect.TypeOf((*MockNodeCache)(nil).ObfuscatorMaker))
 }
 
 // PathFromNode mocks base method
@@ -3656,6 +3796,18 @@ func (m *MockNodeCache) PathFromNode(arg0 Node) data.Path {
 func (mr *MockNodeCacheMockRecorder) PathFromNode(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PathFromNode", reflect.TypeOf((*MockNodeCache)(nil).PathFromNode), arg0)
+}
+
+// SetObfuscatorMaker mocks base method
+func (m *MockNodeCache) SetObfuscatorMaker(arg0 func() data.Obfuscator) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetObfuscatorMaker", arg0)
+}
+
+// SetObfuscatorMaker indicates an expected call of SetObfuscatorMaker
+func (mr *MockNodeCacheMockRecorder) SetObfuscatorMaker(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetObfuscatorMaker", reflect.TypeOf((*MockNodeCache)(nil).SetObfuscatorMaker), arg0)
 }
 
 // Unlink mocks base method
@@ -3908,6 +4060,30 @@ func (m *MockReporter) Notify(arg0 context.Context, arg1 *keybase1.FSNotificatio
 func (mr *MockReporterMockRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockReporter)(nil).Notify), arg0, arg1)
+}
+
+// NotifyFavoritesChanged mocks base method
+func (m *MockReporter) NotifyFavoritesChanged(arg0 context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyFavoritesChanged", arg0)
+}
+
+// NotifyFavoritesChanged indicates an expected call of NotifyFavoritesChanged
+func (mr *MockReporterMockRecorder) NotifyFavoritesChanged(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyFavoritesChanged", reflect.TypeOf((*MockReporter)(nil).NotifyFavoritesChanged), arg0)
+}
+
+// NotifyOverallSyncStatus mocks base method
+func (m *MockReporter) NotifyOverallSyncStatus(arg0 context.Context, arg1 keybase1.FolderSyncStatus) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NotifyOverallSyncStatus", arg0, arg1)
+}
+
+// NotifyOverallSyncStatus indicates an expected call of NotifyOverallSyncStatus
+func (mr *MockReporterMockRecorder) NotifyOverallSyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyOverallSyncStatus", reflect.TypeOf((*MockReporter)(nil).NotifyOverallSyncStatus), arg0, arg1)
 }
 
 // NotifyPathUpdated mocks base method

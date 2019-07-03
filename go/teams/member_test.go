@@ -885,6 +885,7 @@ func TestLeaveAsReader(t *testing.T) {
 		ID:          teamID,
 		ForceRepoll: true,
 	})
+	require.NoError(t, err)
 
 	t.Logf("U0 loads the team from scratch")
 	_, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
@@ -957,7 +958,7 @@ func assertRole2(tc libkb.TestContext, teamID keybase1.TeamID, username string, 
 func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
 	tc.T.Logf("looking for invite for %s/%s w/ role %s in team %s", username, typ, role, name)
 	iname := keybase1.TeamInviteName(username)
-	itype, err := keybase1.TeamInviteTypeFromString(typ, true)
+	itype, err := TeamInviteTypeFromString(tc.MetaContext(), typ)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -969,7 +970,7 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 
 func assertNoInvite(tc libkb.TestContext, name, username, typ string) {
 	iname := keybase1.TeamInviteName(username)
-	itype, err := keybase1.TeamInviteTypeFromString(typ, true)
+	itype, err := TeamInviteTypeFromString(tc.MetaContext(), typ)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

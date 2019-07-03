@@ -20,8 +20,8 @@ import (
 )
 
 type favoriteStore interface {
-	FavoriteAdd(uid keybase1.UID, folder keybase1.Folder) error
-	FavoriteDelete(uid keybase1.UID, folder keybase1.Folder) error
+	FavoriteAdd(uid keybase1.UID, folder keybase1.FolderHandle) error
+	FavoriteDelete(uid keybase1.UID, folder keybase1.FolderHandle) error
 	FavoriteList(uid keybase1.UID) ([]keybase1.Folder, error)
 
 	Shutdown()
@@ -35,12 +35,12 @@ type diskFavoriteClient struct {
 var _ favoriteStore = diskFavoriteClient{}
 
 func (c diskFavoriteClient) favkey(
-	uid keybase1.UID, folder keybase1.Folder) []byte {
+	uid keybase1.UID, folder keybase1.FolderHandle) []byte {
 	return []byte(fmt.Sprintf("%s:%s", uid, folder.ToString()))
 }
 
 func (c diskFavoriteClient) FavoriteAdd(
-	uid keybase1.UID, folder keybase1.Folder) error {
+	uid keybase1.UID, folder keybase1.FolderHandle) error {
 	enc, err := c.codec.Encode(folder)
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func (c diskFavoriteClient) FavoriteAdd(
 }
 
 func (c diskFavoriteClient) FavoriteDelete(
-	uid keybase1.UID, folder keybase1.Folder) error {
+	uid keybase1.UID, folder keybase1.FolderHandle) error {
 	return c.favoriteDb.Delete(c.favkey(uid, folder), nil)
 }
 
@@ -78,22 +78,22 @@ func (c diskFavoriteClient) Shutdown() {
 }
 
 type memoryFavoriteClient struct {
-	favorites map[keybase1.UID]map[string]keybase1.Folder
+	favorites map[keybase1.UID]map[string]keybase1.FolderHandle
 }
 
 var _ favoriteStore = memoryFavoriteClient{}
 
 func (c memoryFavoriteClient) FavoriteAdd(
-	uid keybase1.UID, folder keybase1.Folder) error {
+	uid keybase1.UID, folder keybase1.FolderHandle) error {
 	if c.favorites[uid] == nil {
-		c.favorites[uid] = make(map[string]keybase1.Folder)
+		c.favorites[uid] = make(map[string]keybase1.FolderHandle)
 	}
 	c.favorites[uid][folder.ToString()] = folder
 	return nil
 }
 
 func (c memoryFavoriteClient) FavoriteDelete(
-	uid keybase1.UID, folder keybase1.Folder) error {
+	uid keybase1.UID, folder keybase1.FolderHandle) error {
 	if c.favorites[uid] != nil {
 		delete(c.favorites[uid], folder.ToString())
 	}
@@ -105,7 +105,10 @@ func (c memoryFavoriteClient) FavoriteList(
 	folders := make([]keybase1.Folder, len(c.favorites[uid]))
 	i := 0
 	for _, v := range c.favorites[uid] {
-		folders[i] = v
+		folders[i] = keybase1.Folder{
+			Name:       v.Name,
+			FolderType: v.FolderType,
+		}
 		i++
 	}
 	return folders, nil
@@ -233,15 +236,17 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 	tid keybase1.TeamID, uid keybase1.UID) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	teamName, err := k.DaemonLocal.AddTeamWriterForTest(tid, uid)
+	teamName, isImplicit, err := k.DaemonLocal.AddTeamWriterForTest(tid, uid)
 	if err != nil {
 		return err
 	}
-	f := keybase1.Folder{
-		Name:       string(teamName),
-		FolderType: keybase1.FolderType_TEAM,
+	if !isImplicit {
+		f := keybase1.FolderHandle{
+			Name:       string(teamName),
+			FolderType: keybase1.FolderType_TEAM,
+		}
+		k.favoriteStore.FavoriteAdd(uid, f)
 	}
-	k.favoriteStore.FavoriteAdd(uid, f)
 	return nil
 }
 
@@ -253,7 +258,7 @@ func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
 	if err != nil {
 		return err
 	}
-	f := keybase1.Folder{
+	f := keybase1.FolderHandle{
 		Name:       string(teamName),
 		FolderType: keybase1.FolderType_TEAM,
 	}
@@ -269,7 +274,7 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 	if err != nil {
 		return err
 	}
-	f := keybase1.Folder{
+	f := keybase1.FolderHandle{
 		Name:       string(teamName),
 		FolderType: keybase1.FolderType_TEAM,
 	}
@@ -280,7 +285,7 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 func (k *KeybaseDaemonLocal) addTeamsForTestLocked(teams []idutil.TeamInfo) {
 	k.DaemonLocal.AddTeamsForTest(teams)
 	for _, t := range teams {
-		f := keybase1.Folder{
+		f := keybase1.FolderHandle{
 			Name:       string(t.Name),
 			FolderType: keybase1.FolderType_TEAM,
 		}
@@ -301,7 +306,7 @@ func (k *KeybaseDaemonLocal) addTeamsForTest(teams []idutil.TeamInfo) {
 
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteAdd(
-	ctx context.Context, folder keybase1.Folder) error {
+	ctx context.Context, folder keybase1.FolderHandle) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -317,7 +322,7 @@ func (k *KeybaseDaemonLocal) FavoriteAdd(
 
 // FavoriteDelete implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteDelete(
-	ctx context.Context, folder keybase1.Folder) error {
+	ctx context.Context, folder keybase1.FolderHandle) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -375,6 +380,11 @@ func (k *KeybaseDaemonLocal) NotifyOnlineStatusChanged(ctx context.Context, onli
 	return checkContext(ctx)
 }
 
+// NotifyFavoritesChanged implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyFavoritesChanged(ctx context.Context) error {
+	return checkContext(ctx)
+}
+
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return checkContext(ctx)
@@ -389,6 +399,12 @@ func (k *KeybaseDaemonLocal) NotifyPathUpdated(
 // NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 	_ *keybase1.FSPathSyncStatus) error {
+	return checkContext(ctx)
+}
+
+// NotifyOverallSyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifyOverallSyncStatus(
+	ctx context.Context, _ keybase1.FolderSyncStatus) error {
 	return checkContext(ctx)
 }
 
@@ -413,7 +429,7 @@ func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, err
 // PutGitMetadata implements the KeybaseService interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) PutGitMetadata(
-	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) error {
 	return nil
 }
@@ -455,7 +471,7 @@ func NewKeybaseDaemonMemory(currentUID keybase1.UID,
 	users []idutil.LocalUser, teams []idutil.TeamInfo,
 	codec kbfscodec.Codec) *KeybaseDaemonLocal {
 	favoriteStore := memoryFavoriteClient{
-		favorites: make(map[keybase1.UID]map[string]keybase1.Folder),
+		favorites: make(map[keybase1.UID]map[string]keybase1.FolderHandle),
 	}
 	return newKeybaseDaemonLocal(codec, currentUID, users, teams, favoriteStore)
 }

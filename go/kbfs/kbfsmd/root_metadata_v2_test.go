@@ -171,8 +171,8 @@ func TestWriterMetadataV2UnchangedEncoding(t *testing.T) {
 
 // Test that WriterMetadataV2 has only a fixed (frozen) set of fields.
 func TestWriterMetadataV2EncodedFields(t *testing.T) {
-	sa1, _ := externals.NormalizeSocialAssertionStatic("uid1@twitter")
-	sa2, _ := externals.NormalizeSocialAssertionStatic("uid2@twitter")
+	sa1, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "uid1@twitter")
+	sa2, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "uid2@twitter")
 	// Usually exactly one of Writers/WKeys is filled in, but we
 	// fill in both here for testing.
 	wm := WriterMetadataV2{
@@ -277,7 +277,7 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 		WriterMetadataExtraV2{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertionStatic("foo@twitter")
+	sa, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "foo@twitter")
 	return writerMetadataV2Future{
 		wmd,
 		tlfWriterKeyGenerationsV2Future{&wkb},
@@ -343,7 +343,7 @@ func (brmf *rootMetadataV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
 func makeFakeRootMetadataV2Future(t *testing.T) *rootMetadataV2Future {
 	wmf := makeFakeWriterMetadataV2Future(t)
 	rkb := makeFakeTLFReaderKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertionStatic("bar@github")
+	sa, _ := externals.NormalizeSocialAssertionStatic(context.Background(), "bar@github")
 	rmf := rootMetadataV2Future{
 		wmf,
 		rootMetadataWrapper{

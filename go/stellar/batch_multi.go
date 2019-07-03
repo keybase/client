@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
@@ -109,6 +110,12 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 		// make all ther results have success
 		now := stellar1.ToTimeMs(time.Now())
 		for i := 0; i < len(results); i++ {
+			if results[i].Status == stellar1.PaymentStatus_ERROR {
+				// some of the results have already been marked as an
+				// error, so skip those.
+				continue
+			}
+
 			results[i].TxID = submitRes.TxID
 			results[i].Status = stellar1.PaymentStatus_COMPLETED
 			results[i].EndTime = now
@@ -192,7 +199,7 @@ func prepareRelayOp(mctx libkb.MetaContext, payment stellar1.BatchPaymentArg, re
 	if err != nil {
 		return op, err
 	}
-	pack, err := libkb.MsgpackEncode(enc)
+	pack, err := msgpack.Encode(enc)
 	if err != nil {
 		return op, err
 	}

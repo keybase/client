@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/giphy"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
@@ -351,8 +353,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 	var videoStr string
 	for _, res := range galleryInfo.results {
 		videoStr += fmt.Sprintf(`
-			<video style="height: 100%%" src="%s" onclick="sendMessage('%s')" playsinline webkit-playsinline autoplay muted loop>
-			</video>
+			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
 		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
 			res.TargetUrl))
 	}
@@ -392,8 +393,13 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	}
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
-	client := &http.Client{}
-	giphyReq, err := http.NewRequest("GET", val.(string), nil)
+	client := giphy.AssetClient(libkb.NewMetaContext(ctx, r.G().GlobalContext))
+	url, err := giphy.ProxyURL(val.(string))
+	if err != nil {
+		r.makeError(ctx, w, http.StatusInternalServerError, "url creation: %s", err)
+		return
+	}
+	giphyReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		r.makeError(ctx, w, http.StatusInternalServerError, "request creation: %s", err)
 		return
@@ -401,6 +407,7 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 	if len(rangeHeader) > 0 {
 		giphyReq.Header.Add("Range", rangeHeader)
 	}
+	giphyReq.Host = giphy.MediaHost
 	resp, err := client.Do(giphyReq)
 	if err != nil {
 		r.makeError(ctx, w, resp.StatusCode, "failed to get read giphy link: %s", err)
@@ -699,13 +706,21 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 	return os.OpenFile(path, os.O_RDWR, os.ModeAppend)
 }
 
+// normalizeFilenameFromCache substitutes the existing cache dir value into the
+// file path since it's possible for the path to the cache dir to change,
+// especially on mobile.
+func (c *CachingAttachmentFetcher) normalizeFilenameFromCache(file string) string {
+	file = filepath.Base(file)
+	return filepath.Join(c.getCacheDir(), file)
+}
+
 func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {
 	found, entry, err := c.diskLRU.Get(ctx, c.G(), c.cacheKey(asset))
 	if err != nil {
 		return found, path, err
 	}
 	if found {
-		path = entry.Value.(string)
+		path = c.normalizeFilenameFromCache(entry.Value.(string))
 	}
 	return found, path, nil
 }
@@ -784,7 +799,7 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 		return err
 	}
 	if evicted != nil {
-		path := evicted.Value.(string)
+		path := c.normalizeFilenameFromCache(evicted.Value.(string))
 		os.Remove(path)
 	}
 	return nil

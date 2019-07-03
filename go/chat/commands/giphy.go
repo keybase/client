@@ -13,14 +13,15 @@ import (
 )
 
 type giphySearcher interface {
-	Search(mctx libkb.MetaContext, query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
+	Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource, query *string, limit int,
+		urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
 }
 
 type defaultGiphySearcher struct{}
 
-func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, limit int,
-	urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
-	return giphy.Search(mctx, query, limit, urlsrv)
+func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource,
+	query *string, limit int, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	return giphy.Search(mctx, apiKeySource, query, limit, urlsrv)
 }
 
 type Giphy struct {
@@ -62,12 +63,12 @@ func (s *Giphy) getLimit() int {
 }
 
 func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName, text string) (err error) {
+	tlfName, text string, replyTo *chat1.MessageID) (err error) {
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
-		s.getLimit(), s.G().AttachmentURLSrv)
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()),
+		s.G().ExternalAPIKeySource, s.getQuery(text), s.getLimit(), s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
 		return err
@@ -77,7 +78,7 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		return nil
 	}
 	res := results[libkb.RandIntn(len(results))]
-	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil)
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil, replyTo)
 	return err
 }
 
@@ -125,8 +126,8 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, true, false)
 	s.shownResults[convID.String()] = query
 
-	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query, s.getLimit(),
-		s.G().AttachmentURLSrv)
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()),
+		s.G().ExternalAPIKeySource, query, s.getLimit(), s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return

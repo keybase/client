@@ -234,7 +234,7 @@ func (k KeybaseServiceMeasured) CurrentSession(ctx context.Context, sessionID in
 
 // FavoriteAdd implements the KeybaseService interface for
 // KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) FavoriteAdd(ctx context.Context, folder keybase1.Folder) (err error) {
+func (k KeybaseServiceMeasured) FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) (err error) {
 	k.favoriteAddTimer.Time(func() {
 		err = k.delegate.FavoriteAdd(ctx, folder)
 	})
@@ -243,7 +243,7 @@ func (k KeybaseServiceMeasured) FavoriteAdd(ctx context.Context, folder keybase1
 
 // FavoriteDelete implements the KeybaseService interface for
 // KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) FavoriteDelete(ctx context.Context, folder keybase1.Folder) (err error) {
+func (k KeybaseServiceMeasured) FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) (err error) {
 	k.favoriteDeleteTimer.Time(func() {
 		err = k.delegate.FavoriteDelete(ctx, folder)
 	})
@@ -318,6 +318,26 @@ func (k KeybaseServiceMeasured) NotifySyncStatus(ctx context.Context,
 	return err
 }
 
+// NotifyOverallSyncStatus implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyOverallSyncStatus(
+	ctx context.Context, status keybase1.FolderSyncStatus) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifyOverallSyncStatus(ctx, status)
+	})
+	return err
+}
+
+// NotifyFavoritesChanged implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifyFavoritesChanged(
+	ctx context.Context) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifyFavoritesChanged(ctx)
+	})
+	return err
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FlushUserFromLocalCache(
@@ -339,7 +359,7 @@ func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, 
 // PutGitMetadata implements the KeybaseDaemon interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) PutGitMetadata(
-	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) (err error) {
 	k.putGitMetadataTimer.Time(func() {
 		err = k.delegate.PutGitMetadata(ctx, folder, repoID, metadata)

@@ -118,10 +118,17 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 			return NewPermanentUnboxingError(err)
 		}
 	}
-	// All team read errors get marked as transient errors, since we are going to make them rekey errors
-	// later
+	// Check if we have a permanent or tranissent team read error. Transient
+	// errors, are converted to rekey errors later.
 	if teams.IsTeamReadError(err) {
-		return NewTransientUnboxingError(err)
+		switch err.Error() {
+		case "Root team has been deleted",
+			"Root team has been abandoned: All members have left or reset",
+			"Root team is not active":
+			return NewPermanentUnboxingError(err)
+		default:
+			return NewTransientUnboxingError(err)
+		}
 	}
 	switch err := err.(type) {
 	case libkb.UserDeletedError:
@@ -640,7 +647,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	}
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
+	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, membersType, body)
 
 	ierr = b.compareHeadersMBV1(ctx, boxed.ClientHeader, clientHeader)
@@ -665,6 +672,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		AtMentionUsernames:    atMentionUsernames,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
+		MaybeMentions:         maybeRes,
 	}, nil
 }
 
@@ -680,7 +688,8 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	if !found {
 		// This is an error users will actually see when they've just joined a
 		// team or added a new device.
-		return nil, NewNotAuthenticatedForThisDeviceError()
+		return nil, NewNotAuthenticatedForThisDeviceError(b.G().MetaContext(ctx),
+			boxed.ClientHeader.Conv.Tlfid, boxed.ServerHeader.Ctime)
 	}
 
 	// Second, load the device encryption KID for the sender.
@@ -872,7 +881,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
 	// Get at mention usernames
-	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
+	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, membersType, body)
 
 	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
@@ -894,6 +903,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		AtMentionUsernames:    atMentionUsernames,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
+		MaybeMentions:         maybeRes,
 	}, nil
 }
 
@@ -1159,42 +1169,45 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 }
 
 func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
+	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, maybeRes []chat1.MaybeMention, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
 	if topicType != chat1.TopicType_CHAT {
 		// only care about chat conversations for these mentions
-		return atMentions, atMentionUsernames, chanMention, channelNameMentions
+		return atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions
 	}
 	chanMention = chat1.ChannelMention_NONE
 	typ, err := body.MessageType()
 	if err != nil {
-		return nil, nil, chanMention, nil
+		return nil, nil, nil, chanMention, nil
 	}
 	uid := gregor1.UID(b.G().GetEnv().GetUID().ToBytes())
 	tcs := b.G().TeamChannelSource
+	var userAtMentions []chat1.KnownUserMention
 	switch typ {
 	case chat1.MessageType_TEXT:
-		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx, body.Text(), b.G().GetUPAKLoader(),
-			&b.DebugLabeler)
+		userAtMentions, maybeRes, chanMention = utils.GetTextAtMentionedItems(ctx, b.G(), body.Text(),
+			nil, &b.DebugLabeler)
 		if membersType == chat1.ConversationMembersType_TEAM {
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Text().Body, uid, tlfID, tcs)
 		}
 	case chat1.MessageType_FLIP:
 		if topicType == chat1.TopicType_CHAT {
-			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Flip().Text,
-				b.G().GetUPAKLoader(), &b.DebugLabeler)
+			userAtMentions, maybeRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Flip().Text,
+				body.Flip().UserMentions, nil)
 		}
 	case chat1.MessageType_EDIT:
-		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Edit().Body, b.G().GetUPAKLoader(),
-			&b.DebugLabeler)
+		userAtMentions, maybeRes, chanMention = utils.ParseAtMentionedItems(ctx, b.G(), body.Edit().Body,
+			body.Edit().UserMentions, nil)
 		if membersType == chat1.ConversationMembersType_TEAM {
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Edit().Body, uid, tlfID, tcs)
 		}
 	case chat1.MessageType_SYSTEM:
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, body.System(), b.G().GetUPAKLoader())
 	default:
-		return nil, nil, chanMention, nil
+		return nil, nil, nil, chanMention, nil
 	}
-
+	for _, uat := range userAtMentions {
+		atMentions = append(atMentions, uat.Uid)
+	}
 	usernames := make(map[string]bool)
 	for _, uid := range atMentions {
 		name, err := b.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
@@ -1206,7 +1219,7 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 	for u := range usernames {
 		atMentionUsernames = append(atMentionUsernames, u)
 	}
-	return atMentions, atMentionUsernames, chanMention, channelNameMentions
+	return atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv types.UnboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {

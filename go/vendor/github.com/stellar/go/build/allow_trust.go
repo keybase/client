@@ -19,6 +19,7 @@ type AllowTrustMutator interface {
 }
 
 // AllowTrustBuilder represents a transaction that is being built.
+// Deprecated use txnbuild.AllowTrust instead
 type AllowTrustBuilder struct {
 	O   xdr.Operation
 	AT  xdr.AllowTrustOp

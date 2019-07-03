@@ -17,10 +17,11 @@ import (
 
 func getDownloadTempDir(g *globals.Context, basename string) (string, error) {
 	p := filepath.Join(g.GetEnv().GetCacheDir(), "dltemp")
-	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+	filename := filepath.Join(p, basename)
+	if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
 		return "", err
 	}
-	return filepath.Join(p, basename), nil
+	return filename, nil
 }
 
 func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -59,6 +60,9 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		filename = fullpath
 		sink = f
 	} else {
+		if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
+			return "", nil, err
+		}
 		if sink, err = os.OpenFile(filename, openFlag, libkb.PermFile); err != nil {
 			return "", nil, err
 		}

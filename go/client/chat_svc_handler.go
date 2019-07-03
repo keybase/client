@@ -38,6 +38,9 @@ type ChatServiceHandler interface {
 	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
 	JoinV1(context.Context, joinOptionsV1) Reply
 	LeaveV1(context.Context, leaveOptionsV1) Reply
+	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
+	GetUnfurlSettingsV1(context.Context) Reply
+	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -49,35 +52,6 @@ func newChatServiceHandler(g *libkb.GlobalContext) *chatServiceHandler {
 	return &chatServiceHandler{
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-func (c *chatServiceHandler) exportRemoteConv(ctx context.Context, uiconv chat1.UnverifiedInboxUIItem) (convSummary ConvSummary) {
-	convSummary.ID = uiconv.ConvID
-	convSummary.Unread = uiconv.ReadMsgID < uiconv.MaxVisibleMsgID
-	convSummary.ActiveAt = uiconv.Time.UnixSeconds()
-	convSummary.ActiveAtMs = uiconv.Time.UnixMilliseconds()
-	convSummary.FinalizeInfo = uiconv.FinalizeInfo
-	convSummary.MemberStatus = strings.ToLower(uiconv.MemberStatus.String())
-	for _, super := range uiconv.Supersedes {
-		convSummary.Supersedes = append(convSummary.Supersedes,
-			super.ConversationID.String())
-	}
-	for _, super := range uiconv.SupersededBy {
-		convSummary.SupersededBy = append(convSummary.SupersededBy,
-			super.ConversationID.String())
-	}
-	var topicName string
-	if uiconv.LocalMetadata != nil {
-		topicName = uiconv.LocalMetadata.ChannelName
-	}
-	convSummary.Channel = ChatChannel{
-		Name:        uiconv.Name,
-		Public:      uiconv.IsPublic,
-		TopicType:   strings.ToLower(uiconv.TopicType.String()),
-		MembersType: strings.ToLower(uiconv.MembersType.String()),
-		TopicName:   topicName,
-	}
-	return convSummary
 }
 
 func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.InboxUIItem) (convSummary ConvSummary) {
@@ -114,7 +88,7 @@ func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.Con
 		convSummary.Error = conv.Error.Message
 		return convSummary
 	}
-	uiconv := utils.PresentConversationLocal(conv, c.G().Env.GetUsername().String())
+	uiconv := utils.PresentConversationLocal(ctx, conv, c.G().Env.GetUsername().String())
 	return c.exportUIConv(ctx, uiconv)
 }
 
@@ -131,61 +105,33 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
-	if opts.SkipUnbox {
-		res, err := client.GetInboxUILocal(ctx, chat1.GetInboxUILocalArg{
-			Query: &chat1.GetInboxLocalQuery{
-				Status:            utils.VisibleChatConversationStatuses(),
-				TopicType:         &topicType,
-				UnreadOnly:        opts.UnreadOnly,
-				OneChatTypePerTLF: new(bool),
-			},
-			Pagination:       opts.Pagination,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return c.errReply(err)
+	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			Status:            utils.VisibleChatConversationStatuses(),
+			TopicType:         &topicType,
+			UnreadOnly:        opts.UnreadOnly,
+			OneChatTypePerTLF: new(bool),
+		},
+		Pagination:       opts.Pagination,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	pagination = res.Pagination
+	rlimits = utils.AggRateLimits(res.RateLimits)
+	if opts.FailOffline && res.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+	cl = ChatList{
+		Offline:          res.Offline,
+		IdentifyFailures: res.IdentifyFailures,
+	}
+	for _, conv := range res.Conversations {
+		if !opts.ShowErrors && conv.Error != nil {
+			continue
 		}
-		pagination = res.Pagination
-		rlimits = utils.AggRateLimits(res.RateLimits)
-		if opts.FailOffline && res.Offline {
-			return c.errReply(chat.OfflineError{})
-		}
-		cl = ChatList{
-			Offline:          res.Offline,
-			IdentifyFailures: res.IdentifyFailures,
-		}
-		for _, conv := range res.ConversationsRemote {
-			cl.Conversations = append(cl.Conversations, c.exportRemoteConv(ctx, conv))
-		}
-	} else {
-		res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Query: &chat1.GetInboxLocalQuery{
-				Status:            utils.VisibleChatConversationStatuses(),
-				TopicType:         &topicType,
-				UnreadOnly:        opts.UnreadOnly,
-				OneChatTypePerTLF: new(bool),
-			},
-			Pagination:       opts.Pagination,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return c.errReply(err)
-		}
-		pagination = res.Pagination
-		rlimits = utils.AggRateLimits(res.RateLimits)
-		if opts.FailOffline && res.Offline {
-			return c.errReply(chat.OfflineError{})
-		}
-		cl = ChatList{
-			Offline:          res.Offline,
-			IdentifyFailures: res.IdentifyFailures,
-		}
-		for _, conv := range res.Conversations {
-			if !opts.ShowErrors && conv.Error != nil {
-				continue
-			}
-			cl.Conversations = append(cl.Conversations, c.exportLocalConv(ctx, conv))
-		}
+		cl.Conversations = append(cl.Conversations, c.exportLocalConv(ctx, conv))
 	}
 	cl.Pagination = pagination
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -224,22 +170,18 @@ func (c *chatServiceHandler) JoinV1(ctx context.Context, opts joinOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
-	topicType, err := TopicTypeFromStrDefault(opts.Channel.TopicType)
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
-	res, err := client.JoinConversationLocal(ctx, chat1.JoinConversationLocalArg{
-		TlfName:    opts.Channel.Name,
-		TopicType:  topicType,
-		TopicName:  opts.Channel.TopicName,
-		Visibility: opts.Channel.Visibility(),
-	})
+	res, err := client.JoinConversationByIDLocal(ctx, convID)
 	if err != nil {
 		return c.errReply(err)
 	}
+	allLimits := append(rl, res.RateLimits...)
 	cres := EmptyRes{
 		RateLimits: RateLimits{
-			c.aggRateLimits(res.RateLimits),
+			c.aggRateLimits(allLimits),
 		},
 	}
 	return Reply{Result: cres}
@@ -250,7 +192,7 @@ func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) R
 	if err != nil {
 		return c.errReply(err)
 	}
-	convID, rl, err := c.resolveAPIConvID(ctx, opts.Channel)
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -265,6 +207,66 @@ func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) R
 		},
 	}
 	return Reply{Result: cres}
+}
+
+func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	hostConvID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	flipConvID, err := chat1.MakeConvID(opts.FlipConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	gameID, err := chat1.MakeFlipGameID(opts.GameID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.LoadFlip(ctx, chat1.LoadFlipArg{
+		HostConvID: hostConvID,
+		HostMsgID:  opts.MsgID,
+		FlipConvID: flipConvID,
+		GameID:     gameID,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) GetUnfurlSettingsV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.GetUnfurlSettings(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{
+		Result: map[string]interface{}{
+			"mode":      strings.ToLower(chat1.UnfurlModeRevMap[res.Mode]),
+			"whitelist": res.Whitelist,
+		},
+	}
+}
+
+func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUnfurlSettingsOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	if err := client.SaveUnfurlSettings(ctx, chat1.SaveUnfurlSettingsArg{
+		Mode:      opts.intMode,
+		Whitelist: opts.Whitelist,
+	}); err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: true}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
@@ -314,7 +316,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 		}
 
 		msg := MsgSummary{
-			ID: mv.ServerHeader.MessageID,
+			ID:     mv.ServerHeader.MessageID,
+			ConvID: conv.GetConvID().String(),
 			Channel: ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
@@ -367,7 +370,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	conv, rlimits, err := c.findConversation(ctx, opts.Channel)
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -424,7 +427,7 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 		return c.errReply(err)
 	}
 
-	conv, rlimits, err := c.findConversation(ctx, opts.Channel)
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -466,7 +469,12 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui chat1.ChatUiInterface) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	arg := sendArgV1{
+		conversationID:    convID,
 		channel:           opts.Channel,
 		body:              chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
 		mtype:             chat1.MessageType_TEXT,
@@ -480,13 +488,18 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui 
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
+	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	messages := []chat1.MessageID{opts.MessageID}
 	arg := sendArgV1{
-		channel:    opts.Channel,
-		mtype:      chat1.MessageType_DELETE,
-		supersedes: opts.MessageID,
-		deletes:    messages,
-		response:   "message deleted",
+		conversationID: convID,
+		channel:        opts.Channel,
+		mtype:          chat1.MessageType_DELETE,
+		supersedes:     opts.MessageID,
+		deletes:        messages,
+		response:       "message deleted",
 
 		// NOTE: The service will fill in the IDs of edit messages that also need to be deleted.
 		body: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
@@ -496,25 +509,34 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 
 // EditV1 implements ChatServiceHandler.EditV1.
 func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Reply {
-
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	arg := sendArgV1{
-		channel:    opts.Channel,
-		body:       chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
-		mtype:      chat1.MessageType_EDIT,
-		supersedes: opts.MessageID,
-		response:   "message edited",
+		conversationID: convID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_EDIT,
+		supersedes:     opts.MessageID,
+		response:       "message edited",
 	}
 	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
 
 // ReactionV1 implements ChatServiceHandler.ReactionV1.
 func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	arg := sendArgV1{
-		channel:    opts.Channel,
-		body:       chat1.NewMessageBodyWithReaction(chat1.MessageReaction{MessageID: opts.MessageID, Body: opts.Message.Body}),
-		mtype:      chat1.MessageType_REACTION,
-		supersedes: opts.MessageID,
-		response:   "message reacted to",
+		conversationID: convID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithReaction(chat1.MessageReaction{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_REACTION,
+		supersedes:     opts.MessageID,
+		response:       "message reacted to",
 	}
 	return c.sendV1(ctx, arg, utils.DummyChatUI{})
 }
@@ -523,12 +545,17 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 	chatUI chat1.ChatUiInterface, notifyUI chat1.NotifyChatInterface) Reply {
 	var rl []chat1.RateLimit
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	sarg := sendArgV1{
+		conversationID:    convID,
 		channel:           opts.Channel,
 		mtype:             chat1.MessageType_ATTACHMENT,
 		ephemeralLifetime: opts.EphemeralLifetime,
 	}
-	existing, existingRl, err := c.getExistingConvs(ctx, sarg.channel)
+	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -634,7 +661,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		return c.errReply(err)
 	}
 
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.Channel)
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -684,7 +711,7 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 		return c.errReply(err)
 	}
 
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.Channel)
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -716,7 +743,7 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOptionsV1) Reply {
 	var rlimits []chat1.RateLimit
 
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.Channel)
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -751,7 +778,7 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 
 // MarkV1 implements ChatServiceHandler.MarkV1.
 func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Reply {
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.Channel)
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -845,7 +872,7 @@ func (c *chatServiceHandler) SearchInboxV1(ctx context.Context, opts searchInbox
 
 // SearchRegexpV1 implements ChatServiceHandler.SearchRegexpV1.
 func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRegexpOptionsV1) Reply {
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.Channel)
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -955,6 +982,7 @@ func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV
 
 type sendArgV1 struct {
 	// convQuery  chat1.GetInboxLocalQuery
+	conversationID    chat1.ConversationID
 	channel           ChatChannel
 	body              chat1.MessageBody
 	mtype             chat1.MessageType
@@ -979,7 +1007,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 	}
 
 	var rl []chat1.RateLimit
-	existing, existingRl, err := c.getExistingConvs(ctx, arg.channel)
+	existing, existingRl, err := c.getExistingConvs(ctx, arg.conversationID, arg.channel)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -1114,11 +1142,26 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	return &header, nil
 }
 
-func (c *chatServiceHandler) getExistingConvs(ctx context.Context, channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.ConversationID,
+	channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return nil, nil, err
 	}
+	if !convID.IsNil() {
+		gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{convID},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+		if err != nil {
+			c.G().Log.Warning("GetInboxLocal error: %s", err)
+			return nil, nil, err
+		}
+		return gilres.Conversations, gilres.RateLimits, nil
+	}
+
 	tlfName := channel.Name
 	vis := keybase1.TLFVisibility_PRIVATE
 	if channel.Public {
@@ -1143,6 +1186,19 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, channel ChatC
 	return findRes.Conversations, findRes.RateLimits, nil
 }
 
+func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *MsgFlipContent) {
+	if flip == nil {
+		return res
+	}
+	res = new(MsgFlipContent)
+	res.GameID = flip.GameID.String()
+	res.FlipConvID = flip.FlipConvID.String()
+	res.TeamMentions = flip.TeamMentions
+	res.UserMentions = flip.UserMentions
+	res.Text = flip.Text
+	return res
+}
+
 // need this to get message type name
 func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 	return MsgContent{
@@ -1159,7 +1215,7 @@ func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		SendPayment:        mb.Sendpayment__,
 		RequestPayment:     mb.Requestpayment__,
 		Unfurl:             mb.Unfurl__,
-		Flip:               mb.Flip__,
+		Flip:               c.displayFlipBody(mb.Flip__),
 	}
 }
 
@@ -1204,9 +1260,11 @@ func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []Rat
 }
 
 // Resolve the ConvID of the specified conversation.
+// Prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
-func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
-	conv, limits, err := c.findConversation(ctx, channel)
+func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr string,
+	channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
+	conv, limits, err := c.findConversation(ctx, convIDStr, channel)
 	if err != nil {
 		return chat1.ConversationID{}, nil, err
 	}
@@ -1214,16 +1272,27 @@ func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, channel ChatC
 }
 
 // findConversation finds a conversation.
+// It prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
-func (c *chatServiceHandler) findConversation(ctx context.Context, channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
+func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr string,
+	channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
 	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
-	if channel.IsNil() {
+	if channel.IsNil() && len(convIDStr) == 0 {
 		return conv, rlimits, errors.New("missing conversation specificer")
 	}
 
-	existing, existingRl, err := c.getExistingConvs(ctx, channel)
+	var convID chat1.ConversationID
+	if channel.IsNil() {
+		var err error
+		convID, err = chat1.MakeConvID(convIDStr)
+		if err != nil {
+			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
+		}
+	}
+
+	existing, existingRl, err := c.getExistingConvs(ctx, convID, channel)
 	if err != nil {
 		return conv, rlimits, err
 	}
@@ -1268,6 +1337,14 @@ type MsgSender struct {
 	DeviceName string `json:"device_name,omitempty"`
 }
 
+type MsgFlipContent struct {
+	Text         string
+	GameID       string
+	FlipConvID   string
+	UserMentions []chat1.KnownUserMention
+	TeamMentions []chat1.KnownTeamMention
+}
+
 // MsgContent is used to retrieve the type name in addition to one of Text,
 // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
 // message.
@@ -1286,12 +1363,13 @@ type MsgContent struct {
 	SendPayment        *chat1.MessageSendPayment          `json:"send_payment,omitempty"`
 	RequestPayment     *chat1.MessageRequestPayment       `json:"request_payment,omitempty"`
 	Unfurl             *chat1.MessageUnfurl               `json:"unfurl,omitempty"`
-	Flip               *chat1.MessageFlip                 `json:"flip,omitempty"`
+	Flip               *MsgFlipContent                    `json:"flip,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
 	ID                  chat1.MessageID                `json:"id"`
+	ConvID              string                         `json:"conversation_id"`
 	Channel             ChatChannel                    `json:"channel"`
 	Sender              MsgSender                      `json:"sender"`
 	SentAt              int64                          `json:"sent_at"`

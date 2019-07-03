@@ -36,7 +36,7 @@ func TestRotate(t *testing.T) {
 	require.Equal(t, len(keys1), 1)
 	require.Equal(t, keys1[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 
-	if err := team.Rotate(context.TODO()); err != nil {
+	if err := team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE); err != nil {
 		t.Fatal(err)
 	}
 
@@ -108,7 +108,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 		require.NoError(t, err)
 
 		// rotate to bump the generation
-		err = team.Rotate(context.TODO())
+		err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 		require.NoError(t, err)
 
 		team, err = GetForTestByID(context.TODO(), tc.G, teamID)

@@ -975,7 +975,21 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 	for i := last; i >= first && i <= last; i-- {
 		entry, err := dj.readJournalEntry(i)
 		if err != nil {
-			return 0, err
+			// If we can't read a particular entry while ignoring old
+			// revisions, the entry might be corrupt.  But returning
+			// an error is harsh and dangerous because at this point a
+			// new MD revision has already been appended to the MD
+			// journal; if we error to the caller then they won't
+			// write another marker and on a restart the whole MD
+			// journal can be flushed without waiting for the
+			// corresponding blocks to flush.  See HOTPOT-193.  So
+			// instead, log the error and keep going in that case.  If
+			// the entry continues to be unreadable during flush, then
+			// the journal (and eventually another round of conflict
+			// resolution) will become stuck and the error will
+			// surface up to the user.
+			j.log.CWarningf(ctx, "Couldn't read journal entry %d: %+v", i, err)
+			continue
 		}
 		e := entry.(blockJournalEntry)
 

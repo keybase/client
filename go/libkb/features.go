@@ -15,6 +15,7 @@ type FeatureFlags []Feature
 const (
 	EnvironmentFeatureAllowHighSkips    = Feature("env_allow_high_skips")
 	EnvironmentFeatureAutoresetPipeline = Feature("env_autoreset")
+	EnvironmentFeatureMerkleCheckpoint  = Feature("merkle_checkpoint")
 )
 
 // StringToFeatureFlags returns a set of feature flags
@@ -71,9 +72,8 @@ type FeatureFlagSet struct {
 const (
 	FeatureFTL                = Feature("ftl")
 	FeatureIMPTOFU            = Feature("imptofu")
-	FeatureBoxAuditor         = Feature("box_auditor")
+	FeatureBoxAuditor         = Feature("box_auditor2")
 	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
-	CreateBTCBech32           = Feature("create_btc_bech32")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.
@@ -156,6 +156,14 @@ func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, er
 		"features": S{Val: string(f)},
 	}
 	err = m.G().API.GetDecode(m, arg, &raw)
+	switch err.(type) {
+	case nil:
+	case LoginRequiredError:
+		// No features for logged-out users
+		return false, nil
+	default:
+		return false, err
+	}
 	if err != nil {
 		return false, err
 	}

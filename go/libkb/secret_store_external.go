@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/msgpack"
 )
 
 // UnsafeExternalKeyStore is a simple interface that external clients can implement.
@@ -113,15 +114,6 @@ type secretStoreAndroid struct{}
 
 var _ SecretStoreAll = &secretStoreAndroid{}
 
-func NewSecretStoreAll(m MetaContext) SecretStoreAll {
-	if m.G().Env.ForceSecretStoreFile() {
-		// Allow use of file secret store on Android, for debugging or use with
-		// Termux (https://termux.com/).
-		return NewSecretStoreFile(m.G().Env.GetDataDir())
-	}
-	return &secretStoreAndroid{}
-}
-
 func (s *secretStoreAndroid) serviceName(m MetaContext) string {
 	return m.G().GetStoredSecretServiceName()
 }
@@ -178,7 +170,13 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 		return nil, err
 	}
 	ch := kbcrypto.CodecHandle()
-	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
+	var usersUnpacked []string
+	err = msgpack.DecodeAll(usersMsgPack, ch, &usersUnpacked)
+	for _, v := range usersUnpacked {
+		if !isPPSSecretStore(v) {
+			users = append(users, v)
+		}
+	}
 	return users, err
 }
 

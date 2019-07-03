@@ -47,11 +47,11 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/
 js/rpc.js: build-stamp | config
 	@mkdir -p js/
 	node ./bin/flow.js
-	cp ./js/rpc* ../shared/constants/types
+	cp ./js/rpc*.tsx ../shared/constants/types
 	cp ./js/engine-gen.json ../shared/actions/json
 
 clean:
-	rm -rf json/*.json json/*/*.json js/*.js *build-stamp
+	rm -rf json/*.json json/*/*.json js/* *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl

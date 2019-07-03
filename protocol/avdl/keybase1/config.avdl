@@ -5,7 +5,7 @@ protocol config {
   import idl "common.avdl";
   import idl "notify_ctl.avdl";
 
-  record GetCurrentStatusRes {
+  record CurrentStatus {
     boolean configured;
     boolean registered;
     boolean loggedIn;
@@ -13,7 +13,7 @@ protocol config {
     union { null, User } user;
   }
 
-  GetCurrentStatusRes getCurrentStatus(int sessionID);
+  CurrentStatus getCurrentStatus(int sessionID);
 
   record SessionStatus {
     @lint("ignore")
@@ -77,6 +77,7 @@ protocol config {
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
+    array<ConfiguredAccount> configuredAccounts;
     @lint("ignore")
     array<ClientStatus> Clients;
     array<string> deviceEkNames;
@@ -89,9 +90,70 @@ protocol config {
     map<int> uiRouterMapping;
   }
 
-  ExtendedStatus getExtendedStatus(int sessionID);
+  record KbClientStatus {
+    string version;
+  }
+
+  record KbServiceStatus {
+    string version;
+    boolean running;
+    string pid;
+    string log;
+    string ekLog;
+  }
+
+  record KBFSStatus {
+    string version;
+    string installedVersion;
+    boolean running;
+    string pid;
+    string log;
+    string mount;
+  }
+
+  record DesktopStatus {
+    string version;
+    boolean running;
+    string log;
+  }
+
+  record UpdaterStatus {
+    string log;
+  }
+
+  record StartStatus {
+    string log;
+  }
+
+  record GitStatus {
+    string log;
+  }
+
+  record FullStatus {
+    string username;
+    string configPath;
+
+    CurrentStatus curStatus;
+    ExtendedStatus extStatus;
+
+    KbClientStatus client;
+    KbServiceStatus service;
+    KBFSStatus kbfs;
+    DesktopStatus desktop;
+    UpdaterStatus updater;
+    StartStatus start;
+    GitStatus git;
+  }
+
   array<ClientStatus> getClientStatus(int sessionID);
 
+  // FullStatus encapsulates everything required for the status and log send
+  // commands
+  union { null, FullStatus } getFullStatus(int sessionID);
+
+  @typedef("string")  record LogSendID {}
+  LogSendID logSend(int sessionID, string statusJSON, string feedback,
+    boolean sendLogs, boolean sendMaxBytes);
 
   record AllProvisionedUsernames {
     string defaultUsername;
@@ -193,11 +255,10 @@ protocol config {
     DeviceID deviceID;      // current logged in user's device ID
     string deviceName;      // current logged in user's device name
     FullName fullname;        // current user's fullname
-    array<string> following;    // who current logged in user is following
-    array<string> followers;    // who follows current logged in user
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
   }
   BootstrapStatus getBootstrapStatus(int sessionID);
+  void requestFollowerInfo(UID uid);
 
   boolean getRememberPassphrase(int sessionID);
   void setRememberPassphrase(int sessionID, boolean remember);
@@ -223,4 +284,20 @@ protocol config {
    you are critically out of date.
    */
   UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version);
+
+  enum ProxyType {
+    No_Proxy_0,
+    HTTP_Connect_1,
+    Socks_2
+  }
+
+  record ProxyData {
+    string addressWithPort;
+    ProxyType proxyType;
+    boolean certPinning;
+  }
+
+  void setProxyData(ProxyData proxyData);
+
+  ProxyData getProxyData();
 }

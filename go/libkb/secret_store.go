@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -124,7 +125,8 @@ func GetConfiguredAccounts(m MetaContext, s SecretStoreAll) ([]keybase1.Configur
 
 	for _, username := range allUsernames {
 		accounts[username] = keybase1.ConfiguredAccount{
-			Username: username.String(),
+			Username:  username.String(),
+			IsCurrent: username.Eq(currentUsername),
 		}
 	}
 	var storedSecretUsernames []string
@@ -276,6 +278,10 @@ func (s *SecretStoreLocked) GetUsersWithStoredSecrets(m MetaContext) ([]string, 
 }
 
 func (s *SecretStoreLocked) PrimeSecretStores(mctx MetaContext) (err error) {
+	if mctx.G().Env.GetSecretStorePrimingDisabled() {
+		mctx.Debug("Skipping PrimeSecretStores, disabled in env")
+		return nil
+	}
 	if s == nil || s.isNil() {
 		return errors.New("secret store is not available")
 	}
@@ -312,6 +318,11 @@ func (s *SecretStoreLocked) SetOptions(mctx MetaContext, options *SecretStoreOpt
 // store, retrieve, and then delete a secret with an arbitrary name. This should
 // be done before provisioning or logging in
 func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
+	defer func() {
+		if err != nil {
+			go reportPrimeSecretStoreFailure(mctx.BackgroundWithLogTags(), ss, err)
+		}
+	}()
 	defer mctx.TraceTimed("PrimeSecretStore", func() error { return err })()
 
 	// Generate test username and test secret
@@ -371,6 +382,31 @@ func PrimeSecretStore(mctx MetaContext, ss SecretStoreAll) (err error) {
 
 	mctx.Debug("PrimeSecretStore: retrieved secret matched!")
 	return nil
+}
+
+func reportPrimeSecretStoreFailure(mctx MetaContext, ss SecretStoreAll, reportErr error) {
+	var err error
+	defer mctx.TraceTimed("reportPrimeSecretStoreFailure", func() error { return err })()
+	osVersion, osBuild, err := OSVersionAndBuild()
+	if err != nil {
+		mctx.Debug("os info error: %v", err)
+	}
+	apiArg := APIArg{
+		Endpoint:    "device/error",
+		SessionType: APISessionTypeNONE,
+		Args: HTTPArgs{
+			"event":      S{Val: "prime_secret_store"},
+			"msg":        S{Val: fmt.Sprintf("[%T] [%T] %v", ss, reportErr, reportErr.Error())},
+			"run_mode":   S{Val: string(mctx.G().GetRunMode())},
+			"kb_version": S{Val: VersionString()},
+			"os_version": S{Val: osVersion},
+			"os_build":   S{Val: osBuild},
+		},
+		RetryCount:     3,
+		InitialTimeout: 10 * time.Second,
+	}
+	var apiRes AppStatusEmbed
+	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
 }
 
 func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {

@@ -15,6 +15,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/keybase/client/go/jsonparserw"
+	"github.com/keybase/client/go/msgpack"
 	pkgerrors "github.com/pkg/errors"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -573,7 +574,7 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte, linkID LinkID) error {
 
-	if !IsJSONObject(payload) {
+	if !msgpack.IsJSONObject(payload) {
 		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
 	}
 
@@ -1072,7 +1073,7 @@ func fixAndHashPayload(g *GlobalContext, payload []byte, linkID LinkID) []byte {
 func inferSigVersion(payload []byte) SigVersion {
 
 	// Version 1 payloads are JSON and must start with an opening '{'
-	if IsJSONObject(payload) {
+	if msgpack.IsJSONObject(payload) {
 		return KeybaseSignatureV1
 	}
 
@@ -1080,7 +1081,7 @@ func inferSigVersion(payload []byte) SigVersion {
 	// fit the following requirements. The case where b == 0xdc or
 	// b = 0xdd are far-fetched, since that would mean a large or very
 	// large packing. But still, allow any valid array up front.
-	if IsEncodedMsgpackArray(payload) {
+	if msgpack.IsEncodedMsgpackArray(payload) {
 		return KeybaseSignatureV2
 	}
 
@@ -1206,7 +1207,6 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 	c.dirty = true
 	c.cki = cki
 	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.cki = cki })
-	return
 }
 
 func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {

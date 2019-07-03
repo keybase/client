@@ -43,7 +43,7 @@ protocol remote {
     string signedTransaction; // Claim or yank tx
     union { null, string } autoClaimToken; // Optional. Filled if this is an autoclaim.
   }
-  
+
   record PathPaymentPost {
     keybase1.DeviceID fromDeviceID;
     union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
@@ -105,6 +105,13 @@ protocol remote {
     boolean unread;
     boolean isInflation;
     union { null, string } inflationSource;
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
+    boolean isAdvanced;     // true for non-payment transactions
+    string summaryAdvanced;   // one-line summary of the advanced tx
+    array<string> operations;   // string representations of each operation in the tx
+    union { null, PaymentTrustlineLocal } trustline; // this tx is only a trust line change.
   }
 
   record PaymentSummaryDirect {
@@ -129,9 +136,13 @@ protocol remote {
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
     string cursorToken;
+    boolean unread;
     boolean fromPrimary;
     string batchID;
     boolean fromAirdrop;
+    string sourceAmountMax;
+    string sourceAmountActual;
+    Asset sourceAsset;
   }
 
   record PaymentSummaryRelay {
@@ -177,6 +188,8 @@ protocol remote {
     string memoType;
     @lint("ignore")
     string externalTxURL;           // link to external web page with tx details
+    string feeCharged;
+    array<Asset> pathIntermediate;  // for payment paths, the additional hops it took
   }
 
   array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
@@ -193,7 +206,7 @@ protocol remote {
     string displayCurrency; // user configurable, defaults to "USD"
     union { null, AccountID } inflationDestination;
   }
-  AccountDetails details(keybase1.UserVersion caller, AccountID accountID, boolean includeMulti);
+  AccountDetails details(keybase1.UserVersion caller, AccountID accountID, boolean includeMulti, boolean includeAdvanced);
 
   record PaymentsPage {
     array<PaymentSummary> payments;
@@ -203,7 +216,8 @@ protocol remote {
 
   // skipPending: don't include pending payments in the result
   // includeMulti: include payments from multi-operation txs when possible
-  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending, boolean includeMulti);
+  // includeAdvanced: include advanced tx summaries in results
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending, boolean includeMulti, boolean includeAdvanced);
 
   array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 
@@ -222,7 +236,7 @@ protocol remote {
   PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
 
   RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
-  
+
   PaymentResult submitPathPayment(keybase1.UserVersion caller, PathPaymentPost payment);
 
   record SubmitMultiRes {
@@ -308,10 +322,13 @@ protocol remote {
     PaymentsPage recentPayments;
     array<PaymentSummary> pendingPayments;
   }
-  DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID);
+  DetailsPlusPayments detailsPlusPayments(keybase1.UserVersion caller, AccountID accountID, boolean includeAdvanced);
 
   // search by either an assetCode or an issuerAccountID (or both) to get back matches from stellard/horizon
   array<Asset> assetSearch(string assetCode, string issuerAccountID);
+  // search by user search string
+  array<Asset> fuzzyAssetSearch(keybase1.UserVersion caller, string searchString);
+  AssetListResult listPopularAssets(keybase1.UserVersion caller);
 
   void changeTrustline(keybase1.UserVersion caller, string signedTransaction);
 
@@ -324,4 +341,6 @@ protocol remote {
   }
 
   PaymentPath findPaymentPath(keybase1.UserVersion caller, PaymentPathQuery query);
+
+  void postAnyTransaction(keybase1.UserVersion caller, string signedTransaction);
 }

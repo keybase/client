@@ -69,7 +69,7 @@ func setupJournalBlockServerTest(t *testing.T) (
 }
 
 func teardownJournalBlockServerTest(
-	t *testing.T, tempdir string, ctx context.Context,
+	ctx context.Context, t *testing.T, tempdir string,
 	cancel context.CancelFunc, config Config) {
 	CheckConfigAndShutdown(ctx, t, config)
 	cancel()
@@ -83,7 +83,7 @@ func (shutdownOnlyBlockServer) Shutdown(context.Context) {}
 
 func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	tempdir, ctx, cancel, config, jManager := setupJournalBlockServerTest(t)
-	defer teardownJournalBlockServerTest(t, tempdir, ctx, cancel, config)
+	defer teardownJournalBlockServerTest(ctx, t, tempdir, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.

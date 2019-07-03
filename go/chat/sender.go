@@ -41,7 +41,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir()),
+		store:             attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir()),
 		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
@@ -87,7 +87,7 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 }
 
 func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg chat1.MessagePlaintext,
-	conv chat1.Conversation) (resMsg chat1.MessagePlaintext, err error) {
+	conv chat1.ConversationLocal) (resMsg chat1.MessagePlaintext, err error) {
 
 	// Make sure the caller hasn't already assembled this list. For now, this
 	// should never happen, and we'll return an error just in case we make a
@@ -191,7 +191,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 // That message (msgToSend) will have the header.{TlfName,TlfPublic} set to the user's intention.
 // But the header.Conv.{Tlfid,TopicType,TopicID} and the convID to post to may be erroneously set to a different conversation's values.
 // This method checks that all of those fields match. Using `msgReference` as the validated link from {TlfName,TlfPublic} <-> ConvTriple.
-func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversation,
+func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.ConversationLocal,
 	msgToSend chat1.MessagePlaintext, msgReference chat1.MessageUnboxed) error {
 
 	headerQ := msgToSend.ClientHeader
@@ -226,8 +226,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 				return fmt.Errorf("invalid team name: %v", err)
 			}
 			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
-				conv.Metadata.IdTriple.Tlfid,
-				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				conv.Info.Triple.Tlfid,
+				conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
 				return err
 			} else if info.CanonicalName != teamNameParsed.String() {
 				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
@@ -514,10 +514,148 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, msg chat1.MessagePla
 	return msg
 }
 
+func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gregor1.UID,
+	conv *chat1.ConversationLocal) (res []chat1.ConversationLocalParticipant, err error) {
+	if conv == nil {
+		return nil, nil
+	}
+	defer s.Trace(ctx, func() error { return err }, "getParticipantsForMentions")()
+	// get the conv that we will look for @ mentions in
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		if conv.Info.TopicName == globals.DefaultTeamTopic {
+			return conv.Info.Participants, nil
+		}
+		topicType := chat1.TopicType_CHAT
+		ib, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
+				Name: &chat1.NameQuery{
+					Name:        conv.Info.TlfName,
+					TlfID:       &conv.Info.Triple.Tlfid,
+					MembersType: chat1.ConversationMembersType_TEAM,
+				},
+				TopicName: &globals.DefaultTeamTopic,
+				TopicType: &topicType,
+			}, nil)
+		if err != nil {
+			return nil, err
+		}
+		if len(ib.Convs) == 0 {
+			// just make a best effort here and return the current conv
+			return conv.Info.Participants, nil
+		}
+		return ib.Convs[0].Info.Participants, nil
+	}
+	return conv.Info.Participants, nil
+}
+func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
+	conv *chat1.ConversationLocal) (res chat1.MessagePlaintext, atMentions []gregor1.UID, chanMention chat1.ChannelMention, err error) {
+	if msg.ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
+		return msg, atMentions, chanMention, nil
+	}
+	// Function to check that the header and body types match.
+	// Call this before accessing the body.
+	// Do not call this for TLFNAME which has no body.
+	checkHeaderBodyTypeMatch := func() error {
+		bodyType, err := msg.MessageBody.MessageType()
+		if err != nil {
+			return err
+		}
+		if msg.ClientHeader.MessageType != bodyType {
+			return fmt.Errorf("cannot send message with mismatched header/body types: %v != %v",
+				msg.ClientHeader.MessageType, bodyType)
+		}
+		return nil
+	}
+	atFromKnown := func(knowns []chat1.KnownUserMention) (res []gregor1.UID) {
+		for _, known := range knowns {
+			res = append(res, known.Uid)
+		}
+		return res
+	}
+	maybeToTeam := func(maybeMentions []chat1.MaybeMention) (res []chat1.KnownTeamMention) {
+		for _, maybe := range maybeMentions {
+			if s.G().TeamMentionLoader.IsTeamMention(ctx, uid, maybe, nil) {
+				res = append(res, chat1.KnownTeamMention{
+					Name:    maybe.Name,
+					Channel: maybe.Channel,
+				})
+			}
+		}
+		return res
+	}
+
+	// find @ mentions
+	getConvMembers := func() ([]chat1.ConversationLocalParticipant, error) {
+		return s.getParticipantsForMentions(ctx, uid, conv)
+	}
+	var knownUserMentions []chat1.KnownUserMention
+	var maybeMentions []chat1.MaybeMention
+	switch msg.ClientHeader.MessageType {
+	case chat1.MessageType_TEXT:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.GetTextAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Text(), getConvMembers, &s.DebugLabeler)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Text().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithText(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	case chat1.MessageType_FLIP:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Flip().Text, nil, getConvMembers)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Flip().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithFlip(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	case chat1.MessageType_EDIT:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Edit().Body, nil, getConvMembers)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Edit().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
+	case chat1.MessageType_SYSTEM:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		res = msg
+		atMentions, chanMention = utils.SystemMessageMentions(ctx, msg.MessageBody.System(),
+			s.G().GetUPAKLoader())
+	default:
+		res = msg
+	}
+	return res, atMentions, chanMention, nil
+}
+
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, inopts *chat1.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
+	membersType chat1.ConversationMembersType, conv *chat1.ConversationLocal,
+	inopts *chat1.SenderPrepareOptions) (res types.SenderPrepareResult, err error) {
+
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_NONE {
 		return res, fmt.Errorf("cannot send message without type")
 	}
@@ -536,7 +674,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
 		convID := (*conv).GetConvID()
-		msg.ClientHeader.Conv = conv.Metadata.IdTriple
+		msg.ClientHeader.Conv = conv.Info.Triple
 		s.Debug(ctx, "Prepare: performing convID based checks")
 
 		// Check for outboxID based edits
@@ -611,58 +749,18 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 	}
 
+	// handle mentions
+	var atMentions []gregor1.UID
+	var chanMention chat1.ChannelMention
+	if msg, atMentions, chanMention, err = s.handleMentions(ctx, uid, msg, conv); err != nil {
+		return res, err
+	}
+
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
 		s.Debug(ctx, "Prepare: error getting signing key pair: %s", err)
 		return res, err
-	}
-
-	// Function to check that the header and body types match.
-	// Call this before accessing the body.
-	// Do not call this for TLFNAME which has no body.
-	checkHeaderBodyTypeMatch := func() error {
-		bodyType, err := plaintext.MessageBody.MessageType()
-		if err != nil {
-			return err
-		}
-		if plaintext.ClientHeader.MessageType != bodyType {
-			return fmt.Errorf("cannot send message with mismatched header/body types: %v != %v",
-				plaintext.ClientHeader.MessageType, bodyType)
-		}
-		return nil
-	}
-
-	// find @ mentions
-	var atMentions []gregor1.UID
-	chanMention := chat1.ChannelMention_NONE
-	if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
-		switch plaintext.ClientHeader.MessageType {
-		case chat1.MessageType_TEXT:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
-				plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
-		case chat1.MessageType_FLIP:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
-		case chat1.MessageType_EDIT:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
-				plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
-		case chat1.MessageType_SYSTEM:
-			if err = checkHeaderBodyTypeMatch(); err != nil {
-				return res, err
-			}
-			atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
-				s.G().GetUPAKLoader())
-		}
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
@@ -740,9 +838,9 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	return s.getRi().S3Sign(context.Background(), arg)
 }
 
-func (s *BlockingSender) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+func (s *BlockingSender) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(*conv, s.G().Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, *conv, s.G().Env.GetUsername().String())
 		res = &pc
 	}
 	return res
@@ -754,18 +852,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 	defer utils.SuspendComponent(ctx, s.G(), s.G().InboxSource)()
 
-	// Record that this user is "active in chat", which we use to determine
-	// gregor reconnect backoffs.
-	RecordChatSend(ctx, s.G(), s.DebugLabeler)
-
 	// Get conversation metadata first. If we can't find it, we will just attempt to join
 	// the conversation in case that is an option. If it succeeds, then we just keep going,
 	// otherwise we give up and return an error.
-	var conv chat1.Conversation
+	var conv chat1.ConversationLocal
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
-	rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
+	conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		if err == utils.ErrGetUnverifiedConvNotFound {
+		if err == utils.ErrGetVerifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
 			switch msg.ClientHeader.MessageType {
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
@@ -779,20 +873,18 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				rc, err = utils.GetUnverifiedConv(ctx, s.G(), sender, convID,
+				conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
 					types.InboxSourceDataSourceRemoteOnly)
 				if err != nil {
 					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
 					return nil, nil, err
 				}
-				conv = rc.Conv
 			}
 		} else {
 			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
 			return nil, nil, err
 		}
 	} else {
-		conv = rc.Conv
 		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
 			conv.GetConvID(), conv.ReaderInfo.Status)
 	}
@@ -868,11 +960,12 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				continue
 			case libkb.ChatEphemeralRetentionPolicyViolatedError:
 				s.Debug(ctx, "Send: failed because of invalid ephemeral policy, trying the whole thing again")
-				rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceRemoteOnly)
-				if err != nil {
-					return nil, nil, err
+				var cerr error
+				conv, cerr = utils.GetVerifiedConv(ctx, s.G(), sender, convID,
+					types.InboxSourceDataSourceRemoteOnly)
+				if cerr != nil {
+					return nil, nil, cerr
 				}
-				conv = rc.Conv
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
@@ -929,15 +1022,26 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				convID),
 			ConvID:                     convID,
 			DisplayDesktopNotification: false,
-			Conv:                       s.presentUIItem(convLocal),
+			Conv:                       s.presentUIItem(ctx, convLocal),
 		})
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)
 	}
-	// Unfurl
 	if conv.GetTopicType() == chat1.TopicType_CHAT {
-		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender, convID,
-			unboxedMsg)
+		// Unfurl
+		go s.G().Unfurler.UnfurlAndSend(globals.BackgroundChatCtx(ctx, s.G()), boxed.ClientHeader.Sender,
+			convID, unboxedMsg)
+		// Start tracking any live location sends
+		if unboxedMsg.IsValid() && unboxedMsg.GetMessageType() == chat1.MessageType_TEXT &&
+			unboxedMsg.Valid().MessageBody.Text().LiveLocation != nil {
+			if unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime.IsZero() {
+				s.G().LiveLocationTracker.GetCurrentPosition(ctx, conv.GetConvID(),
+					unboxedMsg.GetMessageID())
+			} else {
+				s.G().LiveLocationTracker.StartTracking(ctx, conv.GetConvID(), unboxedMsg.GetMessageID(),
+					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
+			}
+		}
 	}
 	return nil, boxed, nil
 }
@@ -1588,7 +1692,8 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation, opts *chat1.SenderPrepareOptions) (types.SenderPrepareResult, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.ConversationLocal,
+	opts *chat1.SenderPrepareOptions) (types.SenderPrepareResult, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv, opts)
 }
 

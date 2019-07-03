@@ -400,8 +400,47 @@ func (u *User) getSyncedSecretKeyLogin(m MetaContext, lctx LoginContext) (ret *S
 	return
 }
 
+func (u *User) SyncedSecretKeyWithSka(m MetaContext, ska SecretKeyArg) (ret *SKB, err error) {
+	keys, err := u.GetSyncedSecretKeys(m)
+	if err != nil {
+		return nil, err
+	}
+
+	var errors []error
+	for _, key := range keys {
+		pub, err := key.GetPubKey()
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		if KeyMatchesQuery(pub, ska.KeyQuery, ska.ExactMatch) {
+			return key, nil
+		}
+	}
+
+	if len(errors) > 0 {
+		// No matching key found and we hit errors.
+		return nil, CombineErrors(errors...)
+	}
+
+	return nil, NoSecretKeyError{}
+}
+
 func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 	defer m.Trace("User#GetSyncedSecretKey", func() error { return err })()
+	skbs, err := u.GetSyncedSecretKeys(m)
+	if err != nil {
+		return nil, err
+	}
+	if len(skbs) == 0 {
+		return nil, nil
+	}
+	m.Debug("NOTE: using GetSyncedSecretKey, returning first secret key from randomly ordered map")
+	return skbs[0], nil
+}
+
+func (u *User) GetSyncedSecretKeys(m MetaContext) (ret []*SKB, err error) {
+	defer m.Trace("User#GetSyncedSecretKeys", func() error { return err })()
 
 	if err = u.SyncSecrets(m); err != nil {
 		return
@@ -418,7 +457,7 @@ func (u *User) GetSyncedSecretKey(m MetaContext) (ret *SKB, err error) {
 		return nil, err
 	}
 
-	ret, err = syncer.FindActiveKey(ckf)
+	ret, err = syncer.FindActiveKeys(ckf)
 	return ret, err
 }
 
@@ -869,11 +908,11 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 		if !arg.ForceRepoll {
 			if hasCache {
 				// We are allowed to return cache if we have any.
-				mctx.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
+				mctx.Warning("Unable to make a network request to has_random_pw. Returning cached value: %t. Error: %s.", cachedValue, err)
 				return cachedValue, nil
 			}
 
-			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
+			mctx.Warning("Unable to make a network request to has_random_pw and there is no cache. Erroring out: %s.", err)
 		}
 		return res, err
 	}
@@ -892,6 +931,50 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 	}
 
 	return ret.RandomPW, err
+}
+
+func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
+	if !mctx.G().ActiveDevice.Valid() {
+		mctx.Debug("CanLogout: looks like user is not logged in")
+		res.CanLogout = true
+		return res
+	}
+
+	if err := CheckCurrentUIDDeviceID(mctx); err != nil {
+		switch err.(type) {
+		case DeviceNotFoundError, UserNotFoundError,
+			KeyRevokedError, NoDeviceError, NoUIDError:
+			mctx.Debug("CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
+			return keybase1.CanLogoutRes{CanLogout: true}
+		default:
+			// Unexpected error like network connectivity issue, fall through.
+			// Even if we are offline here, we may be able to get cached value
+			// `false` from LoadHasRandomPw and be allowed to log out.
+			mctx.Debug("CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
+		}
+	}
+
+	hasRandomPW, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{
+		ForceRepoll: false,
+	})
+
+	if err != nil {
+		return keybase1.CanLogoutRes{
+			CanLogout: false,
+			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
+		}
+	}
+
+	if hasRandomPW {
+		return keybase1.CanLogoutRes{
+			CanLogout:     false,
+			SetPassphrase: true,
+			Reason:        "You signed up without a password and need to set a password first",
+		}
+	}
+
+	res.CanLogout = true
+	return res
 }
 
 // PartialCopy copies some fields of the User object, but not all.
@@ -941,6 +1024,7 @@ type UserForSignatures struct {
 func (u UserForSignatures) GetUID() keybase1.UID                  { return u.uid }
 func (u UserForSignatures) GetName() string                       { return u.name.String() }
 func (u UserForSignatures) GetEldestKID() keybase1.KID            { return u.eldestKID }
+func (u UserForSignatures) GetEldestSeqno() keybase1.Seqno        { return u.eldestSeqno }
 func (u UserForSignatures) GetNormalizedName() NormalizedUsername { return u.name }
 func (u UserForSignatures) ToUserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: u.eldestSeqno}

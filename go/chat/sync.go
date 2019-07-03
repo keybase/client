@@ -358,13 +358,11 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	ibox := storage.NewInbox(s.G())
 	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
-		s.Debug(ctx, "Sync: failed to get current inbox version (using 0): %s", err.Error())
-		vers = chat1.InboxVers(0)
+		return err
 	}
 	srvVers, err := ibox.ServerVersion(ctx, uid)
 	if err != nil {
-		s.Debug(ctx, "Sync: failed to get current inbox server version (using 0): %s", err.Error())
-		srvVers = 0
+		return err
 	}
 	s.Debug(ctx, "Sync: current inbox version: %v server version: %d", vers, srvVers)
 

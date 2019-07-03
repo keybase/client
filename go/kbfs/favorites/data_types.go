@@ -61,12 +61,11 @@ func NewFolderFromProtocol(folder keybase1.Folder) *Folder {
 	}
 }
 
-// ToKBFolder creates a keybase1.Folder from a Folder.
-func (f Folder) ToKBFolder(created bool) keybase1.Folder {
-	return keybase1.Folder{
+// ToKBFolderHandle creates a keybase1.FolderHandle from a Folder.
+func (f Folder) ToKBFolderHandle(created bool) keybase1.FolderHandle {
+	return keybase1.FolderHandle{
 		Name:       f.Name,
 		FolderType: f.Type.FolderType(),
-		Private:    f.Type != tlf.Public, // deprecated
 		Created:    created,
 	}
 }
@@ -78,16 +77,21 @@ type Data struct {
 	Private      bool
 	TeamID       *keybase1.TeamID
 	ResetMembers []keybase1.User
+	// Mtime is the TLF mtime (i.e. not favorite change time) stored in the
+	// core db. It's based on notifications from the mdserver.
+	TlfMtime *keybase1.Time
 }
 
 // DataFrom returns auxiliary data from a folder sent via the
 // keybase1 protocol.
 func DataFrom(folder keybase1.Folder) Data {
 	return Data{
-		Name:       folder.Name,
-		FolderType: folder.FolderType,
-		Private:    folder.Private,
-		TeamID:     folder.TeamID,
+		Name:         folder.Name,
+		FolderType:   folder.FolderType,
+		Private:      folder.Private,
+		TeamID:       folder.TeamID,
+		ResetMembers: folder.ResetMembers,
+		TlfMtime:     folder.Mtime,
 	}
 }
 
@@ -103,8 +107,8 @@ type ToAdd struct {
 	Created bool
 }
 
-// ToKBFolder converts this data into an object suitable for the
+// ToKBFolderHandle converts this data into an object suitable for the
 // keybase1 protocol.
-func (ta ToAdd) ToKBFolder() keybase1.Folder {
-	return ta.Folder.ToKBFolder(ta.Created)
+func (ta ToAdd) ToKBFolderHandle() keybase1.FolderHandle {
+	return ta.Folder.ToKBFolderHandle(ta.Created)
 }

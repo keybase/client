@@ -172,6 +172,13 @@ func (b *blockServerRemoteClientHandler) resetAuth(
 		return nil
 	}
 
+	_, hasDeadline := ctx.Deadline()
+	if !hasDeadline {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, reconnectTimeout)
+		defer cancel()
+	}
+
 	// request a challenge
 	challenge, err := c.GetSessionChallenge(ctx)
 	if err != nil {

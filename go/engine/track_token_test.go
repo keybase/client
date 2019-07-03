@@ -449,6 +449,11 @@ func (d *FakeGregorState) State(ctx context.Context) (gregor.State, error) {
 	return nil, nil
 }
 
+func (d *FakeGregorState) UpdateCategory(ctx context.Context, cat string, body []byte,
+	dtime gregor1.TimeOrOffset) (res gregor1.MsgID, err error) {
+	return gregor1.MsgID{}, nil
+}
+
 func (d *FakeGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	return nil, nil
 }

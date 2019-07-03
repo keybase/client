@@ -404,6 +404,10 @@
         {
           "type": "boolean",
           "name": "registeredForAirdrop"
+        },
+        {
+          "type": "boolean",
+          "name": "blocked"
         }
       ]
     },

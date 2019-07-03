@@ -252,7 +252,7 @@ func (t *txlogger) Pending(ctx context.Context, tc *TestContext, accountID stell
 // Check whether the caller is in the implicit team.
 // By loading the team.
 func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamID) bool {
-	team, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{
+	team, _, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{
 		ID:      teamID,
 		StaleOK: true,
 	})
@@ -459,8 +459,8 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 	return r.Backend.NextAutoClaim(ctx, r.Tc)
 }
 
-func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
-	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit, skipPending)
+func (r *RemoteClientMock) RecentPayments(ctx context.Context, arg remote.RecentPaymentsArg) (stellar1.PaymentsPage, error) {
+	return r.Backend.RecentPayments(ctx, r.Tc, arg.AccountID, arg.Cursor, arg.Limit, arg.SkipPending)
 }
 
 func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
@@ -564,6 +564,18 @@ func (r *RemoteClientMock) FindPaymentPath(_ libkb.MetaContext, _ stellar1.Payme
 
 func (r *RemoteClientMock) SubmitPathPayment(_ libkb.MetaContext, _ stellar1.PathPaymentPost) (stellar1.PaymentResult, error) {
 	return stellar1.PaymentResult{}, errors.New("not mocked")
+}
+
+func (r *RemoteClientMock) FuzzyAssetSearch(_ libkb.MetaContext, _ stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	return nil, errors.New("not mocked")
+}
+
+func (r *RemoteClientMock) ListPopularAssets(_ libkb.MetaContext, _ stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
+	return stellar1.AssetListResult{}, errors.New("not mocked")
+}
+
+func (r *RemoteClientMock) PostAnyTransaction(_ libkb.MetaContext, _ string) error {
+	return errors.New("post any transaction is not mocked")
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)

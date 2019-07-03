@@ -92,6 +92,76 @@
     },
     {
       "type": "record",
+      "name": "KnownUserMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KnownTeamMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MaybeMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Coordinate",
+      "fields": [
+        {
+          "type": "double",
+          "name": "lat"
+        },
+        {
+          "type": "double",
+          "name": "lon"
+        },
+        {
+          "type": "double",
+          "name": "accuracy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LiveLocation",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "endTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageText",
       "fields": [
         {
@@ -111,6 +181,27 @@
             "MessageID"
           ],
           "name": "replyTo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownUserMention"
+          },
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
+        },
+        {
+          "type": [
+            null,
+            "LiveLocation"
+          ],
+          "name": "liveLocation"
         }
       ]
     },
@@ -135,6 +226,20 @@
         {
           "type": "string",
           "name": "body"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownUserMention"
+          },
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
         }
       ]
     },
@@ -176,6 +281,20 @@
         {
           "type": "ConversationID",
           "name": "flipConvID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownUserMention"
+          },
+          "name": "userMentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KnownTeamMention"
+          },
+          "name": "teamMentions"
         }
       ]
     },
@@ -1280,6 +1399,13 @@
         {
           "type": {
             "type": "array",
+            "items": "MaybeMention"
+          },
+          "name": "maybeMentions"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ChannelNameMention"
           },
           "name": "channelNameMentions"
@@ -1642,7 +1768,11 @@
       "fields": [
         {
           "type": "string",
-          "name": "username"
+          "name": "changedBy"
+        },
+        {
+          "type": "boolean",
+          "name": "cannotWrite"
         },
         {
           "type": "keybase1.TeamRole",
@@ -1961,44 +2091,6 @@
     },
     {
       "type": "record",
-      "name": "GetInboxUILocalRes",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "UnverifiedInboxUIItem"
-          },
-          "name": "conversationsRemote"
-        },
-        {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
-        },
-        {
-          "type": "boolean",
-          "name": "offline"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "keybase1.TLFIdentifyFailure"
-          },
-          "name": "identifyFailures"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "NameQuery",
       "fields": [
         {
@@ -2277,6 +2369,10 @@
         {
           "type": "ConversationLocal",
           "name": "conv"
+        },
+        {
+          "type": "InboxUIItem",
+          "name": "uiConv"
         },
         {
           "type": {
@@ -2814,6 +2910,10 @@
       "name": "SearchRegexpRes",
       "fields": [
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ChatSearchHit"
@@ -2840,6 +2940,10 @@
       "type": "record",
       "name": "SearchInboxRes",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
         {
           "type": [
             null,
@@ -3001,6 +3105,70 @@
           "body": "string"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "GalleryItemTyp",
+      "symbols": [
+        "MEDIA_0",
+        "LINK_1",
+        "DOC_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LoadGalleryRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "messages"
+        },
+        {
+          "type": "boolean",
+          "name": "last"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LoadFlipRes",
+      "fields": [
+        {
+          "type": "UICoinFlipStatus",
+          "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3125,29 +3293,6 @@
         }
       ],
       "response": "UnreadlineRes"
-    },
-    "getInboxUILocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetInboxUILocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [
@@ -4416,6 +4561,82 @@
         }
       ],
       "response": "keybase1.UserReacjis"
+    },
+    "resolveMaybeMention": {
+      "request": [
+        {
+          "name": "mention",
+          "type": "MaybeMention"
+        }
+      ],
+      "response": null
+    },
+    "loadGallery": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "typ",
+          "type": "GalleryItemTyp"
+        },
+        {
+          "name": "num",
+          "type": "int"
+        },
+        {
+          "name": "fromMsgID",
+          "type": [
+            null,
+            "MessageID"
+          ]
+        }
+      ],
+      "response": "LoadGalleryRes"
+    },
+    "loadFlip": {
+      "request": [
+        {
+          "name": "hostConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "hostMsgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "flipConvID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "gameID",
+          "type": "FlipGameID"
+        }
+      ],
+      "response": "LoadFlipRes"
+    },
+    "locationUpdate": {
+      "request": [
+        {
+          "name": "coord",
+          "type": "Coordinate"
+        }
+      ],
+      "response": null
+    },
+    "locationDenied": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

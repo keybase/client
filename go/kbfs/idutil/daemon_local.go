@@ -91,7 +91,7 @@ func (dl *DaemonLocal) SetCurrentUID(uid keybase1.UID) {
 
 func (dl *DaemonLocal) assertionToIDLocked(ctx context.Context,
 	assertion string) (id keybase1.UserOrTeamID, err error) {
-	expr, err := externals.AssertionParseAndOnlyStatic(assertion)
+	expr, err := externals.AssertionParseAndOnlyStatic(ctx, assertion)
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
 	}
@@ -181,7 +181,7 @@ func (dl *DaemonLocal) Identify(
 // for DaemonLocal.
 func (dl *DaemonLocal) NormalizeSocialAssertion(
 	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(ctx, assertion)
 	if !isSocialAssertion {
 		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
 	}
@@ -202,7 +202,7 @@ func (dl *DaemonLocal) resolveForImplicitTeam(
 		r = append(r, u.Name)
 		resolvedIDs[u.Name] = id
 	} else {
-		a, ok := externals.NormalizeSocialAssertionStatic(name)
+		a, ok := externals.NormalizeSocialAssertionStatic(ctx, name)
 		if !ok {
 			return nil, nil, fmt.Errorf("Bad assertion: %s", name)
 		}
@@ -565,12 +565,13 @@ func (dl *DaemonLocal) RemoveAssertionForTest(assertion string) {
 // AddTeamWriterForTest adds a writer to a team.  Should only be used
 // by tests.
 func (dl *DaemonLocal) AddTeamWriterForTest(
-	tid keybase1.TeamID, uid keybase1.UID) (kbname.NormalizedUsername, error) {
+	tid keybase1.TeamID, uid keybase1.UID) (
+	username kbname.NormalizedUsername, isImplicit bool, err error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 	t, err := dl.localTeams.getLocalTeam(tid)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
 	if t.Writers == nil {
@@ -579,7 +580,8 @@ func (dl *DaemonLocal) AddTeamWriterForTest(
 	t.Writers[uid] = true
 	delete(t.Readers, uid)
 	dl.localTeams[tid] = t
-	return t.Name, nil
+	_, isImplicit = dl.localImplicitTeams[tid]
+	return t.Name, isImplicit, nil
 }
 
 // RemoveTeamWriterForTest removes a writer from a team.  Should only

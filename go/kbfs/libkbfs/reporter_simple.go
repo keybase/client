@@ -108,6 +108,19 @@ func (r *ReporterSimple) NotifySyncStatus(_ context.Context,
 	// ignore notifications
 }
 
+// NotifyFavoritesChanged implements the Reporter interface for
+// ReporterSimple.
+func (r *ReporterSimple) NotifyFavoritesChanged(_ context.Context) {
+	// ignore notifications
+}
+
+// NotifyOverallSyncStatus implements the Reporter interface for
+// ReporterSimple.
+func (r *ReporterSimple) NotifyOverallSyncStatus(
+	_ context.Context, _ keybase1.FolderSyncStatus) {
+	// ignore notifications
+}
+
 // Shutdown implements the Reporter interface for ReporterSimple.
 func (r *ReporterSimple) Shutdown() {
 

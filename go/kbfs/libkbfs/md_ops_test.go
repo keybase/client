@@ -202,6 +202,8 @@ func verifyMDForPrivateHelper(
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil)
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
+	config.mockKeyman.EXPECT().GetFirstTLFCryptKey(gomock.Any(), gomock.Any()).
+		AnyTimes().Return(kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func verifyMDForPrivate(
@@ -857,6 +859,7 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	_, err = config.MDOps().Put(ctx, rmd, session.VerifyingKey,
 		nil, keybase1.MDPriorityNormal)
+	require.NoError(t, err)
 
 	rmds := mdServer.getLastRmds()
 	validatePutPublicRMDS(ctx, t, ver, config, rmd.bareMd, rmds)
@@ -986,7 +989,7 @@ func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func makeRealInitialRMDForTesting(
-	t *testing.T, ctx context.Context, config Config, h *tlfhandle.Handle,
+	ctx context.Context, t *testing.T, config Config, h *tlfhandle.Handle,
 	id tlf.ID) (*RootMetadata, *RootMetadataSigned) {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
@@ -1016,7 +1019,7 @@ func makeRealInitialRMDForTesting(
 }
 
 func makeSuccessorRMDForTesting(
-	t *testing.T, ctx context.Context, config Config, currRMD *RootMetadata,
+	ctx context.Context, t *testing.T, config Config, currRMD *RootMetadata,
 	deviceToRevoke int) (
 	*RootMetadata, *RootMetadataSigned) {
 	mdID, err := kbfsmd.MakeID(config.Codec(), currRMD.bareMd)
@@ -1108,7 +1111,7 @@ func makeEncryptedMerkleLeafForTesting(
 func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 
 	mdServer := makeKeyBundleMDServer(config.MDServer())
@@ -1124,7 +1127,7 @@ func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	t.Log("Making an initial RMD")
 	id := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "u1", tlf.Private, id)
-	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config, h, id)
+	rmd, rmds := makeRealInitialRMDForTesting(ctx, t, config, h, id)
 
 	t.Log("Making an encrypted Merkle leaf")
 	root, _, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(
@@ -1168,7 +1171,7 @@ func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 		}
 
 		rmd, rmds = makeSuccessorRMDForTesting(
-			t, ctx, config, rmd, deviceToRevoke)
+			ctx, t, config, rmd, deviceToRevoke)
 		allRMDs = append(allRMDs, rmd)
 		allRMDSs = append(allRMDSs, rmds)
 
@@ -1201,7 +1204,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -1212,7 +1215,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
 	AddTeamWriterForTestOrBust(t, config, teamInfos[0].TID, session.UID)
 	h := parseTlfHandleOrBust(t, config, "t1", tlf.SingleTeam, id)
-	rmd, _ := makeRealInitialRMDForTesting(t, ctx, config, h, id)
+	rmd, _ := makeRealInitialRMDForTesting(ctx, t, config, h, id)
 
 	t.Log("Making an encrypted Merkle leaf")
 	root, _, mLeaf, leafBytes := makeEncryptedMerkleLeafForTesting(
@@ -1232,7 +1235,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 	clock := clocktest.NewTestClockNow()
 	config.SetClock(clock)
@@ -1252,20 +1255,20 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	t.Log("Initial MD written by the device we will revoke")
 	id := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "u1", tlf.Private, id)
-	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config2, h, id)
+	rmd, rmds := makeRealInitialRMDForTesting(ctx, t, config2, h, id)
 	mdServer.processRMDSes(rmds, rmd.extra)
 
 	t.Log("A few writes by a device that won't be revoked")
 	allRMDs := []*RootMetadata{rmd}
 	allRMDSs := []*RootMetadataSigned{rmds}
 	for i := 2; i < 5; i++ {
-		rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config, rmd, -1)
+		rmd, rmds = makeSuccessorRMDForTesting(ctx, t, config, rmd, -1)
 		allRMDs = append(allRMDs, rmd)
 		allRMDSs = append(allRMDSs, rmds)
 	}
 
 	t.Log("A write after the revoke happens")
-	rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config, rmd, extraDevice)
+	rmd, rmds = makeSuccessorRMDForTesting(ctx, t, config, rmd, extraDevice)
 	allRMDs = append(allRMDs, rmd)
 	allRMDSs = append(allRMDSs, rmds)
 	mdServer.processRMDSes(rmds, rmd.extra)
@@ -1334,7 +1337,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config, cancel)
 	config.SetMetadataVersion(ver)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -1359,7 +1362,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	AddTeamWriterForTestOrBust(t, config, tid, session2.UID)
 	AddTeamWriterForTestOrBust(t, config2, tid, session2.UID)
 	h := parseTlfHandleOrBust(t, config, "t1", tlf.SingleTeam, id)
-	rmd, rmds := makeRealInitialRMDForTesting(t, ctx, config, h, id)
+	rmd, rmds := makeRealInitialRMDForTesting(ctx, t, config, h, id)
 	mdServer.processRMDSes(rmds, rmd.extra)
 
 	RemoveTeamWriterForTestOrBust(t, config, tid, session.UID)
@@ -1369,7 +1372,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	allRMDs := []*RootMetadata{rmd}
 	allRMDSs := []*RootMetadataSigned{rmds}
 	for i := 2; i < 5; i++ {
-		rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config2, rmd, -1)
+		rmd, rmds = makeSuccessorRMDForTesting(ctx, t, config2, rmd, -1)
 		allRMDs = append(allRMDs, rmd)
 		allRMDSs = append(allRMDSs, rmds)
 	}
@@ -1390,7 +1393,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 
 	t.Log("Try another write by the removed user and make sure it fails")
-	rmd, rmds = makeSuccessorRMDForTesting(t, ctx, config, rmd, -1)
+	rmd, rmds = makeSuccessorRMDForTesting(ctx, t, config, rmd, -1)
 	allRMDs = append(allRMDs, rmd)
 	allRMDSs = append(allRMDSs, rmds)
 	mdServer.processRMDSes(rmds, rmd.extra)

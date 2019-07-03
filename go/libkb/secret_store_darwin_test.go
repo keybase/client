@@ -115,6 +115,7 @@ func TestSecretStoreDarwin(t *testing.T) {
 func TestPrimeSecretStoreDarwin(t *testing.T) {
 	tc := SetupTest(t, "secret_store_darwin", 1)
 	defer tc.Cleanup()
+	tc.G.Env.Test.SecretStorePrimingDisabled = false
 
 	mctx := NewMetaContextForTest(tc)
 	secretStore := KeychainSecretStore{}

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/badges"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"sync"
@@ -112,6 +114,13 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
+	rc := types.RemoteConversation{
+		Conv: conv,
+	}
+	localConvs, _, err := tc.Context().InboxSource.Localize(ctx, uid, []types.RemoteConversation{rc},
+		types.ConversationLocalizerBlocking)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(localConvs))
 	prepareRes, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
@@ -123,7 +132,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, chat1.ConversationMembersType_KBFS, &conv, nil)
+	}, chat1.ConversationMembersType_KBFS, &localConvs[0], nil)
 	require.NoError(t, err)
 	boxed := prepareRes.Boxed
 
@@ -263,4 +272,85 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 	attempt(types.InboxSourceDataSourceLocalOnly, false)
 	attempt(types.InboxSourceDataSourceAll, true)
 	attempt(types.InboxSourceDataSourceLocalOnly, true)
+}
+
+func TestInboxSourceMarkAsRead(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestInboxSourceMarkAsRead", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+
+	listener0 := newServerChatListener()
+	listener1 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+	ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
+	tc1 := ctc.world.Tcs[users[1].Username]
+	inboxSource := tc1.Context().InboxSource.(*HybridInboxSource)
+	syncer := ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer)
+	badger := badges.NewBadger(tc1.G)
+	badger.SetLocalChatState(inboxSource)
+	pusher := tc1.Context().PushHandler.(*PushHandler)
+	pusher.SetBadger(badger)
+	ctx1 := ctc.as(t, users[1]).startCtx
+	uid1 := users[1].User.GetUID().ToBytes()
+	syncer.RegisterOfflinable(inboxSource)
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
+	consumeNewConversation(t, listener0, conv.Id)
+	consumeNewConversation(t, listener1, conv.Id)
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "HI"}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+	msg := consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+
+	badgeState, err := badger.State().Export(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, 1, len(badgeState.Conversations))
+	require.Equal(t, 1, badgeState.Conversations[0].UnreadMessages)
+
+	ri := inboxSource.getChatInterface
+	inboxSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return chat1.RemoteClient{Cli: OfflineClient{}}
+	})
+	require.NoError(t, inboxSource.MarkAsRead(ctx1, conv.Id, uid1, msg.GetMessageID()))
+	syncer.Disconnected(context.TODO())
+	pusher.testingIgnoreBroadcasts = true
+
+	// make sure we didn't get any remote call through
+	select {
+	case <-listener1.readMessage:
+		require.Fail(t, "no read message yet")
+	default:
+	}
+	badgeState, err = badger.State().Export(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, 1, len(badgeState.Conversations))
+	require.Equal(t, 0, badgeState.Conversations[0].UnreadMessages)
+
+	// send another message we have unread state when coming back online
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "HI"}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+	select {
+	case <-listener1.newMessageRemote:
+		require.Fail(t, "no read message yet")
+	default:
+	}
+
+	pusher.testingIgnoreBroadcasts = false
+	inboxSource.getChatInterface = ri
+	syncer.Connected(context.TODO(), ri(), uid1, nil)
+	select {
+	case info := <-listener1.readMessage:
+		require.Equal(t, conv.Id, info.ConvID)
+		require.Equal(t, msg.GetMessageID(), info.MsgID)
+	case <-time.After(2 * time.Second):
+		require.Fail(t, "no read message info")
+	}
+	badgeState, err = badger.State().Export(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, 1, len(badgeState.Conversations))
+	require.Equal(t, 1, badgeState.Conversations[0].UnreadMessages)
 }

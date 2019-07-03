@@ -149,7 +149,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 	// create new user, then add pgp key
 	u := CreateAndSignupFakeUser(tc, "login")
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: u.NewSecretUI()}
-	_, _, key := armorKey(t, tc, u.Email)
+	_, _, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	require.NoError(t, err)
 
@@ -210,6 +210,7 @@ type FakeIdentifyUI struct {
 	DisplayTLFArg   keybase1.DisplayTLFCreateWithInviteArg
 	DisplayTLFCount int
 	FakeConfirm     bool
+	LastTrack       *keybase1.TrackSummary
 	sync.Mutex
 }
 
@@ -292,7 +293,8 @@ func (ui *FakeIdentifyUI) DisplayKey(_ libkb.MetaContext, ik keybase1.IdentifyKe
 	ui.DisplayKeyCalls++
 	return nil
 }
-func (ui *FakeIdentifyUI) ReportLastTrack(libkb.MetaContext, *keybase1.TrackSummary) error {
+func (ui *FakeIdentifyUI) ReportLastTrack(_ libkb.MetaContext, summary *keybase1.TrackSummary) error {
+	ui.LastTrack = summary
 	return nil
 }
 

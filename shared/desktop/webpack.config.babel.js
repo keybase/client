@@ -1,4 +1,3 @@
-/* eslint-disable flowtype/require-valid-file-annotation */
 /* Our bundler for the desktop app.
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
@@ -27,9 +26,12 @@ const config = (_, {mode}) => {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
-        ignore: [/\.(native|ios|android)\.js$/],
+        ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '5.0.0'}}]],
+        presets: [
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '5.0.6'}}],
+          '@babel/preset-typescript',
+        ],
       },
     }
 
@@ -46,8 +48,8 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
-        test: /\.jsx?$/,
+        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga|react-gateway))|\/dist\/)/,
+        test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
       {
@@ -114,7 +116,12 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
+        ...(isHot
+          ? {
+              alias: {'react-dom': '@hot-loader/react-dom'},
+            }
+          : {}),
+        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
       },
       stats: {
         ...(isDev
@@ -157,7 +164,7 @@ const config = (_, {mode}) => {
 
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
-    entry: {node: './desktop/app/node.desktop.js'},
+    entry: {node: './desktop/app/node.desktop.tsx'},
     module: {rules: makeRules(true)},
     name: 'node',
     plugins: [
@@ -195,11 +202,19 @@ const config = (_, {mode}) => {
     main: 'desktop/renderer',
   }
 
+  const typeOverride = {
+    main: 'tsx',
+    menubar: 'tsx',
+    pinentry: 'tsx',
+    tracker2: 'tsx',
+    'unlock-folders': 'tsx',
+  }
+
   // multiple entries so we can chunk shared parts
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
-      map[name] = `./${entryOverride[name] || name}/main.desktop.js`
+      map[name] = `./${entryOverride[name] || name}/main.desktop.${typeOverride[name] || 'js'}`
       return map
     }, {}),
     module: {rules: makeRules(false)},

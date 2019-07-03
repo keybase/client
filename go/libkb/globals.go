@@ -65,6 +65,7 @@ type GlobalContext struct {
 	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
 	Output           io.Writer            // where 'Stdout'-style output goes
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	MobileNetState   *MobileNetState      // The kind of network connection for the currently running instance of the app
 	MobileAppState   *MobileAppState      // The state of focus for the currently running instance of the app
 	DesktopAppState  *DesktopAppState     // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
@@ -72,30 +73,33 @@ type GlobalContext struct {
 	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
 	Identify3State   *Identify3State      // keep track of Identify3 sessions
 
-	cacheMu          *sync.RWMutex   // protects all caches
-	ProofCache       *ProofCache     // where to cache proof results
-	trackCache       *TrackCache     // cache of IdentifyOutcomes for tracking purposes
-	identify2Cache   Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
-	linkCache        *LinkCache      // cache of ChainLinks
-	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
-	teamLoader       TeamLoader      // Play back teams for id/name properties
-	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
-	IDLocktab        LockTable
-	loadUserLockTab  LockTable
-	teamAuditor      TeamAuditor
-	teamBoxAuditor   TeamBoxAuditor
-	stellar          Stellar          // Stellar related ops
-	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
-	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
-	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
-	ekLib            EKLib            // Wrapper to call ephemeral key methods
-	itciCacher       LRUer            // Cacher for implicit team conflict info
-	iteamCacher      MemLRUer         // In memory cacher for implicit teams
-	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
-	fullSelfer       FullSelfer       // a loader that gets the full self object
-	pvlSource        MerkleStore      // a cache and fetcher for pvl
-	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
-	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
+	cacheMu                *sync.RWMutex   // protects all caches
+	ProofCache             *ProofCache     // where to cache proof results
+	trackCache             *TrackCache     // cache of IdentifyOutcomes for tracking purposes
+	identify2Cache         Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
+	linkCache              *LinkCache      // cache of ChainLinks
+	upakLoader             UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader             TeamLoader      // Play back teams for id/name properties
+	fastTeamLoader         FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	hiddenTeamChainManager HiddenTeamChainManager
+	IDLocktab              LockTable
+	loadUserLockTab        LockTable
+	teamAuditor            TeamAuditor
+	teamBoxAuditor         TeamBoxAuditor
+	stellar                Stellar          // Stellar related ops
+	deviceEKStorage        DeviceEKStorage  // Store device ephemeral keys
+	userEKBoxStorage       UserEKBoxStorage // Store user ephemeral key boxes
+	teamEKBoxStorage       TeamEKBoxStorage // Store team ephemeral key boxes
+	ekLib                  EKLib            // Wrapper to call ephemeral key methods
+	itciCacher             LRUer            // Cacher for implicit team conflict info
+	iteamCacher            MemLRUer         // In memory cacher for implicit teams
+	cardCache              *UserCardCache   // cache of keybase1.UserCard objects
+	fullSelfer             FullSelfer       // a loader that gets the full self object
+	pvlSource              MerkleStore      // a cache and fetcher for pvl
+	paramProofStore        MerkleStore      // a cache and fetcher for param proofs
+	externalURLStore       MerkleStore      // a cache and fetcher for external urls
+	PayloadCache           *PayloadCache    // cache of ChainLink payload json wrappers
+	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -153,6 +157,10 @@ type GlobalContext struct {
 	switchUserMu  *VerboseLock
 	ActiveDevice  *ActiveDevice
 	switchedUsers map[NormalizedUsername]bool // bookkeep users who have been switched over (and are still in secret store)
+
+	// OS Version passed from mobile native code. iOS and Android only.
+	// See go/bind/keybase.go
+	MobileOsVersion string
 }
 
 type GlobalTestOptions struct {
@@ -164,7 +172,7 @@ func (g *GlobalContext) GetLog() logger.Logger                         { return 
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetServerURI() (string, error)                 { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
@@ -199,6 +207,7 @@ func NewGlobalContext() *GlobalContext {
 		switchUserMu:       NewVerboseLock(VLog0, "switchUserMu"),
 		FeatureFlags:       NewFeatureFlagSet(),
 		switchedUsers:      make(map[NormalizedUsername]bool),
+		Pegboard:           NewPegboard(),
 	}
 	return ret
 }
@@ -220,12 +229,14 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
+	g.hiddenTeamChainManager = newNullHiddenTeamChainManager()
 	g.teamAuditor = newNullTeamAuditor()
 	g.teamBoxAuditor = newNullTeamBoxAuditor()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
+	g.MobileNetState = NewMobileNetState(g)
 	g.MobileAppState = NewMobileAppState(g)
 	g.DesktopAppState = NewDesktopAppState(g)
 	g.RPCCanceler = NewRPCCanceler()
@@ -274,11 +285,11 @@ func (g *GlobalContext) simulateServiceRestart() {
 func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
 	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
-	return g.LogoutWithSecretKill(mctx, true)
+	return g.LogoutCurrentUserWithSecretKill(mctx, true /* killSecrets */)
 }
 
 func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
-	return g.LogoutWithSecretKill(mctx, false)
+	return g.LogoutCurrentUserWithSecretKill(mctx, false /* killSecrets */)
 }
 
 func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedUsername, killSecrets bool) {
@@ -305,11 +316,14 @@ func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedU
 	delete(g.switchedUsers, username)
 }
 
-func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool) (err error) {
+func (g *GlobalContext) LogoutCurrentUserWithSecretKill(mctx MetaContext, killSecrets bool) error {
+	return g.LogoutUsernameWithSecretKill(mctx, mctx.ActiveDevice().Username(mctx), killSecrets)
+}
+
+func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username NormalizedUsername, killSecrets bool) (err error) {
 
 	defer g.switchUserMu.Acquire(mctx, "Logout")()
 
-	username := g.ActiveDevice.Username(mctx)
 	mctx.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, secretKill: %v)", username, killSecrets)
 
 	g.ActiveDevice.Clear()
@@ -343,6 +357,8 @@ func (g *GlobalContext) LogoutWithSecretKill(mctx MetaContext, killSecrets bool)
 	g.Identify3State.OnLogout()
 
 	g.GetUPAKLoader().OnLogout()
+
+	g.Pegboard.OnLogout(mctx)
 
 	return nil
 }
@@ -561,6 +577,18 @@ func (g *GlobalContext) GetFastTeamLoader() FastTeamLoader {
 	return g.fastTeamLoader
 }
 
+func (g *GlobalContext) GetHiddenTeamChainManager() HiddenTeamChainManager {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.hiddenTeamChainManager
+}
+
+func (g *GlobalContext) SetHiddenTeamChainManager(h HiddenTeamChainManager) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.hiddenTeamChainManager = h
+}
+
 func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -629,6 +657,10 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 
 func (g *GlobalContext) GetParamProofStore() MerkleStore {
 	return g.paramProofStore
+}
+
+func (g *GlobalContext) GetExternalURLStore() MerkleStore {
+	return g.externalURLStore
 }
 
 // to implement ProofContext
@@ -701,7 +733,7 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(hook())
 		}
 
-		g.Identify3State.Shutdown()
+		<-g.Identify3State.Shutdown()
 
 		err = epick.Error()
 
@@ -721,6 +753,15 @@ func (u Usage) UseKeyring() bool {
 	return u.KbKeyring || u.GpgKeyring
 }
 
+// If changed, make sure to correct standalone usage in g.Configure below
+var ServiceUsage = Usage{
+	Config:     true,
+	KbKeyring:  true,
+	GpgKeyring: true,
+	API:        true,
+	Socket:     true,
+}
+
 func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 	usage := cmd.GetUsage()
 	return g.Configure(line, usage)
@@ -730,6 +771,15 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
 	if err := g.ConfigureLogging(); err != nil {
 		return err
+	}
+	if g.Env.GetStandalone() {
+		// If standalone, override the usage to be the same as in a service
+		// If changed, make sure to correct ServiceUsage above.
+		usage.Config = ServiceUsage.Config
+		usage.KbKeyring = ServiceUsage.KbKeyring
+		usage.GpgKeyring = ServiceUsage.GpgKeyring
+		usage.API = ServiceUsage.API
+		usage.Socket = ServiceUsage.Socket
 	}
 
 	if err := g.ConfigureUsage(usage); err != nil {
@@ -1106,13 +1156,13 @@ func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
 	return nil
 }
 
-func (g *GlobalContext) MakeAssertionContext() AssertionContext {
+func (g *GlobalContext) MakeAssertionContext(mctx MetaContext) AssertionContext {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.proofServices)
+	return MakeAssertionContext(mctx, g.proofServices)
 }
 
 func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
@@ -1125,6 +1175,12 @@ func (g *GlobalContext) SetParamProofStore(s MerkleStore) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.paramProofStore = s
+}
+
+func (g *GlobalContext) SetExternalURLStore(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.externalURLStore = s
 }
 
 func (g *GlobalContext) SetPvlSource(s MerkleStore) {

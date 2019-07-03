@@ -134,10 +134,73 @@ func (o TextPayment) DeepCopy() TextPayment {
 	}
 }
 
+type KnownUserMention struct {
+	Text string      `codec:"text" json:"text"`
+	Uid  gregor1.UID `codec:"uid" json:"uid"`
+}
+
+func (o KnownUserMention) DeepCopy() KnownUserMention {
+	return KnownUserMention{
+		Text: o.Text,
+		Uid:  o.Uid.DeepCopy(),
+	}
+}
+
+type KnownTeamMention struct {
+	Name    string `codec:"name" json:"name"`
+	Channel string `codec:"channel" json:"channel"`
+}
+
+func (o KnownTeamMention) DeepCopy() KnownTeamMention {
+	return KnownTeamMention{
+		Name:    o.Name,
+		Channel: o.Channel,
+	}
+}
+
+type MaybeMention struct {
+	Name    string `codec:"name" json:"name"`
+	Channel string `codec:"channel" json:"channel"`
+}
+
+func (o MaybeMention) DeepCopy() MaybeMention {
+	return MaybeMention{
+		Name:    o.Name,
+		Channel: o.Channel,
+	}
+}
+
+type Coordinate struct {
+	Lat      float64 `codec:"lat" json:"lat"`
+	Lon      float64 `codec:"lon" json:"lon"`
+	Accuracy float64 `codec:"accuracy" json:"accuracy"`
+}
+
+func (o Coordinate) DeepCopy() Coordinate {
+	return Coordinate{
+		Lat:      o.Lat,
+		Lon:      o.Lon,
+		Accuracy: o.Accuracy,
+	}
+}
+
+type LiveLocation struct {
+	EndTime gregor1.Time `codec:"endTime" json:"endTime"`
+}
+
+func (o LiveLocation) DeepCopy() LiveLocation {
+	return LiveLocation{
+		EndTime: o.EndTime.DeepCopy(),
+	}
+}
+
 type MessageText struct {
-	Body     string        `codec:"body" json:"body"`
-	Payments []TextPayment `codec:"payments" json:"payments"`
-	ReplyTo  *MessageID    `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	Body         string             `codec:"body" json:"body"`
+	Payments     []TextPayment      `codec:"payments" json:"payments"`
+	ReplyTo      *MessageID         `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
+	LiveLocation *LiveLocation      `codec:"liveLocation,omitempty" json:"liveLocation,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -161,6 +224,35 @@ func (o MessageText) DeepCopy() MessageText {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownUserMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
+		LiveLocation: (func(x *LiveLocation) *LiveLocation {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LiveLocation),
 	}
 }
 
@@ -175,14 +267,38 @@ func (o MessageConversationMetadata) DeepCopy() MessageConversationMetadata {
 }
 
 type MessageEdit struct {
-	MessageID MessageID `codec:"messageID" json:"messageID"`
-	Body      string    `codec:"body" json:"body"`
+	MessageID    MessageID          `codec:"messageID" json:"messageID"`
+	Body         string             `codec:"body" json:"body"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageEdit) DeepCopy() MessageEdit {
 	return MessageEdit{
 		MessageID: o.MessageID.DeepCopy(),
 		Body:      o.Body,
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownUserMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
@@ -217,9 +333,11 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 }
 
 type MessageFlip struct {
-	Text       string         `codec:"text" json:"text"`
-	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
-	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
+	Text         string             `codec:"text" json:"text"`
+	GameID       FlipGameID         `codec:"gameID" json:"gameID"`
+	FlipConvID   ConversationID     `codec:"flipConvID" json:"flipConvID"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageFlip) DeepCopy() MessageFlip {
@@ -227,6 +345,28 @@ func (o MessageFlip) DeepCopy() MessageFlip {
 		Text:       o.Text,
 		GameID:     o.GameID.DeepCopy(),
 		FlipConvID: o.FlipConvID.DeepCopy(),
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownUserMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
@@ -2498,6 +2638,7 @@ type MessageUnboxedValid struct {
 	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
 	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
+	MaybeMentions         []MaybeMention              `codec:"maybeMentions" json:"maybeMentions"`
 	ChannelNameMentions   []ChannelNameMention        `codec:"channelNameMentions" json:"channelNameMentions"`
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
@@ -2563,6 +2704,17 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		MaybeMentions: (func(x []MaybeMention) []MaybeMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]MaybeMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.MaybeMentions),
 		ChannelNameMentions: (func(x []ChannelNameMention) []ChannelNameMention {
 			if x == nil {
 				return nil
@@ -3041,14 +3193,16 @@ func (o ConversationErrorRekey) DeepCopy() ConversationErrorRekey {
 }
 
 type ConversationMinWriterRoleInfoLocal struct {
-	Username string            `codec:"username" json:"username"`
-	Role     keybase1.TeamRole `codec:"role" json:"role"`
+	ChangedBy   string            `codec:"changedBy" json:"changedBy"`
+	CannotWrite bool              `codec:"cannotWrite" json:"cannotWrite"`
+	Role        keybase1.TeamRole `codec:"role" json:"role"`
 }
 
 func (o ConversationMinWriterRoleInfoLocal) DeepCopy() ConversationMinWriterRoleInfoLocal {
 	return ConversationMinWriterRoleInfoLocal{
-		Username: o.Username,
-		Role:     o.Role.DeepCopy(),
+		ChangedBy:   o.ChangedBy,
+		CannotWrite: o.CannotWrite,
+		Role:        o.Role.DeepCopy(),
 	}
 }
 
@@ -3478,60 +3632,6 @@ func (o UnreadlineRes) DeepCopy() UnreadlineRes {
 	}
 }
 
-type GetInboxUILocalRes struct {
-	ConversationsRemote []UnverifiedInboxUIItem       `codec:"conversationsRemote" json:"conversationsRemote"`
-	Pagination          *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	Offline             bool                          `codec:"offline" json:"offline"`
-	RateLimits          []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
-	IdentifyFailures    []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
-}
-
-func (o GetInboxUILocalRes) DeepCopy() GetInboxUILocalRes {
-	return GetInboxUILocalRes{
-		ConversationsRemote: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UnverifiedInboxUIItem, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.ConversationsRemote),
-		Pagination: (func(x *Pagination) *Pagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
-		Offline: o.Offline,
-		RateLimits: (func(x []RateLimit) []RateLimit {
-			if x == nil {
-				return nil
-			}
-			ret := make([]RateLimit, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.RateLimits),
-		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
-			if x == nil {
-				return nil
-			}
-			ret := make([]keybase1.TLFIdentifyFailure, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.IdentifyFailures),
-	}
-}
-
 type NameQuery struct {
 	Name        string                  `codec:"name" json:"name"`
 	TlfID       *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
@@ -3892,13 +3992,15 @@ func (o SetConversationStatusLocalRes) DeepCopy() SetConversationStatusLocalRes 
 
 type NewConversationLocalRes struct {
 	Conv             ConversationLocal             `codec:"conv" json:"conv"`
+	UiConv           InboxUIItem                   `codec:"uiConv" json:"uiConv"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o NewConversationLocalRes) DeepCopy() NewConversationLocalRes {
 	return NewConversationLocalRes{
-		Conv: o.Conv.DeepCopy(),
+		Conv:   o.Conv.DeepCopy(),
+		UiConv: o.UiConv.DeepCopy(),
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -4644,6 +4746,7 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 }
 
 type SearchRegexpRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4651,6 +4754,7 @@ type SearchRegexpRes struct {
 
 func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
 	return SearchRegexpRes{
+		Offline: o.Offline,
 		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
 			if x == nil {
 				return nil
@@ -4688,6 +4792,7 @@ func (o SearchRegexpRes) DeepCopy() SearchRegexpRes {
 }
 
 type SearchInboxRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
 	Res              *ChatSearchInboxResults       `codec:"res,omitempty" json:"res,omitempty"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
@@ -4695,6 +4800,7 @@ type SearchInboxRes struct {
 
 func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 	return SearchInboxRes{
+		Offline: o.Offline,
 		Res: (func(x *ChatSearchInboxResults) *ChatSearchInboxResults {
 			if x == nil {
 				return nil
@@ -4938,6 +5044,115 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	}
 }
 
+type GalleryItemTyp int
+
+const (
+	GalleryItemTyp_MEDIA GalleryItemTyp = 0
+	GalleryItemTyp_LINK  GalleryItemTyp = 1
+	GalleryItemTyp_DOC   GalleryItemTyp = 2
+)
+
+func (o GalleryItemTyp) DeepCopy() GalleryItemTyp { return o }
+
+var GalleryItemTypMap = map[string]GalleryItemTyp{
+	"MEDIA": 0,
+	"LINK":  1,
+	"DOC":   2,
+}
+
+var GalleryItemTypRevMap = map[GalleryItemTyp]string{
+	0: "MEDIA",
+	1: "LINK",
+	2: "DOC",
+}
+
+func (e GalleryItemTyp) String() string {
+	if v, ok := GalleryItemTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type LoadGalleryRes struct {
+	Messages         []UIMessage                   `codec:"messages" json:"messages"`
+	Last             bool                          `codec:"last" json:"last"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o LoadGalleryRes) DeepCopy() LoadGalleryRes {
+	return LoadGalleryRes{
+		Messages: (func(x []UIMessage) []UIMessage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIMessage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Messages),
+		Last: o.Last,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
+type LoadFlipRes struct {
+	Status           UICoinFlipStatus              `codec:"status" json:"status"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o LoadFlipRes) DeepCopy() LoadFlipRes {
+	return LoadFlipRes{
+		Status: o.Status.DeepCopy(),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -4968,12 +5183,6 @@ type GetUnreadlineArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
 	ReadMsgID        MessageID                    `codec:"readMsgID" json:"readMsgID"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
-type GetInboxUILocalArg struct {
-	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -5383,12 +5592,38 @@ type PutReacjiSkinToneArg struct {
 	SkinTone keybase1.ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
 }
 
+type ResolveMaybeMentionArg struct {
+	Mention MaybeMention `codec:"mention" json:"mention"`
+}
+
+type LoadGalleryArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Typ       GalleryItemTyp `codec:"typ" json:"typ"`
+	Num       int            `codec:"num" json:"num"`
+	FromMsgID *MessageID     `codec:"fromMsgID,omitempty" json:"fromMsgID,omitempty"`
+}
+
+type LoadFlipArg struct {
+	HostConvID ConversationID `codec:"hostConvID" json:"hostConvID"`
+	HostMsgID  MessageID      `codec:"hostMsgID" json:"hostMsgID"`
+	FlipConvID ConversationID `codec:"flipConvID" json:"flipConvID"`
+	GameID     FlipGameID     `codec:"gameID" json:"gameID"`
+}
+
+type LocationUpdateArg struct {
+	Coord Coordinate `codec:"coord" json:"coord"`
+}
+
+type LocationDeniedArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
 	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
-	GetInboxUILocal(context.Context, GetInboxUILocalArg) (GetInboxUILocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
@@ -5453,6 +5688,11 @@ type LocalInterface interface {
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
+	ResolveMaybeMention(context.Context, MaybeMention) error
+	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
+	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
+	LocationUpdate(context.Context, Coordinate) error
+	LocationDenied(context.Context, ConversationID) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5516,21 +5756,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetUnreadline(ctx, typedArgs[0])
-					return
-				},
-			},
-			"getInboxUILocal": {
-				MakeArg: func() interface{} {
-					var ret [1]GetInboxUILocalArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetInboxUILocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetInboxUILocalArg)(nil), args)
-						return
-					}
-					ret, err = i.GetInboxUILocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6464,6 +6689,81 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"resolveMaybeMention": {
+				MakeArg: func() interface{} {
+					var ret [1]ResolveMaybeMentionArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ResolveMaybeMentionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ResolveMaybeMentionArg)(nil), args)
+						return
+					}
+					err = i.ResolveMaybeMention(ctx, typedArgs[0].Mention)
+					return
+				},
+			},
+			"loadGallery": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadGalleryArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadGalleryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadGalleryArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadGallery(ctx, typedArgs[0])
+					return
+				},
+			},
+			"loadFlip": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadFlipArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadFlipArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadFlipArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadFlip(ctx, typedArgs[0])
+					return
+				},
+			},
+			"locationUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]LocationUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LocationUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LocationUpdateArg)(nil), args)
+						return
+					}
+					err = i.LocationUpdate(ctx, typedArgs[0].Coord)
+					return
+				},
+			},
+			"locationDenied": {
+				MakeArg: func() interface{} {
+					var ret [1]LocationDeniedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LocationDeniedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LocationDeniedArg)(nil), args)
+						return
+					}
+					err = i.LocationDenied(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -6489,11 +6789,6 @@ func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonbl
 
 func (c LocalClient) GetUnreadline(ctx context.Context, __arg GetUnreadlineArg) (res UnreadlineRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getUnreadline", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocalClient) GetInboxUILocal(ctx context.Context, __arg GetInboxUILocalArg) (res GetInboxUILocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getInboxUILocal", []interface{}{__arg}, &res)
 	return
 }
 
@@ -6825,5 +7120,33 @@ func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) 
 func (c LocalClient) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
 	__arg := PutReacjiSkinToneArg{SkinTone: skinTone}
 	err = c.Cli.Call(ctx, "chat.1.local.putReacjiSkinTone", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ResolveMaybeMention(ctx context.Context, mention MaybeMention) (err error) {
+	__arg := ResolveMaybeMentionArg{Mention: mention}
+	err = c.Cli.Call(ctx, "chat.1.local.resolveMaybeMention", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) LoadGallery(ctx context.Context, __arg LoadGalleryArg) (res LoadGalleryRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.loadGallery", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadFlipRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.loadFlip", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err error) {
+	__arg := LocationUpdateArg{Coord: coord}
+	err = c.Cli.Call(ctx, "chat.1.local.locationUpdate", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) LocationDenied(ctx context.Context, convID ConversationID) (err error) {
+	__arg := LocationDeniedArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.locationDenied", []interface{}{__arg}, nil)
 	return
 }

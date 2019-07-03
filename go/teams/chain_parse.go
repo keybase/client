@@ -89,6 +89,7 @@ type SCPerTeamKey struct {
 	EncKID     keybase1.KID                  `json:"encryption_kid"`
 	SigKID     keybase1.KID                  `json:"signing_kid"`
 	ReverseSig string                        `json:"reverse_sig"`
+	SeedCheck  string                        `json:"seed_check,omitempty"`
 }
 
 type SCTeamSettings struct {
@@ -243,12 +244,12 @@ func (i SCTeamInviteID) Eq(i2 keybase1.TeamInviteID) bool {
 	return tmp.Eq(i2)
 }
 
-func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole, inviter keybase1.UserVersion) (keybase1.TeamInvite, error) {
+func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, inviter keybase1.UserVersion) (keybase1.TeamInvite, error) {
 	id, err := i.ID.TeamInviteID()
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
-	typ, err := keybase1.TeamInviteTypeFromString(string(i.Type), g.Env.GetRunMode() == libkb.DevelRunMode)
+	typ, err := TeamInviteTypeFromString(mctx, string(i.Type))
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}

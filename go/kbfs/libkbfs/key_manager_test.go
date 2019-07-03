@@ -37,7 +37,7 @@ type shimKMCrypto struct {
 func mockNormalizeSocialAssertion(config *ConfigMock) {
 	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(context.Background(), assertion)
 			if !isSocialAssertion {
 				return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
 			}
@@ -854,7 +854,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -876,7 +876,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -890,7 +890,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	kbfsOps2 := config2.KBFSOps()
 
 	// user 2 creates a file
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("b"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -954,7 +954,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	}
 
 	// user 2 creates another file
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, testPPS("c"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1017,7 +1017,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	}
 
 	// force re-encryption of the root dir
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "d", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("d"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1040,7 +1040,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2Dev2)
-	if _, ok := children["d"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children[rootNode2Dev2.ChildName("d")]; !ok {
 		t.Fatalf("Device 2 couldn't see the new dir entry")
 	}
 
@@ -1059,7 +1060,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	// Should still be seeing the old children, since the updates from
 	// the latest revision were never applied.
 	children, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
-	if _, ok := children["d"]; ok {
+	require.NoError(t, err)
+	if _, ok := children[rootNode2.ChildName("d")]; ok {
 		t.Fatalf("Found c unexpectedly: %v", children)
 	}
 
@@ -1068,7 +1070,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 	rootNode2Dev3 := GetRootNodeOrBust(ctx, t, config2Dev3, name, tlf.Private)
 
 	kbfsOps2Dev3 := config2Dev3.KBFSOps()
-	aNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "a")
+	aNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, testPPS("a"))
 	if err != nil {
 		t.Fatalf("Device 3 couldn't lookup a: %+v", err)
 	}
@@ -1079,7 +1081,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 		t.Fatalf("Device 3 couldn't read a: %+v", err)
 	}
 
-	bNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "b")
+	bNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, testPPS("b"))
 	if err != nil {
 		t.Fatalf("Device 3 couldn't lookup b: %+v", err)
 	}
@@ -1113,7 +1115,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2, u3 kbname.NormalizedUsername = "u1", "u2", "u3"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1144,7 +1146,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1221,7 +1223,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1241,7 +1243,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	kbfsOps1 := config1.KBFSOps()
 
 	t.Log("User 1 creates a file")
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1284,12 +1286,14 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 	t.Log("User 2 device 2 reads user 1's file")
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
-	if _, ok := children2["a"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children2[root2dev2.ChildName("a")]; !ok {
 		t.Fatalf("Device 2 couldn't see user 1's dir entry")
 	}
 
 	t.Log("User 2 device 2 creates a file")
-	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2dev2, "b", false, NoExcl)
+	_, _, err = kbfsOps2Dev2.CreateFile(
+		ctx, root2dev2, testPPS("b"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1307,7 +1311,8 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 
 	t.Log("User 1 should be able to read the file that user 2 device 2 created")
 	children1, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
-	if _, ok := children1["b"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children1[rootNode1.ChildName("b")]; !ok {
 		t.Fatalf("Device 1 couldn't see the new dir entry")
 	}
 }
@@ -1315,8 +1320,9 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	session1, err := config1.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1336,7 +1342,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps1 := config1.KBFSOps()
 
 	t.Log("User 1 creates a file")
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1396,7 +1402,8 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	t.Log("User 2 device 2 reads user 1's file")
 	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
-	if _, ok := children2["a"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children2[root2dev2.ChildName("a")]; !ok {
 		t.Fatalf("Device 2 couldn't see user 1's dir entry")
 	}
 }
@@ -1404,7 +1411,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -1433,7 +1440,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps1 := config1.KBFSOps()
 
 	t.Log("User 1 creates a file")
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1498,7 +1505,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func keyManagerTestSimulateSelfRekeyBit(
-	t *testing.T, ctx context.Context, config Config, tlfID tlf.ID) {
+	ctx context.Context, t *testing.T, config Config, tlfID tlf.ID) {
 	// Simulate the mdserver sending back this node's own rekey
 	// request.  This shouldn't increase the MD version.  Since this
 	// doesn't kick off a rekey request, we don't need to wait for the
@@ -1534,7 +1541,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	doShutdown1 := true
 	defer func() {
 		if doShutdown1 {
-			kbfsConcurTestShutdown(t, config1, ctx, cancel)
+			kbfsConcurTestShutdown(ctx, t, config1, cancel)
 		}
 	}()
 
@@ -1568,7 +1575,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1608,7 +1615,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
 	keyManagerTestSimulateSelfRekeyBit(
-		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+		ctx, t, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// user 1 syncs from server
 	err = kbfsOps1.SyncFromServer(ctx,
@@ -1635,7 +1642,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 
 	// look for the file
-	aNode, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
+	aNode, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, testPPS("a"))
 	if err != nil {
 		t.Fatalf("Device 2 couldn't lookup a: %+v", err)
 	}
@@ -1700,7 +1707,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 	rootNode3Dev2 := GetRootNodeOrBust(ctx, t, config3Dev2, name, tlf.Private)
 
 	// look for the file
-	a2Node, _, err := kbfsOps3Dev2.Lookup(ctx, rootNode3Dev2, "a")
+	a2Node, _, err := kbfsOps3Dev2.Lookup(ctx, rootNode3Dev2, testPPS("a"))
 	if err != nil {
 		t.Fatalf("Device 3 couldn't lookup a: %+v", err)
 	}
@@ -1714,7 +1721,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	// Explicitly run the checks with config1 before the deferred shutdowns begin.
 	// This way the shared mdserver hasn't been shutdown.
-	kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	doShutdown1 = false
 }
 
@@ -1724,7 +1731,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -1746,7 +1753,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1832,7 +1839,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	}
 
 	// force re-encryption of the root dir
-	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2Dev2, "b", false, NoExcl)
+	_, _, err = kbfsOps2Dev2.CreateFile(
+		ctx, root2Dev2, testPPS("b"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1851,7 +1859,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.
 	rootNode1 = GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
 	children, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
-	if _, ok := children["b"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children[rootNode1.ChildName("b")]; !ok {
 		t.Fatalf("Device 1 couldn't see the new dir entry")
 	}
 }
@@ -1882,7 +1891,7 @@ func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -1902,7 +1911,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1939,7 +1948,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
 	keyManagerTestSimulateSelfRekeyBit(
-		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+		ctx, t, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	t.Log("Switching crypto")
 
@@ -1967,11 +1976,13 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 
 	kbfsOps2 := config2Dev2.KBFSOps()
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
-	if _, ok := children["a"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children[rootNode2Dev2.ChildName("a")]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 	// user 2 creates another file to make a new revision
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(
+		ctx, rootNode2Dev2, testPPS("b"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -1987,7 +1998,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
-	if _, ok := children["b"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children[rootNode1.ChildName("b")]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 }
@@ -1995,7 +2007,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -2017,7 +2029,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -2064,7 +2076,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.
 	keyManagerTestSimulateSelfRekeyBit(
-		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+		ctx, t, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// Simulate a restart after the rekey bit was set
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
@@ -2105,11 +2117,13 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 
 	kbfsOps2 := config2Dev2.KBFSOps()
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
-	if _, ok := children["a"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children[rootNode2Dev2.ChildName("a")]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 	// user 2 creates another file to make a new revision
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
+	_, _, err = kbfsOps2.CreateFile(
+		ctx, rootNode2Dev2, testPPS("b"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -2122,7 +2136,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config1.SetMetadataVersion(ver)
 
@@ -2234,7 +2248,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 	clock := clocktest.NewTestClockNow()
 	config1.SetClock(clock)
 
@@ -2257,7 +2271,7 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, testPPS("a"), false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %+v", err)
 	}
@@ -2301,7 +2315,8 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
 	}
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, root2Dev2)
-	if _, ok := children["a"]; !ok {
+	require.NoError(t, err)
+	if _, ok := children[root2Dev2.ChildName("a")]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry")
 	}
 }
@@ -2329,7 +2344,7 @@ func (c *protectedContext) maybeReplaceContext(newCtx context.Context) {
 func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -2391,7 +2406,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
-	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
 
 	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -2414,6 +2429,7 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	_, latestKeyGen, err := config1.KBPKI().GetTeamTLFCryptKeys(
 		ctx, teamID, kbfsmd.UnspecifiedKeyGen,
 		keybase1.OfflineAvailability_NONE)
+	require.NoError(t, err)
 
 	rmd, err := makeInitialRootMetadata(config1.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)

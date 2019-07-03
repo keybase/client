@@ -87,6 +87,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	arg.NeedLatestKey = false
 	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(4)}
 	team, err = tcs[1].G.GetFastTeamLoader().Load(m[1], arg)
+	require.NoError(t, err)
 	require.Equal(t, len(team.ApplicationKeys), 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
@@ -95,6 +96,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	arg.NeedLatestKey = true
 	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{}
 	team, err = tcs[1].G.GetFastTeamLoader().Load(m[1], arg)
+	require.NoError(t, err)
 	require.Equal(t, len(team.ApplicationKeys), 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
@@ -388,7 +390,7 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
 		require.NoError(t, err)
 	}
-	err = RotateKey(m[0].Ctx(), tcs[0].G, teamID)
+	err = RotateKeyVisible(m[0].Ctx(), tcs[0].G, teamID)
 	require.NoError(t, err)
 
 	loadTeam(*subteamID, true)

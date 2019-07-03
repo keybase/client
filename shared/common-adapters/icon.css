@@ -151,4 +151,14 @@
 .icon-gen-iconfont-app-close::before {content: "\e987";}
 .icon-gen-iconfont-app-maximize::before {content: "\e988";}
 .icon-gen-iconfont-app-minimize::before {content: "\e989";}
+.icon-gen-iconfont-hide::before {content: "\e98a";}
+.icon-gen-iconfont-nav-2-hamburger::before {content: "\e98b";}
+.icon-gen-iconfont-unhide::before {content: "\e98c";}
+.icon-gen-iconfont-app-un-maximize::before {content: "\e98d";}
+.icon-gen-iconfont-wave-2::before {content: "\e98e";}
+.icon-gen-iconfont-mailbox::before {content: "\e98f";}
+.icon-gen-iconfont-calculate::before {content: "\e990";}
+.icon-gen-iconfont-calculator::before {content: "\e991";}
+.icon-gen-iconfont-expand::before {content: "\e992";}
+.icon-gen-iconfont-collapse::before {content: "\e993";}
 

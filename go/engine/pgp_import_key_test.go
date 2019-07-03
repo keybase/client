@@ -25,7 +25,7 @@ func TestPGPImportAndExport(t *testing.T) {
 
 	// try all four permutations of push options:
 
-	fp, _, key := armorKey(t, tc, u.Email)
+	fp, _, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false)
 	if err != nil {
 		t.Fatal(err)
@@ -35,7 +35,7 @@ func TestPGPImportAndExport(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fp, _, key = armorKey(t, tc, u.Email)
+	fp, _, key = genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
@@ -87,12 +87,10 @@ func TestPGPImportAndExport(t *testing.T) {
 	if len(xe.Results()) != 2 {
 		t.Fatalf("Expected two keys back out; got %d", len(xe.Results()))
 	}
-
-	return
 }
 
-// TestPGPImportPrivImport - import the same key twice, only importing the private key
-// the second time / on the second device (CORE-10562).
+// TestPGPImportPrivImport - import the same key twice, only importing the
+// private key the second time / on the second device (CORE-10562).
 func TestPGPImportPrivImport(t *testing.T) {
 	user, dev1, dev2, cleanup := SetupTwoDevices(t, "login")
 	defer cleanup()
@@ -101,7 +99,7 @@ func TestPGPImportPrivImport(t *testing.T) {
 	uis := libkb.UIs{LogUI: dev1.G.UI.GetLogUI(), SecretUI: secui}
 
 	// Import a private key into dev1
-	fp, _, key := armorKey(t, dev1, user.Email)
+	fp, _, key := genPGPKeyAndArmor(t, dev1, user.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(dev1.G, []byte(key), false)
 	if err != nil {
 		t.Fatal(err)
@@ -188,8 +186,52 @@ func TestPGPImportPrivImport(t *testing.T) {
 	if len(xe.Results()) != 1 {
 		t.Fatalf("Expected 1 key back out")
 	}
+}
 
-	return
+func TestPGPImportLocalPrivateThenServer(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpsave")
+	defer tc.Cleanup()
+
+	user := CreateAndSignupFakeUser(tc, "login")
+	secui := &libkb.TestSecretUI{Passphrase: user.Passphrase}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+
+	_, _, key := genPGPKeyAndArmor(t, tc, user.Email)
+
+	// Import a private key locally first.
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false /* pushSecret*/)
+	require.NoError(t, err)
+	mctx := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
+	// Can we import locally twice?
+	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false /* pushSecret*/)
+	require.NoError(t, err)
+	mctx = NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
+	kid := eng.GetKID()
+
+	ss, err := mctx.ActiveDevice().SyncSecretsForce(mctx)
+	require.NoError(t, err)
+	_, ok := ss.FindPrivateKey(kid.String())
+	require.False(t, ok)
+
+	// Try to import with push secret afterwards - user also wants
+	// to have this key available online.
+	eng, err = NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true /* pushSecret*/)
+	require.NoError(t, err)
+	mctx = NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(mctx, eng)
+	require.NoError(t, err)
+
+	ss, err = mctx.ActiveDevice().SyncSecretsForce(mctx)
+	require.NoError(t, err)
+	privKey, ok := ss.FindPrivateKey(kid.String())
+	require.True(t, ok)
+	require.NotEmpty(t, privKey.Bundle)
 }
 
 // Test for issue 325.
@@ -215,7 +257,7 @@ func TestPGPImportNotLoggedIn(t *testing.T) {
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
-	_, _, key := armorKey(t, tc, u.Email)
+	_, _, key := genPGPKeyAndArmor(t, tc, u.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false)
 	if err != nil {
 		t.Fatal(err)
@@ -332,7 +374,7 @@ func TestPGPImportPushSecretWithoutPassword(t *testing.T) {
 
 	secui := &libkb.TestSecretUI{}
 	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-	_, _, key := armorKey(t, tc, user.Email)
+	_, _, key := genPGPKeyAndArmor(t, tc, user.Email)
 	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	require.Nil(t, err, "engine initialization should succeed")
 	m := NewMetaContextForTest(tc).WithUIs(uis)
@@ -355,7 +397,7 @@ func numPrivateGPGKeys(g *libkb.GlobalContext) (int, error) {
 	return index.Len(), nil
 }
 
-func armorKey(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, keybase1.KID, string) {
+func genPGPKeyAndArmor(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, keybase1.KID, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {
 		t.Fatal(err)

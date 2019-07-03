@@ -125,7 +125,7 @@ func ExtensionIsInited() bool {
 }
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
-	accessGroupOverride bool, pusher PushNotifier) (err error) {
+	accessGroupOverride bool, pusher PushNotifier, mobileOsVersion string) (err error) {
 	extensionInitMu.Lock()
 	defer extensionInitMu.Unlock()
 	defer func() { err = flattenError(err) }()
@@ -153,6 +153,9 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
+
+	fmt.Printf("Go: Mobile OS version is: %q\n", mobileOsVersion)
+	kbCtx.MobileOsVersion = mobileOsVersion
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
@@ -226,6 +229,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	kbChatCtx.MessageDeliverer.Connected(context.Background())
+	kbChatCtx.InboxSource.Start(context.Background(), uid)
 	return nil
 }
 
@@ -394,7 +398,7 @@ func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.Remote
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return newExtensionGregorHandler(gc, nist)
 		})
-	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, nil
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, err
 }
 
 func restoreName(gc *globals.Context, name string, membersType chat1.ConversationMembersType) string {

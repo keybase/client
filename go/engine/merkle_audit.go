@@ -46,9 +46,13 @@ type MerkleAuditArgs struct {
 	testingRoundResCh chan<- error
 }
 
+// Bump this up whenever there is a change that needs to reset the current stored state.
+const merkleAuditCurrentVersion = 1
+
 type merkleAuditState struct {
 	RetrySeqno *keybase1.Seqno `json:"retrySeqno"`
 	LastSeqno  *keybase1.Seqno `json:"lastSeqno"`
+	Version    int             `json:"version"`
 }
 
 // NewMerkleAudit creates a new MerkleAudit engine.
@@ -135,12 +139,17 @@ func lookupMerkleAuditRetryFromState(m libkb.MetaContext) (*keybase1.Seqno, *key
 		// Nothing found, no error
 		return nil, nil, nil
 	}
+	if state.Version != merkleAuditCurrentVersion {
+		m.Debug("discarding state with version %d, which isn't %d", state.Version, merkleAuditCurrentVersion)
+		return nil, nil, nil
+	}
 
 	// Can still be nil
 	return state.RetrySeqno, state.LastSeqno, nil
 }
 
 func saveMerkleAuditState(m libkb.MetaContext, state merkleAuditState) error {
+	state.Version = merkleAuditCurrentVersion
 	return m.G().LocalDb.PutObj(merkleAuditKey, nil, state)
 }
 
@@ -151,7 +160,7 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 	}
 
 	// Acquire the most recent merkle tree root
-	lastRoot := m.G().MerkleClient.LastRoot()
+	lastRoot := m.G().MerkleClient.LastRoot(m)
 	if lastRoot == nil {
 		m.Debug("MerkleAudit unable to retrieve the last root")
 		return errAuditNoLastRoot
@@ -217,7 +226,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	if startSeqno == nil {
 		// nil seqno, generate a new one:
 		// 1. Acquire the most recent merkle tree root
-		lastRoot := m.G().MerkleClient.LastRoot()
+		lastRoot := m.G().MerkleClient.LastRoot(m)
 		if lastRoot == nil {
 			m.Debug("MerkleAudit unable to retrieve the last root")
 			return nil
@@ -225,7 +234,7 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 		lastSeqno := *lastRoot.Seqno()
 
 		// 2. Figure out the first merkle root seqno with skips, fall back to 1
-		firstSeqno := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+		firstSeqno := m.G().MerkleClient.FirstExaminableHistoricalRoot(m)
 		if firstSeqno == nil {
 			val := keybase1.Seqno(1)
 			firstSeqno = &val
@@ -237,6 +246,8 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 			return err
 		}
 		startSeqno = &randomSeqno
+	} else {
+		m.Debug("Audit retry requested for %d", *startSeqno)
 	}
 
 	// If this time it fails, save it

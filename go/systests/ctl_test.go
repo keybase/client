@@ -75,6 +75,7 @@ func TestVersionAndStop(t *testing.T) {
 	}()
 
 	tc2 := cloneContext(tc)
+	defer tc2.Cleanup()
 
 	vui := versionUI{
 		Contextified: libkb.NewContextified(tc2.G),
@@ -101,6 +102,9 @@ func TestVersionAndStop(t *testing.T) {
 }
 
 func CtlStop(g *libkb.GlobalContext) error {
+	if err := g.Shutdown(); err != nil {
+		return err
+	}
 	cli, err := client.GetCtlClient(g)
 	if err != nil {
 		return err

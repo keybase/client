@@ -1,6 +1,5 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
-
 package libkb
 
 import (
@@ -41,12 +40,6 @@ const (
 	RunModeError      RunMode = kbconst.RunModeError
 	NoRunMode         RunMode = kbconst.NoRunMode
 )
-
-var ServerLookup = map[RunMode]string{
-	DevelRunMode:      DevelServerURI,
-	StagingRunMode:    StagingServerURI,
-	ProductionRunMode: ProductionServerURI,
-}
 
 var SiteURILookup = map[RunMode]string{
 	DevelRunMode:      DevelSiteURI,
@@ -199,6 +192,7 @@ const (
 	KeybaseNullSigVersion SigVersion = 0
 	KeybaseSignatureV1    SigVersion = 1
 	KeybaseSignatureV2    SigVersion = 2
+	KeybaseSignatureV3    SigVersion = 3
 )
 
 const (
@@ -353,6 +347,11 @@ const (
 	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
 	SCStellarIncompatibleVersion                = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
 	SCStellarMissingAccount                     = int(keybase1.StatusCode_SCStellarMissingAccount)
+	SCPhoneNumberUnknown                        = int(keybase1.StatusCode_SCPhoneNumberUnknown)
+	SCPhoneNumberAlreadyVerified                = int(keybase1.StatusCode_SCPhoneNumberAlreadyVerified)
+	SCPhoneNumberVerificationCodeExpired        = int(keybase1.StatusCode_SCPhoneNumberVerificationCodeExpired)
+	SCPhoneNumberWrongVerificationCode          = int(keybase1.StatusCode_SCPhoneNumberWrongVerificationCode)
+	SCPhoneNumberLimitExceeded                  = int(keybase1.StatusCode_SCPhoneNumberLimitExceeded)
 	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
 )
 
@@ -590,13 +589,15 @@ const (
 )
 
 const (
-	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
-	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
-	EncryptionReasonChatIndexerTokenKey    EncryptionReason = "Keybase-Chat-IndexerTokenKey-1"
-	EncryptionReasonChatIndexerAliasKey    EncryptionReason = "Keybase-Chat-IndexerAliasKey-1"
-	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
-	EncryptionReasonTeamsFTLLocalStorage   EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
-	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
+	EncryptionReasonChatLocalStorage        EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage             EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonChatIndexerTokenKey     EncryptionReason = "Keybase-Chat-IndexerTokenKey-1"
+	EncryptionReasonChatIndexerAliasKey     EncryptionReason = "Keybase-Chat-IndexerAliasKey-1"
+	EncryptionReasonTeamsLocalStorage       EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonTeamsFTLLocalStorage    EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
+	EncryptionReasonTeamsHiddenLocalStorage EncryptionReason = "Keybase-Teams-Hidden-Local-Storage-1"
+	EncryptionReasonErasableKVLocalStorage  EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
+	EncryptionReasonTeambotEphemeralKey     EncryptionReason = "Keybase-Teambot-Ephemeral-Key-1"
 )
 
 type DeriveReason string
@@ -613,6 +614,7 @@ const (
 	DeriveReasonDeviceEKEncryption  DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
 	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
 	DeriveReasonTeamEKEncryption    DeriveReason = "Derived-Ephemeral-Team-NaCl-DH-1"
+	DeriveReasonTeambotEKEncryption DeriveReason = "Derived-Ephemeral-Team-Bot-NaCl-DH-1"
 	DeriveReasonTeamEKExplodingChat DeriveReason = "Derived-Ephemeral-Team-NaCl-SecretBox-ExplodingChat-1"
 
 	DeriveReasonChatPairwiseMAC DeriveReason = "Derived-Chat-Pairwise-HMAC-SHA256-1"
@@ -669,6 +671,7 @@ const (
 	TeamGitMetadataDerivationString      = "Keybase-Derived-Team-NaCl-GitMetadata-1"
 	TeamSeitanTokenDerivationString      = "Keybase-Derived-Team-NaCl-SeitanInviteToken-1"
 	TeamStellarRelayDerivationString     = "Keybase-Derived-Team-NaCl-StellarRelay-1"
+	TeamKeySeedCheckDerivationString     = "Keybase-Derived-Team-Seedcheck-1"
 )
 
 func CurrentSaltpackVersion() saltpack.Version {
@@ -722,3 +725,8 @@ const (
 )
 
 const ProfileProofSuggestions = true
+
+const (
+	ExternalURLsBaseKey         = "external_urls"
+	ExternalURLsStellarPartners = "stellar_partners"
+)

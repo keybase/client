@@ -19,6 +19,7 @@ protocol chatUi {
   record UnverifiedInboxUIItemMetadata {
     string channelName;
     string headline;
+    string headlineDecorated;
     string snippet;
     string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
     array<string> writerNames;
@@ -69,6 +70,7 @@ protocol chatUi {
     string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
     string channel;
     string headline;
+    string headlineDecorated;
     keybase1.TLFVisibility visibility;
     array<string> participants;
     map<string, string> fullNames;
@@ -140,6 +142,9 @@ protocol chatUi {
     boolean showCancel;                           // true if cancel is an option for this payment
     string fromUsername;
     string toUsername;
+    // for path payments
+    string sourceAmount;  
+    stellar1.Asset sourceAsset;
   }
 
   record UIRequestInfo {
@@ -230,16 +235,50 @@ protocol chatUi {
     union { null, UIPagination } pagination;
   }
 
+  record UITeamMention {
+    boolean inTeam;
+    boolean open;
+    union { null, string } description;
+    union { null, int } numMembers;
+    array<string> publicAdmins;
+    union { null, string } convID;
+  }
+
   enum UITextDecorationTyp {
     PAYMENT_0,
     ATMENTION_1,
-    CHANNELNAMEMENTION_2
+    CHANNELNAMEMENTION_2,
+    MAYBEMENTION_3,
+    LINK_4,
+    MAILTO_5
+  }
+
+  enum UIMaybeMentionStatus {
+    UNKNOWN_0,
+    USER_1,
+    TEAM_2,
+    NOTHING_3
+  }
+
+  record UILinkDecoration {
+    string display;
+    string url;
+  }
+
+  variant UIMaybeMentionInfo switch (UIMaybeMentionStatus status) {
+    case UNKNOWN: void;
+    case USER: void;
+    case TEAM: UITeamMention;
+    case NOTHING: void;
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
     case ATMENTION: string;
     case CHANNELNAMEMENTION: UIChannelNameMention;
+    case MAYBEMENTION: MaybeMention;
+    case LINK: UILinkDecoration;
+    case MAILTO: UILinkDecoration;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
@@ -385,4 +424,24 @@ protocol chatUi {
     union { null, string} title;
   }
   void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
+
+  void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
+
+  void chatLoadGalleryHit(int sessionID, UIMessage message);
+
+  // Location support
+  @typedef("uint64") @lint("ignore") record LocationWatchID {}
+  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
+  void chatClearWatch(int sessionID, LocationWatchID id);
+
+  // Slash command feedback
+  enum UICommandStatusDisplayTyp {
+    STATUS_0,
+    WARNING_1,
+    ERROR_2
+  }
+  enum UICommandStatusActionTyp {
+    APPSETTINGS_0
+  }
+  void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
 }

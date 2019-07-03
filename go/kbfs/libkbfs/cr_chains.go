@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkey"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -29,6 +30,8 @@ type crChain struct {
 	ops                  []op
 	original, mostRecent data.BlockPointer
 	file                 bool
+	obfuscator           data.Obfuscator
+	tlfID                tlf.ID
 }
 
 // collapse finds complementary pairs of operations that cancel each
@@ -285,8 +288,12 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			"Can't find parent dir chain, unref=%s/ref=%s, for op %s (file=%s)",
 			lastSetAttr.Dir.Unref, lastSetAttr.Dir.Ref,
 			lastSetAttr, lastSetAttr.File)
-		// Fall through and hope we can still look up the parent's
-		// block and find the entry.
+
+		// If the parent still can't be found, then barring bugs the
+		// whole directory was created and deleted within this update,
+		// so it should be treated as deleted.
+		chains.deletedOriginals[cc.original] = true
+		return nil
 	}
 
 	// We have to find the current parent directory block.  If the
@@ -307,7 +314,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 		FolderBranch: fbo.folderBranch,
 		Path: []data.PathNode{{
 			BlockPointer: parentMostRecent,
-			Name:         "",
+			Name:         data.PathPartString{},
 		}},
 	}
 	parentDD, cleanupFn := fbo.newDirDataWithDBM(
@@ -390,6 +397,27 @@ func (cc *crChain) hasSetAttrOp() bool {
 	return false
 }
 
+func (cc *crChain) ensurePath(op op, ptr data.BlockPointer) {
+	if op.getFinalPath().IsValid() {
+		return
+	}
+
+	// Use the same obfuscator for both the node's name and it's
+	// children, because it's too complicated to try to get the real
+	// parent obfuscator from the chain.
+	op.setFinalPath(data.Path{
+		FolderBranch: data.FolderBranch{
+			Tlf:    cc.tlfID,
+			Branch: data.MasterBranch,
+		},
+		Path: []data.PathNode{{
+			BlockPointer: ptr,
+			Name:         data.NewPathPartString("", cc.obfuscator),
+		}},
+		ChildObfuscator: cc.obfuscator,
+	})
+}
+
 type renameInfo struct {
 	originalOldParent data.BlockPointer
 	oldName           string
@@ -443,6 +471,9 @@ type crChains struct {
 
 	// All the resolution ops from the branch, in order.
 	resOps []*resolutionOp
+
+	// Make per-chain obfuscators.
+	makeObfuscator func() data.Obfuscator
 }
 
 func (ccs *crChains) addOp(ptr data.BlockPointer, op op) error {
@@ -451,6 +482,8 @@ func (ccs *crChains) addOp(ptr data.BlockPointer, op op) error {
 		return errors.Errorf("Could not find chain for most recent ptr %v", ptr)
 	}
 
+	// Make sure this op has a valid path with an obfuscator.
+	currChain.ensurePath(op, ptr)
 	currChain.ops = append(currChain.ops, op)
 	return nil
 }
@@ -467,7 +500,12 @@ func (ccs *crChains) addNoopChain(ptr data.BlockPointer) {
 	if _, ok := ccs.originals[ptr]; ok {
 		return
 	}
-	chain := &crChain{original: ptr, mostRecent: ptr}
+	chain := &crChain{
+		original:   ptr,
+		mostRecent: ptr,
+		obfuscator: ccs.makeObfuscator(),
+		tlfID:      ccs.mostRecentChainMDInfo.TlfID(),
+	}
 	ccs.byOriginal[ptr] = chain
 	ccs.byMostRecent[ptr] = chain
 }
@@ -487,7 +525,11 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		chain, ok := ccs.byMostRecent[update.Unref]
 		if !ok {
 			// No matching chain means it's time to start a new chain
-			chain = &crChain{original: update.Unref}
+			chain = &crChain{
+				original:   update.Unref,
+				obfuscator: ccs.makeObfuscator(),
+				tlfID:      ccs.mostRecentChainMDInfo.TlfID(),
+			}
 			ccs.byOriginal[update.Unref] = chain
 		}
 		if chain.mostRecent.IsInitialized() {
@@ -587,9 +629,8 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if len(realOp.Unrefs()) > 0 {
 			// Something was overwritten; make an explicit rm for it
 			// so we can check for conflicts.
-			roOverwrite, err := newRmOp(realOp.NewName, ndu,
-
-				data.File)
+			roOverwrite, err := newRmOp(
+				realOp.NewName, ndu, data.File)
 			if err != nil {
 				return err
 			}
@@ -669,7 +710,12 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		_, ok := ccs.byMostRecent[realOp.File]
 		if !ok {
 			// pointer didn't change, so most recent is the same:
-			chain := &crChain{original: realOp.File, mostRecent: realOp.File}
+			chain := &crChain{
+				original:   realOp.File,
+				mostRecent: realOp.File,
+				obfuscator: ccs.makeObfuscator(),
+				tlfID:      ccs.mostRecentChainMDInfo.TlfID(),
+			}
 			ccs.byOriginal[realOp.File] = chain
 			ccs.byMostRecent[realOp.File] = chain
 		}
@@ -815,7 +861,7 @@ func (ccs *crChains) renamedParentAndName(original data.BlockPointer) (
 	return info.originalNewParent, info.newName, true
 }
 
-func newCRChainsEmpty() *crChains {
+func newCRChainsEmpty(makeObfuscator func() data.Obfuscator) *crChains {
 	return &crChains{
 		byOriginal:          make(map[data.BlockPointer]*crChain),
 		byMostRecent:        make(map[data.BlockPointer]*crChain),
@@ -826,6 +872,7 @@ func newCRChainsEmpty() *crChains {
 		toUnrefPointers:     make(map[data.BlockPointer]bool),
 		doNotUnrefPointers:  make(map[data.BlockPointer]bool),
 		originals:           make(map[data.BlockPointer]data.BlockPointer),
+		makeObfuscator:      makeObfuscator,
 	}
 }
 
@@ -881,7 +928,14 @@ func newCRChains(
 	ctx context.Context, codec kbfscodec.Codec, osg idutil.OfflineStatusGetter,
 	chainMDs []chainMetadata, fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
-	ccs = newCRChainsEmpty()
+	if fbo != nil {
+		ccs = newCRChainsEmpty(fbo.obfuscatorMaker())
+	} else {
+		ccs = newCRChainsEmpty(func() data.Obfuscator { return nil })
+	}
+
+	mostRecentMD := chainMDs[len(chainMDs)-1]
+	ccs.mostRecentChainMDInfo = mostRecentMD
 
 	// For each MD update, turn each update in each op into map
 	// entries and create chains for the BlockPointers that are
@@ -919,8 +973,9 @@ func newCRChains(
 					FolderBranch: fbo.folderBranch,
 					Path: []data.PathNode{{
 						BlockPointer: ptr,
-						Name: fmt.Sprintf(
-							"<MD rev %d>", chainMD.Revision()),
+						Name: data.NewPathPartString(
+							fmt.Sprintf("<MD rev %d>", chainMD.Revision()),
+							nil),
 					}},
 				})
 			if err != nil {
@@ -944,8 +999,6 @@ func newCRChains(
 		}
 	}
 
-	mostRecentMD := chainMDs[len(chainMDs)-1]
-
 	for _, chain := range ccs.byOriginal {
 		toUnrefs := chain.collapse(ccs.createdOriginals, ccs.originals)
 		for _, unref := range toUnrefs {
@@ -967,7 +1020,6 @@ func newCRChains(
 		}
 	}
 
-	ccs.mostRecentChainMDInfo = mostRecentMD
 	return ccs, nil
 }
 
@@ -1142,8 +1194,11 @@ func (ccs *crChains) findPathForDeleted(mostRecent data.BlockPointer) data.Path 
 					p := ro.getFinalPath()
 					if !p.IsValid() {
 						p = ccs.findPathForDeleted(ptr)
+						ro.setFinalPath(p)
 					}
-					return p.ChildPath(ro.OldName, mostRecent)
+					return p.ChildPath(
+						ro.obfuscatedOldName(), mostRecent,
+						ccs.makeObfuscator())
 				}
 			}
 		}
@@ -1167,7 +1222,8 @@ func (ccs *crChains) findPathForDeleted(mostRecent data.BlockPointer) data.Path 
 		},
 		Path: []data.PathNode{{
 			BlockPointer: rootMostRecent,
-			Name:         mostRecent.String(),
+			Name: data.NewPathPartString(
+				mostRecent.String(), ccs.makeObfuscator()),
 		}},
 	}
 }
@@ -1188,8 +1244,11 @@ func (ccs *crChains) findPathForCreated(createdChain *crChain) data.Path {
 					p := co.getFinalPath()
 					if !p.IsValid() {
 						p = ccs.findPathForCreated(chain)
+						co.setFinalPath(p)
 					}
-					return p.ChildPath(co.NewName, mostRecent)
+					return p.ChildPath(
+						co.obfuscatedNewName(), mostRecent,
+						ccs.makeObfuscator())
 				}
 			}
 		}
@@ -1213,7 +1272,8 @@ func (ccs *crChains) findPathForCreated(createdChain *crChain) data.Path {
 		},
 		Path: []data.PathNode{{
 			BlockPointer: rootMostRecent,
-			Name:         mostRecent.String(),
+			Name: data.NewPathPartString(
+				mostRecent.String(), ccs.makeObfuscator()),
 		}},
 	}
 }
@@ -1397,8 +1457,9 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 			for i, newOp := range newChain.ops {
 				if cop, ok := newOp.(*createOp); ok &&
 					cop.renamed && cop.NewName == rop.NewName {
-					rop.setFinalPath(cop.getFinalPath())
-					newChain.ops[i] = rop
+					ropCopy := rop.deepCopy()
+					ropCopy.setFinalPath(cop.getFinalPath())
+					newChain.ops[i] = ropCopy
 					break
 				}
 			}

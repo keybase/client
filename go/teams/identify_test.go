@@ -10,6 +10,7 @@ import (
 
 func TestIdentifyLite(t *testing.T) {
 	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
 
 	team, err := GetForTestByStringName(context.Background(), tc.G, name)
 	if err != nil {
@@ -19,7 +20,7 @@ func TestIdentifyLite(t *testing.T) {
 	// test identify by assertion only
 	var assertions = []string{"team:" + name, "tid:" + team.ID.String()}
 	for _, assertion := range assertions {
-		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(), assertion, true)
+		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), assertion, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -38,7 +39,7 @@ func TestIdentifyLite(t *testing.T) {
 
 	// test identify by id and assertions
 	for _, assertion := range assertions {
-		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(), assertion, true)
+		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(libkb.NewMetaContext(context.Background(), tc.G)), assertion, true)
 		if err != nil {
 			t.Fatal(err)
 		}

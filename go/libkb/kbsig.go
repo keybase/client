@@ -326,6 +326,9 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 			prev = jsonw.NewString(arg.PrevLinkID.String())
 		}
 	} else {
+		if arg.Me == nil {
+			return nil, fmt.Errorf("missing self user object while signing")
+		}
 		lastSeqno := arg.Me.sigChain().GetLastKnownSeqno()
 		lastLink := arg.Me.sigChain().GetLastKnownID()
 		if lastLink == nil {
@@ -386,6 +389,9 @@ func (arg ProofMetadata) ToJSON2(m MetaContext) (ret *ProofMetadataRes, err erro
 	}
 	eldest := arg.Eldest
 	if eldest == "" {
+		if arg.Me == nil {
+			return nil, fmt.Errorf("missing self user object while signing")
+		}
 		eldest = arg.Me.GetEldestKID()
 	}
 
@@ -727,18 +733,26 @@ func (u *User) UpdateEmailProof(m MetaContext, key GenericKey, newEmail string) 
 }
 
 type SigMultiItem struct {
-	Sig        string                  `json:"sig"`
+	Sig3       *Sig3                   `json:"sig3,omitempty"`
+	Sig        string                  `json:"sig,omitempty"`
 	SigningKID keybase1.KID            `json:"signing_kid"`
 	Type       string                  `json:"type"`
 	SeqType    keybase1.SeqType        `json:"seq_type"`
 	SigInner   string                  `json:"sig_inner"`
 	TeamID     keybase1.TeamID         `json:"team_id"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
+	Version    SigVersion              `json:"version"`
 }
 
 type SigMultiItemPublicKeys struct {
 	Encryption keybase1.KID `json:"encryption"`
 	Signing    keybase1.KID `json:"signing"`
+}
+
+type Sig3 struct {
+	Inner string `json:"i,omitempty"`
+	Outer string `json:"o,omitempty"`
+	Sig   string `json:"s,omitempty"`
 }
 
 // PerUserKeyProof creates a proof introducing a new per-user-key generation.

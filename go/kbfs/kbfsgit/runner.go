@@ -1894,6 +1894,8 @@ func (r *runner) processCommand(
 func (r *runner) processCommands(ctx context.Context) (err error) {
 	r.log.CDebugf(ctx, "Ready to process")
 	reader := bufio.NewReader(r.input)
+	var wg sync.WaitGroup
+	defer wg.Wait()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	// Allow the creation of .kbfs_git within KBFS.
@@ -1905,7 +1907,9 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 	// interrupted).
 	commandChan := make(chan string, 100)
 	processorErrChan := make(chan error, 1)
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		processorErrChan <- r.processCommand(ctx, commandChan)
 	}()
 

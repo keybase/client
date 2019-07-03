@@ -115,6 +115,10 @@ type clockGetter interface {
 	Clock() Clock
 }
 
+type reporterGetter interface {
+	Reporter() Reporter
+}
+
 type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
@@ -133,6 +137,10 @@ type syncedTlfGetterSetter interface {
 
 type blockRetrieverGetter interface {
 	BlockRetriever() BlockRetriever
+}
+
+type settingsDBGetter interface {
+	GetSettingsDB() *SettingsDB
 }
 
 // NodeID is a unique but transient ID for a Node. That is, two Node
@@ -156,7 +164,7 @@ type Node interface {
 	GetFolderBranch() data.FolderBranch
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
-	GetBasename() string
+	GetBasename() data.PathPartString
 	// Readonly returns true if KBFS should outright reject any write
 	// attempts on data or directory structures of this node.  Though
 	// note that even if it returns false, KBFS can reject writes to
@@ -180,9 +188,9 @@ type Node interface {
 	// wraps another `Node` (`inner`) must return
 	// `inner.ShouldCreateMissedLookup()` if it decides not to return
 	// `true` on its own.
-	ShouldCreateMissedLookup(ctx context.Context, name string) (
+	ShouldCreateMissedLookup(ctx context.Context, name data.PathPartString) (
 		shouldCreate bool, newCtx context.Context, et data.EntryType,
-		fi os.FileInfo, sympath string)
+		fi os.FileInfo, sympath data.PathPartString)
 	// ShouldRetryOnDirRead is called for Nodes representing
 	// directories, whenever a `Lookup` or `GetDirChildren` is done on
 	// them.  It should return true to instruct the caller that it
@@ -193,7 +201,7 @@ type Node interface {
 	// `RemoveDir` flow, to give the Node a chance to handle it in a
 	// custom way.  If the `Node` handles it internally, it should
 	// return `true`.
-	RemoveDir(ctx context.Context, dirName string) (
+	RemoveDir(ctx context.Context, dirName data.PathPartString) (
 		removeHandled bool, err error)
 	// WrapChild returns a wrapped version of child, if desired, to
 	// add custom behavior to the child node. An implementation that
@@ -224,6 +232,13 @@ type Node interface {
 	// FillCacheDuration sets `d` to the suggested cache time for this
 	// node, if desired.
 	FillCacheDuration(d *time.Duration)
+	// Obfuscator returns something that can obfuscate the child
+	// entries of this Node in the case of directories; for other
+	// types, it returns nil.
+	Obfuscator() data.Obfuscator
+	// ChildName returns an obfuscatable version of the given name of
+	// a child entry of this node.
+	ChildName(name string) data.PathPartString
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect
@@ -259,6 +274,11 @@ type Node interface {
 // Context derived from it), allowing the caller to determine whether
 // the notification is a result of their own action or an external
 // action.
+//
+// Each directory and file name is specified with a
+// `data.PathPartString`, to protect against accidentally logging
+// plaintext filenames.  These can be easily created from the parent
+// node's `Node` object with the `ChildName` function.
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation when the cache
@@ -272,7 +292,7 @@ type KBFSOps interface {
 	// favorites list and fetch a new list from the server.  The
 	// effects are asychronous; if there's an error refreshing the
 	// favorites, the cached favorites will become empty.
-	RefreshCachedFavorites(ctx context.Context)
+	RefreshCachedFavorites(ctx context.Context, mode FavoritesRefreshMode)
 	// ClearCachedFavorites tells the instances to forget any cached
 	// favorites list, e.g. when a user logs out.
 	ClearCachedFavorites(ctx context.Context)
@@ -321,12 +341,14 @@ type KBFSOps interface {
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
 	// operation.
-	GetDirChildren(ctx context.Context, dir Node) (map[string]data.EntryInfo, error)
+	GetDirChildren(ctx context.Context, dir Node) (
+		map[data.PathPartString]data.EntryInfo, error)
 	// Lookup returns the Node and entry info associated with a
 	// given name in a directory, if the logged-in user has read
 	// permissions to the top-level folder.  The returned Node is nil
 	// if the name is a symlink.  This is a remote-access operation.
-	Lookup(ctx context.Context, dir Node, name string) (Node, data.EntryInfo, error)
+	Lookup(ctx context.Context, dir Node, name data.PathPartString) (
+		Node, data.EntryInfo, error)
 	// Stat returns the entry info associated with a
 	// given Node, if the logged-in user has read permissions to the
 	// top-level folder.  This is a remote-access operation.
@@ -335,7 +357,7 @@ type KBFSOps interface {
 	// the logged-in user has write permission to the top-level
 	// folder.  Returns the new Node for the created subdirectory, and
 	// its new entry info.  This is a remote-sync operation.
-	CreateDir(ctx context.Context, dir Node, name string) (
+	CreateDir(ctx context.Context, dir Node, name data.PathPartString) (
 		Node, data.EntryInfo, error)
 	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
@@ -345,23 +367,30 @@ type KBFSOps interface {
 	// Unix open() call.
 	//
 	// This is a remote-sync operation.
-	CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
-		Node, data.EntryInfo, error)
+	CreateFile(
+		ctx context.Context, dir Node, name data.PathPartString, isExec bool,
+		excl Excl) (Node, data.EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.
-	// Returns the new entry info for the created symlink.  This
-	// is a remote-sync operation.
-	CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (
+	// Returns the new entry info for the created symlink.  The
+	// symlink is represented as a single `data.PathPartString`
+	// (generally obfuscated by `dir`'s Obfuscator) to avoid
+	// accidental logging, even though it could point outside of the
+	// directory.  The deobfuscate command will inspect symlinks when
+	// deobfuscating to make this easier to debug.  This is a
+	// remote-sync operation.
+	CreateLink(
+		ctx context.Context, dir Node, fromName, toPath data.PathPartString) (
 		data.EntryInfo, error)
 	// RemoveDir removes the subdirectory represented by the given
 	// node, if the logged-in user has write permission to the
 	// top-level folder.  Will return an error if the subdirectory is
 	// not empty.  This is a remote-sync operation.
-	RemoveDir(ctx context.Context, dir Node, dirName string) error
+	RemoveDir(ctx context.Context, dir Node, dirName data.PathPartString) error
 	// RemoveEntry removes the directory entry represented by the
 	// given node, if the logged-in user has write permission to the
 	// top-level folder.  This is a remote-sync operation.
-	RemoveEntry(ctx context.Context, dir Node, name string) error
+	RemoveEntry(ctx context.Context, dir Node, name data.PathPartString) error
 	// Rename performs an atomic rename operation with a given
 	// top-level folder if the logged-in user has write permission to
 	// that folder, and will return an error if nodes from different
@@ -369,8 +398,9 @@ type KBFSOps interface {
 	// already has an entry corresponding to an existing directory
 	// (only non-dir types may be renamed over).  This is a
 	// remote-sync operation.
-	Rename(ctx context.Context, oldParent Node, oldName string, newParent Node,
-		newName string) error
+	Rename(
+		ctx context.Context, oldParent Node, oldName data.PathPartString,
+		newParent Node, newName data.PathPartString) error
 	// Read fills in the given buffer with data from the file at the
 	// given node starting at the given offset, if the logged-in user
 	// has read permission to the top-level folder.  The read data
@@ -424,6 +454,11 @@ type KBFSOps interface {
 	// updated (to eliminate the need for polling this method).
 	FolderStatus(ctx context.Context, folderBranch data.FolderBranch) (
 		FolderBranchStatus, <-chan StatusUpdate, error)
+	// FolderConflictStatus is a lightweight method to return the
+	// conflict status of a particular folder/branch.  (The conflict
+	// status is also available in `FolderBranchStatus`.)
+	FolderConflictStatus(ctx context.Context, folderBranch data.FolderBranch) (
+		keybase1.FolderConflictType, error)
 	// Status returns the status of KBFS, along with a channel that will be
 	// closed when the status has been updated (to eliminate the need for
 	// polling this method). Note that this channel only applies to
@@ -514,6 +549,13 @@ type KBFSOps interface {
 	// ClearConflictView moves the conflict view of the given TLF out of the
 	// way and resets the state of the TLF.
 	ClearConflictView(ctx context.Context, tlfID tlf.ID) error
+	// FinishResolvingConflict removes the local view of a
+	// previously-cleared conflict.
+	FinishResolvingConflict(ctx context.Context, fb data.FolderBranch) error
+	// ForceStuckConflictForTesting forces the local view of the given
+	// TLF into a stuck conflict view, in order to test the above
+	// `ClearConflictView` method and related state changes.
+	ForceStuckConflictForTesting(ctx context.Context, tlfID tlf.ID) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
 	// `handle` has the new TLF ID.
@@ -533,10 +575,15 @@ type KBFSOps interface {
 	SetSyncConfig(
 		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
 		<-chan error, error)
+
+	// AddRootNodeWrapper adds a new root node wrapper for every
+	// existing TLF.  Any Nodes that have already been returned by
+	// `KBFSOps` won't use these wrappers.
+	AddRootNodeWrapper(func(Node) Node)
 }
 
 type gitMetadataPutter interface {
-	PutGitMetadata(ctx context.Context, folder keybase1.Folder,
+	PutGitMetadata(ctx context.Context, folder keybase1.FolderHandle,
 		repoID keybase1.RepoID, metadata keybase1.GitLocalMetadata) error
 }
 
@@ -547,11 +594,11 @@ type KeybaseService interface {
 	gitMetadataPutter
 
 	// FavoriteAdd adds the given folder to the list of favorites.
-	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteAdd removes the given folder from the list of
 	// favorites.
-	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+	FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteList returns the current list of favorites.
 	FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult,
@@ -575,6 +622,15 @@ type KeybaseService interface {
 	// NotifySyncStatus sends a sync status notification.
 	NotifySyncStatus(ctx context.Context,
 		status *keybase1.FSPathSyncStatus) error
+
+	// NotifyOverallSyncStatus sends an overall sync status
+	// notification.
+	NotifyOverallSyncStatus(
+		ctx context.Context, status keybase1.FolderSyncStatus) error
+
+	// NotifyFavoritesChanged sends a notification that favorites have
+	// changed.
+	NotifyFavoritesChanged(ctx context.Context) error
 
 	// FlushUserFromLocalCache instructs this layer to clear any
 	// KBFS-side, locally-cached information about the given user.
@@ -731,11 +787,11 @@ type KBPKI interface {
 
 	// FavoriteAdd adds folder to the list of the logged in user's
 	// favorite folders.  It is idempotent.
-	FavoriteAdd(ctx context.Context, folder keybase1.Folder) error
+	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteDelete deletes folder from the list of the logged in user's
 	// favorite folders.  It is idempotent.
-	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
+	FavoriteDelete(ctx context.Context, folder keybase1.FolderHandle) error
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
@@ -780,6 +836,10 @@ type mdDecryptionKeyGetter interface {
 	// already cached.
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
 		kmdToDecrypt, kmdWithKeys libkey.KeyMetadata) (
+		kbfscrypto.TLFCryptKey, error)
+	// GetFirstTLFCryptKey gets the first valid crypt key for the
+	// TLF with the given metadata.
+	GetFirstTLFCryptKey(ctx context.Context, kmd libkey.KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
 }
 
@@ -845,6 +905,12 @@ type Reporter interface {
 	NotifyPathUpdated(ctx context.Context, path string)
 	// NotifySyncStatus sends the given path sync status to any sink.
 	NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus)
+	// NotifyOverallSyncStatus sends the given path overall sync
+	// status to any sink.
+	NotifyOverallSyncStatus(
+		ctx context.Context, status keybase1.FolderSyncStatus)
+	// NotifyFavoritesChanged sends the a favorites invalidation to any sink.
+	NotifyFavoritesChanged(ctx context.Context)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }
@@ -980,8 +1046,8 @@ type DiskBlockCache interface {
 	Status(ctx context.Context) map[string]DiskBlockCacheStatus
 	// DoesCacheHaveSpace returns whether the given cache has
 	// space.
-	DoesCacheHaveSpace(
-		ctx context.Context, cacheType DiskBlockCacheType) (bool, error)
+	DoesCacheHaveSpace(ctx context.Context,
+		cacheType DiskBlockCacheType) (bool, int64, error)
 	// Mark tags a given block in the disk cache with the given tag.
 	Mark(
 		ctx context.Context, blockID kbfsblock.ID, tag string,
@@ -1291,16 +1357,6 @@ type MDOps interface {
 	// the TLF hasn't been rekeyed since it entered into a conflicting
 	// state.
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error)
-}
-
-// PrefetchProgress tracks the number of bytes fetched for the block
-// tree rooted at a given block, along with the known total number of
-// bytes in that tree, and the start time of the prefetch.  Note that
-// the total can change over time as more blocks are downloaded.
-type PrefetchProgress struct {
-	SubtreeBytesFetched uint64
-	SubtreeBytesTotal   uint64
-	Start               time.Time
 }
 
 // Prefetcher is an interface to a block prefetcher.
@@ -1717,7 +1773,7 @@ type blockServerLocal interface {
 type NodeChange struct {
 	Node Node
 	// Basenames of entries added/removed.
-	DirUpdated  []string
+	DirUpdated  []data.PathPartString
 	FileUpdated []WriteRange
 }
 
@@ -1873,6 +1929,19 @@ type InitMode interface {
 	// OldStorageRootCleaningEnabled indicates whether we should clean
 	// old temporary storage root directories.
 	OldStorageRootCleaningEnabled() bool
+	// DoRefreshFavoritesOnInit indicates whether we should refresh
+	// our cached versions of the favorites immediately upon a login.
+	DoRefreshFavoritesOnInit() bool
+	// DoLogObfuscation indicates whether senstive data like filenames
+	// should be obfuscated in log messages.
+	DoLogObfuscation() bool
+	// InitialDelayForBackgroundWork indicates how long non-critical
+	// work that happens in the background on startup should wait
+	// before it begins.
+	InitialDelayForBackgroundWork() time.Duration
+	// BackgroundWorkPeriod indicates how long to wait between
+	// non-critical background work tasks.
+	BackgroundWorkPeriod() time.Duration
 }
 
 type initModeGetter interface {
@@ -1919,6 +1988,7 @@ type Config interface {
 	diskLimiterGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	settingsDBGetter
 	SetMode(mode InitMode)
 	Tracer
 	KBFSOps() KBFSOps
@@ -1927,8 +1997,8 @@ type Config interface {
 	SetKBPKI(KBPKI)
 	KeyManager() KeyManager
 	SetKeyManager(KeyManager)
-	Reporter() Reporter
 	SetReporter(Reporter)
+	reporterGetter
 	MDCache() MDCache
 	SetMDCache(MDCache)
 	KeyCache() KeyCache
@@ -2082,7 +2152,8 @@ type NodeCache interface {
 	// "parent" parameters here.  name must not be empty. Returns
 	// an error if parent cannot be found.
 	GetOrCreate(
-		ptr data.BlockPointer, name string, parent Node, et data.EntryType) (Node, error)
+		ptr data.BlockPointer, name data.PathPartString, parent Node,
+		et data.EntryType) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.
 	Get(ref data.BlockRef) Node
@@ -2099,7 +2170,7 @@ type NodeCache interface {
 	// called to undo the effect of the move (or `nil` if nothing
 	// needs to be done); if newParent cannot be found, it returns an
 	// error and a `nil` undo function.
-	Move(ref data.BlockRef, newParent Node, newName string) (
+	Move(ref data.BlockRef, newParent Node, newName data.PathPartString) (
 		undoFn func(), err error)
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
@@ -2108,7 +2179,8 @@ type NodeCache interface {
 	// already that shouldn't be reflected in the cached path.  It
 	// returns a function that can be called to undo the effect of the
 	// unlink (or `nil` if nothing needs to be done).
-	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (undoFn func())
+	Unlink(ref data.BlockRef, oldPath data.Path, oldDe data.DirEntry) (
+		undoFn func())
 	// IsUnlinked returns whether `Unlink` has been called for the
 	// reference behind this node.
 	IsUnlinked(node Node) bool
@@ -2133,13 +2205,18 @@ type NodeCache interface {
 	// AddRootWrapper adds a new wrapper function that will be applied
 	// whenever a root Node is created.
 	AddRootWrapper(func(Node) Node)
+	// SetObfuscatorMaker sets the obfuscator-making function for this cache.
+	SetObfuscatorMaker(func() data.Obfuscator)
+	// ObfuscatorMaker sets the obfuscator-making function for this cache.
+	ObfuscatorMaker() func() data.Obfuscator
 }
 
 // fileBlockDeepCopier fetches a file block, makes a deep copy of it
 // (duplicating pointer for any indirect blocks) and generates a new
 // random temporary block ID for it.  It returns the new BlockPointer,
 // and internally saves the block for future uses.
-type fileBlockDeepCopier func(context.Context, string, data.BlockPointer) (
+type fileBlockDeepCopier func(
+	context.Context, data.PathPartString, data.BlockPointer) (
 	data.BlockPointer, error)
 
 // crAction represents a specific action to take as part of the

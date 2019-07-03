@@ -348,6 +348,7 @@ type UserCard struct {
 	TheyFollowYou        bool               `codec:"theyFollowYou" json:"theyFollowYou"`
 	TeamShowcase         []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
 	RegisteredForAirdrop bool               `codec:"registeredForAirdrop" json:"registeredForAirdrop"`
+	Blocked              bool               `codec:"blocked" json:"blocked"`
 }
 
 func (o UserCard) DeepCopy() UserCard {
@@ -374,6 +375,7 @@ func (o UserCard) DeepCopy() UserCard {
 			return ret
 		})(o.TeamShowcase),
 		RegisteredForAirdrop: o.RegisteredForAirdrop,
+		Blocked:              o.Blocked,
 	}
 }
 

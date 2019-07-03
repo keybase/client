@@ -95,7 +95,7 @@ func TestBoxAuditAttempt(t *testing.T) {
 	require.Error(t, toErr(attempt), "team not rotated after puk rotate so attempt fails")
 	team, err := Load(context.TODO(), aTc.G, keybase1.LoadTeamArg{Name: teamName.String(), ForceRepoll: true})
 	require.NoError(t, err)
-	err = team.Rotate(aM.Ctx())
+	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 	attempt = aA.Attempt(aM, teamID, false)
 	require.NoError(t, toErr(attempt), "team rotated, so audit works")
@@ -482,7 +482,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.Equal(t, newExpected, currentSummary.table)
 
 	t.Logf("A rotates team")
-	err = team.Rotate(aM.Ctx())
+	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 
 	t.Logf("C checks summary")
@@ -520,7 +520,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.NoError(t, err)
 
 	team, _, _ = load(aM, aTeamID)
-	err = team.Rotate(aM.Ctx())
+	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
 	team, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newerExpected, chainSummary.table)
@@ -529,10 +529,11 @@ func TestBoxAuditCalculation(t *testing.T) {
 
 func TestBoxAuditSubteamCalculation(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
 	aU, bU, cU := fus[0], fus[1], fus[2]
 	aTc, bTc, cTc := tcs[0], tcs[1], tcs[2]
 	aM, _, _ := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc)
-	defer cleanup()
 
 	parentName, parentID := createTeam2(*tcs[0])
 	// A is not in subteam
@@ -722,4 +723,34 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	attempt := auditor.Attempt(libkb.NewMetaContextForTest(tc), team.ID, false /* rotateBeforeAudit */)
 	require.Nil(t, attempt.Error)
 	require.Equal(t, attempt.Result, keybase1.BoxAuditAttemptResult_OK_VERIFIED)
+}
+
+func TestBoxAuditVersionBump(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+	aTc := tcs[0]
+	aM := libkb.NewMetaContextForTest(*aTc)
+
+	teamID := keybase1.TeamID("YELLOW_SUBMARINE")
+
+	a1 := newBoxAuditorWithVersion(aM.G(), 5)
+
+	a1.jail(aM, teamID)
+
+	jailed, err := a1.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.True(t, jailed)
+
+	jailed, err = a1.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.True(t, jailed)
+
+	a2 := newBoxAuditorWithVersion(aM.G(), 6)
+	jailed, err = a2.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.False(t, jailed)
+
+	jailed, err = a1.IsInJail(aM, teamID)
+	require.NoError(t, err)
+	require.True(t, jailed)
 }

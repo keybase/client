@@ -28,6 +28,11 @@
           "jsonkey": "verified"
         },
         {
+          "type": "boolean",
+          "name": "superseded",
+          "jsonkey": "superseded"
+        },
+        {
           "type": "IdentityVisibility",
           "name": "visibility",
           "jsonkey": "visibility"
@@ -74,29 +79,7 @@
     },
     {
       "type": "record",
-      "name": "PhoneNumberAddedMsg",
-      "fields": [
-        {
-          "type": "PhoneNumber",
-          "name": "phoneNumber",
-          "jsonkey": "phone"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PhoneNumberVerifiedMsg",
-      "fields": [
-        {
-          "type": "PhoneNumber",
-          "name": "phoneNumber",
-          "jsonkey": "phone"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PhoneNumberSupersededMsg",
+      "name": "PhoneNumberChangedMsg",
       "fields": [
         {
           "type": "PhoneNumber",
@@ -216,39 +199,6 @@
         }
       ],
       "response": null
-    },
-    "bulkLookupPhoneNumbers": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "phoneNumberContacts",
-          "type": {
-            "type": "array",
-            "items": "RawPhoneNumber"
-          }
-        },
-        {
-          "name": "regionCodes",
-          "type": {
-            "type": "array",
-            "items": "RegionCode"
-          }
-        },
-        {
-          "name": "userRegionCode",
-          "type": [
-            null,
-            "RegionCode"
-          ]
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "PhoneNumberLookupResult"
-      }
     }
   },
   "namespace": "keybase.1"

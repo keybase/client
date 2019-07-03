@@ -95,6 +95,37 @@ func GetPaperKeyForCryptoPassphrase(m MetaContext, ui SecretUI, reason string, d
 	return res.Passphrase, nil
 }
 
+func GetNewKeybasePassphrase(mctx MetaContext, ui SecretUI, arg keybase1.GUIEntryArg, confirm string) (keybase1.GetPassphraseRes, error) {
+	initialPrompt := arg.Prompt
+
+	for i := 0; i < 10; i++ {
+		res, err := GetPassphraseUntilCheckWithChecker(mctx, arg,
+			newUIPrompter(ui), &CheckPassphraseNew)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, nil
+		}
+
+		// confirm the password
+		arg.RetryLabel = ""
+		arg.Prompt = confirm
+		confirm, err := GetPassphraseUntilCheckWithChecker(mctx, arg,
+			newUIPrompter(ui), &CheckPassphraseNew)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, nil
+		}
+
+		if res.Passphrase == confirm.Passphrase {
+			return res, nil
+		}
+
+		// setup the prompt, label for new first attempt
+		arg.Prompt = initialPrompt
+		arg.RetryLabel = "Passphrase mismatch"
+	}
+
+	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
+}
+
 type PassphrasePrompter interface {
 	Prompt(keybase1.GUIEntryArg) (keybase1.GetPassphraseRes, error)
 }

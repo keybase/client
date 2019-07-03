@@ -195,7 +195,12 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 	}
 
 	finder := &pukFinder{}
-	return bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	b, bv, pukGen, accountGens, err = bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	if err != nil {
+		return b, bv, pukGen, accountGens, err
+	}
+	mctx.G().GetStellar().InformBundle(mctx, b.Revision, b.Accounts)
+	return b, bv, pukGen, accountGens, err
 }
 
 // FetchSecretlessBundle gets an account bundle from the server and decrypts it
@@ -354,8 +359,9 @@ func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.Acc
 		Endpoint:    "stellar/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":    libkb.S{Val: string(accountID)},
-			"include_multi": libkb.B{Val: true},
+			"account_id":       libkb.S{Val: string(accountID)},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: true},
 		},
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
@@ -504,27 +510,27 @@ type recentPaymentsResult struct {
 	Result stellar1.PaymentsPage `json:"res"`
 }
 
-func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
-	accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+func RecentPayments(ctx context.Context, g *libkb.GlobalContext, arg RecentPaymentsArg) (stellar1.PaymentsPage, error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":    libkb.S{Val: accountID.String()},
-			"limit":         libkb.I{Val: limit},
-			"skip_pending":  libkb.B{Val: skipPending},
-			"include_multi": libkb.B{Val: true},
+			"account_id":       libkb.S{Val: arg.AccountID.String()},
+			"limit":            libkb.I{Val: arg.Limit},
+			"skip_pending":     libkb.B{Val: arg.SkipPending},
+			"include_multi":    libkb.B{Val: true},
+			"include_advanced": libkb.B{Val: arg.IncludeAdvanced},
 		},
 		RetryCount:      3,
 		RetryMultiplier: 1.5,
 		InitialTimeout:  10 * time.Second,
 	}
 
-	if cursor != nil {
-		apiArg.Args["horizon_cursor"] = libkb.S{Val: cursor.HorizonCursor}
-		apiArg.Args["direct_cursor"] = libkb.S{Val: cursor.DirectCursor}
-		apiArg.Args["relay_cursor"] = libkb.S{Val: cursor.RelayCursor}
+	if arg.Cursor != nil {
+		apiArg.Args["horizon_cursor"] = libkb.S{Val: arg.Cursor.HorizonCursor}
+		apiArg.Args["direct_cursor"] = libkb.S{Val: arg.Cursor.DirectCursor}
+		apiArg.Args["relay_cursor"] = libkb.S{Val: arg.Cursor.RelayCursor}
 	}
 
 	var apiRes recentPaymentsResult
@@ -972,7 +978,8 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 		Endpoint:    "stellar/details_plus_payments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id": libkb.S{Val: accountID.String()},
+			"account_id":       libkb.S{Val: accountID.String()},
+			"include_advanced": libkb.B{Val: true},
 		},
 	}
 	var apiRes detailsPlusPaymentsRes
@@ -984,10 +991,11 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 
 type airdropDetails struct {
 	libkb.AppStatusEmbed
-	Details json.RawMessage `json:"details"`
+	Details    json.RawMessage `json:"details"`
+	IsPromoted bool            `json:"is_promoted"`
 }
 
-func AirdropDetails(mctx libkb.MetaContext) (string, error) {
+func AirdropDetails(mctx libkb.MetaContext) (bool, string, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/airdrop/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -995,10 +1003,10 @@ func AirdropDetails(mctx libkb.MetaContext) (string, error) {
 
 	var res airdropDetails
 	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
-		return "", err
+		return false, "", err
 	}
 
-	return string(res.Details), nil
+	return res.IsPromoted, string(res.Details), nil
 }
 
 func AirdropRegister(mctx libkb.MetaContext, register bool) error {
@@ -1100,4 +1108,58 @@ func SubmitPathPayment(mctx libkb.MetaContext, post stellar1.PathPaymentPost) (s
 		return stellar1.PaymentResult{}, err
 	}
 	return res.PaymentResult, nil
+}
+
+func PostAnyTransaction(mctx libkb.MetaContext, signedTx string) (err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/postanytransaction",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"sig": libkb.S{Val: signedTx},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	return err
+}
+
+type fuzzyAssetSearchResult struct {
+	libkb.AppStatusEmbed
+	Assets []stellar1.Asset `json:"matches"`
+}
+
+func FuzzyAssetSearch(mctx libkb.MetaContext, arg stellar1.FuzzyAssetSearchArg) ([]stellar1.Asset, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/fuzzy_asset_search",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"search_string": libkb.S{Val: arg.SearchString},
+		},
+	}
+	var apiRes fuzzyAssetSearchResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return []stellar1.Asset{}, err
+	}
+	return apiRes.Assets, nil
+}
+
+type popularAssetsResult struct {
+	libkb.AppStatusEmbed
+	Assets     []stellar1.Asset `json:"assets"`
+	TotalCount int              `json:"totalCount"`
+}
+
+func ListPopularAssets(mctx libkb.MetaContext, arg stellar1.ListPopularAssetsArg) (stellar1.AssetListResult, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/list_popular_assets",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        libkb.HTTPArgs{},
+	}
+	var apiRes popularAssetsResult
+	if err := mctx.G().API.GetDecode(mctx, apiArg, &apiRes); err != nil {
+		return stellar1.AssetListResult{}, err
+	}
+	return stellar1.AssetListResult{
+		Assets:     apiRes.Assets,
+		TotalCount: apiRes.TotalCount,
+	}, nil
 }

@@ -91,7 +91,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	if action.StopIfFull() {
 		dbc := brw.queue.config.DiskBlockCache()
 		if dbc != nil {
-			hasRoom, err := dbc.DoesCacheHaveSpace(
+			hasRoom, _, err := dbc.DoesCacheHaveSpace(
 				retrieval.ctx, action.CacheType())
 			if err != nil {
 				return err
@@ -103,6 +103,15 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	cacheType = action.CacheType()
+	if action.DelayCacheCheck() {
+		_, err := brw.queue.checkCaches(
+			retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block,
+			action.WithoutDelayedCacheCheckAction())
+		if err == nil {
+			return nil
+		}
+	}
+
 	return brw.getBlock(
 		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block, cacheType)
 }

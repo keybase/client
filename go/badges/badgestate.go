@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -18,14 +19,26 @@ import (
 	"golang.org/x/net/context"
 )
 
+type LocalChatState interface {
+	ApplyLocalChatState(context.Context, []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo
+}
+
+type dummyLocalChatState struct{}
+
+func (d dummyLocalChatState) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo {
+	return i
+}
+
 // BadgeState represents the number of badges on the app. It's threadsafe.
 // Useable from both the client service and gregor server.
 // See service:Badger for the service part that owns this.
 type BadgeState struct {
 	sync.Mutex
+	libkb.Contextified
 
-	log   logger.Logger
-	state keybase1.BadgeState
+	localChatState LocalChatState
+	log            logger.Logger
+	state          keybase1.BadgeState
 
 	inboxVers chat1.InboxVers
 	// Map from ConversationID.String to BadgeConversationInfo.
@@ -35,17 +48,22 @@ type BadgeState struct {
 }
 
 // NewBadgeState creates a new empty BadgeState.
-func NewBadgeState(log logger.Logger) *BadgeState {
+func NewBadgeState(g *libkb.GlobalContext) *BadgeState {
 	return &BadgeState{
-		log:             log,
+		Contextified:    libkb.NewContextified(g),
 		inboxVers:       chat1.InboxVers(0),
 		chatUnreadMap:   make(map[string]keybase1.BadgeConversationInfo),
 		walletUnreadMap: make(map[stellar1.AccountID]int),
+		localChatState:  dummyLocalChatState{},
 	}
 }
 
+func (b *BadgeState) SetLocalChatState(s LocalChatState) {
+	b.localChatState = s
+}
+
 // Exports the state summary
-func (b *BadgeState) Export() (keybase1.BadgeState, error) {
+func (b *BadgeState) Export(ctx context.Context) (keybase1.BadgeState, error) {
 	b.Lock()
 	defer b.Unlock()
 
@@ -53,6 +71,7 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 	for _, info := range b.chatUnreadMap {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
+	b.state.Conversations = b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
 	b.state.InboxVers = int(b.inboxVers)
 
 	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
@@ -72,6 +91,16 @@ type newTeamBody struct {
 	TeamID   string `json:"id"`
 	TeamName string `json:"name"`
 	Implicit bool   `json:"implicit_team"`
+}
+
+type teamDeletedBody struct {
+	TeamID   string `json:"id"`
+	TeamName string `json:"name"`
+	Implicit bool   `json:"implicit_team"`
+	OpBy     struct {
+		UID      string `json:"uid"`
+		Username string `json:"username"`
+	} `json:"op_by"`
 }
 
 type memberOutBody struct {
@@ -155,6 +184,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewDevices = []keybase1.DeviceID{}
 	b.state.RevokedDevices = []keybase1.DeviceID{}
 	b.state.NewTeamNames = nil
+	b.state.DeletedTeams = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
@@ -180,7 +210,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			byt := item.Body().Bytes()
 			dec := json.NewDecoder(bytes.NewReader(byt))
 			if err := dec.Decode(&tmp); err != nil {
-				b.log.CDebugf(ctx, "BadgeState got bad home.state object; error: %v; on %q", err, string(byt))
+				b.G().Log.CDebugf(ctx, "BadgeState got bad home.state object; error: %v; on %q", err, string(byt))
 				continue
 			}
 			sentUp := false
@@ -189,16 +219,16 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
 			}
-			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
+			b.G().Log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered non-json 'tlf' item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'tlf' item: %v", err)
 				continue
 			}
 			itemType, err := jsw.AtKey("type").GetString()
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered gregor 'tlf' item without 'type': %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered gregor 'tlf' item without 'type': %v", err)
 				continue
 			}
 			if itemType != "created" {
@@ -208,7 +238,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		case "kbfs_tlf_problem_set_count", "kbfs_tlf_sbs_problem_set_count":
 			var body problemSetBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered non-json 'problem set' item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'problem set' item: %v", err)
 				continue
 			}
 			b.state.RekeysNeeded += body.Count
@@ -217,36 +247,36 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		case "device.new":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered non-json 'device.new' item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'device.new' item: %v", err)
 				continue
 			}
 			newDeviceID, err := jsw.AtKey("device_id").GetString()
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered gregor 'device.new' item without 'device_id': %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered gregor 'device.new' item without 'device_id': %v", err)
 				continue
 			}
 			b.state.NewDevices = append(b.state.NewDevices, keybase1.DeviceID(newDeviceID))
 		case "device.revoked":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered non-json 'device.revoked' item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'device.revoked' item: %v", err)
 				continue
 			}
 			revokedDeviceID, err := jsw.AtKey("device_id").GetString()
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered gregor 'device.revoked' item without 'device_id': %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered gregor 'device.revoked' item without 'device_id': %v", err)
 				continue
 			}
 			b.state.RevokedDevices = append(b.state.RevokedDevices, keybase1.DeviceID(revokedDeviceID))
 		case "new_git_repo":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered non-json 'new_git_repo' item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'new_git_repo' item: %v", err)
 				continue
 			}
 			globalUniqueID, err := jsw.AtKey("global_unique_id").GetString()
 			if err != nil {
-				b.log.CDebugf(ctx,
+				b.G().Log.CDebugf(ctx,
 					"BadgeState encountered gregor 'new_git_repo' item without 'global_unique_id': %v", err)
 				continue
 			}
@@ -254,7 +284,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		case "team.newly_added_to_team":
 			var body []newTeamBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.log.CDebugf(ctx, "BadgeState unmarshal error for team.newly_added_to_team item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState unmarshal error for team.newly_added_to_team item: %v", err)
 				continue
 			}
 			for _, x := range body {
@@ -266,10 +296,32 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				}
 				b.state.NewTeamNames = append(b.state.NewTeamNames, x.TeamName)
 			}
+		case "team.delete":
+			var body []teamDeletedBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.G().Log.CDebugf(ctx, "BadgeState unmarshal error for team.delete item: %v", err)
+				continue
+			}
+
+			msgID := item.Metadata().MsgID().(gregor1.MsgID)
+			username := b.G().Env.GetUsername().String()
+			for _, x := range body {
+				if x.TeamName == "" || x.OpBy.Username == "" || x.OpBy.Username == username {
+					continue
+				}
+				if x.Implicit {
+					continue
+				}
+				b.state.DeletedTeams = append(b.state.DeletedTeams, keybase1.DeletedTeamInfo{
+					TeamName:  x.TeamName,
+					DeletedBy: x.OpBy.Username,
+					Id:        msgID,
+				})
+			}
 		case "team.request_access":
 			var body []newTeamBody
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.log.CDebugf(ctx, "BadgeState unmarshal error for team.request_access item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState unmarshal error for team.request_access item: %v", err)
 				continue
 			}
 			for _, x := range body {
@@ -281,12 +333,12 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		case "team.member_out_from_reset":
 			var body keybase1.TeamMemberOutFromReset
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.log.CDebugf(ctx, "BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState unmarshal error for team.member_out_from_reset item: %v", err)
 				continue
 			}
 
 			if body.ResetUser.IsDelete {
-				b.log.CDebugf(ctx, "BadgeState ignoring member_out_from_reset for deleted user")
+				b.G().Log.CDebugf(ctx, "BadgeState ignoring member_out_from_reset for deleted user")
 				continue
 			}
 
@@ -306,7 +358,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 		case "autoreset":
 			var body keybase1.ResetState
 			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
-				b.log.CDebugf(ctx, "BadgeState encountered non-json 'autoreset' item: %v", err)
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'autoreset' item: %v", err)
 				continue
 			}
 			b.state.ResetState = body
@@ -368,7 +420,7 @@ func (b *BadgeState) Clear() {
 }
 
 func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpdate) {
-	b.log.CDebugf(ctx, "updateWithChat: %s", update)
+	b.G().Log.CDebugf(ctx, "updateWithChat: %s", update)
 	if update.Diff {
 		cur := b.chatUnreadMap[update.ConvID.String()]
 		cur.ConvID = keybase1.ChatConversationID(update.ConvID)

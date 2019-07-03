@@ -16,10 +16,12 @@ import (
 
 func TestFlipPreview(t *testing.T) {
 	tc := externalstest.SetupTest(t, "flip", 0)
+	defer tc.Cleanup()
+
 	ui := kbtest.NewChatUI()
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	g.CoinFlipManager = types.DummyCoinFlipManager{}
-	g.UIRouter = &fakeUIRouter{ui: ui}
+	g.UIRouter = kbtest.NewMockUIRouter(ui)
 	flip := NewFlip(g)
 	ctx := context.TODO()
 	uid := gregor1.UID{1, 2, 3, 4}
@@ -64,5 +66,4 @@ func TestFlipPreview(t *testing.T) {
 		require.Fail(t, "no text expected")
 	default:
 	}
-
 }

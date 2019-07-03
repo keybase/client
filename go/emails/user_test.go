@@ -31,7 +31,7 @@ func TestEmailHappyPath(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestEmailHappyPath", 1)
 	defer tc.Cleanup()
 
-	me, err := kbtest.CreateAndSignupFakeUser("emai", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("emai", tc.G)
 	require.NoError(t, err)
 
 	email1 := randomEmailAddress(t)
@@ -107,25 +107,5 @@ func TestEmailHappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	err = SetVisibilityEmail(mctx, oldPrimary, keybase1.IdentityVisibility_PUBLIC)
-
-	contactList := []string{
-		"notanemail",
-		string(email1),
-		string(email2),
-		string(oldPrimary),
-		"avalid@email.com",
-	}
-	resolutions, err := BulkLookupEmails(mctx, contactList)
 	require.NoError(t, err)
-
-	myUID := me.GetUID()
-	expectedResolutions := []keybase1.EmailLookupResult{
-		keybase1.EmailLookupResult{Uid: nil, Email: keybase1.EmailAddress("notanemail")},
-		keybase1.EmailLookupResult{Uid: nil, Email: email1},
-		keybase1.EmailLookupResult{Uid: nil, Email: email2},
-		keybase1.EmailLookupResult{Uid: &myUID, Email: oldPrimary},
-		keybase1.EmailLookupResult{Uid: nil, Email: keybase1.EmailAddress("avalid@email.com")},
-	}
-
-	require.Equal(t, resolutions, expectedResolutions)
 }

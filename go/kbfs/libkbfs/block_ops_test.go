@@ -90,7 +90,8 @@ type testBlockOpsConfig struct {
 	diskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
-	clock Clock
+	clock    Clock
+	reporter Reporter
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -123,6 +124,14 @@ func (config testBlockOpsConfig) Clock() Clock {
 	return config.clock
 }
 
+func (config testBlockOpsConfig) Reporter() Reporter {
+	return config.reporter
+}
+
+func (config testBlockOpsConfig) GetSettingsDB() *SettingsDB {
+	return nil
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	lm := newTestLogMaker(t)
 	codecGetter := newTestCodecGetter()
@@ -131,8 +140,10 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	cache := data.NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault)))
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
+	clock := clocktest.NewTestClockNow()
 	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
-		stgs, testInitModeGetter{InitDefault}, clocktest.NewTestClockNow()}
+		stgs, testInitModeGetter{InitDefault}, clock,
+		NewReporterSimple(clock, 1)}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
