@@ -61,7 +61,7 @@ const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
   return (
     <Kb.Banner
       color="green"
-      text={`Welcome to Keybases! A verification link was sent to ${email}.`}
+      text={`Welcome to Keybase! A verification link was sent to ${email}.`}
       onClose={clearJustSignedUpEmail}
     />
   )
