@@ -46,7 +46,7 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   // If android launched due to push
   RNEmitter.addListener('androidIntentNotification', evt => {
-    logger.info('[PushAndroidIntent]', evt && evt.type)
+    logger.debug('[PushAndroidIntent]', evt && evt.type)
     const notification = evt && Constants.normalizePush(evt)
     if (!notification) {
       return
@@ -58,13 +58,13 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   // TODO: move this out of this file.
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
   RNEmitter.addListener('onShareData', evt => {
-    logger.info('[ShareDataIntent]', evt)
+    logger.debug('[ShareDataIntent]', evt)
     emitter(RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}))
     emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
     emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', evt => {
-    logger.info('[ShareTextIntent]', evt)
+    logger.debug('[ShareTextIntent]', evt)
     emitter(RouteTreeGen.createNavigateTo({path: FsConstants.fsRootRouteForNav1}))
     // TODO: implement
   })
@@ -72,12 +72,12 @@ const listenForNativeAndroidIntentNotifications = emitter => {
 
 const listenForPushNotificationsFromJS = emitter => {
   const onRegister = token => {
-    console.log('[PushToken] received new token: ', token)
+    logger.debug('[PushToken] received new token: ', token)
     emitter(PushGen.createUpdatePushToken({token: token.token}))
   }
 
   const onNotification = n => {
-    logger.info('[onNotification]: ', n)
+    logger.debug('[onNotification]: ', n)
     const notification = Constants.normalizePush(n)
     if (!notification) {
       return
@@ -326,7 +326,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
     return false
   }
 
-  console.log('[PushCheck] checking ', action ? 'on foreground' : 'on startup')
+  logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
   const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
   if (permissions.alert || permissions.badge) {
     const state = yield* Saga.selectState()
