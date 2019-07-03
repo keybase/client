@@ -86,6 +86,8 @@ protocol config {
                                                in the config file. */
     array<string> localDbStats;
     array<string> localChatDbStats;
+    array<string> localBlockCacheDbStats;
+    array<string> localSyncCacheDbStats;
     array<DirSizeInfo> cacheDirSizeInfo;
     map<int> uiRouterMapping;
   }

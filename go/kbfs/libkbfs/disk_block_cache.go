@@ -168,6 +168,11 @@ type DiskBlockCacheStatus struct {
 
 	LocalDiskBytesAvailable uint64
 	LocalDiskBytesTotal     uint64
+
+	BlockDBStats   []string `json:",omitempty"`
+	MetaDBStats    []string `json:",omitempty"`
+	TLFDBStats     []string `json:",omitempty"`
+	LastUnrefStats []string `json:",omitempty"`
 }
 
 type lastUnrefEntry struct {
@@ -1244,6 +1249,27 @@ func (cache *DiskBlockCacheLocal) Status(
 
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+
+	var blockStats, metaStats, tlfStats, lastUnrefStats []string
+	if err := cache.checkCacheLocked("Block(Status)"); err == nil {
+		blockStats, err = cache.blockDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get block db stats: %+v", err)
+		}
+		metaStats, err = cache.metaDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get meta db stats: %+v", err)
+		}
+		tlfStats, err = cache.tlfDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get TLF db stats: %+v", err)
+		}
+		lastUnrefStats, err = cache.lastUnrefDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get last unref db stats: %+v", err)
+		}
+	}
+
 	// The disk cache status doesn't depend on the chargedTo ID, and
 	// we don't have easy access to the UID here, so pass in a dummy.
 	return map[string]DiskBlockCacheStatus{
@@ -1263,6 +1289,10 @@ func (cache *DiskBlockCacheLocal) Status(
 			SizeDeleted:             rateMeterToStatus(cache.deleteSizeMeter),
 			LocalDiskBytesAvailable: availableBytes,
 			LocalDiskBytesTotal:     totalBytes,
+			BlockDBStats:            blockStats,
+			MetaDBStats:             metaStats,
+			TLFDBStats:              tlfStats,
+			LastUnrefStats:          lastUnrefStats,
 		},
 	}
 }
