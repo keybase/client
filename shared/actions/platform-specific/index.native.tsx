@@ -27,8 +27,9 @@ import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import ImagePicker from 'react-native-image-picker'
-import {TypedActions, TypedState} from 'util/container'
+import {TypedActions, TypedState} from 'util/container' // how does this work?
 import * as Contacts from 'expo-contacts'
+import {phoneUtil, PhoneNumberFormat} from '../../util/phone-numbers'
 
 type NextURI = string
 
@@ -494,18 +495,39 @@ async function manageContactsCache(
   const contacts = await Contacts.getContactsAsync()
   const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
     const {name, phoneNumbers = [], emails = []} = contact
-    // TODO figure out e164 formatting
-    const components: Array<RPCTypes.ContactComponent> = phoneNumbers.map(pn => ({
-      label: pn.label,
-      phoneNumber: pn.number,
-    }))
+
+    const components = phoneNumbers.reduce(
+      (res, pn) => {
+        const formatted = getE164(pn.countryCode, pn.number)
+        if (formatted) {
+          res.push({
+            label: pn.label,
+            phoneNumber: phoneUtil.parse(pn.countryCode + pn.number),
+          })
+        }
+        return res
+      },
+      [] as Array<RPCTypes.ContactComponent>
+    )
+
     components.push(...emails.map(e => ({label: e.label, email: e.email})))
     if (components.length) {
       ret.push({name, components})
     }
+
     return ret
   }, [])
-  debugger
+  console.warn(JSON.stringify(mapped, null, 2))
+}
+
+// Get phone number in e.164, or null if we can't parse it.
+const getE164 = (countryCode: string, phoneNumber: string) => {
+  try {
+    const parsed = phoneUtil.parse(countryCode + phoneNumber)
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
+  } catch (e) {
+    return null
+  }
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
