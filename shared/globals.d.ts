@@ -54,6 +54,9 @@ declare namespace NodeJS {
     DEBUGSagaMiddleware: any
     DEBUGStore: any
     globalLogger: any
-    keybaseJSI: any
+    keybaseJSI: {
+      runWithData: (b64Data: string) => void
+      addListener: (cb: (b64Data: string) => void) => void
+    }
   }
 }

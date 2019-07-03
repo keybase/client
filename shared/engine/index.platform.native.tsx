@@ -7,6 +7,7 @@ import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
 import {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {isAndroid} from '../constants/platform'
 
 const nativeBridge: {
   runWithData: (arg0: string) => void
@@ -16,9 +17,14 @@ const nativeBridge: {
   start: () => void
   reset: () => void
 } = NativeModules.KeybaseEngine
+
 const RNEmitter: {
   addListener: (arg0: string, arg1: (arg0: string) => void) => void
 } = new NativeEventEmitter(nativeBridge)
+
+if (!__DEV__ && isAndroid) {
+  nativeBridge.runWithData = global.keybaseJSI.runWithData
+}
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -71,11 +77,17 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  nativeBridge.start()
+  __DEV__ && nativeBridge.start()
 
   let packetizeCount = 0
   // This is how the RN side writes back to us
-  RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
+
+  const addListener =
+    !__DEV__ && isAndroid
+      ? global.keybaseJSI.addListener
+      : cb => RNEmitter.addListener(nativeBridge.eventName, cb)
+
+  addListener((payload: string) => {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', payload.length, 'chars:', payload)
     }
