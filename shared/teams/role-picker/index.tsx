@@ -59,7 +59,6 @@ const RoleRow = (p: RoleRowProps) => {
   </Kb.Box2>
 )
   }
-  
 
 type RolesMetaInfo = {
   cans: Array<string>

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Platform from '../../../constants/platform'
 import * as Styles from '../../../styles'
 import {SystemButtons} from '../../../router-v2/header/index'
 
@@ -7,16 +8,13 @@ type Props = {
   headerBody: string
   onCheckQualify: () => void
   onCancel: () => void
-  oneLine: boolean
   show: boolean
-  shouldShowSystemButtons: boolean
+  showSystemButtons: boolean
 }
 
 const Banner = (p: Props) => {
-  console.warn('in Banner', p)
   if (!p.show) return null
 
-  console.warn('in Banner', p)
   const join = (
     <Kb.Button
       backgroundColor="purple"
@@ -27,24 +25,7 @@ const Banner = (p: Props) => {
     />
   )
 
-  const textAndButtonsOneline = (
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.grow}
-      centerChildren={true}
-      alignItems="flex-start"
-      gap="small"
-    >
-      <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
-        {p.headerBody}
-      </Kb.Markdown>
-      {join}
-      <Kb.Box2 direction="vertical" style={styles.grow} />
-      <Kb.Icon type="iconfont-close" onClick={p.onCancel} style={styles.close} />
-    </Kb.Box2>
-  )
-
-  const textAndButtonsTwolines = (
+  const textAndButtons = (
     <Kb.Box2 direction="horizontal" style={styles.grow}>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
@@ -62,7 +43,7 @@ const Banner = (p: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-      {p.shouldShowSystemButtons && (
+      {p.showSystemButtons && (
         <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
           <SystemButtons />
         </Kb.Box2>
@@ -75,11 +56,7 @@ const Banner = (p: Props) => {
       <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
         <Kb.Icon type="icon-airdrop-star-32" />
       </Kb.Box2>
-      {p.shouldShowSystemButtons
-        ? textAndButtonsTwolines
-        : p.oneLine
-        ? textAndButtonsOneline
-        : textAndButtonsTwolines}
+      {textAndButtons}
     </Kb.Box2>
   )
 }
@@ -97,6 +74,9 @@ const markdownOverride = {
 }
 
 const styles = Styles.styleSheetCreate({
+  button: Styles.platformStyles({
+    isElectron: Styles.desktopStyles.windowDraggingClickable,
+  }),
   buttonContainer: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
@@ -106,9 +86,6 @@ const styles = Styles.styleSheetCreate({
       marginBottom: Styles.globalMargins.xtiny,
       marginTop: Styles.globalMargins.tiny,
     },
-  }),
-  button: Styles.platformStyles({
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
   }),
   close: {padding: Styles.globalMargins.xxtiny},
   container: Styles.platformStyles({
@@ -120,7 +97,11 @@ const styles = Styles.styleSheetCreate({
   }),
   grow: {flexGrow: 1, flexShrink: 1},
   markdown: Styles.platformStyles({
-    isElectron: {alignSelf: 'flex-start', paddingBottom: Styles.globalMargins.tiny, maxWidth: 400},
+    isElectron: {
+      alignSelf: 'flex-start',
+      maxWidth: Platform.isMac ? undefined : 400,
+      paddingBottom: Styles.globalMargins.tiny,
+    },
     isMobile: {alignSelf: 'center'},
   }),
   textContainer: {

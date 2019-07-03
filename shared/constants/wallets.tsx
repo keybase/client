@@ -787,9 +787,7 @@ export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsCon
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 export const trustlineHoldingBalance = 0.5
 
-export const getShowAirdropBanner = (state: TypedState) => {
-  return flags.airdrop //
+export const getShowAirdropBanner = (state: TypedState) => flags.airdrop &&
   state.wallets.airdropDetails.isPromoted &&
     state.wallets.airdropShowBanner &&
     (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified')
-}
