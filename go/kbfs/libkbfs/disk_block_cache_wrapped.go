@@ -71,8 +71,8 @@ func (cache *diskBlockCacheWrapped) enableCache(
 			cache.config, typ)
 	} else {
 		cacheStorageRoot := filepath.Join(cache.storageRoot, cacheFolder)
-		*cachePtr, err = newDiskBlockCacheLocal(cache.config, typ,
-			cacheStorageRoot)
+		*cachePtr, err = newDiskBlockCacheLocal(
+			cache.config, typ, cacheStorageRoot, mode)
 	}
 	return err
 }
