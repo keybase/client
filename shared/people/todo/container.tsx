@@ -256,9 +256,13 @@ const VerifyAllEmailConnector = connect(
   dispatch => ({
     _onConfirm: email => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
     },
-    onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
+    onManage: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    },
   }),
   (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
@@ -282,9 +286,13 @@ const VerifyAllPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
     _onConfirm: phone => {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(SettingsGen.createAddPhoneNumber({allowSearch: null, phoneNumber: phone}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
-    onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
+    onManage: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    },
   }),
   (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
@@ -309,6 +317,7 @@ const LegacyEmailVisibilityConnector = connect(
   dispatch => ({
     _onConfirm: email => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
       dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
     },
     onDismiss: onSkipTodo('legacyEmailVisibility', dispatch),
