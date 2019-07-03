@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/blevesearch/bleve"
 	"github.com/keybase/client/go/kbfs/data"
@@ -62,6 +63,58 @@ func NewIndexer(
 	}, nil
 }
 
-func (i *Indexer) Index(ctx context.Context) error {
+type file struct {
+	Path          string
+	TokenizedName string
+}
+
+func (i *Indexer) doIndexDir(fs *libfs.FS) error {
+	children, err := fs.ReadDir("")
+	if err != nil {
+		return err
+	}
+
+	for _, fi := range children {
+		tokenized := strings.ReplaceAll(fi.Name(), "_", " ")
+		tokenized = strings.ReplaceAll(tokenized, "-", " ")
+		tokenized = strings.ReplaceAll(tokenized, ".", " ")
+		f := file{
+			TokenizedName: tokenized,
+		}
+		id := fs.Join(fs.Root(), fi.Name())
+		err := i.index.Index(id, f)
+		if err != nil {
+			return err
+		}
+
+		if fi.IsDir() {
+			childFS, err := fs.ChrootAsLibFS(fi.Name())
+			if err != nil {
+				return err
+			}
+			err = i.doIndexDir(childFS)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
+}
+
+func (i *Indexer) Index(_ context.Context) error {
+	return i.doIndexDir(i.fs)
+}
+
+func (i *Indexer) Search(queryString string) (paths []string, err error) {
+	query := bleve.NewQueryStringQuery(queryString)
+	request := bleve.NewSearchRequest(query)
+	result, err := i.index.Search(request)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, hit := range result.Hits {
+		paths = append(paths, hit.ID)
+	}
+	return paths, nil
 }
