@@ -50,7 +50,7 @@
     "tsc-fast": "node --max-old-space-size=4096 ./node_modules/.bin/tsc --project ./tsconfig.fast.json ",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile --ignore-optional",
-    "log-to-trace": "node desktop/yarn-helper/log-to-trace.js"
+    "log-to-trace": "yarn _node desktop/yarn-helper/log-to-trace"
   },
   "jest": {
     "coverageDirectory": "./coverage",
