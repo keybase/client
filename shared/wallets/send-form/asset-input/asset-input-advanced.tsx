@@ -162,20 +162,27 @@ export const AssetPathIntermediate = () => {
       >
         <Kb.Box style={styles.intermediateLine} />
       </Kb.Box2>
-      <Kb.ClickableBox
+      <Kb.Box
         style={Styles.collapseStyles([
           styles.intermediateAbsoluteBlock,
-          styles.intermediateExpandButton,
           expanded ? styles.intermediateExpandButtonExpanded : styles.intermediateExpandButtonCollapsed,
         ])}
-        onClick={() => setExpanded(expanded => !expanded)}
       >
-        <Kb.Icon
-          type={expanded ? 'iconfont-collapse' : 'iconfont-expand'}
-          sizeType="Default"
-          color={Styles.globalColors.purple}
-        />
-      </Kb.ClickableBox>
+        <Kb.Button
+          type="Wallet"
+          mode="Secondary"
+          small={true}
+          style={styles.intermediateExpandButtonButton}
+          labelContainerStyle={styles.intermediateExpandButtonLabelContainer}
+          onClick={() => setExpanded(expanded => !expanded)}
+        >
+          <Kb.Icon
+            type={expanded ? 'iconfont-collapse' : 'iconfont-expand'}
+            sizeType="Small"
+            color={Styles.globalColors.purple}
+          />
+        </Kb.Button>
+      </Kb.Box>
       {expanded && (
         <Kb.Box2
           direction="vertical"
@@ -365,16 +372,9 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.tiny,
   },
-  intermediateExpandButton: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: 28,
-    justifyContent: 'center',
+  intermediateExpandButtonLabelContainer: {width: 32, minWidth: 32},
+  intermediateExpandButtonButton: {
+    padding: 0,
   },
   intermediateExpandButtonCollapsed: {
     top: -10,
