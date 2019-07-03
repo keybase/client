@@ -147,7 +147,7 @@
     "react-is": "16.8.6",
     "react-list": "git://github.com/keybase/react-list#nojima/keybase-fixes-off-0811",
     "react-measure": "2.2.2",
-    "react-native": "0.59.9",
+    "react-native": "0.59.10",
     "react-native-camera": "2.0.0",
     "react-native-contacts": "2.2.5",
     "react-native-fast-image": "5.1.1",
