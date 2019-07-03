@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/login'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {Props} from '.'
@@ -16,11 +17,11 @@ const ItemBox = Styles.styled(Kb.Box)({
 
 const other = 'Someone else...'
 
-const UserRow = ({user}) => (
+const UserRow = ({user, hasStoredSecret}) => (
   <ItemBox>
     <Kb.Text
       type="Header"
-      style={{color: user === other ? Styles.globalColors.black : Styles.globalColors.orange}}
+      style={user === other ? styles.other : hasStoredSecret ? styles.loggedIn : styles.loggedOut}
     >
       {user}
     </Kb.Text>
@@ -75,9 +76,11 @@ class Login extends React.Component<Props, State> {
       } as const,
     ]
 
-    const userRows = this.props.users.concat(other).map(u => <UserRow user={u} key={u} />)
+    const userRows = this.props.users
+      .concat(ConfigConstants.makeConfiguredAccount({hasStoredSecret: false, username: other}))
+      .map(u => <UserRow user={u.username} hasStoredSecret={u.hasStoredSecret} key={u.username} />)
 
-    const selectedIdx = this.props.users.indexOf(this.props.selectedUser)
+    const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -127,5 +130,11 @@ const stylesContainer = {
   flex: 1,
   justifyContent: 'center',
 }
+
+const styles = Styles.styleSheetCreate({
+  loggedIn: {color: Styles.globalColors.orange},
+  loggedOut: {color: Styles.globalColors.orange, opacity: 0.6},
+  other: {color: Styles.globalColors.black},
+})
 
 export default Login

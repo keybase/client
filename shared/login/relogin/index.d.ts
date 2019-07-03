@@ -1,7 +1,8 @@
 import {Component} from 'react'
+import {ConfiguredAccount} from '../../constants/types/config'
 
 export type Props = {
-  users: Array<string>
+  users: Array<ConfiguredAccount>
   onForgotPassword: () => void
   onSignup: () => void
   onSomeoneElse: () => void

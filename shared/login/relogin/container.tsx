@@ -5,6 +5,7 @@ import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import {connect, TypedState, TypedDispatch, isNetworkErr} from '../../util/container'
+import * as ConfigTypes from '../../constants/types/config'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
@@ -26,10 +27,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps: ReturnType<typeof mapStateToProps>, dispatchProps) => {
-  const users = stateProps._users
-    .map(account => account.username)
-    .sort()
-    .toArray()
+  const users = stateProps._users.sortBy(account => account.username).toArray()
   const bannerError = !!stateProps.error && isNetworkErr(stateProps.error.code)
   const inputError = !!stateProps.error && !bannerError
 
@@ -68,7 +66,7 @@ type Props = {
   onSignup: () => void
   onSomeoneElse: () => void
   selectedUser: string
-  users: Array<string>
+  users: Array<ConfigTypes.ConfiguredAccount>
 }
 
 class LoginWrapper extends React.Component<Props, State> {
