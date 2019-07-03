@@ -62,7 +62,7 @@ export default class Asset extends React.Component<Props, State> {
                 {this.props.balance} {this.props.code}
               </Kb.Text>
               <Kb.Text
-                type="BodySmall"
+                type="BodySmallSecondaryLink"
                 lineClamp={1}
                 onClick={this.props.openInfoURL ? this._openInfoURL : undefined}
               >

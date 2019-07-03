@@ -292,8 +292,13 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
-
 	return eng.Status(), nil
+}
+
+func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
+	// Queue up a load for follower info
+	h.svc.trackerLoader.Queue(ctx, uid)
+	return nil
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {

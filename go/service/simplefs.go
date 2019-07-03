@@ -554,3 +554,27 @@ func (s *SimpleFSHandler) SimpleFSSetNotificationThreshold(
 	}
 	return cli.SimpleFSSetNotificationThreshold(ctx, threshold)
 }
+
+// SimpleFSObfuscatePath implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSObfuscatePath(
+	ctx context.Context, path keybase1.Path) (res string, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return "", err
+	}
+	return cli.SimpleFSObfuscatePath(ctx, path)
+}
+
+// SimpleFSDeobfuscatePath implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSDeobfuscatePath(
+	ctx context.Context, path keybase1.Path) (res []string, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return nil, err
+	}
+	return cli.SimpleFSDeobfuscatePath(ctx, path)
+}

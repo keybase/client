@@ -274,6 +274,10 @@
           "name": "toType"
         },
         {
+          "type": "string",
+          "name": "assetCode"
+        },
+        {
           "type": "AccountID",
           "name": "fromAccountID"
         },
@@ -327,6 +331,10 @@
         {
           "type": "Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "string",
+          "name": "sourceConvRate"
         },
         {
           "type": "boolean",
@@ -559,6 +567,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AdvancedBanner",
+      "symbols": [
+        "NO_BANNER_0",
+        "SENDER_BANNER_1",
+        "RECEIVER_BANNER_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "SendBannerLocal",
       "fields": [
@@ -573,6 +590,10 @@
         {
           "type": "boolean",
           "name": "proofsChanged"
+        },
+        {
+          "type": "AdvancedBanner",
+          "name": "offerAdvancedSendForm"
         }
       ]
     },
@@ -755,6 +776,20 @@
     },
     {
       "type": "record",
+      "name": "AirdropDetails",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPromoted"
+        },
+        {
+          "type": "string",
+          "name": "details"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AirdropState",
       "fields": [],
       "typedef": "string"
@@ -826,6 +861,14 @@
         {
           "type": "string",
           "name": "destinationDisplay"
+        },
+        {
+          "type": "string",
+          "name": "exchangeRate"
+        },
+        {
+          "type": "string",
+          "name": "amountError"
         },
         {
           "type": "AccountID",
@@ -2104,7 +2147,7 @@
           "type": "int"
         }
       ],
-      "response": "string"
+      "response": "AirdropDetails"
     },
     "airdropStatusLocal": {
       "request": [

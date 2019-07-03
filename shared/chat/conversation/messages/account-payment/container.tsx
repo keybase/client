@@ -70,13 +70,18 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       const canceled = paymentInfo.status === 'canceled'
       const completed = paymentInfo.status === 'completed'
       const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
+      const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
+      const balanceChangeAmount =
+        paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
+          ? sourceAmountDesc
+          : paymentInfo.amountDescription
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         approxWorth: paymentInfo.worthAtSendTime,
         balanceChange: completed
-          ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`
+          ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`
           : '',
         balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
         cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
@@ -92,6 +97,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         pending: pending || canceled,
         sendButtonLabel: '',
         showCoinsIcon: completed,
+        sourceAmount: paymentInfo.sourceAmount.length ? sourceAmountDesc : '',
       }
     }
     case 'requestPayment': {
@@ -159,11 +165,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
   showCoinsIcon: stateProps.showCoinsIcon,
+  sourceAmount: stateProps.sourceAmount,
 })
 
-const ConnectedAccountPayment = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(AccountPayment)
+const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
+  AccountPayment
+)
 export default ConnectedAccountPayment

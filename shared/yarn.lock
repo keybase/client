@@ -13209,7 +13209,7 @@ react-fuzzy@^0.5.2:
 
 "react-gateway@git://github.com/keybase/react-gateway#nojima/keybase-fixes-off-300":
   version "3.0.0"
-  resolved "git://github.com/keybase/react-gateway#cfadc466c484356e6c011da21696d8291fe635e0"
+  resolved "git://github.com/keybase/react-gateway#bd6765cc212cc841bcc133cc4fb413c8c96022e1"
 
 react-helmet-async@^0.2.0:
   version "0.2.0"
@@ -13365,7 +13365,7 @@ react-native-safe-module@^1.1.0:
 
 "react-native-screens@^1.0.0 || ^1.0.0-alpha", "react-native-screens@git://github.com/keybase/react-native-screens#danny/fix-textinput-blur":
   version "1.0.0-alpha.22"
-  resolved "git://github.com/keybase/react-native-screens#0465a795e7bb59637a76857f11e71c2882341eb3"
+  resolved "git://github.com/keybase/react-native-screens#5f08fb92d53975dee6ee10fce554a3d05bfcf4f9"
   dependencies:
     debounce "^1.2.0"
 

@@ -1,7 +1,8 @@
 import * as React from 'react'
-import {storiesOf} from '../../stories/storybook'
 import {Box} from '../../common-adapters'
 import Banner, {Props} from '.'
+import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
+import * as Sb from '../../stories/storybook'
 
 const examples: Props[] = [
   {
@@ -13,10 +14,22 @@ const examples: Props[] = [
     text: 'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
   },
   {background: 'HighRisk' as const, text: 'Connection error. You are offline.'},
+  {
+    background: 'Announcements' as const,
+    offerAdvancedSendForm: AdvancedBanner.receiverBanner,
+    onAction: Sb.action('onAction'),
+    text: '',
+  },
+  {
+    background: 'Announcements' as const,
+    offerAdvancedSendForm: AdvancedBanner.senderBanner,
+    onAction: Sb.action('onAction'),
+    text: '',
+  },
 ]
 
 const load = () => {
-  const story = storiesOf('Wallets/SendForm/Banner', module).addDecorator(story => (
+  const story = Sb.storiesOf('Wallets/SendForm/Banner', module).addDecorator(story => (
     <Box style={{maxWidth: 400}}>{story()}</Box>
   ))
   examples.forEach((ex, index) => story.add(`Example ${index + 1}`, () => <Banner {...ex} />))

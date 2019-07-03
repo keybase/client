@@ -8,7 +8,7 @@ type Props = {
   className?: string
   emojis: Array<string>
   onReact: (arg0: string) => void
-  onReply: () => void
+  onReply?: () => void
   onShowingEmojiPicker?: (arg0: boolean) => void
   style?: Styles.StylesCrossPlatform
 }
@@ -89,10 +89,14 @@ class EmojiRow extends React.Component<
           ))}
           <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} key="reacji-icon" />
         </Kb.Box2>
-        <Kb.Divider vertical={true} />
-        <Kb.Text type="BodySmallSecondaryLink" style={styles.reply} onClick={this.props.onReply}>
-          Reply
-        </Kb.Text>
+        {!!this.props.onReply && (
+          <Kb.Box2 direction="horizontal" gap="tiny">
+            <Kb.Divider vertical={true} />
+            <Kb.Text type="BodySmallSecondaryLink" style={styles.reply} onClick={this.props.onReply}>
+              Reply
+            </Kb.Text>
+          </Kb.Box2>
+        )}
         {this.state.showingPicker && (
           <Kb.FloatingBox
             attachTo={this._getAttachmentRef}
