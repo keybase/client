@@ -403,6 +403,15 @@ const expoPermissionStatusMap = {
   [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
 }
 
+const loadContactPermissionFromNative = async () => {
+  if (isIOS) {
+    return expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+  }
+  return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
+    ? 'granted'
+    : 'undetermined'
+}
+
 const loadContactPermissions = async (
   _,
   action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
@@ -412,14 +421,7 @@ const loadContactPermissions = async (
     // only reload on foreground
     return
   }
-  let status = null
-  if (isIOS) {
-    status = expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
-  } else {
-    status = (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
-      ? 'granted'
-      : 'undetermined'
-  }
+  const status = await loadContactPermissionFromNative()
   logger.info(`OS status: ${status}`)
   return SettingsGen.createLoadedContactPermissions({status})
 }
@@ -469,8 +471,15 @@ async function manageContactsCache(
     return
   }
 
+  // get permissions if we haven't loaded them for some reason
+  const {permissionStatus} = state.settings.contacts
+  let perm = false
+  if (permissionStatus === 'unknown') {
+    const realPerm = await loadContactPermissionFromNative()
+    perm = realPerm === 'granted'
+  }
+
   const enabled = state.settings.contacts.importEnabled
-  const perm = state.settings.contacts.permissionStatus === 'granted'
   if (!enabled || !perm) {
     if (enabled && !perm) {
       logger.info('contact import enabled but no contact permissions')
