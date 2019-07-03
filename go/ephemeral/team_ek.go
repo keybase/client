@@ -131,7 +131,7 @@ func prepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 }
 
 func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEphemeralKeyMetadata, err error) {
+	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
 	defer mctx.TraceTimed("publishNewTeamEK", func() error { return err })()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
@@ -172,7 +172,7 @@ func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 			return metadata, err
 		}
 	}
-	return keybase1.NewTeamEphemeralKeyMetadataWithTeam(teamEKMetadata), nil
+	return teamEKMetadata, nil
 }
 
 func (k *TeamEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEphemeralKeyBoxed, err error) {
@@ -315,7 +315,7 @@ func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error
 }
 
 func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEphemeralKeyMetadata, err error) {
+	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
 	defer mctx.TraceTimed("ForcePublishNewTeamEKForTesting", func() error { return err })()
 	err = teamEKRetryWrapper(mctx, func() error {
 		metadata, err = publishNewTeamEK(mctx, teamID, merkleRoot)

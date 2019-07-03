@@ -54,8 +54,8 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 	ekLib := &EKLib{
 		teamEKGenCache:         nlru,
 		teambotEKMetadataCache: nlru2,
-		clock:  clockwork.NewRealClock(),
-		stopCh: make(chan struct{}),
+		clock:                  clockwork.NewRealClock(),
+		stopCh:                 make(chan struct{}),
 	}
 	go ekLib.backgroundKeygen(mctx)
 	return ekLib
@@ -418,7 +418,7 @@ func (e *EKLib) cacheKey(teamID keybase1.TeamID, typ keybase1.TeamEphemeralKeyTy
 }
 
 func (e *EKLib) teambotCacheKey(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration) string {
-	return fmt.Sprintf("%s-%s-%s", teamID, botUID, generation)
+	return fmt.Sprintf("%s-%s-%d", teamID, botUID, generation)
 }
 
 func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
@@ -587,7 +587,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 				e.teamEKGenCache.Remove(cacheKey)
 			} else {
 				e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(
-					publishedMetadata.Generation(), false))
+					publishedMetadata.Generation, false))
 				created = true
 			}
 
@@ -600,7 +600,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 		if err != nil {
 			return teamEK, false, err
 		}
-		latestGeneration = publishedMetadata.Generation()
+		latestGeneration = publishedMetadata.Generation
 	}
 
 	teamEK, err = teamEKBoxStorage.Get(mctx, teamID, latestGeneration, nil)
@@ -767,17 +767,11 @@ func (e *EKLib) maybePublishTeambotEK(mctx libkb.MetaContext, teamID keybase1.Te
 		return teambotEK, false, err
 	}
 	merkleRoot := *merkleRootPtr
-
-	sig, box, err := prepareNewTeambotEK(mctx, teamID, botUID, merkleRoot)
+	metadata, err := publishNewTeambotEK(mctx, teamID, botUID, merkleRoot)
 	if err != nil {
 		return teambotEK, false, err
 	}
 
-	if err := postNewTeambotEK(mctx, teamID, sig, box.Box); err != nil {
-		return teambotEK, false, nil
-	}
-
-	metadata := box.Metadata
 	e.teambotEKMetadataCache.Add(cacheKey, metadata)
 	teambotEK = keybase1.NewTeamEphemeralKeyWithTeambot(keybase1.TeambotEk{
 		Seed:     keybase1.Bytes32(seed),
@@ -800,9 +794,9 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 	if ok {
 		if cacheEntry, expired := e.isEntryExpired(val); !expired {
 			return storage.Get(mctx, teamID, cacheEntry.Generation, nil)
-			// kill our cached entry and possibly re-generate below
-			e.teamEKGenCache.Remove(cacheKey)
 		}
+		// kill our cached entry and possibly re-generate below
+		e.teamEKGenCache.Remove(cacheKey)
 	}
 
 	metadata, err := fetchLatestTeambotEK(mctx, teamID, botUID)

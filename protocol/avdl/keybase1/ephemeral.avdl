@@ -155,9 +155,4 @@ protocol ephemeral {
     case TEAM: TeamEkBoxed;
     case TEAMBOT: TeambotEkBoxed;
   }
-
-  variant TeamEphemeralKeyMetadata switch (TeamEphemeralKeyType keyType) {
-    case TEAM: TeamEkMetadata;
-    case TEAMBOT: TeambotEkMetadata;
-  }
 }

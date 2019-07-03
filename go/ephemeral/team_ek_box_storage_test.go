@@ -32,13 +32,8 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	teamID := createTeam(tc)
 	invalidID := teamID + keybase1.TeamID("foo")
 
-	keyer := NewTeamEphemeralKeyer()
-	metadata, err := keyer.PublishNewEK(mctx, teamID, merkleRoot)
+	teamEKMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
-	typ, err := metadata.KeyType()
-	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)
-	teamEKMetadata := metadata.Team()
 
 	s := tc.G.GetTeamEKBoxStorage()
 
@@ -62,7 +57,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
 	require.Equal(t, keybase1.TeamEphemeralKey{}, botNonexistant)
 
-	verifyTeamEK(t, metadata, ek)
+	verifyTeamEK(t, teamEKMetadata, ek)
 
 	// Test Get nonexistent
 	nonexistent, err := s.Get(mctx, teamID, teamEKMetadata.Generation+1, nil)
@@ -98,7 +93,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	ek, ok = teamEKs[teamEKMetadata.Generation]
 	require.True(t, ok)
 
-	verifyTeamEK(t, metadata, ek)
+	verifyTeamEK(t, teamEKMetadata, ek)
 
 	// Test invalid
 	teamEKs2, err := rawTeamEKBoxStorage.GetAll(mctx, invalidID)
@@ -114,7 +109,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	ek, err = s.Get(mctx, teamID, teamEKMetadata.Generation, nil)
 	require.NoError(t, err)
-	verifyTeamEK(t, metadata, ek)
+	verifyTeamEK(t, teamEKMetadata, ek)
 
 	// No let's the deviceEK which we can't recover from
 	rawDeviceEKStorage := NewDeviceEKStorage(mctx)

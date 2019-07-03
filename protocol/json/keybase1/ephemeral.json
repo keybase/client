@@ -377,30 +377,6 @@
           "body": "TeambotEkBoxed"
         }
       ]
-    },
-    {
-      "type": "variant",
-      "name": "TeamEphemeralKeyMetadata",
-      "switch": {
-        "type": "TeamEphemeralKeyType",
-        "name": "keyType"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "TEAM",
-            "def": false
-          },
-          "body": "TeamEkMetadata"
-        },
-        {
-          "label": {
-            "name": "TEAMBOT",
-            "def": false
-          },
-          "body": "TeambotEkMetadata"
-        }
-      ]
     }
   ],
   "messages": {},

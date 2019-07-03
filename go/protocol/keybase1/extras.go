@@ -3123,21 +3123,6 @@ func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
 	}
 }
 
-func (k TeamEphemeralKeyMetadata) Generation() EkGeneration {
-	typ, err := k.KeyType()
-	if err != nil {
-		return 0
-	}
-	switch typ {
-	case TeamEphemeralKeyType_TEAM:
-		return k.Team().Generation
-	case TeamEphemeralKeyType_TEAMBOT:
-		return k.Teambot().Generation
-	default:
-		return 0
-	}
-}
-
 func (k TeamEphemeralKeyType) IsTeambot() bool {
 	return k == TeamEphemeralKeyType_TEAMBOT
 }

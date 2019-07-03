@@ -47,7 +47,7 @@ func (k *TeambotEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 }
 
 func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEphemeralKeyMetadata, err error) {
+	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeambotEkMetadata, err error) {
 	defer mctx.TraceTimed("publishNewTeambotEK", func() error { return err })()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
@@ -66,7 +66,7 @@ func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID 
 		return metadata, err
 	}
 
-	return keybase1.NewTeamEphemeralKeyMetadataWithTeambot(box.Metadata), nil
+	return box.Metadata, nil
 }
 
 func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string, box string) (err error) {
@@ -107,7 +107,7 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 		return "", nil, err
 	}
 
-	teamEK, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+	teamEK, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, team.ID)
 	if err != nil {
 		return "", nil, err
 	}
@@ -162,14 +162,14 @@ type teambotEKResp struct {
 	} `json:"result"`
 }
 
-func fetchLatestTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybase1.UID) (metadata *keybase1.TeambotEkMetadata, err error) {
+func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID) (metadata *keybase1.TeambotEkMetadata, err error) {
 	defer mctx.TraceTimed("fetchLatestTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
 		Endpoint:    "teambot/ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id": libkb.S{Val: string(team.ID)},
+			"team_id": libkb.S{Val: string(teamID)},
 			"uid":     libkb.S{Val: string(botUID)},
 		},
 	}
@@ -186,7 +186,7 @@ func fetchLatestTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keyba
 		return nil, nil
 	}
 
-	return verifyTeambotSigWithLatestPTK(mctx, team, parsedResponse.Result.Sig)
+	return verifyTeambotSigWithLatestPTK(mctx, teamID, parsedResponse.Result.Sig)
 }
 
 func extractTeambotEKMetadataFromSig(sig string) (*kbcrypto.NaclSigningKeyPublic, *keybase1.TeambotEkMetadata, error) {
@@ -204,10 +204,17 @@ func extractTeambotEKMetadataFromSig(sig string) (*kbcrypto.NaclSigningKeyPublic
 
 // Verify that the blob is validly signed, and that the signing key is the
 // given team's latest PTK, then parse its contents.
-func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, team *teams.Team, sig string) (metadata *keybase1.TeambotEkMetadata, err error) {
+func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string) (metadata *keybase1.TeambotEkMetadata, err error) {
 	defer mctx.TraceTimed("verifyTeambotSigWithLatestPTK", func() error { return err })()
 
 	signerKey, metadata, err := extractTeambotEKMetadataFromSig(sig)
+	if err != nil {
+		return nil, err
+	}
+
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
 	if err != nil {
 		return nil, err
 	}
