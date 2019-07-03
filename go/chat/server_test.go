@@ -6609,6 +6609,9 @@ func TestReacjiStore(t *testing.T) {
 		}
 
 		expectedData := storage.NewReacjiInternalStorage()
+		for _, el := range storage.DefaultTopReacjis {
+			expectedData.FrequencyMap[el] = 0
+		}
 		conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT, mt)
 		// if the user has no history we return the default list
 		userReacjis := tc.G.ChatHelper.UserReacjis(ctx, uid)
@@ -6637,6 +6640,8 @@ func TestReacjiStore(t *testing.T) {
 			info := consumeReactionUpdate(t, listener)
 			expected.TopReacjis = append([]string{reaction}, expected.TopReacjis...)
 			if i < 5 {
+				// remove defaults as user values are added
+				delete(expectedData.FrequencyMap, storage.DefaultTopReacjis[len(storage.DefaultTopReacjis)-i-1])
 				expected.TopReacjis = append(expected.TopReacjis, storage.DefaultTopReacjis...)[:len(storage.DefaultTopReacjis)]
 			}
 			assertReacjiStore(info.UserReacjis, expected, expectedData)

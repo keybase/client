@@ -454,6 +454,7 @@ type PaymentSummaryDirect struct {
 	Ctime               TimeMs                `codec:"ctime" json:"ctime"`
 	Rtime               TimeMs                `codec:"rtime" json:"rtime"`
 	CursorToken         string                `codec:"cursorToken" json:"cursorToken"`
+	Unread              bool                  `codec:"unread" json:"unread"`
 	FromPrimary         bool                  `codec:"fromPrimary" json:"fromPrimary"`
 	BatchID             string                `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -503,6 +504,7 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		Ctime:               o.Ctime.DeepCopy(),
 		Rtime:               o.Rtime.DeepCopy(),
 		CursorToken:         o.CursorToken,
+		Unread:              o.Unread,
 		FromPrimary:         o.FromPrimary,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
@@ -607,11 +609,12 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 }
 
 type PaymentDetails struct {
-	Summary       PaymentSummary `codec:"summary" json:"summary"`
-	Memo          string         `codec:"memo" json:"memo"`
-	MemoType      string         `codec:"memoType" json:"memoType"`
-	ExternalTxURL string         `codec:"externalTxURL" json:"externalTxURL"`
-	FeeCharged    string         `codec:"feeCharged" json:"feeCharged"`
+	Summary          PaymentSummary `codec:"summary" json:"summary"`
+	Memo             string         `codec:"memo" json:"memo"`
+	MemoType         string         `codec:"memoType" json:"memoType"`
+	ExternalTxURL    string         `codec:"externalTxURL" json:"externalTxURL"`
+	FeeCharged       string         `codec:"feeCharged" json:"feeCharged"`
+	PathIntermediate []Asset        `codec:"pathIntermediate" json:"pathIntermediate"`
 }
 
 func (o PaymentDetails) DeepCopy() PaymentDetails {
@@ -621,6 +624,17 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 		MemoType:      o.MemoType,
 		ExternalTxURL: o.ExternalTxURL,
 		FeeCharged:    o.FeeCharged,
+		PathIntermediate: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PathIntermediate),
 	}
 }
 

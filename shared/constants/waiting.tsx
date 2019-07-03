@@ -1,7 +1,6 @@
 import * as I from 'immutable'
 import * as Types from './types/waiting'
 import {RPCError} from '../util/errors'
-import {isString} from 'lodash-es'
 
 export const anyWaiting = (
   state: {

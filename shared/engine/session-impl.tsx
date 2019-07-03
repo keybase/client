@@ -204,11 +204,11 @@ class Session {
   // Tell engine if we can handle the cancelled call
   hasSeqID(seqID: number) {
     if (__DEV__) {
-      if (this._seqIDResponded.hasOwnProperty(String(seqID))) {
+      if (Object.prototype.hasOwnProperty.call(this._seqIDResponded, String(seqID))) {
         console.log('Cancelling seqid found, current session state', this)
       }
     }
-    return this._seqIDResponded.hasOwnProperty(String(seqID))
+    return Object.prototype.hasOwnProperty.call(this._seqIDResponded, String(seqID))
   }
 }
 

@@ -17,6 +17,7 @@ const Available = (props: Props) => {
       <Kb.Text type="BodySmall" style={styles.text}>
         {splitText.map((t, idx) => (
           <Kb.Text
+            selectable={true}
             key={idx}
             type={idx % 2 === 0 ? 'BodySmallError' : 'BodySmallExtrabold'}
             style={styles.text}

@@ -1,24 +1,12 @@
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Box2,
-  Button,
-  ButtonBar,
-  ClickableBox,
-  Icon,
-  Input,
-  List,
-  Text,
-  NativeImage,
-} from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters/mobile.native'
 import {FloatingRolePicker} from '../role-picker'
 import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
 import {MobileProps, ContactRowProps} from './index'
 import {pluralize} from '../../util/string'
 
 const AccessDenied = ({openAppSettings}) => (
-  <Box
+  <Kb.Box
     style={{
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
@@ -27,7 +15,7 @@ const AccessDenied = ({openAppSettings}) => (
       padding: globalMargins.small,
     }}
   >
-    <Icon
+    <Kb.Icon
       type="iconfont-close"
       style={{
         marginBottom: globalMargins.large,
@@ -35,18 +23,18 @@ const AccessDenied = ({openAppSettings}) => (
       color={globalColors.red}
       fontSize={globalMargins.xlarge}
     />
-    <Box>
-      <Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
+    <Kb.Box>
+      <Kb.Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
         We don't have permission to access your contacts!
-      </Text>
-      <Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
+      </Kb.Text>
+      <Kb.Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
-      </Text>
-      <ButtonBar>
-        <Button label="Open settings" onClick={openAppSettings} />
-      </ButtonBar>
-    </Box>
-  </Box>
+      </Kb.Text>
+      <Kb.ButtonBar>
+        <Kb.Button label="Open settings" onClick={openAppSettings} />
+      </Kb.ButtonBar>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const contactRow = (i: number, props: ContactRowProps) => {
@@ -56,7 +44,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
       : props.contact.thumbnailPath
   const hasThumbnail = props.contact.thumbnailPath && props.contact.thumbnailPath.length > 0
   return (
-    <Box
+    <Kb.Box
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -65,23 +53,26 @@ const contactRow = (i: number, props: ContactRowProps) => {
         width: '100%',
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+      <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+        <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
           {!!hasThumbnail && (
-            <NativeImage style={{borderRadius: 24, height: 48, marginRight: 16, width: 48}} source={source} />
+            <Kb.NativeImage
+              style={{borderRadius: 24, height: 48, marginRight: 16, width: 48}}
+              source={source}
+            />
           )}
-          {!hasThumbnail && <Avatar size={48} style={{marginRight: 16}} />}
-          <Box>
-            <Box style={globalStyles.flexBoxRow}>
-              <Text type="BodySemibold">{props.contact.name}</Text>
-            </Box>
-            <Box style={globalStyles.flexBoxRow}>
-              <Text type="BodySmall">{props.contact.email || props.contact.phoneNo}</Text>
-            </Box>
-          </Box>
-        </Box>
-        <Box>
-          <Button
+          {!hasThumbnail && <Kb.Avatar size={48} style={{marginRight: 16}} />}
+          <Kb.Box>
+            <Kb.Box style={globalStyles.flexBoxRow}>
+              <Kb.Text type="BodySemibold">{props.contact.name}</Kb.Text>
+            </Kb.Box>
+            <Kb.Box style={globalStyles.flexBoxRow}>
+              <Kb.Text type="BodySmall">{props.contact.email || props.contact.phoneNo}</Kb.Text>
+            </Kb.Box>
+          </Kb.Box>
+        </Kb.Box>
+        <Kb.Box>
+          <Kb.Button
             type="Success"
             mode={props.selected ? 'Secondary' : 'Primary'}
             label={props.selected ? 'Invited!' : 'Invite'}
@@ -90,9 +81,9 @@ const contactRow = (i: number, props: ContactRowProps) => {
             onClick={props.onClick}
             style={{paddingLeft: globalMargins.small, paddingRight: globalMargins.small, width: 100}}
           />
-        </Box>
-      </Box>
-    </Box>
+        </Kb.Box>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
@@ -145,9 +136,9 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     let contents
     if (this.props.hasPermission) {
       contents = (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
+        <Kb.Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
           {!!this.props.errorMessage && (
-            <Box2
+            <Kb.Box2
               direction="horizontal"
               style={{
                 alignItems: 'center',
@@ -157,19 +148,19 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               }}
               fullWidth={true}
             >
-              <Text center={true} type="BodySemibold" negative={true}>
+              <Kb.Text center={true} type="BodySemibold" negative={true}>
                 {this.props.errorMessage}
-              </Text>
-            </Box2>
+              </Kb.Text>
+            </Kb.Box2>
           )}
-          <Box
+          <Kb.Box
             style={{
               ...globalStyles.flexBoxRow,
               borderBottomColor: globalColors.black_10,
               borderBottomWidth: hairlineWidth,
             }}
           >
-            <Input
+            <Kb.Input
               keyboardType="email-address"
               value={this.state.filter}
               onChangeText={filter => this.setState({filter})}
@@ -184,7 +175,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
                 textAlign: 'left',
               }}
             />
-          </Box>
+          </Kb.Box>
           <FloatingRolePicker
             confirmLabel={`Invite as ${pluralize(this.props.role)}`}
             selectedRole={this.props.role}
@@ -194,39 +185,40 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             position={'bottom center'}
             open={this.state.isRolePickerOpen}
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
-          >
-            <ClickableBox
-              onClick={() => this.onOpenRolePicker()}
-              style={{
-                ...globalStyles.flexBoxColumn,
-                alignItems: 'center',
-                borderBottomColor: globalColors.black_10,
-                borderBottomWidth: hairlineWidth,
-                justifyContent: 'center',
-                marginBottom: globalMargins.xtiny,
-                padding: globalMargins.small,
-              }}
-            >
-              <Text center={true} type="BodySmall">
-                Users will be invited to {this.props.name} as
-                <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
-              </Text>
-            </ClickableBox>
-          </FloatingRolePicker>
-          <List
+          />
+          <Kb.List
             keyProperty="id"
             items={filteredContactRows}
             fixedHeight={56}
+            ListHeaderComponent={
+              <Kb.ClickableBox
+                onClick={() => this.onOpenRolePicker()}
+                style={{
+                  ...globalStyles.flexBoxColumn,
+                  alignItems: 'center',
+                  borderBottomColor: globalColors.black_10,
+                  borderBottomWidth: hairlineWidth,
+                  justifyContent: 'center',
+                  marginBottom: globalMargins.xtiny,
+                  padding: globalMargins.small,
+                }}
+              >
+                <Kb.Text center={true} type="BodySmall">
+                  Users will be invited to {this.props.name} as
+                  <Kb.Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Kb.Text>.
+                </Kb.Text>
+              </Kb.ClickableBox>
+            }
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}
           />
-        </Box>
+        </Kb.Box>
       )
     } else {
       contents = (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Kb.Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <AccessDenied openAppSettings={this.props.openAppSettings} />
-        </Box>
+        </Kb.Box>
       )
     }
     return contents

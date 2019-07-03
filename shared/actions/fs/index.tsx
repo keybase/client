@@ -64,6 +64,7 @@ const loadFavorites = (
   action: FsGen.FavoritesLoadPayload | EngineGen.Keybase1NotifyFSFSFavoritesChangedPayload
 ) =>
   state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+  state.config.loggedIn &&
   RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
     .then(results => {
       const mutablePayload = [
@@ -110,14 +111,17 @@ const loadFavorites = (
           team: I.Map().asMutable(),
         }
       )
-      return FsGen.createFavoritesLoaded({
-        // @ts-ignore asImmutable returns a weak type
-        private: mutablePayload.private.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        public: mutablePayload.public.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        team: mutablePayload.team.asImmutable(),
-      })
+      return (
+        mutablePayload.private.size &&
+        FsGen.createFavoritesLoaded({
+          // @ts-ignore asImmutable returns a weak type
+          private: mutablePayload.private.asImmutable(),
+          // @ts-ignore asImmutable returns a weak type
+          public: mutablePayload.public.asImmutable(),
+          // @ts-ignore asImmutable returns a weak type
+          team: mutablePayload.team.asImmutable(),
+        })
+      )
     })
     .catch(makeRetriableErrorHandler(action))
 
@@ -607,6 +611,8 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
       ])
     }
   } finally {
+    // eslint is confused i think
+    // eslint-disable-next-line require-atomic-updates
     polling = false
     yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
   }
@@ -1101,14 +1107,16 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
           }),
         ])
       case Types.DiskSpaceStatus.Warning:
-        const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
-        NotifyPopup('Disk Space Low', {
-          body: `You have less than ${threshold} of storage space left.`,
-        })
-        // Only show the banner if the previous state was OK and the new state
-        // is warning. Otherwise we rely on the previous state of the banner.
-        if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
-          return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+        {
+          const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
+          NotifyPopup('Disk Space Low', {
+            body: `You have less than ${threshold} of storage space left.`,
+          })
+          // Only show the banner if the previous state was OK and the new state
+          // is warning. Otherwise we rely on the previous state of the banner.
+          if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
+            return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
+          }
         }
         break
       case Types.DiskSpaceStatus.Ok:

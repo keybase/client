@@ -2989,3 +2989,17 @@ func (h *Server) LocationUpdate(ctx context.Context, coord chat1.Coordinate) (er
 	h.G().LiveLocationTracker.LocationUpdate(ctx, coord)
 	return nil
 }
+
+func (h *Server) LocationDenied(ctx context.Context, convID chat1.ConversationID) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "LocationDenied")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return h.getChatUI(0).ChatCommandStatus(ctx, convID,
+		"Failed to access your location. Please allow Keybase to access your location in the phone settings.",
+		chat1.UICommandStatusDisplayTyp_ERROR,
+		[]chat1.UICommandStatusActionTyp{chat1.UICommandStatusActionTyp_APPSETTINGS})
+}

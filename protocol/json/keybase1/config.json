@@ -692,20 +692,6 @@
           "name": "fullname"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "following"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "followers"
-        },
-        {
           "type": "UserReacjis",
           "name": "userReacjis"
         }
@@ -976,6 +962,15 @@
         }
       ],
       "response": "BootstrapStatus"
+    },
+    "requestFollowerInfo": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": null
     },
     "getRememberPassphrase": {
       "request": [

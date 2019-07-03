@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
@@ -16,7 +16,6 @@ import (
 // Methods should err on the side of performance rather at the cost of serialization.
 // CORE-8119: But they don't yet.
 type BuildPaymentCache interface {
-	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (own bool, primary bool, err error)
 	PrimaryAccount(libkb.MetaContext) (stellar1.AccountID, error)
 	// AccountSeqno should be cached _but_ it should also be busted asap.
 	// Because it is used to prevent users from sending payments twice in a row.
@@ -26,6 +25,7 @@ type BuildPaymentCache interface {
 	GetOutsideExchangeRate(libkb.MetaContext, stellar1.OutsideCurrencyCode) (stellar1.OutsideExchangeRate, error)
 	AvailableXLMToSend(libkb.MetaContext, stellar1.AccountID) (string, error)
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
+	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error)
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -37,6 +37,9 @@ type buildPaymentCache struct {
 
 	lookupRecipientLocktab libkb.LockTable
 	lookupRecipientCache   *lru.Cache
+
+	shouldOfferAdvancedSendLocktab libkb.LockTable
+	shouldOfferAdvancedSendCache   *lru.Cache
 }
 
 func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
@@ -44,15 +47,15 @@ func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
 	if err != nil {
 		panic(err)
 	}
-	return &buildPaymentCache{
-		remoter:              remoter,
-		lookupRecipientCache: lookupRecipientCache,
+	shouldOfferAdvancedSendCache, err := lru.New(50)
+	if err != nil {
+		panic(err)
 	}
-}
-
-func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (bool, bool, error) {
-	return OwnAccount(mctx, accountID)
+	return &buildPaymentCache{
+		remoter:                      remoter,
+		lookupRecipientCache:         lookupRecipientCache,
+		shouldOfferAdvancedSendCache: shouldOfferAdvancedSendCache,
+	}
 }
 
 func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {
@@ -98,6 +101,39 @@ func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	c.lookupRecipientCache.Add(to, lookupRecipientCacheEntry{
 		Time:      time.Now().Round(0),
 		Recipient: res,
+	})
+	return res, nil
+}
+
+type shouldOfferAdvancedSendCacheEntry struct {
+	res  stellar1.AdvancedBanner
+	time time.Time
+}
+
+func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error) {
+	fromTo := from.String() + ":" + to.String()
+
+	lock := c.shouldOfferAdvancedSendLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), fromTo)
+	defer lock.Release(mctx.Ctx())
+	if val, ok := c.shouldOfferAdvancedSendCache.Get(fromTo); ok {
+		if entry, ok := val.(shouldOfferAdvancedSendCacheEntry); ok {
+			if mctx.G().GetClock().Now().Sub(entry.time) <= time.Minute {
+				// Cache hit
+				mctx.Debug("bpc.ShouldOfferAdvancedSend cache hit")
+				return entry.res, nil
+			}
+		} else {
+			mctx.Debug("bpc.ShouldOfferAdvancedSend bad cached type: %T", val)
+		}
+		c.shouldOfferAdvancedSendCache.Remove(fromTo)
+	}
+	res, err := ShouldOfferAdvancedSend(mctx, c.remoter, from, to)
+	if err != nil {
+		return res, err
+	}
+	c.shouldOfferAdvancedSendCache.Add(fromTo, shouldOfferAdvancedSendCacheEntry{
+		time: time.Now().Round(0),
+		res:  res,
 	})
 	return res, nil
 }

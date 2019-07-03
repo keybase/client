@@ -28,14 +28,15 @@ const updatePathItem = (
   switch (newPathItem.type) {
     case Types.PathType.Unknown:
       return newPathItem
-    case Types.PathType.Symlink:
+    case Types.PathType.Symlink: {
       // @ts-ignore
       const oldSymlinkPathItem: Types.SymlinkPathItem = oldPathItem
       const newSymlinkPathItem: Types.SymlinkPathItem = newPathItem
       // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
       // what we want here.
       return oldSymlinkPathItem.merge(newSymlinkPathItem)
-    case Types.PathType.File:
+    }
+    case Types.PathType.File: {
       // @ts-ignore
       const oldFilePathItem: Types.FilePathItem = oldPathItem
       const newFilePathItem: Types.FilePathItem = newPathItem
@@ -72,7 +73,8 @@ const updatePathItem = (
       //    other fields from the new one if they change.
       // Either way, this can be done with a simple merge.
       return oldFilePathItem.merge(newFilePathItem)
-    case Types.PathType.Folder:
+    }
+    case Types.PathType.Folder: {
       // @ts-ignore
       const oldFolderPathItem: Types.FolderPathItem = oldPathItem
       const newFolderPathItem: Types.FolderPathItem = newPathItem
@@ -117,6 +119,7 @@ const updatePathItem = (
           newChildren.equals(oldFolderPathItem.children) ? oldFolderPathItem.children : newChildren
         )
       )
+    }
     default:
       return newPathItem
   }
@@ -189,7 +192,7 @@ const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.
       )
     case FsGen.saveMedia:
     case FsGen.shareNative:
-    case FsGen.download:
+    case FsGen.download: {
       const download = state.downloads.get(erroredAction.payload.key)
       if (!download || download.state.canceled) {
         // Ignore errors for canceled downloads.
@@ -201,6 +204,7 @@ const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.
           download => download && download.update('state', original => original.set('error', fsError))
         )
       )
+    }
     default:
       return withFsErrorBar(state, action)
   }
@@ -335,16 +339,18 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.favoriteIgnore: // fallthrough
-    case FsGen.favoriteIgnoreError:
+    case FsGen.favoriteIgnoreError: {
       const elems = Types.getPathElements(action.payload.path)
       const visibility = Types.getVisibilityFromElems(elems)
       if (!visibility) {
         return state
       }
+      // @ts-ignore
       return state.mergeIn(['tlfs', visibility, elems[2]], {
         isIgnored: action.type === FsGen.favoriteIgnore,
       })
-    case FsGen.newFolderRow:
+    }
+    case FsGen.newFolderRow: {
       const {parentPath} = action.payload
       const parentPathItem = state.pathItems.get(parentPath, Constants.unknownPathItem)
       if (parentPathItem.type !== Types.PathType.Folder) {
@@ -370,17 +376,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
       return state.mergeIn(
         ['edits'],
-        [
-          [
-            Constants.makeEditID(),
-            Constants.makeNewFolder({
-              hint: newFolderName,
-              name: newFolderName,
-              parentPath,
-            }),
-          ],
-        ]
+        I.Map({
+          [Constants.makeEditID()]: Constants.makeNewFolder({
+            hint: newFolderName,
+            name: newFolderName,
+            parentPath,
+          }),
+        })
       )
+    }
     case FsGen.newFolderName:
       return state.update('edits', edits =>
         edits.update(action.payload.editID, edit => edit && edit.set('name', action.payload.name))

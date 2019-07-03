@@ -334,7 +334,6 @@ const styles = Styles.styleSheetCreate({
     width: 120,
   },
   titleBox: {
-    height: 28,
     justifyContent: 'center',
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.medium,

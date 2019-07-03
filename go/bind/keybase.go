@@ -287,7 +287,13 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, ui
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
-	numBytes := status.LogSendDefaultBytesMobile
+	var numBytes int
+	switch kbCtx.MobileNetState.State() {
+	case keybase1.MobileNetworkState_WIFI:
+		numBytes = status.LogSendDefaultBytesMobileWifi
+	default:
+		numBytes = status.LogSendDefaultBytesMobileNoWifi
+	}
 	if sendMaxBytes {
 		numBytes = status.LogSendMaxBytes
 	}

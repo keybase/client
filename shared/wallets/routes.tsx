@@ -83,6 +83,8 @@ export const newModalRoutes = {
   receive: {getScreen: () => require('./receive-modal/container').default, upgraded: true},
   removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup, upgraded: true},
   renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup, upgraded: true},
+  sep7Confirm: {getScreen: () => require('./sep7-confirm/container').default, upgraded: true},
+  sep7ConfirmError: {getScreen: () => require('./sep7-confirm/error').default, upgraded: true},
   setDefaultAccount: {
     getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup,
     upgraded: true,

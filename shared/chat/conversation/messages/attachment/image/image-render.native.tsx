@@ -37,7 +37,7 @@ export class ImageRender extends React.Component<Props, State> {
       const {height, width} = this.props
       return (
         <Kb.Box2 direction="vertical" style={[styles.container, this.props.style, {height, width}]}>
-          {this.state.showVideo && (
+          {this.state.showVideo ? (
             <Video
               source={source}
               controls={!this.state.paused}
@@ -49,9 +49,13 @@ export class ImageRender extends React.Component<Props, State> {
               style={Styles.collapseStyles([styles.video, {height, width}])}
               resizeMode="cover"
             />
-          )}
-          {!this.props.loaded && (
-            <Kb.NativeFastImage source={{uri: this.props.src}} resizeMode="cover" style={styles.poster} />
+          ) : (
+            <Kb.NativeFastImage
+              onLoad={this.props.onLoad}
+              source={{uri: this.props.src}}
+              resizeMode="cover"
+              style={styles.poster}
+            />
           )}
         </Kb.Box2>
       )

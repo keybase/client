@@ -11,7 +11,6 @@ export const newModalRoutes = {
     getScreen: () => require('./team/settings-tab/retention/warning/container').default,
     upgraded: true,
   },
-  teamAddPeople: {getScreen: () => require('./add-people/container').default, upgraded: true},
   teamDeleteTeam: {getScreen: () => require('./delete-team/container').default, upgraded: true},
   teamEditTeamAvatar: {getScreen: () => require('../profile/edit-avatar/container').default, upgraded: true},
   teamEditTeamDescription: {
@@ -30,4 +29,5 @@ export const newModalRoutes = {
     getScreen: () => require('./rename-team/container').default,
     upgraded: true,
   },
+  teamsTeamBuilder: {getScreen: () => require('../team-building/container').default, upgraded: true},
 }

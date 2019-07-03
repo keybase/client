@@ -14,8 +14,15 @@ type TrackingChangedArg struct {
 	IsTracking bool   `codec:"isTracking" json:"isTracking"`
 }
 
+type TrackingInfoArg struct {
+	Uid       UID      `codec:"uid" json:"uid"`
+	Followers []string `codec:"followers" json:"followers"`
+	Followees []string `codec:"followees" json:"followees"`
+}
+
 type NotifyTrackingInterface interface {
 	TrackingChanged(context.Context, TrackingChangedArg) error
+	TrackingInfo(context.Context, TrackingInfoArg) error
 }
 
 func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
@@ -37,6 +44,21 @@ func NotifyTrackingProtocol(i NotifyTrackingInterface) rpc.Protocol {
 					return
 				},
 			},
+			"trackingInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]TrackingInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TrackingInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TrackingInfoArg)(nil), args)
+						return
+					}
+					err = i.TrackingInfo(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -47,5 +69,10 @@ type NotifyTrackingClient struct {
 
 func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, __arg TrackingChangedArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg})
+	return
+}
+
+func (c NotifyTrackingClient) TrackingInfo(ctx context.Context, __arg TrackingInfoArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingInfo", []interface{}{__arg})
 	return
 }

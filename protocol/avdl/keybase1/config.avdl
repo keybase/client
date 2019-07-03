@@ -255,11 +255,10 @@ protocol config {
     DeviceID deviceID;      // current logged in user's device ID
     string deviceName;      // current logged in user's device name
     FullName fullname;        // current user's fullname
-    array<string> following;    // who current logged in user is following
-    array<string> followers;    // who follows current logged in user
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
   }
   BootstrapStatus getBootstrapStatus(int sessionID);
+  void requestFollowerInfo(UID uid);
 
   boolean getRememberPassphrase(int sessionID);
   void setRememberPassphrase(int sessionID, boolean remember);

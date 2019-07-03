@@ -153,7 +153,7 @@ DEPENDENCIES:
   - react-native-fast-image (from `../node_modules/react-native-fast-image`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
-  - react-native-video (from `../node_modules/react-native-video/react-native-video.podspec`)
+  - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React/Core (from `../node_modules/react-native`)
   - React/CxxBridge (from `../node_modules/react-native`)
@@ -172,7 +172,7 @@ DEPENDENCIES:
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
-  - RNScreens (from `../node_modules/react-native-screens/RNScreens.podspec`)
+  - RNScreens (from `../node_modules/react-native-screens`)
   - UMBarCodeScannerInterface (from `../node_modules/unimodules-barcode-scanner-interface/ios`)
   - UMCameraInterface (from `../node_modules/unimodules-camera-interface/ios`)
   - UMConstantsInterface (from `../node_modules/unimodules-constants-interface/ios`)
@@ -232,7 +232,7 @@ EXTERNAL SOURCES:
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-video:
-    :path: "../node_modules/react-native-video/react-native-video.podspec"
+    :path: "../node_modules/react-native-video"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   rn-fetch-blob:
@@ -242,7 +242,7 @@ EXTERNAL SOURCES:
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
-    :podspec: "../node_modules/react-native-screens/RNScreens.podspec"
+    :path: "../node_modules/react-native-screens"
   UMBarCodeScannerInterface:
     :path: !ruby/object:Pathname
     path: "../node_modules/unimodules-barcode-scanner-interface/ios"
@@ -322,6 +322,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
   yoga: 03ff42a6f223fb88deeaed60249020d80c3091ee
 
-PODFILE CHECKSUM: 34498eeea067e95f4a2b53d5b9ebdd935348eeb1
+PODFILE CHECKSUM: af2485f8bb9f854bfe6883511b056cae391d73be
 
-COCOAPODS: 1.7.2
+COCOAPODS: 1.7.3

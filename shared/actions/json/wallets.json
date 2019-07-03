@@ -12,6 +12,15 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "acceptSEP7Pay": {
+      "_description": "Accept the prepared SEP7 payment",
+      "amount": "string",
+      "inputURI": "string"
+    },
+    "acceptSEP7Tx": {
+      "_description": "Accept the prepared SEP7 tx",
+      "inputURI": "string"
+    },
     "resetAcceptingDisclaimer": {
       "_description": "Reset to the pre-accepting-disclaimer state."
     },
@@ -22,11 +31,6 @@
     "accountUpdateReceived": {
       "_description": "We received an updated account record",
       "account": "Types.Account"
-    },
-    "addNewPayment": {
-      "_description": "Mark a payment we were just notified about as being unseen",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
     },
     "assetsReceived": {
       "_description": "Update our store of assets data",
@@ -66,10 +70,6 @@
     },
     "clearErrors": {
       "_description": "Clear errors from the store at times like opening or closing a form dialog."
-    },
-    "clearNewPayments": {
-      "_description": "Clear our idea of which payments have not been seen by the user yet",
-      "accountID": "Types.AccountID"
     },
     "cancelRequest": {
       "_description": "Cancel a request. Optionally delete an associated message",
@@ -279,6 +279,11 @@
       "reason": "'user-selected' | 'auto-selected' | 'from-chat' | 'show-transaction'",
       "show?": "boolean"
     },
+    "setSEP7Tx": {
+      "_description": "Prepare a SEP7 tx to be shown to the user for confirmation",
+      "confirmURI": "string",
+      "tx": "Types.SEP7ConfirmInfo"
+    },
     "showTransaction": {
       "_description": "Navigate to the details page for the given transaction.",
       "accountID": "Types.AccountID",
@@ -299,6 +304,7 @@
       "_description": "Failed to send a payment",
       "error": "string"
     },
+
     "setBuildingAmount": {
       "_description": "Set building amount",
       "amount": "string"
@@ -331,6 +337,20 @@
       "_description": "Set building to -- depends on recipientType",
       "to": "string"
     },
+    "clearBuildingAdvanced": {
+      "_description": "replace the current buildingAdvanced builtPaymentAdvanced data with an empty ones"
+    },
+    "setBuildingAdvancedRecipient": {"recipient": "string"},
+    "setBuildingAdvancedRecipientAmount": {"recipientAmount": "string"},
+    "setBuildingAdvancedRecipientAsset": {"recipientAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedRecipientType": {"recipientType": "Types.CounterpartyType"},
+    "setBuildingAdvancedPublicMemo": {"publicMemo": "HiddenString"},
+    "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
+    "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
+    "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
+    "calculateBuildingAdvanced": {},
+    "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
+    "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",
       "lastSentXLM": "boolean",
@@ -399,6 +419,14 @@
         "error": "string"
       }
     },
+    "validateSEP7Link": {
+      "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
+      "link": "string"
+    },
+    "validateSEP7LinkError": {
+      "_description": "Set the error field for a SEP7 validation.",
+      "error": "string"
+    },
     "loadMobileOnlyMode": {
       "_description": "Ask the service for current mobile only mode for Stellar account.",
       "accountID": "Types.AccountID"
@@ -425,9 +453,15 @@
       "airdropState": "Types.AirdropState"
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": {"details": "Types.AirdropDetails"},
+    "updatedAirdropDetails": {
+      "details": "Types.AirdropDetailsResponse",
+      "isPromoted": "boolean"
+    },
     "refreshTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID"
+    },
+    "refreshTrustlineAcceptedAssetsByUsername": {
+      "username": "string"
     },
     "refreshTrustlinePopularAssets": {},
     "addTrustline": {
@@ -440,6 +474,11 @@
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",
+      "assets": "Array<Types.AssetDescription>",
+      "limits": "I.Map<Types.AssetID, number>"
+    },
+    "setTrustlineAcceptedAssetsByUsername": {
+      "username": "string",
       "assets": "Array<Types.AssetDescription>",
       "limits": "I.Map<Types.AssetID, number>"
     },

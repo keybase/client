@@ -32,6 +32,8 @@ type Props = {
   saveProxyData: (proxyData: RPCTypes.ProxyData) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
+  rememberPassword: boolean
+  onChangeRememberPassword: (checked: boolean) => void
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -49,7 +51,6 @@ const UseNativeFrame = (props: Props) => {
             checked={!props.useNativeFrame}
             label={'Hide system window frame'}
             onCheck={x => props.onChangeUseNativeFrame(!x)}
-            style={styles.checkbox}
           />
         </Kb.Box>
         {initialUseNativeFrame !== props.useNativeFrame && (
@@ -79,7 +80,6 @@ const Advanced = (props: Props) => {
               (props.hasRandomPW ? ' (you need to set a password first)' : '')
             }
             onCheck={props.onChangeLockdownMode}
-            style={styles.checkbox}
           />
         </Kb.Box>
         {!!props.setLockdownModeError && (
@@ -87,9 +87,25 @@ const Advanced = (props: Props) => {
             {props.setLockdownModeError}
           </Kb.Text>
         )}
+        {!props.hasRandomPW && (
+          <Kb.Box style={styles.checkboxContainer}>
+            <Kb.Checkbox
+              checked={props.rememberPassword}
+              labelComponent={
+                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                  <Kb.Text type="BodySmall">
+                    You won't be asked for your password when restarting the app or your device.
+                  </Kb.Text>
+                </Kb.Box2>
+              }
+              onCheck={props.onChangeRememberPassword}
+            />
+          </Kb.Box>
+        )}
         {isLinux && <UseNativeFrame {...props} />}
         {!Styles.isMobile && !isLinux && (
-          <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+          <Kb.Box style={styles.checkboxContainer}>
             <Kb.Checkbox
               label="Open Keybase on startup"
               checked={props.openAtLogin}
@@ -97,7 +113,8 @@ const Advanced = (props: Props) => {
             />
           </Kb.Box>
         )}
-        <ProxySettings {...props} />
+        {/* Removed for this release. Will add back in later. */}
+        {/* <ProxySettings {...props} /> */}
         <Developer {...props} />
       </Kb.Box>
     </Kb.ScrollView>
@@ -361,17 +378,14 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.medium,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
-  },
-  checkbox: {
-    flex: 1,
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    width: '100%',
   },
   checkboxContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    maxHeight: 48,
-    minHeight: 48,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+    width: '100%',
   },
   developerButtons: {
     marginTop: Styles.globalMargins.small,
@@ -401,11 +415,6 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     flexWrap: 'wrap',
     marginTop: Styles.globalMargins.tiny,
-  },
-  openAtLoginCheckboxContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    flex: 1,
   },
   progressContainer: {
     ...Styles.globalStyles.flexBoxRow,

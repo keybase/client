@@ -8,7 +8,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
-import {isDarwin, isWindows, cacheRoot} from '../../constants/platform.desktop'
+import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {sendToMainWindow} from '../remote/util.desktop'
 import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
@@ -67,7 +67,7 @@ const focusSelfOnAnotherInstanceLaunching = (_, commandLine) => {
   }
 
   mainWindow.show()
-  if (isWindows) {
+  if (isWindows || isLinux) {
     mainWindow.window && mainWindow.window.focus()
   }
 

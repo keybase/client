@@ -360,10 +360,14 @@ func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGa
 	return nil
 }
 
-func (c *ChatCLIUI) ChatWatchPosition(context.Context, int) (chat1.LocationWatchID, error) {
+func (c *ChatCLIUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
 	return chat1.LocationWatchID(0), nil
 }
 
 func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
 	return nil
 }
