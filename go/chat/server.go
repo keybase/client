@@ -98,8 +98,7 @@ func (h *Server) shouldSquashError(err error) bool {
 	// these are not offline errors, but we never want the JS to receive them and potentially
 	// display a black bar
 	switch terr := err.(type) {
-	case storage.AbortedError,
-		libkb.LoginRequiredError:
+	case storage.AbortedError:
 		return true
 	case TransientUnboxingError:
 		return h.shouldSquashError(terr.Inner())
