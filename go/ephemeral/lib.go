@@ -436,7 +436,7 @@ func (e *EKLib) getStorageForType(mctx libkb.MetaContext, typ keybase1.TeamEphem
 	case keybase1.TeamEphemeralKeyType_TEAMBOT:
 		return mctx.G().GetTeambotEKBoxStorage(), nil
 	default:
-		return nil, fmt.Errorf("Unknown keyer type %v", typ)
+		return nil, fmt.Errorf("Unknown key type %v", typ)
 	}
 }
 
@@ -446,8 +446,6 @@ func (e *EKLib) PurgeTeamEKCachesForTeamID(mctx libkb.MetaContext, teamID keybas
 
 func (e *EKLib) PurgeTeambotEKCachesForTeamID(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 	e.purgeCachesForTeamIDAndType(mctx, teamID, keybase1.TeamEphemeralKeyType_TEAMBOT)
-	// purge this indiscriminately, it is keyed by generation and botUID
-	e.teambotEKMetadataCache.Purge()
 }
 
 func (e *EKLib) purgeCachesForTeamIDAndType(mctx libkb.MetaContext, teamID keybase1.TeamID, typ keybase1.TeamEphemeralKeyType) {

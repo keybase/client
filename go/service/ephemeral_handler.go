@@ -74,18 +74,18 @@ func (r *ekHandler) newTeamEK(ctx context.Context, cli gregor1.IncomingInterface
 }
 
 func (r *ekHandler) newTeambotEK(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
-	r.G().Log.CDebugf(ctx, "ekHandler: ephemeral.new_team_ek received")
+	r.G().Log.CDebugf(ctx, "ekHandler: ephemeral.new_teambot_ek received")
 	var msg keybase1.NewTeambotEkArg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
-		r.G().Log.CDebugf(ctx, "error unmarshaling ephemeral.new_team_ek item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling ephemeral.new_teambot_ek item: %s", err)
 		return err
 	}
-	r.G().Log.CDebugf(ctx, "ephemeral.new_team_ek unmarshaled: %+v", msg)
+	r.G().Log.CDebugf(ctx, "ephemeral.new_teambot_ek unmarshaled: %+v", msg)
 
 	if err := ephemeral.HandleNewTeambotEK(r.MetaContext(ctx), msg.Id, msg.Generation); err != nil {
 		return err
 	}
 
-	r.G().Log.CDebugf(ctx, "dismissing ephemeral.new_team_ek item since action succeeded")
+	r.G().Log.CDebugf(ctx, "dismissing ephemeral.new_teambot_ek item since action succeeded")
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
