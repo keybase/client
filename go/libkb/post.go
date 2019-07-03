@@ -186,7 +186,7 @@ func checkPostedAPICall(mctx MetaContext, sigID keybase1.SigID) (found bool, sta
 	go func() {
 		// Kick off an autoclaim runner to see if there are any pending relay payments to this proof
 		// But it takes a couple seconds for the server to update so sleep first
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 		mctx.G().GetStellar().KickAutoClaimRunner(mctx, nil)
 	}()
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
