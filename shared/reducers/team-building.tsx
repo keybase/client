@@ -34,7 +34,7 @@ export default function(
       // @ts-ignore tricky when we traverse into map types
       return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
     }
-    case TeamBuildingGen.finishedTeamBuilding:
+    case TeamBuildingGen.finishedTeamBuilding: {
       const initialState = Constants.makeSubState()
       return state.merge({
         teamBuildingFinishedSelectedRole: state.teamBuildingSelectedRole,
@@ -44,7 +44,7 @@ export default function(
         teamBuildingSendNotification: initialState.teamBuildingSendNotification,
         teamBuildingTeamSoFar: initialState.teamBuildingTeamSoFar,
       })
-
+    }
     case TeamBuildingGen.fetchedUserRecs:
       return state.merge({
         teamBuildingUserRecs: action.payload.users,

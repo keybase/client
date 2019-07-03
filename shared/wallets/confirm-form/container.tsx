@@ -91,6 +91,7 @@ export default namedConnect(
       readyToSend: stateProps.readyToSend,
       sendFailed: !!_sentPaymentError,
       sendingIntentionXLM: stateProps.sendingIntentionXLM,
+      showCancelInsteadOfBackOnMobile: false,
       waitingKey: stateProps.waitingKey,
     }
   },

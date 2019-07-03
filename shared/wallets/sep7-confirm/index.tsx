@@ -189,7 +189,7 @@ const SEP7Confirm = (props: Props) => (
     <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
       {Styles.isMobile && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.backButtonBox}>
-          <WalletBackButton onBack={props.onBack} />
+          <WalletBackButton onBack={props.onBack} showCancelInsteadOfBackOnMobile={true} />
         </Kb.Box2>
       )}
       <Kb.ScrollView

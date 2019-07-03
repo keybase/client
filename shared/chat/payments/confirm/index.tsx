@@ -125,6 +125,7 @@ const PaymentsConfirm = (props: Props) => {
       onClose={props.onCancel}
       onSendClick={props.onAccept}
       onBack={props.onCancel}
+      showCancelInsteadOfBackOnMobile={true}
       participantsComp={() => (
         <>
           {props.payments.map(p => (

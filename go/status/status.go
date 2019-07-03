@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 func GetCurrentStatus(mctx libkb.MetaContext) (res keybase1.CurrentStatus, err error) {
@@ -121,6 +122,25 @@ func GetExtendedStatus(mctx libkb.MetaContext) (res keybase1.ExtendedStatus, err
 	res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
 	if cacheSizeInfo, err := CacheSizeInfo(g); err == nil {
 		res.CacheDirSizeInfo = cacheSizeInfo
+	}
+
+	if g.ConnectionManager != nil {
+		xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+		if xp == nil {
+			mctx.Debug("| KBFS stats not available")
+		} else {
+			cli := &keybase1.SimpleFSClient{
+				Cli: rpc.NewClient(
+					xp, libkb.NewContextifiedErrorUnwrapper(g), nil),
+			}
+			stats, err := cli.SimpleFSGetStats(mctx.Ctx())
+			if err != nil {
+				mctx.Debug("| KBFS stats error: %+v", err)
+			} else {
+				res.LocalBlockCacheDbStats = stats.BlockCacheDbStats
+				res.LocalSyncCacheDbStats = stats.SyncCacheDbStats
+			}
+		}
 	}
 
 	if g.UIRouter != nil {

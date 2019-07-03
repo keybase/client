@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/keybase/client/go/kbfs/ioutil"
 	"github.com/keybase/client/go/logger"
@@ -96,6 +97,15 @@ func (ldb *LevelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
 		}
 	}()
 	return ldb.Put(key, value, nil)
+}
+
+// StatStrings returns newline-split leveldb stats, suitable for JSONification.
+func (ldb *LevelDb) StatStrings() ([]string, error) {
+	stats, err := ldb.GetProperty("leveldb.stats")
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(stats, "\n"), nil
 }
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage

@@ -29,6 +29,7 @@ export const allTextTypes = {
   BodyTiny: 'BodyTiny',
   BodyTinyLink: 'BodyTinyLink',
   BodyTinySemibold: 'BodyTinySemibold',
+  BodyTinySemiboldItalic: 'BodyTinySemiboldItalic',
   BodyTinyBold: 'BodyTinyBold',
   BodyTinyExtrabold: 'BodyTinyBold',
   Header: 'Header',

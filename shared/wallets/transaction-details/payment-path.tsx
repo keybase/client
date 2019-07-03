@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
 import PaymentPathCircle, {
   pathCircleLargeDiameter,
   pathCircleSmallDiameter,
@@ -93,7 +94,13 @@ const PaymentPath = (props: PaymentPathProps) => (
     {props.pathIntermediate.map((asset, i) => {
       // If we don't have a code, then the asset is lumens
       const code = asset.code || 'XLM'
-      const issuer = code === 'XLM' ? 'Stellar Lumens' : asset.issuerVerifiedDomain || 'Unknown issuer'
+      const issuer =
+        code === 'XLM'
+          ? 'Stellar Lumens'
+          : asset.issuerVerifiedDomain ||
+            (asset.issuerAccountID === Types.noAccountID
+              ? 'Unknown issuer'
+              : Constants.shortenAccountID(asset.issuerAccountID))
       return (
         <React.Fragment key={i}>
           <PaymentPathStop assetCode={code} issuer={issuer} />

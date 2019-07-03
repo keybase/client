@@ -1,0 +1,11 @@
+coverage
+desktop/build/**
+desktop/dist/**
+desktop/release/**
+desktop/renderer/renderer-load.desktop.js
+fixme/**
+markdown/parser.js
+node_modules
+test/setupTestFrameworkScriptFile.js
+react-native/react-native-contacts
+*.d.ts

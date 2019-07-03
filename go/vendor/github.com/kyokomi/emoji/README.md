@@ -8,14 +8,14 @@ Emoji is a simple golang package.
 Get it:
 
 ```
-go get gopkg.in/kyokomi/emoji.v1
+go get github.com/kyokomi/emoji
 ```
 
 Import it:
 
 ```
 import (
-	"gopkg.in/kyokomi/emoji.v1"
+	"github.com/kyokomi/emoji"
 )
 ```
 

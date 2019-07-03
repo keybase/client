@@ -718,6 +718,26 @@
           "name": "spaceAvailableNotificationThreshold"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSStats",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "syncCacheDbStats"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1244,6 +1264,10 @@
         "type": "array",
         "items": "string"
       }
+    },
+    "simpleFSGetStats": {
+      "request": [],
+      "response": "SimpleFSStats"
     }
   },
   "namespace": "keybase.1"

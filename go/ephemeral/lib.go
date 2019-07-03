@@ -433,6 +433,7 @@ func (e *EKLib) PurgeCachesForTeamIDAndGeneration(mctx libkb.MetaContext, teamID
 }
 
 func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, created bool, err error) {
+	mctx = mctx.WithLogTag("GOCTEK")
 	if err = e.checkLogin(mctx); err != nil {
 		return teamEK, false, err
 	}

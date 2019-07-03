@@ -6,7 +6,7 @@ import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createStackNavigator} from 'react-navigation-stack'
+import Stack from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -98,7 +98,7 @@ const TabBarIconContainer = props => (
 
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
-    map[tab] = createStackNavigator(Shim.shim(routes), {
+    map[tab] = Stack.createStackNavigator(Shim.shim(routes), {
       defaultNavigationOptions,
       headerMode,
       initialRouteName: tabRoots[tab],
@@ -150,7 +150,7 @@ const tabStyles = Styles.styleSheetCreate({
   },
 })
 
-const LoggedInStackNavigator = createStackNavigator(
+const LoggedInStackNavigator = Stack.createStackNavigator(
   {
     Main: TabNavigator,
     ...Shim.shim(modalRoutes),
@@ -161,7 +161,7 @@ const LoggedInStackNavigator = createStackNavigator(
   }
 )
 
-const LoggedOutStackNavigator = createStackNavigator(
+const LoggedOutStackNavigator = Stack.createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
     defaultNavigationOptions: {

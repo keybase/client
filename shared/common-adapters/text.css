@@ -365,6 +365,17 @@
   font-weight: 600;
 }
 
+.text_BodyTinySemiboldItalic {
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 600;
+  font-style: italic
+}
+
 .text_BodySmallSemibold {
   font-size: 13px;
   line-height: 17px;

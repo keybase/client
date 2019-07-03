@@ -1,13 +1,12 @@
 import * as React from 'react'
-import {FloatingMenu} from '../../../../common-adapters'
-import {Box2, Text} from '../../../../common-adapters/mobile.native'
+import * as Kb from '../../../../common-adapters/mobile.native'
 import {Props} from './index.types'
 import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (
-  <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Text type="BodySmallSemibold">Select attachment type</Text>
-  </Box2>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
+    <Kb.Text type="BodySmallSemibold">Select attachment type</Kb.Text>
+  </Kb.Box2>
 )
 
 const promptContainerStyle = {
@@ -65,7 +64,7 @@ class FilePickerPopup extends React.Component<Props> {
       view: <Prompt />,
     }
     return (
-      <FloatingMenu
+      <Kb.FloatingMenu
         header={header}
         attachTo={this.props.attachTo}
         items={items}

@@ -115,11 +115,12 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
     case T.verifyAllPhoneNumber:
       return `Your number *${todo.verifyAllPhoneNumber}* is unverified.`
-    default:
+    default: {
       // @ts-ignore this variant compilation seems wrong. ts todo.t can only be
       // of 3 types but that's not what we do in avdl.
       const type = todoTypeEnumToType[todo.t]
       return todoTypeToInstructions[type]
+    }
   }
 }
 
