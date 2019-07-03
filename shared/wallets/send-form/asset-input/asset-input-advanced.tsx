@@ -101,10 +101,15 @@ export const AssetInputSenderAdvanced = (props: EmptyProps) => {
     >
       {buildingAdvanced.recipientType === 'otherAccount' ? (
         <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
-          <Kb.Text type="BodyTinySemiboldItalic">
-            {accountMap.get(buildingAdvanced.senderAccountID).name ||
-              Constants.shortenAccountID(buildingAdvanced.senderAccountID)}
-          </Kb.Text>{' '}
+          {accountMap.get(buildingAdvanced.senderAccountID).name ? (
+            <Kb.Text type="BodyTinySemiboldItalic">
+              {accountMap.get(buildingAdvanced.senderAccountID).name}
+            </Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTinySemibold">
+              {Constants.shortenAccountID(buildingAdvanced.senderAccountID)}
+            </Kb.Text>
+          )}{' '}
           will send approximately:
         </Kb.Text>
       ) : (
