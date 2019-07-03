@@ -133,7 +133,7 @@ class Teams extends React.PureComponent<Props, State> {
         )
       case '_note':
         return <BetaNote onReadMore={this.props.onReadMore} />
-      case 'deletedTeam':
+      case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
           <Kb.Banner
@@ -142,7 +142,8 @@ class Teams extends React.PureComponent<Props, State> {
             text={`The ${teamName} team was deleted by ${deletedBy}.`}
           />
         )
-      case 'team':
+      }
+      case 'team': {
         const name = item.team
         const resetUserCount = (this.props.teamresetusers[name] && this.props.teamresetusers[name].size) || 0
         return (
@@ -160,6 +161,7 @@ class Teams extends React.PureComponent<Props, State> {
             resetUserCount={resetUserCount}
           />
         )
+      }
       default:
         return null
     }

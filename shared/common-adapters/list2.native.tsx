@@ -19,9 +19,10 @@ class List2<T> extends PureComponent<Props<T>> {
     switch (this.props.itemHeight.type) {
       case 'fixed':
         return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
-      case 'fixedListItem2Auto':
+      case 'fixedListItem2Auto': {
         const itemHeight = this.props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
         return {index, length: itemHeight, offset: itemHeight * index}
+      }
       case 'variable':
         return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
       default:

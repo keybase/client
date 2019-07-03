@@ -838,25 +838,29 @@ const onNewChatActivity = (state, action: EngineGen.Chat1NotifyChatNewChatActivi
       break
     }
     case RPCChatTypes.ChatActivityType.membersUpdate:
-      const convID = activity.membersUpdate && activity.membersUpdate.convID
-      if (convID) {
-        actions = [
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [Types.conversationIDToKey(convID)],
-            force: true,
-          }),
-        ]
+      {
+        const convID = activity.membersUpdate && activity.membersUpdate.convID
+        if (convID) {
+          actions = [
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: [Types.conversationIDToKey(convID)],
+              force: true,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
-      const setAppNotificationSettings = activity.setAppNotificationSettings
-      if (setAppNotificationSettings) {
-        actions = [
-          Chat2Gen.createNotificationSettingsUpdated({
-            conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-            settings: setAppNotificationSettings.settings,
-          }),
-        ]
+      {
+        const setAppNotificationSettings = activity.setAppNotificationSettings
+        if (setAppNotificationSettings) {
+          actions = [
+            Chat2Gen.createNotificationSettingsUpdated({
+              conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+              settings: setAppNotificationSettings.settings,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.teamtype:

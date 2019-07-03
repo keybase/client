@@ -28,10 +28,11 @@ export default function(
       return action.payload.wasCurrentDevice
         ? state.merge({justRevokedSelf: action.payload.deviceName})
         : state
-    case DevicesGen.badgeAppForDevices:
+    case DevicesGen.badgeAppForDevices: {
       const newSet = I.Set<string>(action.payload.ids)
       // We show our badges until we clear with the clearBadges call.
       return state.merge({isNew: newSet.merge(state.isNew)})
+    }
     case DevicesGen.clearBadges:
       return state.merge({isNew: I.Set()})
     case ProvisionGen.startProvision:
