@@ -101,6 +101,10 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         : state
     case SignupGen.signedup:
       return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
+    case SignupGen.clearJustSignedUpEmail:
+      return state.merge({
+        justSignedUpEmail: '',
+      })
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state
