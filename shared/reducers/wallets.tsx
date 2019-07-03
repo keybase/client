@@ -24,11 +24,12 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
-    case WalletsGen.accountsReceived:
+    case WalletsGen.accountsReceived: {
       const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
         action.payload.accounts.map(account => [account.accountID, account])
       )
       return state.merge({accountMap: accountMap})
+    }
     case WalletsGen.accountUpdateReceived:
       // accept the updated account if we've loaded it already
       // this is because we get the sort order from the full accounts load,
@@ -55,7 +56,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
           })
         : state
-    case WalletsGen.openSendRequestForm:
+    case WalletsGen.openSendRequestForm: {
       if (!state.acceptedDisclaimer) {
         return state
       }
@@ -80,6 +81,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         builtRequest: Constants.makeBuiltRequest(),
         sentPaymentError: '',
       })
+    }
     case WalletsGen.abandonPayment:
     case WalletsGen.clearBuilding:
       return state.merge({building: Constants.makeBuilding()})
@@ -104,12 +106,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
-    case WalletsGen.pendingPaymentsReceived:
+    case WalletsGen.pendingPaymentsReceived: {
       const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
         paymentsMap.filter(p => p.section !== 'pending').merge(newPending)
       )
-    case WalletsGen.recentPaymentsReceived:
+    }
+    case WalletsGen.recentPaymentsReceived: {
       const newPayments = I.Map(action.payload.payments.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
@@ -120,6 +123,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           cursor => cursor || action.payload.paymentCursor
         )
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
+    }
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
     case WalletsGen.displayCurrencyReceived: {
@@ -185,7 +189,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .deleteIn(['paymentCursorMap', state.selectedAccount])
         .deleteIn(['paymentsMap', state.selectedAccount])
     }
-    case WalletsGen.setBuildingAmount:
+    case WalletsGen.setBuildingAmount: {
       const {amount} = action.payload
       return state.merge({
         building: state.get('building').merge({amount}),
@@ -196,51 +200,59 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           .get('builtRequest')
           .merge({amountErrMsg: '', worthDescription: '', worthInfo: ''}),
       })
-    case WalletsGen.setBuildingCurrency:
+    }
+    case WalletsGen.setBuildingCurrency: {
       const {currency} = action.payload
       return state.merge({
         building: state.get('building').merge({currency}),
         builtPayment: Constants.makeBuiltPayment(),
       })
-    case WalletsGen.setBuildingFrom:
+    }
+    case WalletsGen.setBuildingFrom: {
       const {from} = action.payload
       return state.merge({
         building: state.get('building').merge({from}),
         builtPayment: Constants.makeBuiltPayment(),
       })
-    case WalletsGen.setBuildingIsRequest:
+    }
+    case WalletsGen.setBuildingIsRequest: {
       const {isRequest} = action.payload
       return state.merge({
         building: state.get('building').merge({isRequest}),
         builtPayment: Constants.makeBuiltPayment(),
         builtRequest: Constants.makeBuiltRequest(),
       })
-    case WalletsGen.setBuildingPublicMemo:
+    }
+    case WalletsGen.setBuildingPublicMemo: {
       const {publicMemo} = action.payload
       return state.merge({
         building: state.get('building').merge({publicMemo}),
         builtPayment: state.get('builtPayment').merge({publicMemoErrMsg: new HiddenString('')}),
       })
-    case WalletsGen.setBuildingRecipientType:
+    }
+    case WalletsGen.setBuildingRecipientType: {
       const {recipientType} = action.payload
       return state.merge({
         building: state.get('building').merge({recipientType}),
         builtPayment: Constants.makeBuiltPayment(),
       })
-    case WalletsGen.setBuildingSecretNote:
+    }
+    case WalletsGen.setBuildingSecretNote: {
       const {secretNote} = action.payload
       return state.merge({
         building: state.get('building').merge({secretNote}),
         builtPayment: state.get('builtPayment').merge({secretNoteErrMsg: new HiddenString('')}),
         builtRequest: state.get('builtRequest').merge({secretNoteErrMsg: new HiddenString('')}),
       })
-    case WalletsGen.setBuildingTo:
+    }
+    case WalletsGen.setBuildingTo: {
       const {to} = action.payload
       return state.merge({
         building: state.get('building').merge({to}),
         builtPayment: state.get('builtPayment').merge({toErrMsg: ''}),
         builtRequest: state.get('builtRequest').merge({toErrMsg: ''}),
       })
+    }
     case WalletsGen.clearBuildingAdvanced:
       return state
         .set('buildingAdvanced', Constants.emptyBuildingAdvanced)
@@ -287,17 +299,19 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         buildingAdvanced => buildingAdvanced.set('secretNote', action.payload.secretNote)
         // TODO PICNIC-142 clear error when we have that
       )
-    case WalletsGen.sendAssetChoicesReceived:
+    case WalletsGen.sendAssetChoicesReceived: {
       const {sendAssetChoices} = action.payload
       return state.merge({
         building: state.get('building').merge({sendAssetChoices}),
         builtPayment: Constants.makeBuiltPayment(),
       })
-    case WalletsGen.buildingPaymentIDReceived:
+    }
+    case WalletsGen.buildingPaymentIDReceived: {
       const {bid} = action.payload
       return state.merge({
         building: state.get('building').merge({bid}),
       })
+    }
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
     case WalletsGen.setReadyToReview:
@@ -435,9 +449,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({airdropShowBanner: false})
     case WalletsGen.updateAirdropBannerState:
       return state.merge({airdropShowBanner: action.payload.show})
-    case WalletsGen.updatedAirdropDetails:
+    case WalletsGen.updatedAirdropDetails: {
       const {details, isPromoted} = action.payload
       return state.set('airdropDetails', Constants.makeAirdropDetails({details, isPromoted}))
+    }
     case WalletsGen.setTrustlineExpanded:
       return state.update('trustline', trustline =>
         trustline.update('expandedAssets', expandedAssets =>

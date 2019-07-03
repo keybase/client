@@ -73,7 +73,7 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
 
       return 'savingHysteresis'
 
-    case 'savingHysteresis':
+    case 'savingHysteresis': {
       if (state.saving) {
         return 'saving'
       }
@@ -84,8 +84,9 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
       }
 
       return 'justSaved'
+    }
 
-    case 'justSaved':
+    case 'justSaved': {
       if (state.saving) {
         return 'saving'
       }
@@ -96,6 +97,7 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
       }
 
       return 'steady'
+    }
 
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)

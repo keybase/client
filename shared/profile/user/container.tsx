@@ -10,8 +10,6 @@ import * as Kb from '../../common-adapters'
 import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import {RouteProps} from '../../route-tree/render-route'
-// @ts-ignore codemode issue
-import {Response} from 'react-native-image-picker'
 import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
@@ -62,7 +60,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onEditAvatar: (image?: Response) => dispatch(ProfileGen.createEditAvatar()),
+  _onEditAvatar: (image?) => dispatch(ProfileGen.createEditAvatar()),
   _onReload: (username: string, isYou: boolean) => {
     dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
 

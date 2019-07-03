@@ -213,7 +213,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({openAtLogin: action.payload.open})
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
-    case ConfigGen.setAccounts:
+    case ConfigGen.setAccounts: {
       // already have one?
       let defaultUsername = state.defaultUsername
       if (action.payload.usernames.indexOf(defaultUsername) === -1) {
@@ -224,6 +224,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         configuredAccounts: I.List(action.payload.usernames),
         defaultUsername,
       })
+    }
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:

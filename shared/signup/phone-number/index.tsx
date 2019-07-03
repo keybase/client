@@ -65,7 +65,7 @@ type BodyProps = {
   icon: React.ReactNode
 }
 export const EnterPhoneNumberBody = (props: BodyProps) => {
-  const showCheckbox = props.onChangeAllowSearch && props.hasOwnProperty('allowSearch')
+  const showCheckbox = props.onChangeAllowSearch && Object.prototype.hasOwnProperty.call(props, 'allowSearch')
   return (
     <Kb.Box2
       alignItems="center"
