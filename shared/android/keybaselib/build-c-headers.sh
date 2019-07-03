@@ -17,6 +17,6 @@ build() {
 # build(clang-toolchain-name GOOS GOARCH)
 mkdir c-headers
 build i686-linux-android16 android 386
-build i686-linux-android16 android arm
-build i686-linux-android16 android arm64
+build armv7a-linux-androideabi16 android arm
+build aarch64-linux-android21 android arm64
 rm -r _obj
