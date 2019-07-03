@@ -192,7 +192,11 @@ const SEP7Confirm = (props: Props) => (
           <WalletBackButton onBack={props.onBack} />
         </Kb.Box2>
       )}
-      <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
+      <Kb.ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContents}
+        alwaysBounceVertical={false}
+      >
         <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} />
         {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         {props.operation === 'pay' ? (
@@ -277,6 +281,8 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'space-between',
     },
     isElectron: {
+      borderBottomLeftRadius: Styles.borderRadius,
+      borderBottomRightRadius: Styles.borderRadius,
       borderTopColor: Styles.globalColors.black_10,
       borderTopStyle: 'solid',
       borderTopWidth: 1,
@@ -340,10 +346,24 @@ const styles = Styles.styleSheetCreate({
   purpleText: Styles.platformStyles({
     common: {color: Styles.globalColors.purple},
   }),
-  scrollView: {
-    flexBasis: 'auto',
+  scrollView: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.purpleDark,
+      flexBasis: 'auto',
+      flexGrow: 1,
+      flexShrink: 1,
+    },
+    isElectron: {
+      borderTopLeftRadius: Styles.borderRadius,
+      borderTopRightRadius: Styles.borderRadius,
+      display: 'flex',
+    },
+  }),
+  scrollViewContents: {
+    backgroundColor: Styles.globalColors.white,
+    display: 'flex',
+    flexDirection: 'column',
     flexGrow: 1,
-    flexShrink: 1,
   },
   stellarIcon: {
     alignSelf: 'flex-start',
