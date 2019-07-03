@@ -8,7 +8,7 @@ type Props = {
   hasRandomPW: boolean
   newPasswordError?: string
   newPasswordConfirmError?: string
-  onBack?: () => void
+  onCancel?: () => void
   onSave: (password: string, passwordConfirm: string) => void
   saveLabel?: string
   showTyping?: boolean
@@ -161,9 +161,6 @@ const styles = Styles.styleSheetCreate({
   headerText: {
     paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
-  },
-  input: {
-    backgroundColor: Styles.globalColors.transparent,
   },
   passwordFormat: {
     alignSelf: 'flex-start',
