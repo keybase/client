@@ -12,7 +12,12 @@ type Props = {
 }
 
 const SendRequestForm = (props: Props) => (
-  <Root isRequest={props.isRequest} onBack={props.onBack} onClose={props.onClose}>
+  <Root
+    isRequest={props.isRequest}
+    onBack={props.onBack}
+    onClose={props.onClose}
+    showCancelInsteadOfBackOnMobile={!props.isAdvanced}
+  >
     {props.isAdvanced ? (
       props.isRequest ? (
         <Kb.Text type="HeaderBig">Developer Error</Kb.Text>

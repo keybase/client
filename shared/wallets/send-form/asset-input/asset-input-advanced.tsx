@@ -90,23 +90,42 @@ const LeftBlock = (props: EmptyProps) => {
   )
 }
 
-export const AssetInputSenderAdvanced = (props: EmptyProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Styles.collapseStyles([sharedStyles.container, styles.container])}
-  >
-    <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
-      You will send approximately:
-    </Kb.Text>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
-      <LeftBlock />
-      <Kb.Box style={Styles.globalStyles.flexGrow} />
-      <PickAssetButton isSender={true} />
+export const AssetInputSenderAdvanced = (props: EmptyProps) => {
+  const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const accountMap = Container.useSelector(state => state.wallets.accountMap)
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Styles.collapseStyles([sharedStyles.container, styles.container])}
+    >
+      {buildingAdvanced.recipientType === 'otherAccount' ? (
+        <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
+          {accountMap.get(buildingAdvanced.senderAccountID).name ? (
+            <Kb.Text type="BodyTinySemiboldItalic">
+              {accountMap.get(buildingAdvanced.senderAccountID).name}
+            </Kb.Text>
+          ) : (
+            <Kb.Text type="BodyTinySemibold">
+              {Constants.shortenAccountID(buildingAdvanced.senderAccountID)}
+            </Kb.Text>
+          )}{' '}
+          will send approximately:
+        </Kb.Text>
+      ) : (
+        <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
+          You will send approximately:
+        </Kb.Text>
+      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
+        <LeftBlock />
+        <Kb.Box style={Styles.globalStyles.flexGrow} />
+        <PickAssetButton isSender={true} />
+      </Kb.Box2>
+      <Available />
     </Kb.Box2>
-    <Available />
-  </Kb.Box2>
-)
+  )
+}
 
 export const AssetPathIntermediate = () => {
   const [expanded, setExpanded] = React.useState(false)
@@ -148,20 +167,27 @@ export const AssetPathIntermediate = () => {
       >
         <Kb.Box style={styles.intermediateLine} />
       </Kb.Box2>
-      <Kb.ClickableBox
+      <Kb.Box
         style={Styles.collapseStyles([
           styles.intermediateAbsoluteBlock,
-          styles.intermediateExpandButton,
           expanded ? styles.intermediateExpandButtonExpanded : styles.intermediateExpandButtonCollapsed,
         ])}
-        onClick={() => setExpanded(expanded => !expanded)}
       >
-        <Kb.Icon
-          type={expanded ? 'iconfont-collapse' : 'iconfont-expand'}
-          sizeType="Default"
-          color={Styles.globalColors.purple}
-        />
-      </Kb.ClickableBox>
+        <Kb.Button
+          type="Wallet"
+          mode="Secondary"
+          small={true}
+          style={styles.intermediateExpandButtonButton}
+          labelContainerStyle={styles.intermediateExpandButtonLabelContainer}
+          onClick={() => setExpanded(expanded => !expanded)}
+        >
+          <Kb.Icon
+            type={expanded ? 'iconfont-collapse' : 'iconfont-expand'}
+            sizeType="Small"
+            color={Styles.globalColors.purple}
+          />
+        </Kb.Button>
+      </Kb.Box>
       {expanded && (
         <Kb.Box2
           direction="vertical"
@@ -276,7 +302,9 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           </Kb.ClickableBox>
           {asset !== Constants.emptyAssetDescription && (
             <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
-              {asset === 'native' ? 'Stellar Lumens' : asset.issuerVerifiedDomain}
+              {asset === 'native'
+                ? 'Stellar Lumens'
+                : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
             </Kb.Text>
           )}
         </Kb.Box2>
@@ -351,22 +379,18 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.tiny,
   },
-  intermediateExpandButton: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: 28,
-    justifyContent: 'center',
+  intermediateExpandButtonButton: {
+    padding: 0,
   },
   intermediateExpandButtonCollapsed: {
     top: -10,
   },
   intermediateExpandButtonExpanded: {
     bottom: -14,
+  },
+  intermediateExpandButtonLabelContainer: {
+    minWidth: 32,
+    width: 32,
   },
   intermediateExpandedContainer: {
     paddingRight: Styles.globalMargins.mediumLarge,

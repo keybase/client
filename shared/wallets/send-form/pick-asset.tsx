@@ -89,7 +89,7 @@ const AssetList = ({accountID, isSender, username}) => {
                     >
                       {asset === 'native'
                         ? 'Stellar Lumens'
-                        : asset.issuerVerifiedDomain || asset.issuerAccountID}
+                        : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
                     </Kb.Text>
                   </Kb.Box2>
                   {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
@@ -115,10 +115,12 @@ const PickAsset = (props: Props) => {
   return (
     <Kb.MaybePopup onClose={onClose}>
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header isRequest={false} whiteBackground={true}>
-          <Kb.ClickableBox onClick={onBack} style={styles.backClickable}>
-            <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
-          </Kb.ClickableBox>
+        <Header
+          isRequest={false}
+          whiteBackground={true}
+          onBack={onBack}
+          showCancelInsteadOfBackOnMobile={false}
+        >
           {isSender ? (
             <Kb.Text type="BodyTinySemibold">You can send</Kb.Text>
           ) : username ? (

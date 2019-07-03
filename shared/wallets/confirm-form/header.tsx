@@ -8,6 +8,7 @@ type HeaderProps = {
   sendingIntentionXLM: boolean
   displayAmountXLM: string
   displayAmountFiat: string
+  showCancelInsteadOfBackOnMobile: boolean
 }
 
 const Header = (props: HeaderProps) => (
@@ -33,7 +34,10 @@ const Header = (props: HeaderProps) => (
         </Kb.Text>
       )}
     </Kb.Box2>
-    <WalletBackButton onBack={props.onBack} />
+    <WalletBackButton
+      onBack={props.onBack}
+      showCancelInsteadOfBackOnMobile={props.showCancelInsteadOfBackOnMobile}
+    />
   </Kb.Box2>
 )
 

@@ -7,6 +7,7 @@ type Props = {
   isRequest: boolean
   children?: React.ReactNode
   onBack?: (() => void) | null
+  showCancelInsteadOfBackOnMobile: boolean
   whiteBackground?: boolean
 }
 
@@ -19,7 +20,13 @@ const Header = (props: Props) => (
       fullHeight={true}
       alignItems="center"
     >
-      {props.onBack && <WalletBackButton onBack={props.onBack} isOnWhiteBackground={props.whiteBackground} />}
+      {props.onBack && (
+        <WalletBackButton
+          onBack={props.onBack}
+          isOnWhiteBackground={props.whiteBackground}
+          showCancelInsteadOfBackOnMobile={props.showCancelInsteadOfBackOnMobile}
+        />
+      )}
       {props.children || (
         <Kb.Icon
           type={props.isRequest ? 'icon-stellar-coins-receiving-48' : 'icon-stellar-coins-sending-48'}
