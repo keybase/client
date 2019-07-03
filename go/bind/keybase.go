@@ -14,16 +14,12 @@ import (
 	"runtime"
 	"runtime/debug"
 	"runtime/trace"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/status"
-	"golang.org/x/sync/errgroup"
-
-	"strings"
-
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/env"
 	"github.com/keybase/client/go/kbfs/fsrpc"
@@ -36,9 +32,11 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/status"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 var kbCtx *libkb.GlobalContext
@@ -241,6 +239,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		// before KBFS-on-mobile is ready.
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
+		kbfsParams.DiskCacheMode = libkbfs.DiskCacheModeOff
 		kbfsConfig, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
