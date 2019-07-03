@@ -291,7 +291,7 @@ const roleToColor = (role: Types.Role): string => {
     case 'senderOnly':
       return globalColors.black
     case 'receiverOnly':
-      return globalColors.green
+      return globalColors.greenDark
     case 'senderAndReceiver':
       return globalColors.black
     case 'none':

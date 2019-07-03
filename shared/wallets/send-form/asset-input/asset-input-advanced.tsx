@@ -15,11 +15,14 @@ type EmptyProps = {}
 
 export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const accountMap = Container.useSelector(state => state.wallets.accountMap)
   const dispatch = Container.useDispatch()
   const onChangeAmount = React.useCallback(
     recipientAmount => dispatch(WalletsGen.createSetBuildingAdvancedRecipientAmount({recipientAmount})),
     [dispatch]
   )
+  const accountName =
+    buildingAdvanced.recipientType === 'otherAccount' ? accountMap.get(buildingAdvanced.recipient).name : ''
   return (
     <Kb.Box2
       direction="vertical"
@@ -39,9 +42,13 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
               underline={false}
             />
           </>
+        ) : accountName ? (
+          <Kb.Text type="BodyTinySemiboldItalic" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
+            {accountName}
+          </Kb.Text>
         ) : (
-          <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle">
-            {buildingAdvanced.recipient}
+          <Kb.Text type="BodyTinySemibold" lineClamp={1} ellipsizeMode="middle" style={styles.shrink}>
+            {Constants.shortenAccountID(buildingAdvanced.recipient)}
           </Kb.Text>
         )}
         <Kb.Text type="BodyTinySemibold" style={styles.noShrink}>
@@ -177,7 +184,7 @@ export const AssetPathIntermediate = () => {
                   <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
                     {asset === 'native'
                       ? '/Stellar Lumens'
-                      : `/${asset.issuerVerifiedDomain || asset.issuerAccountID}`}
+                      : `/${asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}`}
                   </Kb.Text>
                 </Kb.Box>
                 <Kb.Box2
@@ -254,14 +261,17 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
         >
           <Kb.ClickableBox onClick={goToPickAsset} style={!goToPickAsset && styles.disabled}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
-              <Kb.Text type="HeaderBigExtrabold" style={sharedStyles.purple}>
+              <Kb.Text
+                type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}
+                style={Styles.collapseStyles([sharedStyles.purple, styles.pickAssetButtonTopText])}
+              >
                 {asset !== Constants.emptyAssetDescription
                   ? asset === 'native'
                     ? 'XLM'
                     : asset.code
                   : 'Pick an asset'}
               </Kb.Text>
-              <Kb.Icon type="iconfont-caret-down" sizeType="Small" color={Styles.globalColors.purple} />
+              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" color={Styles.globalColors.purple} />
             </Kb.Box2>
           </Kb.ClickableBox>
           {asset !== Constants.emptyAssetDescription && (
@@ -376,15 +386,26 @@ const styles = Styles.styleSheetCreate({
   noShrink: {
     flexShrink: 0,
   },
-  pickAssetButton: {
-    width: Styles.globalMargins.xlarge * 3,
-  },
+  pickAssetButton: Styles.platformStyles({
+    common: {
+      width: Styles.globalMargins.xlarge * 3,
+    },
+    isMobile: {
+      //    paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   // We need this to make the PickAssetButton on top of other stuff so amount
   // error can extend below it.
   pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
   pickAssetButtonOverlayOuter: {position: 'relative'},
+  pickAssetButtonTopText: Styles.platformStyles({
+    isElectron: {lineHeight: '24px'},
+    isMobile: {lineHeight: 32},
+  }),
   senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
+  shrink: {flexShrink: 1},
   topLabel: {
     marginBottom: Styles.globalMargins.xtiny,
+    maxWidth: '100%',
   },
 })

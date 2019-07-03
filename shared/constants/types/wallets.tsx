@@ -186,6 +186,9 @@ export type _PaymentCommon = {
   sourceAccountID: string
   sourceAmount: string // this and sourceAsset are set if this was a path payment,
   sourceAsset: string // just code for now,
+  sourceConvRate: string
+  sourceIssuer: string
+  sourceIssuerAccountID: AccountID
   sourceType: string
   statusSimplified: StatusSimplified
   statusDescription: string
