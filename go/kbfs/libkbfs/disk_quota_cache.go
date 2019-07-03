@@ -101,7 +101,7 @@ type DiskQuotaCacheStatus struct {
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskQuotaCacheLocalFromStorage(
-	config diskQuotaCacheConfig, quotaStorage storage.Storage) (
+	config diskQuotaCacheConfig, quotaStorage storage.Storage, mode InitMode) (
 	cache *DiskQuotaCacheLocal, err error) {
 	log := config.MakeLogger("DQC")
 	closers := make([]io.Closer, 0, 1)
@@ -119,10 +119,10 @@ func newDiskQuotaCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	quotaDbOptions := *leveldbOptions
+	quotaDbOptions := leveldbOptionsFromMode(mode)
 	quotaDbOptions.CompactionTableSize = defaultQuotaCacheTableSize
 	quotaDbOptions.Filter = filter.NewBloomFilter(16)
-	db, err := openLevelDBWithOptions(quotaStorage, &quotaDbOptions)
+	db, err := openLevelDBWithOptions(quotaStorage, quotaDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func newDiskQuotaCacheLocalFromStorage(
 // newDiskQuotaCacheLocal creates a new *DiskQuotaCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskQuotaCacheLocal(
-	config diskBlockCacheConfig, dirPath string) (
+	config diskBlockCacheConfig, dirPath string, mode InitMode) (
 	cache *DiskQuotaCacheLocal, err error) {
 	log := config.MakeLogger("DQC")
 	defer func() {
@@ -188,7 +188,7 @@ func newDiskQuotaCacheLocal(
 			quotaStorage.Close()
 		}
 	}()
-	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage)
+	return newDiskQuotaCacheLocalFromStorage(config, quotaStorage, mode)
 }
 
 // WaitUntilStarted waits until this cache has started.

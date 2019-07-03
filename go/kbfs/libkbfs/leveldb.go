@@ -38,6 +38,12 @@ var leveldbOptions = &opt.Options{
 	OpenFilesCacheCapacity: 10,
 }
 
+func leveldbOptionsFromMode(mode InitMode) *opt.Options {
+	o := *leveldbOptions
+	o.WriteBuffer = mode.DiskCacheWriteBufferSize()
+	return &o
+}
+
 // LevelDb is a libkbfs wrapper for leveldb.DB.
 type LevelDb struct {
 	*leveldb.DB
@@ -112,6 +118,7 @@ func (ldb *LevelDb) StatStrings() ([]string, error) {
 // as its underlying storage layer, and with the options specified.
 func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 	*LevelDb, error) {
+	fmt.Printf("OPTIONS: %#v\n", options)
 	db, err := leveldb.Open(stor, options)
 	if ldberrors.IsCorrupted(err) {
 		// There's a possibility that if the leveldb wasn't closed properly
@@ -130,10 +137,10 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer.
-func openLevelDB(stor storage.Storage) (*LevelDb, error) {
-	options := *leveldbOptions
+func openLevelDB(stor storage.Storage, mode InitMode) (*LevelDb, error) {
+	options := leveldbOptionsFromMode(mode)
 	options.Filter = filter.NewBloomFilter(16)
-	return openLevelDBWithOptions(stor, &options)
+	return openLevelDBWithOptions(stor, options)
 }
 
 func versionPathFromVersion(dirPath string, version uint64) string {
@@ -219,8 +226,9 @@ func getVersionedPathForDiskCache(
 // under storageRoot. The path include dbFolderName and dbFilename. Note that
 // dbFilename is actually created as a folder; it's just where raw LevelDb
 // lives.
-func openVersionedLevelDB(log logger.Logger, storageRoot string,
-	dbFolderName string, currentDiskCacheVersion uint64, dbFilename string) (
+func openVersionedLevelDB(
+	log logger.Logger, storageRoot string, dbFolderName string,
+	currentDiskCacheVersion uint64, dbFilename string, mode InitMode) (
 	db *LevelDb, err error) {
 	dbPath := filepath.Join(storageRoot, dbFolderName)
 	versionPath, err := getVersionedPathForDiskCache(
@@ -239,8 +247,8 @@ func openVersionedLevelDB(log logger.Logger, storageRoot string,
 			storage.Close()
 		}
 	}()
-	options := *leveldbOptions
-	if db, err = openLevelDBWithOptions(storage, &options); err != nil {
+	options := leveldbOptionsFromMode(mode)
+	if db, err = openLevelDBWithOptions(storage, options); err != nil {
 		return nil, err
 	}
 	return db, nil
