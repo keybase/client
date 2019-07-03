@@ -11,8 +11,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
-	emoji "gopkg.in/kyokomi/emoji.v1"
 )
 
 const reacjiDiskVersion = 3
