@@ -16,7 +16,7 @@ const reg = /([^ ]+) ▶ \[DEBU (keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+
 const tagsReg = /\[tags:([^\]]+)]/
 const methodPrefixReg = /^(\+\+Chat: )?/
 const methodResultReg = / -> .*$/
-const typeAndMethodReg = /^(gui|[+-|])/
+const typeAndMethodReg = /^(gui|[+\-|])/
 // gui regs
 const guiCountTypeTimeReg = /\["(Info|Warn|Action)","([^"]+)","(.*)"]/
 const actionReg = /type: ([^ ]+) (.*)/
