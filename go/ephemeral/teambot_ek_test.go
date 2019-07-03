@@ -20,14 +20,16 @@ func TestNewTeambotEK(t *testing.T) {
 	merkleRoot := *merkleRootPtr
 
 	// Before we've published anything, should get back a nil botkey
-	nilMeta, err := fetchLatestTeambotEK(mctx, teamID, botUID)
+	nilMeta, err := fetchLatestTeambotEK(mctx, teamID)
 	require.NoError(t, err)
 	require.Nil(t, nilMeta)
 
-	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botUID, merkleRoot)
+	teamEK, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+	require.NoError(t, err)
+	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK, merkleRoot)
 	require.NoError(t, err)
 
-	metaPtr, err := fetchLatestTeambotEK(mctx, teamID, botUID)
+	metaPtr, err := fetchLatestTeambotEK(mctx, teamID)
 	require.NoError(t, err)
 	require.NotNil(t, metaPtr)
 	metadata := *metaPtr
@@ -48,7 +50,7 @@ func TestNewTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, typ.IsTeambot())
 
-	teamEK, err := mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
+	teamEK, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
 	require.NoError(t, err)
 	expectedSeed, err := deriveTeambotEKFromTeamEK(mctx, teamEK, botUID)
 	require.NoError(t, err)

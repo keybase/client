@@ -47,7 +47,7 @@ func (k *TeambotEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 }
 
 func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeambotEkMetadata, err error) {
+	teamEK keybase1.TeamEk, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeambotEkMetadata, err error) {
 	defer mctx.TraceTimed("publishNewTeambotEK", func() error { return err })()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
@@ -57,7 +57,7 @@ func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID 
 		return metadata, err
 	}
 
-	sig, box, err := prepareNewTeambotEK(mctx, team, botUID, merkleRoot)
+	sig, box, err := prepareNewTeambotEK(mctx, team, botUID, teamEK, merkleRoot)
 	if err != nil {
 		return metadata, err
 	}
@@ -80,17 +80,17 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string
 			"sig":     libkb.S{Val: sig},
 			"box":     libkb.S{Val: box},
 		},
+		AppStatusCodes: []int{libkb.SCOk, libkb.SCEphemeralTeambotGenerationExists},
 	}
 	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
-	// add app status for dup box and test
 	return err
 }
 
 func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybase1.UID,
-	merkleRoot libkb.MerkleRoot) (sig string, box *keybase1.TeambotEkBoxed, err error) {
+	teamEK keybase1.TeamEk, merkleRoot libkb.MerkleRoot) (sig string, box *keybase1.TeambotEkBoxed, err error) {
 	defer mctx.TraceTimed("prepareNewTeambotEK", func() error { return err })()
 
-	statement, _, _, err := fetchUserEKStatement(mctx, mctx.G().Env.GetUID())
+	statement, _, _, err := fetchUserEKStatement(mctx, botUID)
 	if err != nil {
 		return "", nil, err
 	}
@@ -103,11 +103,6 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 	activeMetadata := activeMetadataMap[botUID]
 
 	recipientKey, err := libkb.ImportKeypairFromKID(activeMetadata.Kid)
-	if err != nil {
-		return "", nil, err
-	}
-
-	teamEK, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, team.ID)
 	if err != nil {
 		return "", nil, err
 	}
@@ -162,7 +157,7 @@ type teambotEKResp struct {
 	} `json:"result"`
 }
 
-func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID) (metadata *keybase1.TeambotEkMetadata, err error) {
+func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metadata *keybase1.TeambotEkMetadata, err error) {
 	defer mctx.TraceTimed("fetchLatestTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -170,7 +165,6 @@ func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"team_id": libkb.S{Val: string(teamID)},
-			"uid":     libkb.S{Val: string(botUID)},
 		},
 	}
 	res, err := mctx.G().GetAPI().Get(mctx, apiArg)

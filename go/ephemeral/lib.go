@@ -54,8 +54,8 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 	ekLib := &EKLib{
 		teamEKGenCache:         nlru,
 		teambotEKMetadataCache: nlru2,
-		clock:                  clockwork.NewRealClock(),
-		stopCh:                 make(chan struct{}),
+		clock:  clockwork.NewRealClock(),
+		stopCh: make(chan struct{}),
 	}
 	go ekLib.backgroundKeygen(mctx)
 	return ekLib
@@ -499,8 +499,10 @@ func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.
 	}
 
 	err = teamEKRetryWrapper(mctx, func() error {
+		e.Lock()
+		defer e.Unlock()
 		var ek keybase1.TeamEphemeralKey
-		ek, created, err = e.getOrCreateLatestTeamEKInner(mctx, teamID)
+		ek, created, err = e.getOrCreateLatestTeamEKLocked(mctx, teamID)
 		if err != nil {
 			return err
 		}
@@ -517,11 +519,9 @@ func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.
 	return teamEK, created, err
 }
 
-func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keybase1.TeamID) (
+func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID keybase1.TeamID) (
 	teamEK keybase1.TeamEphemeralKey, created bool, err error) {
-	defer mctx.TraceTimed("getOrCreateLatestTeamEKInner", func() error { return err })()
-	e.Lock()
-	defer e.Unlock()
+	defer mctx.TraceTimed("getOrCreateLatestTeamEKLocked", func() error { return err })()
 
 	teamEKBoxStorage := mctx.G().GetTeamEKBoxStorage()
 
@@ -583,7 +583,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 			created := false
 			if err != nil {
 				// Let's just clear the cache and try again later
-				mctx.Debug("Unable to getOrCreateLatestTeamEKInner in the background: %v", err)
+				mctx.Debug("Unable to getOrCreateLatestTeamEKLocked in the background: %v", err)
 				e.teamEKGenCache.Remove(cacheKey)
 			} else {
 				e.teamEKGenCache.Add(cacheKey, e.newCacheEntry(
@@ -617,6 +617,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(mctx libkb.MetaContext, teamID keyb
 // `generation` is also the current maxGeneration, create a new teamEK.
 func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
+	mctx = mctx.WithLogTag("GOCLTEK")
 	defer mctx.TraceTimed("GetTeamEK", func() error { return err })()
 
 	if err = e.checkLogin(mctx); err != nil {
@@ -667,6 +668,7 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 // depend on team members who do to derive and publish a new key.
 func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBotUID gregor1.UID) (
 	teambotEK keybase1.TeambotEk, created bool, err error) {
+	mctx = mctx.WithLogTag("GOCLTBEK")
 	if err = e.checkLogin(mctx); err != nil {
 		return teambotEK, false, err
 	}
@@ -685,7 +687,9 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 		}
 	} else { // we are a team member who needs the latest bot key, get or create that puppy.
 		err = teamEKRetryWrapper(mctx, func() error {
-			ek, created, err = e.getOrCreateLatestTeambotEKInner(mctx, teamID, botUID)
+			e.Lock()
+			defer e.Unlock()
+			ek, created, err = e.getOrCreateLatestTeambotEKLocked(mctx, teamID, botUID)
 			return err
 		})
 		if err != nil {
@@ -702,11 +706,9 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	return ek.Teambot(), created, err
 }
 
-func (e *EKLib) getOrCreateLatestTeambotEKInner(mctx libkb.MetaContext, teamID keybase1.TeamID,
+func (e *EKLib) getOrCreateLatestTeambotEKLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID) (ek keybase1.TeamEphemeralKey, created bool, err error) {
-	defer mctx.TraceTimed("getOrCreateLatestTeambotEKInner", func() error { return err })()
-	e.Lock()
-	defer e.Unlock()
+	defer mctx.TraceTimed("getOrCreateLatestTeambotEKLocked", func() error { return err })()
 
 	// first check if we have the teamEK cached, in which case we can just
 	// derive the teambotEK and return that.
@@ -725,7 +727,7 @@ func (e *EKLib) getOrCreateLatestTeambotEKInner(mctx libkb.MetaContext, teamID k
 	}
 
 	// get the latest teamEK to derive the latest teambotEK
-	teamEK, _, err := e.getOrCreateLatestTeamEKInner(mctx, teamID)
+	teamEK, _, err := e.getOrCreateLatestTeamEKLocked(mctx, teamID)
 	if err != nil {
 		return ek, false, err
 	}
@@ -769,7 +771,7 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		return teambotEK, false, err
 	}
 	merkleRoot := *merkleRootPtr
-	metadata, err := publishNewTeambotEK(mctx, teamID, botUID, merkleRoot)
+	metadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK.Team(), merkleRoot)
 	if err != nil {
 		return teambotEK, false, err
 	}
@@ -801,11 +803,12 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 		e.teamEKGenCache.Remove(cacheKey)
 	}
 
-	metadata, err := fetchLatestTeambotEK(mctx, teamID, botUID)
+	metadata, err := fetchLatestTeambotEK(mctx, teamID)
 	if err != nil {
 		return ek, err
 	} else if metadata == nil {
-		return ek, fmt.Errorf("no teambotEK found")
+		err = newEKMissingBoxErr(mctx, TeambotEKStr, -1)
+		return ek, err
 	}
 
 	ek, err = storage.Get(mctx, teamID, metadata.Generation, nil)
@@ -822,6 +825,7 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 // derived the key from the teamEK at the given `generation`.
 func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBotUID gregor1.UID,
 	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teambotEK keybase1.TeambotEk, err error) {
+	mctx = mctx.WithLogTag("GTBEK")
 	defer mctx.TraceTimed("GetTeambotEK", func() error { return err })()
 
 	if err = e.checkLogin(mctx); err != nil {
