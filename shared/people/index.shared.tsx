@@ -18,13 +18,14 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
       return (
         <Todo
           badged={item.badged}
-          todoType={item.todoType}
-          instructions={item.instructions}
+          buttons={[]}
           confirmLabel={item.confirmLabel}
           icon={item.icon}
+          instructions={item.instructions}
           key={item.todoType}
+          metadata={item.metadata}
           subText={''}
-          buttons={[]}
+          todoType={item.todoType}
         />
       )
     case 'notification':

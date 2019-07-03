@@ -10,16 +10,18 @@ import {connect, isMobile} from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 import openURL from '../../util/open-url'
 
 type TodoOwnProps = {
   badged: boolean
+  buttons: Array<TaskButton>
   confirmLabel: string
   icon: IconType
   instructions: string
+  metadata: Types.TodoMeta
   subText: string
   todoType: Types.TodoType
-  buttons: Array<TaskButton>
 }
 
 const installLinkURL = 'https://keybase.io/download'
@@ -46,7 +48,7 @@ function makeDefaultButtons(onConfirm, confirmLabel, onDismiss?, dismissLabel?) 
 const AddEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    onConfirm: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']})),
     onDismiss: onSkipTodo('addEmail', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -58,7 +60,7 @@ const AddEmailConnector = connect(
 const AddPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    onConfirm: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
     onDismiss: onSkipTodo('addPhoneNumber', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -252,15 +254,19 @@ const TeamShowcaseConnector = connect(
 const VerifyAllEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    _onConfirm: email => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(SettingsGen.createEditEmail({email, verify: true}))
+    },
     onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   }),
-  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
       {
         label: 'Verify',
-        onClick: dispatchProps.onConfirm,
+        onClick: () =>
+          ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
         type: 'Success',
       },
       {
@@ -275,7 +281,9 @@ const VerifyAllEmailConnector = connect(
 const VerifyAllPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    _onConfirm: phone => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    },
     onManage: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   }),
   (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
@@ -283,7 +291,8 @@ const VerifyAllPhoneNumberConnector = connect(
     buttons: [
       {
         label: 'Verify',
-        onClick: dispatchProps.onConfirm,
+        onClick: () =>
+          ownProps.metadata.type === 'phone' && dispatchProps._onConfirm(ownProps.metadata.phone),
         type: 'Success',
       },
       {
@@ -298,15 +307,19 @@ const VerifyAllPhoneNumberConnector = connect(
 const LegacyEmailVisibilityConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => {}, // TODO: See Y2K-187.
+    _onConfirm: email => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
+    },
     onDismiss: onSkipTodo('legacyEmailVisibility', dispatch),
   }),
-  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
       {
         label: 'Make searchable',
-        onClick: dispatchProps.onConfirm,
+        onClick: () =>
+          ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
         type: 'Success',
       },
       {
