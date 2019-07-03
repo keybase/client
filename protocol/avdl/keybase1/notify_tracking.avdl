@@ -5,4 +5,6 @@ protocol NotifyTracking {
 
   @notify("")
   void trackingChanged(UID uid, string username, boolean isTracking); // isTracking set if current user is tracking uid
+  
+  void trackingInfo(UID uid, array<string> followers, array<string> followees) oneway;
 }

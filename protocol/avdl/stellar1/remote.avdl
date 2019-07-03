@@ -136,6 +136,7 @@ protocol remote {
     TimeMs ctime; // ctime in keybase db
     TimeMs rtime; // time of last status update
     string cursorToken;
+    boolean unread;
     boolean fromPrimary;
     string batchID;
     boolean fromAirdrop;

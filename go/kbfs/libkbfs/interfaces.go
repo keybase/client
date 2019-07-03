@@ -1935,6 +1935,13 @@ type InitMode interface {
 	// DoLogObfuscation indicates whether senstive data like filenames
 	// should be obfuscated in log messages.
 	DoLogObfuscation() bool
+	// InitialDelayForBackgroundWork indicates how long non-critical
+	// work that happens in the background on startup should wait
+	// before it begins.
+	InitialDelayForBackgroundWork() time.Duration
+	// BackgroundWorkPeriod indicates how long to wait between
+	// non-critical background work tasks.
+	BackgroundWorkPeriod() time.Duration
 }
 
 type initModeGetter interface {

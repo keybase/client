@@ -60,6 +60,7 @@ const iconContainerStyle = {
 }
 
 const childrenContainerStyle = {
+  flex: 1,
   overflow: 'hidden',
   position: 'relative',
   width: 'auto',
@@ -69,13 +70,13 @@ const timestampContainerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'flex-start',
-  position: 'absolute',
-  right: Styles.globalMargins.small,
+  marginLeft: 'auto',
+  marginRight: Styles.globalMargins.small,
+  marginTop: 6,
 }
 
 const timestampContainerStyleMulti = {
   alignSelf: 'flex-start',
-  top: Styles.globalMargins.small,
 }
 
 const timestampContainerStyleSingle = {

@@ -155,13 +155,18 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         defaultUsername: action.payload.username || state.defaultUsername,
         deviceID: action.payload.deviceID,
         deviceName: action.payload.deviceName,
-        followers: I.Set(action.payload.followers),
-        following: I.Set(action.payload.following),
         loggedIn: action.payload.loggedIn,
         registered: action.payload.registered,
         uid: action.payload.uid,
         username: action.payload.username,
       })
+    case ConfigGen.followerInfoUpdated:
+      return state.uid === action.payload.uid
+        ? state.merge({
+            followers: I.Set(action.payload.followers),
+            following: I.Set(action.payload.followees),
+          })
+        : state
     case ConfigGen.loggedIn:
       return state.merge({loggedIn: true})
     case ConfigGen.loggedOut:

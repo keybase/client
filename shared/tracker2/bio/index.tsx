@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
 type Props = {
+  airdropIsLive: boolean | null
   bio: string | null
   followThem: boolean | null
   followersCount: number | null
@@ -21,7 +22,7 @@ const Bio = (p: Props) => (
       <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
         {p.fullname}
       </Kb.Text>
-      {flags.airdrop && p.registeredForAirdrop && (
+      {flags.airdrop && p.airdropIsLive && p.registeredForAirdrop && (
         <Kb.WithTooltip text="Lucky airdropee">
           <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
         </Kb.WithTooltip>

@@ -14,7 +14,6 @@ export type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
-  _unread: Constants.isPaymentUnread(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
@@ -73,7 +72,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     summaryAdvanced: tx.summaryAdvanced,
     timestamp: tx.time ? new Date(tx.time) : null,
     trustline: tx.trustline,
-    unread: stateProps._unread,
+    unread: tx.unread,
     yourRole,
   }
 }

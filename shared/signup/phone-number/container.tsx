@@ -13,13 +13,19 @@ const mapStateToProps = (state: Container.TypedState, ownProps: {}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  onClear: () => dispatch(SettingsGen.createClearPhoneNumberErrors()),
   onContinue: (phoneNumber: string, allowSearch: boolean) =>
     dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
   onGoToVerify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']})),
-  onSkip: () => dispatch(RouteTreeGen.createClearModals()), // TODO route to add-email
+  onSkip: () => {
+    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    dispatch(RouteTreeGen.createClearModals())
+    // TODO route to add-email
+  },
 })
 
 type WatcherProps = Props & {
+  onClear: () => void
   onGoToVerify: () => void
   pendingVerification: string
 }
@@ -33,6 +39,9 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
     ) {
       this.props.onGoToVerify()
     }
+  }
+  componentWillUnmount() {
+    this.props.onClear()
   }
   render() {
     return (
