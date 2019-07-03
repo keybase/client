@@ -57,9 +57,14 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
   return null
 }
 
+const EmailVerificationBanner = ({email}) => {
+  return <Kb.Banner color="green" text={`Welcome to Keybase! A verification link was sent to ${email}.`} />
+}
+
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner />}
+    {props.signupEmail !== '' && <EmailVerificationBanner email={props.signupEmail} />}
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}

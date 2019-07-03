@@ -13,7 +13,9 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
   switch (action.type) {
     case SignupGen.resetStore: // fallthrough
     case SignupGen.restartSignup:
-      return initialState
+      return initialState.merge({
+        justSignedUpEmail: state.email,
+      })
     case SignupGen.goBackAndClearErrors:
       return state.merge({
         devicenameError: '',
@@ -46,7 +48,12 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       const {email, allowSearch} = action.payload
       const emailVisible = allowSearch
       const emailError = isValidEmail(email)
-      return state.merge({email, emailError, emailVisible})
+      return state.merge({
+        email,
+        emailError,
+        emailVisible,
+        justSignedUpEmail: email,
+      })
     }
     case SignupGen.requestInvite: {
       const {email, name} = action.payload

@@ -36,6 +36,7 @@ type Props = {
   followSuggestions: I.List<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
+  signupEmail: string
   showAirdrop: boolean
   myUsername: string
   waiting: boolean
@@ -61,6 +62,7 @@ class LoadOnMount extends React.PureComponent<Props> {
           getData={this._getData}
           onClickUser={this._onClickUser}
           showAirdrop={this.props.showAirdrop}
+          signupEmail={this.props.signupEmail}
         />
       </Kb.Reloadable>
     )
@@ -73,6 +75,7 @@ const mapStateToProps = state => ({
   newItems: state.people.newItems,
   oldItems: state.people.oldItems,
   showAirdrop: isMobile,
+  signupEmail: state.signup.justSignedUpEmail,
   waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
 })
 
@@ -92,6 +95,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     newItems: stateProps.newItems,
     oldItems: stateProps.oldItems,
     showAirdrop: stateProps.showAirdrop,
+    signupEmail: stateProps.signupEmail,
     waiting: stateProps.waiting,
     ...dispatchProps,
   }
