@@ -1595,6 +1595,27 @@
         }
       ],
       "response": "GUIFileContext"
+    },
+    "simpleFSDoIndex": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
     }
   },
   "namespace": "keybase.1"

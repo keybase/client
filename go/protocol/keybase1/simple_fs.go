@@ -1786,6 +1786,14 @@ type SimpleFSGetGUIFileContextArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
 }
 
+type SimpleFSDoIndexArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
+type SimpleFSSearchArg struct {
+	Query string `codec:"query" json:"query"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1906,6 +1914,8 @@ type SimpleFSInterface interface {
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
 	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
+	SimpleFSDoIndex(context.Context, Path) error
+	SimpleFSSearch(context.Context, string) ([]string, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2707,6 +2717,36 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSDoIndex": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSDoIndexArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSDoIndexArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSDoIndexArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSDoIndex(ctx, typedArgs[0].Path)
+					return
+				},
+			},
+			"simpleFSSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSearch(ctx, typedArgs[0].Query)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3082,5 +3122,17 @@ func (c SimpleFSClient) SimpleFSGetFilesTabBadge(ctx context.Context) (res Files
 func (c SimpleFSClient) SimpleFSGetGUIFileContext(ctx context.Context, path KBFSPath) (res GUIFileContext, err error) {
 	__arg := SimpleFSGetGUIFileContextArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetGUIFileContext", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSDoIndex(ctx context.Context, path Path) (err error) {
+	__arg := SimpleFSDoIndexArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDoIndex", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSearch(ctx context.Context, query string) (res []string, err error) {
+	__arg := SimpleFSSearchArg{Query: query}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

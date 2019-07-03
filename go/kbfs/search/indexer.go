@@ -5,22 +5,17 @@
 package search
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/blevesearch/bleve"
-	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
-	"github.com/keybase/client/go/kbfs/tlfhandle"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 )
 
 type Indexer struct {
-	fs    *libfs.FS
 	index bleve.Index
 }
 
@@ -28,19 +23,10 @@ func indexPath(root string) string {
 	return filepath.Join(root, "kbfs_index")
 }
 
-func NewIndexer(
-	ctx context.Context, config libkbfs.Config,
-	tlfHandle *tlfhandle.Handle) (*Indexer, error) {
-	fs, err := libfs.NewFS(
-		ctx, config, tlfHandle, data.MasterBranch, "", "",
-		keybase1.MDPriorityNormal)
-	if err != nil {
-		return nil, err
-	}
-
+func NewIndexer(config libkbfs.Config) (*Indexer, error) {
 	p := indexPath(config.StorageRoot())
 	var index bleve.Index
-	_, err = os.Stat(p)
+	_, err := os.Stat(p)
 	switch {
 	case os.IsNotExist(errors.Cause(err)):
 		mapping := bleve.NewIndexMapping()
@@ -58,13 +44,12 @@ func NewIndexer(
 	}
 
 	return &Indexer{
-		fs:    fs,
 		index: index,
 	}, nil
 }
 
 type file struct {
-	Path          string
+	Name          string
 	TokenizedName string
 }
 
@@ -79,6 +64,7 @@ func (i *Indexer) doIndexDir(fs *libfs.FS) error {
 		tokenized = strings.ReplaceAll(tokenized, "-", " ")
 		tokenized = strings.ReplaceAll(tokenized, ".", " ")
 		f := file{
+			Name:          fi.Name(),
 			TokenizedName: tokenized,
 		}
 		id := fs.Join(fs.Root(), fi.Name())
@@ -101,8 +87,8 @@ func (i *Indexer) doIndexDir(fs *libfs.FS) error {
 	return nil
 }
 
-func (i *Indexer) Index(_ context.Context) error {
-	return i.doIndexDir(i.fs)
+func (i *Indexer) Index(fs *libfs.FS) error {
+	return i.doIndexDir(fs)
 }
 
 func (i *Indexer) Search(queryString string) (paths []string, err error) {
