@@ -22,7 +22,7 @@ const apiSearch = (
     query,
     service,
   })
-    .then(results => results.map(r => Constants.parseRawResultToUser(r, service)).filter(u => !!u))
+    .then(results => results.map(r => Constants.parseRawResultToUser(r, service)).filter(Boolean))
     .catch(err => {
       logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
       return []

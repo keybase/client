@@ -144,7 +144,7 @@ function _parseSuggestion(username: string, fullname: string) {
   }
 }
 
-function _apiSearch(
+function callSearch(
   searchTerm: string,
   service: string = '',
   limit: number = 20
@@ -187,7 +187,7 @@ function* search(state, {payload: {term, service, searchKey}}) {
 
   try {
     yield Saga.callUntyped(onIdlePromise, 1e3)
-    const searchResults = yield* Saga.callPromise(_apiSearch, term, _serviceToApiServiceName(service))
+    const searchResults = yield* Saga.callPromise(callSearch, term, _serviceToApiServiceName(service))
     const rows = searchResults.map((result: RPCTypes.APIUserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
