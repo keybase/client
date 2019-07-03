@@ -118,6 +118,8 @@ protocol ephemeral {
   record TeambotEkMetadata {
     @jsonkey("teambot_dh_public")
     KID kid;
+    // NOTE this generation is the teamEK generation which this key is derived
+    // from.
     EkGeneration generation;
     UID uid;
     @jsonkey("user_ek_generation")

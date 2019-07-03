@@ -29,7 +29,7 @@ func TestNewTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, nilMeta)
 
-	keyer := NewTeambotEphemeralKeyer(botUID)
+	keyer := NewTeambotEphemeralKeyer()
 	publishedMetadata, err := keyer.PublishNewEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
 	typ, err := publishedMetadata.KeyType()

@@ -191,7 +191,7 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 		teamID, mctx.G().Env.GetUsername(), uv.EldestSeqno, teamEKBoxStorageDBVersion)
 	require.Equal(t, expected, key.Key)
 
-	s = NewTeamEKBoxStorage(NewTeambotEphemeralKeyer(""))
+	s = NewTeamEKBoxStorage(NewTeambotEphemeralKeyer())
 	key, err = s.dbKey(mctx, teamID)
 	require.NoError(t, err)
 	expected = fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%s-%d", keybase1.TeamEphemeralKeyType_TEAMBOT,

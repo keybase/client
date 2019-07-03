@@ -45,7 +45,7 @@ func (k *TeamEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 	return keybase1.TeamEphemeralKeyType_TEAM
 }
 
-func (k *TeamEphemeralKeyer) postNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string,
+func postNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string,
 	boxes *[]keybase1.TeamEkBoxMetadata) (err error) {
 	defer mctx.TraceTimed("postNewTeamEK", func() error { return err })()
 
@@ -130,7 +130,7 @@ func prepareNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	return sig, boxes, metadata, myTeamEKBoxed, nil
 }
 
-func (k *TeamEphemeralKeyer) PublishNewEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
+func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEphemeralKeyMetadata, err error) {
 	defer mctx.TraceTimed("publishNewTeamEK", func() error { return err })()
 
@@ -159,7 +159,7 @@ func (k *TeamEphemeralKeyer) PublishNewEK(mctx libkb.MetaContext, teamID keybase
 		return metadata, err
 	}
 
-	if err = k.postNewTeamEK(mctx, teamID, sig, boxes); err != nil {
+	if err = postNewTeamEK(mctx, teamID, sig, boxes); err != nil {
 		return metadata, err
 	}
 
@@ -317,9 +317,8 @@ func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error
 func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEphemeralKeyMetadata, err error) {
 	defer mctx.TraceTimed("ForcePublishNewTeamEKForTesting", func() error { return err })()
-	keyer := NewTeamEphemeralKeyer()
 	err = teamEKRetryWrapper(mctx, func() error {
-		metadata, err = keyer.PublishNewEK(mctx, teamID, merkleRoot)
+		metadata, err = publishNewTeamEK(mctx, teamID, merkleRoot)
 		return err
 	})
 	return metadata, err
