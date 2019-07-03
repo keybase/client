@@ -8,7 +8,10 @@ const PNF = libphonenumber.PhoneNumberFormat
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
 const supported = phoneUtil.getSupportedRegions()
 
-export const countryData = countries.reduce((res, curr) => {
+let countryDataRaw = {}
+let codeToCountryRaw = {}
+
+countries.forEach(curr => {
   if (
     curr.alpha2 &&
     (curr.status === 'assigned' || curr.status === 'user assigned') &&
@@ -18,7 +21,7 @@ export const countryData = countries.reduce((res, curr) => {
   ) {
     // see here for why we check status is 'assigned'
     // https://github.com/OpenBookPrices/country-data/tree/011dbb6658b0df5a36690af7086baa3e5c20c30c#status-notes
-    res[curr.alpha2] = {
+    countryData[curr.alpha2] = {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
       emoji: curr.emoji,
@@ -29,23 +32,15 @@ export const countryData = countries.reduce((res, curr) => {
         (isMobile ? `${curr.emoji} ` : '') +
         `${curr.name} ${curr.countryCallingCodes[0].replace(' ', '\xa0')}`,
     }
-  }
-  return res
-}, {})
 
-export const codeToCountry = countries.reduce((res, curr) => {
-  if (
-    !(curr.status === 'assigned' || curr.status === 'user assigned') ||
-    !supportedCodes[curr.alpha2] ||
-    !supported.includes(curr.alpha2)
-  ) {
-    return res
+    for (const code of curr.countryCallingCodes) {
+      codeToCountry[code.slice(1)] = curr.alpha2
+    }
   }
-  for (const code of curr.countryCallingCodes) {
-    res[code.slice(1)] = curr.alpha2
-  }
-  return res
-}, {})
+})
+
+export const countryData = countryDataRaw
+export const codeToCountry = codeToCountryRaw
 
 const canadianAreaCodes = {
   '204': true,

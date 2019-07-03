@@ -11,15 +11,16 @@ import {
 } from '../../util/phone-numbers'
 import {memoize} from '../../util/memoize'
 
-const normalizeCode = countryCode => (countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode)
+const normalizeCountryCode = countryCode =>
+  countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
 const getCallingCode = countryCode =>
-  countryCode !== '' ? countryData[normalizeCode(countryCode)].callingCode : ''
+  countryCode !== '' ? countryData[normalizeCountryCode(countryCode)].callingCode : ''
 const getCountryEmoji = countryCode => (
-  <Kb.Emoji size={16} emojiName={countryData[normalizeCode(countryCode)].emojiText} />
+  <Kb.Emoji size={16} emojiName={countryData[normalizeCountryCode(countryCode)].emojiText} />
 )
 const getPlaceholder = countryCode =>
-  countryCode !== '' ? 'Ex: ' + countryData[normalizeCode(countryCode)].example : 'N/A'
-const filterNumeric = text => text.replace(/[^0-9]/g, '')
+  countryCode !== '' ? 'Ex: ' + countryData[normalizeCountryCode(countryCode)].example : 'N/A'
+const filterNumeric = text => text.replace(/[^\d]/g, '')
 const defaultCountry = 'US'
 const prioritizedCountries = ['US', 'CA', 'GB']
 
@@ -40,13 +41,13 @@ const pickerItems = memoize(countryData =>
   ].map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
 )
 const menuItems = memoize((countryData, filter, onClick) => {
-  const strippedFilter = filter.replace(/[^\d]/g, '')
+  const strippedFilter = filterNumeric(filter)
   const lowercaseFilter = filter.toLowerCase()
 
   return Object.values(countryData)
     .filter((cd: any) => {
       if (strippedFilter.length > 0) {
-        return cd.callingCode.replace(/[^\d]/g, '').startsWith(strippedFilter)
+        return filterNumeric(cd.callingCode).startsWith(strippedFilter)
       }
       return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
     })
@@ -64,10 +65,10 @@ const menuItems = memoize((countryData, filter, onClick) => {
 
       // Numeric prefix matcher
       if (strippedFilter.length > 0) {
-        const aCallingCode = a.callingCode.replace(/[^\d]/g, '')
-        const bCallingCode = b.callingCode.replace(/[^\d]/g, '')
+        const aCallingCode = filterNumeric(a.callingCode)
+        const bCallingCode = filterNumeric(b.callingCode)
 
-        // eq priority - 47 to test
+        // Exact match, fixes +47 (Norway and Svalbard) vs Bermuda's +471
         if (aCallingCode === strippedFilter && bCallingCode !== strippedFilter) {
           return -1
         }
@@ -85,7 +86,7 @@ const menuItems = memoize((countryData, filter, onClick) => {
         if (aCodeMatch && !bCodeMatch) {
           return -1
         }
-        if (!aCodeMatch && !bCodeMatch) {
+        if (!aCodeMatch && bCodeMatch) {
           return 1
         }
         // Both or none match perfectly, sort alphabetically
@@ -316,9 +317,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   _setCountry = (country, keepPrefix) => {
     if (this.state.country !== country) {
-      if (country.endsWith('?')) {
-        country = country.slice(0, -1)
-      }
+      country = normalizeCountryCode(country)
 
       this.setState({country})
       if (country !== '') {
@@ -347,13 +346,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   _renderCountrySelector = () => {
     if (Styles.isMobile) {
       return (
-        <Kb.Text
-          type="BodySemibold"
-          style={{
-            flexGrow: 1,
-            marginRight: Styles.globalMargins.xtiny,
-          }}
-        >
+        <Kb.Text type="BodySemibold" style={styles.countrySelector}>
           {this.state.country === ''
             ? this.state.prefix === ''
               ? '- Pick a country -'
@@ -365,10 +358,10 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
     return (
       <>
-        <Kb.Text type="Body" style={{marginRight: Styles.globalMargins.xtiny}}>
+        <Kb.Text type="Body" style={styles.countrySelector}>
           {getCountryEmoji(this.state.country)}
         </Kb.Text>
-        <Kb.Text type="BodySemibold" style={{marginRight: Styles.globalMargins.xtiny}}>
+        <Kb.Text type="BodySemibold" style={styles.countrySelector}>
           {'+' + this.state.prefix}
         </Kb.Text>
       </>
@@ -478,6 +471,14 @@ const styles = Styles.styleSheetCreate({
       overflowY: 'auto',
       paddingBottom: 0,
       paddingTop: 0,
+    },
+  }),
+  countrySelector: Styles.platformStyles({
+    common: {
+      marginRight: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      flexGrow: 1,
     },
   }),
   countrySelectorContainer: Styles.platformStyles({
