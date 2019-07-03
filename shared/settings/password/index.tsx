@@ -62,6 +62,7 @@ export class UpdatePassword extends Component<Props, State> {
 
   render() {
     const inputType = this.state.showTyping ? 'text' : 'password'
+    const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
     const notification = this.props.error
       ? this.props.error.message
       : this.props.hasPGPKeyOnServer
@@ -112,6 +113,7 @@ export class UpdatePassword extends Component<Props, State> {
             <Kb.PlainInput
               placeholder="New password"
               type={inputType}
+              keyboardType={keyboardType}
               value={this.state.password}
               onChangeText={password => this._handlePasswordChange(password)}
             />
@@ -120,6 +122,7 @@ export class UpdatePassword extends Component<Props, State> {
             <Kb.PlainInput
               placeholder="Confirm password"
               type={inputType}
+              keyboardType={keyboardType}
               value={this.state.passwordConfirm}
               onChangeText={password => this._handlePasswordConfirmChange(password)}
             />
