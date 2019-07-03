@@ -379,7 +379,6 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.tiny,
   },
-  intermediateExpandButtonLabelContainer: {width: 32, minWidth: 32},
   intermediateExpandButtonButton: {
     padding: 0,
   },
@@ -388,6 +387,10 @@ const styles = Styles.styleSheetCreate({
   },
   intermediateExpandButtonExpanded: {
     bottom: -14,
+  },
+  intermediateExpandButtonLabelContainer: {
+    minWidth: 32,
+    width: 32,
   },
   intermediateExpandedContainer: {
     paddingRight: Styles.globalMargins.mediumLarge,
