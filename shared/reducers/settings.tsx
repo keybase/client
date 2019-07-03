@@ -161,13 +161,11 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
             ? {
                 error: action.payload.error,
                 pendingVerification: '',
-                pendingVerificationAllowSearch: null,
                 verificationState: null,
               }
             : {
                 error: '',
                 pendingVerification: action.payload.phoneNumber,
-                pendingVerificationAllowSearch: action.payload.allowSearch,
                 verificationState: null,
               }
         )
@@ -179,7 +177,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         pn.merge({
           error: '',
           pendingVerification: '',
-          pendingVerificationAllowSearch: null,
           verificationState: null,
         })
       )
@@ -259,6 +256,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.editContactImportEnabled:
     case SettingsGen.requestContactPermissions:
     case SettingsGen.toggleRuntimeStats:
+    case SettingsGen.resendVerificationForPhoneNumber:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

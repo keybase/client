@@ -72,7 +72,6 @@ export const makePassword = I.Record<Types._PasswordState>({
 export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
   error: '',
   pendingVerification: '',
-  pendingVerificationAllowSearch: null,
   phones: null,
   verificationState: null,
 })
@@ -188,6 +187,7 @@ export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
+export const resendVerificationForPhoneWaitingKey = 'settings:resendVerificationForPhone'
 export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
 export const addEmailWaitingKey = 'settings:addPhoneNumber'
