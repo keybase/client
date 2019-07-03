@@ -11,7 +11,6 @@ export const newRoutes = {
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.accountTab]: {getScreen: () => require('./account/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
-  [Constants.passwordTab]: {getScreen: () => require('./password/container').default},
   [Constants.screenprotectorTab]: {getScreen: () => require('./screenprotector-container.native').default},
   addEmail: {getScreen: () => require('./account/add-modals').Email},
   addPhone: {getScreen: () => require('./account/add-modals').Phone},
@@ -25,6 +24,7 @@ export const newRoutes = {
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
+  [Constants.passwordTab]: {getScreen: () => require('./password/container').default},
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
   settingsAddEmail: {getScreen: () => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: () => require('./account/add-modals').Phone},
