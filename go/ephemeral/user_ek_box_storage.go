@@ -187,7 +187,7 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 
 	userEKMetadata := userEKStatement.CurrentUserEkMetadata
 	if generation != userEKMetadata.Generation {
-		// sanity check that we go the right generation
+		// sanity check that we got the right generation
 		return userEK, newEKCorruptedErr(mctx, UserEKStr, generation, userEKMetadata.Generation)
 	}
 	userEKBoxed := keybase1.UserEkBoxed{

@@ -344,7 +344,7 @@ func (*TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.Team
 	}
 
 	if generation != metadata.Generation {
-		// sanity check that we go the right generation
+		// sanity check that we got the right generation
 		return teambotEK, newEKCorruptedErr(mctx, TeambotEKStr, generation, metadata.Generation)
 	}
 	teambotEKBoxed := keybase1.TeambotEkBoxed{

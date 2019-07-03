@@ -789,8 +789,8 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 	e.Lock()
 	defer e.Unlock()
 
-	// Check if we have a cached latest generation
 	storage := mctx.G().GetTeambotEKBoxStorage()
+	// Check if we have a cached latest generation
 	cacheKey := e.cacheKey(teamID, keybase1.TeamEphemeralKeyType_TEAMBOT)
 	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
@@ -800,6 +800,13 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 		// kill our cached entry and possibly re-generate below
 		e.teamEKGenCache.Remove(cacheKey)
 	}
+
+	merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
+	if err != nil {
+		return ek, err
+	}
+	merkleRoot := *merkleRootPtr
+	defer storage.DeleteExpired(mctx, teamID, merkleRoot)
 
 	metadata, err := fetchLatestTeambotEK(mctx, teamID)
 	if err != nil {
