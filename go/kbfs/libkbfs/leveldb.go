@@ -118,7 +118,6 @@ func (ldb *LevelDb) StatStrings() ([]string, error) {
 // as its underlying storage layer, and with the options specified.
 func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 	*LevelDb, error) {
-	fmt.Printf("OPTIONS: %#v\n", options)
 	db, err := leveldb.Open(stor, options)
 	if ldberrors.IsCorrupted(err) {
 		// There's a possibility that if the leveldb wasn't closed properly
