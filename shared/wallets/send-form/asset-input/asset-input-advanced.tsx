@@ -90,23 +90,37 @@ const LeftBlock = (props: EmptyProps) => {
   )
 }
 
-export const AssetInputSenderAdvanced = (props: EmptyProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Styles.collapseStyles([sharedStyles.container, styles.container])}
-  >
-    <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
-      You will send approximately:
-    </Kb.Text>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
-      <LeftBlock />
-      <Kb.Box style={Styles.globalStyles.flexGrow} />
-      <PickAssetButton isSender={true} />
+export const AssetInputSenderAdvanced = (props: EmptyProps) => {
+  const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
+  const accountMap = Container.useSelector(state => state.wallets.accountMap)
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      style={Styles.collapseStyles([sharedStyles.container, styles.container])}
+    >
+      {buildingAdvanced.recipientType === 'otherAccount' ? (
+        <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
+          <Kb.Text type="BodyTinySemiboldItalic">
+            {accountMap.get(buildingAdvanced.senderAccountID).name ||
+              Constants.shortenAccountID(buildingAdvanced.senderAccountID)}
+          </Kb.Text>{' '}
+          will send approximately:
+        </Kb.Text>
+      ) : (
+        <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
+          You will send approximately:
+        </Kb.Text>
+      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.senderMainContainer}>
+        <LeftBlock />
+        <Kb.Box style={Styles.globalStyles.flexGrow} />
+        <PickAssetButton isSender={true} />
+      </Kb.Box2>
+      <Available />
     </Kb.Box2>
-    <Available />
-  </Kb.Box2>
-)
+  )
+}
 
 export const AssetPathIntermediate = () => {
   const [expanded, setExpanded] = React.useState(false)
