@@ -229,6 +229,12 @@ const baseRetentionPolicies = [
   policyFiveMinutes,
   policyThirtySeconds,
 ]
+
+const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce((map, p) => {
+  map[p.seconds] = p.title
+  return map
+}, {})
+
 const retentionPolicies = {
   policyFiveMinutes,
   policyInherit,
@@ -530,10 +536,9 @@ const serviceRetentionPolicyToRetentionPolicy = (
           throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
         }
         const {expire} = policy
-        const maybePolicy = baseRetentionPolicies.find(p => p.seconds === expire.age)
         retentionPolicy = makeRetentionPolicy({
           seconds: expire.age,
-          title: maybePolicy ? maybePolicy.title : `${expire.age} seconds`,
+          title: baseRetentionPoliciesTitleMap[expire.age] || `${expire.age} seconds`,
           type: 'expire',
         })
         break
@@ -543,10 +548,9 @@ const serviceRetentionPolicyToRetentionPolicy = (
           throw new Error(`RPC returned retention policy of type 'ephemeral' with no ephemeral data`)
         }
         const {ephemeral} = policy
-        const maybePolicy = baseRetentionPolicies.find(p => p.seconds === ephemeral.age)
         retentionPolicy = makeRetentionPolicy({
           seconds: ephemeral.age,
-          title: maybePolicy ? maybePolicy.title : `${ephemeral.age} seconds`,
+          title: baseRetentionPoliciesTitleMap[ephemeral.age] || `${ephemeral.age} seconds`,
           type: 'explode',
         })
         break
