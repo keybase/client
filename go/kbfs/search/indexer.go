@@ -53,6 +53,12 @@ type file struct {
 	TokenizedName string
 }
 
+var filesToIgnore = map[string]bool{
+	".Trashes":   true,
+	".fseventsd": true,
+	".DS_Store":  true,
+}
+
 func (i *Indexer) doIndexDir(fs *libfs.FS) error {
 	children, err := fs.ReadDir("")
 	if err != nil {
@@ -60,21 +66,26 @@ func (i *Indexer) doIndexDir(fs *libfs.FS) error {
 	}
 
 	for _, fi := range children {
-		tokenized := strings.ReplaceAll(fi.Name(), "_", " ")
+		name := fi.Name()
+		if filesToIgnore[name] || strings.HasPrefix(name, "._") {
+			continue
+		}
+
+		tokenized := strings.ReplaceAll(name, "_", " ")
 		tokenized = strings.ReplaceAll(tokenized, "-", " ")
 		tokenized = strings.ReplaceAll(tokenized, ".", " ")
 		f := file{
-			Name:          fi.Name(),
+			Name:          name,
 			TokenizedName: tokenized,
 		}
-		id := fs.Join(fs.Root(), fi.Name())
+		id := fs.Join(fs.Root(), name)
 		err := i.index.Index(id, f)
 		if err != nil {
 			return err
 		}
 
 		if fi.IsDir() {
-			childFS, err := fs.ChrootAsLibFS(fi.Name())
+			childFS, err := fs.ChrootAsLibFS(name)
 			if err != nil {
 				return err
 			}
