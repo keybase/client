@@ -297,7 +297,9 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           </Kb.ClickableBox>
           {asset !== Constants.emptyAssetDescription && (
             <Kb.Text type="BodyTiny" style={sharedStyles.purple}>
-              {asset === 'native' ? 'Stellar Lumens' : asset.issuerVerifiedDomain}
+              {asset === 'native'
+                ? 'Stellar Lumens'
+                : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
             </Kb.Text>
           )}
         </Kb.Box2>

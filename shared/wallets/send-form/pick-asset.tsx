@@ -89,7 +89,7 @@ const AssetList = ({accountID, isSender, username}) => {
                     >
                       {asset === 'native'
                         ? 'Stellar Lumens'
-                        : asset.issuerVerifiedDomain || asset.issuerAccountID}
+                        : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
                     </Kb.Text>
                   </Kb.Box2>
                   {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
