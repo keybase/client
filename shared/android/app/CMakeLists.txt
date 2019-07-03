@@ -35,7 +35,7 @@ add_definitions(
 )
 
 add_library( # Sets the name of the library.
-        test_module_jni
+        keybase_jsi
 
         # Sets the library as a shared library.
         SHARED
@@ -45,7 +45,7 @@ add_library( # Sets the name of the library.
         ../../jsi/Binding.cpp
         )
 
-target_link_libraries(test_module_jni
+target_link_libraries(keybase_jsi
                       android
                      "${PROJECT_SOURCE_DIR}/build/exploded-aar/jni/${ANDROID_ABI}/libgojni.so"
                       log)

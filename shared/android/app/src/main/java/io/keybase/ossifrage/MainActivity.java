@@ -36,7 +36,13 @@ import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactFragmentActivity {
+public class MainActivity extends ReactFragmentActivity implements ReactInstanceManager.ReactInstanceEventListener {
+    static {
+        System.loadLibrary("keybase_jsi"); // this loads the library when the class is loaded
+    }
+
+    public native void install(long jsContextNativePointer);
+
     private static final String TAG = MainActivity.class.getName();
     private PermissionListener listener;
 
@@ -135,6 +141,12 @@ public class MainActivity extends ReactFragmentActivity {
     @Override
     protected void onPause() {
         super.onPause();
+
+        ReactInstanceManager instanceManager = getReactInstanceManager();
+        if (instanceManager != null) {
+            instanceManager.removeReactInstanceEventListener(this);
+        }
+
         if (Keybase.appDidEnterBackground()) {
             Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(this));
         } else {
@@ -145,7 +157,15 @@ public class MainActivity extends ReactFragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        ReactInstanceManager instanceManager = getReactInstanceManager();
+        if (instanceManager != null) {
+            instanceManager.addReactInstanceEventListener(this);
+        }
         Keybase.setAppStateForeground();
+    }
+    @Override
+    public void onReactContextInitialized(ReactContext context) {
+        install(context.getJavaScriptContextHolder().get());
     }
 
     @Override

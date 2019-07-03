@@ -18,6 +18,8 @@ class Keybase extends Component<any> {
   constructor(props: any) {
     super(props)
 
+    console.warn('hello')
+    console.warn('from go:', global.keybaseJSI.testNum())
     if (!global.DEBUGLoaded) {
       global.DEBUGLoaded = true
       const temp = configureStore()

@@ -54,5 +54,6 @@ declare namespace NodeJS {
     DEBUGSagaMiddleware: any
     DEBUGStore: any
     globalLogger: any
+    keybaseJSI: any
   }
 }

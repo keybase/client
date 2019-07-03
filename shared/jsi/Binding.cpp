@@ -21,29 +21,27 @@ struct EventHandlerWrapper {
 
 #if ANDROID
 extern "C" {
-JNIEXPORT void JNICALL Java_com_testmodule_MainActivity_install(
+JNIEXPORT void JNICALL Java_io_keybase_ossifrage_MainActivity_install(
     JNIEnv *env, jobject thiz, jlong runtimePtr) {
-  auto testBinding = std::make_shared<keybase::TestBinding>();
+  auto binding = std::make_shared<keybase::Binding>();
   jsi::Runtime *runtime = (jsi::Runtime *)runtimePtr;
 
-  keybase::TestBinding::install(*runtime, testBinding);
+  keybase::Binding::install(*runtime, binding);
 }
 }
 #endif
 
 namespace keybase {
 
-void TestBinding::install(jsi::Runtime &runtime,
-                          std::shared_ptr<TestBinding> testBinding) {
-  auto testModuleName = "keybaseJSI";
-  auto object = jsi::Object::createFromHostObject(runtime, testBinding);
-  runtime.global().setProperty(runtime, testModuleName, std::move(object));
+void Binding::install(jsi::Runtime &runtime, std::shared_ptr<Binding> binding) {
+  auto JSIModuleName = "keybaseJSI";
+  auto object = jsi::Object::createFromHostObject(runtime, binding);
+  runtime.global().setProperty(runtime, JSIModuleName, std::move(object));
 }
 
-TestBinding::TestBinding() {}
+Binding::Binding() {}
 
-jsi::Value TestBinding::get(jsi::Runtime &runtime,
-                            const jsi::PropNameID &name) {
+jsi::Value Binding::get(jsi::Runtime &runtime, const jsi::PropNameID &name) {
   auto methodName = name.utf8(runtime);
 
   if (methodName == "testNum") {

@@ -10,7 +10,7 @@ using namespace facebook;
 
 #if ANDROID
 extern "C" {
-JNIEXPORT void JNICALL Java_com_testmodule_MainActivity_install(
+JNIEXPORT void JNICALL Java_io_keybase_ossifrage_MainActivity_install(
     JNIEnv *env, jobject thiz, jlong runtimePtr);
 }
 #endif
@@ -18,18 +18,17 @@ JNIEXPORT void JNICALL Java_com_testmodule_MainActivity_install(
 namespace keybase {
 
 /*
- * Exposes Test to JavaScript realm.
+ * Exposes to JavaScript realm.
  */
-class TestBinding : public jsi::HostObject {
+class Binding : public jsi::HostObject {
  public:
   /*
-   * Installs TestBinding into JavaSctipt runtime.
+   * Installs Binding into JavaSctipt runtime.
    * Thread synchronization must be enforced externally.
    */
-  static void install(jsi::Runtime &runtime,
-                      std::shared_ptr<TestBinding> testBinding);
+  static void install(jsi::Runtime &runtime, std::shared_ptr<Binding> binding);
 
-  TestBinding();
+  Binding();
 
   /*
    * `jsi::HostObject` specific overloads.
