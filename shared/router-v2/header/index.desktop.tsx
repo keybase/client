@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
+import * as WalletsConstants from '../../constants/wallets'
 import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
 import {BrowserWindow} from '../../util/safe-electron.desktop'
@@ -17,9 +18,10 @@ import * as ReactIs from 'react-is'
 type Props = any
 
 const useNativeFrame = new AppState().state.useNativeFrame
+console.warn({useNativeFrame})
 const initialUseNativeFrame =
   useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : Platform.defaultUseNativeFrame
-
+console.warn({initialUseNativeFrame})
 const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
     <Kb.Text style={styles.plainText} type="Header">
@@ -28,7 +30,7 @@ const PlainTitle = ({title}) => (
   </Kb.Box2>
 )
 
-const SystemButtons = () => (
+export const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
       className="hover_background_color_black_05  color_black_50 hover_color_black"
@@ -136,6 +138,12 @@ class Header extends React.PureComponent<Props> {
       showDivider = false
     }
 
+    // Normally this component is responsible for rendering the system buttons,
+    // but if we're showing a banner then that component needs to do it.
+    const airdropShouldShowSystemButtons =
+      this.props.airdropWillShowBanner && !Platform.isDarwin && !initialUseNativeFrame && this.props.loggedIn
+
+    console.warn('foo', this.props, initialUseNativeFrame, airdropShouldShowSystemButtons)
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
     // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
@@ -154,7 +162,9 @@ class Header extends React.PureComponent<Props> {
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-        {flags.airdrop && this.props.loggedIn && <AirdropBanner />}
+        {flags.airdrop && this.props.loggedIn && (
+          <AirdropBanner shouldShowSystemButtons={airdropShouldShowSystemButtons} />
+        )}
         <Kb.Box2
           noShrink={true}
           direction="vertical"
@@ -194,7 +204,9 @@ class Header extends React.PureComponent<Props> {
                 />
               )}
               {!title && rightActions}
-              {Platform.isDarwin && <SystemButtons />}
+              {!Platform.isDarwin && !initialUseNativeFrame && !airdropShouldShowSystemButtons && (
+                <SystemButtons />
+              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -285,7 +297,16 @@ const styles = Styles.styleSheetCreate({
   topRightContainer: {flex: 1, justifyContent: 'flex-end'},
 })
 
-const mapStateToProps = () => ({})
+const mapStateToProps = (state: Container.TypedState) => ({
+  airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
+})
+
 const mapDispatchToProps = () => ({})
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(Header)
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => {
+  return {
+    ...s,
+    ...d,
+    ...o,
+  }
+})(Header)
