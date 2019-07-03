@@ -144,8 +144,6 @@ export const reduceRPCItemToPeopleItem = (
 ): I.List<Types.PeopleScreenItem> => {
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
-    // Todo item
-    // @ts-ignore todo is actually typed as void? (variant miscompilation)
     const todo = item.data.todo
     const todoType = todoTypeEnumToType[(todo && todo.t) || 0]
     const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo)
