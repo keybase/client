@@ -178,6 +178,7 @@ const (
 	StatusCode_SCEphemeralMemberAfterEK                    StatusCode = 2907
 	StatusCode_SCEphemeralDeviceStale                      StatusCode = 2908
 	StatusCode_SCEphemeralUserStale                        StatusCode = 2909
+	StatusCode_SCEphemeralTeambotGenerationExists          StatusCode = 2910
 	StatusCode_SCStellarError                              StatusCode = 3100
 	StatusCode_SCStellarBadInput                           StatusCode = 3101
 	StatusCode_SCStellarWrongRevision                      StatusCode = 3102
@@ -391,6 +392,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCEphemeralMemberAfterEK":                    2907,
 	"SCEphemeralDeviceStale":                      2908,
 	"SCEphemeralUserStale":                        2909,
+	"SCEphemeralTeambotGenerationExists":          2910,
 	"SCStellarError":                              3100,
 	"SCStellarBadInput":                           3101,
 	"SCStellarWrongRevision":                      3102,
@@ -602,6 +604,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2907: "SCEphemeralMemberAfterEK",
 	2908: "SCEphemeralDeviceStale",
 	2909: "SCEphemeralUserStale",
+	2910: "SCEphemeralTeambotGenerationExists",
 	3100: "SCStellarError",
 	3101: "SCStellarBadInput",
 	3102: "SCStellarWrongRevision",
