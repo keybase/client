@@ -21,7 +21,7 @@ const useNativeFrame = new AppState().state.useNativeFrame
 const initialUseNativeFrame =
   useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : Platform.defaultUseNativeFrame
 
-  const PlainTitle = ({title}) => (
+const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
     <Kb.Text style={styles.plainText} type="Header">
       {title}
