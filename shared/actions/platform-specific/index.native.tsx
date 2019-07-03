@@ -251,13 +251,13 @@ const updateMobileNetState = (state, action) => {
 }
 
 const initOsNetworkStatus = (state, action) =>
-  NetInfo.getConnectionInfo().then(({type}) =>
+  NetInfo.fetch().then(({type}) =>
     ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
   )
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type))
+    NetInfo.addEventListener(({type}) => emitter(type))
     return () => {}
   }, Saga.buffers.sliding(1))
 

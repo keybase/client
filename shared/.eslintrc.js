@@ -1,7 +1,7 @@
 module.exports = {
   env: {es6: true},
   parser: 'babel-eslint',
-  extends: ['eslint:recommended', 'standard', 'standard-react'],
+  extends: ['eslint:recommended', 'standard', 'standard-react', '@react-native-community'],
   overrides: [
     {
       files: ['*.tsx', '*.ts', '*.d.ts'],
