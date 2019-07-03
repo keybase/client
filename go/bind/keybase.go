@@ -4,6 +4,7 @@
 package keybase
 
 import (
+	"C"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -321,6 +322,12 @@ func WriteB64(str string) (err error) {
 		return errors.New("Did not write all the data")
 	}
 	return nil
+}
+
+// TestNum to test jsi
+//export TestNum
+func TestNum() int {
+	return 1337
 }
 
 const targetBufferSize = 50 * 1024

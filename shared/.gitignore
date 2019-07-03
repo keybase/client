@@ -9,6 +9,8 @@ android/**/*.iml
 android/**/.classpath
 android/**/.project
 android/**/.settings/**
+android/keybaselib/c-headers/**
+android/**/app/.externalNativeBuild
 
 # iOS
 !default.mode1v3

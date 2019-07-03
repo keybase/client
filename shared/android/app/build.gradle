@@ -213,6 +213,27 @@ android {
     packagingOptions {
         pickFirst '**/libjsc.so'
     }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+// Explode the Keybase aar for linking against our JSI binding
+task unzipLibGoJNI(type: Copy) {
+    def zipFile = file('../keybaselib/keybaselib.aar')
+    def outputDir = file("${buildDir}/exploded-aar")
+    from zipTree(zipFile)
+    into outputDir
+
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('externalNativeBuild')) {
+        task.dependsOn unzipLibGoJNI
+    }
 }
 
 // KB:
