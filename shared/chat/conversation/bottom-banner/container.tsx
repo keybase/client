@@ -6,6 +6,7 @@ import * as Types from '../../../constants/types/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
 import {connect, isMobile} from '../../../util/container'
 import openSMS from '../../../util/sms'
+import {showShareActionSheetFromURL} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/app`
 
@@ -17,14 +18,21 @@ type Props = {
   type: 'invite' | 'none' | 'broken'
   onClick: (username: string) => void
   users: Array<string>
-  onShareClick: (email: string) => void
+  openShareSheet: () => void
+  openSMS: (email: string) => void
 }
 
 class BannerContainer extends React.PureComponent<Props> {
   render() {
     switch (this.props.type) {
       case 'invite':
-        return <InviteBanner onShareClick={this.props.onShareClick} users={this.props.users} />
+        return (
+          <InviteBanner
+            openShareSheet={this.props.openShareSheet}
+            openSMS={this.props.openSMS}
+            users={this.props.users}
+          />
+        )
       case 'broken':
         return <BrokenTrackerBanner onClick={this.props.onClick} users={this.props.users} />
       case 'none':
@@ -77,7 +85,12 @@ const mergeProps = (stateProps, dispatchProps) => {
 
   return {
     onClick: dispatchProps.onClick,
-    onShareClick: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
+    openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
+    openShareSheet: () =>
+      showShareActionSheetFromURL({
+        message: installMessage,
+        mimeType: 'text/plain',
+      }),
     type,
     users: users || [],
   }

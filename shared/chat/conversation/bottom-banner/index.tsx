@@ -3,6 +3,7 @@ import {Box, Button, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
 import flags from '../../../util/feature-flags'
+import {isMobile} from '../../../constants/platform'
 
 export type BrokenTrackerProps = {
   users: Array<string>
@@ -10,7 +11,8 @@ export type BrokenTrackerProps = {
 }
 
 export type InviteProps = {
-  onShareClick: (email: string) => void
+  openShareSheet: () => void
+  openSMS: (email: string) => void
   users: Array<string>
 }
 
@@ -74,24 +76,50 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
     </BannerBox>
   )
 
-const InviteBanner = ({users, onShareClick}: InviteProps) =>
-  flags.sbsContacts && users.length === 1 && users[0].endsWith('@phone') ? (
+const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
+  if (!flags.sbsContacts) {
+    return (
+      <BannerBox color={globalColors.blue}>
+        <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
+      </BannerBox>
+    )
+  }
+
+  // On mobile, single recipient, a phone number
+  if (isMobile && users.length === 1 && users[0].endsWith('@phone')) {
+    return (
+      <BannerBox color={globalColors.blue}>
+        <BannerText>Last step: summon Firstname Lastman!</BannerText>
+        <Button
+          label="Send install link"
+          onClick={() => openSMS(users[0].slice(0, -6))}
+          mode="Secondary"
+          style={{
+            marginTop: globalMargins.xxtiny,
+          }}
+        />
+      </BannerBox>
+    )
+  }
+
+  // Any number of recipients, behaviour depends on the platform
+  return (
     <BannerBox color={globalColors.blue}>
-      <BannerText>Your messages will unlock once they join Keybase and verify their phone number.</BannerText>
-      <BannerText>Help them install Keybase:</BannerText>
+      <BannerText>
+        {users.length === 1
+          ? 'Last step: summon Firstname Lastman!'
+          : `Last step: summon these ${users.length} people!`}
+      </BannerText>
       <Button
-        label="Share install link"
-        onClick={() => onShareClick(users[0].slice(0, -6))}
+        label="Send install link"
+        onClick={() => (isMobile ? openShareSheet() : console.log('oh'))}
         mode="Secondary"
         style={{
           marginTop: globalMargins.xxtiny,
         }}
       />
     </BannerBox>
-  ) : (
-    <BannerBox color={globalColors.blue}>
-      <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
-    </BannerBox>
   )
+}
 
 export {BrokenTrackerBanner, InviteBanner}
