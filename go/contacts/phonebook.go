@@ -53,9 +53,12 @@ func (s *SavedContactsStore) SaveContacts(mctx libkb.MetaContext, provider Conta
 	if err != nil {
 		return err
 	}
+	return s.SaveProcessedContacts(mctx, results)
+}
 
+func (s *SavedContactsStore) SaveProcessedContacts(mctx libkb.MetaContext, contacts []keybase1.ProcessedContact) (err error) {
 	val := savedContactsCache{
-		Contacts: results,
+		Contacts: contacts,
 	}
 	val.Version = savedContactsCurrentVer
 	cacheKey := savedContactsDbKey(mctx.CurrentUID())

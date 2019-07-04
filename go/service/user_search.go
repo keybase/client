@@ -63,6 +63,10 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	return response.List, nil
 }
 
+func normalizeText(str string) string {
+	return strings.ToLower(string(norm.NFKD.Bytes([]byte(str))))
+}
+
 var splitRxx = regexp.MustCompile(`[-\s!$%^&*()_+|~=` + "`" + `{}\[\]:";'<>?,.\/]+`)
 
 func queryToRegexp(q string) (*regexp.Regexp, error) {
@@ -73,20 +77,39 @@ func queryToRegexp(q string) (*regexp.Regexp, error) {
 			nonEmptyParts = append(nonEmptyParts, p)
 		}
 	}
-	return regexp.Compile(".*" + strings.Join(nonEmptyParts, ".*") + ".*")
+	rxx, err := regexp.Compile(".*" + strings.Join(nonEmptyParts, ".*") + ".*")
+	if err != nil {
+		return nil, err
+	}
+	rxx.Longest()
+	return rxx, nil
 }
 
-func normalizeText(str string) string {
-	return strings.ToLower(string(norm.NFKD.Bytes([]byte(str))))
+type compiledQuery struct {
+	query string
+	rxx   *regexp.Regexp
 }
 
-func scoreString(rxx *regexp.Regexp, q string, str string) (bool, float64) {
+func compileQuery(query string) (res compiledQuery, err error) {
+	query = normalizeText(query)
+	rxx, err := queryToRegexp(query)
+	if err != nil {
+		return res, err
+	}
+	res = compiledQuery{
+		query: query,
+		rxx:   rxx,
+	}
+	return res, nil
+}
+
+func (q *compiledQuery) scoreString(str string) (bool, float64) {
 	norm := normalizeText(str)
-	if norm == q {
+	if norm == q.query {
 		return true, 1
 	}
 
-	index := rxx.FindStringIndex(norm)
+	index := q.rxx.FindStringIndex(norm)
 	if index == nil {
 		return false, 0
 	}
@@ -98,12 +121,12 @@ func scoreString(rxx *regexp.Regexp, q string, str string) (bool, float64) {
 	return true, score
 }
 
-func matchAndScoreContact(rxx *regexp.Regexp, query string, contact keybase1.ProcessedContact) (bool, float64) {
-	found, score := scoreString(rxx, query, contact.DisplayName)
+func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
+	found, score := query.scoreString(contact.DisplayName)
 	if found {
 		return true, score
 	}
-	found, score = scoreString(rxx, query, contact.DisplayLabel)
+	found, score = query.scoreString(contact.DisplayLabel)
 	if found {
 		return true, score * 0.8
 	}
@@ -116,14 +139,13 @@ func contactSearch(mctx libkb.MetaContext, store *contacts.SavedContactsStore, a
 		return res, err
 	}
 
-	query := normalizeText(arg.Query)
-	rxx, err := queryToRegexp(query)
+	query, err := compileQuery(arg.Query)
 	if err != nil {
 		return res, nil
 	}
 
 	for _, c := range contactsRes {
-		found, score := matchAndScoreContact(rxx, query, c)
+		found, score := matchAndScoreContact(query, c)
 		if found {
 			contact := c
 			res = append(res, keybase1.APIUserSearchResult{
@@ -166,6 +188,10 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			res2 = append(res2, contactsRes...)
 			res2 = append(res2, res...)
 			res = res2
+
+			if arg.MaxResults > 0 {
+				res = res[:arg.MaxResults]
+			}
 		}
 	}
 
