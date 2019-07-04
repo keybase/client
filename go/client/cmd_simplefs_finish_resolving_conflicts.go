@@ -41,7 +41,7 @@ func (c *CmdSimpleFSFinishResolvingConflicts) Run() error {
 		return err
 	}
 
-	return cli.SimpleFSFinishResolvingConflict(context.TODO(), c.path)
+	return cli.SimpleFSFinishResolvingConflict(context.TODO(), keybase1.SimpleFSFinishResolvingConflictArg{Path: c.path})
 }
 
 // ParseArgv gets the path.

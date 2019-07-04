@@ -480,10 +480,16 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 }
 
 func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
-	opType keybase1.AsyncOps, desc keybase1.OpDescription) (
-	context.Context, error) {
+	opType keybase1.AsyncOps, desc keybase1.OpDescription,
+	identifyBehavior *keybase1.TLFIdentifyBehavior) (_ context.Context, err error) {
 	ctx = k.makeContext(ctx)
 	ctx, cancel := context.WithCancel(ctx)
+	if identifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *identifyBehavior)
+		if err != nil {
+			return nil, err
+		}
+	}
 	k.lock.Lock()
 	k.inProgress[opid] = &inprogress{
 		desc,
@@ -520,9 +526,10 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 
 func (k *SimpleFS) startAsync(
 	ctx context.Context, opid keybase1.OpID, opType keybase1.AsyncOps,
-	desc keybase1.OpDescription,
+	desc keybase1.OpDescription, identifyBehavior *keybase1.TLFIdentifyBehavior,
 	callback func(context.Context) error) error {
-	ctxAsync, e0 := k.startOp(context.Background(), opid, opType, desc)
+	ctxAsync, e0 := k.startOp(context.Background(),
+		opid, opType, desc, identifyBehavior)
 	if e0 != nil {
 		return e0
 	}
@@ -752,12 +759,13 @@ func (k *SimpleFS) checkEmptySubscription(
 // Retrieve results with readList()
 // Cannot be a single file to get flags/status,
 // must be a directory.
-func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListArg) error {
+func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST,
 		keybase1.NewOpDescriptionWithList(
 			keybase1.ListArgs{
 				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
 			}),
+		arg.IdentifyBehavior,
 		func(ctx context.Context) (err error) {
 			var res []keybase1.Dirent
 
@@ -942,24 +950,29 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 	}
 }
 
-// SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at path up to a given depth.
-func (k *SimpleFS) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
+// SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
+// path up to a given depth.
+func (k *SimpleFS) SimpleFSListRecursiveToDepth(
+	ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE_TO_DEPTH,
 		keybase1.NewOpDescriptionWithListRecursiveToDepth(
 			keybase1.ListToDepthArgs{
 				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter, Depth: arg.Depth,
 			}),
+		arg.IdentifyBehavior,
 		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, arg.Depth, arg.RefreshSubscription),
 	)
 }
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
-func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
+func (k *SimpleFS) SimpleFSListRecursive(
+	ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_LIST_RECURSIVE,
 		keybase1.NewOpDescriptionWithListRecursive(
 			keybase1.ListArgs{
 				OpID: arg.OpID, Path: arg.Path, Filter: arg.Filter,
 			}),
+		arg.IdentifyBehavior,
 		k.listRecursiveToDepth(arg.OpID, arg.Path, arg.Filter, -1, arg.RefreshSubscription),
 	)
 }
@@ -1158,16 +1171,25 @@ func (k *SimpleFS) doCopy(
 }
 
 // SimpleFSCopy - Begin copy of file or directory
-func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
+func (k *SimpleFS) SimpleFSCopy(
+	ctx context.Context, arg keybase1.SimpleFSCopyArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
+		arg.IdentifyBehavior,
 		func(ctx context.Context) (err error) {
 			return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
 		})
 }
 
 // SimpleFSSymlink starts making a symlink of a file or directory
-func (k *SimpleFS) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) (err error) {
+func (k *SimpleFS) SimpleFSSymlink(
+	ctx context.Context, arg keybase1.SimpleFSSymlinkArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
 	// This is not async.
 	ctx, err = k.startSyncOp(ctx, "Symlink", arg)
 	if err != nil {
@@ -1301,9 +1323,10 @@ func (k *SimpleFS) doCopyRecursive(
 
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
-	arg keybase1.SimpleFSCopyRecursiveArg) error {
+	arg keybase1.SimpleFSCopyRecursiveArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
 		keybase1.NewOpDescriptionWithCopy(keybase1.CopyArgs(arg)),
+		arg.IdentifyBehavior,
 		func(ctx context.Context) (err error) {
 			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
 		})
@@ -1381,9 +1404,11 @@ func (k *SimpleFS) pathsForSameTlfMove(
 }
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
-func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
+func (k *SimpleFS) SimpleFSMove(
+	ctx context.Context, arg keybase1.SimpleFSMoveArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_MOVE,
 		keybase1.NewOpDescriptionWithMove(keybase1.MoveArgs(arg)),
+		arg.IdentifyBehavior,
 		func(ctx context.Context) (err error) {
 			sameTlf, srcPath, destPath, tlfHandle, err := k.pathsForSameTlfMove(
 				ctx, arg.Src, arg.Dest)
@@ -1434,7 +1459,14 @@ func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
 }
 
 // SimpleFSRename - Rename file or directory, KBFS side only
-func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) (err error) {
+func (k *SimpleFS) SimpleFSRename(
+	ctx context.Context, arg keybase1.SimpleFSRenameArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
 	// This is not async.
 	ctx, err = k.startSyncOp(ctx, "Rename", arg)
 	if err != nil {
@@ -1478,7 +1510,14 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 // SimpleFSOpen - Create/open a file and leave it open
 // or create a directory
 // Files must be closed afterwards.
-func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) (err error) {
+func (k *SimpleFS) SimpleFSOpen(
+	ctx context.Context, arg keybase1.SimpleFSOpenArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
 	ctx, err = k.startSyncOp(ctx, "Open", arg)
 	if err != nil {
 		return err
@@ -1535,7 +1574,14 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 }
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
-func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) (err error) {
+func (k *SimpleFS) SimpleFSSetStat(
+	ctx context.Context, arg keybase1.SimpleFSSetStatArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
 	ctx, err = k.startSyncOp(ctx, "SetStat", arg)
 	if err != nil {
 		return err
@@ -1608,6 +1654,12 @@ func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err 
 // If size is zero, read an arbitrary amount.
 func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	arg keybase1.SimpleFSReadArg) (_ keybase1.FileContent, err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return keybase1.FileContent{}, err
+		}
+	}
 	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
@@ -1659,7 +1711,14 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 
 // SimpleFSWrite - Append content to opened file.
 // May be repeated until OpID is closed.
-func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWriteArg) error {
+func (k *SimpleFS) SimpleFSWrite(
+	ctx context.Context, arg keybase1.SimpleFSWriteArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
 	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
@@ -1673,7 +1732,7 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 			OpID: arg.OpID, Path: h.path, Offset: arg.Offset,
 		})
 
-	ctx, err := k.startReadWriteOp(
+	ctx, err = k.startReadWriteOp(
 		ctx, arg.OpID, keybase1.AsyncOps_WRITE, opDesc)
 	if err != nil {
 		return err
@@ -1702,9 +1761,10 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 
 // SimpleFSRemove - Remove file or directory from filesystem
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
-	arg keybase1.SimpleFSRemoveArg) error {
+	arg keybase1.SimpleFSRemoveArg) (err error) {
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_REMOVE,
 		keybase1.NewOpDescriptionWithRemove(keybase1.RemoveArgs(arg)),
+		arg.IdentifyBehavior,
 		func(ctx context.Context) (err error) {
 			return k.doRemove(ctx, arg.Path, arg.Recursive)
 		})
@@ -1972,6 +2032,7 @@ func (k *SimpleFS) SimpleFSGetRevisions(
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_GET_REVISIONS,
 		keybase1.NewOpDescriptionWithGetRevisions(
 			keybase1.GetRevisionsArgs(arg)),
+		arg.IdentifyBehavior,
 		func(ctx context.Context) (err error) {
 			revs, err := k.doGetRevisions(ctx, arg.OpID, arg.Path, arg.SpanType)
 			if err != nil {
@@ -2362,10 +2423,16 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 
 // SimpleFSFolderSyncConfigAndStatus gets the given folder's sync config.
 func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
-	ctx context.Context, path keybase1.Path) (
-	keybase1.FolderSyncConfigAndStatus, error) {
+	ctx context.Context, arg keybase1.SimpleFSFolderSyncConfigAndStatusArg) (
+	_ keybase1.FolderSyncConfigAndStatus, err error) {
 	ctx = k.makeContext(ctx)
-	_, config, err := k.getSyncConfig(ctx, path)
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return keybase1.FolderSyncConfigAndStatus{}, err
+		}
+	}
+	_, config, err := k.getSyncConfig(ctx, arg.Path)
 	if err != nil {
 		return keybase1.FolderSyncConfigAndStatus{}, err
 	}
@@ -2373,7 +2440,7 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 
 	dbc := k.config.DiskBlockCache()
 	if config.Mode != keybase1.FolderSyncMode_DISABLED {
-		fs, finalElem, err := k.getFSIfExists(ctx, path)
+		fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
 		if err != nil {
 			return res, err
 		}
@@ -2415,8 +2482,14 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 
 // SimpleFSSetFolderSyncConfig implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
-	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) error {
+	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) (err error) {
 	ctx = k.makeContext(ctx)
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
 	tlfID, _, err := k.getSyncConfig(ctx, arg.Path)
 	if err != nil {
 		return err
@@ -2428,8 +2501,15 @@ func (k *SimpleFS) SimpleFSSetFolderSyncConfig(
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
-	ctx context.Context) (res keybase1.SyncConfigAndStatusRes, err error) {
+	ctx context.Context, identifyBehavior *keybase1.TLFIdentifyBehavior) (
+	res keybase1.SyncConfigAndStatusRes, err error) {
 	ctx = k.makeContext(ctx)
+	if identifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *identifyBehavior)
+		if err != nil {
+			return keybase1.SyncConfigAndStatusRes{}, err
+		}
+	}
 	dbc := k.config.DiskBlockCache()
 	bytesAvail, bytesTotal := libkbfs.GetLocalDiskStats(ctx, dbc)
 
@@ -2540,8 +2620,14 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(
 
 // SimpleFSClearConflictState implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
-	path keybase1.Path) error {
-	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	arg keybase1.SimpleFSClearConflictStateArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -2551,7 +2637,7 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 			k.log.CDebugf(ctx, "Error cancelling delayer: %+v", err)
 		}
 	}()
-	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	t, tlfName, _, _, err := remoteTlfAndPath(arg.Path)
 	if err != nil {
 		return err
 	}
@@ -2566,8 +2652,14 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 
 // SimpleFSFinishResolvingConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
-	path keybase1.Path) error {
-	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	arg keybase1.SimpleFSFinishResolvingConflictArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -2577,7 +2669,7 @@ func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 			k.log.CDebugf(ctx, "Error cancelling delayer: %+v", err)
 		}
 	}()
-	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	t, tlfName, _, _, err := remoteTlfAndPath(arg.Path)
 	if err != nil {
 		return err
 	}
@@ -2587,7 +2679,7 @@ func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 		return err
 	}
 	tlfID := tlfHandle.TlfID()
-	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, arg.Path)
 	if err != nil {
 		return err
 	}
@@ -2599,8 +2691,14 @@ func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 
 // SimpleFSForceStuckConflict implements the SimpleFS interface.
 func (k *SimpleFS) SimpleFSForceStuckConflict(
-	ctx context.Context, path keybase1.Path) error {
-	ctx, err := k.startOpWrapContext(k.makeContext(ctx))
+	ctx context.Context, arg keybase1.SimpleFSForceStuckConflictArg) (err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = tlfhandle.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return err
+		}
+	}
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -2610,7 +2708,7 @@ func (k *SimpleFS) SimpleFSForceStuckConflict(
 			k.log.CDebugf(ctx, "Error cancelling delayer: %+v", err)
 		}
 	}()
-	t, tlfName, _, _, err := remoteTlfAndPath(path)
+	t, tlfName, _, _, err := remoteTlfAndPath(arg.Path)
 	if err != nil {
 		return err
 	}

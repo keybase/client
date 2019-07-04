@@ -162,6 +162,7 @@ const loadTlfSyncConfig = (_: TypedState, action: FsGen.LoadTlfSyncConfigPayload
     return null
   }
   return RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     path: Constants.pathToRPCPath(tlfPath),
   })
     .then(result =>
@@ -180,6 +181,7 @@ const setTlfSyncConfig = (_: TypedState, action: FsGen.SetTlfSyncConfigPayload) 
       config: {
         mode: action.payload.enabled ? RPCTypes.FolderSyncMode.enabled : RPCTypes.FolderSyncMode.disabled,
       },
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
       path: Constants.pathToRPCPath(action.payload.tlfPath),
     },
     Constants.syncToggleWaitingKey
@@ -268,6 +270,7 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
     if (pathElems.length < 3) {
       yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
         filter: RPCTypes.ListFilter.filterSystemHidden,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
         opID,
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: false,
@@ -276,6 +279,7 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
       yield RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
         opID,
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription: false,
@@ -413,7 +417,11 @@ function* download(
   )
 
   yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
-    dest: {PathType: RPCTypes.PathType.local, local: localPath},
+    dest: {
+      PathType: RPCTypes.PathType.local,
+      local: localPath,
+    },
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     opID,
     src: Constants.pathToRPCPath(path),
   })
@@ -461,6 +469,7 @@ function* upload(_: TypedState, action: FsGen.UploadPayload) {
   // TODO: what about directory merges?
   yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
     dest: Constants.pathToRPCPath(path),
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     opID,
     src: {PathType: RPCTypes.PathType.local, local: Types.getNormalizedLocalPath(localPath)},
   })
@@ -664,6 +673,7 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
       return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
         dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
         flags: RPCTypes.OpenFlags.directory,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
         opID: Constants.makeUUID(),
       })
         .then(() => FsGen.createEditSuccess({editID, parentPath}))
@@ -679,8 +689,9 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
 
   try {
     const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
       path: Constants.pathToRPCPath(path),
-      refreshSubscription: false,
+      refreshSubscription,
     })
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
@@ -711,6 +722,7 @@ const updateFsBadge = (state: TypedState) =>
 const deleteFile = (_: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     opID,
     path: Constants.pathToRPCPath(action.payload.path),
     recursive: true,
@@ -733,6 +745,7 @@ const moveOrCopy = (state: TypedState, action: FsGen.MovePayload | FsGen.CopyPay
         // We use the local path name here since we only care about file name.
       )
     ),
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     opID: Constants.makeUUID() as string,
     src:
       state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
@@ -906,11 +919,13 @@ const waitForKbfsDaemon = () => {
 
 const startManualCR = (_: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 
 const finishManualCR = (_: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 

@@ -213,17 +213,17 @@ func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
 }
 
 func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
-	_ keybase1.Path) error {
+	_ keybase1.SimpleFSClearConflictStateArg) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSFinishResolvingConflict(_ context.Context,
-	_ keybase1.Path) error {
+	_ keybase1.SimpleFSFinishResolvingConflictArg) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSForceStuckConflict(_ context.Context,
-	_ keybase1.Path) error {
+	_ keybase1.SimpleFSForceStuckConflictArg) error {
 	return nil
 }
 
@@ -247,7 +247,7 @@ func (s SimpleFSMock) SimpleFSGetTeamQuotaUsage(
 
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSFolderSyncConfigAndStatus(
-	_ context.Context, _ keybase1.Path) (
+	_ context.Context, _ keybase1.SimpleFSFolderSyncConfigAndStatusArg) (
 	keybase1.FolderSyncConfigAndStatus, error) {
 	return keybase1.FolderSyncConfigAndStatus{}, nil
 }
@@ -260,7 +260,7 @@ func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
-	_ context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	_ context.Context, _ *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
 	return keybase1.SyncConfigAndStatusRes{}, nil
 }
 

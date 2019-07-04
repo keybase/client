@@ -1335,25 +1335,28 @@ func (e PathSubscriptionTopic) String() string {
 }
 
 type SimpleFSListArg struct {
-	OpID                OpID       `codec:"opID" json:"opID"`
-	Path                Path       `codec:"path" json:"path"`
-	Filter              ListFilter `codec:"filter" json:"filter"`
-	RefreshSubscription bool       `codec:"refreshSubscription" json:"refreshSubscription"`
+	OpID                OpID                 `codec:"opID" json:"opID"`
+	Path                Path                 `codec:"path" json:"path"`
+	Filter              ListFilter           `codec:"filter" json:"filter"`
+	RefreshSubscription bool                 `codec:"refreshSubscription" json:"refreshSubscription"`
+	IdentifyBehavior    *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSListRecursiveArg struct {
-	OpID                OpID       `codec:"opID" json:"opID"`
-	Path                Path       `codec:"path" json:"path"`
-	Filter              ListFilter `codec:"filter" json:"filter"`
-	RefreshSubscription bool       `codec:"refreshSubscription" json:"refreshSubscription"`
+	OpID                OpID                 `codec:"opID" json:"opID"`
+	Path                Path                 `codec:"path" json:"path"`
+	Filter              ListFilter           `codec:"filter" json:"filter"`
+	RefreshSubscription bool                 `codec:"refreshSubscription" json:"refreshSubscription"`
+	IdentifyBehavior    *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSListRecursiveToDepthArg struct {
-	OpID                OpID       `codec:"opID" json:"opID"`
-	Path                Path       `codec:"path" json:"path"`
-	Filter              ListFilter `codec:"filter" json:"filter"`
-	RefreshSubscription bool       `codec:"refreshSubscription" json:"refreshSubscription"`
-	Depth               int        `codec:"depth" json:"depth"`
+	OpID                OpID                 `codec:"opID" json:"opID"`
+	Path                Path                 `codec:"path" json:"path"`
+	Filter              ListFilter           `codec:"filter" json:"filter"`
+	RefreshSubscription bool                 `codec:"refreshSubscription" json:"refreshSubscription"`
+	Depth               int                  `codec:"depth" json:"depth"`
+	IdentifyBehavior    *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSReadListArg struct {
@@ -1361,60 +1364,70 @@ type SimpleFSReadListArg struct {
 }
 
 type SimpleFSCopyArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Src              Path                 `codec:"src" json:"src"`
+	Dest             Path                 `codec:"dest" json:"dest"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSSymlinkArg struct {
-	Target string `codec:"target" json:"target"`
-	Link   Path   `codec:"link" json:"link"`
+	Target           string               `codec:"target" json:"target"`
+	Link             Path                 `codec:"link" json:"link"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSCopyRecursiveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Src              Path                 `codec:"src" json:"src"`
+	Dest             Path                 `codec:"dest" json:"dest"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSMoveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Src              Path                 `codec:"src" json:"src"`
+	Dest             Path                 `codec:"dest" json:"dest"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSRenameArg struct {
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
+	Src              Path                 `codec:"src" json:"src"`
+	Dest             Path                 `codec:"dest" json:"dest"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSOpenArg struct {
-	OpID  OpID      `codec:"opID" json:"opID"`
-	Dest  Path      `codec:"dest" json:"dest"`
-	Flags OpenFlags `codec:"flags" json:"flags"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Dest             Path                 `codec:"dest" json:"dest"`
+	Flags            OpenFlags            `codec:"flags" json:"flags"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSSetStatArg struct {
-	Dest Path       `codec:"dest" json:"dest"`
-	Flag DirentType `codec:"flag" json:"flag"`
+	Dest             Path                 `codec:"dest" json:"dest"`
+	Flag             DirentType           `codec:"flag" json:"flag"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSReadArg struct {
-	OpID   OpID  `codec:"opID" json:"opID"`
-	Offset int64 `codec:"offset" json:"offset"`
-	Size   int   `codec:"size" json:"size"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Offset           int64                `codec:"offset" json:"offset"`
+	Size             int                  `codec:"size" json:"size"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSWriteArg struct {
-	OpID    OpID   `codec:"opID" json:"opID"`
-	Offset  int64  `codec:"offset" json:"offset"`
-	Content []byte `codec:"content" json:"content"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Offset           int64                `codec:"offset" json:"offset"`
+	Content          []byte               `codec:"content" json:"content"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSRemoveArg struct {
-	OpID      OpID `codec:"opID" json:"opID"`
-	Path      Path `codec:"path" json:"path"`
-	Recursive bool `codec:"recursive" json:"recursive"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Path             Path                 `codec:"path" json:"path"`
+	Recursive        bool                 `codec:"recursive" json:"recursive"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSStatArg struct {
@@ -1424,9 +1437,10 @@ type SimpleFSStatArg struct {
 }
 
 type SimpleFSGetRevisionsArg struct {
-	OpID     OpID             `codec:"opID" json:"opID"`
-	Path     Path             `codec:"path" json:"path"`
-	SpanType RevisionSpanType `codec:"spanType" json:"spanType"`
+	OpID             OpID                 `codec:"opID" json:"opID"`
+	Path             Path                 `codec:"path" json:"path"`
+	SpanType         RevisionSpanType     `codec:"spanType" json:"spanType"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSReadRevisionsArg struct {
@@ -1459,15 +1473,18 @@ type SimpleFSDumpDebuggingInfoArg struct {
 }
 
 type SimpleFSClearConflictStateArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path             Path                 `codec:"path" json:"path"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSFinishResolvingConflictArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path             Path                 `codec:"path" json:"path"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSForceStuckConflictArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path             Path                 `codec:"path" json:"path"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSSyncStatusArg struct {
@@ -1499,15 +1516,18 @@ type SimpleFSResetArg struct {
 }
 
 type SimpleFSFolderSyncConfigAndStatusArg struct {
-	Path Path `codec:"path" json:"path"`
+	Path             Path                 `codec:"path" json:"path"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSSetFolderSyncConfigArg struct {
-	Path   Path             `codec:"path" json:"path"`
-	Config FolderSyncConfig `codec:"config" json:"config"`
+	Path             Path                 `codec:"path" json:"path"`
+	Config           FolderSyncConfig     `codec:"config" json:"config"`
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSSyncConfigAndStatusArg struct {
+	IdentifyBehavior *TLFIdentifyBehavior `codec:"identifyBehavior,omitempty" json:"identifyBehavior,omitempty"`
 }
 
 type SimpleFSAreWeConnectedToMDServerArg struct {
@@ -1623,10 +1643,10 @@ type SimpleFSInterface interface {
 	SimpleFSWait(context.Context, OpID) error
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
-	SimpleFSClearConflictState(context.Context, Path) error
-	SimpleFSFinishResolvingConflict(context.Context, Path) error
+	SimpleFSClearConflictState(context.Context, SimpleFSClearConflictStateArg) error
+	SimpleFSFinishResolvingConflict(context.Context, SimpleFSFinishResolvingConflictArg) error
 	// Force a TLF into a stuck conflict state (for testing).
-	SimpleFSForceStuckConflict(context.Context, Path) error
+	SimpleFSForceStuckConflict(context.Context, SimpleFSForceStuckConflictArg) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
 	// This RPC generates a random token to be used by a client that needs to
@@ -1663,9 +1683,9 @@ type SimpleFSInterface interface {
 	// simpleFSReset completely resets the KBFS folder referenced in `path`.
 	// It should only be called after explicit user confirmation.
 	SimpleFSReset(context.Context, Path) error
-	SimpleFSFolderSyncConfigAndStatus(context.Context, Path) (FolderSyncConfigAndStatus, error)
+	SimpleFSFolderSyncConfigAndStatus(context.Context, SimpleFSFolderSyncConfigAndStatusArg) (FolderSyncConfigAndStatus, error)
 	SimpleFSSetFolderSyncConfig(context.Context, SimpleFSSetFolderSyncConfigArg) error
-	SimpleFSSyncConfigAndStatus(context.Context) (SyncConfigAndStatusRes, error)
+	SimpleFSSyncConfigAndStatus(context.Context, *TLFIdentifyBehavior) (SyncConfigAndStatusRes, error)
 	SimpleFSAreWeConnectedToMDServer(context.Context) (bool, error)
 	SimpleFSCheckReachability(context.Context) error
 	SimpleFSSetDebugLevel(context.Context, string) error
@@ -2039,7 +2059,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSClearConflictStateArg)(nil), args)
 						return
 					}
-					err = i.SimpleFSClearConflictState(ctx, typedArgs[0].Path)
+					err = i.SimpleFSClearConflictState(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2054,7 +2074,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSFinishResolvingConflictArg)(nil), args)
 						return
 					}
-					err = i.SimpleFSFinishResolvingConflict(ctx, typedArgs[0].Path)
+					err = i.SimpleFSFinishResolvingConflict(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2069,7 +2089,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSForceStuckConflictArg)(nil), args)
 						return
 					}
-					err = i.SimpleFSForceStuckConflict(ctx, typedArgs[0].Path)
+					err = i.SimpleFSForceStuckConflict(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2184,7 +2204,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SimpleFSFolderSyncConfigAndStatusArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSFolderSyncConfigAndStatus(ctx, typedArgs[0].Path)
+					ret, err = i.SimpleFSFolderSyncConfigAndStatus(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2209,7 +2229,12 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSSyncConfigAndStatus(ctx)
+					typedArgs, ok := args.(*[1]SimpleFSSyncConfigAndStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSyncConfigAndStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSyncConfigAndStatus(ctx, typedArgs[0].IdentifyBehavior)
 					return
 				},
 			},
@@ -2535,21 +2560,18 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 	return
 }
 
-func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, path Path) (err error) {
-	__arg := SimpleFSClearConflictStateArg{Path: path}
+func (c SimpleFSClient) SimpleFSClearConflictState(ctx context.Context, __arg SimpleFSClearConflictStateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClearConflictState", []interface{}{__arg}, nil)
 	return
 }
 
-func (c SimpleFSClient) SimpleFSFinishResolvingConflict(ctx context.Context, path Path) (err error) {
-	__arg := SimpleFSFinishResolvingConflictArg{Path: path}
+func (c SimpleFSClient) SimpleFSFinishResolvingConflict(ctx context.Context, __arg SimpleFSFinishResolvingConflictArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFinishResolvingConflict", []interface{}{__arg}, nil)
 	return
 }
 
 // Force a TLF into a stuck conflict state (for testing).
-func (c SimpleFSClient) SimpleFSForceStuckConflict(ctx context.Context, path Path) (err error) {
-	__arg := SimpleFSForceStuckConflictArg{Path: path}
+func (c SimpleFSClient) SimpleFSForceStuckConflict(ctx context.Context, __arg SimpleFSForceStuckConflictArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSForceStuckConflict", []interface{}{__arg}, nil)
 	return
 }
@@ -2626,8 +2648,7 @@ func (c SimpleFSClient) SimpleFSReset(ctx context.Context, path Path) (err error
 	return
 }
 
-func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, path Path) (res FolderSyncConfigAndStatus, err error) {
-	__arg := SimpleFSFolderSyncConfigAndStatusArg{Path: path}
+func (c SimpleFSClient) SimpleFSFolderSyncConfigAndStatus(ctx context.Context, __arg SimpleFSFolderSyncConfigAndStatusArg) (res FolderSyncConfigAndStatus, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus", []interface{}{__arg}, &res)
 	return
 }
@@ -2637,8 +2658,9 @@ func (c SimpleFSClient) SimpleFSSetFolderSyncConfig(ctx context.Context, __arg S
 	return
 }
 
-func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context) (res SyncConfigAndStatusRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{SimpleFSSyncConfigAndStatusArg{}}, &res)
+func (c SimpleFSClient) SimpleFSSyncConfigAndStatus(ctx context.Context, identifyBehavior *TLFIdentifyBehavior) (res SyncConfigAndStatusRes, err error) {
+	__arg := SimpleFSSyncConfigAndStatusArg{IdentifyBehavior: identifyBehavior}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncConfigAndStatus", []interface{}{__arg}, &res)
 	return
 }
 

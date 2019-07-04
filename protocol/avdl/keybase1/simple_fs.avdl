@@ -239,7 +239,7 @@ protocol SimpleFS {
      corresponding TLF, until another call refreshes the subscription on a
      different TLF.
    */
-  void simpleFSList(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
+  void simpleFSList(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Begin recursive list of items in directory at path.
@@ -248,12 +248,12 @@ protocol SimpleFS {
      corresponding TLF, until another call refreshes the subscription on a
      different TLF.
 */
-  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
+  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Begin recursive list of items in directory at path up to a given depth
    */
-  void simpleFSListRecursiveToDepth(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, int depth);
+  void simpleFSListRecursiveToDepth(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, int depth, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get list of Paths in progress. Can indicate status of pending
@@ -264,40 +264,40 @@ protocol SimpleFS {
   /**
    Begin copy of file or directory 
    */
-  void simpleFSCopy(OpID opID, Path src, Path dest);
+  void simpleFSCopy(OpID opID, Path src, Path dest, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
 
   /**
    Make a symlink of file or directory
    */
-  void simpleFSSymlink(string target, Path link);
+  void simpleFSSymlink(string target, Path link, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Begin recursive copy of directory 
    */
-  void simpleFSCopyRecursive(OpID opID, Path src, Path dest);
+  void simpleFSCopyRecursive(OpID opID, Path src, Path dest, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Begin move of file or directory, from/to KBFS only
    */
-  void simpleFSMove(OpID opID, Path src, Path dest);
+  void simpleFSMove(OpID opID, Path src, Path dest, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Rename file or directory, KBFS side only
    */
-  void simpleFSRename(Path src, Path dest);
+  void simpleFSRename(Path src, Path dest, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Create/open a file and leave it open
    or create a directory
    Files must be closed afterwards.
    */
-  void simpleFSOpen(OpID opID, Path dest, OpenFlags flags);
+  void simpleFSOpen(OpID opID, Path dest, OpenFlags flags, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Set/clear file bits - only executable for now
   */
-  void simpleFSSetStat(Path dest, DirentType flag);
+  void simpleFSSetStat(Path dest, DirentType flag, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Read (possibly partial) contents of open file,
@@ -305,18 +305,18 @@ protocol SimpleFS {
    Repeat until zero bytes are returned or error.
    If size is zero, read an arbitrary amount.
    */
-  FileContent simpleFSRead(OpID opID, long offset, int size);
+  FileContent simpleFSRead(OpID opID, long offset, int size, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Append content to opened file.
    May be repeated until OpID is closed.
    */
-  void simpleFSWrite(OpID opID, long offset, bytes content);
+  void simpleFSWrite(OpID opID, long offset, bytes content, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Remove file or directory from filesystem
    */
-  void simpleFSRemove(OpID opID, Path path, boolean recursive);
+  void simpleFSRemove(OpID opID, Path path, boolean recursive, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get info about file
@@ -326,7 +326,7 @@ protocol SimpleFS {
   /**
    Get revision info for a directory entry
    */
-  void simpleFSGetRevisions(OpID opID, Path path, RevisionSpanType spanType);
+  void simpleFSGetRevisions(OpID opID, Path path, RevisionSpanType spanType, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get list of revisions in progress. Can indicate status of pending
@@ -380,17 +380,17 @@ protocol SimpleFS {
   // needed data from 2) into 1).
   //
   // Note that it's possible to have multiple 2) for the same 1).
-  void simpleFSClearConflictState(Path path);
+  void simpleFSClearConflictState(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   // Mark the finish of resolving conflict. This deletes the locally branched
   // version of the TLF. Path must be a local view TLF path with conflict
   // suffix.
-  void simpleFSFinishResolvingConflict(Path path);
+  void simpleFSFinishResolvingConflict(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Force a TLF into a stuck conflict state (for testing).
    */
-  void simpleFSForceStuckConflict(Path path);
+  void simpleFSForceStuckConflict(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   /**
    Get sync status.
@@ -500,16 +500,16 @@ protocol SimpleFS {
   // simpleFSFolderSyncConfigAndStatus returns the current sync config for the
   // folder specified in `path` (e.g., whether syncing is enabled for
   // that folder).
-  FolderSyncConfigAndStatus simpleFSFolderSyncConfigAndStatus(Path path);
+  FolderSyncConfigAndStatus simpleFSFolderSyncConfigAndStatus(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   // simpleFSSetFolderSyncConfig sets the sync config for the folder
   // specified in `path`.
-  void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config);
+  void simpleFSSetFolderSyncConfig(Path path, FolderSyncConfig config, union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   // simpleFSSyncConfigAndStatus returns the sync config and status
   // for all syncing folders, as well as an overall status for the whole
   // device.
-  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus();
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   boolean simpleFSAreWeConnectedToMDServer();
 

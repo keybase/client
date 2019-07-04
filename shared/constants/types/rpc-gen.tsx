@@ -228,23 +228,23 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSClearConflictState': {
-    inParam: {readonly path: Path}
+    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSFinishResolvingConflict': {
-    inParam: {readonly path: Path}
+    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {
-    inParam: {readonly path: Path}
+    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: FolderSyncConfigAndStatus
   }
   'keybase.1.SimpleFS.simpleFSList': {
-    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean}
+    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSListFavorites': {
@@ -252,15 +252,15 @@ export type MessageTypes = {
     outParam: FavoritesResult
   }
   'keybase.1.SimpleFS.simpleFSListRecursiveToDepth': {
-    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly depth: Int}
+    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly depth: Int; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSMove': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSOpen': {
-    inParam: {readonly opID: OpID; readonly dest: Path; readonly flags: OpenFlags}
+    inParam: {readonly opID: OpID; readonly dest: Path; readonly flags: OpenFlags; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSReadList': {
@@ -268,7 +268,7 @@ export type MessageTypes = {
     outParam: SimpleFSListResult
   }
   'keybase.1.SimpleFS.simpleFSRemove': {
-    inParam: {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean}
+    inParam: {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSetDebugLevel': {
@@ -276,7 +276,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig': {
-    inParam: {readonly path: Path; readonly config: FolderSyncConfig}
+    inParam: {readonly path: Path; readonly config: FolderSyncConfig; readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSetNotificationThreshold': {
@@ -300,7 +300,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSyncConfigAndStatus': {
-    inParam: void
+    inParam: {readonly identifyBehavior?: TLFIdentifyBehavior | null}
     outParam: SyncConfigAndStatusRes
   }
   'keybase.1.SimpleFS.simpleFSSyncStatus': {
@@ -2163,6 +2163,7 @@ export enum TLFIdentifyBehavior {
   resolveAndCheck = 12,
   guiProfile = 13,
   kbfsInit = 14,
+  fsGui = 15,
 }
 
 export enum TLFVisibility {

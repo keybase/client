@@ -56,7 +56,7 @@ func (c *CmdSimpleFSSyncDisable) Run() error {
 		if err != nil {
 			return err
 		}
-		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, arg.Path)
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, keybase1.SimpleFSFolderSyncConfigAndStatusArg{Path: arg.Path})
 		if err != nil {
 			return err
 		}

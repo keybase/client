@@ -786,6 +786,13 @@
         {
           "name": "refreshSubscription",
           "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -808,6 +815,13 @@
         {
           "name": "refreshSubscription",
           "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -834,6 +848,13 @@
         {
           "name": "depth",
           "type": "int"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -862,6 +883,13 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -876,6 +904,13 @@
         {
           "name": "link",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -894,6 +929,13 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -912,6 +954,13 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -926,6 +975,13 @@
         {
           "name": "dest",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -944,6 +1000,13 @@
         {
           "name": "flags",
           "type": "OpenFlags"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -958,6 +1021,13 @@
         {
           "name": "flag",
           "type": "DirentType"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -976,6 +1046,13 @@
         {
           "name": "size",
           "type": "int"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": "FileContent",
@@ -994,6 +1071,13 @@
         {
           "name": "content",
           "type": "bytes"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -1012,6 +1096,13 @@
         {
           "name": "recursive",
           "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -1051,6 +1142,13 @@
         {
           "name": "spanType",
           "type": "RevisionSpanType"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -1129,6 +1227,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null
@@ -1138,6 +1243,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null
@@ -1147,6 +1259,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null,
@@ -1221,6 +1340,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": "FolderSyncConfigAndStatus"
@@ -1234,12 +1360,27 @@
         {
           "name": "config",
           "type": "FolderSyncConfig"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": null
     },
     "simpleFSSyncConfigAndStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        }
+      ],
       "response": "SyncConfigAndStatusRes"
     },
     "simpleFSAreWeConnectedToMDServer": {

@@ -41,7 +41,7 @@ func (c *CmdSimpleFSClearConflicts) Run() error {
 		return err
 	}
 
-	return cli.SimpleFSClearConflictState(context.TODO(), c.path)
+	return cli.SimpleFSClearConflictState(context.TODO(), keybase1.SimpleFSClearConflictStateArg{Path: c.path})
 }
 
 // ParseArgv gets the path.

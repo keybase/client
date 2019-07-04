@@ -425,7 +425,7 @@ func (s *SimpleFSHandler) SimpleFSGetTeamQuotaUsage(
 
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
-	ctx context.Context, path keybase1.Path) (
+	ctx context.Context, arg keybase1.SimpleFSFolderSyncConfigAndStatusArg) (
 	keybase1.FolderSyncConfigAndStatus, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
@@ -433,7 +433,7 @@ func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
 	if err != nil {
 		return keybase1.FolderSyncConfigAndStatus{}, err
 	}
-	return cli.SimpleFSFolderSyncConfigAndStatus(ctx, path)
+	return cli.SimpleFSFolderSyncConfigAndStatus(ctx, arg)
 }
 
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
@@ -450,50 +450,50 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
-	ctx context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	ctx context.Context, identifyBehavior *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.SyncConfigAndStatusRes{}, err
 	}
-	return cli.SimpleFSSyncConfigAndStatus(ctx)
+	return cli.SimpleFSSyncConfigAndStatus(ctx, identifyBehavior)
 }
 
 // SimpleFSClearConflictState implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
-	path keybase1.Path) error {
+	arg keybase1.SimpleFSClearConflictStateArg) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSClearConflictState(ctx, path)
+	return cli.SimpleFSClearConflictState(ctx, arg)
 }
 
 // SimpleFSFinishResolvingConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSFinishResolvingConflict(ctx context.Context,
-	path keybase1.Path) error {
+	arg keybase1.SimpleFSFinishResolvingConflictArg) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSFinishResolvingConflict(ctx, path)
+	return cli.SimpleFSFinishResolvingConflict(ctx, arg)
 }
 
 // SimpleFSForceStuckConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
-	ctx context.Context, path keybase1.Path) error {
+	ctx context.Context, arg keybase1.SimpleFSForceStuckConflictArg) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSForceStuckConflict(ctx, path)
+	return cli.SimpleFSForceStuckConflict(ctx, arg)
 }
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.

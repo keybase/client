@@ -43,7 +43,7 @@ func (c *CmdSimpleFSForceConflict) Run() error {
 		return err
 	}
 
-	return cli.SimpleFSForceStuckConflict(context.TODO(), c.path)
+	return cli.SimpleFSForceStuckConflict(context.TODO(), keybase1.SimpleFSForceStuckConflictArg{Path: c.path})
 }
 
 // ParseArgv gets the path.
