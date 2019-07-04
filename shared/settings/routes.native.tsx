@@ -28,6 +28,7 @@ export const newModalRoutes = {
   disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
   settingsAddEmail: {getScreen: () => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: () => require('./account/add-modals').Phone},
+  settingsDeleteAddress: {getScreen: () => require('./account/confirm-delete').DeleteModal},
   settingsManageContacts: {getScreen: () => require('./account/manage-contacts.native').default},
   settingsVerifyPhone: {getScreen: () => require('./account/add-modals').VerifyPhone},
 }
