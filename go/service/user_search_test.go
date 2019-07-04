@@ -69,6 +69,14 @@ func TestContactSearch(t *testing.T) {
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "",
+		Query:           "",
+	})
+	require.NoError(t, err)
+	require.Empty(t, res)
+
+	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "",
 		Query:           "test",
 	})
 	require.NoError(t, err)
@@ -76,4 +84,14 @@ func TestContactSearch(t *testing.T) {
 	strList := stringifyAPIResult(res)
 	require.Contains(t, strList, "TEST,+1555123456")
 	require.Contains(t, strList, "Test Contact 1,")
+
+	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "",
+		Query:           "building",
+	})
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	strList = stringifyAPIResult(res)
+	require.Contains(t, strList, "Office Building,")
 }
