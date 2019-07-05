@@ -116,16 +116,30 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
 }
 
 const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
-  RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50})
-    .then((suggestions: Array<RPCTypes.InterestingPerson> | null) =>
-      (suggestions || []).map(
-        ({username, fullname}): TeamBuildingTypes.User => ({
-          id: username,
-          prettyName: fullname,
-          serviceMap: {keybase: username},
+  Promise.all([
+    RPCTypes.contactsLookupSavedContactsListRpcPromise(),
+    RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
+  ])
+    .then(results => {
+      const contactUsernames = new Set(results[0].map(x => x.username).filter(Boolean))
+      const contacts = results[0].map(
+        (x): TeamBuildingTypes.User => ({
+          id: x.assertion,
+          prettyName: x.displayLabel,
+          serviceMap: {keybase: x.username},
         })
       )
-    )
+      const suggestions = results[1]
+        .filter(({username}) => !contactUsernames.has(username))
+        .map(
+          ({username, fullname}): TeamBuildingTypes.User => ({
+            id: username,
+            prettyName: fullname,
+            serviceMap: {keybase: username},
+          })
+        )
+      return contacts.concat(suggestions)
+    })
     .catch(e => {
       logger.error(`Error in fetching recs`)
       return []

@@ -189,8 +189,9 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			res2 = append(res2, res...)
 			res = res2
 
-			if arg.MaxResults > 0 {
-				res = res[:arg.MaxResults]
+			maxRes := arg.MaxResults
+			if maxRes > 0 && len(res) > maxRes {
+				res = res[:maxRes]
 			}
 		}
 	}
