@@ -72,6 +72,9 @@ func (t *locationTrack) SetCoords(coords []chat1.Coordinate) {
 func (t *locationTrack) Stop() {
 	t.Lock()
 	defer t.Unlock()
+	if t.stopped {
+		return
+	}
 	t.stopped = true
 	close(t.stopCh)
 }
