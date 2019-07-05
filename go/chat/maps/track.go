@@ -22,6 +22,7 @@ type locationTrack struct {
 	allCoords          []chat1.Coordinate
 	getCurrentPosition bool
 	maxCoords          int
+	stopped            bool
 }
 
 func (t *locationTrack) GetCoords() (res []chat1.Coordinate) {
@@ -66,6 +67,19 @@ func (t *locationTrack) SetCoords(coords []chat1.Coordinate) {
 	defer t.Unlock()
 	t.allCoords = coords
 	t.capLocked(t.maxCoords)
+}
+
+func (t *locationTrack) Stop() {
+	t.Lock()
+	defer t.Unlock()
+	t.stopped = true
+	close(t.stopCh)
+}
+
+func (t *locationTrack) IsStopped() bool {
+	t.Lock()
+	defer t.Unlock()
+	return t.stopped
 }
 
 func (t *locationTrack) Key() types.LiveLocationKey {
