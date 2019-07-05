@@ -2043,6 +2043,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-block': {
+    charCode: 0xe994,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-bomb': {
     charCode: 0xe908,
     gridSize: 16,
@@ -2585,6 +2590,11 @@ const iconMeta_ = {
   },
   'iconfont-remove': {
     charCode: 0xe957,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-reply': {
+    charCode: 0xe995,
     gridSize: 16,
     isFont: true,
   },

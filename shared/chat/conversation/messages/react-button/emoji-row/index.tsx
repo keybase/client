@@ -87,14 +87,16 @@ class EmojiRow extends React.Component<
           {this.props.emojis.map(e => (
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
-          <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} key="reacji-icon" />
         </Kb.Box2>
         {!!this.props.onReply && (
           <Kb.Box2 direction="horizontal" gap="tiny">
             <Kb.Divider vertical={true} />
-            <Kb.Text type="BodySmallSecondaryLink" style={styles.reply} onClick={this.props.onReply}>
-              Reply
-            </Kb.Text>
+            <Kb.WithTooltip text="React">
+              <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} />
+            </Kb.WithTooltip>
+            <Kb.WithTooltip text="Reply">
+              <Kb.Icon type="iconfont-reply" onClick={this.props.onReply} />
+            </Kb.WithTooltip>
           </Kb.Box2>
         )}
         {this.state.showingPicker && (
