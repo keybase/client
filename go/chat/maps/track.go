@@ -95,11 +95,12 @@ func (t *locationTrack) ToDisk() diskLocationTrack {
 		Coords:             t.GetCoords(),
 		GetCurrentPosition: t.getCurrentPosition,
 		MaxCoords:          t.maxCoords,
+		Stopped:            t.stopped,
 	}
 }
 
 func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
-	endTime time.Time, getCurrentPosition bool, maxCoords int) *locationTrack {
+	endTime time.Time, getCurrentPosition bool, maxCoords int, stopped bool) *locationTrack {
 	return &locationTrack{
 		stopCh:             make(chan struct{}),
 		updateCh:           make(chan chat1.Coordinate, 50),
@@ -108,11 +109,13 @@ func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
 		endTime:            endTime,
 		getCurrentPosition: getCurrentPosition,
 		maxCoords:          maxCoords,
+		stopped:            stopped,
 	}
 }
 
 func newLocationTrackFromDisk(d diskLocationTrack) *locationTrack {
-	t := newLocationTrack(d.ConvID, d.MsgID, gregor1.FromTime(d.EndTime), d.GetCurrentPosition, d.MaxCoords)
+	t := newLocationTrack(d.ConvID, d.MsgID, gregor1.FromTime(d.EndTime), d.GetCurrentPosition, d.MaxCoords,
+		d.Stopped)
 	t.allCoords = d.Coords
 	return t
 }
