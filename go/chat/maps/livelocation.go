@@ -67,7 +67,7 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 	defer l.Unlock()
 	ch := make(chan struct{})
 	for _, t := range l.trackers {
-		t.Stop()
+		close(t.stopCh)
 	}
 	go func() {
 		l.eg.Wait()
@@ -99,9 +99,6 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 		return
 	}
 	for _, t := range trackers {
-		if t.IsStopped() {
-			continue
-		}
 		l.trackers[t.Key()] = t
 		l.eg.Go(func() error { return l.tracker(t) })
 	}
@@ -411,7 +408,8 @@ func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
 	l.Lock()
 	defer l.Unlock()
 	for _, t := range l.trackers {
-		t.Stop()
+		delete(l.trackers, t.Key())
+		close(t.stopCh)
 	}
 	l.saveLocked(ctx)
 }

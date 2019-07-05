@@ -20,7 +20,6 @@ type diskLocationTrack struct {
 	Coords             []chat1.Coordinate   `codec:"O"`
 	GetCurrentPosition bool                 `codec:"P"`
 	MaxCoords          int                  `codec:"MC"`
-	Stopped            bool                 `codec:"S"`
 }
 
 type diskTrackStorage struct {
