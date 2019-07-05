@@ -98,6 +98,11 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 		l.Debug(ctx, "restoreLocked: failed to read, skipping: %s", err)
 		return
 	}
+	if len(trackers) == 0 {
+		return
+	}
+	l.Debug(ctx, "restoreLocked: restored %d trackers", len(trackers))
+	l.trackers = make(map[types.LiveLocationKey]*locationTrack)
 	for _, t := range trackers {
 		if t.IsStopped() {
 			continue
