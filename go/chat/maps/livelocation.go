@@ -349,7 +349,7 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 	defer l.Unlock()
 	// start up a live location tracker for a small amount of time to make sure we get a good
 	// coordinate
-	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords)
+	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
@@ -360,7 +360,7 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	defer l.Trace(ctx, func() error { return nil }, "StartTracking")()
 	l.Lock()
 	defer l.Unlock()
-	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords)
+	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
