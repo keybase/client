@@ -9,7 +9,7 @@ type Props = {
 
 const RuntimeStats = (props: Props) => {
   return (
-    <Kb.Box2 direction="vertical" style={styles.container}>
+    <Kb.Box2 direction={Styles.isMobile ? 'horizontal' : 'vertical'} style={styles.container} gap="xxtiny">
       <Kb.Text style={styles.stat} type="BodyTiny">{`CPU: ${props.cpu}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`Res: ${props.resident}`}</Kb.Text>
     </Kb.Box2>
@@ -21,11 +21,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       backgroundColor: Styles.globalColors.black,
       padding: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      left: '5%',
-      position: 'absolute',
-      top: 0,
     },
   }),
   stat: {

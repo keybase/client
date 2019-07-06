@@ -15,6 +15,6 @@ const mapStateToProps = (state: TypedState) => {
     : blank
 }
 
-export default namedConnect(mapStateToProps, (d, o) => {}, (s, d, o) => ({...s}), 'RuntimeStats')(
+export default namedConnect(mapStateToProps, (d, o) => ({}), (s, d, o) => ({...s}), 'RuntimeStats')(
   RuntimeStats
 )

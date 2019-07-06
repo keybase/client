@@ -17,6 +17,7 @@ import * as Shim from './shim.native'
 import {debounce} from 'lodash-es'
 import logger from '../logger'
 import OutOfDate from '../app/out-of-date'
+import RuntimeStats from '../app/runtime-stats/container'
 
 // turn on screens
 useScreens()
@@ -25,7 +26,11 @@ useScreens()
 // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
 const defaultNavigationOptions = {
   backBehavior: 'none',
-  header: null,
+  header: (
+    <Kb.SafeAreaViewTop>
+      <RuntimeStats />
+    </Kb.SafeAreaViewTop>
+  ),
   headerLeft: hp =>
     hp.scene.index === 0 ? null : (
       <LeftAction
