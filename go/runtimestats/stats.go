@@ -2,11 +2,13 @@ package runtimestats
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,8 +27,12 @@ func NewRunner(g *globals.Context) *Runner {
 	}
 }
 
+func (r *Runner) debug(ctx context.Context, msg string, args ...interface{}) {
+	r.G().Log.CDebugf(ctx, "RuntimeStats.Runner: %s", fmt.Sprintf(msg, args...))
+}
+
 func (r *Runner) Start(ctx context.Context) {
-	defer r.G().CTrace(ctx, "Start", func() error { return nil })()
+	defer r.G().CTrace(ctx, "Runner.Start", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
 	if r.started {
@@ -42,7 +48,7 @@ func (r *Runner) Start(ctx context.Context) {
 }
 
 func (r *Runner) Stop(ctx context.Context) chan struct{} {
-	defer r.G().CTrace(ctx, "Stop", func() error { return nil })()
+	defer r.G().CTrace(ctx, "Runner.Stop", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
 	ch := make(chan struct{})
@@ -60,23 +66,31 @@ func (r *Runner) Stop(ctx context.Context) chan struct{} {
 }
 
 func (r *Runner) statsLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
 	for {
 		select {
 		case <-time.After(4 * time.Second):
-			r.updateStats()
+			r.updateStats(ctx)
 		case <-stopCh:
 			return nil
 		}
 	}
 }
 
-func (r *Runner) updateStats() {
-	stats := GetStats()
-	r.G().Log.Debug("STATS: CPU: %.2f%% RES: %s", float64(stats.TotalCPU)/100.0,
-		utils.PresentBytes(stats.TotalResident))
+func (r *Runner) updateStats(ctx context.Context) {
+	stats := GetStats().Export()
+	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, stats)
+	r.debug(ctx, "update: %+v", stats)
 }
 
 type statsResult struct {
 	TotalCPU      int
 	TotalResident int64
+}
+
+func (r statsResult) Export() keybase1.RuntimeStats {
+	return keybase1.RuntimeStats{
+		Cpu:      fmt.Sprintf("%.2f%%", float64(r.TotalCPU)/100.0),
+		Resident: utils.PresentBytes(r.TotalResident),
+	}
 }

@@ -137,6 +137,8 @@ export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1Noti
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
 export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
+export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
+  'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1150,6 +1152,17 @@ type _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
     ) => void
   }
 }
+type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyServiceShutdownPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {
     sessionID: number
@@ -2096,6 +2109,12 @@ export const createKeybase1NotifyPhoneNumberPhoneNumbersChanged = (
   payload,
   type: keybase1NotifyPhoneNumberPhoneNumbersChanged,
 })
+export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
+  payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+): Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload => ({
+  payload,
+  type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
+})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -2790,6 +2809,10 @@ export type Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
   readonly payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   readonly type: typeof keybase1NotifyPhoneNumberPhoneNumbersChanged
 }
+export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
+  readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
+}
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
   readonly type: typeof keybase1NotifyServiceShutdown
@@ -3165,6 +3188,7 @@ export type Actions =
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+  | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

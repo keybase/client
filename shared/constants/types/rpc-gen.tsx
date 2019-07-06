@@ -111,6 +111,10 @@ export type MessageTypes = {
     inParam: {readonly list?: Array<UserPhoneNumber> | null; readonly category: String; readonly phoneNumber: PhoneNumber}
     outParam: void
   }
+  'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
+    inParam: {readonly stats: RuntimeStats}
+    outParam: void
+  }
   'keybase.1.NotifyService.shutdown': {
     inParam: {readonly code: Int}
     outParam: void
@@ -2391,7 +2395,7 @@ export type NaclDHKeyPublic = string | null
 export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
-export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean}
+export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs | null} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs | null} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs | null} | {asyncOp: AsyncOps.read; read: ReadArgs | null} | {asyncOp: AsyncOps.write; write: WriteArgs | null} | {asyncOp: AsyncOps.copy; copy: CopyArgs | null} | {asyncOp: AsyncOps.move; move: MoveArgs | null} | {asyncOp: AsyncOps.remove; remove: RemoveArgs | null} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs | null}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
@@ -2474,6 +2478,7 @@ export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; read
 export type RevokeWarning = {readonly endangeredTLFs?: Array<TLF> | null}
 export type RevokedKey = {readonly key: PublicKey; readonly time: KeybaseTime; readonly by: KID}
 export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDiff; readonly snoozed: Boolean}
+export type RuntimeStats = {readonly cpu: String; readonly resident: String}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
@@ -2717,6 +2722,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'?: (params: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedOut'?: (params: MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -2831,6 +2837,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (params: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPaperKey.paperKeyCached']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'?: (params: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.clientOutOfDate'?: (params: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.clientOutOfDate']['outParam']) => void}) => IncomingReturn
@@ -3268,6 +3275,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.NotifyPaperKey.paperKeyCached'
 // 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'
 // 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'
+// 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'
 // 'keybase.1.NotifyService.shutdown'
 // 'keybase.1.NotifySession.loggedOut'
 // 'keybase.1.NotifySession.loggedIn'

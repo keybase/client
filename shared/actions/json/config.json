@@ -125,6 +125,9 @@
       "online": "boolean",
       "type": "ConnectionType",
       "isInit?": "boolean"
+    },
+    "runtimeStatsUpdate": {
+      "stats": "RPCTypes.RuntimeStats"
     }
   }
 }

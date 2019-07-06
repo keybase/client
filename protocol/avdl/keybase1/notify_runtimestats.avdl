@@ -1,0 +1,10 @@
+@namespace("keybase.1")
+protocol NotifyRuntimeStats {
+  import idl "common.avdl";
+
+  record RuntimeStats {
+    string cpu;
+    string resident;
+  }
+  void runtimeStatsUpdate(RuntimeStats stats) oneway; 
+}

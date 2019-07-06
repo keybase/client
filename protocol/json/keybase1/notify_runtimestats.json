@@ -1,0 +1,38 @@
+{
+  "protocol": "NotifyRuntimeStats",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "RuntimeStats",
+      "fields": [
+        {
+          "type": "string",
+          "name": "cpu"
+        },
+        {
+          "type": "string",
+          "name": "resident"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "runtimeStatsUpdate": {
+      "request": [
+        {
+          "name": "stats",
+          "type": "RuntimeStats"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

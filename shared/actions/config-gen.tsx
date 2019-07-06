@@ -40,6 +40,7 @@ export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
+export const runtimeStatsUpdate = 'config:runtimeStatsUpdate'
 export const setAccounts = 'config:setAccounts'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setNavigator = 'config:setNavigator'
@@ -111,6 +112,7 @@ type _OsNetworkStatusChangedPayload = {
 type _PersistRoutePayload = {readonly path: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RestartHandshakePayload = void
+type _RuntimeStatsUpdatePayload = {readonly stats: RPCTypes.RuntimeStats}
 type _SetAccountsPayload = {readonly defaultUsername: string; readonly usernames: Array<string>}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
@@ -287,6 +289,10 @@ export const createPushLoaded = (payload: _PushLoadedPayload): PushLoadedPayload
   payload,
   type: pushLoaded,
 })
+export const createRuntimeStatsUpdate = (payload: _RuntimeStatsUpdatePayload): RuntimeStatsUpdatePayload => ({
+  payload,
+  type: runtimeStatsUpdate,
+})
 export const createSetAccounts = (payload: _SetAccountsPayload): SetAccountsPayload => ({
   payload,
   type: setAccounts,
@@ -403,6 +409,10 @@ export type RestartHandshakePayload = {
   readonly payload: _RestartHandshakePayload
   readonly type: typeof restartHandshake
 }
+export type RuntimeStatsUpdatePayload = {
+  readonly payload: _RuntimeStatsUpdatePayload
+  readonly type: typeof runtimeStatsUpdate
+}
 export type SetAccountsPayload = {readonly payload: _SetAccountsPayload; readonly type: typeof setAccounts}
 export type SetDeletedSelfPayload = {
   readonly payload: _SetDeletedSelfPayload
@@ -470,6 +480,7 @@ export type Actions =
   | PersistRoutePayload
   | PushLoadedPayload
   | RestartHandshakePayload
+  | RuntimeStatsUpdatePayload
   | SetAccountsPayload
   | SetDeletedSelfPayload
   | SetNavigatorPayload

@@ -249,6 +249,10 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         appOutOfDateMessage: action.payload.message,
         appOutOfDateStatus: action.payload.status,
       })
+    case ConfigGen.runtimeStatsUpdate:
+      return state.merge({
+        runtimeStats: action.payload.stats,
+      })
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
     // Saga only actions
