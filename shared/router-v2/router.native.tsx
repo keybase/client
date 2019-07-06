@@ -26,11 +26,7 @@ useScreens()
 // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
 const defaultNavigationOptions = {
   backBehavior: 'none',
-  header: (
-    <Kb.SafeAreaViewTop>
-      <RuntimeStats />
-    </Kb.SafeAreaViewTop>
-  ),
+  header: null,
   headerLeft: hp =>
     hp.scene.index === 0 ? null : (
       <LeftAction
@@ -269,6 +265,7 @@ class RNApp extends React.PureComponent<any, any> {
         <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
         <GlobalError />
         <OutOfDate />
+        <RuntimeStats />
       </>
     )
   }

@@ -5,6 +5,10 @@ protocol NotifyRuntimeStats {
   record RuntimeStats {
     string cpu;
     string resident;
+    string virt;
+    string goheap;
+    string goheapsys;
+    string gostack;
   }
   void runtimeStatsUpdate(RuntimeStats stats) oneway; 
 }

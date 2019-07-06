@@ -8,6 +8,7 @@ package runtimestats
 
 float tot_cpu = 0;
 int tot_resident = 0;
+int tot_virtual = 0;
 
 void GetTaskStats()
 {
@@ -33,6 +34,7 @@ void GetTaskStats()
 
     basic_info = (task_basic_info_t)tinfo;
     tot_resident = basic_info->resident_size;
+    tot_virtual = basic_info->virtual_size;
 
     // get threads in the task
     kr = task_threads(mach_task_self(), &thread_list, &thread_count);
@@ -75,6 +77,10 @@ int TotalResident() {
 int TotalCPU() {
     return (int)(tot_cpu * 100);
 }
+
+int TotalVirtual() {
+    return tot_virtual;
+}
 */
 import "C"
 
@@ -82,5 +88,6 @@ func GetStats() (res statsResult) {
 	C.GetTaskStats()
 	res.TotalCPU = int(C.TotalCPU())
 	res.TotalResident = int64(C.TotalResident())
+	res.TotalVirtual = int64(C.TotalVirtual())
 	return res
 }

@@ -18,6 +18,22 @@
         {
           "type": "string",
           "name": "resident"
+        },
+        {
+          "type": "string",
+          "name": "virt"
+        },
+        {
+          "type": "string",
+          "name": "goheap"
+        },
+        {
+          "type": "string",
+          "name": "goheapsys"
+        },
+        {
+          "type": "string",
+          "name": "gostack"
         }
       ]
     }

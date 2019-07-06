@@ -3,6 +3,7 @@ package runtimestats
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -78,7 +79,12 @@ func (r *Runner) statsLoop(stopCh chan struct{}) error {
 }
 
 func (r *Runner) updateStats(ctx context.Context) {
+	var memstats runtime.MemStats
 	stats := GetStats().Export()
+	runtime.ReadMemStats(&memstats)
+	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
+	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
+	stats.Gostack = utils.PresentBytes(int64(memstats.StackSys))
 	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, stats)
 	r.debug(ctx, "update: %+v", stats)
 }
@@ -86,11 +92,13 @@ func (r *Runner) updateStats(ctx context.Context) {
 type statsResult struct {
 	TotalCPU      int
 	TotalResident int64
+	TotalVirtual  int64
 }
 
 func (r statsResult) Export() keybase1.RuntimeStats {
 	return keybase1.RuntimeStats{
 		Cpu:      fmt.Sprintf("%.2f%%", float64(r.TotalCPU)/100.0),
 		Resident: utils.PresentBytes(r.TotalResident),
+		Virt:     utils.PresentBytes(r.TotalVirtual),
 	}
 }
