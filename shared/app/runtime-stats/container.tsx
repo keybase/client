@@ -5,7 +5,7 @@ const blank = {
   cpu: '???',
   goheap: '???',
   goheapsys: '???',
-  gostack: '???',
+  goreleased: '???',
   resident: '???',
   virt: '???',
 }
@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => {
         cpu: state.config.runtimeStats.cpu,
         goheap: state.config.runtimeStats.goheap,
         goheapsys: state.config.runtimeStats.goheapsys,
-        gostack: state.config.runtimeStats.gostack,
+        goreleased: state.config.runtimeStats.goreleased,
         resident: state.config.runtimeStats.resident,
         virt: state.config.runtimeStats.virt,
       }

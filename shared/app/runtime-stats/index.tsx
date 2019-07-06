@@ -8,7 +8,7 @@ type Props = {
   resident: string
   goheap: string
   goheapsys: string
-  gostack: string
+  goreleased: string
   virt: string
 }
 
@@ -20,7 +20,7 @@ export const RuntimeStatsDesktop = (props: Props) => {
       <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${props.virt}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${props.goheap}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${props.goheapsys}`}</Kb.Text>
-      <Kb.Text style={styles.stat} type="BodyTiny">{`GoStack: ${props.gostack}`}</Kb.Text>
+      <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${props.goreleased}`}</Kb.Text>
     </Kb.Box2>
   )
 }
@@ -36,7 +36,7 @@ export const RuntimeStatsMobile = (props: Props) => {
       <Kb.Box2 direction="horizontal" gap="xxtiny">
         <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${props.goheap}`}</Kb.Text>
         <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${props.goheapsys}`}</Kb.Text>
-        <Kb.Text style={styles.stat} type="BodyTiny">{`GK:${props.gostack}`}</Kb.Text>
+        <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${props.goreleased}`}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )

@@ -9,22 +9,22 @@ import (
 )
 
 type RuntimeStats struct {
-	Cpu       string `codec:"cpu" json:"cpu"`
-	Resident  string `codec:"resident" json:"resident"`
-	Virt      string `codec:"virt" json:"virt"`
-	Goheap    string `codec:"goheap" json:"goheap"`
-	Goheapsys string `codec:"goheapsys" json:"goheapsys"`
-	Gostack   string `codec:"gostack" json:"gostack"`
+	Cpu        string `codec:"cpu" json:"cpu"`
+	Resident   string `codec:"resident" json:"resident"`
+	Virt       string `codec:"virt" json:"virt"`
+	Goheap     string `codec:"goheap" json:"goheap"`
+	Goheapsys  string `codec:"goheapsys" json:"goheapsys"`
+	Goreleased string `codec:"goreleased" json:"goreleased"`
 }
 
 func (o RuntimeStats) DeepCopy() RuntimeStats {
 	return RuntimeStats{
-		Cpu:       o.Cpu,
-		Resident:  o.Resident,
-		Virt:      o.Virt,
-		Goheap:    o.Goheap,
-		Goheapsys: o.Goheapsys,
-		Gostack:   o.Gostack,
+		Cpu:        o.Cpu,
+		Resident:   o.Resident,
+		Virt:       o.Virt,
+		Goheap:     o.Goheap,
+		Goheapsys:  o.Goheapsys,
+		Goreleased: o.Goreleased,
 	}
 }
 

@@ -8,7 +8,7 @@ protocol NotifyRuntimeStats {
     string virt;
     string goheap;
     string goheapsys;
-    string gostack;
+    string goreleased;
   }
   void runtimeStatsUpdate(RuntimeStats stats) oneway; 
 }

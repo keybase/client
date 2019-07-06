@@ -84,7 +84,7 @@ func (r *Runner) updateStats(ctx context.Context) {
 	runtime.ReadMemStats(&memstats)
 	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
 	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
-	stats.Gostack = utils.PresentBytes(int64(memstats.StackSys))
+	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
 	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, stats)
 	r.debug(ctx, "update: %+v", stats)
 }
