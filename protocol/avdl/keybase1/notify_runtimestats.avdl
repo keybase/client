@@ -2,6 +2,11 @@
 protocol NotifyRuntimeStats {
   import idl "common.avdl";
 
+  enum StatsSeverityLevel {
+    NORMAL_0,
+    WARNING_1,
+    SEVERE_2
+  }
   record RuntimeStats {
     string cpu;
     string resident;
@@ -9,6 +14,12 @@ protocol NotifyRuntimeStats {
     string goheap;
     string goheapsys;
     string goreleased;
+    StatsSeverityLevel cpuSeverity;
+    StatsSeverityLevel residentSeverity;
+
+    // Chat specific
+    boolean convLoaderActive;
+    boolean selectiveSyncActive;
   }
   void runtimeStatsUpdate(RuntimeStats stats) oneway; 
 }

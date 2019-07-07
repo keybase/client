@@ -1822,6 +1822,12 @@ export enum SignMode {
   clear = 2,
 }
 
+export enum StatsSeverityLevel {
+  normal = 0,
+  warning = 1,
+  severe = 2,
+}
+
 export enum StatusCode {
   scok = 0,
   scinputerror = 100,
@@ -2478,7 +2484,7 @@ export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; read
 export type RevokeWarning = {readonly endangeredTLFs?: Array<TLF> | null}
 export type RevokedKey = {readonly key: PublicKey; readonly time: KeybaseTime; readonly by: KID}
 export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDiff; readonly snoozed: Boolean}
-export type RuntimeStats = {readonly cpu: String; readonly resident: String; readonly virt: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String}
+export type RuntimeStats = {readonly cpu: String; readonly resident: String; readonly virt: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}

@@ -85,6 +85,8 @@ func (r *Runner) updateStats(ctx context.Context) {
 	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
 	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
 	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
+	stats.ConvLoaderActive = r.G().ConvLoader.IsActivelyLoading()
+	stats.SelectiveSyncActive = r.G().Indexer.IsActivelySyncing()
 	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, stats)
 	r.debug(ctx, "update: %+v", stats)
 }
@@ -97,8 +99,31 @@ type statsResult struct {
 
 func (r statsResult) Export() keybase1.RuntimeStats {
 	return keybase1.RuntimeStats{
-		Cpu:      fmt.Sprintf("%.2f%%", float64(r.TotalCPU)/100.0),
-		Resident: utils.PresentBytes(r.TotalResident),
-		Virt:     utils.PresentBytes(r.TotalVirtual),
+		Cpu:              fmt.Sprintf("%.2f%%", float64(r.TotalCPU)/100.0),
+		Resident:         utils.PresentBytes(r.TotalResident),
+		Virt:             utils.PresentBytes(r.TotalVirtual),
+		CpuSeverity:      r.cpuSeverity(),
+		ResidentSeverity: r.residentSeverity(),
+	}
+}
+
+func (r statsResult) cpuSeverity() keybase1.StatsSeverityLevel {
+	if r.TotalCPU >= 10000 {
+		return keybase1.StatsSeverityLevel_SEVERE
+	} else if r.TotalCPU >= 6000 {
+		return keybase1.StatsSeverityLevel_WARNING
+	} else {
+		return keybase1.StatsSeverityLevel_NORMAL
+	}
+}
+
+func (r statsResult) residentSeverity() keybase1.StatsSeverityLevel {
+	val := r.TotalResident / 1e6
+	if val >= 900 {
+		return keybase1.StatsSeverityLevel_SEVERE
+	} else if val >= 700 {
+		return keybase1.StatsSeverityLevel_WARNING
+	} else {
+		return keybase1.StatsSeverityLevel_NORMAL
 	}
 }

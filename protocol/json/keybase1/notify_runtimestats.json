@@ -8,6 +8,15 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "StatsSeverityLevel",
+      "symbols": [
+        "NORMAL_0",
+        "WARNING_1",
+        "SEVERE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "RuntimeStats",
       "fields": [
@@ -34,6 +43,22 @@
         {
           "type": "string",
           "name": "goreleased"
+        },
+        {
+          "type": "StatsSeverityLevel",
+          "name": "cpuSeverity"
+        },
+        {
+          "type": "StatsSeverityLevel",
+          "name": "residentSeverity"
+        },
+        {
+          "type": "boolean",
+          "name": "convLoaderActive"
+        },
+        {
+          "type": "boolean",
+          "name": "selectiveSyncActive"
         }
       ]
     }

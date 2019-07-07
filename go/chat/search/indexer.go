@@ -32,8 +32,9 @@ type Indexer struct {
 	resumeWait   time.Duration
 	started      bool
 
-	maxSyncConvs   int
-	startSyncDelay time.Duration
+	maxSyncConvs        int
+	startSyncDelay      time.Duration
+	selectiveSyncActive bool
 
 	// for testing
 	consumeCh                            chan chat1.ConversationID
@@ -510,11 +511,17 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	return sess.run(ctx)
 }
 
+func (idx *Indexer) IsActivelySyncing() bool {
+	return idx.selectiveSyncActive
+}
+
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
+	idx.selectiveSyncActive = true
+	defer func() { idx.selectiveSyncActive = false }()
 
 	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {

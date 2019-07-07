@@ -131,6 +131,7 @@ type Indexer interface {
 	PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error)
 	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	OnDbNuke(mctx libkb.MetaContext) error
+	IsActivelySyncing() bool
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
@@ -246,6 +247,7 @@ type ConvLoader interface {
 	Suspendable
 
 	Queue(ctx context.Context, job ConvLoaderJob) error
+	IsActivelyLoading() bool
 }
 
 type OobmHandler interface {

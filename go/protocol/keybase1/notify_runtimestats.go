@@ -8,23 +8,60 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type StatsSeverityLevel int
+
+const (
+	StatsSeverityLevel_NORMAL  StatsSeverityLevel = 0
+	StatsSeverityLevel_WARNING StatsSeverityLevel = 1
+	StatsSeverityLevel_SEVERE  StatsSeverityLevel = 2
+)
+
+func (o StatsSeverityLevel) DeepCopy() StatsSeverityLevel { return o }
+
+var StatsSeverityLevelMap = map[string]StatsSeverityLevel{
+	"NORMAL":  0,
+	"WARNING": 1,
+	"SEVERE":  2,
+}
+
+var StatsSeverityLevelRevMap = map[StatsSeverityLevel]string{
+	0: "NORMAL",
+	1: "WARNING",
+	2: "SEVERE",
+}
+
+func (e StatsSeverityLevel) String() string {
+	if v, ok := StatsSeverityLevelRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type RuntimeStats struct {
-	Cpu        string `codec:"cpu" json:"cpu"`
-	Resident   string `codec:"resident" json:"resident"`
-	Virt       string `codec:"virt" json:"virt"`
-	Goheap     string `codec:"goheap" json:"goheap"`
-	Goheapsys  string `codec:"goheapsys" json:"goheapsys"`
-	Goreleased string `codec:"goreleased" json:"goreleased"`
+	Cpu                 string             `codec:"cpu" json:"cpu"`
+	Resident            string             `codec:"resident" json:"resident"`
+	Virt                string             `codec:"virt" json:"virt"`
+	Goheap              string             `codec:"goheap" json:"goheap"`
+	Goheapsys           string             `codec:"goheapsys" json:"goheapsys"`
+	Goreleased          string             `codec:"goreleased" json:"goreleased"`
+	CpuSeverity         StatsSeverityLevel `codec:"cpuSeverity" json:"cpuSeverity"`
+	ResidentSeverity    StatsSeverityLevel `codec:"residentSeverity" json:"residentSeverity"`
+	ConvLoaderActive    bool               `codec:"convLoaderActive" json:"convLoaderActive"`
+	SelectiveSyncActive bool               `codec:"selectiveSyncActive" json:"selectiveSyncActive"`
 }
 
 func (o RuntimeStats) DeepCopy() RuntimeStats {
 	return RuntimeStats{
-		Cpu:        o.Cpu,
-		Resident:   o.Resident,
-		Virt:       o.Virt,
-		Goheap:     o.Goheap,
-		Goheapsys:  o.Goheapsys,
-		Goreleased: o.Goreleased,
+		Cpu:                 o.Cpu,
+		Resident:            o.Resident,
+		Virt:                o.Virt,
+		Goheap:              o.Goheap,
+		Goheapsys:           o.Goheapsys,
+		Goreleased:          o.Goreleased,
+		CpuSeverity:         o.CpuSeverity.DeepCopy(),
+		ResidentSeverity:    o.ResidentSeverity.DeepCopy(),
+		ConvLoaderActive:    o.ConvLoaderActive,
+		SelectiveSyncActive: o.SelectiveSyncActive,
 	}
 }
 
