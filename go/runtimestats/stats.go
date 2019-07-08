@@ -36,6 +36,10 @@ func (r *Runner) Start(ctx context.Context) {
 	defer r.G().CTrace(ctx, "Runner.Start", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
+	if !r.G().Env.GetRuntimeStatsEnabled() {
+		r.debug(ctx, "not starting, not enabled in env")
+		return
+	}
 	if r.started {
 		return
 	}
@@ -68,11 +72,13 @@ func (r *Runner) Stop(ctx context.Context) chan struct{} {
 
 func (r *Runner) statsLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
+	r.updateStats(ctx)
 	for {
 		select {
 		case <-time.After(4 * time.Second):
 			r.updateStats(ctx)
 		case <-stopCh:
+			r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, nil)
 			return nil
 		}
 	}
@@ -87,7 +93,7 @@ func (r *Runner) updateStats(ctx context.Context) {
 	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
 	stats.ConvLoaderActive = r.G().ConvLoader.IsActivelyLoading()
 	stats.SelectiveSyncActive = r.G().Indexer.IsActivelySyncing()
-	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, stats)
+	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, &stats)
 	r.debug(ctx, "update: %+v", stats)
 }
 
@@ -95,6 +101,7 @@ type statsResult struct {
 	TotalCPU      int
 	TotalResident int64
 	TotalVirtual  int64
+	TotalFree     int64
 }
 
 func (r statsResult) Export() keybase1.RuntimeStats {
@@ -102,6 +109,7 @@ func (r statsResult) Export() keybase1.RuntimeStats {
 		Cpu:              fmt.Sprintf("%.2f%%", float64(r.TotalCPU)/100.0),
 		Resident:         utils.PresentBytes(r.TotalResident),
 		Virt:             utils.PresentBytes(r.TotalVirtual),
+		Free:             utils.PresentBytes(r.TotalFree),
 		CpuSeverity:      r.cpuSeverity(),
 		ResidentSeverity: r.residentSeverity(),
 	}

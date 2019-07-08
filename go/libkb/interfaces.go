@@ -113,6 +113,7 @@ type configGetter interface {
 	GetExtraNetLogging() (bool, bool)
 	GetForceLinuxKeyring() (bool, bool)
 	GetForceSecretStoreFile() (bool, bool)
+	GetRuntimeStatsEnabled() (bool, bool)
 }
 
 type CommandLine interface {

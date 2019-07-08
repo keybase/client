@@ -112,7 +112,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate': {
-    inParam: {readonly stats: RuntimeStats}
+    inParam: {readonly stats?: RuntimeStats | null}
     outParam: void
   }
   'keybase.1.NotifyService.shutdown': {
@@ -400,6 +400,10 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.config.startUpdateIfNeeded': {
+    inParam: void
+    outParam: void
+  }
+  'keybase.1.config.toggleRuntimeStats': {
     inParam: void
     outParam: void
   }
@@ -2484,7 +2488,7 @@ export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; read
 export type RevokeWarning = {readonly endangeredTLFs?: Array<TLF> | null}
 export type RevokedKey = {readonly key: PublicKey; readonly time: KeybaseTime; readonly by: KID}
 export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDiff; readonly snoozed: Boolean}
-export type RuntimeStats = {readonly cpu: String; readonly resident: String; readonly virt: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
+export type RuntimeStats = {readonly cpu: String; readonly resident: String; readonly virt: String; readonly free: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
@@ -2951,6 +2955,7 @@ export const configSetProxyDataRpcPromise = (params: MessageTypes['keybase.1.con
 export const configSetRememberPassphraseRpcPromise = (params: MessageTypes['keybase.1.config.setRememberPassphrase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setRememberPassphrase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetValueRpcPromise = (params: MessageTypes['keybase.1.config.setValue']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setValue']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configStartUpdateIfNeededRpcPromise = (params: MessageTypes['keybase.1.config.startUpdateIfNeeded']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.startUpdateIfNeeded']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.startUpdateIfNeeded', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configToggleRuntimeStatsRpcPromise = (params: MessageTypes['keybase.1.config.toggleRuntimeStats']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.toggleRuntimeStats']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.toggleRuntimeStats', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configWaitForClientRpcPromise = (params: MessageTypes['keybase.1.config.waitForClient']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.waitForClient']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.waitForClient', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const cryptocurrencyRegisterAddressRpcPromise = (params: MessageTypes['keybase.1.cryptocurrency.registerAddress']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.cryptocurrency.registerAddress']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.cryptocurrency.registerAddress', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbCleanRpcPromise = (params: MessageTypes['keybase.1.ctl.dbClean']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.dbClean']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbClean', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

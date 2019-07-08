@@ -8,8 +8,10 @@ type Props = {
   convLoaderActive: boolean
   cpu: string
   cpuSeverity: RPCTypes.StatsSeverityLevel
+  hasData: boolean
   resident: string
   residentSeverity: RPCTypes.StatsSeverityLevel
+  free: string
   goheap: string
   goheapsys: string
   goreleased: string
@@ -34,7 +36,7 @@ const severityStyle = (s: RPCTypes.StatsSeverityLevel) => {
 }
 
 export const RuntimeStatsDesktop = (props: Props) => {
-  return (
+  return !props.hasData ? null : (
     <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny">
       <Kb.Text
         style={Styles.collapseStyles([styles.stat, severityStyle(props.cpuSeverity)])}
@@ -45,6 +47,7 @@ export const RuntimeStatsDesktop = (props: Props) => {
         type="BodyTiny"
       >{`Res: ${props.resident}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${props.virt}`}</Kb.Text>
+      <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${props.free}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${props.goheap}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${props.goheapsys}`}</Kb.Text>
       <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${props.goreleased}`}</Kb.Text>
@@ -69,7 +72,7 @@ export const RuntimeStatsDesktop = (props: Props) => {
 }
 
 export const RuntimeStatsMobile = (props: Props) => {
-  return (
+  return !props.hasData ? null : (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
@@ -82,6 +85,7 @@ export const RuntimeStatsMobile = (props: Props) => {
             type="BodyTiny"
           >{`R:${props.resident}`}</Kb.Text>
           <Kb.Text style={styles.stat} type="BodyTiny">{`V:${props.virt}`}</Kb.Text>
+          <Kb.Text style={styles.stat} type="BodyTiny">{`F:${props.free}`}</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
           <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${props.goheap}`}</Kb.Text>

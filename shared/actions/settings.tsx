@@ -513,6 +513,9 @@ const saveProxyData = (_, proxyDataPayload: SettingsGen.SaveProxyDataPayload) =>
     logger.warn('Error in saving proxy data', err)
   )
 
+const toggleRuntimeStats = () =>
+  RPCTypes.configToggleRuntimeStatsRpcPromise().catch(err => logger.warn('error toggling runtime stats', err))
+
 const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise(
@@ -774,6 +777,12 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<SettingsGen.LoadProxyDataPayload>(SettingsGen.loadProxyData, loadProxyData)
   yield* Saga.chainAction<SettingsGen.SaveProxyDataPayload>(SettingsGen.saveProxyData, saveProxyData)
+
+  // Runtime Stats
+  yield* Saga.chainAction<SettingsGen.ToggleRuntimeStatsPayload>(
+    SettingsGen.toggleRuntimeStats,
+    toggleRuntimeStats
+  )
 
   // Phone numbers
   yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')

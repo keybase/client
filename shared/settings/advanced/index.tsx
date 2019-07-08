@@ -34,6 +34,7 @@ type Props = {
   allowTlsMitmToggle: boolean
   rememberPassword: boolean
   onChangeRememberPassword: (checked: boolean) => void
+  onToggleRuntimeStats: () => void
 }
 
 const stateUseNativeFrame = new AppState().state.useNativeFrame
@@ -231,6 +232,14 @@ class Developer extends React.Component<Props, State> {
                 force: true,
               }).then(() => this.setState({cleanTook: Date.now() - start}))
             }}
+            mode="Secondary"
+            style={styles.developerButtons}
+          />
+        )}
+        {flags.admin && (
+          <Kb.Button
+            label="Toggle Runtime Stats"
+            onClick={this.props.onToggleRuntimeStats}
             mode="Secondary"
             style={styles.developerButtons}
           />

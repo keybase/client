@@ -41,6 +41,7 @@ type RuntimeStats struct {
 	Cpu                 string             `codec:"cpu" json:"cpu"`
 	Resident            string             `codec:"resident" json:"resident"`
 	Virt                string             `codec:"virt" json:"virt"`
+	Free                string             `codec:"free" json:"free"`
 	Goheap              string             `codec:"goheap" json:"goheap"`
 	Goheapsys           string             `codec:"goheapsys" json:"goheapsys"`
 	Goreleased          string             `codec:"goreleased" json:"goreleased"`
@@ -55,6 +56,7 @@ func (o RuntimeStats) DeepCopy() RuntimeStats {
 		Cpu:                 o.Cpu,
 		Resident:            o.Resident,
 		Virt:                o.Virt,
+		Free:                o.Free,
 		Goheap:              o.Goheap,
 		Goheapsys:           o.Goheapsys,
 		Goreleased:          o.Goreleased,
@@ -66,11 +68,11 @@ func (o RuntimeStats) DeepCopy() RuntimeStats {
 }
 
 type RuntimeStatsUpdateArg struct {
-	Stats RuntimeStats `codec:"stats" json:"stats"`
+	Stats *RuntimeStats `codec:"stats,omitempty" json:"stats,omitempty"`
 }
 
 type NotifyRuntimeStatsInterface interface {
-	RuntimeStatsUpdate(context.Context, RuntimeStats) error
+	RuntimeStatsUpdate(context.Context, *RuntimeStats) error
 }
 
 func NotifyRuntimeStatsProtocol(i NotifyRuntimeStatsInterface) rpc.Protocol {
@@ -100,7 +102,7 @@ type NotifyRuntimeStatsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyRuntimeStatsClient) RuntimeStatsUpdate(ctx context.Context, stats RuntimeStats) (err error) {
+func (c NotifyRuntimeStatsClient) RuntimeStatsUpdate(ctx context.Context, stats *RuntimeStats) (err error) {
 	__arg := RuntimeStatsUpdateArg{Stats: stats}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyRuntimeStats.runtimeStatsUpdate", []interface{}{__arg})
 	return

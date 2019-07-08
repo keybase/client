@@ -99,7 +99,7 @@ type NotifyListener interface {
 	PasswordChanged()
 	RootAuditError(msg string)
 	BoxAuditError(msg string)
-	RuntimeStatsUpdate(keybase1.RuntimeStats)
+	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 }
 
 type NoopNotifyListener struct{}
@@ -203,10 +203,10 @@ func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
 func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
 }
-func (n *NoopNotifyListener) PasswordChanged()                         {}
-func (n *NoopNotifyListener) RootAuditError(msg string)                {}
-func (n *NoopNotifyListener) BoxAuditError(msg string)                 {}
-func (n *NoopNotifyListener) RuntimeStatsUpdate(keybase1.RuntimeStats) {}
+func (n *NoopNotifyListener) PasswordChanged()                          {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                 {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)                  {}
+func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 
 type NotifyListenerID string
 
@@ -2259,7 +2259,7 @@ func (n *NotifyRouter) HandleBoxAuditError(ctx context.Context, msg string) {
 	})
 }
 
-func (n *NotifyRouter) HandleRuntimeStatsUpdate(ctx context.Context, stats keybase1.RuntimeStats) {
+func (n *NotifyRouter) HandleRuntimeStatsUpdate(ctx context.Context, stats *keybase1.RuntimeStats) {
 	if n == nil {
 		return
 	}

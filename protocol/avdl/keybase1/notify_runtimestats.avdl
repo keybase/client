@@ -11,6 +11,7 @@ protocol NotifyRuntimeStats {
     string cpu;
     string resident;
     string virt;
+    string free;
     string goheap;
     string goheapsys;
     string goreleased;
@@ -21,5 +22,5 @@ protocol NotifyRuntimeStats {
     boolean convLoaderActive;
     boolean selectiveSyncActive;
   }
-  void runtimeStatsUpdate(RuntimeStats stats) oneway; 
+  void runtimeStatsUpdate(union { null, RuntimeStats } stats) oneway; 
 }

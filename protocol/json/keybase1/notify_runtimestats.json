@@ -34,6 +34,10 @@
         },
         {
           "type": "string",
+          "name": "free"
+        },
+        {
+          "type": "string",
           "name": "goheap"
         },
         {
@@ -68,7 +72,10 @@
       "request": [
         {
           "name": "stats",
-          "type": "RuntimeStats"
+          "type": [
+            null,
+            "RuntimeStats"
+          ]
         }
       ],
       "response": null,
