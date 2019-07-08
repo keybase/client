@@ -43,6 +43,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/pvl"
+	"github.com/keybase/client/go/runtimestats"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
@@ -74,6 +75,7 @@ type Service struct {
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *libkb.TrackerLoader
+	runtimeStats    *runtimestats.Runner
 }
 
 type Shutdowner interface {
@@ -96,6 +98,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		trackerLoader:    libkb.NewTrackerLoader(g),
+		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
@@ -361,6 +364,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundBoxAuditScheduler()
 	d.runTLFUpgrade()
 	d.runTrackerLoader(ctx)
+	d.runRuntimeStats(ctx)
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
@@ -561,6 +565,10 @@ func (d *Service) runTLFUpgrade() {
 
 func (d *Service) runTrackerLoader(ctx context.Context) {
 	d.trackerLoader.Run(ctx)
+}
+
+func (d *Service) runRuntimeStats(ctx context.Context) {
+	d.runtimeStats.Start(ctx)
 }
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {

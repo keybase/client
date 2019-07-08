@@ -82,6 +82,7 @@ type NotifyListener interface {
 	TeamExit(teamID keybase1.TeamID)
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
@@ -99,6 +100,7 @@ type NotifyListener interface {
 	PasswordChanged()
 	RootAuditError(msg string)
 	BoxAuditError(msg string)
+	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 }
 
 type NoopNotifyListener struct{}
@@ -177,12 +179,13 @@ func (n *NoopNotifyListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno
 }
 func (n *NoopNotifyListener) TeamChangedByName(teamName string, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet) {
 }
-func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                 {}
-func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                    {}
-func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
-func (n *NoopNotifyListener) NewlyAddedToTeam(teamID keybase1.TeamID)                            {}
-func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)         {}
-func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
+func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID)                                    {}
+func (n *NoopNotifyListener) TeamExit(teamID keybase1.TeamID)                                       {}
+func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)    {}
+func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
+func (n *NoopNotifyListener) NewlyAddedToTeam(teamID keybase1.TeamID)                               {}
+func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.AvatarFormat)            {}
+func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                                 {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
 func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
@@ -202,9 +205,10 @@ func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
 func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
 }
-func (n *NoopNotifyListener) PasswordChanged()          {}
-func (n *NoopNotifyListener) RootAuditError(msg string) {}
-func (n *NoopNotifyListener) BoxAuditError(msg string)  {}
+func (n *NoopNotifyListener) PasswordChanged()                          {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                 {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)                  {}
+func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 
 type NotifyListenerID string
 
@@ -2029,6 +2033,38 @@ func (n *NotifyRouter) HandleNewTeamEK(ctx context.Context, teamID keybase1.Team
 	n.G().Log.CDebugf(ctx, "- Sent NewTeamEK notification")
 }
 
+func (n *NotifyRouter) HandleNewTeambotEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+	if n == nil {
+		return
+	}
+
+	arg := keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: generation,
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending NewTeambotEK notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Ephemeral {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyEphemeralClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).NewTeambotEk(context.Background(), arg)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.NewTeambotEK(teamID, generation)
+	})
+	n.G().Log.CDebugf(ctx, "- Sent NewTeambotEK notification")
+}
+
 func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, formats []keybase1.AvatarFormat,
 	typ keybase1.AvatarUpdateType) {
 	if n == nil {
@@ -2254,5 +2290,24 @@ func (n *NotifyRouter) HandleBoxAuditError(ctx context.Context, msg string) {
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.BoxAuditError(msg)
+	})
+}
+
+func (n *NotifyRouter) HandleRuntimeStatsUpdate(ctx context.Context, stats *keybase1.RuntimeStats) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Runtimestats {
+			go func() {
+				(keybase1.NotifyRuntimeStatsClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RuntimeStatsUpdate(ctx, stats)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.RuntimeStatsUpdate(stats)
 	})
 }

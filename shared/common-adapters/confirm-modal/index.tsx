@@ -19,6 +19,7 @@ export type Props = {
   error?: string
   header?: React.ReactNode
   icon?: IconType
+  iconColor?: Styles.Color
   onCancel: () => void | null
   onConfirm: () => void | null
   prompt: string
@@ -82,7 +83,7 @@ class ConfirmModal extends React.PureComponent<Props> {
           {this.props.icon && (
             <Icon
               boxStyle={styles.icon}
-              color={Styles.globalColors.black_50}
+              color={this.props.iconColor ? this.props.iconColor : Styles.globalColors.black_50}
               fontSize={Styles.isMobile ? 64 : 48}
               style={styles.icon}
               type={this.props.icon}

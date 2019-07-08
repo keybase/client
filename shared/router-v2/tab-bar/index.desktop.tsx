@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import KeyHandler from '../../util/key-handler.desktop'
 import {isDarwin} from '../../constants/platform'
+import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 
 type Props = {
@@ -168,6 +169,7 @@ class TabBar extends React.PureComponent<Props, State> {
               </Kb.WithTooltip>
             </Kb.ClickableBox>
           ))}
+          <RuntimeStats />
         </Kb.Box2>
       )
     )

@@ -428,6 +428,12 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 	return false
 }
 
+func (b *BackgroundConvLoader) IsBackgroundActive() bool {
+	b.Lock()
+	defer b.Unlock()
+	return len(b.activeLoads) > 0
+}
+
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	b.Debug(ictx, "load: loading conversation %s", task.job)
 	b.Lock()

@@ -45,3 +45,15 @@ func NewGenerateError(format string, args ...interface{}) GenerateError {
 }
 
 var _ error = GenerateError{}
+
+type RatchetError struct {
+	note string
+}
+
+func (e RatchetError) Error() string {
+	return fmt.Sprintf("hidden team ratchet error: %s", e.note)
+}
+
+func newRatchetError(format string, args ...interface{}) RatchetError {
+	return RatchetError{fmt.Sprintf(format, args...)}
+}

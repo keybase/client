@@ -11,15 +11,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const teamEKBoxStorageDBVersion = 3
+const teamEKBoxStorageDBVersion = 4
 
 type teamEKBoxCacheItem struct {
-	TeamEKBoxed keybase1.TeamEkBoxed
+	TeamEKBoxed keybase1.TeamEphemeralKeyBoxed
 	ErrMsg      string
 	HumanMsg    string
 }
 
-func newTeamEKBoxCacheItem(teamEKBoxed keybase1.TeamEkBoxed, err error) teamEKBoxCacheItem {
+func newTeamEKBoxCacheItem(teamEKBoxed keybase1.TeamEphemeralKeyBoxed, err error) teamEKBoxCacheItem {
 	errMsg := ""
 	humanMsg := ""
 	if err != nil {
@@ -47,11 +47,11 @@ func (c teamEKBoxCacheItem) Error() error {
 }
 
 type teamEKBoxCache map[keybase1.EkGeneration]teamEKBoxCacheItem
-type TeamEKBoxMap map[keybase1.EkGeneration]keybase1.TeamEkBoxed
-type TeamEKMap map[keybase1.EkGeneration]keybase1.TeamEk
+type TeamEKBoxMap map[keybase1.EkGeneration]keybase1.TeamEphemeralKeyBoxed
+type TeamEKMap map[keybase1.EkGeneration]keybase1.TeamEphemeralKey
 
-func teamKey(teamID keybase1.TeamID, mctx libkb.MetaContext) string {
-	return fmt.Sprintf("teamEphemeralKeyBox-%s-%s", teamID, mctx.G().Env.GetUsername())
+func teamKey(mctx libkb.MetaContext, teamID keybase1.TeamID) string {
+	return fmt.Sprintf("%s-%s", teamID, mctx.G().Env.GetUsername())
 }
 
 // We cache TeamEKBoxes from the server in a LRU and a persist to a local
@@ -59,11 +59,13 @@ func teamKey(teamID keybase1.TeamID, mctx libkb.MetaContext) string {
 type TeamEKBoxStorage struct {
 	sync.Mutex
 	cache *teamEKCache
+	keyer EphemeralKeyer
 }
 
-func NewTeamEKBoxStorage() *TeamEKBoxStorage {
+func NewTeamEKBoxStorage(keyer EphemeralKeyer) *TeamEKBoxStorage {
 	return &TeamEKBoxStorage{
 		cache: newTeamEKCache(),
+		keyer: keyer,
 	}
 }
 
@@ -72,7 +74,8 @@ func (s *TeamEKBoxStorage) dbKey(mctx libkb.MetaContext, teamID keybase1.TeamID)
 	if err != nil {
 		return dbKey, err
 	}
-	key := fmt.Sprintf("%s-%s-%d", teamKey(teamID, mctx), uv.EldestSeqno, teamEKBoxStorageDBVersion)
+	key := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%d", s.keyer.Type(),
+		teamKey(mctx, teamID), uv.EldestSeqno, teamEKBoxStorageDBVersion)
 	return libkb.DbKey{
 		Typ: libkb.DBTeamEKBox,
 		Key: key,
@@ -80,7 +83,7 @@ func (s *TeamEKBoxStorage) dbKey(mctx libkb.MetaContext, teamID keybase1.TeamID)
 }
 
 func (s *TeamEKBoxStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
-	contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
+	contentCtime *gregor1.Time) (teamEK keybase1.TeamEphemeralKey, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#Get: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	s.Lock()
@@ -105,9 +108,9 @@ func (s *TeamEKBoxStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, g
 		return teamEK, cacheItem.Error()
 	}
 
-	teamEK, err = s.unbox(mctx, generation, cacheItem.TeamEKBoxed, contentCtime)
+	teamEK, err = s.keyer.Unbox(mctx, cacheItem.TeamEKBoxed, contentCtime)
 	if err != nil { // if we can no longer unbox this, store the error
-		if perr := s.putLocked(mctx, teamID, generation, keybase1.TeamEkBoxed{}, err); perr != nil {
+		if perr := s.putLocked(mctx, teamID, generation, keybase1.TeamEphemeralKeyBoxed{}, err); perr != nil {
 			mctx.Debug("unable to store unboxing error %v", perr)
 		}
 	}
@@ -143,7 +146,7 @@ type TeamEKBoxedResponse struct {
 }
 
 func (s *TeamEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
-	contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
+	contentCtime *gregor1.Time) (teamEK keybase1.TeamEphemeralKey, err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#fetchAndStore: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	// cache unboxing/missing box errors so we don't continually try to fetch
@@ -153,72 +156,19 @@ func (s *TeamEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, teamID keybase1
 		case EphemeralKeyError:
 			s.Lock()
 			defer s.Unlock()
-			if perr := s.putLocked(mctx, teamID, generation, keybase1.TeamEkBoxed{}, err); perr != nil {
+			if perr := s.putLocked(mctx, teamID, generation, keybase1.TeamEphemeralKeyBoxed{}, err); perr != nil {
 				mctx.Debug("unable to store error %v", perr)
 			}
 		}
 	}()
 
-	apiArg := libkb.APIArg{
-		Endpoint:    "team/team_ek_box",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"team_id":    libkb.S{Val: string(teamID)},
-			"generation": libkb.U{Val: uint64(generation)},
-		},
-	}
-
-	var result TeamEKBoxedResponse
-	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
-	if err != nil {
-		err = errFromAppStatus(err)
-		return teamEK, err
-	}
-
-	err = res.Body.UnmarshalAgain(&result)
+	teamEKBoxed, err := s.keyer.Fetch(mctx, teamID, generation, contentCtime)
 	if err != nil {
 		return teamEK, err
 	}
-
-	if result.Result == nil {
-		err = newEKMissingBoxErr(mctx, TeamEKStr, generation)
-		return teamEK, err
-	}
-
-	// Although we verify the signature is valid, it's possible that this key
-	// was signed with a PTK that is not our latest and greatest. We allow this
-	// when we are using this ek for *decryption*. When getting a key for
-	// *encryption* callers are responsible for verifying the signature is
-	// signed by the latest PTK or generating a new EK. This logic currently
-	// lives in ephemeral/lib.go#GetOrCreateLatestTeamEK (#newTeamEKNeeded)
-	_, teamEKStatement, err := extractTeamEKStatementFromSig(result.Result.Sig)
+	teamEK, err = s.keyer.Unbox(mctx, teamEKBoxed, contentCtime)
 	if err != nil {
 		return teamEK, err
-	} else if teamEKStatement == nil { // shouldn't happen
-		return teamEK, fmt.Errorf("unable to fetch valid teamEKStatement")
-	}
-
-	teamEKMetadata := teamEKStatement.CurrentTeamEkMetadata
-	if generation != teamEKMetadata.Generation {
-		// sanity check that we go the right generation
-		return teamEK, newEKCorruptedErr(mctx, TeamEKStr, generation, teamEKMetadata.Generation)
-	}
-	teamEKBoxed := keybase1.TeamEkBoxed{
-		Box:              result.Result.Box,
-		UserEkGeneration: result.Result.UserEKGeneration,
-		Metadata:         teamEKMetadata,
-	}
-
-	teamEK, err = s.unbox(mctx, generation, teamEKBoxed, contentCtime)
-	if err != nil {
-		return teamEK, err
-	}
-
-	seed := TeamEKSeed(teamEK.Seed)
-	keypair := seed.DeriveDHKey()
-
-	if !keypair.GetKID().Equal(teamEKMetadata.Kid) {
-		return teamEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", teamEKMetadata.Kid)
 	}
 
 	// Store the boxed version, return the unboxed
@@ -226,57 +176,20 @@ func (s *TeamEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, teamID keybase1
 	return teamEK, err
 }
 
-func (s *TeamEKBoxStorage) unbox(mctx libkb.MetaContext, teamEKGeneration keybase1.EkGeneration,
-	teamEKBoxed keybase1.TeamEkBoxed, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#unbox: teamEKGeneration: %v", teamEKGeneration), func() error { return err })()
-
-	userEKBoxStorage := mctx.G().GetUserEKBoxStorage()
-	userEK, err := userEKBoxStorage.Get(mctx, teamEKBoxed.UserEkGeneration, contentCtime)
-	if err != nil {
-		mctx.Debug("unable to get from userEKStorage %v", err)
-		switch err.(type) {
-		case EphemeralKeyError:
-			return teamEK, newEKUnboxErr(mctx, TeamEKStr, teamEKGeneration, UserEKStr,
-				teamEKBoxed.UserEkGeneration, contentCtime)
-		}
-		return teamEK, err
-	}
-
-	userSeed := UserEKSeed(userEK.Seed)
-	userKeypair := userSeed.DeriveDHKey()
-
-	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
-	if err != nil {
-		mctx.Debug("unable to decrypt teamEKBoxed %v", err)
-		return teamEK, newEKUnboxErr(mctx, TeamEKStr, teamEKGeneration, UserEKStr,
-			teamEKBoxed.UserEkGeneration, contentCtime)
-	}
-
-	seed, err := newTeamEKSeedFromBytes(msg)
-	if err != nil {
-		return teamEK, err
-	}
-
-	return keybase1.TeamEk{
-		Seed:     keybase1.Bytes32(seed),
-		Metadata: teamEKBoxed.Metadata,
-	}, nil
-}
-
 func (s *TeamEKBoxStorage) Put(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) (err error) {
+	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEphemeralKeyBoxed) (err error) {
 	s.Lock()
 	defer s.Unlock()
 	return s.putLocked(mctx, teamID, generation, teamEKBoxed, nil /* ekErr */)
 }
 
 func (s *TeamEKBoxStorage) putLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
-	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed, ekErr error) (err error) {
+	generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEphemeralKeyBoxed, ekErr error) (err error) {
 	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#putLocked: teamID:%v, generation:%v", teamID, generation), func() error { return err })()
 
 	// sanity check that we got the right generation
-	if teamEKBoxed.Metadata.Generation != generation && ekErr == nil {
-		return newEKCorruptedErr(mctx, TeamEKStr, generation, teamEKBoxed.Metadata.Generation)
+	if teamEKBoxed.Generation() != generation && ekErr == nil {
+		return newEKCorruptedErr(mctx, TeamEKStr, generation, teamEKBoxed.Generation())
 	}
 
 	key, err := s.dbKey(mctx, teamID)
@@ -367,7 +280,7 @@ func (s *TeamEKBoxStorage) DeleteExpired(mctx libkb.MetaContext, teamID keybase1
 		if cacheItem.HasError() {
 			toDelete = append(toDelete, generation)
 		} else {
-			keyAge := merkleCtime.Sub(cacheItem.TeamEKBoxed.Metadata.Ctime.Time())
+			keyAge := merkleCtime.Sub(cacheItem.TeamEKBoxed.Ctime().Time())
 			// TeamEKs will never encrypt new data if the current key is older than
 			// libkb.EphemeralKeyGenInterval, thus the maximum lifetime of
 			// ephemeral content will not exceed libkb.MinEphemeralKeyLifetime =
@@ -399,7 +312,7 @@ func (s *TeamEKBoxStorage) GetAll(mctx libkb.MetaContext, teamID keybase1.TeamID
 		if cacheItem.HasError() {
 			continue
 		}
-		teamEK, err := s.unbox(mctx, generation, cacheItem.TeamEKBoxed, nil)
+		teamEK, err := s.keyer.Unbox(mctx, cacheItem.TeamEKBoxed, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -483,5 +396,5 @@ func (s *teamEKCache) Clear() {
 }
 
 func (s *teamEKCache) key(mctx libkb.MetaContext, teamID keybase1.TeamID) (key string) {
-	return teamKey(teamID, mctx)
+	return teamKey(mctx, teamID)
 }

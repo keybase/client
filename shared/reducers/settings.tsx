@@ -258,6 +258,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadContactImportEnabled:
     case SettingsGen.editContactImportEnabled:
     case SettingsGen.requestContactPermissions:
+    case SettingsGen.toggleRuntimeStats:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -33,6 +33,21 @@ const (
 	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
 )
 
+type IncorrectTeamEphemeralKeyTypeError struct {
+	expected, actual keybase1.TeamEphemeralKeyType
+}
+
+func (e IncorrectTeamEphemeralKeyTypeError) Error() string {
+	return fmt.Sprintf("Incorrect team ephemeral key type received. Expected: %v, actual %v", e.expected, e.actual)
+}
+
+func NewIncorrectTeamEphemeralKeyTypeError(expected, actual keybase1.TeamEphemeralKeyType) IncorrectTeamEphemeralKeyTypeError {
+	return IncorrectTeamEphemeralKeyTypeError{
+		expected: expected,
+		actual:   actual,
+	}
+}
+
 func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID, contentCtime gregor1.Time) EphemeralKeyError {
 	var humanMsg string
 	memberCtime, err := memberCtime(mctx, tlfID)

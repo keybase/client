@@ -42,8 +42,6 @@ export const newRoutes = {
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
-  // TODO connect broken
-  [Constants.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
   [Constants.screenprotectorTab]: {
     getScreen: (): typeof ScreenprotectorTab => require('./screenprotector-container.native').default,
   },
@@ -63,6 +61,8 @@ export const newRoutes = {
 export const newModalRoutes = {
   // TODO connect broken
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
+  // TODO connect broken
+  [Constants.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
