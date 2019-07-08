@@ -25,7 +25,7 @@ class BlockConversationWarning extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ConfirmModal
-        icon="iconfont-star"
+        icon="iconfont-block"
         iconColor={Styles.globalColors.red}
         confirmText="Yes, block them"
         content={
