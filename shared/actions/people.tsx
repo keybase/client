@@ -9,7 +9,7 @@ import logger from '../logger'
 import {isNetworkErr} from '../util/container'
 
 // set this to true to have all todo items show up all the time
-const debugTodo = false
+const debugTodo = true
 
 const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
   // more logging to understand why this fails so much
@@ -54,12 +54,26 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
             verifyAllEmail: 'user@example.com',
             verifyAllPhoneNumber: '+1555000111',
           } as any)
+          let metadata
+          if (
+            avdlType === RPCTypes.HomeScreenTodoType.verifyAllEmail ||
+            avdlType === RPCTypes.HomeScreenTodoType.legacyEmailVisibility
+          ) {
+            metadata = Constants.makeTodoMetaEmail({
+              email: 'user@example.com',
+            })
+          } else if (avdlType === RPCTypes.HomeScreenTodoType.verifyAllPhoneNumber) {
+            metadata = Constants.makeTodoMetaPhone({
+              phone: '+1555000111',
+            })
+          }
           newItems = newItems.push(
             Constants.makeTodo({
               badged: true,
               confirmLabel: Constants.todoTypeToConfirmLabel[todoType],
               icon: Constants.todoTypeToIcon[todoType],
               instructions,
+              metadata,
               todoType,
               type: 'todo',
             })
