@@ -55,20 +55,8 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
-  if (!isIOS) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        message: 'Keybase needs access to your storage so we can download an attachment.',
-        title: 'Keybase Storage Permission',
-      }
-    )
-    if (permissionStatus !== 'granted') {
-      logger.error(logPrefix + 'Unable to acquire storage permissions')
-      throw new Error('Unable to acquire storage permissions')
-    }
-  }
   try {
+    await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(fileURL, saveType)
     logger.info(logPrefix + 'Success')
