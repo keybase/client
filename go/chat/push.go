@@ -27,6 +27,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+var errPushOrdererMissingLatestInboxVersion = errors.New("no latest inbox version")
+
 type messageWaiterEntry struct {
 	vers chat1.InboxVers
 	cb   chan struct{}
@@ -37,8 +39,9 @@ type gregorMessageOrderer struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	clock   clockwork.Clock
-	waiters map[string][]messageWaiterEntry
+	clock      clockwork.Clock
+	waiters    map[string][]messageWaiterEntry
+	noInboxDur time.Duration
 }
 
 func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
@@ -47,6 +50,7 @@ func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorMessageOrderer", false),
 		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
+		noInboxDur:   time.Second,
 	}
 }
 
@@ -64,6 +68,9 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		return 0, err
+	}
+	if vers == 0 {
+		return 0, errPushOrdererMissingLatestInboxVersion
 	}
 	return vers, nil
 }
@@ -125,16 +132,27 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	go func(ctx context.Context) {
 		defer close(res)
 		g.Lock()
+		var dur time.Duration
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
-			vers = newVers - 1
-			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
-				err, vers)
-		}
-		// add extra time if we are multiple updates behind
-		dur := time.Duration(newVers-vers-1) * time.Second
-		if dur < 0 {
-			dur = 0
+			if err == errPushOrdererMissingLatestInboxVersion {
+				g.Debug(ctx, "WaitForTurn: no inbox version, setting fixed duration of %v", g.noInboxDur)
+			} else {
+				vers = newVers - 1
+				g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
+					err, vers)
+			}
+			dur = g.noInboxDur
+		} else {
+			// add extra time if we are multiple updates behind
+			dur = time.Duration(newVers-vers-1) * time.Second
+			if dur < 0 {
+				dur = 0
+			}
+			// cap at a minute
+			if dur > time.Minute {
+				dur = time.Minute
+			}
 		}
 		deadline = deadline.Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
