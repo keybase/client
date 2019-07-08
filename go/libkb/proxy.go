@@ -262,9 +262,26 @@ func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address st
 	}
 
 	// Currently proxy.Dialer does not support DialContext. This is being actively worked on and will probably
-	// land in the next release, but for now we are just dropping the context on the floor
+	// land in the next go release, but for now we are emulating it with a goroutine and channels
 	// See: https://github.com/golang/go/issues/17759
-	return dialer.Dial(network, address)
+	doneCh := make(chan net.Conn, 1)
+	errCh := make(chan error, 1)
+	go func() {
+		conn, err := dialer.Dial(network, address)
+		if err != nil {
+			errCh <- err
+		} else {
+			doneCh <- conn
+		}
+	}()
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case conn := <-doneCh:
+		return conn, nil
+	case err := <-errCh:
+		return nil, err
+	}
 }
 
 // The equivalent of http.Get except it uses the proxy configured in Env
