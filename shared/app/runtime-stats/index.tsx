@@ -113,9 +113,7 @@ const RuntimeStatsMobile = (props: Props) => {
   )
 }
 
-const RuntimeStats = (props: Props) => {
-  return Styles.isMobile ? <RuntimeStatsMobile {...props} /> : <RuntimeStatsDesktop {...props} />
-}
+const RuntimeStats = Styles.isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
