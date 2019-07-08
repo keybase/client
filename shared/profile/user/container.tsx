@@ -42,6 +42,7 @@ const mapStateToProps = (state, ownProps) => {
     (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followersCount'])) || 0
   const followingCount =
     (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followingCount'])) || 0
+  const youAreInAirdrop = state.wallets.airdropState === 'accepted'
 
   return {
     _assertions: d.assertions,
@@ -57,6 +58,7 @@ const mapStateToProps = (state, ownProps) => {
     state: d.state,
     userIsYou,
     username,
+    youAreInAirdrop,
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -127,6 +129,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,
     ...followToArray(stateProps.followers, stateProps.following),
+    youAreInAirdrop: stateProps.youAreInAirdrop,
   }
 }
 

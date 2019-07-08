@@ -36,6 +36,7 @@ export type Props = {
   suggestionKeys: Array<string> | null
   userIsYou: boolean
   username: string
+  youAreInAirdrop: boolean
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -52,25 +53,27 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   }
 }
 
-const BioLayout = p => (
-  <Kb.Box2 direction="vertical" style={styles.bio}>
-    <Kb.ConnectedNameWithIcon
-      username={p.username}
-      underline={false}
-      selectable={true}
-      colorFollowing={true}
-      notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
-      editableIcon={!!p.onEditAvatar}
-      onEditIcon={p.onEditAvatar}
-      avatarSize={avatarSize}
-      size="huge"
-    />
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-      <Bio inTracker={false} username={p.username} />
-      <Actions username={p.username} />
+const BioLayout = p => {
+  return (
+    <Kb.Box2 direction="vertical" style={styles.bio}>
+      <Kb.ConnectedNameWithIcon
+        username={p.username}
+        underline={false}
+        selectable={true}
+        colorFollowing={true}
+        notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
+        editableIcon={!!p.onEditAvatar}
+        onEditIcon={p.onEditAvatar}
+        avatarSize={avatarSize}
+        size="huge"
+      />
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
+        <Bio inTracker={false} username={p.username} youAreInAirdrop={p.youAreInAirdrop} />
+        <Actions username={p.username} />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const Proofs = p => {
   let assertions

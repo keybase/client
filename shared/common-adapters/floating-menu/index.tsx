@@ -17,6 +17,7 @@ export type Props = {
   items: MenuItems
   header?: MenuItem | null
   listStyle?: Object
+  menuStyle?: Object
   onHidden: () => void
   visible: boolean
   attachTo?: () => React.Component<any> | null
@@ -46,6 +47,7 @@ export default (props: Props) => {
         closeOnClick={props.closeOnSelect}
         closeText={props.closeText}
         listStyle={props.listStyle}
+        style={props.menuStyle}
       />
     </Overlay>
   )
