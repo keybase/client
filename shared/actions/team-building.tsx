@@ -6,6 +6,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
+import flags from '../util/feature-flags'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -17,7 +18,7 @@ const apiSearch = (
   includeServicesSummary: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
   return RPCTypes.userSearchUserSearchRpcPromise({
-    includeContacts: service === 'keybase',
+    includeContacts: flags.sbsContacts && service === 'keybase',
     includeServicesSummary,
     maxResults,
     query,
@@ -117,19 +118,21 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
 
 const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
   Promise.all([
-    RPCTypes.contactsLookupSavedContactsListRpcPromise(),
     RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
+    flags.sbsContacts
+      ? RPCTypes.contactsLookupSavedContactsListRpcPromise()
+      : Promise.resolve([] as RPCTypes.ProcessedContact[]),
   ])
-    .then(results => {
-      const contactUsernames = new Set(results[0].map(x => x.username).filter(Boolean))
-      const contacts = results[0].map(
+    .then(([suggestionRes, contactRes]) => {
+      const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
+      const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
           id: x.assertion,
           prettyName: x.displayLabel,
           serviceMap: {keybase: x.username},
         })
       )
-      const suggestions = results[1]
+      let suggestions = suggestionRes
         .filter(({username}) => !contactUsernames.has(username))
         .map(
           ({username, fullname}): TeamBuildingTypes.User => ({
@@ -138,7 +141,11 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
             serviceMap: {keybase: username},
           })
         )
-      return contacts.concat(suggestions)
+      const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled
+      if (expectingContacts) {
+        suggestions = suggestions.slice(0, 5)
+      }
+      return suggestions.concat(contacts)
     })
     .catch(e => {
       logger.error(`Error in fetching recs`)
