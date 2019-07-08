@@ -77,7 +77,7 @@ int64_t TotalFree() {
 */
 import "C"
 
-func GetStats() (res statsResult) {
+func getStats() (res statsResult) {
 	C.GetTaskStats()
 	res.TotalCPU = int(C.TotalCPU())
 	res.TotalResident = int64(C.TotalResident())

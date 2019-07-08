@@ -86,7 +86,7 @@ func (r *Runner) statsLoop(stopCh chan struct{}) error {
 
 func (r *Runner) updateStats(ctx context.Context) {
 	var memstats runtime.MemStats
-	stats := GetStats().Export()
+	stats := getStats().Export()
 	runtime.ReadMemStats(&memstats)
 	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
 	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
