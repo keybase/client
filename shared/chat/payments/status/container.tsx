@@ -38,7 +38,7 @@ export default namedConnect(
       : (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.status) || 'pending'
     return {
       allowFontScaling: ownProps.allowFontScaling,
-      allowPopup: status === 'completed' || message.author === state.config.username,
+      allowPopup: status === 'completed' || status === 'pending' || message.author === state.config.username,
       errorDetail:
         error || (paymentInfo === null || paymentInfo === undefined ? undefined : paymentInfo.statusDetail), // Auto generated from flowToTs. Please clean me!
       isSendError: !!error,

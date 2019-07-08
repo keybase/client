@@ -73,7 +73,7 @@ const Header = (props: HeaderProps) =>
     </Kb.Box2>
   ) : (
     <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical" style={styles.popupContainer}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={headerTop(props)}>
         <Kb.Icon
           type={props.icon === 'sending' ? sendIcon : receiveIcon}
           style={Kb.iconCastPlatformStyles(styles.headerIcon)}
@@ -225,6 +225,16 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.small,
     },
   }),
+  pendingHeaderTop: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.black_20,
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
   loadingHeaderTop: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.purpleDark,
@@ -248,5 +258,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {maxWidth: 240, minWidth: 200},
   }),
 })
+
+const headerTop = (props: HeaderProps) => {
+  return props.status === 'pending' ? styles.pendingHeaderTop : styles.headerTop
+}
 
 export default PaymentPopup
