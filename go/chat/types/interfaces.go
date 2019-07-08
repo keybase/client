@@ -32,6 +32,10 @@ type Suspendable interface {
 	Resume(ctx context.Context) bool
 }
 
+type BackgroundRunnable interface {
+	IsBackgroundActive() bool
+}
+
 type CryptKey interface {
 	Material() keybase1.Bytes32
 	Generation() int
@@ -120,6 +124,7 @@ type RegexpSearcher interface {
 type Indexer interface {
 	Resumable
 	Suspendable
+	BackgroundRunnable
 
 	Search(ctx context.Context, uid gregor1.UID, query, origQuery string, opts chat1.SearchOpts,
 		hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error)
@@ -131,7 +136,6 @@ type Indexer interface {
 	PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error)
 	SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	OnDbNuke(mctx libkb.MetaContext) error
-	IsActivelySyncing() bool
 	// For devel/testing
 	IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error)
 }
@@ -245,9 +249,9 @@ type FetchRetrier interface {
 type ConvLoader interface {
 	Resumable
 	Suspendable
+	BackgroundRunnable
 
 	Queue(ctx context.Context, job ConvLoaderJob) error
-	IsActivelyLoading() bool
 }
 
 type OobmHandler interface {

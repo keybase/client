@@ -23,9 +23,14 @@ type Runner struct {
 }
 
 func NewRunner(g *globals.Context) *Runner {
-	return &Runner{
+	r := &Runner{
 		Contextified: globals.NewContextified(g),
 	}
+	r.G().PushShutdownHook(func() error {
+		<-r.Stop(context.Background())
+		return nil
+	})
+	return r
 }
 
 func (r *Runner) debug(ctx context.Context, msg string, args ...interface{}) {
@@ -46,10 +51,6 @@ func (r *Runner) Start(ctx context.Context) {
 	r.stopCh = make(chan struct{})
 	r.started = true
 	r.eg.Go(func() error { return r.statsLoop(r.stopCh) })
-	r.G().PushShutdownHook(func() error {
-		<-r.Stop(context.Background())
-		return nil
-	})
 }
 
 func (r *Runner) Stop(ctx context.Context) chan struct{} {
@@ -91,8 +92,8 @@ func (r *Runner) updateStats(ctx context.Context) {
 	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
 	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
 	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
-	stats.ConvLoaderActive = r.G().ConvLoader.IsActivelyLoading()
-	stats.SelectiveSyncActive = r.G().Indexer.IsActivelySyncing()
+	stats.ConvLoaderActive = r.G().ConvLoader.IsBackgroundActive()
+	stats.SelectiveSyncActive = r.G().Indexer.IsBackgroundActive()
 	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, &stats)
 	r.debug(ctx, "update: %+v", stats)
 }

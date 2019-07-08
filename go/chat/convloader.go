@@ -428,7 +428,7 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 	return false
 }
 
-func (b *BackgroundConvLoader) IsActivelyLoading() bool {
+func (b *BackgroundConvLoader) IsBackgroundActive() bool {
 	b.Lock()
 	defer b.Unlock()
 	return len(b.activeLoads) > 0
