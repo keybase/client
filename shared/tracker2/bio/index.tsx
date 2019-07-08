@@ -31,8 +31,10 @@ const _AirdropPopup = p => (
     <Kb.FloatingMenu
       attachTo={p.getAttachmentRef}
       closeOnSelect={false}
-      listStyle={{backgroundColor: Styles.globalColors.purple}}
-      containerStyle={{backgroundColor: Styles.globalColors.purple}}
+      containerStyle={styles.floatingContainer}
+      listStyle={styles.floatingContainer}
+      backgroundColor={Styles.globalColors.purple}
+      textColor={Styles.globalColors.white}
       onHidden={p.toggleShowingMenu}
       visible={true}
       propagateOutsideClicks={true}
@@ -40,21 +42,40 @@ const _AirdropPopup = p => (
         title: 'header',
         view: (
           <Kb.Box2
-            direction="horizontal"
+            direction="vertical"
             centerChildren={true}
             fullWidth={true}
-            style={{backgroundColor: Styles.globalColors.purple}}
+            gap="tiny"
+            style={{backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.small}}
           >
-            <Kb.Text type="Body">foo</Kb.Text>
+            <Kb.Icon type="icon-airdrop-star-64" style={styles.star} />
+            <Kb.Text style={styles.airdropText} type="BodySemibold">
+              Join the airdrop
+            </Kb.Text>
+            <Kb.Text style={styles.airdropText} type="BodySmall">
+              Airdropees get free Lumens every month.
+            </Kb.Text>
+            {!Styles.isMobile && (
+              <Kb.Button
+                backgroundColor="purple"
+                label="Learn more"
+                onClick={p.onLearnMore}
+                style={styles.learnButton}
+              />
+            )}
           </Kb.Box2>
         ),
       }}
-      items={[
-        {
-          onClick: () => console.warn('foo'),
-          title: 'Learn more',
-        },
-      ]}
+      items={
+        Styles.isMobile
+          ? [
+              {
+                onClick: () => p.onLearnMore,
+                title: 'Learn more',
+              },
+            ]
+          : []
+      }
     />
   </Kb.ClickableBox>
 )
@@ -124,8 +145,20 @@ const Bio = (p: Props) => {
   )
 }
 const styles = Styles.styleSheetCreate({
+  airdropText: Styles.platformStyles({
+    common: {color: Styles.globalColors.white},
+    isElectron: {textAlign: 'center'},
+  }),
   bold: {...Styles.globalStyles.fontBold},
   container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+  floatingContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.purple,
+    },
+    isElectron: {
+      maxWidth: 200,
+    },
+  }),
   fullName: Styles.platformStyles({
     isElectron: {wordBreak: 'break-any'},
   }),
@@ -133,7 +166,8 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.mediumLarge,
     paddingRight: Styles.globalMargins.mediumLarge,
   },
-  star: {alignSelf: 'center'},
+  learnButton: {alignSelf: 'center', marginTop: Styles.globalMargins.tiny},
+  star: {alignSelf: 'center', marginBottom: Styles.globalMargins.tiny},
   text: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.mediumLarge,
