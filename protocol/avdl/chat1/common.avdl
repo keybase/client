@@ -361,6 +361,7 @@
     union { null, string } explodedBy;
     // Non-null for TopicType BOT, specifies which member is the bot recipient
     // to select appropriate keys
+    @mpackkey("b") @jsonkey("b")
     union { null, gregor1.UID } botUID;
   }
 

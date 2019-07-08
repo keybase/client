@@ -86,7 +86,7 @@ func TestNewTeambotEK(t *testing.T) {
 	require.True(t, typ.IsTeambot())
 
 	// this fails for the bot user
-	teamEK, err = mctx2.G().GetEKLib().GetTeamEK(mctx2, teamID, teambotEK.Generation(), nil)
+	_, err = mctx2.G().GetEKLib().GetTeamEK(mctx2, teamID, teambotEK.Generation(), nil)
 	require.Error(t, err)
 
 	ek, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)

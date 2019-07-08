@@ -962,7 +962,9 @@
             null,
             "gregor1.UID"
           ],
-          "name": "botUID"
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
