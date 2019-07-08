@@ -103,6 +103,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 							Component:    component,
 							Resolved:     true,
 							Uid:          lookupRes.UID,
+							Assertion:    formatSBSAssertion(component),
 						})
 						contactsFound[contactI] = struct{}{}
 						usersFound[lookupRes.UID] = struct{}{}
@@ -130,7 +131,6 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				return res, errors.New("found unresolved contact in display name processing")
 			}
 
-			v.Assertion = v.Username
 			v.DisplayName = v.Username
 			if v.Following && v.FullName != "" {
 				v.DisplayLabel = v.FullName
@@ -159,10 +159,10 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				Component:    component,
 				Resolved:     false,
 
-				Assertion: formatSBSAssertion(component),
-
 				DisplayName:  c.Name,
 				DisplayLabel: component.FormatDisplayLabel(addLabel),
+
+				Assertion: formatSBSAssertion(component),
 			})
 		}
 	}
