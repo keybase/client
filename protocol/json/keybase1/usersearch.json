@@ -142,6 +142,13 @@
           "name": "service"
         },
         {
+          "type": [
+            null,
+            "ProcessedContact"
+          ],
+          "name": "contact"
+        },
+        {
           "type": {
             "type": "map",
             "values": "APIUserServiceSummary",
@@ -170,6 +177,10 @@
         },
         {
           "name": "includeServicesSummary",
+          "type": "boolean"
+        },
+        {
+          "name": "includeContacts",
           "type": "boolean"
         }
       ],

@@ -98,6 +98,7 @@ type APIUserSearchResult struct {
 	Score           float64                                               `codec:"score" json:"score"`
 	Keybase         *APIUserKeybaseResult                                 `codec:"keybase,omitempty" json:"keybase,omitempty"`
 	Service         *APIUserServiceResult                                 `codec:"service,omitempty" json:"service,omitempty"`
+	Contact         *ProcessedContact                                     `codec:"contact,omitempty" json:"contact,omitempty"`
 	ServicesSummary map[APIUserServiceIDWithContact]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
 }
 
@@ -118,6 +119,13 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Service),
+		Contact: (func(x *ProcessedContact) *ProcessedContact {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Contact),
 		ServicesSummary: (func(x map[APIUserServiceIDWithContact]APIUserServiceSummary) map[APIUserServiceIDWithContact]APIUserServiceSummary {
 			if x == nil {
 				return nil
@@ -138,6 +146,7 @@ type UserSearchArg struct {
 	Service                string `codec:"service" json:"service"`
 	MaxResults             int    `codec:"maxResults" json:"maxResults"`
 	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
+	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
 }
 
 type UserSearchInterface interface {
