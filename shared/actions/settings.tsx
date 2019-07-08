@@ -381,33 +381,40 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
   )
 }
 
-const loadSettings = (state: TypedState) =>
+const loadSettings = (state: TypedState, _, logger: Saga.SagaLogger) =>
   state.config.loggedIn &&
-  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey).then(settings => {
-    const emailMap: I.Map<string, Types.EmailRow> = I.Map(
-      (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
-    )
-    const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
-    )
-    const loadedAction = SettingsGen.createLoadedSettings({
-      emails: emailMap,
-      phones: phoneMap,
-    })
+  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey)
+    .then(settings => {
+      const emailMap: I.Map<string, Types.EmailRow> = I.Map(
+        (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
+      )
+      const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
+        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+      )
+      const loadedAction = SettingsGen.createLoadedSettings({
+        emails: emailMap,
+        phones: phoneMap,
+      })
 
-    const emailCount = (settings.emails || []).reduce((count, row) => (row.isVerified ? count : count + 1), 0)
-    const phoneCount = (settings.phoneNumbers || []).reduce(
-      (count, row) => (row.verified ? count : count + 1),
-      0
-    )
+      const emailCount = (settings.emails || []).reduce(
+        (count, row) => (row.isVerified ? count : count + 1),
+        0
+      )
+      const phoneCount = (settings.phoneNumbers || []).reduce(
+        (count, row) => (row.verified ? count : count + 1),
+        0
+      )
 
-    const badgeAction = NotificationsGen.createSetBadgeCounts({
-      counts: I.Map({
-        [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
-      }) as I.Map<Tabs.Tab, number>,
+      const badgeAction = NotificationsGen.createSetBadgeCounts({
+        counts: I.Map({
+          [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
+        }) as I.Map<Tabs.Tab, number>,
+      })
+      return [loadedAction, badgeAction]
     })
-    return [loadedAction, badgeAction]
-  })
+    .catch(e => {
+      logger.warn(`Error loading settings: ${e.message}`)
+    })
 
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
   visibility === ChatTypes.Keybase1.IdentityVisibility.private
