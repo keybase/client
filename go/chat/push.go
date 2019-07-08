@@ -27,6 +27,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+var errPushOrdererMissingLatestInboxVersion = errors.New("no latest inbox version")
+
 type messageWaiterEntry struct {
 	vers chat1.InboxVers
 	cb   chan struct{}
@@ -66,7 +68,7 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 		return 0, err
 	}
 	if vers == 0 {
-		return 0, errors.New("no latest inbox version found")
+		return 0, errPushOrdererMissingLatestInboxVersion
 	}
 	return vers, nil
 }
@@ -130,6 +132,11 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		g.Lock()
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
+			if err == errPushOrdererMissingLatestInboxVersion {
+				g.Debug(ctx, "WaitForTurn: no latest inbox version, bailing out")
+				g.Unlock()
+				return
+			}
 			vers = newVers - 1
 			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
 				err, vers)
