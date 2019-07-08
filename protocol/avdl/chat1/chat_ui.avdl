@@ -142,6 +142,9 @@ protocol chatUi {
     boolean showCancel;                           // true if cancel is an option for this payment
     string fromUsername;
     string toUsername;
+    // for path payments
+    string sourceAmount;  
+    stellar1.Asset sourceAsset;
   }
 
   record UIRequestInfo {

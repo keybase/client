@@ -1233,6 +1233,38 @@ func (o FSSettings) DeepCopy() FSSettings {
 	}
 }
 
+type SimpleFSStats struct {
+	BlockCacheDbStats []string `codec:"blockCacheDbStats" json:"blockCacheDbStats"`
+	SyncCacheDbStats  []string `codec:"syncCacheDbStats" json:"syncCacheDbStats"`
+}
+
+func (o SimpleFSStats) DeepCopy() SimpleFSStats {
+	return SimpleFSStats{
+		BlockCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BlockCacheDbStats),
+		SyncCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SyncCacheDbStats),
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1430,6 +1462,13 @@ type SimpleFSObfuscatePathArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
+type SimpleFSDeobfuscatePathArg struct {
+	Path Path `codec:"path" json:"path"`
+}
+
+type SimpleFSGetStatsArg struct {
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1547,6 +1586,8 @@ type SimpleFSInterface interface {
 	SimpleFSSettings(context.Context) (FSSettings, error)
 	SimpleFSSetNotificationThreshold(context.Context, int64) error
 	SimpleFSObfuscatePath(context.Context, Path) (string, error)
+	SimpleFSDeobfuscatePath(context.Context, Path) ([]string, error)
+	SimpleFSGetStats(context.Context) (SimpleFSStats, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2158,6 +2199,31 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSDeobfuscatePath": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSDeobfuscatePathArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSDeobfuscatePathArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSDeobfuscatePathArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSDeobfuscatePath(ctx, typedArgs[0].Path)
+					return
+				},
+			},
+			"simpleFSGetStats": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetStatsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetStats(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2472,5 +2538,16 @@ func (c SimpleFSClient) SimpleFSSetNotificationThreshold(ctx context.Context, th
 func (c SimpleFSClient) SimpleFSObfuscatePath(ctx context.Context, path Path) (res string, err error) {
 	__arg := SimpleFSObfuscatePathArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSObfuscatePath", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSDeobfuscatePath(ctx context.Context, path Path) (res []string, err error) {
+	__arg := SimpleFSDeobfuscatePathArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDeobfuscatePath", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetStats(ctx context.Context) (res SimpleFSStats, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetStats", []interface{}{SimpleFSGetStatsArg{}}, &res)
 	return
 }

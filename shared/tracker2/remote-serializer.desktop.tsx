@@ -67,7 +67,7 @@ export const deserialize = (state: any = initialState, props: any) => {
           },
         }
       : {}),
-    ...(props && props.hasOwnProperty('waiting')
+    ...(props && Object.prototype.hasOwnProperty.call(props, 'waiting')
       ? {
           waiting: {
             counts: I.Map([[Constants.waitingKey, props.waiting || 0]]),

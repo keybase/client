@@ -111,31 +111,33 @@ class ExplodingMeta extends React.Component<Props, State> {
     let children
     switch (this.state.mode) {
       case 'countdown':
-        const stopWatchIconSize = Styles.isMobile ? 16 : 14
-        children = (
-          <Kb.Box2 direction="horizontal" gap="xtiny">
-            {this.props.pending ? (
-              <Kb.Box2 direction="horizontal" style={styles.progressContainer}>
-                <Kb.ProgressIndicator style={{height: 12, width: 12}} />
-              </Kb.Box2>
-            ) : (
-              <Kb.Box2
-                direction="horizontal"
-                style={Styles.collapseStyles([
-                  styles.countdownContainer,
-                  {
-                    backgroundColor,
-                  },
-                ])}
-              >
-                <Kb.Text type="Body" style={styles.countdown}>
-                  {formatDurationShort(this.props.explodesAt - Date.now())}
-                </Kb.Text>
-              </Kb.Box2>
-            )}
-            <Kb.Icon type="iconfont-timer" fontSize={stopWatchIconSize} color={Styles.globalColors.black} />
-          </Kb.Box2>
-        )
+        {
+          const stopWatchIconSize = Styles.isMobile ? 16 : 14
+          children = (
+            <Kb.Box2 direction="horizontal" gap="xtiny">
+              {this.props.pending ? (
+                <Kb.Box2 direction="horizontal" style={styles.progressContainer}>
+                  <Kb.ProgressIndicator style={{height: 12, width: 12}} />
+                </Kb.Box2>
+              ) : (
+                <Kb.Box2
+                  direction="horizontal"
+                  style={Styles.collapseStyles([
+                    styles.countdownContainer,
+                    {
+                      backgroundColor,
+                    },
+                  ])}
+                >
+                  <Kb.Text type="Body" style={styles.countdown}>
+                    {formatDurationShort(this.props.explodesAt - Date.now())}
+                  </Kb.Text>
+                </Kb.Box2>
+              )}
+              <Kb.Icon type="iconfont-timer" fontSize={stopWatchIconSize} color={Styles.globalColors.black} />
+            </Kb.Box2>
+          )
+        }
         break
       case 'boom':
         children = <Kb.Icon type="iconfont-boom" color={Styles.globalColors.black} />

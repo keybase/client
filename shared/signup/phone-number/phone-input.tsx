@@ -428,6 +428,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               disabled={this.state.country === ''}
               ref={this._phoneInputRef}
               maxLength={17}
+              textContentType="telephoneNumber"
             />
           </Kb.Box2>
         </Kb.Box2>

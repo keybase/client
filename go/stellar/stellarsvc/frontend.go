@@ -656,75 +656,7 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 		return res, err
 	}
 
-	owns, _, err := stellar.OwnAccount(mctx, arg.From)
-	if err != nil {
-		return res, err
-	}
-	if !owns {
-		return res, fmt.Errorf("account %s is not owned by current user", arg.From)
-	}
-
-	ourBalances, err := s.remoter.Balances(mctx.Ctx(), arg.From)
-	if err != nil {
-		return res, err
-	}
-
-	res = []stellar1.SendAssetChoiceLocal{}
-	for _, bal := range ourBalances {
-		asset := bal.Asset
-		if asset.IsNativeXLM() {
-			// We are only doing non-native assets here.
-			continue
-		}
-		choice := stellar1.SendAssetChoiceLocal{
-			Asset:   asset,
-			Enabled: true,
-			Left:    bal.Asset.Code,
-			Right:   bal.Asset.Issuer,
-		}
-		res = append(res, choice)
-	}
-
-	if arg.To != "" {
-		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
-		if err != nil {
-			s.G().Log.CDebugf(ctx, "Skipping asset filtering: stellar.LookupRecipient for %q failed with: %s",
-				arg.To, err)
-			return res, nil
-		}
-
-		theirBalancesHash := make(map[string]bool)
-		assetHashCode := func(a stellar1.Asset) string {
-			return fmt.Sprintf("%s%s%s", a.Type, a.Code, a.Issuer)
-		}
-
-		if recipient.AccountID != nil {
-			theirBalances, err := s.remoter.Balances(mctx.Ctx(), stellar1.AccountID(recipient.AccountID.String()))
-			if err != nil {
-				s.G().Log.CDebugf(ctx, "Skipping asset filtering: remoter.Balances for %q failed with: %s",
-					recipient.AccountID, err)
-				return res, nil
-			}
-			for _, bal := range theirBalances {
-				theirBalancesHash[assetHashCode(bal.Asset)] = true
-			}
-		}
-
-		for i, choice := range res {
-			available := theirBalancesHash[assetHashCode(choice.Asset)]
-			if !available {
-				choice.Enabled = false
-				recipientStr := "Recipient"
-				if recipient.User != nil {
-					recipientStr = recipient.User.Username.String()
-				}
-				choice.Subtext = fmt.Sprintf("%s does not accept %s", recipientStr, choice.Asset.Code)
-				res[i] = choice
-			}
-		}
-	}
-
-	return res, nil
+	return stellar.GetSendAssetChoicesLocal(mctx, s.remoter, arg)
 }
 
 func (s *Server) StartBuildPaymentLocal(ctx context.Context, sessionID int) (res stellar1.BuildPaymentID, err error) {
@@ -1044,7 +976,7 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
 
-func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (details string, err error) {
+func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (resp stellar1.AirdropDetails, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "AirdropDetailsLocal",
 		Err:           &err,
@@ -1052,10 +984,15 @@ func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (detail
 	})
 	defer fin()
 	if err != nil {
-		return "", err
+		return stellar1.AirdropDetails{}, err
 	}
 
-	return remote.AirdropDetails(mctx)
+	isPromoted, details, err := remote.AirdropDetails(mctx)
+	if err != nil {
+		return stellar1.AirdropDetails{}, err
+	}
+	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details}, nil
+
 }
 
 func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {
@@ -1229,7 +1166,25 @@ func (s *Server) FindPaymentPathLocal(ctx context.Context, arg stellar1.FindPaym
 		return stellar1.PaymentPathLocal{}, err
 	}
 	srcAmt.Quo(srcAmt, destAmt)
-	res.ExchangeRate = fmt.Sprintf("1 %s = %s %s", path.DestinationAsset.Code, srcAmt.FloatString(7), path.SourceAsset.Code)
+
+	exchangeRateLeft, err := stellar.FormatAmountDescriptionAsset(mctx, "1", path.DestinationAsset)
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	exchangeRateRight, err := stellar.FormatAmountDescriptionAsset(mctx, srcAmt.FloatString(7), path.SourceAsset)
+
+	if err != nil {
+		return stellar1.PaymentPathLocal{}, err
+	}
+	res.ExchangeRate = fmt.Sprintf("%s = %s", exchangeRateLeft, exchangeRateRight)
+
+	if len(path.SourceInsufficientBalance) > 0 {
+		availableToSpend, err := stellar.FormatAmountDescriptionAssetEx2(mctx, path.SourceInsufficientBalance, path.SourceAsset)
+		if err != nil {
+			return stellar1.PaymentPathLocal{}, err
+		}
+		res.AmountError = fmt.Sprintf("You only have %s available to spend.", availableToSpend)
+	}
 
 	return res, nil
 }

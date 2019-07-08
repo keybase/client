@@ -69,12 +69,7 @@ const getSectionListKey = (props: BodyProps) =>
     props.popularAssets.length ? 'pa' : '_'
   }`
 
-const sectionHeader = section =>
-  !section.title || (
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.sectionHeader}>
-      <Kb.Text type="BodySmall">{section.title}</Kb.Text>
-    </Kb.Box2>
-  )
+const sectionHeader = section => !section.title || <Kb.SectionDivider label={section.title} />
 
 const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.
@@ -86,19 +81,25 @@ const ListUpdateOnMount = (props: BodyProps) => {
   ])
 
   return (
-    <Kb.SectionList
-      key={getSectionListKey(props)}
-      sections={makeSections(props)}
-      renderItem={({index, item}) => (
-        <Asset
-          accountID={props.accountID}
-          firstItem={index === 0}
-          assetID={item}
-          cannotAccept={!props.canAddTrustline}
-        />
-      )}
-      renderSectionHeader={({section}) => sectionHeader(section)}
-    />
+    <Kb.BoxGrow>
+      <Kb.SectionList
+        key={getSectionListKey(props)}
+        sections={makeSections(props)}
+        renderItem={({index, item}) => (
+          <Asset
+            accountID={props.accountID}
+            firstItem={index === 0}
+            assetID={item}
+            cannotAccept={!props.canAddTrustline}
+          />
+        )}
+        renderSectionHeader={({section}) => sectionHeader(section)}
+        // Otherwise on mobile when the search box is focused, two taps are
+        // needed to do anything in this list -- one to lose the focus and one
+        // to actually propagate the click even through.
+        keyboardShouldPersistTaps="handled"
+      />
+    </Kb.BoxGrow>
   )
 }
 
@@ -134,7 +135,7 @@ const Body = (props: BodyProps) => {
           )}
           {props.searchingAssets && !props.searchingAssets.length ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
-              <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
+              <Kb.Text type="BodySmall">Sorry! No assets were found. Please try again.</Kb.Text>
             </Kb.Box2>
           ) : (
             <ListUpdateOnMount {...props} />
@@ -221,18 +222,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       padding: Styles.globalMargins.tiny,
-    },
-  }),
-  sectionHeader: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      paddingLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: Styles.globalMargins.mediumLarge,
-    },
-    isMobile: {
-      height: Styles.globalMargins.large,
     },
   }),
 })

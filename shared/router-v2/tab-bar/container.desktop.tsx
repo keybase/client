@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from './index.desktop'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
@@ -21,7 +21,7 @@ type OwnProps = {
   selectedTab: Tabs.AppTab
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
   _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
@@ -81,8 +81,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(TabBar)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(TabBar)

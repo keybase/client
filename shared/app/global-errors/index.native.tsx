@@ -36,7 +36,10 @@ class GlobalError extends React.Component<Props, State> {
   }
 
   _resetError(newError: boolean) {
-    this.setState({size: newError ? 'Small' : 'Closed'})
+    const size = newError ? 'Small' : 'Closed'
+    if (this.state.size !== size) {
+      this.setState({size})
+    }
   }
 
   _summaryForError(err: null | Error | RPCError): string | null {

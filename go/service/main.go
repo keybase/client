@@ -73,6 +73,7 @@ type Service struct {
 	avatarLoader    avatars.Source
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
+	trackerLoader   *libkb.TrackerLoader
 }
 
 type Shutdowner interface {
@@ -94,6 +95,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
+		trackerLoader:    libkb.NewTrackerLoader(g),
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnvAndInstall(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
@@ -162,6 +164,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.EmailsProtocol(NewEmailsHandler(xp, g)),
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
+		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g)),
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
@@ -357,6 +360,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundBoxAuditRetry()
 	d.runBackgroundBoxAuditScheduler()
 	d.runTLFUpgrade()
+	d.runTrackerLoader(ctx)
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
@@ -553,6 +557,10 @@ func (d *Service) identifySelf() {
 
 func (d *Service) runTLFUpgrade() {
 	d.tlfUpgrader.Run()
+}
+
+func (d *Service) runTrackerLoader(ctx context.Context) {
+	d.trackerLoader.Run(ctx)
 }
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
@@ -891,6 +899,7 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 		d.startChatModules()
 		d.G().PushShutdownHook(func() error { return d.stopChatModules(mctx) })
 		d.runTLFUpgrade()
+		d.runTrackerLoader(mctx.Ctx())
 		go d.identifySelf()
 	}
 	return nil
@@ -931,6 +940,11 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	log("resetting wallet state on logout")
 	if d.walletState != nil {
 		d.walletState.Reset(m)
+	}
+
+	log("shutting down tracker loader")
+	if d.trackerLoader != nil {
+		<-d.trackerLoader.Shutdown(m.Ctx())
 	}
 
 	return nil

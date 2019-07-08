@@ -52,6 +52,7 @@ const (
 	syncCacheName                   string = "SyncBlockCache"
 	workingSetCacheName             string = "WorkingSetBlockCache"
 	crDirtyBlockCacheName           string = "DirtyBlockCache"
+	minDiskBlockWriteBufferSize            = 3 * data.MaxBlockSizeBytesDefault // ~ 1 MB
 )
 
 var errTeamOrUnknownTLFAddedAsHome = errors.New(
@@ -168,6 +169,11 @@ type DiskBlockCacheStatus struct {
 
 	LocalDiskBytesAvailable uint64
 	LocalDiskBytesTotal     uint64
+
+	BlockDBStats   []string `json:",omitempty"`
+	MetaDBStats    []string `json:",omitempty"`
+	TLFDBStats     []string `json:",omitempty"`
+	LastUnrefStats []string `json:",omitempty"`
 }
 
 type lastUnrefEntry struct {
@@ -181,7 +187,7 @@ type lastUnrefEntry struct {
 func newDiskBlockCacheLocalFromStorage(
 	config diskBlockCacheConfig, cacheType diskLimitTrackerType,
 	blockStorage, metadataStorage, tlfStorage,
-	lastUnrefStorage storage.Storage) (
+	lastUnrefStorage storage.Storage, mode InitMode) (
 	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("KBC")
 	closers := make([]io.Closer, 0, 3)
@@ -199,30 +205,33 @@ func newDiskBlockCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	blockDbOptions := *leveldbOptions
+	blockDbOptions := leveldbOptionsFromMode(mode)
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
 	blockDbOptions.BlockCacheCapacity = defaultBlockCacheCapacity
 	blockDbOptions.Filter = filter.NewBloomFilter(16)
-	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
+	if blockDbOptions.WriteBuffer < minDiskBlockWriteBufferSize {
+		blockDbOptions.WriteBuffer = minDiskBlockWriteBufferSize
+	}
+	blockDb, err := openLevelDBWithOptions(blockStorage, blockDbOptions)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, blockDb)
 
-	metaDb, err := openLevelDB(metadataStorage)
+	metaDb, err := openLevelDB(metadataStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, metaDb)
 
-	tlfDb, err := openLevelDB(tlfStorage)
+	tlfDb, err := openLevelDB(tlfStorage, mode)
 	if err != nil {
 		return nil, err
 	}
 	closers = append(closers, tlfDb)
 
-	lastUnrefDb, err := openLevelDB(lastUnrefStorage)
+	lastUnrefDb, err := openLevelDB(lastUnrefStorage, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +308,7 @@ func newDiskBlockCacheLocalFromStorage(
 // newDiskBlockCacheLocal creates a new *DiskBlockCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheLocal(config diskBlockCacheConfig,
-	cacheType diskLimitTrackerType, dirPath string) (
+	cacheType diskLimitTrackerType, dirPath string, mode InitMode) (
 	cache *DiskBlockCacheLocal, err error) {
 	log := config.MakeLogger("DBC")
 	defer func() {
@@ -353,7 +362,7 @@ func newDiskBlockCacheLocal(config diskBlockCacheConfig,
 		}
 	}()
 	cache, err = newDiskBlockCacheLocalFromStorage(config, cacheType,
-		blockStorage, metadataStorage, tlfStorage, lastUnrefStorage)
+		blockStorage, metadataStorage, tlfStorage, lastUnrefStorage, mode)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +375,7 @@ func newDiskBlockCacheLocalForTest(config diskBlockCacheConfig,
 	return newDiskBlockCacheLocalFromStorage(
 		config, cacheType, storage.NewMemStorage(),
 		storage.NewMemStorage(), storage.NewMemStorage(),
-		storage.NewMemStorage())
+		storage.NewMemStorage(), &modeTest{modeDefault{}})
 }
 
 func (cache *DiskBlockCacheLocal) useLimiter() bool {
@@ -1244,6 +1253,27 @@ func (cache *DiskBlockCacheLocal) Status(
 
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+
+	var blockStats, metaStats, tlfStats, lastUnrefStats []string
+	if err := cache.checkCacheLocked("Block(Status)"); err == nil {
+		blockStats, err = cache.blockDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get block db stats: %+v", err)
+		}
+		metaStats, err = cache.metaDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get meta db stats: %+v", err)
+		}
+		tlfStats, err = cache.tlfDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get TLF db stats: %+v", err)
+		}
+		lastUnrefStats, err = cache.lastUnrefDb.StatStrings()
+		if err != nil {
+			cache.log.CDebugf(ctx, "Couldn't get last unref db stats: %+v", err)
+		}
+	}
+
 	// The disk cache status doesn't depend on the chargedTo ID, and
 	// we don't have easy access to the UID here, so pass in a dummy.
 	return map[string]DiskBlockCacheStatus{
@@ -1263,6 +1293,10 @@ func (cache *DiskBlockCacheLocal) Status(
 			SizeDeleted:             rateMeterToStatus(cache.deleteSizeMeter),
 			LocalDiskBytesAvailable: availableBytes,
 			LocalDiskBytesTotal:     totalBytes,
+			BlockDBStats:            blockStats,
+			MetaDBStats:             metaStats,
+			TLFDBStats:              tlfStats,
+			LastUnrefStats:          lastUnrefStats,
 		},
 	}
 }

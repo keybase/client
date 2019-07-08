@@ -21,7 +21,7 @@ countries.forEach(curr => {
   ) {
     // see here for why we check status is 'assigned'
     // https://github.com/OpenBookPrices/country-data/tree/011dbb6658b0df5a36690af7086baa3e5c20c30c#status-notes
-    countryData[curr.alpha2] = {
+    countryDataRaw[curr.alpha2] = {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
       emoji: curr.emoji,
@@ -34,7 +34,7 @@ countries.forEach(curr => {
     }
 
     for (const code of curr.countryCallingCodes) {
-      codeToCountry[code.slice(1)] = curr.alpha2
+      codeToCountryRaw[code.slice(1)] = curr.alpha2
     }
   }
 })

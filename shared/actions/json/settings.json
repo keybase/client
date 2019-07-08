@@ -27,8 +27,11 @@
       "error?": "string",
       "phoneNumber": "string"
     },
-    "clearPhoneNumberVerification": {
-      "_description": "Cancel a phone number verification-in-progress."
+    "clearPhoneNumberAdd": {
+      "_description": "Cancel adding a phone number."
+    },
+    "clearPhoneNumberErrors": {
+      "_description": "Clear only error from phone number add flow."
     },
     "dbNuke": {},
     "deleteAccountForever": {},
@@ -45,6 +48,9 @@
       "toggleSearchable?": "boolean",
       "verify?": "boolean"
     },
+    "sentVerificationEmail": {
+      "email": "string"
+    },
     "loadContactImportEnabled": {
       "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
     },
@@ -60,6 +66,16 @@
     "editContactImportEnabled": {
       "enable": "boolean"
     },
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
+    "addedEmail": {
+      "email": "string",
+      "error?": "Error"
+    },
+    "clearAddingEmail": {"_description": "Reset state used for adding an email."},
+    "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"

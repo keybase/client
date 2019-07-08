@@ -50,13 +50,14 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   flexGrow: {flexGrow: 1},
   flexOne: {flex: 1},
   fullHeight: {height: '100%'},
+  fullWidth: {width: '100%'},
   rounded: {borderRadius: 3},
 })
 
 // Take common styles and make them work on both. Deals with special cases in lineHeight and etc
 const unifyStyles = (s: any) => ({
   ...s,
-  ...(s.hasOwnProperty('lineHeight') && typeof s.lineHeight === 'number'
+  ...(Object.prototype.hasOwnProperty.call(s, 'lineHeight') && typeof s.lineHeight === 'number'
     ? {lineHeight: isMobile ? s.lineHeight : s.lineHeight === 0 ? '0' : `${s.lineHeight}px`}
     : {}),
 })

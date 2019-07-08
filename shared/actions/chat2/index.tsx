@@ -838,25 +838,29 @@ const onNewChatActivity = (state, action: EngineGen.Chat1NotifyChatNewChatActivi
       break
     }
     case RPCChatTypes.ChatActivityType.membersUpdate:
-      const convID = activity.membersUpdate && activity.membersUpdate.convID
-      if (convID) {
-        actions = [
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [Types.conversationIDToKey(convID)],
-            force: true,
-          }),
-        ]
+      {
+        const convID = activity.membersUpdate && activity.membersUpdate.convID
+        if (convID) {
+          actions = [
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: [Types.conversationIDToKey(convID)],
+              force: true,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
-      const setAppNotificationSettings = activity.setAppNotificationSettings
-      if (setAppNotificationSettings) {
-        actions = [
-          Chat2Gen.createNotificationSettingsUpdated({
-            conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-            settings: setAppNotificationSettings.settings,
-          }),
-        ]
+      {
+        const setAppNotificationSettings = activity.setAppNotificationSettings
+        if (setAppNotificationSettings) {
+          actions = [
+            Chat2Gen.createNotificationSettingsUpdated({
+              conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+              settings: setAppNotificationSettings.settings,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.teamtype:
@@ -2870,7 +2874,9 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
         }),
       err => {
         logger.warn(err.message)
-        RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
+        if (err.code && err.code === 1) {
+          RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
+        }
       },
       {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )

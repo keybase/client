@@ -36,6 +36,13 @@ func NewCmdSimpleFSSetDebugLevel(
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSSetDebugLevel) Run() error {
+	if c.level > libkb.VLog0String {
+		ui := c.G().UI.GetTerminalUI()
+		ui.Printf("WARNING: this will make file and directory names visible in your logs.\n")
+		ui.Printf("If you send the logs to Keybase for debugging, those names will be\n")
+		ui.Printf("visible to Keybase employees as well.  File contents will remain private.\n")
+	}
+
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err

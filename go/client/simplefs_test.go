@@ -297,6 +297,18 @@ func (s SimpleFSMock) SimpleFSObfuscatePath(
 	return "", nil
 }
 
+// SimpleFSDeobfuscatePath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSDeobfuscatePath(
+	_ context.Context, _ keybase1.Path) ([]string, error) {
+	return nil, nil
+}
+
+// SimpleFSGetStats implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSGetStats(_ context.Context) (
+	keybase1.SimpleFSStats, error) {
+	return keybase1.SimpleFSStats{}, nil
+}
+
 /*
  file source cases:
  1. file

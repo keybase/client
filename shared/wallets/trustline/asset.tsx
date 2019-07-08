@@ -7,6 +7,7 @@ export type Props = {
   cannotAccept: boolean
   expanded: boolean
   firstItem: boolean
+  infoUrlText: string
   issuerAccountID: string
   issuerVerifiedDomain: string
   trusted: boolean // TODO add limit when we support it in GUI
@@ -15,7 +16,7 @@ export type Props = {
   onCollapse: () => void
   onExpand: () => void
   onRemove: () => void
-  onViewDetails: () => void
+  onOpenInfoUrl?: () => void
 
   waitingKeyAdd: string
   waitingKeyDelete: string
@@ -24,7 +25,7 @@ export type Props = {
 
 const stopPropagation = onClick => e => {
   e.stopPropagation()
-  onClick()
+  onClick && onClick()
 }
 
 const getCode = (props: Props) => (
@@ -36,14 +37,9 @@ const getCode = (props: Props) => (
   </Kb.Box2>
 )
 
-const getIssuerVerifiedDomain = (props: Props) =>
-  props.issuerVerifiedDomain ? (
-    <Kb.Text type="BodySmall">{props.issuerVerifiedDomain}</Kb.Text>
-  ) : (
-    <Kb.Text type="BodySmallItalic" style={styles.textUnknown}>
-      Unknown
-    </Kb.Text>
-  )
+const getIssuerVerifiedDomain = (props: Props) => (
+  <Kb.Text type="BodySmall">{props.issuerVerifiedDomain || 'Unknown issuer'}</Kb.Text>
+)
 
 const bodyCollapsed = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.bodyCollapsed} fullHeight={true}>
@@ -67,9 +63,10 @@ const bodyExpanded = (props: Props) => (
       mode="Secondary"
       type="Default"
       small={true}
-      label="View details"
+      disabled={!props.onOpenInfoUrl}
+      label={props.infoUrlText}
       style={Styles.collapseStyles([styles.marginTopXtiny, styles.viewDetails])}
-      onClick={stopPropagation(props.onViewDetails)}
+      onClick={stopPropagation(props.onOpenInfoUrl)}
     />
   </Kb.Box2>
 )
@@ -133,10 +130,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   bodyCollapsed: {
+    paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
   bodyExpanded: Styles.platformStyles({
     common: {
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {

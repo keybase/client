@@ -103,8 +103,10 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	if idx.started {
 		return
 	}
-	idx.started = true
-	go idx.SyncLoop(ctx, uid)
+	if !idx.G().IsMobileAppType() {
+		idx.started = true
+		go idx.SyncLoop(ctx, uid)
+	}
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {

@@ -64,6 +64,8 @@ function* handleAvatarQueue() {
     }
 
     const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
+    // eslint is confused i think
+    // eslint-disable-next-line require-atomic-updates
     avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
     if (usernames.length) {
       // @ts-ignore codemod issue
@@ -71,6 +73,8 @@ function* handleAvatarQueue() {
     }
 
     const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
+    // eslint is confused i think
+    // eslint-disable-next-line require-atomic-updates
     avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
     if (teamnames.length) {
       // @ts-ignore codemod issue

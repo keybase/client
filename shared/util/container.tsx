@@ -9,7 +9,7 @@ import {useSelector} from 'react-redux'
 export const NullComponent = () => null
 export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
   a: NoError | HasError
-): a is HasError => a.hasOwnProperty('error')
+): a is HasError => Object.prototype.hasOwnProperty.call(a, 'error')
 
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,

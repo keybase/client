@@ -22,7 +22,7 @@ export type Props = {
   visible: boolean
 }
 
-export const ReactionTooltip = (props: Props) => {
+const ReactionTooltip = (props: Props) => {
   if (!props.visible) {
     return null
   }

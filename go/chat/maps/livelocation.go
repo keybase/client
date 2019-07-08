@@ -67,7 +67,7 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 	defer l.Unlock()
 	ch := make(chan struct{})
 	for _, t := range l.trackers {
-		close(t.stopCh)
+		t.Stop()
 	}
 	go func() {
 		l.eg.Wait()
@@ -98,7 +98,15 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 		l.Debug(ctx, "restoreLocked: failed to read, skipping: %s", err)
 		return
 	}
+	if len(trackers) == 0 {
+		return
+	}
+	l.Debug(ctx, "restoreLocked: restored %d trackers", len(trackers))
+	l.trackers = make(map[types.LiveLocationKey]*locationTrack)
 	for _, t := range trackers {
+		if t.IsStopped() {
+			continue
+		}
 		l.trackers[t.Key()] = t
 		l.eg.Go(func() error { return l.tracker(t) })
 	}
@@ -176,7 +184,7 @@ func (n *unfurlNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.
 	}
 }
 
-func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTrack) (err error) {
+func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTrack, done bool) (err error) {
 	ctx = globals.ChatCtx(ctx, l.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer l.Trace(ctx, func() error { return err }, "updateMapUnfurl")()
 	msg, err := l.G().ChatHelper.GetMessage(ctx, l.uid, t.convID, t.msgID, true, nil)
@@ -208,8 +216,8 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	// a large lag after we delete the unfurl and when we post the next one. We link back to the
 	// tracker in the URL so we can get all the coordinates in the scraper. The cb param
 	// makes it so the unfurler doesn't think it has already unfurled this URL and skips it.
-	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&cb=%s", types.MapsDomain,
-		last.Lat, last.Lon, last.Accuracy, libkb.RandStringB64(3))
+	body := fmt.Sprintf("https://%s/?lat=%f&lon=%f&acc=%f&cb=%s&done=%v", types.MapsDomain,
+		last.Lat, last.Lon, last.Accuracy, libkb.RandStringB64(3), done)
 	if !t.getCurrentPosition {
 		body += fmt.Sprintf("&livekey=%s", t.Key())
 	}
@@ -300,7 +308,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				l.Debug(ctx, "tracker[%v]: got coords", watchID)
 				if firstUpdate {
 					l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
-					l.updateMapUnfurl(ctx, t)
+					l.updateMapUnfurl(ctx, t, false)
 				}
 				firstUpdate = false
 			} else {
@@ -310,7 +318,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
-			l.Debug(ctx, "tracker[%v]: added %d coords", added)
+			l.Debug(ctx, "tracker[%v]: added %d coords", watchID, added)
 			if l.TestingCoordsAddedCh != nil {
 				for i := 0; i < added; i++ {
 					l.TestingCoordsAddedCh <- struct{}{}
@@ -322,20 +330,18 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				// drain anything in the buffer if we are being updated and posting at the same time
 				t.Drain(chat1.Coordinate{})
 				l.Debug(ctx, "tracker[%v]: updating due to next update", watchID)
-				l.updateMapUnfurl(ctx, t)
+				l.updateMapUnfurl(ctx, t, false)
 				shouldUpdate = false
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
-			l.Debug(ctx, "tracker[%v]: live location complete", watchID)
-			if t.getCurrentPosition || shouldUpdate {
-				t.Drain(chat1.Coordinate{})
-				l.Debug(ctx, "tracker[%v]: updating due to expiration", watchID)
-				l.updateMapUnfurl(ctx, t)
-			}
+			l.Debug(ctx, "tracker[%v]: live location complete, updating", watchID)
+			t.Drain(chat1.Coordinate{})
+			l.updateMapUnfurl(ctx, t, true)
 			return nil
 		case <-t.stopCh:
-			l.Debug(ctx, "tracker[%v]: stopped", watchID)
+			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
+			l.updateMapUnfurl(ctx, t, true)
 			return nil
 		}
 	}
@@ -348,7 +354,7 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 	defer l.Unlock()
 	// start up a live location tracker for a small amount of time to make sure we get a good
 	// coordinate
-	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords)
+	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
@@ -359,7 +365,7 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	defer l.Trace(ctx, func() error { return nil }, "StartTracking")()
 	l.Lock()
 	defer l.Unlock()
-	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords)
+	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
@@ -410,8 +416,7 @@ func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
 	l.Lock()
 	defer l.Unlock()
 	for _, t := range l.trackers {
-		delete(l.trackers, t.Key())
-		close(t.stopCh)
+		t.Stop()
 	}
 	l.saveLocked(ctx)
 }
