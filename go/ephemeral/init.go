@@ -8,7 +8,8 @@ import (
 func NewEphemeralStorageAndInstall(mctx libkb.MetaContext) {
 	mctx.G().SetDeviceEKStorage(NewDeviceEKStorage(mctx))
 	mctx.G().SetUserEKBoxStorage(NewUserEKBoxStorage())
-	mctx.G().SetTeamEKBoxStorage(NewTeamEKBoxStorage())
+	mctx.G().SetTeamEKBoxStorage(NewTeamEKBoxStorage(NewTeamEphemeralKeyer()))
+	mctx.G().SetTeambotEKBoxStorage(NewTeamEKBoxStorage(NewTeambotEphemeralKeyer("")))
 	ekLib := NewEKLib(mctx)
 	mctx.G().SetEKLib(ekLib)
 	mctx.G().AddLoginHook(ekLib)

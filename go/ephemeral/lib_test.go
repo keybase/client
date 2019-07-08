@@ -196,7 +196,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	rawDeviceEKStorage := NewDeviceEKStorage(mctx)
 	rawUserEKBoxStorage := NewUserEKBoxStorage()
-	rawTeamEKBoxStorage := NewTeamEKBoxStorage()
+	rawTeamEKBoxStorage := NewTeamEKBoxStorage(NewTeamEphemeralKeyer())
 
 	// Let's purge our local teamEK store and make sure we don't regenerate
 	// (respecting the server max)
@@ -280,9 +280,14 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		cacheItem, ok := cache[generation]
 		require.True(t, ok)
 		require.False(t, cacheItem.HasError())
-		teamEKBoxed := cacheItem.TeamEKBoxed
+		boxed := cacheItem.TeamEKBoxed
+		typ, err := boxed.KeyType()
+		require.NoError(t, err)
+		require.True(t, typ.IsTeam())
+		teamEKBoxed := boxed.Team()
 		teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(d))
-		err = teamEKBoxStorage.Put(mctx, teamID, generation, teamEKBoxed)
+		err = teamEKBoxStorage.Put(mctx, teamID, generation,
+			keybase1.NewTeamEphemeralKeyBoxedWithTeam(teamEKBoxed))
 		require.NoError(t, err)
 	}
 

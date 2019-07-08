@@ -3062,3 +3062,71 @@ func (h *HiddenTeamChain) IsStale() bool {
 	_, fresh := h.Outer[h.LatestSeqnoHint]
 	return !fresh
 }
+
+func (k TeamEphemeralKey) Ctime() Time {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Ctime
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Ctime
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyBoxed) Ctime() Time {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Ctime
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Ctime
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Metadata.Generation
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Metadata.Generation
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyMetadata) Generation() EkGeneration {
+	typ, err := k.KeyType()
+	if err != nil {
+		return 0
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Generation
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Generation
+	default:
+		return 0
+	}
+}
+
+func (k TeamEphemeralKeyType) IsTeambot() bool {
+	return k == TeamEphemeralKeyType_TEAMBOT
+}
+
+func (k TeamEphemeralKeyType) IsTeam() bool {
+	return k == TeamEphemeralKeyType_TEAM
+}

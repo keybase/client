@@ -136,4 +136,26 @@ protocol ephemeral {
     Bytes32 seed;
     TeambotEkMetadata metadata;
   }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  enum TeamEphemeralKeyType {
+    TEAM_0,
+    TEAMBOT_1
+  }
+
+  variant TeamEphemeralKey switch (TeamEphemeralKeyType keyType) {
+    case TEAM: TeamEk;
+    case TEAMBOT: TeambotEk;
+  }
+
+  variant TeamEphemeralKeyBoxed switch (TeamEphemeralKeyType keyType) {
+    case TEAM: TeamEkBoxed;
+    case TEAMBOT: TeambotEkBoxed;
+  }
+
+  variant TeamEphemeralKeyMetadata switch (TeamEphemeralKeyType keyType) {
+    case TEAM: TeamEkMetadata;
+    case TEAMBOT: TeambotEkMetadata;
+  }
 }

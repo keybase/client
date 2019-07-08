@@ -321,6 +321,86 @@
           "name": "metadata"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamEphemeralKeyType",
+      "symbols": [
+        "TEAM_0",
+        "TEAMBOT_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamEphemeralKey",
+      "switch": {
+        "type": "TeamEphemeralKeyType",
+        "name": "keyType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TEAM",
+            "def": false
+          },
+          "body": "TeamEk"
+        },
+        {
+          "label": {
+            "name": "TEAMBOT",
+            "def": false
+          },
+          "body": "TeambotEk"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamEphemeralKeyBoxed",
+      "switch": {
+        "type": "TeamEphemeralKeyType",
+        "name": "keyType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TEAM",
+            "def": false
+          },
+          "body": "TeamEkBoxed"
+        },
+        {
+          "label": {
+            "name": "TEAMBOT",
+            "def": false
+          },
+          "body": "TeambotEkBoxed"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamEphemeralKeyMetadata",
+      "switch": {
+        "type": "TeamEphemeralKeyType",
+        "name": "keyType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TEAM",
+            "def": false
+          },
+          "body": "TeamEkMetadata"
+        },
+        {
+          "label": {
+            "name": "TEAMBOT",
+            "def": false
+          },
+          "body": "TeambotEkMetadata"
+        }
+      ]
     }
   ],
   "messages": {},
