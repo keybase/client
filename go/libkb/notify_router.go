@@ -99,6 +99,7 @@ type NotifyListener interface {
 	PasswordChanged()
 	RootAuditError(msg string)
 	BoxAuditError(msg string)
+	RuntimeStatsUpdate(*keybase1.RuntimeStats)
 }
 
 type NoopNotifyListener struct{}
@@ -202,9 +203,10 @@ func (n *NoopNotifyListener) PhoneNumbersChanged(list []keybase1.UserPhoneNumber
 func (n *NoopNotifyListener) EmailAddressVerified(emailAddress keybase1.EmailAddress) {}
 func (n *NoopNotifyListener) EmailsChanged(list []keybase1.Email, category string, email keybase1.EmailAddress) {
 }
-func (n *NoopNotifyListener) PasswordChanged()          {}
-func (n *NoopNotifyListener) RootAuditError(msg string) {}
-func (n *NoopNotifyListener) BoxAuditError(msg string)  {}
+func (n *NoopNotifyListener) PasswordChanged()                          {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                 {}
+func (n *NoopNotifyListener) BoxAuditError(msg string)                  {}
+func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 
 type NotifyListenerID string
 
@@ -2254,5 +2256,24 @@ func (n *NotifyRouter) HandleBoxAuditError(ctx context.Context, msg string) {
 
 	n.runListeners(func(listener NotifyListener) {
 		listener.BoxAuditError(msg)
+	})
+}
+
+func (n *NotifyRouter) HandleRuntimeStatsUpdate(ctx context.Context, stats *keybase1.RuntimeStats) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Runtimestats {
+			go func() {
+				(keybase1.NotifyRuntimeStatsClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RuntimeStatsUpdate(ctx, stats)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.RuntimeStatsUpdate(stats)
 	})
 }

@@ -213,6 +213,7 @@
     },
     "certificatePinningToggled": {
       "toggled": "boolean | null"
-    }
+    },
+    "toggleRuntimeStats": {}
   }
 }

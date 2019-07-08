@@ -17,6 +17,7 @@ import * as Shim from './shim.native'
 import {debounce} from 'lodash-es'
 import logger from '../logger'
 import OutOfDate from '../app/out-of-date'
+import RuntimeStats from '../app/runtime-stats/container'
 
 // turn on screens
 useScreens()
@@ -264,6 +265,7 @@ class RNApp extends React.PureComponent<any, any> {
         <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
         <GlobalError />
         <OutOfDate />
+        <RuntimeStats />
       </>
     )
   }

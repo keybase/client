@@ -69,6 +69,7 @@ export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export const stop = 'settings:stop'
+export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
@@ -168,6 +169,7 @@ type _SendFeedbackPayload = {
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
+type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
 type _UnfurlSettingsErrorPayload = {readonly error: string}
 type _UnfurlSettingsRefreshPayload = void
@@ -455,6 +457,10 @@ export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
+export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
+  payload,
+  type: toggleRuntimeStats,
+})
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
   payload,
@@ -683,6 +689,10 @@ export type SetAllowDeleteAccountPayload = {
   readonly type: typeof setAllowDeleteAccount
 }
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
+export type ToggleRuntimeStatsPayload = {
+  readonly payload: _ToggleRuntimeStatsPayload
+  readonly type: typeof toggleRuntimeStats
+}
 export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
 export type UnfurlSettingsErrorPayload = {
   readonly payload: _UnfurlSettingsErrorPayload
@@ -779,6 +789,7 @@ export type Actions =
   | SentVerificationEmailPayload
   | SetAllowDeleteAccountPayload
   | StopPayload
+  | ToggleRuntimeStatsPayload
   | TracePayload
   | UnfurlSettingsErrorPayload
   | UnfurlSettingsRefreshPayload

@@ -11,6 +11,7 @@ import {
   createLoadRememberPassword,
   createSaveProxyData,
   createCertificatePinningToggled,
+  createToggleRuntimeStats,
 } from '../../actions/settings-gen'
 import * as FSGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -59,6 +60,7 @@ const mapDispatchToProps = dispatch => ({
   onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
+  onToggleRuntimeStats: () => dispatch(createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
 })
