@@ -2,6 +2,6 @@
 
 package runtimestats
 
-func GetStats() (res statsResult) {
+func getStats() (res statsResult) {
 	return res
 }
