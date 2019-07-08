@@ -95,3 +95,44 @@ func TestContactSearch(t *testing.T) {
 	strList = stringifyAPIResult(res)
 	require.Contains(t, strList, "Office Building,")
 }
+
+func TestContactSearchWide(t *testing.T) {
+	tc := libkb.SetupTest(t, "contacts", 3)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("lmu", tc.G)
+	require.NoError(t, err)
+
+	contactlist := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{N: "Test Contact 1", username: "tuser1"}),
+		makeContact(makeContactArg{N: "🍱🍜🍪 Lunch", assertion: "48123@phone"}),
+		makeContact(makeContactArg{N: "Michal", L: "michal", username: "michal"}),
+		makeContact(makeContactArg{N: "高橋幸治", L: "+81123456555", assertion: "81123456555@phone"}),
+	}
+
+	savedStore := contacts.NewSavedContactsStore(tc.G)
+	err = savedStore.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	require.NoError(t, err)
+
+	searchHandler := NewUserSearchHandler(nil, tc.G, savedStore)
+
+	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "",
+		Query:           "高橋",
+	})
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	require.Equal(t, "高橋幸治", res[0].Contact.DisplayName)
+
+	for _, v := range []string{"🍜", "🍱", "lunch"} {
+		res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "",
+			Query:           v,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 1)
+		require.Equal(t, "🍱🍜🍪 Lunch", res[0].Contact.DisplayName)
+	}
+}
