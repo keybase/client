@@ -2,7 +2,6 @@ package hidden
 
 import (
 	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
@@ -171,21 +170,9 @@ func (r *Ratchet) ToSigPayload() (ret EncodedRatchetBlindingKeySet) {
 	return r.encoded
 }
 
-func genRandomBytes(i int) ([]byte, error) {
-	ret := make([]byte, i, i)
-	n, err := rand.Reader.Read(ret[:])
-	if err != nil {
-		return nil, err
-	}
-	if n != i {
-		return nil, newRatchetError("short random entropy read")
-	}
-	return ret, nil
-}
-
 func generateBlindingKey() (BlindingKey, error) {
 	var ret BlindingKey
-	tmp, err := genRandomBytes(len(ret))
+	tmp, err := libkb.RandBytes(len(ret))
 	if err != nil {
 		return ret, err
 	}
@@ -292,7 +279,7 @@ func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (*Ratchet, error) {
 		return nil, err
 	}
 	if tail == nil || tail.Seqno == keybase1.Seqno(0) {
-		return nil, err
+		return nil, nil
 	}
 	itail, err := sig3.ImportTail(*tail)
 	if err != nil {
