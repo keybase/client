@@ -397,3 +397,47 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 		require.Fail(t, "no clear call")
 	}
 }
+
+func TestChatSrvLiveLocationStopTracking(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvLiveLocationStopTracking", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	chatUI := newMockChatUI()
+	clock := clockwork.NewFakeClock()
+	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
+	timeout := 20 * time.Second
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	coordsCh := make(chan struct{}, 10)
+	unfurler := newMockUnfurler(tc.Context(), t)
+	tc.ChatG.Unfurler = unfurler
+	livelocation := maps.NewLiveLocationTracker(tc.Context())
+	livelocation.SetClock(clock)
+	livelocation.TestingCoordsAddedCh = coordsCh
+	tc.ChatG.LiveLocationTracker = livelocation
+	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
+	require.False(t, livelocation.ActivelyTracking(context.TODO()))
+
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/location live 1h",
+	}))
+	coords := []chat1.Coordinate{chat1.Coordinate{
+		Lat: 40.800348,
+		Lon: -73.968784,
+	}}
+	updateCoords(t, livelocation, coords, nil, coordsCh)
+	checkCoords(t, unfurler, coords, timeout)
+
+	livelocation.StopAllTracking(context.TODO())
+	checkCoords(t, unfurler, coords, timeout)
+
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
+	require.False(t, livelocation.ActivelyTracking(context.TODO()))
+}

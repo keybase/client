@@ -38,6 +38,7 @@ export type Props = {
   pending: boolean
   sendButtonLabel: string
   showCoinsIcon: boolean
+  sourceAmount?: string
 }
 
 const ButtonText = (props: {text: string; amount: string}) => (
@@ -85,7 +86,7 @@ const AccountPayment = (props: Props) => {
           >
             {props.action}{' '}
             <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
-              {props.amount}
+              {`${props.amount}${props.sourceAmount ? ` (by converting ${props.sourceAmount})` : ''}`}
             </Text>
             {props.approxWorth && (
               <Text type="BodySmall" style={styles.purple}>

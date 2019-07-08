@@ -236,9 +236,9 @@ const RolePicker = (props: Props) => {
                 icon={nodeMap.icon}
                 onSelect={onSelect}
                 disabledReason={
-                  props.disabledRoles &&
-                  props.disabledRoles[disabledRole] &&
-                  disabledTextHelper(props.disabledRoles[disabledRole])
+                  props.disabledRoles && props.disabledRoles[disabledRole]
+                    ? disabledTextHelper(props.disabledRoles[disabledRole])
+                    : undefined
                 }
               />
             </Kb.ClickableBox>

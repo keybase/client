@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import {stringToAccountID} from '../../constants/types/wallets'
+import * as Types from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
@@ -38,13 +38,14 @@ const props = {
   onShowProfile: Sb.action('onShowProfile'),
   onViewTransaction: Sb.action('onViewTransaction'),
   pathIntermediate: [],
-  recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
+  recipientAccountID: Types.stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
   selectableText: true,
-  senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
+  senderAccountID: Types.stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
   sourceConvRate: '',
   sourceIssuer: '',
+  sourceIssuerAccountID: Types.noAccountID,
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
@@ -111,7 +112,7 @@ const load = () => {
         amountUser=""
         memo="Make sure to redeem that hug! 🤗"
         issuerDescription="example.com"
-        issuerAccountID={stringToAccountID('GD6TAJEGIL7PZFBPSZLCBTQCW45YT6UZJ6YS274OAFVBLQSMJTETVCNU')}
+        issuerAccountID={Types.stringToAccountID('GD6TAJEGIL7PZFBPSZLCBTQCW45YT6UZJ6YS274OAFVBLQSMJTETVCNU')}
       />
     ))
     .add('Sending to Keybase user (pending)', () => (
@@ -225,13 +226,19 @@ const load = () => {
             code: 'WHAT',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'whatcoin',
-            issuerVerifiedDomain: 'what.com',
+            issuerVerifiedDomain: '',
           },
           {
             code: 'NATE',
             issuerAccountID: 'fakeaccountid',
             issuerName: 'natecoin',
             issuerVerifiedDomain: 'nathansmith.io',
+          },
+          {
+            code: '',
+            issuerAccountID: '',
+            issuerName: '',
+            issuerVerifiedDomain: '',
           },
           {
             code: 'BLAH',

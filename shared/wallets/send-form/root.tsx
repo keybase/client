@@ -8,6 +8,7 @@ type Props = {
   onClose: () => void
   children: React.ReactNode
   isRequest: boolean
+  showCancelInsteadOfBackOnMobile: boolean
 }
 
 const PoweredByStellar = () => (
@@ -29,7 +30,11 @@ const Root = (props: Props) => {
   let child = (
     <>
       <Kb.Box2 direction="vertical" style={styles.container}>
-        <Header isRequest={props.isRequest} onBack={props.onBack} />
+        <Header
+          isRequest={props.isRequest}
+          onBack={props.onBack}
+          showCancelInsteadOfBackOnMobile={props.showCancelInsteadOfBackOnMobile}
+        />
         {props.children}
       </Kb.Box2>
       {!Styles.isMobile && <PoweredByStellar />}

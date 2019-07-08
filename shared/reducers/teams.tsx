@@ -62,13 +62,14 @@ const rootReducer = (
       return state.setIn(['teamNameToCanPerform', action.payload.teamname], action.payload.teamOperation)
     case TeamsGen.setTeamPublicitySettings:
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
-    case TeamsGen.setTeamChannelInfo:
+    case TeamsGen.setTeamChannelInfo: {
       const {conversationIDKey, channelInfo} = action.payload
       return state.updateIn(['teamNameToChannelInfos', action.payload.teamname], channelInfos =>
         channelInfos
           ? channelInfos.set(conversationIDKey, channelInfo)
           : I.Map([[conversationIDKey, channelInfo]])
       )
+    }
     case TeamsGen.setTeamChannels:
       return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)
     case TeamsGen.setEmailInviteError:
@@ -103,9 +104,10 @@ const rootReducer = (
       return state.merge({sawChatBanner: true})
     case TeamsGen.setTeamSawSubteamsBanner:
       return state.merge({sawSubteamsBanner: true})
-    case TeamsGen.setTeamsWithChosenChannels:
+    case TeamsGen.setTeamsWithChosenChannels: {
       const teams = action.payload.teamsWithChosenChannels
       return state.merge({teamsWithChosenChannels: teams})
+    }
     case TeamsGen.setUpdatedChannelName:
       return state.mergeIn(
         // @ts-ignore

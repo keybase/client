@@ -59,6 +59,7 @@ type ownAccountLookupCacheImpl struct {
 }
 
 // NewOwnAccountLookupCache fetches the list of accounts in the background and stores them.
+// Was created before Stellar.accounts, and could probably benefit from using that cache.
 func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
 	c := &ownAccountLookupCacheImpl{
 		accounts: make(map[stellar1.AccountID]*string),

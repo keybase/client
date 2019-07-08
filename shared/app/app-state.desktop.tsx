@@ -231,7 +231,7 @@ export default class AppState {
         stateLoaded.y = null
       }
 
-      if (!stateLoaded.hasOwnProperty('openAtLogin')) {
+      if (!Object.prototype.hasOwnProperty.call(stateLoaded, 'openAtLogin')) {
         // always make sure we have, this
         stateLoaded.openAtLogin = true
       }

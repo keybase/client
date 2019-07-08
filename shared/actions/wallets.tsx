@@ -703,7 +703,7 @@ const deletedAccount = state =>
   })
 
 export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
-  a && a.hasOwnProperty('showOnCreation')
+  a && Object.prototype.hasOwnProperty.call(a, 'showOnCreation')
 
 const createdOrLinkedAccount = (
   state,
@@ -1024,10 +1024,10 @@ const updateAirdropDetails = (
   logger
 ) =>
   RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey)
-    .then(s => {
-      const json: AirdropDetailsJSONType = JSON.parse(s)
+    .then(response => {
+      const json: AirdropDetailsJSONType = JSON.parse(response.details)
       return WalletsGen.createUpdatedAirdropDetails({
-        details: Constants.makeAirdropDetails({
+        details: Constants.makeAirdropDetailsResponse({
           header: Constants.makeAirdropDetailsHeader({
             body: (json && json.header && json.header.body) || '',
             title: (json && json.header && json.header.title) || '',
@@ -1049,6 +1049,7 @@ const updateAirdropDetails = (
             )
           ),
         }),
+        isPromoted: response.isPromoted,
       })
     })
     .catch(e => {
@@ -1113,6 +1114,8 @@ const rpcAssetToAssetDescriptionOrNative = (asset: RPCStellarTypes.Asset): Types
     ? 'native'
     : Constants.makeAssetDescription({
         code: asset.code,
+        infoUrl: asset.infoUrl,
+        infoUrlText: asset.infoUrlText,
         issuerAccountID: asset.issuer,
         issuerName: asset.issuerName,
         issuerVerifiedDomain: asset.verifiedDomain,

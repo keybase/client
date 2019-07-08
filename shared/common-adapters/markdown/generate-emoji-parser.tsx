@@ -3,7 +3,7 @@ import path from 'path'
 // TODO: is there something better to do that ignore this?
 // @ts-ignore
 import emojiData from 'emoji-datasource'
-import {escapeRegExp} from 'lodash'
+import {escapeRegExp} from 'lodash-es'
 import tlds from 'tlds'
 
 const commonTlds = [

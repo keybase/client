@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {globalStyles, globalMargins} from '../styles'
-import {Box, Icon, Text} from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters/mobile.native'
 
 type Props = {
   onShowPrivacyPolicy: () => void
@@ -9,22 +9,24 @@ type Props = {
 }
 
 const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}>
-    <Icon type="icon-keybase-logo-64" />
-    <Text
+  <Kb.Box
+    style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}
+  >
+    <Kb.Icon type="icon-keybase-logo-64" />
+    <Kb.Text
       center={true}
       style={{marginBottom: globalMargins.large, paddingTop: globalMargins.large}}
       type="Body"
     >
-      You are running version <Text type="BodySemibold">{version}</Text>
-    </Text>
-    <Text style={{marginBottom: globalMargins.tiny}} type="BodyPrimaryLink" onClick={onShowTerms}>
+      You are running version <Kb.Text type="BodySemibold">{version}</Kb.Text>
+    </Kb.Text>
+    <Kb.Text style={{marginBottom: globalMargins.tiny}} type="BodyPrimaryLink" onClick={onShowTerms}>
       Terms and Conditions
-    </Text>
-    <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>
+    </Kb.Text>
+    <Kb.Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>
       Privacy Policy
-    </Text>
-  </Box>
+    </Kb.Text>
+  </Kb.Box>
 )
 
 export default About

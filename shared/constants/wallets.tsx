@@ -50,9 +50,14 @@ export const makeAirdropDetailsSection = I.Record<Types._AirdropDetailsSection>(
   section: '',
 })
 
-export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
+export const makeAirdropDetailsResponse = I.Record<Types._AirdropDetailsResponse>({
   header: makeAirdropDetailsHeader({}),
   sections: I.List(),
+})
+
+export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
+  details: makeAirdropDetailsResponse(),
+  isPromoted: false,
 })
 
 export const makeInflationDestination = I.Record<Types._InflationDestination>({
@@ -75,6 +80,8 @@ export const makeReserve = I.Record<Types._Reserve>({
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
   code: '',
+  infoUrl: '',
+  infoUrlText: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
@@ -358,6 +365,7 @@ const _defaultPaymentCommon = {
   sourceAsset: '',
   sourceConvRate: '',
   sourceIssuer: '',
+  sourceIssuerAccountID: Types.noAccountID,
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -456,7 +464,18 @@ export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal)
     ...rpcPaymentToPaymentCommon(p.summary),
     externalTxURL: p.details.externalTxURL,
     feeChargedDescription: p.details.feeChargedDescription,
-    pathIntermediate: I.List((p.details.pathIntermediate || []).map(makeAssetDescription)),
+    pathIntermediate: I.List(
+      (p.details.pathIntermediate || []).map(rpcAsset =>
+        makeAssetDescription({
+          code: rpcAsset.code,
+          infoUrl: rpcAsset.infoUrl,
+          infoUrlText: rpcAsset.infoUrlText,
+          issuerAccountID: rpcAsset.issuer,
+          issuerName: rpcAsset.issuerName,
+          issuerVerifiedDomain: rpcAsset.verifiedDomain,
+        })
+      )
+    ),
     publicMemo: new HiddenString(p.details.publicNote),
     publicMemoType: p.details.publicNoteType,
     txID: p.summary.txID,
@@ -501,6 +520,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAsset: p.sourceAsset.code,
     sourceConvRate: p.sourceConvRate,
     sourceIssuer: p.sourceAsset.verifiedDomain,
+    sourceIssuerAccountID: p.sourceAsset.issuer,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
@@ -732,7 +752,13 @@ export const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
 
-export const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
+export const shortenAccountID = (id: Types.AccountID) => {
+  if (id) {
+    return id.substring(0, 8) + '...' + id.substring(48)
+  } else {
+    return id
+  }
+}
 
 export const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)

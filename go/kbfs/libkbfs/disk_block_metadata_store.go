@@ -42,6 +42,7 @@ type diskBlockMetadataStoreConfig interface {
 	Codec() kbfscodec.Codec
 	MakeLogger(module string) logger.Logger
 	StorageRoot() string
+	Mode() InitMode
 }
 
 // diskBlockMetadataStore interacts with BlockMetadata data storage on disk.
@@ -61,10 +62,12 @@ type diskBlockMetadataStore struct {
 
 // newDiskBlockMetadataStore creates a new disk BlockMetadata storage.
 func newDiskBlockMetadataStore(
-	config diskBlockMetadataStoreConfig) (BlockMetadataStore, error) {
+	config diskBlockMetadataStoreConfig, mode InitMode) (
+	BlockMetadataStore, error) {
 	log := config.MakeLogger("BMS")
-	db, err := openVersionedLevelDB(log, config.StorageRoot(),
-		blockMetadataFolderName, currentBlockMetadataStoreVersion, blockMetadataDbFilename)
+	db, err := openVersionedLevelDB(
+		log, config.StorageRoot(), blockMetadataFolderName,
+		currentBlockMetadataStoreVersion, blockMetadataDbFilename, mode)
 	if err != nil {
 		return nil, err
 	}

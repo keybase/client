@@ -220,6 +220,8 @@ export type _ChatPaymentInfo = {
   fromUsername: string
   note: HiddenString
   paymentID: WalletTypes.PaymentID
+  sourceAmount: string
+  sourceAsset: WalletTypes.AssetDescription
   status: WalletTypes.StatusSimplified
   statusDescription: string
   statusDetail: string

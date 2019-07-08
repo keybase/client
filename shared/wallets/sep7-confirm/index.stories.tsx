@@ -3,6 +3,7 @@ import {Box} from '../../common-adapters/index'
 import * as Sb from '../../stories/storybook'
 
 import SEP7Confirm from '.'
+import SEP7Error from './error'
 
 const commonProps = {
   availableToSendFiat: '$12.34 USD',
@@ -53,11 +54,24 @@ const txProps = {
   },
 }
 
+const common = Sb.createStoreWithCommon()
+
+const store = {
+  ...common,
+  wallets: {
+    sep7ConfirmError:
+      "This Stellar link claims to be signed by keybaze.io, but the Keybase app cannot currently verify the signature came from keybaze.io, there's nothing you can do with this Stellar link.",
+  },
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/SEP7ConfirmForm', module)
     .addDecorator(story => <Box style={{maxWidth: 1000, padding: 5}}>{story()}</Box>)
     .add('Pay', () => <SEP7Confirm {...commonProps} {...payProps} />)
     .add('Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
+  Sb.storiesOf('Wallets/SEP7Error', module)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Error', () => <SEP7Error />)
 }
 
 export default load

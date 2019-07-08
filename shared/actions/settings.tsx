@@ -11,6 +11,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
+import * as Tabs from '../constants/tabs'
+import * as NotificationsGen from '../actions/notifications-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
@@ -379,7 +381,8 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
   )
 }
 
-const loadSettings = () =>
+const loadSettings = (state: TypedState) =>
+  state.config.loggedIn &&
   RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey).then(settings => {
     const emailMap: I.Map<string, Types.EmailRow> = I.Map(
       (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
@@ -387,10 +390,23 @@ const loadSettings = () =>
     const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
       (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
     )
-    return SettingsGen.createLoadedSettings({
+    const loadedAction = SettingsGen.createLoadedSettings({
       emails: emailMap,
       phones: phoneMap,
     })
+
+    const emailCount = (settings.emails || []).reduce((count, row) => (row.isVerified ? count : count + 1), 0)
+    const phoneCount = (settings.phoneNumbers || []).reduce(
+      (count, row) => (row.verified ? count : count + 1),
+      0
+    )
+
+    const badgeAction = NotificationsGen.createSetBadgeCounts({
+      counts: I.Map({
+        [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
+      }) as I.Map<Tabs.Tab, number>,
+    })
+    return [loadedAction, badgeAction]
   })
 
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
@@ -707,10 +723,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.deleteAccountForever,
     deleteAccountForever
   )
-  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
-    SettingsGen.onSubmitNewEmail,
-    onSubmitNewEmail
+  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload>(
+    [SettingsGen.loadSettings, ConfigGen.bootstrapStatusLoaded],
+    loadSettings
   )
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
     SettingsGen.onSubmitNewPassword,
@@ -788,6 +803,10 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   // Emails
   yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
   yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail, 'addEmail')
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
+    SettingsGen.onSubmitNewEmail,
+    onSubmitNewEmail
+  )
 }
 
 export default settingsSaga

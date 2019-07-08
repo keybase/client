@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react'
 import * as Flow from '../util/flow'
 import {FlatList, View} from 'react-native'
 import * as Styles from '../styles'
+import {smallHeight, largeHeight} from './list-item2'
 
 import {Props} from './list2'
 
@@ -18,6 +19,10 @@ class List2<T> extends PureComponent<Props<T>> {
     switch (this.props.itemHeight.type) {
       case 'fixed':
         return {index, length: this.props.itemHeight.height, offset: this.props.itemHeight.height * index}
+      case 'fixedListItem2Auto': {
+        const itemHeight = this.props.itemHeight.sizeType === 'Large' ? largeHeight : smallHeight
+        return {index, length: itemHeight, offset: itemHeight * index}
+      }
       case 'variable':
         return {index, ...this.props.itemHeight.getItemLayout(index, data[index])}
       default:

@@ -186,6 +186,9 @@ export type _PaymentCommon = {
   sourceAccountID: string
   sourceAmount: string // this and sourceAsset are set if this was a path payment,
   sourceAsset: string // just code for now,
+  sourceConvRate: string
+  sourceIssuer: string
+  sourceIssuerAccountID: AccountID
   sourceType: string
   statusSimplified: StatusSimplified
   statusDescription: string
@@ -229,6 +232,8 @@ export type _Payment = {} & _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string
+  infoUrl: string
+  infoUrlText: string
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string
@@ -323,10 +328,17 @@ export type _AirdropDetailsHeader = {
 }
 type AirdropDetailsHeader = I.RecordOf<_AirdropDetailsHeader>
 
-export type _AirdropDetails = {
+export type _AirdropDetailsResponse = {
   header: AirdropDetailsHeader
   sections: I.List<AirdropDetailsSection>
 }
+export type AirdropDetailsResponse = I.RecordOf<_AirdropDetailsResponse>
+
+export type _AirdropDetails = {
+  details: AirdropDetailsResponse
+  isPromoted: boolean
+}
+
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
 export type AssetID = string

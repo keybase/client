@@ -130,17 +130,19 @@ type jsonStatus struct {
 		Log string
 	}
 
-	DefaultUsername      string
-	ProvisionedUsernames []string
-	ConfiguredAccounts   []keybase1.ConfiguredAccount
-	Clients              []keybase1.ClientStatus
-	PlatformInfo         keybase1.PlatformInfo
-	OSVersion            string
-	DeviceEKNames        []string
-	LocalDbStats         []string
-	LocalChatDbStats     []string
-	CacheDirSizeInfo     []keybase1.DirSizeInfo
-	UIRouterMapping      map[string]int
+	DefaultUsername        string
+	ProvisionedUsernames   []string
+	ConfiguredAccounts     []keybase1.ConfiguredAccount
+	Clients                []keybase1.ClientStatus
+	PlatformInfo           keybase1.PlatformInfo
+	OSVersion              string
+	DeviceEKNames          []string
+	LocalDbStats           []string
+	LocalChatDbStats       []string
+	LocalBlockCacheDbStats []string `json:",omitempty"`
+	LocalSyncCacheDbStats  []string `json:",omitempty"`
+	CacheDirSizeInfo       []keybase1.DirSizeInfo
+	UIRouterMapping        map[string]int
 }
 
 func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
@@ -172,6 +174,8 @@ func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
 	status.DeviceEKNames = fstatus.ExtStatus.DeviceEkNames
 	status.LocalDbStats = fstatus.ExtStatus.LocalDbStats
 	status.LocalChatDbStats = fstatus.ExtStatus.LocalChatDbStats
+	status.LocalBlockCacheDbStats = fstatus.ExtStatus.LocalBlockCacheDbStats
+	status.LocalSyncCacheDbStats = fstatus.ExtStatus.LocalSyncCacheDbStats
 	status.CacheDirSizeInfo = fstatus.ExtStatus.CacheDirSizeInfo
 	status.UIRouterMapping = fstatus.ExtStatus.UiRouterMapping
 
@@ -295,6 +299,8 @@ func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
 	dui.Printf("    %s \n", strings.Join(extStatus.DeviceEkNames, "\n    "))
 	dui.Printf("LocalDbStats:\n%s \n", strings.Join(extStatus.LocalDbStats, "\n"))
 	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(extStatus.LocalChatDbStats, "\n"))
+	dui.Printf("LocalBlockCacheDbStats:\n%s \n", strings.Join(extStatus.LocalBlockCacheDbStats, "\n"))
+	dui.Printf("LocalSyncCacheDbStats:\n%s \n", strings.Join(extStatus.LocalSyncCacheDbStats, "\n"))
 	dui.Printf("CacheDirSizeInfo:\n")
 	for _, dirInfo := range extStatus.CacheDirSizeInfo {
 		dui.Printf("%s: %s, (%d files)\n", dirInfo.Name, dirInfo.HumanSize, dirInfo.NumFiles)

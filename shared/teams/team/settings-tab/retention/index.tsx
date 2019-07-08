@@ -374,26 +374,28 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
   let exp = ''
   switch (p.type) {
     case 'inherit':
-      if (!parent) {
-        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
+      {
+        if (!parent) {
+          throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
+        }
+        let behavior = ''
+        switch (parent.type) {
+          case 'inherit':
+            throw new Error(`Got invalid type 'inherit' for team-wide policy`)
+          case 'retain':
+            behavior = 'be retained indefinitely'
+            break
+          case 'expire':
+            behavior = `expire after ${parent.title}`
+            break
+          case 'explode':
+            behavior = `explode after ${parent.title}`
+            break
+          default:
+            throw new Error(`Impossible policy type encountered: ${parent.type}`)
+        }
+        exp = `Messages in this ${convType} will ${behavior}, which is the team default.`
       }
-      let behavior = ''
-      switch (parent.type) {
-        case 'inherit':
-          throw new Error(`Got invalid type 'inherit' for team-wide policy`)
-        case 'retain':
-          behavior = 'be retained indefinitely'
-          break
-        case 'expire':
-          behavior = `expire after ${parent.title}`
-          break
-        case 'explode':
-          behavior = `explode after ${parent.title}`
-          break
-        default:
-          throw new Error(`Impossible policy type encountered: ${parent.type}`)
-      }
-      exp = `Messages in this ${convType} will ${behavior}, which is the team default.`
       break
     case 'retain':
       exp = `Admins have set this ${convType} to retain messages indefinitely.`

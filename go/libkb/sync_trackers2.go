@@ -29,7 +29,7 @@ func (t *Tracker2Syncer) dbKey(u keybase1.UID) DbKey {
 	return DbKeyUID(DBTrackers2, u)
 }
 
-func (t *Tracker2Syncer) loadFromStorage(m MetaContext, uid keybase1.UID) error {
+func (t *Tracker2Syncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExpiration bool) error {
 	var err error
 	var found bool
 	var tmp keybase1.UserSummary2Set
@@ -43,7 +43,7 @@ func (t *Tracker2Syncer) loadFromStorage(m MetaContext, uid keybase1.UID) error 
 		return nil
 	}
 	cachedAt := keybase1.FromTime(tmp.Time)
-	if time.Now().Sub(cachedAt) > cacheTimeout {
+	if useExpiration && time.Since(cachedAt) > cacheTimeout {
 		m.Debug("| expired; cached at %s", cachedAt)
 		return nil
 	}

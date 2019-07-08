@@ -100,7 +100,7 @@ export const WalletSwitcher = (props: Props) => {
   }
 
   const menuItems: MenuItem[] = [
-    ...(flags.airdrop
+    ...(flags.airdrop && props.airdropIsLive
       ? ([
           {
             key: 'airdrop',

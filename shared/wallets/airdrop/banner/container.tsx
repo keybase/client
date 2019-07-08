@@ -8,9 +8,10 @@ import flags from '../../../util/feature-flags'
 type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => ({
-  headerBody: state.wallets.airdropDetails.header.body,
+  headerBody: state.wallets.airdropDetails.details.header.body,
   show:
     flags.airdrop &&
+    state.wallets.airdropDetails.isPromoted &&
     state.wallets.airdropShowBanner &&
     (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified'),
 })

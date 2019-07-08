@@ -52,7 +52,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Verify',
     })
   }
-  if (props.type === 'email' && !props.primary && props.verified) {
+  if (props.type === 'email' && !props.primary) {
     menuItems.push({
       onClick: props.onMakePrimary,
       subTitle: 'Use this email for important notifications.',
@@ -64,8 +64,8 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
-        ? "Don't let friends find you by this email."
-        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this email.`,
+        ? `Don't let friends find you by this ${props.type}.`
+        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${props.type}.`,
       title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
@@ -162,8 +162,10 @@ export type OwnProps = {
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _emailRow: state.settings.email.emails.get(ownProps.contactKey) || null,
-  _phoneRow: state.settings.phoneNumbers.phones.get(ownProps.contactKey) || null,
+  _emailRow: (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null,
+  _phoneRow:
+    (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
+    null,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
