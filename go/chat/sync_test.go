@@ -162,7 +162,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Equal(t, len(convs), len(iconvs))
 
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		mconv.Metadata.Status = chat1.ConversationStatus_MUTED
+		mconv.Metadata.Status = chat1.ConversationStatus_FAVORITE
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
 			Vers:  100,
 			Convs: []chat1.Conversation{mconv},
@@ -192,7 +192,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Equal(t, len(convs), len(iconvs))
 	for _, ic := range iconvs {
 		if ic.GetConvID().Eq(mconv.GetConvID()) {
-			require.Equal(t, chat1.ConversationStatus_MUTED, ic.Conv.Metadata.Status)
+			require.Equal(t, chat1.ConversationStatus_FAVORITE, ic.Conv.Metadata.Status)
 		}
 	}
 	require.Equal(t, chat1.ConversationStatus_UNFILED, convs[1].Metadata.Status)
