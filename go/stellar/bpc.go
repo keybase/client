@@ -66,7 +66,9 @@ func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
 func (c *buildPaymentCache) IsAccountFunded(mctx libkb.MetaContext,
 	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res bool, err error) {
 	fill := func() (interface{}, error) {
-		return isAccountFunded(mctx.Ctx(), c.remoter, accountID)
+		funded, err := isAccountFunded(mctx.Ctx(), c.remoter, accountID)
+		res = funded
+		return funded, err
 	}
 	if !bid.IsNil() {
 		key := fmt.Sprintf("%v:%v", accountID, bid)
