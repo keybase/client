@@ -352,17 +352,17 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 }
 
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "GetPaymentDetailsLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return payment, err
+	}
 
 	if arg.AccountID.IsNil() {
 		return payment, errors.New("AccountID required for GetPaymentDetailsLocal")
-	}
-
-	mctx := libkb.NewMetaContext(ctx, s.G())
-	err = s.assertLoggedIn(mctx)
-	if err != nil {
-		return payment, err
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(mctx)
@@ -399,11 +399,11 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 }
 
 func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1.GetGenericPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
-	ctx = s.logTag(ctx)
-	defer s.G().CTraceTimed(ctx, "GetGenericPaymentDetailsLocal", func() error { return err })()
-
-	mctx := libkb.NewMetaContext(ctx, s.G())
-	err = s.assertLoggedIn(mctx)
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "GetGenericPaymentDetailsLocal",
+		Err:     &err,
+	})
+	defer fin()
 	if err != nil {
 		return payment, err
 	}
@@ -595,11 +595,15 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 }
 
 func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
-	defer s.G().CTraceTimed(ctx, "GetDisplayCurrencyLocal", func() error { return err })()
-	mctx := libkb.NewMetaContext(ctx, s.G())
-	if err = s.assertLoggedIn(mctx); err != nil {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName: "GetDisplayCurrencyLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
 		return res, err
 	}
+
 	accountID := arg.AccountID
 	if accountID == nil {
 		primaryAccountID, err := stellar.GetOwnPrimaryAccountID(mctx)
