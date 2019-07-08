@@ -1119,6 +1119,10 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 		}
 	}
 
+	const maxClockDriftSeconds int64 = 5 * 60
+
+	var latestCtime, earliestCtime int64
+
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
 		thisRoot, prevRoot := ss[index].seqno(), ss[nextIndex].seqno()
@@ -1135,14 +1139,29 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot), merkleErrorSkipHashMismatch}
 		}
 
-		// Check that ctimes in the sequence are also strictly ordered
+		// Check that ctimes in the sequence are nearly strictly ordered; we have to make sure we can handle slight
+		// clock jitters since the servrer might need to rewind time due to leap seconds or NTP issues.
+		// We'll allow at most 5 minutes of "time-travel" between 2 updates, and no more than 5minutes or time travel
+		// across the whole sequence
 		thisCTime, prevCTime := ss[index].ctime(), ss[nextIndex].ctime()
-		if thisCTime < prevCTime {
+		if prevCTime > thisCTime && (prevCTime-thisCTime) > maxClockDriftSeconds {
 			return MerkleClientError{
-				fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d", thisRoot, thisCTime, prevRoot, prevCTime),
+				fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d (even with %ds tolerance)", thisRoot, thisCTime, prevRoot, prevCTime, maxClockDriftSeconds),
 				merkleErrorOutOfOrderCtime,
 			}
 		}
+		if index == 0 {
+			latestCtime = ss[index].ctime()
+		}
+		earliestCtime = ss[index].ctime()
+	}
+
+	if latestCtime > 0 && earliestCtime > 0 && earliestCtime > latestCtime && (earliestCtime-latestCtime > maxClockDriftSeconds) {
+		return MerkleClientError{
+			fmt.Sprintf("Too much clock drift detected in skip sequence: %d", earliestCtime-latestCtime),
+			merkleErrorTooMuchClockDrift,
+		}
+
 	}
 
 	return nil
