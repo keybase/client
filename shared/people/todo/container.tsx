@@ -267,12 +267,16 @@ const VerifyAllEmailConnector = connect(
   (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
-      {
-        label: 'Verify',
-        onClick: () =>
-          ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
-        type: 'Success',
-      },
+      ...(ownProps.metadata
+        ? [
+            {
+              label: 'Verify',
+              onClick: () =>
+                ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
+              type: 'Success',
+            },
+          ]
+        : []),
       {
         label: 'Manage email',
         mode: 'Secondary',
@@ -297,12 +301,16 @@ const VerifyAllPhoneNumberConnector = connect(
   (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
-      {
-        label: 'Verify',
-        onClick: () =>
-          ownProps.metadata.type === 'phone' && dispatchProps._onConfirm(ownProps.metadata.phone),
-        type: 'Success',
-      },
+      ...(ownProps.metadata
+        ? [
+            {
+              label: 'Verify',
+              onClick: () =>
+                ownProps.metadata.type === 'phone' && dispatchProps._onConfirm(ownProps.metadata.phone),
+              type: 'Success',
+            },
+          ]
+        : []),
       {
         label: 'Manage numbers',
         mode: 'Secondary',
@@ -325,12 +333,16 @@ const LegacyEmailVisibilityConnector = connect(
   (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
-      {
-        label: 'Make searchable',
-        onClick: () =>
-          ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
-        type: 'Success',
-      },
+      ...(ownProps.metadata
+        ? [
+            {
+              label: 'Make searchable',
+              onClick: () =>
+                ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
+              type: 'Success',
+            },
+          ]
+        : []),
       {
         label: 'No',
         mode: 'Secondary',
