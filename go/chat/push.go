@@ -139,8 +139,8 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		if dur < 0 {
 			dur = 0
 		}
-		// cap at two minutes
-		if dur > 2*time.Minute {
+		// cap at a minute
+		if dur > time.Minute {
 			dur = time.Minute
 		}
 		deadline = deadline.Add(dur)
