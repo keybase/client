@@ -70,6 +70,7 @@ export const newModalRoutes = {
     getScreen: (): typeof ChatInfoPanel => require('./conversation/info-panel/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   chatManageChannels: {
     getScreen: (): typeof ChatManageChannels => require('./manage-channels/container').default,
     upgraded: true,
@@ -87,6 +88,7 @@ export const newModalRoutes = {
       require('./conversation/block-conversation-warning/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   chatShowNewTeamDialog: {
     getScreen: (): typeof ChatShowNewTeamDialog => require('./new-team-dialog-container').default,
     upgraded: true,
