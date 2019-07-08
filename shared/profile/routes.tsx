@@ -31,7 +31,6 @@ export const newModalRoutes = {
     upgraded: true,
   },
   profileConfirmOrPending: {
-    // TODO broken connect
     getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
     upgraded: true,
   },
@@ -61,7 +60,6 @@ export const newModalRoutes = {
     getScreen: (): typeof ProfileProveEnterUsername => require('./prove-enter-username/container').default,
     upgraded: true,
   },
-  // TODO broken connect
   profileProveWebsiteChoice: {
     getScreen: (): typeof ProfileProveWebsiteChoice => require('./prove-website-choice/container').default,
     upgraded: true,

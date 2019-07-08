@@ -84,21 +84,17 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-const mapStateToProps = state => ({
-  pgpKeyString: state.profile.pgpPublicKey || 'Error getting public key...',
-  promptShouldStoreKeyOnServer: state.profile.promptShouldStoreKeyOnServer,
-})
-
-const mapDispatchToProps = dispatch => ({
-  onDone: shouldStoreKeyOnServer => {
-    dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer}))
-    dispatch(RouteTreeGen.createClearModals())
-  },
-})
-
 export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  state => ({
+    pgpKeyString: state.profile.pgpPublicKey || 'Error getting public key...',
+    promptShouldStoreKeyOnServer: state.profile.promptShouldStoreKeyOnServer,
+  }),
+  dispatch => ({
+    onDone: shouldStoreKeyOnServer => {
+      dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer}))
+      dispatch(RouteTreeGen.createClearModals())
+    },
+  }),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'Finished'
 )(Finished)

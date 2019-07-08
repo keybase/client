@@ -3,11 +3,11 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import ConfirmOrPending from '.'
 import {ProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 
 type OwnProps = {}
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   const profile = state.profile
   const isGood = profile.proofFound && profile.proofStatus === ProofStatus.ok
   const isPending =
@@ -28,15 +28,13 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  onCancel: () => {
-    dispatch(ProfileGen.createBackToProfile())
-    dispatch(RouteTreeGen.createClearModals())
-  },
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  dispatch => ({
+    onCancel: () => {
+      dispatch(ProfileGen.createBackToProfile())
+      dispatch(RouteTreeGen.createClearModals())
+    },
+  }),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ConfirmOrPending)
