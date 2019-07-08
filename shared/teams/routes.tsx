@@ -20,6 +20,7 @@ export const newRoutes = {
     getScreen: (): typeof TeamMember => require('./team/member/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default, upgraded: true},
 }
 
@@ -30,6 +31,7 @@ export const newModalRoutes = {
     upgraded: true,
   },
   teamDeleteTeam: {
+    // TODO connect broken
     getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default,
     upgraded: true,
   },
@@ -37,6 +39,7 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   teamEditTeamDescription: {
     getScreen: (): typeof TeamEditTeamDescription =>
       MaybePopupHoc(false)(require('./edit-team-description/container').default),
@@ -46,14 +49,17 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   teamJoinTeamDialog: {
     getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   teamNewTeamDialog: {
     getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
     upgraded: true,

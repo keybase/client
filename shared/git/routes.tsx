@@ -10,7 +10,9 @@ export const newRoutes = {
   'settingsTabs.gitTab': gitRoot,
 }
 export const newModalRoutes = {
+  // TODO broken connect
   gitDeleteRepo: {getScreen: (): typeof GitDeleteRepo => require('./delete-repo/container').default},
   gitNewRepo: {getScreen: (): typeof GitNewRepo => require('./new-repo/container').default},
+  // TODO broken connect
   gitSelectChannel: {getScreen: (): typeof GitSelectChannel => require('./select-channel/container').default},
 }

@@ -23,13 +23,16 @@ import WhatIsStellarModal from './what-is-stellar-modal'
 import Airdrop from './airdrop/container'
 import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
+import Wallet from './wallet/container'
 
 const sharedRoutes = {
   airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default, upgraded: true},
+  // TODO connect broken
   settings: {
     getScreen: (): typeof Settings => require('./wallet/settings/container').default,
     upgraded: true,
   },
+  // TODO connect broken
   transactionDetails: {
     getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,
     upgraded: true,
@@ -40,7 +43,7 @@ const walletsSubRoutes = isMobile
   ? {}
   : {
       ...sharedRoutes,
-      wallet: {getScreen: () => require('./wallet/container').default, upgraded: true},
+      wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default, upgraded: true},
     }
 
 class WalletsSubNav extends React.PureComponent<any> {
