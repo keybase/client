@@ -16,5 +16,5 @@ export default Container.connect(
       dispatch(createDbNuke())
     },
   }),
-  (s, d, o) => (d)
+  (s, d, o) => d
 )(DBNukeConfirm)

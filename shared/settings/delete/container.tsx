@@ -9,5 +9,5 @@ export default Container.connectDEBUG(
   dispatch => ({
     onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
   }),
-  (s, d, o) => (d)
+  (s, d, o) => d
 )(Delete)

@@ -30,7 +30,7 @@ type State = {
 class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   _vidRef: {current: HTMLVideoElement | null} = React.createRef()
   _mounted = false
-  state = {loaded: '', isZoomed: false}
+  state = {isZoomed: false, loaded: ''}
   _setLoaded = (path: string) => this.setState({loaded: path})
   _isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
 

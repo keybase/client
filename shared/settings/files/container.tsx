@@ -34,10 +34,13 @@ const SettingsFiles = Container.namedConnect(
     ...s,
     ...o,
     ...d,
-    allowedThresholds: allowedNotificationThresholds.map(i => ({
-      label: Constants.humanizeBytes(i, 0),
-      value: i,
-    } as PickerItem<number>)),
+    allowedThresholds: allowedNotificationThresholds.map(
+      i =>
+        ({
+          label: Constants.humanizeBytes(i, 0),
+          value: i,
+        } as PickerItem<number>)
+    ),
     humanizedNotificationThreshold: Constants.humanizeBytes(
       s.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
       0

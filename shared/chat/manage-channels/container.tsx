@@ -120,7 +120,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 }
 
 type Props = {
-  onBack?: () => void,
+  onBack?: () => void
   selectedChatID: ChatTypes.ConversationIDKey
   _hasOperations: () => void
   _loadChannels: () => void
@@ -137,8 +137,7 @@ type Props = {
   ) => void
   canCreateChannels: boolean
   canEditChannels: boolean
-  channels: Array<
-  RowProps & { convID: ChatTypes.ConversationIDKey}>
+  channels: Array<RowProps & {convID: ChatTypes.ConversationIDKey}>
   onClose: () => void
   onCreate: () => void
   onEdit: (convID: ChatTypes.ConversationIDKey) => void

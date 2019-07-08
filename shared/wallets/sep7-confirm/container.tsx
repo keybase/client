@@ -58,9 +58,8 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     summary,
   } = stateProps.sep7ConfirmInfo
 
-  const rawOp = stateProps.sep7ConfirmInfo.operation 
-  const operation = rawOp === 'pay' ? 'pay' as const: 
-  rawOp === 'tx' ? 'tx' as const : '' as const
+  const rawOp = stateProps.sep7ConfirmInfo.operation
+  const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
 
   if (operation === '') {
     throw new Error('invalid operation' + stateProps.sep7ConfirmInfo.operation)

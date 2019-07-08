@@ -35,7 +35,9 @@ const sortDevices = (a, b) => {
 }
 
 const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'})
-const splitAndSortDevices = (deviceMap: I.Map<string, Types.Device>): [Array<Types.Device>, Array<Types.Device>] =>
+const splitAndSortDevices = (
+  deviceMap: I.Map<string, Types.Device>
+): [Array<Types.Device>, Array<Types.Device>] =>
   partition(
     deviceMap
       .valueSeq()
@@ -76,27 +78,30 @@ class ReloadableDevices extends React.PureComponent<Props & {clearBadges: () => 
 }
 
 const NamedConnected = Container.namedConnect(
-  mapStateToProps, 
-  mapDispatchToProps, 
+  mapStateToProps,
+  mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
-  const revokedItems = revoked.map(deviceToItem)
-  const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
-  const showPaperKeyNudge =
-    !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
-  return {
-    _stateOverride: null,
-    clearBadges: dispatchProps.clearBadges,
-    hasNewlyRevoked: newlyRevokedIds.size > 0,
-    items: normal.map(deviceToItem) as Array<Item>,
-    loadDevices: dispatchProps.loadDevices,
-    onAddDevice: dispatchProps.onAddDevice,
-    onBack: dispatchProps.onBack,
-    revokedItems: revokedItems as Array<Item>,
-    showPaperKeyNudge,
-    title: 'Devices',
-    waiting: stateProps.waiting,
-  }}, 'Devices')
+    const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
+    const revokedItems = revoked.map(deviceToItem)
+    const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
+    const showPaperKeyNudge =
+      !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
+    return {
+      _stateOverride: null,
+      clearBadges: dispatchProps.clearBadges,
+      hasNewlyRevoked: newlyRevokedIds.size > 0,
+      items: normal.map(deviceToItem) as Array<Item>,
+      loadDevices: dispatchProps.loadDevices,
+      onAddDevice: dispatchProps.onAddDevice,
+      onBack: dispatchProps.onBack,
+      revokedItems: revokedItems as Array<Item>,
+      showPaperKeyNudge,
+      title: 'Devices',
+      waiting: stateProps.waiting,
+    }
+  },
+  'Devices'
+)
 
 const SafeSub = Container.safeSubmitPerMount(['onBack'])
 const Connected = NamedConnected(SafeSub(ReloadableDevices))

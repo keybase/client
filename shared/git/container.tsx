@@ -77,7 +77,10 @@ type ExtraProps = {
   onBack: () => void
 }
 
-class GitReloadable extends React.PureComponent<Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleExpand'>, {expandedSet: I.Set<string>}> {
+class GitReloadable extends React.PureComponent<
+  Omit<GitProps & ExtraProps, 'expandedSet' | 'onToggleExpand'>,
+  {expandedSet: I.Set<string>}
+> {
   state = {expandedSet: _expandedSet}
   _toggleExpand = id => {
     _expandedSet = _expandedSet.has(id) ? _expandedSet.delete(id) : _expandedSet.add(id)
@@ -113,23 +116,18 @@ if (!Container.isMobile) {
   }
 }
 
-
 export default Container.connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (
-      stateProps,
-      dispatchProps,
-      _ownProps
-    ) => ({
-      _loadGit: dispatchProps._loadGit,
-      clearBadges: dispatchProps.clearBadges,
-      loading: stateProps.loading,
-      onBack: dispatchProps.onBack,
-      onNewPersonalRepo: dispatchProps.onNewPersonalRepo,
-      onNewTeamRepo: dispatchProps.onNewTeamRepo,
-      onShowDelete: dispatchProps.onShowDelete,
-      personals: stateProps.personals,
-      teams: stateProps.teams,
-    })
-    )(GitReloadable)
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _ownProps) => ({
+    _loadGit: dispatchProps._loadGit,
+    clearBadges: dispatchProps.clearBadges,
+    loading: stateProps.loading,
+    onBack: dispatchProps.onBack,
+    onNewPersonalRepo: dispatchProps.onNewPersonalRepo,
+    onNewTeamRepo: dispatchProps.onNewTeamRepo,
+    onShowDelete: dispatchProps.onShowDelete,
+    personals: stateProps.personals,
+    teams: stateProps.teams,
+  })
+)(GitReloadable)
