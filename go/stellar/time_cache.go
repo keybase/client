@@ -55,21 +55,12 @@ func (c *TimeCache) getHelper(mctx libkb.MetaContext, key string, into interface
 		return fmt.Errorf("could not acquire cache lock for key %v", key)
 	}
 	defer lock.Release(mctx.Ctx())
-	storeResult := func(val interface{}) (ok bool) {
-		target := reflect.Indirect(reflect.ValueOf(into))
-		if target.CanSet() && reflect.TypeOf(val).AssignableTo(reflect.TypeOf(target.Interface())) {
-			target.Set(reflect.ValueOf(val))
-			return true
-		}
-		// Would indicate the caller used the wrong types.
-		return false
-	}
 	if val, ok := c.cache.Get(key); ok {
 		if entry, ok := val.(timeCacheEntry); ok {
 			if c.maxAge <= 0 || mctx.G().GetClock().Now().Sub(entry.time) <= c.maxAge {
 				// Cache hit
 				mctx.Debug("TimeCache %v cache hit", c.name)
-				if storeResult(entry.val) {
+				if c.storeResult(entry.val, into) {
 					return nil
 				}
 				mctx.Debug("TimeCache %v target does not match", c.name)
@@ -87,12 +78,22 @@ func (c *TimeCache) getHelper(mctx libkb.MetaContext, key string, into interface
 			return err
 		}
 		c.Put(mctx, key, val)
-		if storeResult(val) {
+		if c.storeResult(val, into) {
 			return nil
 		}
 		return fmt.Errorf("value cannot be stored")
 	}
 	return fmt.Errorf("value not found for '%v'", key)
+}
+
+func (c *TimeCache) storeResult(val interface{}, into interface{}) (ok bool) {
+	target := reflect.Indirect(reflect.ValueOf(into))
+	if target.CanSet() && reflect.TypeOf(val).AssignableTo(reflect.TypeOf(target.Interface())) {
+		target.Set(reflect.ValueOf(val))
+		return true
+	}
+	// Would indicate the caller used the wrong types.
+	return false
 }
 
 func (c *TimeCache) Put(mctx libkb.MetaContext, key string, val interface{}) {
