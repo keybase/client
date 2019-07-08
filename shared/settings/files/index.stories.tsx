@@ -8,7 +8,7 @@ import {commonProvider} from '../../fs/common/index.stories'
 const actions = {
   allowedThresholds: [],
   areSettingsLoading: false,
-  humanizedNotificationThreshold: defaultNotificationThreshold,
+  humanizedNotificationThreshold: String(defaultNotificationThreshold),
   onChangedSyncNotifications: Sb.action('onChangedSyncNotifications'),
   onDisable: Sb.action('onDisable'),
   onDisableSyncNotifications: Sb.action('onDisableSyncNotifications'),
