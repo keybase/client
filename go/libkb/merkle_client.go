@@ -1120,8 +1120,7 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 	}
 
 	const maxClockDriftSeconds int64 = 5 * 60
-
-	var latestCtime, earliestCtime int64
+	var totalDrift int64
 
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
@@ -1144,21 +1143,21 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 		// We'll allow at most 5 minutes of "time-travel" between 2 updates, and no more than 5minutes of time travel
 		// across the whole sequence
 		thisCTime, prevCTime := ss[index].ctime(), ss[nextIndex].ctime()
-		if prevCTime > thisCTime && (prevCTime-thisCTime) > maxClockDriftSeconds {
-			return MerkleClientError{
-				fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d (even with %ds tolerance)", thisRoot, thisCTime, prevRoot, prevCTime, maxClockDriftSeconds),
-				merkleErrorOutOfOrderCtime,
+		if prevCTime > thisCTime {
+			drift := prevCTime - thisCTime
+			if drift > maxClockDriftSeconds {
+				return MerkleClientError{
+					fmt.Sprintf("Out of order ctimes: %d at %d should not have come before %d at %d (even with %ds tolerance)", thisRoot, thisCTime, prevRoot, prevCTime, maxClockDriftSeconds),
+					merkleErrorOutOfOrderCtime,
+				}
 			}
+			totalDrift += drift
 		}
-		if index == 0 {
-			latestCtime = ss[index].ctime()
-		}
-		earliestCtime = ss[index].ctime()
 	}
 
-	if latestCtime > 0 && earliestCtime > 0 && earliestCtime > latestCtime && (earliestCtime-latestCtime > maxClockDriftSeconds) {
+	if totalDrift > maxClockDriftSeconds {
 		return MerkleClientError{
-			fmt.Sprintf("Too much clock drift detected in skip sequence: %d", earliestCtime-latestCtime),
+			fmt.Sprintf("Too much clock drift detected (%ds) in skip sequence", totalDrift),
 			merkleErrorTooMuchClockDrift,
 		}
 
