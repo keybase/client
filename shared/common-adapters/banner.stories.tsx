@@ -7,51 +7,50 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('Banner', () => (
       <Box2 direction="vertical" fullWidth={true} gap="small">
-        <Banner key="1" color="red" text="this is a red banner with no action" />
-        <Banner key="2" color="blue" text="this is a blue banner with no action" />
-        <Banner key="3" color="yellow" text="this is a yellow banner with no action" />
-        <Banner key="4" color="green" text="this is a green banner with no action" />
-        <Banner key="5" color="grey" text="this is a grey banner with no action" />
+        <Banner key="1" color="red" content="this is a red banner with no action" />
+        <Banner key="2" color="blue" content="this is a blue banner with no action" />
+        <Banner key="3" color="yellow" content="this is a yellow banner with no action" />
+        <Banner key="4" color="green" content="this is a green banner with no action" />
+        <Banner key="5" color="grey" content="this is a grey banner with no action" />
         <Banner
           key="6"
           color="red"
-          text="this is a red banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
+          content="this is a red banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
         />
         <Banner
           key="7"
           color="red"
-          text="this is a red closable banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
+          content="this is a red closable banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
           onClose={Sb.action('onClose')}
         />
-        <Banner key="8" color="red" text="this is a closable red banner" onClose={Sb.action('onClose')} />
+        <Banner key="8" color="red" content="this is a closable red banner" onClose={Sb.action('onClose')} />
         <Banner
           key="9"
           color="red"
-          text="this is a red banner with actions and is closable"
+          content={['A banner with array content', null, ' and ', false, 'that has null and false inside.']}
           onClose={Sb.action('onClose')}
-          actions={[
-            {onClick: Sb.action('onClick-action1'), title: 'action1'},
-            {onClick: Sb.action('onClick-action2'), title: 'action2'},
-          ]}
         />
         <Banner
-          key="10"
+          key="9"
           color="red"
-          text="this is a red banner with actions and super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
-          actions={[
-            {onClick: Sb.action('onClick-action1'), title: 'action1'},
-            {onClick: Sb.action('onClick-action2'), title: 'action2'},
+          content={[
+            'Some of ',
+            {onClick: Sb.action('meatball'), text: 'meatball'},
+            "'s proofs are broken. Broken blah blah blah blah blah broken.",
           ]}
+          onClose={Sb.action('onClose')}
         />
         <Banner
-          key="10"
+          key="9"
           color="red"
-          text="this is a narrow red banner with actions and super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
-          actions={[
-            {onClick: Sb.action('onClick-action1'), title: 'action1'},
-            {onClick: Sb.action('onClick-action2'), title: 'action2'},
+          content={[
+            'Here is a super long banner message with ',
+            {onClick: Sb.action('action1'), text: 'action1'},
+            ' and ',
+            {onClick: Sb.action('action2'), text: 'action2'},
+            '. blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah',
           ]}
-          narrow={true}
+          onClose={Sb.action('onClose')}
         />
       </Box2>
     ))

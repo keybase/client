@@ -12,12 +12,12 @@ type ErrProps = {
 const Err = (props: ErrProps) => (
   <Kb.Banner
     onClose={props.dismiss}
-    text={props.msg}
-    color="red"
-    actions={[
-      ...(props.retry ? [{onClick: props.retry, title: 'Retry'}] : []),
-      ...(props.onFeedback ? [{onClick: props.onFeedback, title: 'Let us know'}] : []),
+    content={[
+      props.msg,
+      ...(props.retry ? [' ', {onClick: props.retry, text: 'Retry'}] : []),
+      ...(props.onFeedback ? [' ', {onClick: props.onFeedback, text: 'Let us know'}] : []),
     ]}
+    color="red"
   />
 )
 

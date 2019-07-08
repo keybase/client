@@ -71,11 +71,11 @@ class UpdatePassword extends Component<Props, State> {
     return (
       <Kb.Modal
         banners={[
-          notification && <Kb.Banner color="yellow" text={notification} />,
-          !!this.props.newPasswordError && <Kb.Banner color="red" text={this.props.newPasswordError} />,
-          !!this.state.errorSaving && <Kb.Banner color="red" text={this.state.errorSaving} />,
+          notification && <Kb.Banner color="yellow" content={notification} />,
+          !!this.props.newPasswordError && <Kb.Banner color="red" content={this.props.newPasswordError} />,
+          !!this.state.errorSaving && <Kb.Banner color="red" content={this.state.errorSaving} />,
           !!this.props.newPasswordConfirmError && (
-            <Kb.Banner color="red" text={this.props.newPasswordConfirmError} />
+            <Kb.Banner color="red" content={this.props.newPasswordConfirmError} />
           ),
         ]}
         footer={{

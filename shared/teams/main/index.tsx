@@ -139,7 +139,7 @@ class Teams extends React.PureComponent<Props, State> {
           <Kb.Banner
             color="blue"
             key={'deletedTeamBannerFor' + teamName}
-            text={`The ${teamName} team was deleted by ${deletedBy}.`}
+            content={`The ${teamName} team was deleted by ${deletedBy}.`}
           />
         )
       }

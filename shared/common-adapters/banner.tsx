@@ -6,16 +6,18 @@ import * as Styles from '../styles'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey'
 
+type _Segment = {
+  onClick?: () => void
+  text: string
+}
+type Segment = _Segment | string | null | false
+
 type Props = {
-  actions?: Array<{
-    title: string
-    onClick: () => void
-  }>
   color: Color
+  content: string | (Array<Segment>)
   inline?: boolean
   narrow?: boolean
   onClose?: () => void
-  text: string
   style?: Styles.StylesCrossPlatform | null
 }
 
@@ -36,29 +38,36 @@ const Banner = (props: Props) => (
       style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
       centerChildren={true}
     >
-      <Text
-        type="BodySmallSemibold"
-        style={Styles.collapseStyles([styles.text, colorToTextColorStyles[props.color]])}
-      >
-        {props.text}
-        {!!props.actions &&
-          props.actions.reduce(
-            (parts, {title, onClick}, index) => [
-              ...parts,
-              <Text key={`space-${index}`} type="BodySmallSemibold">
-                &nbsp;
-              </Text>,
-              <Text
-                key={`action-${index}`}
-                type="BodySmallSemibold"
-                onClick={onClick}
-                style={Styles.collapseStyles([colorToTextColorStyles[props.color], styles.underline])}
-              >
-                {title}
-              </Text>,
-            ],
-            []
-          )}
+      <Text type="BodySmallSemibold" style={styles.text}>
+        {typeof props.content === 'string' ? (
+          <Text type="BodySmallSemibold" style={Styles.collapseStyles([colorToTextColorStyles[props.color]])}>
+            {props.content}
+          </Text>
+        ) : (
+          props.content
+            .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
+            .filter(Boolean)
+            .map((segment: _Segment, index) =>
+              segment.text === ' ' ? (
+                <>&nbsp;</>
+              ) : (
+                <React.Fragment key={index.toString()}>
+                  {segment.text.startsWith(' ') && <>&nbsp;</>}
+                  <Text
+                    type="BodySmallSemibold"
+                    style={Styles.collapseStyles([
+                      colorToTextColorStyles[props.color],
+                      !!segment.onClick && styles.underline,
+                    ])}
+                    onClick={segment.onClick}
+                  >
+                    {segment.text}
+                  </Text>
+                  {segment.text.endsWith(' ') && <>&nbsp;</>}
+                </React.Fragment>
+              )
+            )
+        )}
       </Text>
     </Box2>
     {!!props.onClose && (

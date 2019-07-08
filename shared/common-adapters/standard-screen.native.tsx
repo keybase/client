@@ -21,7 +21,7 @@ const StandardScreen = (props: Props) => {
       {!!props.notification && (
         <Kb.Banner
           color={props.notification.type === 'error' ? 'red' : 'blue'}
-          text={props.notification.message}
+          content={props.notification.message}
         />
       )}
       <Kb.Box

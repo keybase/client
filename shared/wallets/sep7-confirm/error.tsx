@@ -11,7 +11,7 @@ type ErrorBodyProps = {
 const ErrorBody = (props: ErrorBodyProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Banner text={props.errorText} color="red" />
+      <Kb.Banner content={props.errorText} color="red" />
     </Kb.Box2>
   )
 }

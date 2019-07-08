@@ -41,7 +41,7 @@ class ConfirmModal extends React.PureComponent<Props> {
               }
             : undefined
         }
-        banners={this.props.error ? [<Banner key="error" color="red" text={this.props.error} />] : []}
+        banners={this.props.error ? [<Banner key="error" color="red" content={this.props.error} />] : []}
         footer={{
           content: (
             <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>

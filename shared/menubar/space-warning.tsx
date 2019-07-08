@@ -15,22 +15,14 @@ const SpaceWarning = (props: Props) => {
     display && (
       <Kb.Banner
         {...(props.diskSpaceStatus === 'warning' ? {onClose: props.onClose} : {})}
-        text={
+        content={[
           props.diskSpaceStatus === 'warning'
-            ? 'You have less than 1 GB of storage space. Make some space, or unsync some folders.'
-            : 'You are out of storage space. Unsync some folders, or make some space then'
-        }
-        color={props.diskSpaceStatus === 'warning' ? 'blue' : 'red'}
-        actions={[
-          ...(props.onRetry
-            ? [
-                {
-                  onClick: props.onRetry,
-                  title: 'retry' + ' the sync.',
-                },
-              ]
-            : []),
+            ? 'You have less than 1 GB of storage space. Make some space, or unsync some folders. '
+            : 'You are out of storage space. Unsync some folders, or make some space then ',
+          !!props.onRetry && {onClick: props.onRetry, text: 'retry the sync'},
+          '.',
         ]}
+        color={props.diskSpaceStatus === 'warning' ? 'blue' : 'red'}
         narrow={true}
         style={{minHeight: 50}}
       />

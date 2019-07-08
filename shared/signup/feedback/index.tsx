@@ -19,7 +19,7 @@ const SendFeedback = (props: Props) => {
       buttons={[]}
       banners={[
         ...(feedbackSent
-          ? [<Kb.Banner key="feedbackSent" text="Thanks! Your feedback was sent." color="green" />]
+          ? [<Kb.Banner key="feedbackSent" content="Thanks! Your feedback was sent." color="green" />]
           : []),
         ...(props.sendError ? errorBanner(props.sendError.message) : []),
       ]}

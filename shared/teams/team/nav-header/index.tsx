@@ -111,8 +111,11 @@ export const SubHeader = (props: SubHeaderProps) =>
       <Kb.Banner
         color="blue"
         inline={true}
-        text="You are not a member of this team."
-        actions={[{onClick: props.onAddSelf, title: 'Add yourself'}]}
+        content={[
+          'You are not a member of this team. ',
+          {onClick: props.onAddSelf, text: 'Add yourself'},
+          '?',
+        ]}
       />
     </Kb.Box2>
   ) : null

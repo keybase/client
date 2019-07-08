@@ -17,7 +17,7 @@ const FooterAdvanced = () => {
     <Kb.Banner
       style={Styles.globalStyles.rounded}
       color="red"
-      text="No path was found to convert these 2 assets. Please pick other assets."
+      content="No path was found to convert these 2 assets. Please pick other assets."
     />
   ) : (
     <Kb.Box2

@@ -66,8 +66,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
       <Kb.Box style={styles.bannerContainer}>
         <Kb.Banner
           color="blue"
-          text="The content of this file has updated."
-          actions={[{onClick: this._reload, title: 'Reload'}]}
+          content={['The content of this file has updated. ', {onClick: this._reload, text: 'Reload'}, '.']}
           style={styles.banner}
         />
       </Kb.Box>

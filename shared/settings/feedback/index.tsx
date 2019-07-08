@@ -92,7 +92,9 @@ class Feedback extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
         <Kb.ScrollView>
-          {this.state.showSuccessBanner && <Kb.Banner color="green" text="Thanks! Your feedback was sent." />}
+          {this.state.showSuccessBanner && (
+            <Kb.Banner color="green" content="Thanks! Your feedback was sent." />
+          )}
           <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Input
@@ -110,14 +112,14 @@ class Feedback extends React.Component<Props, State> {
                 onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
-            {this._sendMaxBytes() && <Kb.Banner color="green" text="next send will include full logs" />}
+            {this._sendMaxBytes() && <Kb.Banner color="green" content="next send will include full logs" />}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
               <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
               <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
                 <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
-                  This includes some private metadata info (e.g., file sizes, but not names or contents) but it will
-                  help the developers fix bugs more quickly.
+                  This includes some private metadata info (e.g., file sizes, but not names or contents) but
+                  it will help the developers fix bugs more quickly.
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>

@@ -148,7 +148,7 @@ const load = () => {
       </Modal>
     ))
     .add('Banner', () => (
-      <Modal onClose={onClose} banners={[<Kb.Banner key="red" color="red" text="hey" />]}>
+      <Modal onClose={onClose} banners={[<Kb.Banner key="red" color="red" content="hey" />]}>
         {filler}
       </Modal>
     ))
