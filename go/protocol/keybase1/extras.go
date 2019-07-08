@@ -2797,6 +2797,22 @@ func (h *HiddenTeamChain) Tail() *HiddenTeamChainLink {
 	return &ret
 }
 
+func (h *HiddenTeamChain) TailTriple() *LinkTriple {
+	last := h.Last
+	if last == Seqno(0) {
+		return nil
+	}
+	link, ok := h.Outer[last]
+	if !ok {
+		return nil
+	}
+	return &LinkTriple{
+		Seqno:   last,
+		LinkID:  link,
+		SeqType: SeqType_TEAM_PRIVATE_HIDDEN,
+	}
+}
+
 func (s Signer) UserVersion() UserVersion {
 	return UserVersion{
 		Uid:         s.U,
@@ -2819,55 +2835,92 @@ func (p PerTeamSeedCheckPostImage) Eq(p2 PerTeamSeedCheckPostImage) bool {
 	return (p.Version == p2.Version) && hmac.Equal(p.Value[:], p2.Value[:])
 }
 
-func (r HiddenTeamChainRatchet) Flat() []LinkTripleAndTime {
+func (r HiddenTeamChainRatchetSet) Flat() []LinkTripleAndTime {
+	if r.Ratchets == nil {
+		return nil
+	}
 	var ret []LinkTripleAndTime
-	add := func(p *LinkTripleAndTime) {
-		if p != nil {
-			ret = append(ret, *p)
-		}
+	for _, v := range r.Ratchets {
+		ret = append(ret, v)
 	}
-	add(r.Main)
-	add(r.Blinded)
-	add(r.Self)
 	return ret
 }
 
-func (r HiddenTeamChainRatchet) Max() Seqno {
+func (r HiddenTeamChainRatchetSet) IsEmpty() bool {
+	return r.Ratchets == nil || len(r.Ratchets) == 0
+}
+
+func (r HiddenTeamChainRatchetSet) Max() Seqno {
 	var ret Seqno
-	visit := func(p *LinkTripleAndTime) {
-		if p != nil && p.Triple.Seqno > ret {
-			ret = p.Triple.Seqno
+	if r.Ratchets == nil {
+		return ret
+	}
+	for _, v := range r.Ratchets {
+		if v.Triple.Seqno > ret {
+			ret = v.Triple.Seqno
 		}
 	}
-	visit(r.Main)
-	visit(r.Blinded)
-	visit(r.Self)
 	return ret
 }
 
-func (r HiddenTeamChainRatchet) MaxTriple() (ret *LinkTriple) {
-	visit := func(p *LinkTripleAndTime) {
-		if p != nil && (ret == nil || p.Triple.Seqno > ret.Seqno) {
-			ret = &p.Triple
+func (r HiddenTeamChainRatchetSet) MaxTriple() *LinkTriple {
+	if r.Ratchets == nil {
+		return nil
+	}
+	var out LinkTriple
+	for _, v := range r.Ratchets {
+		if v.Triple.Seqno > out.Seqno {
+			out = v.Triple
 		}
 	}
-	visit(r.Main)
-	visit(r.Blinded)
-	visit(r.Self)
-	return ret
+	return &out
 }
 
-func (r *HiddenTeamChainRatchet) Merge(r2 HiddenTeamChainRatchet) (updated bool) {
-	visit := func(l1 **LinkTripleAndTime, l2 *LinkTripleAndTime) {
-		if l2 != nil && l2.Triple.SeqType == SeqType_TEAM_PRIVATE_HIDDEN && (*l1 == nil || (*l1).Triple.Seqno < l2.Triple.Seqno) {
-			*l1 = l2
+func (r *HiddenTeamChain) MaxTriple() *LinkTriple {
+	tail := r.TailTriple()
+	rat := r.RatchetSet.MaxTriple()
+	if rat == nil && tail == nil {
+		return nil
+	}
+	if rat == nil {
+		return tail
+	}
+	if tail == nil {
+		return rat
+	}
+	if tail.Seqno > rat.Seqno {
+		return tail
+	}
+	return rat
+}
+
+func (r *HiddenTeamChainRatchetSet) init() {
+	if r.Ratchets == nil {
+		r.Ratchets = make(map[RatchetType]LinkTripleAndTime)
+	}
+}
+
+func (r *HiddenTeamChainRatchetSet) Merge(r2 HiddenTeamChainRatchetSet) (updated bool) {
+	r.init()
+	if r2.Ratchets == nil {
+		return false
+	}
+	for k, v := range r2.Ratchets {
+		if r.Add(k, v) {
 			updated = true
 		}
 	}
-	visit(&r.Main, r2.Main)
-	visit(&r.Blinded, r2.Blinded)
-	visit(&r.Self, r2.Self)
 	return updated
+}
+
+func (r *HiddenTeamChainRatchetSet) Add(t RatchetType, v LinkTripleAndTime) (changed bool) {
+	r.init()
+	found, ok := r.Ratchets[t]
+	if (v.Triple.SeqType == SeqType_TEAM_PRIVATE_HIDDEN) && (!ok || v.Triple.Seqno > found.Triple.Seqno) {
+		r.Ratchets[t] = v
+		changed = true
+	}
+	return changed
 }
 
 func (r LinkTripleAndTime) Clashes(r2 LinkTripleAndTime) bool {
@@ -2913,6 +2966,10 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		if !ok || existing < v {
 			d.LastPerTeamKeys[k] = v
 		}
+	}
+
+	if d.RatchetSet.Merge(newData.RatchetSet) {
+		updated = true
 	}
 
 	return updated, nil

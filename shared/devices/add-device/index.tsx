@@ -9,7 +9,6 @@ type Props = {
   onAddPaperKey: () => void
   onAddPhone: () => void
   onCancel: () => void
-  title: string
 }
 
 const AddDevice = (props: Props) => (

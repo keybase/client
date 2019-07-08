@@ -12,10 +12,10 @@ const mapStateToProps = state => ({
   hasRandomPW: !!state.settings.password.randomPW,
   newPasswordConfirmError: state.settings.password.newPasswordConfirmError
     ? state.settings.password.newPasswordConfirmError.stringValue()
-    : null,
+    : undefined,
   newPasswordError: state.settings.password.newPasswordError
     ? state.settings.password.newPasswordError.stringValue()
-    : null,
+    : undefined,
   saveLabel: state.settings.password.randomPW ? 'Create password' : 'Save',
   waitingForResponse: state.settings.waitingForResponse,
 })
@@ -43,4 +43,4 @@ export default compose(
       this.props.onUpdatePGPSettings()
     },
   })
-)(Kb.HeaderOrPopup(UpdatePassword))
+)(UpdatePassword)
