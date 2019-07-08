@@ -1,0 +1,51 @@
+@namespace("keybase.1")
+protocol userSearch {
+    import idl "common.avdl";
+    import idl "contacts.avdl";
+
+    @typedef("string")
+    record APIUserServiceIDWithContact {}
+
+    record APIUserKeybaseResult {
+        string username;
+        UID uid;
+        @jsonkey("picture_url")
+        union { null, string } pictureUrl;
+        @jsonkey("full_name")
+        union { null, string } fullName;
+        @jsonkey("raw_score")
+        double rawScore;
+        union { null, string } stellar;
+        @jsonkey("is_followee")
+        boolean isFollowee;
+    }
+
+    record APIUserServiceResult {
+        @jsonkey("service_name")
+        APIUserServiceIDWithContact serviceName;
+        string username;
+        @jsonkey("picture_url")
+        string pictureUrl;
+        string bio;
+        string location;
+        @jsonkey("full_name")
+        string fullName;
+        union { null, boolean } confirmed;
+    }
+
+    record APIUserServiceSummary {
+        @jsonkey("service_name")
+        APIUserServiceIDWithContact serviceName;
+        string username;
+    }
+
+    record APIUserSearchResult {
+        double score;
+        union { null, APIUserKeybaseResult } keybase;
+        union { null, APIUserServiceResult } service;
+        @jsonkey("services_summary")
+        map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
+    }
+
+    array<APIUserSearchResult> userSearch(string query, string service, int maxResults, boolean includeServicesSummary);
+}

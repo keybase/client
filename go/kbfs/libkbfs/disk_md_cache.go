@@ -113,7 +113,7 @@ type DiskMDCacheStatus struct {
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
 func newDiskMDCacheLocalFromStorage(
-	config diskMDCacheConfig, headsStorage storage.Storage) (
+	config diskMDCacheConfig, headsStorage storage.Storage, mode InitMode) (
 	cache *DiskMDCacheLocal, err error) {
 	log := config.MakeLogger("DMC")
 	closers := make([]io.Closer, 0, 1)
@@ -131,10 +131,10 @@ func newDiskMDCacheLocalFromStorage(
 			closer()
 		}
 	}()
-	mdDbOptions := *leveldbOptions
+	mdDbOptions := leveldbOptionsFromMode(mode)
 	mdDbOptions.CompactionTableSize = defaultMDCacheTableSize
 	mdDbOptions.Filter = filter.NewBloomFilter(16)
-	headsDb, err := openLevelDBWithOptions(headsStorage, &mdDbOptions)
+	headsDb, err := openLevelDBWithOptions(headsStorage, mdDbOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func newDiskMDCacheLocalFromStorage(
 // newDiskMDCacheLocal creates a new *DiskMDCacheLocal with a
 // specified directory on the filesystem as storage.
 func newDiskMDCacheLocal(
-	config diskBlockCacheConfig, dirPath string) (
+	config diskBlockCacheConfig, dirPath string, mode InitMode) (
 	cache *DiskMDCacheLocal, err error) {
 	log := config.MakeLogger("DMC")
 	defer func() {
@@ -200,7 +200,7 @@ func newDiskMDCacheLocal(
 			headsStorage.Close()
 		}
 	}()
-	return newDiskMDCacheLocalFromStorage(config, headsStorage)
+	return newDiskMDCacheLocalFromStorage(config, headsStorage, mode)
 }
 
 // WaitUntilStarted waits until this cache has started.

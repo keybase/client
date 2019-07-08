@@ -22,6 +22,7 @@ type locationTrack struct {
 	allCoords          []chat1.Coordinate
 	getCurrentPosition bool
 	maxCoords          int
+	stopped            bool
 }
 
 func (t *locationTrack) GetCoords() (res []chat1.Coordinate) {
@@ -68,6 +69,22 @@ func (t *locationTrack) SetCoords(coords []chat1.Coordinate) {
 	t.capLocked(t.maxCoords)
 }
 
+func (t *locationTrack) Stop() {
+	t.Lock()
+	defer t.Unlock()
+	if t.stopped {
+		return
+	}
+	t.stopped = true
+	close(t.stopCh)
+}
+
+func (t *locationTrack) IsStopped() bool {
+	t.Lock()
+	defer t.Unlock()
+	return t.stopped
+}
+
 func (t *locationTrack) Key() types.LiveLocationKey {
 	key := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%d", t.convID, t.msgID)))
 	return types.LiveLocationKey(key)
@@ -81,11 +98,12 @@ func (t *locationTrack) ToDisk() diskLocationTrack {
 		Coords:             t.GetCoords(),
 		GetCurrentPosition: t.getCurrentPosition,
 		MaxCoords:          t.maxCoords,
+		Stopped:            t.stopped,
 	}
 }
 
 func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
-	endTime time.Time, getCurrentPosition bool, maxCoords int) *locationTrack {
+	endTime time.Time, getCurrentPosition bool, maxCoords int, stopped bool) *locationTrack {
 	return &locationTrack{
 		stopCh:             make(chan struct{}),
 		updateCh:           make(chan chat1.Coordinate, 50),
@@ -94,11 +112,13 @@ func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
 		endTime:            endTime,
 		getCurrentPosition: getCurrentPosition,
 		maxCoords:          maxCoords,
+		stopped:            stopped,
 	}
 }
 
 func newLocationTrackFromDisk(d diskLocationTrack) *locationTrack {
-	t := newLocationTrack(d.ConvID, d.MsgID, gregor1.FromTime(d.EndTime), d.GetCurrentPosition, d.MaxCoords)
+	t := newLocationTrack(d.ConvID, d.MsgID, gregor1.FromTime(d.EndTime), d.GetCurrentPosition, d.MaxCoords,
+		d.Stopped)
 	t.allCoords = d.Coords
 	return t
 }
