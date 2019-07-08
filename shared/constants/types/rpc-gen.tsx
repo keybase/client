@@ -407,6 +407,10 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<ProcessedContact> | null
   }
+  'keybase.1.contacts.saveContactList': {
+    inParam: {readonly contacts?: Array<Contact> | null}
+    outParam: void
+  }
   'keybase.1.cryptocurrency.registerAddress': {
     inParam: {readonly address: String; readonly force: Boolean; readonly wantedFamily: String; readonly sigVersion?: SigVersion | null}
     outParam: RegisterAddressRes
@@ -2944,6 +2948,7 @@ export const configSetValueRpcPromise = (params: MessageTypes['keybase.1.config.
 export const configStartUpdateIfNeededRpcPromise = (params: MessageTypes['keybase.1.config.startUpdateIfNeeded']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.startUpdateIfNeeded']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.startUpdateIfNeeded', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configWaitForClientRpcPromise = (params: MessageTypes['keybase.1.config.waitForClient']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.waitForClient']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.waitForClient', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const contactsLookupSavedContactsListRpcPromise = (params: MessageTypes['keybase.1.contacts.lookupSavedContactsList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.contacts.lookupSavedContactsList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.contacts.lookupSavedContactsList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const contactsSaveContactListRpcPromise = (params: MessageTypes['keybase.1.contacts.saveContactList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.contacts.saveContactList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.contacts.saveContactList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const cryptocurrencyRegisterAddressRpcPromise = (params: MessageTypes['keybase.1.cryptocurrency.registerAddress']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.cryptocurrency.registerAddress']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.cryptocurrency.registerAddress', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbCleanRpcPromise = (params: MessageTypes['keybase.1.ctl.dbClean']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.dbClean']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbClean', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbNukeRpcPromise = (params: MessageTypes['keybase.1.ctl.dbNuke']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.dbNuke']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbNuke', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3102,7 +3107,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.config.clearValue'
 // 'keybase.1.config.checkAPIServerOutOfDateWarning'
 // 'keybase.1.contacts.lookupContactList'
-// 'keybase.1.contacts.saveContactList'
 // 'keybase.1.crypto.signED25519'
 // 'keybase.1.crypto.signED25519ForKBFS'
 // 'keybase.1.crypto.signToString'
