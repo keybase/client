@@ -4,7 +4,7 @@ import * as Container from '../../util/container'
 
 type OwnProps = {}
 
-export default Container.connectDEBUG(
+export default Container.connect(
   () => ({}),
   dispatch => ({
     onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
