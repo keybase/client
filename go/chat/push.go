@@ -50,7 +50,7 @@ func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorMessageOrderer", false),
 		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
-		noInboxDur:   4 * time.Second,
+		noInboxDur:   time.Second,
 	}
 }
 
