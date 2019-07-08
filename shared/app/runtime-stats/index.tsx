@@ -35,7 +35,7 @@ const severityStyle = (s: RPCTypes.StatsSeverityLevel) => {
   return styles.statNormal
 }
 
-export const RuntimeStatsDesktop = (props: Props) => {
+const RuntimeStatsDesktop = (props: Props) => {
   return !props.hasData ? null : (
     <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny">
       <Kb.Text
@@ -71,7 +71,7 @@ export const RuntimeStatsDesktop = (props: Props) => {
   )
 }
 
-export const RuntimeStatsMobile = (props: Props) => {
+const RuntimeStatsMobile = (props: Props) => {
   return !props.hasData ? null : (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.Box2 direction="vertical">
@@ -113,6 +113,10 @@ export const RuntimeStatsMobile = (props: Props) => {
   )
 }
 
+const RuntimeStats = (props: Props) => {
+  return Styles.isMobile ? <RuntimeStatsMobile {...props} /> : <RuntimeStatsDesktop {...props} />
+}
+
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
@@ -147,3 +151,5 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.yellow,
   },
 })
+
+export default RuntimeStats

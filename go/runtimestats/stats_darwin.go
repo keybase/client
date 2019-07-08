@@ -34,6 +34,7 @@ void GetTaskStats() {
             tot_cpu += basic_info_th->cpu_usage / (float)TH_USAGE_SCALE * 100.0;
         }
     }
+    vm_deallocate(mach_task_self(), (vm_offset_t)thread_list, thread_count * sizeof(thread_t));
 
     // get real memory used
     task_vm_info_data_t task_info_data;

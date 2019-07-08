@@ -1,5 +1,5 @@
-import {namedConnect, TypedState, isMobile} from '../../util/container'
-import {RuntimeStatsDesktop, RuntimeStatsMobile} from '.'
+import {connect, TypedState} from '../../util/container'
+import RuntimeStats from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const blank = {
@@ -18,24 +18,27 @@ const blank = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  return state.config.runtimeStats
+  const rs = state.config.runtimeStats
+  return rs
     ? {
-        convLoaderActive: state.config.runtimeStats.convLoaderActive,
-        cpu: state.config.runtimeStats.cpu,
-        cpuSeverity: state.config.runtimeStats.cpuSeverity,
-        free: state.config.runtimeStats.free,
-        goheap: state.config.runtimeStats.goheap,
-        goheapsys: state.config.runtimeStats.goheapsys,
-        goreleased: state.config.runtimeStats.goreleased,
+        convLoaderActive: rs.convLoaderActive,
+        cpu: rs.cpu,
+        cpuSeverity: rs.cpuSeverity,
+        free: rs.free,
+        goheap: rs.goheap,
+        goheapsys: rs.goheapsys,
+        goreleased: rs.goreleased,
         hasData: true,
-        resident: state.config.runtimeStats.resident,
-        residentSeverity: state.config.runtimeStats.residentSeverity,
-        selectiveSyncActive: state.config.runtimeStats.selectiveSyncActive,
-        virt: state.config.runtimeStats.virt,
+        resident: rs.resident,
+        residentSeverity: rs.residentSeverity,
+        selectiveSyncActive: rs.selectiveSyncActive,
+        virt: rs.virt,
       }
     : blank
 }
 
-export default namedConnect(mapStateToProps, () => ({}), s => ({...s}), 'RuntimeStats')(
-  isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
-)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  s => ({...s})
+)(RuntimeStats)

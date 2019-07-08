@@ -60,9 +60,6 @@ const onTrackingInfo = (state, action: EngineGen.Keybase1NotifyTrackingTrackingI
     uid: action.payload.params.uid,
   })
 
-const onRuntimeStatsUpdate = (state, action: EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload) =>
-  ConfigGen.createRuntimeStatsUpdate({stats: action.payload.params.stats})
-
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -616,10 +613,6 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingInfoPayload>(
     EngineGen.keybase1NotifyTrackingTrackingInfo,
     onTrackingInfo
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload>(
-    EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
-    onRuntimeStatsUpdate
   )
 
   // Kick off platform specific stuff

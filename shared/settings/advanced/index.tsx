@@ -192,6 +192,12 @@ class Developer extends React.Component<Props, State> {
         />
         {this._showPprofControls() && (
           <React.Fragment>
+            <Kb.Button
+              label="Toggle Runtime Stats"
+              onClick={this.props.onToggleRuntimeStats}
+              mode="Secondary"
+              style={styles.developerButtons}
+            />
             <StartButton
               label={`Trace (${traceDurationSeconds}s)`}
               onStart={() => props.onTrace(traceDurationSeconds)}
@@ -232,14 +238,6 @@ class Developer extends React.Component<Props, State> {
                 force: true,
               }).then(() => this.setState({cleanTook: Date.now() - start}))
             }}
-            mode="Secondary"
-            style={styles.developerButtons}
-          />
-        )}
-        {flags.admin && (
-          <Kb.Button
-            label="Toggle Runtime Stats"
-            onClick={this.props.onToggleRuntimeStats}
             mode="Secondary"
             style={styles.developerButtons}
           />
