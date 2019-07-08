@@ -2,7 +2,7 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import DevicePage from '.'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{}, {}>
 
 // TODO(newRouter) after committing to new router:
 // remove action and code that sets state.devices.selectedDeviceID.
@@ -10,7 +10,7 @@ type OwnProps = {}
 // and our store. device id is purely an argument to the screen, the store
 // doesn't care about it.
 export default Container.connect(
-  (_, ownProps: OwnProps) => ({id: Container.getRouteProps(ownProps, 'deviceID') as string}),
+  (_, ownProps: OwnProps) => ({id: Container.getRouteProps<string>(ownProps, 'deviceID')}),
   dispatch => ({
     onBack: () => {
       Container.isMobile && dispatch(RouteTreeGen.createNavigateUp())

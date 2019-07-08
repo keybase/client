@@ -4,14 +4,14 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   isRequest: state.wallets.building.isRequest,
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
-  const isAdvanced = Container.getRouteProps(ownProps, 'isAdvanced') || false
+  const isAdvanced = Container.getRouteProps<Boolean>(ownProps, 'isAdvanced') || false
   return {
     onBack: isAdvanced
       ? () => dispatch(RouteTreeGen.createNavigateUp())

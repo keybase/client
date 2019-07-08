@@ -5,7 +5,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import ManageChannels from '.'
+import ManageChannels, {RowProps} from '.'
 import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
@@ -15,7 +15,7 @@ import {isEqual} from 'lodash-es'
 type OwnProps = Container.RouteProps<{teamname: string}, {}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname')
+  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
   const waitingKey = getChannelsWaitingKey(teamname)
   const waitingForGet = anyWaiting(state, waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
@@ -60,7 +60,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname')
+  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
@@ -119,17 +119,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   }
 }
 
-type Channel = {
-  description: string
-  hasAllMembers: boolean
-  name: string
-  numParticipants: number
-  mtimeHuman: string
-  convID: ChatTypes.ConversationIDKey
-  selected: boolean
-}
-
 type Props = {
+  onBack?: () => void,
   selectedChatID: ChatTypes.ConversationIDKey
   _hasOperations: () => void
   _loadChannels: () => void
@@ -146,16 +137,12 @@ type Props = {
   ) => void
   canCreateChannels: boolean
   canEditChannels: boolean
-  channels: Array<Channel>
-  nextChannelState: ChannelMembershipState
-  onClickChannel: (channelname: string) => void
+  channels: Array<
+  RowProps & { convID: ChatTypes.ConversationIDKey}>
   onClose: () => void
   onCreate: () => void
   onEdit: (convID: ChatTypes.ConversationIDKey) => void
-  onSaveSubscriptions: () => void
-  onToggle: (convID: ChatTypes.ConversationIDKey) => void
   teamname: string
-  unsavedSubscriptions: boolean
   waitingForGet: boolean
   waitingKey: string
 }
@@ -225,6 +212,7 @@ const Wrapper = (p: Props) => {
 
   return (
     <ManageChannels
+      onBack={rest.onBack}
       waitingKey={rest.waitingKey}
       waitingForGet={rest.waitingForGet}
       teamname={rest.teamname}
@@ -243,8 +231,7 @@ const Wrapper = (p: Props) => {
   )
 }
 
-const C = Container.connectDEBUG(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({
-  ...o,
+const C = Container.connectDEBUG(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => ({
   ...s,
   ...d,
 }))(Wrapper)
@@ -252,30 +239,10 @@ const C = Container.connectDEBUG(mapStateToProps, mapDispatchToProps, (s, d, o: 
 export default C
 
 // export type RowProps = {
-// description: string
-// hasAllMembers: boolean
-// name: string
-// numParticipants: number
-// mtimeHuman: string
-// }
-
-// export type Props = {
-// canCreateChannels: boolean
-// canEditChannels: boolean
-// channels: Array<
-// RowProps & {
-// convID: ConversationIDKey
-// }
-// >
-// onCreate: () => void
-// onToggle: (convID: ConversationIDKey) => void
-// onEdit: (convID: ConversationIDKey) => void
-// onClose: () => void
-// onClickChannel: (channelname: string) => void
-// teamname: string
-// unsavedSubscriptions: boolean
-// onSaveSubscriptions: () => void
-// waitingForGet: boolean
-// waitingKey: string
-// nextChannelState: ChannelMembershipState
+//   description: string
+//   hasAllMembers: boolean
+//   name: string
+//   numParticipants: number
+//   mtimeHuman: string
+//   selected: boolean
 // }

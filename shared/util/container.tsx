@@ -20,7 +20,7 @@ export const networkErrorCodes = [
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
 
-export const getRouteProps = (ownProps: any, key: string) => ownProps.navigation.getParam(key)
+export function getRouteProps <T = any>(ownProps: {navigation: {getParam: (key: string) => unknown}}, key: string) { return ownProps.navigation.getParam(key) as T }
 
 export type TypedDispatch = (action: TypedActions) => void
 export type Dispatch = TypedDispatch
