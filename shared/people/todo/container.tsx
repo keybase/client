@@ -289,8 +289,8 @@ const VerifyAllEmailConnector = connect(
 const VerifyAllPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    _onConfirm: phone => {
-      dispatch(SettingsGen.createAddPhoneNumber({allowSearch: null, phoneNumber: phone}))
+    _onConfirm: (phoneNumber: string) => {
+      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
     onManage: () => {
