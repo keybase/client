@@ -14,7 +14,7 @@ execute_process(COMMAND sh -c "(`pwd`/scripts/ios-install-third-party.sh)"
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/../../node_modules/react-native
 )
 # Needed to locate double-conversion src correctly for folly includes
-execute_process(COMMAND ln "-s" "${PROJECT_SOURCE_DIR}/../../node_modules/react-native/third-party/double-conversion-1.1.6/src" "${PROJECT_SOURCE_DIR}/../../node_modules/react-native/third-party/double-conversion-1.1.6/double-conversion")
+execute_process(COMMAND ln "-sfn" "${PROJECT_SOURCE_DIR}/../../node_modules/react-native/third-party/double-conversion-1.1.6/src" "${PROJECT_SOURCE_DIR}/../../node_modules/react-native/third-party/double-conversion-1.1.6/double-conversion")
 
 
 include_directories(

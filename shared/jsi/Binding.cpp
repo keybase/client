@@ -93,8 +93,7 @@ jsi::Value Binding::get(jsi::Runtime &runtime, const jsi::PropNameID &name) {
                 eventhandler->callback.call(runtime, jsi_string);
               } catch (...) {
                 __android_log_print(ANDROID_LOG_INFO, "GOJSI",
-                                    "Failed to call callback. Dev Reload?.",
-                                    result.r1);
+                                    "Failed to call callback. Dev Reload?");
                 break;
               }
             }
