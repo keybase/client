@@ -262,14 +262,6 @@ func (t TeamSigChainState) AssertWasRoleOrAboveAt(uv keybase1.UserVersion,
 	return mkErr("%v role point not found", role)
 }
 
-func (t TeamSigChainState) AssertWasBotAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
-	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_BOT, scl)
-}
-
-func (t TeamSigChainState) AssertWasReaderAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
-	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_READER, scl)
-}
-
 func (t TeamSigChainState) AssertWasWriterAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
 	return t.AssertWasRoleOrAboveAt(uv, keybase1.TeamRole_WRITER, scl)
 }

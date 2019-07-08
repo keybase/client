@@ -45,7 +45,7 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 	writers = append(writers, members.Admins...)
 	writers = append(writers, members.Owners...)
 	onlyReaders = append(onlyReaders, members.Readers...)
-	onlyReaders = append(onlyBots, members.Bots...)
+	onlyBots = append(onlyBots, members.Bots...)
 
 	ret = keybase1.TeamPlusApplicationKeys{
 		Id:              t.chain().GetID(),

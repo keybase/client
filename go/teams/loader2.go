@@ -727,15 +727,6 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 	readerKeyMasks []keybase1.ReaderKeyMask) error {
 
 	state := team.MainChain()
-	stateWrapper := newTeamSigChainState(team)
-	role, err := stateWrapper.GetUserRole(me)
-	if err != nil {
-		role = keybase1.TeamRole_NONE
-	}
-	// Bots don't have any team secrets, so we short circuit.
-	if role.IsBot() {
-		return nil
-	}
 
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(mctx, box, prevs)
 	if err != nil {
@@ -745,6 +736,8 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 
 	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
+
+	stateWrapper := newTeamSigChainState(team)
 
 	// Latest generation from the sigchain or the hidden chain...
 	latestChainGen := stateWrapper.GetLatestGeneration()
@@ -784,6 +777,10 @@ func (l *TeamLoader) addSecrets(mctx libkb.MetaContext,
 		}
 	}
 
+	role, err := stateWrapper.GetUserRole(me)
+	if err != nil {
+		role = keybase1.TeamRole_NONE
+	}
 	if role.IsReaderOrAbove() {
 		// Insert all reader key masks
 		// Then scan to make sure there are no gaps in generations and no missing application masks.
@@ -981,7 +978,7 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 	return newName, nil
 }
 
-// computeSeedChecks looks at the PerTeamKeySeedsUnverified for the the given team and adds the
+// computeSeedChecks looks at the PerTeamKeySeedsUnverified for the given team and adds the
 // PerTeamSeedChecks to the sequence. We make the assumption that, potentially, all such links are
 // null because it's a legacy team. OR only the new links are null since they were just added.
 // In either case, after this function runs, all seeds get seed checks computed.

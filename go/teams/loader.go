@@ -766,16 +766,21 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("secrets")
 	if teamUpdate != nil {
-
 		if teamUpdate.SubteamReader {
 			// Only allow subteam-reader results if we are in a recursive load.
 			if arg.readSubteamID == nil {
 				return nil, fmt.Errorf("unexpected subteam reader result")
 			}
 		} else {
+			stateWrapper := newTeamSigChainState(teamShim())
+			role, err := stateWrapper.GetUserRole(arg.me)
+			if err != nil {
+				role = keybase1.TeamRole_NONE
+			}
 			// Add the secrets.
 			// If it's a public team, there might not be secrets. (If we're not in the team)
-			if !ret.Chain.Public || (teamUpdate.Box != nil) {
+			// Bots don't have any team secrets, so we alos short circuit.
+			if !role.IsBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
