@@ -60,7 +60,6 @@ const mapDispatchToProps = dispatch => ({
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
-  openPhoneInput: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})),
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
 })
 

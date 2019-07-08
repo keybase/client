@@ -32,7 +32,6 @@ type Props = {
   saveProxyData: (proxyData: RPCTypes.ProxyData) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
-  openPhoneInput: () => void
   rememberPassword: boolean
   onChangeRememberPassword: (checked: boolean) => void
 }
@@ -183,12 +182,6 @@ class Developer extends React.Component<Props, State> {
           Please don't do anything below here unless instructed to by a developer.
         </Kb.Text>
         <Kb.Divider style={styles.divider} />
-        <Kb.Button
-          style={styles.developerButtons}
-          type="Danger"
-          label="Open phone input"
-          onClick={props.openPhoneInput}
-        />
         <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={props.onDBNuke} />
         <Kb.Button
           style={styles.developerButtons}
