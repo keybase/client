@@ -9,7 +9,7 @@ import logger from '../logger'
 import {isNetworkErr} from '../util/container'
 
 // set this to true to have all todo items show up all the time
-const debugTodo = true
+const debugTodo = false
 
 const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
   // more logging to understand why this fails so much

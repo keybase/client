@@ -170,6 +170,10 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
               }
         )
       )
+    case SettingsGen.resendVerificationForPhoneNumber:
+      return state.update('phoneNumbers', pn =>
+        pn.merge({error: '', pendingVerification: action.payload.phoneNumber, verificationState: null})
+      )
     case SettingsGen.clearPhoneNumberErrors:
       return state.update('phoneNumbers', pn => pn.merge({error: ''}))
     case SettingsGen.clearPhoneNumberAdd:
@@ -256,7 +260,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.editContactImportEnabled:
     case SettingsGen.requestContactPermissions:
     case SettingsGen.toggleRuntimeStats:
-    case SettingsGen.resendVerificationForPhoneNumber:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
