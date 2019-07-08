@@ -18,13 +18,11 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
       return (
         <Todo
           badged={item.badged}
-          buttons={[]}
           confirmLabel={item.confirmLabel}
           icon={item.icon}
           instructions={item.instructions}
           key={item.todoType}
           metadata={item.metadata}
-          subText={''}
           todoType={item.todoType}
         />
       )

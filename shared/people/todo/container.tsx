@@ -15,12 +15,10 @@ import openURL from '../../util/open-url'
 
 type TodoOwnProps = {
   badged: boolean
-  buttons: Array<TaskButton>
   confirmLabel: string
   icon: IconType
   instructions: string
   metadata: Types.TodoMeta
-  subText: string
   todoType: Types.TodoType
 }
 
