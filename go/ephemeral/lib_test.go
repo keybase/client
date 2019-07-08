@@ -152,7 +152,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		require.Equal(t, shouldCreate, created)
 
 		// verify the ekLib teamEKGenCache is working
-		cacheKey := ekLib.cacheKey(teamID)
+		cacheKey := ekLib.cacheKey(teamID, keybase1.TeamEphemeralKeyType_TEAM)
 		val, ok := ekLib.teamEKGenCache.Get(cacheKey)
 		require.True(t, ok)
 		cacheEntry, expired := ekLib.isEntryExpired(val)

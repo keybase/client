@@ -3093,7 +3093,7 @@ func (k TeamEphemeralKeyBoxed) Ctime() Time {
 	}
 }
 
-func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
+func (k TeamEphemeralKey) Generation() EkGeneration {
 	typ, err := k.KeyType()
 	if err != nil {
 		return 0
@@ -3108,16 +3108,16 @@ func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
 	}
 }
 
-func (k TeamEphemeralKeyMetadata) Generation() EkGeneration {
+func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
 	typ, err := k.KeyType()
 	if err != nil {
 		return 0
 	}
 	switch typ {
 	case TeamEphemeralKeyType_TEAM:
-		return k.Team().Generation
+		return k.Team().Metadata.Generation
 	case TeamEphemeralKeyType_TEAMBOT:
-		return k.Teambot().Generation
+		return k.Teambot().Metadata.Generation
 	default:
 		return 0
 	}

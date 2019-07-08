@@ -122,6 +122,7 @@ export const keybase1NotifyEmailAddressEmailAddressVerified =
   'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
 export const keybase1NotifyEmailAddressEmailsChanged = 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
+export const keybase1NotifyEphemeralNewTeambotEk = 'engine-gen:keybase1NotifyEphemeralNewTeambotEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
 export const keybase1NotifyFSFSFavoritesChanged = 'engine-gen:keybase1NotifyFSFSFavoritesChanged'
@@ -1035,6 +1036,15 @@ type _Keybase1NotifyEmailAddressEmailsChangedPayload = {
 type _Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {
     sessionID: number
+  }
+}
+type _Keybase1NotifyEphemeralNewTeambotEkPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void
   }
 }
 type _Keybase1NotifyFSFSActivityPayload = {
@@ -2055,6 +2065,9 @@ export const createKeybase1NotifyEmailAddressEmailsChanged = (
 export const createKeybase1NotifyEphemeralNewTeamEk = (
   payload: _Keybase1NotifyEphemeralNewTeamEkPayload
 ): Keybase1NotifyEphemeralNewTeamEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
+export const createKeybase1NotifyEphemeralNewTeambotEk = (
+  payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
+): Keybase1NotifyEphemeralNewTeambotEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeambotEk})
 export const createKeybase1NotifyFSFSActivity = (
   payload: _Keybase1NotifyFSFSActivityPayload
 ): Keybase1NotifyFSFSActivityPayload => ({payload, type: keybase1NotifyFSFSActivity})
@@ -2757,6 +2770,10 @@ export type Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly payload: _Keybase1NotifyEphemeralNewTeamEkPayload
   readonly type: typeof keybase1NotifyEphemeralNewTeamEk
 }
+export type Keybase1NotifyEphemeralNewTeambotEkPayload = {
+  readonly payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
+  readonly type: typeof keybase1NotifyEphemeralNewTeambotEk
+}
 export type Keybase1NotifyFSFSActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSActivityPayload
   readonly type: typeof keybase1NotifyFSFSActivity
@@ -3175,6 +3192,7 @@ export type Actions =
   | Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   | Keybase1NotifyEmailAddressEmailsChangedPayload
   | Keybase1NotifyEphemeralNewTeamEkPayload
+  | Keybase1NotifyEphemeralNewTeambotEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
   | Keybase1NotifyFSFSFavoritesChangedPayload

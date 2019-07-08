@@ -33,7 +33,6 @@ func TestNewTeamEK(t *testing.T) {
 	merkleRoot := *merkleRootPtr
 
 	teamID := createTeam(tc)
-	keyer := NewTeamEphemeralKeyer()
 
 	// Before we've published any teamEK's, fetchTeamEKStatement should return
 	// nil.
@@ -41,12 +40,8 @@ func TestNewTeamEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, nilStatement)
 
-	metadata, err := keyer.PublishNewEK(mctx, teamID, merkleRoot)
+	publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
-	typ, err := metadata.KeyType()
-	require.NoError(t, err)
-	require.Equal(t, keybase1.TeamEphemeralKeyType_TEAM, typ)
-	publishedMetadata := metadata.Team()
 
 	statementPtr, _, _, err := fetchTeamEKStatement(mctx, teamID)
 	require.NoError(t, err)
@@ -61,7 +56,7 @@ func TestNewTeamEK(t *testing.T) {
 	maxGeneration, err := teamEKBoxStorage.MaxGeneration(mctx, teamID, false)
 	require.NoError(t, err)
 	ek, err := teamEKBoxStorage.Get(mctx, teamID, maxGeneration, nil)
-	typ, err = ek.KeyType()
+	typ, err := ek.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeam())
 	teamEK := ek.Team()
@@ -75,9 +70,9 @@ func TestNewTeamEK(t *testing.T) {
 
 	// If we publish in a bad local state, we can successfully get the
 	// maxGeneration from the server and continue
-	publishedMetadata2, err := keyer.PublishNewEK(mctx, teamID, merkleRoot)
+	publishedMetadata2, err := publishNewTeamEK(mctx, teamID, merkleRoot)
 	require.NoError(t, err)
-	require.EqualValues(t, 2, publishedMetadata2.Generation())
+	require.EqualValues(t, 2, publishedMetadata2.Generation)
 }
 
 // TODO: test cases chat verify we can detect invalid signatures and bad metadata
