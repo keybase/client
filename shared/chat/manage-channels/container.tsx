@@ -231,18 +231,10 @@ const Wrapper = (p: Props) => {
   )
 }
 
-const C = Container.connectDEBUG(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => ({
+const C = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => ({
   ...s,
   ...d,
 }))(Wrapper)
 
-export default C
-
-// export type RowProps = {
-//   description: string
-//   hasAllMembers: boolean
-//   name: string
-//   numParticipants: number
-//   mtimeHuman: string
-//   selected: boolean
-// }
+// TODO fix this broken type
+export default C as any
