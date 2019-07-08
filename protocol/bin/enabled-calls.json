@@ -114,7 +114,7 @@
   "keybase.1.config.setProxyData": {"promise": true},
   "keybase.1.config.getProxyData": {"promise": true},
   "keybase.1.contacts.lookupSavedContactsList": {"promise": true},
-  "keybase.1.contacts.saveContactsList": {"promise": true},
+  "keybase.1.contacts.saveContactList": {"promise": true},
   "keybase.1.cryptocurrency.registerAddress": {"promise": true},
   "keybase.1.ctl.stop": {"promise": true},
   "keybase.1.ctl.dbNuke": {"promise": true},

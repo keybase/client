@@ -94,7 +94,7 @@ type LookupContactListArg struct {
 	UserRegionCode RegionCode `codec:"userRegionCode" json:"userRegionCode"`
 }
 
-type SaveContactsListArg struct {
+type SaveContactListArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	Contacts  []Contact `codec:"contacts" json:"contacts"`
 }
@@ -105,7 +105,7 @@ type LookupSavedContactsListArg struct {
 
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
-	SaveContactsList(context.Context, SaveContactsListArg) error
+	SaveContactList(context.Context, SaveContactListArg) error
 	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 }
 
@@ -128,18 +128,18 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 					return
 				},
 			},
-			"saveContactsList": {
+			"saveContactList": {
 				MakeArg: func() interface{} {
-					var ret [1]SaveContactsListArg
+					var ret [1]SaveContactListArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SaveContactsListArg)
+					typedArgs, ok := args.(*[1]SaveContactListArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]SaveContactsListArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SaveContactListArg)(nil), args)
 						return
 					}
-					err = i.SaveContactsList(ctx, typedArgs[0])
+					err = i.SaveContactList(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -171,8 +171,8 @@ func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupConta
 	return
 }
 
-func (c ContactsClient) SaveContactsList(ctx context.Context, __arg SaveContactsListArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactsList", []interface{}{__arg}, nil)
+func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []interface{}{__arg}, nil)
 	return
 }
 

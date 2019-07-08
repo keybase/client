@@ -127,7 +127,7 @@
         "items": "ProcessedContact"
       }
     },
-    "saveContactsList": {
+    "saveContactList": {
       "request": [
         {
           "name": "sessionID",
