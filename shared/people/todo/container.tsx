@@ -46,7 +46,11 @@ function makeDefaultButtons(onConfirm, confirmLabel, onDismiss?, dismissLabel?) 
 const AddEmailConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']})),
+    onConfirm: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
+    },
     onDismiss: onSkipTodo('addEmail', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
@@ -58,7 +62,11 @@ const AddEmailConnector = connect(
 const AddPhoneNumberConnector = connect(
   mapStateToProps,
   dispatch => ({
-    onConfirm: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
+    onConfirm: () => {
+      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+    },
     onDismiss: onSkipTodo('addPhoneNumber', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
