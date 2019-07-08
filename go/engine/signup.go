@@ -7,8 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/keybase/client/go/emails"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
@@ -46,7 +44,6 @@ type SignupEngineRunArg struct {
 	SkipMail                 bool
 	SkipPaper                bool
 	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
-	VerifyEmail              bool // if true, verify the email
 
 	// Used in tests for reproducible key generation
 	naclSigningKeyPair    libkb.NaclKeyPair
@@ -155,12 +152,6 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	if s.arg.GenPGPBatch {
 		if err = s.genPGPBatch(m); err != nil {
 			m.Warning("genPGPBatch failed with an error: %s", err)
-		}
-	}
-
-	if s.arg.VerifyEmail {
-		if err = s.verifyEmail(m); err != nil {
-			m.Warning("verifyEmail failed with an error: %s", err)
 		}
 	}
 
@@ -437,14 +428,4 @@ func (s *SignupEngine) genPGPBatch(m libkb.MetaContext) error {
 	})
 
 	return RunEngine2(m, eng)
-}
-
-func (s *SignupEngine) verifyEmail(m libkb.MetaContext) error {
-	m.Debug("SignupEngine#verifyEmail start")
-	if err := emails.SendVerificationEmail(m, keybase1.EmailAddress(s.arg.Email)); err != nil {
-		return err
-	}
-
-	m.Debug("SignupEngine#verifyEmail succeeded")
-	return nil
 }

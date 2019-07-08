@@ -4,6 +4,7 @@
 package service
 
 import (
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -79,7 +80,6 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		SkipMail:                 arg.SkipMail,
 		GenPGPBatch:              arg.GenPGPBatch,
 		SkipPaper:                !arg.GenPaper,
-		VerifyEmail:              arg.VerifyEmail,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewSignupEngine(h.G(), &runarg)
@@ -93,6 +93,13 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		res.PassphraseOk = true
 		res.PostOk = true
 		res.WriteOk = true
+
+		// run verify email if it was requested
+		if arg.VerifyEmail {
+			if err := emails.SendVerificationEmail(m, keybase1.EmailAddress(arg.Email)); err != nil {
+				m.Warning("verifyEmail failed with an error: %s", err)
+			}
+		}
 		return res, nil
 	}
 
