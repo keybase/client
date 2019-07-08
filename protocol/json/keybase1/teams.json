@@ -622,29 +622,25 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "RatchetType",
+      "symbols": [
+        "MAIN_0",
+        "BLINDED_1",
+        "SELF_2"
+      ]
+    },
+    {
       "type": "record",
-      "name": "HiddenTeamChainRatchet",
+      "name": "HiddenTeamChainRatchetSet",
       "fields": [
         {
-          "type": [
-            null,
-            "LinkTripleAndTime"
-          ],
-          "name": "main"
-        },
-        {
-          "type": [
-            null,
-            "LinkTripleAndTime"
-          ],
-          "name": "blinded"
-        },
-        {
-          "type": [
-            null,
-            "LinkTripleAndTime"
-          ],
-          "name": "self"
+          "type": {
+            "type": "map",
+            "values": "LinkTripleAndTime",
+            "keys": "RatchetType"
+          },
+          "name": "ratchets"
         }
       ]
     },
@@ -713,8 +709,8 @@
           "name": "readerPerTeamKeys"
         },
         {
-          "type": "HiddenTeamChainRatchet",
-          "name": "ratchet"
+          "type": "HiddenTeamChainRatchetSet",
+          "name": "ratchetSet"
         },
         {
           "type": "Time",

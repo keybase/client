@@ -11,14 +11,20 @@ import (
 // It additionally can have new chain links loaded from the server, since it might need to be queried
 // in the process of loading the team as if the new links were already commited to the data store.
 type LoaderPackage struct {
-	id           keybase1.TeamID
-	encKID       keybase1.KID
-	encKIDGen    keybase1.PerTeamKeyGeneration
-	data         *keybase1.HiddenTeamChain
-	newData      *keybase1.HiddenTeamChain
-	expectedPrev *keybase1.LinkTriple
+	id             keybase1.TeamID
+	encKID         keybase1.KID
+	encKIDGen      keybase1.PerTeamKeyGeneration
+	data           *keybase1.HiddenTeamChain
+	newData        *keybase1.HiddenTeamChain
+	expectedPrev   *keybase1.LinkTriple
+	rbks           *RatchetBlindingKeySet
+	allNewRatchets map[keybase1.Seqno]keybase1.LinkTripleAndTime
+	newRatchetSet  keybase1.HiddenTeamChainRatchetSet
 }
 
+// NewLoaderPackage creates a loader package that can work in the FTL of slow team loading settings. As a preliminary,
+// it loads any stored hidden team data for the team from local storage. The getter function is used to get a recent PTK
+// for this team, which is needed to poll the Merkle Tree endpoint when asking "does a hidden team chain exist for this team?"
 func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, error)) (ret *LoaderPackage, err error) {
 	encKID, gen, err := getter()
 	if err != nil {
@@ -32,6 +38,8 @@ func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() 
 	return ret, nil
 }
 
+// NewLoaderPackageForPrecheck makes a loader package just for the purposes of prechecking a link we're about to send
+// up to the server. It doesn't bother to load the team from storage.
 func NewLoaderPackageForPrecheck(mctx libkb.MetaContext, id keybase1.TeamID, data *keybase1.HiddenTeamChain) *LoaderPackage {
 	return &LoaderPackage{
 		id:   id,
@@ -87,6 +95,8 @@ func (l *LoaderPackage) lastReaderPerTeamKeyLinkID() (ret keybase1.LinkID) {
 	return l.data.LastReaderPerTeamKeyLinkID()
 }
 
+// IsStale returns true if we got a gregor hint from the server that there is a new link and we haven't
+// pulled it down yet from the server.
 func (l *LoaderPackage) IsStale() bool {
 	if l.data == nil {
 		return false
@@ -94,6 +104,8 @@ func (l *LoaderPackage) IsStale() bool {
 	return l.data.IsStale()
 }
 
+// checkPrev checks the earliest chainlink in the update against previously fetched chainlinks.
+// It requires the prev to be there and to not clash.
 func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (err error) {
 	q := first.Seqno()
 	prev := first.Prev()
@@ -126,6 +138,9 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 	return nil
 }
 
+// checkExpectedHighSeqno enforces that the links we got down from the server (links) are at or surpass
+// the sequence number ther server promised through the ratchet sets. We look at both the loaded and the
+// received downloaded ratchets for this check.
 func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []sig3.Generic) (err error) {
 	last := l.LastSeqno()
 	max := l.MaxRatchet()
@@ -138,7 +153,9 @@ func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []s
 	return NewLoaderError("Server promised a hidden chain up to %d, but never received; is it withholding?", max)
 }
 
-func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
+// checkLoadedRatchet checks the given loaded ratchet against the consumed update and verifies a (seqno, linkID) match
+// for that ratchet.
+func (l *LoaderPackage) checkLoadedRatchet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
 	q := ratchet.Triple.Seqno
 	link, ok := update.Outer[q]
 	if ok && !link.Eq(ratchet.Triple.LinkID) {
@@ -147,12 +164,16 @@ func (l *LoaderPackage) checkRatchet(mctx libkb.MetaContext, update *keybase1.Hi
 	return nil
 }
 
-func (l *LoaderPackage) checkRatchets(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) (err error) {
+// checkLoadedRatchetSet checks the hidden chain update against the ratchet set that we loaded from storage before
+// we brought the updated down from the server. It will not check against ratchets that came down with the update
+// (in the visible chain). This works by checking the update for validity against each type of ratchet
+// (and there are 3: self, main, and blinded tree).
+func (l *LoaderPackage) checkLoadedRatchetSet(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) (err error) {
 	if l.data == nil {
 		return nil
 	}
-	for _, r := range l.data.Ratchet.Flat() {
-		err = l.checkRatchet(mctx, update, r)
+	for _, r := range l.data.RatchetSet.Flat() {
+		err = l.checkLoadedRatchet(mctx, update, r)
 		if err != nil {
 			return err
 		}
@@ -170,13 +191,44 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 	if err != nil {
 		return err
 	}
-	err = l.storeData(mctx, data)
+	err = l.mergeData(mctx, data)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// checkNewLinksAgainstNewRatchtets checks a link sent down wih the hidden update against the ratchets sent down
+// with the visible team update. It makes sure they match up.
+func (l *LoaderPackage) checkNewLinkAgainstNewRatchets(mctx libkb.MetaContext, q keybase1.Seqno, h keybase1.LinkID) (err error) {
+	if l.allNewRatchets == nil {
+		return nil
+	}
+	found, ok := l.allNewRatchets[q]
+	if !ok {
+		return nil
+	}
+	if !found.Triple.LinkID.Eq(h) {
+		return NewLoaderError("link ID at %d fails to check against ratchet: %s != %s", q, found.Triple.LinkID, h)
+	}
+	return nil
+}
+
+// checkNewLinksAgainstNewRatchets checks all links in the update sent down from the server against all racthets
+// sent down in the same update.
+func (l *LoaderPackage) checkNewLinksAgainstNewRatchets(mctx libkb.MetaContext, update *keybase1.HiddenTeamChain) error {
+	for k, v := range update.Outer {
+		err := l.checkNewLinkAgainstNewRatchets(mctx, k, v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// updatePrecheck runs a series of cryptographic validations on the update sent down from the server, to ensure that
+// it can be accepted and used during the team loading process. It also converts the raw export Sig3 links into a
+// HiddenTeamChain, which can be eventually merged with the existing hidden chain state for this team.
 func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.ExportJSON) (ret *keybase1.HiddenTeamChain, err error) {
 	var links []sig3.Generic
 	links, err = importChain(mctx, update)
@@ -209,7 +261,12 @@ func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.Exp
 		return nil, err
 	}
 
-	err = l.checkRatchets(mctx, data)
+	err = l.checkLoadedRatchetSet(mctx, data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = l.checkNewLinksAgainstNewRatchets(mctx, data)
 	if err != nil {
 		return nil, err
 	}
@@ -217,6 +274,8 @@ func (l *LoaderPackage) updatePrecheck(mctx libkb.MetaContext, update []sig3.Exp
 	return data, nil
 }
 
+// lastRotator returns the last user/KID combination to have signed a rotation into this hidden team chain.
+// Or nil if the chain is empty.
 func (l *LoaderPackage) lastRotator(mctx libkb.MetaContext, typ keybase1.PTKType) *keybase1.Signer {
 	if l.data == nil {
 		return nil
@@ -238,8 +297,18 @@ func (l *LoaderPackage) LastReaderKeyRotator(mctx libkb.MetaContext) *keybase1.S
 	return l.lastRotator(mctx, keybase1.PTKType_READER)
 }
 
-func (l *LoaderPackage) storeData(mctx libkb.MetaContext, newData *keybase1.HiddenTeamChain) (err error) {
+// mergeData takes the data from the update and merges it with the last load of this hidden team chain
+// from local storage. The result is just in memory, not stored to disk yet. That happens in Commit().
+func (l *LoaderPackage) mergeData(mctx libkb.MetaContext, newData *keybase1.HiddenTeamChain) (err error) {
+
+	if newData == nil && !l.newRatchetSet.IsEmpty() {
+		newData = keybase1.NewHiddenTeamChain(l.id)
+	}
+	if !l.newRatchetSet.IsEmpty() {
+		newData.RatchetSet.Merge(l.newRatchetSet)
+	}
 	l.newData = newData
+
 	if l.data == nil {
 		l.data = newData
 		return nil
@@ -332,7 +401,12 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 	if l.data == nil {
 		return keybase1.Seqno(0)
 	}
-	return l.data.Ratchet.Max()
+	ret := l.data.RatchetSet.Max()
+	tmp := l.newRatchetSet.Max()
+	if tmp > ret {
+		ret = tmp
+	}
+	return ret
 }
 
 // HasReaderPerTeamKeyAtGeneration returns true if the LoaderPackage has a sigchain entry for
@@ -366,4 +440,60 @@ func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGener
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()
+}
+
+func (l *LoaderPackage) RatchetBlindingKeySet() *RatchetBlindingKeySet {
+	return l.rbks
+}
+
+func (l *LoaderPackage) SetRatchetBlindingKeySet(r *RatchetBlindingKeySet) {
+	l.rbks = r
+}
+
+// AddRatchets calls AddRatchet on each SCTeamRatchet in v.
+func (l *LoaderPackage) AddRatchets(mctx libkb.MetaContext, v []SCTeamRatchet, ctime int, typ keybase1.RatchetType) (err error) {
+	for _, r := range v {
+		err := l.AddRatchet(mctx, r, ctime, typ)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AddRatchet is called whenever we pull a ratchet out of a visible team link. The first thing we'll need to
+// do is to make sure that we can look the unblinded ratchet up using the blinding keys we got down from the
+// server. Then we'll check the ratchets again the old (loaded) and new (downloaded) data. Finally, we'll
+// ensure that this ratchet doesn't clash another ratchet that came down in this update. If all checks work,
+// then add this ratchet to the set of all new ratchets, and also the max ratchet set that we're keeping locally.
+func (l *LoaderPackage) AddRatchet(mctx libkb.MetaContext, r SCTeamRatchet, ctime int, typ keybase1.RatchetType) (err error) {
+	tail := l.rbks.Get(r)
+	if tail == nil {
+		return NewLoaderError("missing unblind for ratchet %s", r.String())
+	}
+	ratchet := keybase1.LinkTripleAndTime{
+		Triple: tail.Export(),
+		Time:   keybase1.TimeFromSeconds(int64(ctime)),
+	}
+	err = checkRatchet(mctx, l.data, ratchet)
+	if err != nil {
+		return err
+	}
+	err = checkRatchet(mctx, l.newData, ratchet)
+	if err != nil {
+		return err
+	}
+	if l.allNewRatchets == nil {
+		l.allNewRatchets = make(map[keybase1.Seqno]keybase1.LinkTripleAndTime)
+	}
+	q := ratchet.Triple.Seqno
+	found, ok := l.allNewRatchets[q]
+	if ok && !found.Triple.LinkID.Eq(ratchet.Triple.LinkID) {
+		return NewLoaderError("ratchet for seqno %d contradicts another ratchet", q)
+	}
+	if !ok {
+		l.allNewRatchets[q] = ratchet
+	}
+	l.newRatchetSet.Add(typ, ratchet)
+	return nil
 }

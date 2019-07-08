@@ -723,7 +723,7 @@ type FastTeamLoader interface {
 type HiddenTeamChainManager interface {
 	// We got gossip about what the latest chain-tail should be, so ratchet the
 	// chain forward; the next call to Advance() has to match.
-	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchetSet) error
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
 	// onto the HiddenTeamChain state. Ensure that the updated state is at least up to the
 	// given ratchet value.
