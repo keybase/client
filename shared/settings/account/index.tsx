@@ -31,12 +31,12 @@ const EmailPhone = (props: Props) => (
   <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
-        <Kb.Text type="Header">Email & phone</Kb.Text>
+        <Kb.Text type="Header">Email{flags.sbsContacts && ' & phone'}</Kb.Text>
         {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
       </Kb.Box2>
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
-        find you by phone number or email.
+        find you by {flags.sbsContacts && 'phone number or '}email.
       </Kb.Text>
     </Kb.Box2>
     {!!props.contactKeys.size && (
