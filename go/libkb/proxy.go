@@ -46,12 +46,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"golang.org/x/net/proxy"
 )

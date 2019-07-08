@@ -3,14 +3,15 @@ package attachments
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/libkb"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"

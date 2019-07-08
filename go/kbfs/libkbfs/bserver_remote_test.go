@@ -5,8 +5,9 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/kbfs/env"
 	"testing"
+
+	"github.com/keybase/client/go/kbfs/env"
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"

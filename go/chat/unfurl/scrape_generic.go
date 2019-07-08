@@ -3,10 +3,11 @@ package unfurl
 import (
 	"context"
 	"errors"
-	"github.com/keybase/client/go/libkb"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/protocol/chat1"
