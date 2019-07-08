@@ -1231,6 +1231,7 @@ type MsgEphemeralMetadata struct {
 	Lifetime   gregor1.DurationSec   `codec:"l" json:"l"`
 	Generation keybase1.EkGeneration `codec:"g" json:"g"`
 	ExplodedBy *string               `codec:"u,omitempty" json:"u,omitempty"`
+	BotUID     *gregor1.UID          `codec:"botUID,omitempty" json:"botUID,omitempty"`
 }
 
 func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
@@ -1244,6 +1245,13 @@ func (o MsgEphemeralMetadata) DeepCopy() MsgEphemeralMetadata {
 			tmp := (*x)
 			return &tmp
 		})(o.ExplodedBy),
+		BotUID: (func(x *gregor1.UID) *gregor1.UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.BotUID),
 	}
 }
 

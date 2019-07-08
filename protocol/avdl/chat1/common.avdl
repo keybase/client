@@ -224,7 +224,6 @@
     MessageID basis;
   }
 
-  @mpackkey("em") @jsonkey("em")
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -353,7 +352,6 @@
     gregor1.Time composeTime;
   }
 
-  @mpackkey("em") @jsonkey("em")
   record MsgEphemeralMetadata {
     @mpackkey("l") @jsonkey("l")
     gregor1.DurationSec lifetime; // used to computed etime
@@ -361,9 +359,11 @@
     keybase1.EkGeneration generation;
     @mpackkey("u") @jsonkey("u")
     union { null, string } explodedBy;
+    // Non-null for TopicType BOT, specifies which member is the bot recipient
+    // to select appropriate keys
+    union { null, gregor1.UID } botUID;
   }
 
-  @mpackkey("pi") @jsonkey("pi")
   record EphemeralPurgeInfo {
     @mpackkey("c") @jsonkey("c")
     ConversationID convID;

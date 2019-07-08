@@ -613,9 +613,7 @@
           },
           "name": "resetList"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -958,10 +956,15 @@
           "name": "explodedBy",
           "mpackkey": "u",
           "jsonkey": "u"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -991,9 +994,7 @@
           "mpackkey": "e",
           "jsonkey": "e"
         }
-      ],
-      "mpackkey": "pi",
-      "jsonkey": "pi"
+      ]
     },
     {
       "type": "record",
