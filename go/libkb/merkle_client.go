@@ -1140,7 +1140,7 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 		}
 
 		// Check that ctimes in the sequence are nearly strictly ordered; we have to make sure we can handle slight
-		// clock jitters since the servrer might need to rewind time due to leap seconds or NTP issues.
+		// clock jitters since the server might need to rewind time due to leap seconds or NTP issues.
 		// We'll allow at most 5 minutes of "time-travel" between 2 updates, and no more than 5minutes or time travel
 		// across the whole sequence
 		thisCTime, prevCTime := ss[index].ctime(), ss[nextIndex].ctime()
