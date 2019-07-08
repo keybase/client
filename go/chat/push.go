@@ -65,6 +65,9 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 	if err != nil {
 		return 0, err
 	}
+	if vers == 0 {
+		return 0, errors.New("no latest inbox version found")
+	}
 	return vers, nil
 }
 
@@ -135,6 +138,10 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		dur := time.Duration(newVers-vers-1) * time.Second
 		if dur < 0 {
 			dur = 0
+		}
+		// cap at two minutes
+		if dur > 2*time.Minute {
+			dur = time.Minute
 		}
 		deadline = deadline.Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
