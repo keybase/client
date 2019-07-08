@@ -95,6 +95,10 @@
         {
           "type": "string",
           "name": "displayLabel"
+        },
+        {
+          "type": "double",
+          "name": "rawScore"
         }
       ]
     }

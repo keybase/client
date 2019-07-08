@@ -68,6 +68,7 @@ type ProcessedContact struct {
 	Assertion    string           `codec:"assertion" json:"assertion"`
 	DisplayName  string           `codec:"displayName" json:"displayName"`
 	DisplayLabel string           `codec:"displayLabel" json:"displayLabel"`
+	RawScore     float64          `codec:"rawScore" json:"rawScore"`
 }
 
 func (o ProcessedContact) DeepCopy() ProcessedContact {
@@ -83,6 +84,7 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 		Assertion:    o.Assertion,
 		DisplayName:  o.DisplayName,
 		DisplayLabel: o.DisplayLabel,
+		RawScore:     o.RawScore,
 	}
 }
 

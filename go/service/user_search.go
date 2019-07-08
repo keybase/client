@@ -116,19 +116,27 @@ func (q *compiledQuery) scoreString(str string) (bool, float64) {
 
 	leadingScore := 1.0 / float64(1+index[0])
 	lengthScore := 1.0 / float64(1+len(norm))
-	imperfection := 0.1
+	imperfection := 0.5
 	score := leadingScore * lengthScore * imperfection
 	return true, score
 }
 
 func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
-	found, score := query.scoreString(contact.DisplayName)
-	if found {
-		return true, score
+	var fieldsAndScores = []struct {
+		str  string
+		mult float64
+	}{
+		{contact.ContactName, 1.0},
+		{contact.DisplayName, 1.0},
+		{contact.DisplayLabel, 0.8},
 	}
-	found, score = query.scoreString(contact.DisplayLabel)
-	if found {
-		return true, score * 0.8
+
+	for _, v := range fieldsAndScores {
+		found, score := query.scoreString(v.str)
+		if found {
+			return true, score * v.mult
+		}
+
 	}
 	return false, 0
 }
@@ -148,6 +156,7 @@ func contactSearch(mctx libkb.MetaContext, store *contacts.SavedContactsStore, a
 		found, score := matchAndScoreContact(query, c)
 		if found {
 			contact := c
+			contact.RawScore = score
 			res = append(res, keybase1.APIUserSearchResult{
 				Score:   score,
 				Contact: &contact,
