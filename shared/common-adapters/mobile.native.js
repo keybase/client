@@ -1,5 +1,3 @@
-// @flow
-
 import ReAnimated, {Easing as ReAnimatedEasing} from 'react-native-reanimated'
 
 module.hot &&
@@ -10,5 +8,4 @@ export * from '.'
 export * from './native-wrappers.native'
 export * from './form-input.native'
 export * from './zoomable-box'
-export {SafeAreaViewTop} from './safe-area-view.native'
 export {ReAnimated, ReAnimatedEasing}

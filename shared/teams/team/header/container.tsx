@@ -3,8 +3,6 @@ import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
-// @ts-ignore not typed yet
-import {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
@@ -46,7 +44,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
-  onEditIcon: (image?: Response) =>
+  onEditIcon: (image?) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],

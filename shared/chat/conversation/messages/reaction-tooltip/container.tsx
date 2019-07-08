@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {ReactionTooltip} from '.'
+import ReactionTooltip from '.'
 
 /**
  * On desktop this component shows the reactions for one emoji

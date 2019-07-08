@@ -57,6 +57,10 @@ type KBFSOpsStandard struct {
 	currentStatus            *kbfsCurrentStatus
 	quotaUsage               *EventuallyConsistentQuotaUsage
 	longOperationDebugDumper *ImpatientDebugDumper
+
+	initLock       sync.Mutex
+	initEditCancel context.CancelFunc
+	initSyncCancel context.CancelFunc
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
@@ -199,6 +203,7 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
 		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
+		go fs.initSyncedTlfs()
 	}
 }
 
@@ -209,6 +214,7 @@ func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.log.CDebugf(nil, "Asking for an edit re-init after status change")
 	fs.editActivity.Add(1)
 	go fs.initTlfsForEditHistories()
+	go fs.initSyncedTlfs()
 }
 
 // ClearPrivateFolderMD implements the KBFSOps interface for
@@ -1507,6 +1513,29 @@ func (fs *KBFSOpsStandard) initTLFWithoutIdentifyPopups(
 	return nil
 }
 
+func (fs *KBFSOpsStandard) startOpsForHistory(
+	ctx context.Context, handle *tlfhandle.Handle) error {
+	if fs.config.Mode().DefaultBlockRequestAction() == BlockRequestSolo {
+		fb := data.FolderBranch{
+			Tlf:    handle.TlfID(),
+			Branch: data.MasterBranch,
+		}
+		ops := fs.getOpsByHandle(ctx, handle, fb, FavoritesOpNoChange)
+		// Don't initialize the entire TLF, because we don't want
+		// to run identifies on it.  Instead, just start the
+		// chat-monitoring part.
+		ops.startMonitorChat(handle.GetCanonicalName())
+	} else {
+		// Fully initialize the TLF in order to kick off any
+		// necessary prefetches.
+		err := fs.initTLFWithoutIdentifyPopups(ctx, handle)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) NewNotificationChannel(
@@ -1535,9 +1564,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 				handle.GetCanonicalPath())
 			ctx := CtxWithRandomIDReplayable(
 				context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-			// Fully initialize the TLF in order to kick off any
-			// necessary prefetches.
-			err := fs.initTLFWithoutIdentifyPopups(ctx, handle)
+			err := fs.startOpsForHistory(ctx, handle)
 			if err != nil {
 				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
 			}
@@ -1758,6 +1785,20 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
 }
 
+func (fs *KBFSOpsStandard) startInitEdit() (
+	context.Context, context.CancelFunc) {
+	fs.initLock.Lock()
+	defer fs.initLock.Unlock()
+	ctx := CtxWithRandomIDReplayable(
+		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+	ctx, cancel := context.WithCancel(ctx)
+	if fs.initEditCancel != nil {
+		fs.initEditCancel()
+	}
+	fs.initEditCancel = cancel
+	return ctx, cancel
+}
+
 func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 	defer fs.editActivity.Done()
 	shutdown := func() bool {
@@ -1773,8 +1814,17 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		return
 	}
 
-	ctx := CtxWithRandomIDReplayable(
-		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+	ctx, cancel := fs.startInitEdit()
+	defer cancel()
+
+	time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
+
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	}
+
 	fs.log.CDebugf(ctx, "Querying the kbfs-edits inbox for new TLFs")
 	handles, err := fs.config.Chat().GetGroupedInbox(
 		ctx, chat1.TopicType_KBFSFILEEDIT, kbfsedits.MaxClusters)
@@ -1786,12 +1836,16 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 	// Construct folderBranchOps instances for each TLF in the inbox
 	// that doesn't have one yet.
 	for _, h := range handles {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		if h.TlfID() != tlf.NullID {
 			fs.log.CDebugf(ctx, "Initializing TLF %s (%s) for the edit history",
 				h.GetCanonicalPath(), h.TlfID())
-			// Fully initialize the TLF in order to kick off any
-			// necessary prefetches.
-			err := fs.initTLFWithoutIdentifyPopups(ctx, h)
+			err := fs.startOpsForHistory(ctx, h)
 			if err != nil {
 				fs.log.CDebugf(ctx, "Couldn't initialize TLF: %+v", err)
 				continue
@@ -1801,26 +1855,60 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 				"Handle %s for existing folder unexpectedly has no TLF ID",
 				h.GetCanonicalName())
 		}
+		time.Sleep(fs.config.Mode().BackgroundWorkPeriod())
 	}
 }
 
+func (fs *KBFSOpsStandard) startInitSync() (
+	context.Context, context.CancelFunc) {
+	fs.initLock.Lock()
+	defer fs.initLock.Unlock()
+	ctx := CtxWithRandomIDReplayable(
+		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+	ctx, cancel := context.WithCancel(ctx)
+	if fs.initSyncCancel != nil {
+		fs.initSyncCancel()
+	}
+	fs.initSyncCancel = cancel
+	return ctx, cancel
+}
+
 func (fs *KBFSOpsStandard) initSyncedTlfs() {
+	if fs.config.MDServer() == nil {
+		return
+	}
+
 	tlfs := fs.config.GetAllSyncedTlfs()
 	if len(tlfs) == 0 {
 		return
 	}
 
-	ctx := CtxWithRandomIDReplayable(
-		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
+	ctx, cancel := fs.startInitSync()
+	defer cancel()
+
+	time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
+
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	}
+
 	fs.log.CDebugf(ctx, "Initializing %d synced TLFs", len(tlfs))
 
 	// Should we parallelize these in some limited way to speed it up
 	// without overwhelming the CPU?
 	for _, tlfID := range tlfs {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
 		fs.log.CDebugf(ctx, "Initializing synced TLF: %s", tlfID)
 		md, err := fs.config.MDOps().GetForTLF(ctx, tlfID, nil)
 		if err != nil {
-			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
+			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", tlfID, err)
 			continue
 		}
 		if md == (ImmutableRootMetadata{}) {
@@ -1835,8 +1923,8 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", err)
 			continue
 		}
+		time.Sleep(fs.config.Mode().BackgroundWorkPeriod())
 	}
-
 }
 
 // kbfsOpsFavoriteObserver deals with a handle change for a particular

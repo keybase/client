@@ -3,6 +3,7 @@ import * as Constants from '../../constants/settings'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
+import * as Tabs from '../../constants/tabs'
 import * as Platform from '../../constants/platform'
 import flags from '../../util/feature-flags'
 import {Props} from './index'
@@ -14,6 +15,7 @@ function SettingsNav(props: Props) {
         text="Your account"
         selected={props.selectedTab === Constants.accountTab}
         onClick={() => props.onTabChange(Constants.accountTab)}
+        badgeNumber={props.badgeNumbers[Tabs.settingsTab]}
       />
       <SettingsItem
         text="Chat"

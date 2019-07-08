@@ -365,6 +365,7 @@ const _defaultPaymentCommon = {
   sourceAsset: '',
   sourceConvRate: '',
   sourceIssuer: '',
+  sourceIssuerAccountID: Types.noAccountID,
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
@@ -463,7 +464,18 @@ export const rpcPaymentDetailToPaymentDetail = (p: RPCTypes.PaymentDetailsLocal)
     ...rpcPaymentToPaymentCommon(p.summary),
     externalTxURL: p.details.externalTxURL,
     feeChargedDescription: p.details.feeChargedDescription,
-    pathIntermediate: I.List((p.details.pathIntermediate || []).map(makeAssetDescription)),
+    pathIntermediate: I.List(
+      (p.details.pathIntermediate || []).map(rpcAsset =>
+        makeAssetDescription({
+          code: rpcAsset.code,
+          infoUrl: rpcAsset.infoUrl,
+          infoUrlText: rpcAsset.infoUrlText,
+          issuerAccountID: rpcAsset.issuer,
+          issuerName: rpcAsset.issuerName,
+          issuerVerifiedDomain: rpcAsset.verifiedDomain,
+        })
+      )
+    ),
     publicMemo: new HiddenString(p.details.publicNote),
     publicMemoType: p.details.publicNoteType,
     txID: p.summary.txID,
@@ -508,6 +520,7 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     sourceAsset: p.sourceAsset.code,
     sourceConvRate: p.sourceConvRate,
     sourceIssuer: p.sourceAsset.verifiedDomain,
+    sourceIssuerAccountID: p.sourceAsset.issuer,
     sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,

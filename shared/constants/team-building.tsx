@@ -1,6 +1,7 @@
 import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
+import * as RPCTypes from './types/rpc-gen'
 
 const allServices: Array<Types.ServiceIdWithContact> = [
   'keybase',
@@ -54,11 +55,11 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
 const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
 const parseRawResultToUser = (
-  result: Types.RawSearchResult,
+  result: RPCTypes.APIUserSearchResult,
   service: Types.ServiceIdWithContact
 ): Types.User | null => {
-  const serviceMap = Object.keys(result.services_summary || {}).reduce((acc, service_name) => {
-    acc[service_name] = result.services_summary[service_name].username
+  const serviceMap = Object.keys(result.servicesSummary || {}).reduce((acc, service_name) => {
+    acc[service_name] = result.servicesSummary[service_name].username
     return acc
   }, {})
 
@@ -70,27 +71,27 @@ const parseRawResultToUser = (
   if (service === 'keybase' && result.keybase) {
     return {
       id: result.keybase.username,
-      prettyName: result.keybase.full_name || result.keybase.username,
+      prettyName: result.keybase.fullName || result.keybase.username,
       serviceMap,
     }
   } else if (result.service) {
-    if (result.service.service_name !== service) {
+    if (result.service.serviceName !== service) {
       // This shouldn't happen
       logger.error(
         `Search result's service_name is different than given service name. Expected: ${service} received ${
-          result.service.service_name
+          result.service.serviceName
         }`
       )
       return null
     }
 
-    const kbPrettyName = result.keybase && (result.keybase.full_name || result.keybase.username)
+    const kbPrettyName = result.keybase && (result.keybase.fullName || result.keybase.username)
 
-    const prettyName = result.service.full_name || kbPrettyName || ``
+    const prettyName = result.service.fullName || kbPrettyName || ``
 
     const id = result.keybase
       ? result.keybase.username
-      : `${result.service.username}@${result.service.service_name}`
+      : `${result.service.username}@${result.service.serviceName}`
 
     return {
       id,

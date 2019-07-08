@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,no-use-before-define */
 import {Actions as chat2Actions} from './chat2-gen'
 import {Actions as configActions} from './config-gen'
 import {Actions as devActions} from './dev-gen'

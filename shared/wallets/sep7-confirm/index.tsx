@@ -76,9 +76,9 @@ const InfoRow = (props: InfoRowProps) => (
         {props.headerText}
       </Kb.Text>
       {props.showStellarIcon ? (
-        <Kb.Box2 direction="horizontal" gap="xtiny">
+        <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
           <Kb.Icon type="iconfont-identity-stellar" style={Kb.iconCastPlatformStyles(styles.stellarIcon)} />
-          <Kb.Text lineClamp={2} selectable={true} type="Body">
+          <Kb.Text lineClamp={2} selectable={true} type="Body" style={styles.bodyTextWithIcon}>
             {props.bodyText}
           </Kb.Text>
         </Kb.Box2>
@@ -123,7 +123,7 @@ const Header = (props: HeaderProps) => (
         Keybase verified the request's signature.
       </Kb.Text>
     </Kb.Box2>
-    <WalletBackButton onBack={props.onBack} />
+    {Styles.isMobile && <WalletBackButton onBack={props.onBack} showCancelInsteadOfBackOnMobile={true} />}
   </Kb.Box2>
 )
 
@@ -150,10 +150,10 @@ const PaymentInfo = (props: PaymentInfoProps) => (
             {props.amount} XLM
           </Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
-            <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
               (Approximately {props.displayAmountFiat})
             </Kb.Text>
-            <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
+            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
               Your primary account has {props.availableToSendNative} available to send.
             </Kb.Text>
           </Kb.Box2>
@@ -230,6 +230,7 @@ const SEP7Confirm = (props: Props) => (
           fullWidth={true}
           style={styles.button}
           label={props.operation === 'pay' ? 'Pay' : 'Sign'}
+          disabled={!props.amount && !props.userAmount}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -248,9 +249,15 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>)
 
 const styles = Styles.styleSheetCreate({
   bodyText: Styles.platformStyles({
-    common: {color: Styles.globalColors.black},
+    common: {
+      color: Styles.globalColors.black,
+    },
     isElectron: {wordBreak: 'break-word'},
   }),
+  bodyTextWithIcon: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
   button: {
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
@@ -277,6 +284,8 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
     },
     isElectron: {
+      borderTopLeftRadius: Styles.borderRadius,
+      borderTopRightRadius: Styles.borderRadius,
       height: 560,
       width: 400,
     },
@@ -295,6 +304,8 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.purpleDark,
     },
     isElectron: {
+      borderTopLeftRadius: Styles.borderRadius,
+      borderTopRightRadius: Styles.borderRadius,
       flex: 1,
       minHeight: 160,
     },
@@ -329,6 +340,7 @@ const styles = Styles.styleSheetCreate({
   },
   stellarIcon: {
     alignSelf: 'flex-start',
+    color: Styles.globalColors.black,
     marginRight: Styles.globalMargins.xxtiny,
   },
   subHeaderText: {

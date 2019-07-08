@@ -1,11 +1,12 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
-import Transaction, {TimestampError, TimestampPending} from '../transaction'
+import {Transaction, TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
 import PaymentPath, {Asset} from './payment-path'
@@ -46,6 +47,7 @@ export type NotLoadingProps = {
   sourceAsset: string
   sourceConvRate: string
   sourceIssuer: string
+  sourceIssuerAccountID: string
   status: Types.StatusSimplified
   statusDetail: string
   // A null timestamp means the transaction is still pending.
@@ -190,13 +192,13 @@ const YourAccount = (props: YourAccountProps) => {
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
-      return Styles.globalColors.green
+      return Styles.globalColors.greenDark
     case 'pending':
     case 'claimable':
       return Styles.globalColors.purple
     case 'error':
     case 'canceled':
-      return Styles.globalColors.red
+      return Styles.globalColors.redDark
     default:
       return Styles.globalColors.black
   }
@@ -313,9 +315,20 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const isPathPayment = !!props.sourceAmount
 
   // If we don't have a sourceAsset, the source is native Lumens
-  const sourceIssuer = props.sourceAsset === '' ? 'Stellar Lumens' : props.sourceIssuer || 'Unknown issuer'
+  const sourceIssuer =
+    props.sourceAsset === ''
+      ? 'Stellar Lumens'
+      : props.sourceIssuer ||
+        (props.sourceIssuerAccountID === Types.noAccountID
+          ? 'Unknown issuer'
+          : Constants.shortenAccountID(props.sourceIssuerAccountID))
   const destinationIssuer =
-    props.assetCode === '' ? 'Stellar Lumens' : props.issuerDescription || 'Unknown issuer'
+    props.assetCode === ''
+      ? 'Stellar Lumens'
+      : props.issuerDescription ||
+        (props.issuerAccountID === Types.noAccountID
+          ? 'Unknown issuer'
+          : Constants.shortenAccountID(props.issuerAccountID))
 
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>

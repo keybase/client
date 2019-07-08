@@ -12,7 +12,8 @@ repos:
         language: node
         files: \.(js|ts|tsx)$
         args: [
-            '--quiet'
+            '--quiet',
+            '--resolve-plugins-relative-to shared'
         ]
     -   id: tsc
         name: tsc

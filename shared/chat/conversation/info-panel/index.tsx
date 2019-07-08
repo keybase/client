@@ -300,41 +300,43 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         sections.push(tabsSection)
         break
       case 'attachments':
-        if (!Styles.isMobile) {
-          itemSizeEstimator = () => {
-            return 80
+        {
+          if (!Styles.isMobile) {
+            itemSizeEstimator = () => {
+              return 80
+            }
           }
+          let attachmentSections
+          switch (this.props.selectedAttachmentView) {
+            case RPCChatTypes.GalleryItemTyp.media:
+              attachmentSections = new MediaView().getSections(
+                this.props.media.thumbs,
+                this.props.media.onLoadMore,
+                this._retryLoad,
+                this.props.media.status
+              )
+              break
+            case RPCChatTypes.GalleryItemTyp.doc:
+              attachmentSections = new DocView().getSections(
+                this.props.docs.docs,
+                this.props.docs.onLoadMore,
+                this._retryLoad,
+                this.props.docs.status
+              )
+              break
+            case RPCChatTypes.GalleryItemTyp.link:
+              attachmentSections = new LinkView().getSections(
+                this.props.links.links,
+                this.props.links.onLoadMore,
+                this._retryLoad,
+                this.props.links.status
+              )
+              break
+          }
+          sections.push(tabsSection)
+          sections.push(this._attachmentViewSelectorSection())
+          sections = sections.concat(attachmentSections)
         }
-        let attachmentSections
-        switch (this.props.selectedAttachmentView) {
-          case RPCChatTypes.GalleryItemTyp.media:
-            attachmentSections = new MediaView().getSections(
-              this.props.media.thumbs,
-              this.props.media.onLoadMore,
-              this._retryLoad,
-              this.props.media.status
-            )
-            break
-          case RPCChatTypes.GalleryItemTyp.doc:
-            attachmentSections = new DocView().getSections(
-              this.props.docs.docs,
-              this.props.docs.onLoadMore,
-              this._retryLoad,
-              this.props.docs.status
-            )
-            break
-          case RPCChatTypes.GalleryItemTyp.link:
-            attachmentSections = new LinkView().getSections(
-              this.props.links.links,
-              this.props.links.onLoadMore,
-              this._retryLoad,
-              this.props.links.status
-            )
-            break
-        }
-        sections.push(tabsSection)
-        sections.push(this._attachmentViewSelectorSection())
-        sections = sections.concat(attachmentSections)
         break
     }
     return (

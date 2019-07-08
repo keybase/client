@@ -155,13 +155,18 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         defaultUsername: action.payload.username || state.defaultUsername,
         deviceID: action.payload.deviceID,
         deviceName: action.payload.deviceName,
-        followers: I.Set(action.payload.followers),
-        following: I.Set(action.payload.following),
         loggedIn: action.payload.loggedIn,
         registered: action.payload.registered,
         uid: action.payload.uid,
         username: action.payload.username,
       })
+    case ConfigGen.followerInfoUpdated:
+      return state.uid === action.payload.uid
+        ? state.merge({
+            followers: I.Set(action.payload.followers),
+            following: I.Set(action.payload.followees),
+          })
+        : state
     case ConfigGen.loggedIn:
       return state.merge({loggedIn: true})
     case ConfigGen.loggedOut:
@@ -208,7 +213,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({openAtLogin: action.payload.open})
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
-    case ConfigGen.setAccounts:
+    case ConfigGen.setAccounts: {
       // already have one?
       let defaultUsername = state.defaultUsername
       if (action.payload.usernames.indexOf(defaultUsername) === -1) {
@@ -219,6 +224,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         configuredAccounts: I.List(action.payload.usernames),
         defaultUsername,
       })
+    }
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:

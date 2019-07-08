@@ -93,18 +93,12 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
-      top: -8,
-    },
-    isMobile: {
-      top: -4,
+      height: '1em',
     },
   }),
   inputContainer: {
     alignItems: 'flex-start',
     borderWidth: 0,
-    // Because of the negative top on the input inside this is needed;
-    // otherwise the top part goes over and covers part of what's above.
-    overflow: 'hidden',
     paddingLeft: 0,
     paddingTop: 0,
   },

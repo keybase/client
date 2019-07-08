@@ -252,6 +252,17 @@ const metaData: {[K in TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: globalStyles.fontSemibold,
   },
+  BodyTinySemiboldItalic: {
+    colorForBackground: {
+      ...whiteNegative,
+      positive: globalColors.black_50,
+    },
+    fontSize: 13,
+    styleOverride: {
+      ...globalStyles.fontSemibold,
+      fontStyle: 'italic',
+    },
+  },
   Header: {
     colorForBackground: whiteNegative,
     fontSize: 20,
