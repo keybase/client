@@ -195,6 +195,15 @@ func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation 
 	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
+func (t *Team) SigningKID(ctx context.Context) (kid keybase1.KID, err error) {
+	gen := t.chain().GetLatestGeneration()
+	chainKey, err := newTeamSigChainState(t).GetPerTeamKeyAtGeneration(gen)
+	if err != nil {
+		return kid, err
+	}
+	return chainKey.SigKID, nil
+}
+
 func (t *Team) SigningKey(ctx context.Context) (key libkb.NaclSigningKeyPair, err error) {
 	km, err := t.getKeyManager(ctx)
 	if err != nil {
