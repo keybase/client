@@ -120,7 +120,7 @@ func (r *RatchetBlindingKeySet) Get(ratchet SCTeamRatchet) *sig3.Tail {
 	return &obj.Body
 }
 
-// UnmarshalJSON is implicitly used in rawTeam-based API calles to move RatchetBlindingKeySets into and out of JSON
+// UnmarshalJSON is implicitly used in rawTeam-based API calls to move RatchetBlindingKeySets into and out of JSON
 // from the hidden team chain.
 func (r *RatchetBlindingKeySet) UnmarshalJSON(b []byte) error {
 	r.m = make(map[SCTeamRatchet]RatchetObj)
