@@ -32,7 +32,6 @@ export const newRoutes = {
   [Constants.walletsTab]: {
     getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,
   },
-  // TODO connect broken
   [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   // TODO connect broken
@@ -50,7 +49,6 @@ export const newRoutes = {
   },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
-  // TODO connect broken
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
   // TODO connect broken
   deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
