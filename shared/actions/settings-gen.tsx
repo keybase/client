@@ -68,6 +68,7 @@ export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const setContactImportedCount = 'settings:setContactImportedCount'
 export const stop = 'settings:stop'
 export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
@@ -168,6 +169,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
+type _SetContactImportedCountPayload = {readonly count: number | null}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -456,6 +458,9 @@ export const createSentVerificationEmail = (
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
+export const createSetContactImportedCount = (
+  payload: _SetContactImportedCountPayload
+): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
   payload,
@@ -688,6 +693,10 @@ export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
 }
+export type SetContactImportedCountPayload = {
+  readonly payload: _SetContactImportedCountPayload
+  readonly type: typeof setContactImportedCount
+}
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
 export type ToggleRuntimeStatsPayload = {
   readonly payload: _ToggleRuntimeStatsPayload
@@ -788,6 +797,7 @@ export type Actions =
   | SendFeedbackPayload
   | SentVerificationEmailPayload
   | SetAllowDeleteAccountPayload
+  | SetContactImportedCountPayload
   | StopPayload
   | ToggleRuntimeStatsPayload
   | TracePayload

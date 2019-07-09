@@ -66,6 +66,9 @@
     "editContactImportEnabled": {
       "enable": "boolean"
     },
+    "setContactImportedCount": {
+      "count": "number | null"
+    },
     "addEmail": {
       "email": "string",
       "searchable": "boolean"

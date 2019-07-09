@@ -472,16 +472,17 @@ async function manageContactsCache(
   }
 
   if (state.settings.contacts.importEnabled === false) {
-    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
+    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
+      SettingsGen.createSetContactImportedCount({count: null})
+    )
   }
 
   // get permissions if we haven't loaded them for some reason
-  const {permissionStatus} = state.settings.contacts
-  let perm = false
+  let {permissionStatus} = state.settings.contacts
   if (permissionStatus === 'unknown') {
-    const realPerm = await loadContactPermissionFromNative()
-    perm = realPerm === 'granted'
+    permissionStatus = await loadContactPermissionFromNative()
   }
+  const perm = permissionStatus === 'granted'
 
   const enabled = state.settings.contacts.importEnabled
   if (!enabled || !perm) {
@@ -520,8 +521,15 @@ async function manageContactsCache(
 
     return ret
   }, [])
-  console.warn('Contacts imported')
+  logger.info(`Importing ${mapped.length} contacts.`)
   return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    .then(() => {
+      logger.info(`Success`)
+      return SettingsGen.createSetContactImportedCount({count: mapped.length})
+    })
+    .catch(e => {
+      logger.error('Error saving contacts list: ', e.message)
+    })
 }
 
 // Get phone number in e.164, or null if we can't parse it.
