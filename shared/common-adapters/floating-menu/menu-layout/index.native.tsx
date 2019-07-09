@@ -16,7 +16,7 @@ type MenuRowProps = {
   numItems: number
   onHidden?: () => void | null
   textColor?: Styles.Color
-  backgroundColor?: Color
+  backgroundColor?: Styles.Color
 } & MenuItem
 
 const MenuRow = (props: MenuRowProps) => (

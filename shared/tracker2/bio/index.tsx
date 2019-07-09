@@ -13,6 +13,8 @@ type Props = {
   fullname: string | null
   inTracker: boolean
   location: string | null
+  onBack?: () => void
+  onLearnMore?: () => void
   registeredForAirdrop: boolean | null
   youAreInAirdrop: boolean | null
 }
@@ -20,7 +22,12 @@ type Props = {
 // Here we're using FloatingMenu, but we want to customize the button to match
 // Zeplin, so there's a hack -- desktop renders everything as a custom header,
 // whereas mobile uses `items` prop as normal.
-const _AirdropPopup = p => (
+type AirdropPopupProps = {
+  onBack: () => void
+  onLearnMore: () => void
+}
+
+const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
   <Kb.ClickableBox
     ref={p.setAttachmentRef}
     onClick={p.toggleShowingMenu}
@@ -36,7 +43,7 @@ const _AirdropPopup = p => (
       backgroundColor={Styles.globalColors.purple}
       textColor={Styles.globalColors.white}
       onHidden={p.toggleShowingMenu}
-      visible={true}
+      visible={p.showingMenu}
       propagateOutsideClicks={true}
       header={{
         title: 'header',
@@ -81,69 +88,67 @@ const _AirdropPopup = p => (
 )
 const AirdropPopup = Kb.OverlayParentHOC(_AirdropPopup)
 
-const Bio = (p: Props) => {
-  console.warn('bio', p)
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
-      <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-        <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
-          {p.fullname}
-        </Kb.Text>
-        {flags.airdrop &&
-          p.airdropIsLive &&
-          p.registeredForAirdrop &&
-          (p.youAreInAirdrop ? (
-            <Kb.WithTooltip text="Lucky airdropee">
-              <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
-            </Kb.WithTooltip>
-          ) : (
-            <AirdropPopup />
-          ))}
-      </Kb.Box2>
-      {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
-      {p.followersCount !== null && (
-        <Kb.Text type="BodySmall">
-          <Kb.Text type="BodySmall">
-            <Kb.Text type="BodySmall" style={styles.bold}>
-              {p.followersCount}
-            </Kb.Text>{' '}
-            Followers{' '}
-          </Kb.Text>
-          <Kb.Text type="BodySmall"> · </Kb.Text>
-          <Kb.Text type="BodySmall">
-            {' '}
-            Following{' '}
-            <Kb.Text type="BodySmall" style={styles.bold}>
-              {p.followingCount}{' '}
-            </Kb.Text>
-          </Kb.Text>
-        </Kb.Text>
-      )}
-      {!!p.bio && (
-        <Kb.Text
-          type="Body"
-          center={true}
-          lineClamp={p.inTracker ? 2 : undefined}
-          style={styles.text}
-          selectable={true}
-        >
-          {p.bio}
-        </Kb.Text>
-      )}
-      {!!p.location && (
-        <Kb.Text
-          type="BodySmall"
-          center={true}
-          lineClamp={p.inTracker ? 1 : undefined}
-          style={styles.text}
-          selectable={true}
-        >
-          {p.location}
-        </Kb.Text>
-      )}
+const Bio = (p: Props) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
+    <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
+      <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
+        {p.fullname}
+      </Kb.Text>
+      {flags.airdrop &&
+        p.airdropIsLive &&
+        p.registeredForAirdrop &&
+        (p.youAreInAirdrop ? (
+          <Kb.WithTooltip text="Lucky airdropee">
+            <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
+          </Kb.WithTooltip>
+        ) : (
+          <AirdropPopup onBack={p.onBack} onLearnMore={p.onLearnMore} />
+        ))}
     </Kb.Box2>
-  )
-}
+    {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
+    {p.followersCount !== null && (
+      <Kb.Text type="BodySmall">
+        <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmall" style={styles.bold}>
+            {p.followersCount}
+          </Kb.Text>{' '}
+          Followers{' '}
+        </Kb.Text>
+        <Kb.Text type="BodySmall"> · </Kb.Text>
+        <Kb.Text type="BodySmall">
+          {' '}
+          Following{' '}
+          <Kb.Text type="BodySmall" style={styles.bold}>
+            {p.followingCount}{' '}
+          </Kb.Text>
+        </Kb.Text>
+      </Kb.Text>
+    )}
+    {!!p.bio && (
+      <Kb.Text
+        type="Body"
+        center={true}
+        lineClamp={p.inTracker ? 2 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
+        {p.bio}
+      </Kb.Text>
+    )}
+    {!!p.location && (
+      <Kb.Text
+        type="BodySmall"
+        center={true}
+        lineClamp={p.inTracker ? 1 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
+        {p.location}
+      </Kb.Text>
+    )}
+  </Kb.Box2>
+)
+
 const styles = Styles.styleSheetCreate({
   airdropText: Styles.platformStyles({
     common: {color: Styles.globalColors.white},

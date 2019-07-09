@@ -36,7 +36,6 @@ export type Props = {
   suggestionKeys: Array<string> | null
   userIsYou: boolean
   username: string
-  youAreInAirdrop: boolean
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -68,7 +67,7 @@ const BioLayout = p => {
         size="huge"
       />
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
-        <Bio inTracker={false} username={p.username} youAreInAirdrop={p.youAreInAirdrop} />
+        <Bio inTracker={false} username={p.username} />
         <Actions username={p.username} />
       </Kb.Box2>
     </Kb.Box2>
