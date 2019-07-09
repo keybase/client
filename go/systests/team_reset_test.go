@@ -575,7 +575,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 		// Note: any role would do! Does not have to be the same as before
 		// reset. This does not apply to imp-teams though, it requires the
 		// same role there.
-		Role: keybase1.TeamRole_BOT,
+		Role: keybase1.TeamRole_READER,
 	})
 	require.NoError(t, err)
 
@@ -583,7 +583,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 	teams.NewTeamLoaderAndInstall(G)
 	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
 	require.NoError(t, err)
-	require.Equal(t, role, keybase1.TeamRole_BOT)
+	require.Equal(t, role, keybase1.TeamRole_READER)
 
 	bob.readChats(team, 1)
 }
