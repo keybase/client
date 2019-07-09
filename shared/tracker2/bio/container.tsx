@@ -32,7 +32,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
 })
 
-export default Container.connect(
+export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps) => ({
@@ -49,5 +49,6 @@ export default Container.connect(
     onLearnMore: dispatchProps.onLearnMore,
     registeredForAirdrop: stateProps.registeredForAirdrop,
     youAreInAirdrop: stateProps.youAreInAirdrop,
-  })
+  }),
+  'Bio'
 )(Bio)
