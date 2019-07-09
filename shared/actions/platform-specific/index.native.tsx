@@ -472,6 +472,10 @@ async function manageContactsCache(
     return
   }
 
+  if (state.settings.contacts.importEnabled === false) {
+    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
+  }
+
   // get permissions if we haven't loaded them for some reason
   const {permissionStatus} = state.settings.contacts
   let perm = false
@@ -518,6 +522,7 @@ async function manageContactsCache(
     return ret
   }, [])
   console.warn(JSON.stringify(mapped, null, 2))
+  return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
 }
 
 // Get phone number in e.164, or null if we can't parse it.
