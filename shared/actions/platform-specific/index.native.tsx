@@ -524,9 +524,9 @@ async function manageContactsCache(
       return res
     }, [])
 
-    components.push(...emails.map(e => ({label: e.label, email: e.email})))
+    components.push(...emails.map(e => ({email: e.email, label: e.label})))
     if (components.length) {
-      ret.push({name, components})
+      ret.push({components, name})
     }
 
     return ret
