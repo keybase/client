@@ -123,7 +123,9 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       ? RPCTypes.contactsLookupSavedContactsListRpcPromise()
       : Promise.resolve([] as RPCTypes.ProcessedContact[]),
   ])
-    .then(([suggestionRes = [], contactRes = []]) => {
+    .then(([_suggestionRes, _contactRes]) => {
+      const suggestionRes = _suggestionRes || []
+      const contactRes = _contactRes || []
       const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
