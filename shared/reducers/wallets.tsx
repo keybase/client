@@ -95,8 +95,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
         Constants.updatePaymentDetail(paymentsMap, action.payload.payment)
       )
-    case WalletsGen.paymentsReceived:
-      return state
+    case WalletsGen.paymentsReceived: {
+      let newState = state
         .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
           Constants.updatePaymentsReceived(paymentsMap, [
             ...action.payload.payments,
@@ -105,7 +105,20 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         )
         .setIn(['paymentCursorMap', action.payload.accountID], action.payload.paymentCursor)
         .setIn(['paymentLoadingMoreMap', action.payload.accountID], false)
-        .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
+      // allowClearOldestUnread dictates whether this action is allowed to delete the value of oldestUnread.
+      // GetPaymentsLocal can erroneously return an empty oldestUnread value when a non-latest page is requested
+      // and oldestUnread points into the latest page.
+      if (
+        action.payload.allowClearOldestUnread ||
+        (action.payload.oldestUnread || Types.noPaymentID) !== Types.noPaymentID
+      ) {
+        newState = newState.setIn(
+          ['paymentOldestUnreadMap', action.payload.accountID],
+          action.payload.oldestUnread
+        )
+      }
+      return newState
+    }
     case WalletsGen.pendingPaymentsReceived: {
       const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
