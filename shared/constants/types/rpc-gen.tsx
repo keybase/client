@@ -1212,7 +1212,7 @@ export type MessageTypes = {
     outParam: UserSummary2Set
   }
   'keybase.1.user.loadHasRandomPw': {
-    inParam: {readonly forceRepoll: Boolean}
+    inParam: {readonly forceRepoll: Boolean; readonly noShortTimeout: Boolean}
     outParam: Boolean
   }
   'keybase.1.user.loadMySettings': {
