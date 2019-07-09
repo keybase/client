@@ -57,6 +57,8 @@ type Link = {
 
 type AttachmentItem = Thumb | Doc | Link
 
+const _renderEmptyItem = (item) => <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}><Kb.Text type="BodySmall">{`No ${item}`}</Kb.Text></Kb.Box2>
+
 const getDateInfo = (thumb: AttachmentItem) => {
   const date = new Date(thumb.ctime)
   return {
@@ -230,6 +232,11 @@ export class MediaView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
+    if (thumbs.length === 0) return [{
+      data: ['attachments'],
+      renderItem: ({item}) => _renderEmptyItem(item),
+      renderSectionHeader: () => null
+    }]
     const sections = formMonths(thumbs).reduce((l, m) => {
       l.push(this._monthToSection(m))
       return l
@@ -309,6 +316,11 @@ export class DocView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
+    if (docs.length === 0) return [{
+      data: ['documents'],
+      renderItem: ({item}) => _renderEmptyItem(item),
+      renderSectionHeader: () => null
+    }]
     const sections = formMonths(docs).reduce((l, m) => {
       l.push(this._monthToSection(m))
       return l
@@ -374,6 +386,11 @@ export class LinkView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
+    if (links.length === 0) return [{
+      data: ['links'],
+      renderItem: ({item}) => _renderEmptyItem(item),
+      renderSectionHeader: () => null
+    }]
     const sections = formMonths(links).reduce((l, m) => {
       l.push(this._monthToSection(m))
       return l
