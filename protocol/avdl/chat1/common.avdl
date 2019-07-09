@@ -283,6 +283,15 @@
     union { null, ConversationMinWriterRoleInfo } minWriterRoleInfo;
   }
 
+  record ConversationBotCommandConv {
+    gregor1.UID uid;
+    ConversationID convID;
+  }
+
+  record ConversationBotCommands {
+    array<ConversationBotCommandConv> commands;
+  }
+
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
@@ -297,6 +306,9 @@
 
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
+
+    // conversation bot commands
+    union { null, ConversationBotCommands } botCommands;
 
     // The latest history deletion. Defaults to zeroes.
     // The client keeps this synced for retention but not for delete-history messages.
