@@ -510,22 +510,19 @@ async function manageContactsCache(
   const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
     const {name, phoneNumbers = [], emails = []} = contact
 
-    const components = phoneNumbers.reduce(
-      (res, pn) => {
-        // TODO this fails on many phone numbers, contact data from native may
-        // not include countryCode. Make better guesses at properly formatting
-        // this.
-        const formatted = getE164(pn.countryCode || '', pn.number || '')
-        if (formatted) {
-          res.push({
-            label: pn.label,
-            phoneNumber: formatted,
-          })
-        }
-        return res
-      },
-      [] as Array<RPCTypes.ContactComponent>
-    )
+    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+      // TODO this fails on many phone numbers, contact data from native may
+      // not include countryCode. Make better guesses at properly formatting
+      // this.
+      const formatted = getE164(pn.countryCode || '', pn.number || '')
+      if (formatted) {
+        res.push({
+          label: pn.label,
+          phoneNumber: formatted,
+        })
+      }
+      return res
+    }, [])
 
     components.push(...emails.map(e => ({label: e.label, email: e.email})))
     if (components.length) {
