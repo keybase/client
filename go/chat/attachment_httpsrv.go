@@ -160,7 +160,7 @@ func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 }
 
 func (r *AttachmentHTTPSrv) randURLKey(prefix string) (string, error) {
-	return libkb.RandHexString(prefix, 8)
+	return libkb.RandHexString(prefix, 32)
 }
 
 func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix, endpoint string, cache *lru.Cache,
