@@ -126,6 +126,7 @@
     "emoji-datasource-apple": "4.1.0",
     "emoji-mart": "2.9.2",
     "exif-js": "2.3.0",
+    "expo-contacts": "5.0.1",
     "expo-sms": "5.0.0",
     "framed-msgpack-rpc": "1.1.18",
     "google-libphonenumber": "3.2.2",
