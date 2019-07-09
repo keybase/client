@@ -15,7 +15,7 @@
     "ios": "8.0"
   },
   "dependencies": {
-    "React/Core": [
+    "React": [
 
     ]
   }
