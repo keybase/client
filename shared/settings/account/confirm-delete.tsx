@@ -68,7 +68,7 @@ const DeleteModal = (props: OwnProps) => {
     }
 
     dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
+  }, [dispatch, itemAddress, itemType])
 
   return (
     <ConfirmDeleteAddress address={itemAddress} type={itemType} onCancel={onCancel} onConfirm={onConfirm} />
