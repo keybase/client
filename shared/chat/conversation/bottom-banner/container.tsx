@@ -1,10 +1,8 @@
 import * as Constants from '../../../constants/chat2'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as React from 'react'
-import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
-import {BrokenTrackerBanner, InviteBanner} from '.'
+import {InviteBanner} from '.'
 import openSMS from '../../../util/sms'
 import {showShareActionSheetFromURL} from '../../../actions/platform-specific'
 
@@ -16,7 +14,6 @@ type OwnProps = {
 
 type Props = {
   type: 'invite' | 'none' | 'broken'
-  onClick: (username: string) => void
   users: Array<string>
   openShareSheet: () => void
   openSMS: (email: string) => void
@@ -36,7 +33,7 @@ class BannerContainer extends React.PureComponent<Props> {
           />
         )
       case 'broken':
-        return <BrokenTrackerBanner onClick={this.props.onClick} users={this.props.users} />
+        return <Kb.ProofBrokenBanner users={this.props.users} />
       case 'none':
         return null
     }
@@ -55,11 +52,7 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onClick: Container.isMobile
-    ? (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
-    : (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-})
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({})
 
 export default Container.connect(
   mapStateToProps,
@@ -89,7 +82,6 @@ export default Container.connect(
     }
 
     return {
-      onClick: dispatchProps.onClick,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
         showShareActionSheetFromURL({
