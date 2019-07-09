@@ -1,19 +1,20 @@
 #pragma once
 
 #include <jsi/jsi.h>
+#include <deque>
+#include <mutex>
 
-#if ANDROID
 #include <jni.h>
-#endif
 
 using namespace facebook;
 
-#if ANDROID
 extern "C" {
 JNIEXPORT void JNICALL Java_io_keybase_ossifrage_MainActivity_install(
     JNIEnv *env, jobject thiz, jlong runtimePtr);
+JNIEXPORT void JNICALL
+Java_io_keybase_ossifrage_modules_KeybaseEngine_forwardEngineData(
+    JNIEnv *env, jobject thiz, jlong runtimePtr, jstring engineData);
 }
-#endif
 
 namespace keybase {
 
@@ -34,6 +35,9 @@ class Binding : public jsi::HostObject {
    * `jsi::HostObject` specific overloads.
    */
   jsi::Value get(jsi::Runtime &runtime, const jsi::PropNameID &name) override;
+  std::unique_ptr<jsi::Function> engineCallback_;
 };
+
+std::shared_ptr<Binding> currentBinding;
 
 }  // namespace keybase

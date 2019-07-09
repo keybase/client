@@ -35,6 +35,7 @@ let config = {
   featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
+  forceJSIForEngine: false,
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
@@ -120,6 +121,7 @@ export const {
   featureFlagsOverride,
   filterActionLogs,
   forceImmediateLogging,
+  forceJSIForEngine,
   ignoreDisconnectOverlay,
   immediateStateLogging,
   isDevApplePushToken,

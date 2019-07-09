@@ -14,21 +14,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
-import io.keybase.ossifrage.modules.NativeLogger;
+import keybase.Keybase;
 
 import static keybase.Keybase.readB64;
-import static keybase.Keybase.writeB64;
 import static keybase.Keybase.version;
+import static keybase.Keybase.writeB64;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
@@ -38,7 +37,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private static final String RPC_META_EVENT_ENGINE_RESET = "ENGINE_RESET";
     private ExecutorService executor;
     private Boolean started = false;
+    private Boolean useJSI = false;
     private ReactApplicationContext reactContext;
+
+    public native void forwardEngineData(long jsContextNativePointer, String engineData);
 
     private static void relayReset(ReactApplicationContext reactContext) {
         if (!reactContext.hasActiveCatalystInstance()) {
@@ -67,9 +69,20 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                       NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
                   }
 
-                  reactContext
-                          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                          .emit(KeybaseEngine.RPC_EVENT_NAME, data);
+                  long runtimePtr = this.reactContext.getJavaScriptContextHolder().get();
+                  if (useJSI) {
+                    this.reactContext.getCatalystInstance().getReactQueueConfiguration().getJSQueueThread().callOnQueue((Callable<Void>) () -> {
+                      forwardEngineData(
+                        runtimePtr,
+                        data
+                      );
+                      return null;
+                    });
+                  } else {
+                    reactContext
+                      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                      .emit(KeybaseEngine.RPC_EVENT_NAME, data);
+                  }
               } catch (Exception e) {
                 if (e.getMessage().equals("Read error: EOF")) {
                     NativeLogger.info("Got EOF from read. Likely because of reset.");
@@ -206,7 +219,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     @ReactMethod
-    public void start() {
+    public void start(boolean useJSI) {
+        this.useJSI = useJSI;
         NativeLogger.info("KeybaseEngine started");
         try {
             started = true;

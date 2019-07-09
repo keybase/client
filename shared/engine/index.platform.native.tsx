@@ -4,17 +4,19 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
-import {printRPCBytes} from '../local-debug'
+import {printRPCBytes, forceJSIForEngine} from '../local-debug.native'
 import {measureStart, measureStop} from '../util/user-timings'
 import {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {isAndroid} from '../constants/platform'
+
+const useJSI = forceJSIForEngine || (!__DEV__ && isAndroid)
 
 const nativeBridge: {
   runWithData: (arg0: string) => void
   eventName: string
   metaEventName: string
   metaEventEngineReset: string
-  start: () => void
+  start: (useJSI: boolean) => void
   reset: () => void
 } = NativeModules.KeybaseEngine
 
@@ -22,7 +24,7 @@ const RNEmitter: {
   addListener: (arg0: string, arg1: (arg0: string) => void) => void
 } = new NativeEventEmitter(nativeBridge)
 
-if (!__DEV__ && isAndroid) {
+if (useJSI) {
   nativeBridge.runWithData = global.keybaseJSI.runWithData
 }
 
@@ -77,15 +79,14 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  __DEV__ && nativeBridge.start()
+  nativeBridge.start(useJSI)
 
   let packetizeCount = 0
   // This is how the RN side writes back to us
 
-  const addListener =
-    !__DEV__ && isAndroid
-      ? global.keybaseJSI.addListener
-      : cb => RNEmitter.addListener(nativeBridge.eventName, cb)
+  const addListener = useJSI
+    ? global.keybaseJSI.addListener
+    : cb => RNEmitter.addListener(nativeBridge.eventName, cb)
 
   addListener((payload: string) => {
     if (printRPCBytes) {

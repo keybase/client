@@ -1,7 +1,6 @@
 #include "Binding.h"
 
 #include <dlfcn.h>
-#include <jsi/JSIDynamic.h>
 #include <chrono>  // std::chrono::seconds
 #include <thread>
 #if __i386__
@@ -22,17 +21,28 @@ struct EventHandlerWrapper {
   jsi::Function callback;
 };
 
-#if ANDROID
 extern "C" {
 JNIEXPORT void JNICALL Java_io_keybase_ossifrage_MainActivity_install(
     JNIEnv *env, jobject thiz, jlong runtimePtr) {
   auto binding = std::make_shared<keybase::Binding>();
-  jsi::Runtime *runtime = (jsi::Runtime *)runtimePtr;
+  keybase::currentBinding = binding;
 
+  jsi::Runtime *runtime = (jsi::Runtime *)runtimePtr;
   keybase::Binding::install(*runtime, binding);
 }
+
+JNIEXPORT void JNICALL
+Java_io_keybase_ossifrage_modules_KeybaseEngine_forwardEngineData(
+    JNIEnv *env, jobject thiz, jlong runtimePtr, jstring engineData) {
+  jsi::Runtime *runtime = (jsi::Runtime *)runtimePtr;
+  const char *nativeString = env->GetStringUTFChars(engineData, 0);
+  auto jsi_string = jsi::String::createFromAscii(*runtime, nativeString);
+  if (keybase::currentBinding->engineCallback_) {
+    keybase::currentBinding->engineCallback_->call(*runtime, jsi_string);
+  }
+  env->ReleaseStringUTFChars(engineData, nativeString);
 }
-#endif
+}
 
 namespace keybase {
 
@@ -73,32 +83,10 @@ jsi::Value Binding::get(jsi::Runtime &runtime, const jsi::PropNameID &name) {
   if (methodName == "addListener") {
     return jsi::Function::createFromHostFunction(
         runtime, name, 1,
-        [](jsi::Runtime &runtime, const jsi::Value &thisValue,
-           const jsi::Value *arguments, size_t count) -> jsi::Value {
+        [this](jsi::Runtime &runtime, const jsi::Value &thisValue,
+               const jsi::Value *arguments, size_t count) -> jsi::Value {
           auto fn = arguments[0].getObject(runtime).asFunction(runtime);
-          auto eventhandler =
-              std::make_shared<EventHandlerWrapper>(std::move(fn));
-          std::thread t([eventhandler, &runtime]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            while (true) {
-              // __android_log_print(ANDROID_LOG_INFO, "GOJSI", "starting
-              // read");
-              auto result = ReadB64ForC();
-              auto b64data = result.r0;
-              // __android_log_print(ANDROID_LOG_INFO, "GOJSI",
-              //                     "from read: err %s", result.r1);
-              try {
-                auto jsi_string =
-                    jsi::String::createFromAscii(runtime, b64data);
-                eventhandler->callback.call(runtime, jsi_string);
-              } catch (...) {
-                __android_log_print(ANDROID_LOG_INFO, "GOJSI",
-                                    "Failed to call callback. Dev Reload?");
-                break;
-              }
-            }
-          });
-          t.detach();
+          engineCallback_ = std::make_unique<jsi::Function>(std::move(fn));
           return jsi::Value::undefined();
         });
   }

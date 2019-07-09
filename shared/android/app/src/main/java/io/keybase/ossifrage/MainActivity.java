@@ -11,13 +11,11 @@ import android.view.KeyEvent;
 import android.view.Window;
 
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.ReactApplication;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactFragmentActivity;
-import com.facebook.react.modules.core.PermissionListener;
-
+import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.modules.core.PermissionListener;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import java.io.File;
@@ -28,7 +26,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.modules.IntentHandler;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.VideoHelper;
