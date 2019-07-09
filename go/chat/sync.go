@@ -285,7 +285,6 @@ func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
 	switch conv.Metadata.Status {
 	case chat1.ConversationStatus_BLOCKED,
 		chat1.ConversationStatus_IGNORED,
-		chat1.ConversationStatus_MUTED,
 		chat1.ConversationStatus_REPORTED:
 		return false
 	}

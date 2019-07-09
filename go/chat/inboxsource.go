@@ -727,9 +727,9 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	var bgEnqueued int
 	// Limit the number of jobs we enqueue when on a limited data connection in
 	// mobile.
-	maxBgEnqueued := 50
+	maxBgEnqueued := 10
 	if s.G().MobileNetState.State().IsLimited() {
-		maxBgEnqueued = 10
+		maxBgEnqueued = 3
 	}
 
 	for _, conv := range ib.Inbox.Full().Conversations {
