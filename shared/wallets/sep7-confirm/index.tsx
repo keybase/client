@@ -128,14 +128,14 @@ const Header = (props: HeaderProps) => (
 )
 
 type PaymentInfoProps = {
-  amount: string
+  amount: string | null // TODO is this ok
   availableToSendNative: string
   displayAmountFiat: string
   memo: string | null
   message: string | null
   onChangeAmount: (amount: string) => void
   recipient: string
-  userAmount: string
+  userAmount: string | null // TODO is this ok
 }
 const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -223,7 +223,7 @@ const SEP7Confirm = (props: Props) => (
           type="Success"
           onClick={
             props.operation === 'pay'
-              ? () => props.onAcceptPay(props.amount || props.userAmount)
+              ? () => props.onAcceptPay(props.amount || props.userAmount || '' /* TODO is this ok?*/)
               : props.onAcceptTx
           }
           waitingKey={props.waitingKey}

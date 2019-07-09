@@ -322,13 +322,15 @@ const TransactionDetails = (props: NotLoadingProps) => {
         (props.sourceIssuerAccountID === Types.noAccountID
           ? 'Unknown issuer'
           : Constants.shortenAccountID(props.sourceIssuerAccountID))
+  const {issuerAccountID} = props
   const destinationIssuer =
     props.assetCode === ''
       ? 'Stellar Lumens'
       : props.issuerDescription ||
-        (props.issuerAccountID === Types.noAccountID
+        // TODO is this ok?
+        (issuerAccountID === Types.noAccountID || !issuerAccountID
           ? 'Unknown issuer'
-          : Constants.shortenAccountID(props.issuerAccountID))
+          : Constants.shortenAccountID(issuerAccountID))
 
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>

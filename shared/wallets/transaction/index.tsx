@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
@@ -131,7 +130,7 @@ type DetailProps = {
 
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
-  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
+  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : undefined
   const textTypeItalic = props.large ? 'BodyItalic' : 'BodySmallItalic'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
@@ -367,7 +366,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   }
   const human = formatTimeForMessages(timestamp.getTime())
   const tooltip = formatTimeForStellarTooltip(timestamp)
-  let status = capitalize(props.status)
+  let status: string | null = capitalize(props.status)
   // 'claimable' -> show 'pending' and completed -> show nothing
   switch (status) {
     case 'Completed':
@@ -383,7 +382,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text
       selectable={props.selectableText}
-      style={props.reverseColor && {color: globalColors.white}}
+      style={props.reverseColor ? {color: globalColors.white} : undefined}
       title={tooltip}
       type="BodySmall"
     >
@@ -485,7 +484,7 @@ export const Transaction = (props: Props) => {
           )}
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
-              detailView={props.detailView}
+              detailView={props.detailView || false}
               error={props.status === 'error' ? props.statusDetail : ''}
               reverseColor={props.fromAirdrop}
               selectableText={props.selectableText}
@@ -571,7 +570,7 @@ const styles = styleSheetCreate({
   flexOne: {flex: 1},
   lineThrough: {
     textDecorationLine: 'line-through',
-  },
+  } as const,
   marginLeftAuto: {marginLeft: 'auto'},
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
