@@ -6,6 +6,7 @@ package systests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/service"
@@ -213,13 +214,17 @@ func TestDelegateUI(t *testing.T) {
 	}
 
 	// We should get either a 'done' or an 'error' from the delegateUI.
-	err, ok := <-dui.ch
-	if err != nil {
-		t.Errorf("Error with delegate UI: %v", err)
-	} else if ok {
-		t.Errorf("Delegate UI didn't close the channel properly")
-	} else if err = dui.checkSuccess(); err != nil {
-		t.Error(err)
+	select {
+	case err, ok := <-dui.ch:
+		if err != nil {
+			t.Errorf("Error with delegate UI: %v", err)
+		} else if ok {
+			t.Errorf("Delegate UI didn't close the channel properly")
+		} else if err = dui.checkSuccess(); err != nil {
+			t.Error(err)
+		}
+	case <-time.After(20 * time.Second):
+		t.Fatal("no callback from delegate UI")
 	}
 
 	if err := CtlStop(tc1.G); err != nil {

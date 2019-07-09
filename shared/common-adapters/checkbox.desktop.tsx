@@ -17,7 +17,11 @@ class Checkbox extends Component<Props> {
 
     const boxStyle = {
       ...transition('background'),
-      backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
+      backgroundColor: this.props.checked
+        ? globalColors.blue
+        : this.props.boxBackgroundColor
+        ? this.props.boxBackgroundColor
+        : 'inherit',
       border: `solid 1px ${borderColor}`,
       borderRadius: 2,
       height: CHECKBOX_SIZE,

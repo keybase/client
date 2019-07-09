@@ -1,5 +1,7 @@
+import PeopleRoot from './container'
+
 export const newRoutes = {
-  peopleRoot: {getScreen: () => require('./container').default, upgraded: true},
+  peopleRoot: {getScreen: (): typeof PeopleRoot => require('./container').default, upgraded: true},
 }
 
 export const newModalRoutes = {}

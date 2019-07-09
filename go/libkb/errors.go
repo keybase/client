@@ -1232,6 +1232,7 @@ const (
 	merkleErrorWrongSkipSequence
 	merkleErrorWrongRootSkips
 	merkleErrorFailedCheckpoint
+	merkleErrorTooMuchClockDrift
 )
 
 type MerkleClientError struct {

@@ -18,6 +18,7 @@ type Actions =
   | DevicesGen.RevokedPayload
   | Tracker2Gen.UpdatedDetailsPayload
   | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
+  | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -248,6 +249,10 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({
         appOutOfDateMessage: action.payload.message,
         appOutOfDateStatus: action.payload.status,
+      })
+    case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
+      return state.merge({
+        runtimeStats: action.payload.params.stats,
       })
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)

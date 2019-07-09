@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
-type Item =
+export type Item =
   | {
       key: string
       id: Types.DeviceID

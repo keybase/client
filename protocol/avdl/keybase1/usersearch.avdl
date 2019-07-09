@@ -43,9 +43,10 @@ protocol userSearch {
         double score;
         union { null, APIUserKeybaseResult } keybase;
         union { null, APIUserServiceResult } service;
+        union { null, ProcessedContact } contact;
         @jsonkey("services_summary")
         map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
     }
 
-    array<APIUserSearchResult> userSearch(string query, string service, int maxResults, boolean includeServicesSummary);
+    array<APIUserSearchResult> userSearch(string query, string service, int maxResults, boolean includeServicesSummary, boolean includeContacts);
 }

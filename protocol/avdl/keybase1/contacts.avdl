@@ -5,6 +5,10 @@ protocol contacts {
     // Contact syncing / resolving
     // ---------------------------
 
+    // Warning: if any of this is changed, it is likely that storage
+    // versions have to be changed in contacts/phonebook.go and
+    // contacts/cache.go.
+
     // Contact records coming from the operating system API. Usually
     // a contact will have a name and a number of associated "components"
     // like phone numbers or emails.
@@ -34,13 +38,18 @@ protocol contacts {
         string fullName; // Keybase full name
         boolean following; // whether resolved user is followed by current user
 
+        string assertion; // for use in team / chat building
+
         // Used for display in UI, derived by service from the fields above.
         // If contact is not resolved, these will be populated by some fields
         // from contact itself.
-        // If resolved, these will be populated by a combination of Keybase username, 
+        // If resolved, these will be populated by a combination of Keybase username,
         // Keybase full name, and contact name, depending what's available.
         string displayName;
         string displayLabel;
+
+        // If ProcessedContact comes from people search, raw match score goes here.
+        double rawScore;
     }
 
     // lookupContactList transforms contact list (where every contact may have
@@ -55,4 +64,7 @@ protocol contacts {
     // ContactComponent is transformed into ProcessedContact and returned. They are
     // separate because each one can be used in the UI to allow for SBS chat.
     array<ProcessedContact> lookupContactList(int sessionID, array<Contact> contacts, RegionCode userRegionCode);
+
+    void saveContactList(int sessionID, array<Contact> contacts);
+    array<ProcessedContact> lookupSavedContactsList(int sessionID);
 }

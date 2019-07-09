@@ -842,6 +842,8 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		}
 	}
 
+	hp.SetRatchetBlindingKeySet(teamUpdate.RatchetBlindingKeySet)
+
 	m.Debug("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v; lastSecretGen=%d; %d hidden chainlinks", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil, lastSecretGen, len(teamUpdate.HiddenChain))
 
 	return &groceries{
@@ -1301,8 +1303,23 @@ func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg
 		})
 }
 
-func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, links []sig3.ExportJSON, hp *hidden.LoaderPackage) (err error) {
-	err = hp.Update(m, links)
+func (f *FastTeamChainLoader) consumeRatchets(m libkb.MetaContext, newLinks []*ChainLinkUnpacked, hp *hidden.LoaderPackage) (err error) {
+	for _, link := range newLinks {
+		if err := consumeRatchets(m, hp, link); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, groceries *groceries, hp *hidden.LoaderPackage) (err error) {
+
+	err = f.consumeRatchets(m, groceries.newLinks, hp)
+	if err != nil {
+		return err
+	}
+
+	err = hp.Update(m, groceries.newHiddenLinks)
 	if err != nil {
 		return err
 	}
@@ -1364,7 +1381,7 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 		return nil, err
 	}
 
-	err = f.processHidden(m, arg, state, groceries.newHiddenLinks, hp)
+	err = f.processHidden(m, arg, state, groceries, hp)
 	if err != nil {
 		return nil, err
 	}

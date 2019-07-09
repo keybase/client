@@ -752,7 +752,13 @@ export const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
 
-export const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
+export const shortenAccountID = (id: Types.AccountID) => {
+  if (id) {
+    return id.substring(0, 8) + '...' + id.substring(48)
+  } else {
+    return id
+  }
+}
 
 export const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)

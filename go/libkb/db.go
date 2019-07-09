@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBSavedContacts                  = 0xb7
 	DBChatLocation                   = 0xb8
 	DBHiddenChainStorage             = 0xb9
 	DBContactResolution              = 0xba

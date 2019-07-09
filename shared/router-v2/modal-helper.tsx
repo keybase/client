@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {Route} from './routes'
-import {connect, isMobile} from '../util/container'
+import {connect, isMobile, Route} from '../util/container'
 import {WithoutPopupProps, HocExtractProps} from '../common-adapters/popup-dialog-hoc'
 import {InferableComponentEnhancerWithProps, Matching} from 'react-redux'
 

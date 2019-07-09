@@ -128,6 +128,7 @@ func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { re
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
+func (n NullConfiguration) GetRuntimeStatsEnabled() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -1894,6 +1895,13 @@ func (e *Env) ForceSecretStoreFile() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_SECRET_STORE_FILE") },
 		func() (bool, bool) { return e.GetConfig().GetForceSecretStoreFile() },
+	)
+}
+
+func (e *Env) GetRuntimeStatsEnabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUNTIME_STATS_ENABLED") },
+		func() (bool, bool) { return e.GetConfig().GetRuntimeStatsEnabled() },
 	)
 }
 

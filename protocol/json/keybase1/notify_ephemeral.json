@@ -21,6 +21,19 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "newTeambotEk": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "generation",
+          "type": "EkGeneration"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

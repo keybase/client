@@ -1040,6 +1040,10 @@
     "getProxyData": {
       "request": [],
       "response": "ProxyData"
+    },
+    "toggleRuntimeStats": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"
