@@ -31,17 +31,26 @@ const load = () => {
           onClose={Sb.action('onClose')}
         />
         <Banner
-          key="9"
+          key="10"
           color="red"
           content={[
-            'Some of ',
-            {onClick: Sb.action('meatball'), text: 'meatball'},
-            "'s proofs are broken. Broken blah blah blah blah blah broken.",
+            [
+              'A banner with inline actions ',
+              {onClick: Sb.action('action1'), text: 'action1'},
+              ' and ',
+              {onClick: Sb.action('action2'), text: 'action2'},
+              ' and new line actions',
+            ],
+            [
+              {onClick: Sb.action('action3'), text: 'action3'},
+              ', ',
+              {onClick: Sb.action('action4'), text: 'action4'},
+            ],
           ]}
           onClose={Sb.action('onClose')}
         />
         <Banner
-          key="9"
+          key="11"
           color="red"
           content={[
             'Here is a super long banner message with ',
