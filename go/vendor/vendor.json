@@ -607,16 +607,16 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "1emaUoEuBsHPxDJQD53Vmap9wxc=",
+			"checksumSHA1": "DRiE8R9PcafVgnFzdVQUkrx5nms=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "004a9009320cecffb4c913139893827f3853ce13",
-			"revisionTime": "2019-05-16T14:45:25Z"
+			"revision": "569e5205ea298535ffe8aedb31ca96d8a6c98c3b",
+			"revisionTime": "2019-06-24T20:14:47Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "90b66cf1fabef350ab12761b2c6153335e766331",
-			"revisionTime": "2018-09-04T18:05:18Z"
+			"revision": "569e5205ea298535ffe8aedb31ca96d8a6c98c3b",
+			"revisionTime": "2019-06-24T20:14:47Z"
 		},
 		{
 			"checksumSHA1": "Ji3qqxyGVXi6nsQwM1EdlL0lO8A=",
@@ -1601,10 +1601,22 @@
 			"revisionTime": "2019-01-10T19:11:31Z"
 		},
 		{
+			"checksumSHA1": "f3Y7JIZH61oMmp8nphqe8Mg+XoU=",
+			"path": "golang.org/x/net/internal/socks",
+			"revision": "b5b0513f8c1bb7c1e3e6f168fba117131fe2614a",
+			"revisionTime": "2019-06-18T06:14:54Z"
+		},
+		{
 			"checksumSHA1": "UxahDzW2v4mf/+aFxruuupaoIwo=",
 			"path": "golang.org/x/net/internal/timeseries",
 			"revision": "927f97764cc334a6575f4b7a1584a147864d5723",
 			"revisionTime": "2018-12-19T06:27:23Z"
+		},
+		{
+			"checksumSHA1": "28Sn0XihdqNv3MysxyRalibC3Tg=",
+			"path": "golang.org/x/net/proxy",
+			"revision": "b5b0513f8c1bb7c1e3e6f168fba117131fe2614a",
+			"revisionTime": "2019-06-18T06:14:54Z"
 		},
 		{
 			"checksumSHA1": "0rtkNLoPG+7aUTLSaHewL7D8JQI=",

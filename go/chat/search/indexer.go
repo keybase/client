@@ -32,8 +32,10 @@ type Indexer struct {
 	resumeWait   time.Duration
 	started      bool
 
-	maxSyncConvs   int
-	startSyncDelay time.Duration
+	maxSyncConvs          int
+	startSyncDelay        time.Duration
+	selectiveSyncActiveMu sync.Mutex
+	selectiveSyncActive   bool
 
 	// for testing
 	consumeCh                            chan chat1.ConversationID
@@ -136,7 +138,8 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 
 	ticker := libkb.NewBgTicker(time.Hour)
 	after := time.After(idx.startSyncDelay)
-	state := keybase1.MobileAppState_FOREGROUND
+	appState := keybase1.MobileAppState_FOREGROUND
+	netState := keybase1.MobileNetworkState_WIFI
 	var cancelFn context.CancelFunc
 	var l sync.Mutex
 	cancelSync := func() {
@@ -148,6 +151,9 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 		}
 	}
 	attemptSync := func(ctx context.Context) {
+		if netState.IsLimited() {
+			return
+		}
 		l.Lock()
 		defer l.Unlock()
 		if cancelFn != nil {
@@ -187,11 +193,16 @@ func (idx *Indexer) SyncLoop(ctx context.Context, uid gregor1.UID) {
 			attemptSync(ctx)
 		case <-ticker.C:
 			attemptSync(ctx)
-		case state = <-idx.G().MobileAppState.NextUpdate(&state):
-			switch state {
+		case appState = <-idx.G().MobileAppState.NextUpdate(&appState):
+			switch appState {
 			case keybase1.MobileAppState_FOREGROUND:
 			// if we enter any state besides foreground cancel any running syncs
 			default:
+				cancelSync()
+			}
+		case netState = <-idx.G().MobileNetState.NextUpdate(&netState):
+			if netState.IsLimited() {
+				// if we switch off of wifi cancel any running syncs
 				cancelSync()
 			}
 		case ch := <-suspendCh:
@@ -510,11 +521,25 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	return sess.run(ctx)
 }
 
+func (idx *Indexer) IsBackgroundActive() bool {
+	idx.selectiveSyncActiveMu.Lock()
+	defer idx.selectiveSyncActiveMu.Unlock()
+	return idx.selectiveSyncActive
+}
+
+func (idx *Indexer) setSelectiveSyncActive(val bool) {
+	idx.selectiveSyncActiveMu.Lock()
+	defer idx.selectiveSyncActiveMu.Unlock()
+	idx.selectiveSyncActive = val
+}
+
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
+	idx.setSelectiveSyncActive(true)
+	defer func() { idx.setSelectiveSyncActive(false) }()
 
 	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {

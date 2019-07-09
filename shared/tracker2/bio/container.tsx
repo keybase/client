@@ -2,13 +2,11 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/tracker2'
 import * as WalletsConstants from '../../constants/wallets'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-
 import Bio from '.'
 
 type OwnProps = {
   inTracker: boolean
   username: string
-  youAreInAirdrop?: boolean
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
@@ -34,20 +32,22 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  airdropIsLive: stateProps.airdropIsLive,
-  bio: stateProps.bio,
-  followThem: stateProps.followThem,
-  followersCount: stateProps.followersCount,
-  followingCount: stateProps.followingCount,
-  followsYou: stateProps.followsYou,
-  fullname: stateProps.fullname,
-  inTracker: ownProps.inTracker,
-  location: stateProps.location,
-  onBack: dispatchProps.onBack,
-  onLearnMore: dispatchProps.onLearnMore,
-  registeredForAirdrop: stateProps.registeredForAirdrop,
-  youAreInAirdrop: stateProps.youAreInAirdrop,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Bio)
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => ({
+    airdropIsLive: stateProps.airdropIsLive,
+    bio: stateProps.bio,
+    followThem: stateProps.followThem,
+    followersCount: stateProps.followersCount,
+    followingCount: stateProps.followingCount,
+    followsYou: stateProps.followsYou,
+    fullname: stateProps.fullname,
+    inTracker: ownProps.inTracker,
+    location: stateProps.location,
+    onBack: dispatchProps.onBack,
+    onLearnMore: dispatchProps.onLearnMore,
+    registeredForAirdrop: stateProps.registeredForAirdrop,
+    youAreInAirdrop: stateProps.youAreInAirdrop,
+  })
+)(Bio)

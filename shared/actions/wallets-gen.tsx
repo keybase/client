@@ -244,6 +244,7 @@ type _PaymentDetailReceivedPayload = {
 }
 type _PaymentsReceivedPayload = {
   readonly accountID: Types.AccountID
+  readonly allowClearOldestUnread: boolean
   readonly paymentCursor: StellarRPCTypes.PageCursor | null
   readonly oldestUnread: Types.PaymentID
   readonly payments: Array<Types.PaymentResult>

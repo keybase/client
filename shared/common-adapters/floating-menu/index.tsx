@@ -18,7 +18,6 @@ export type Props = {
   header?: MenuItem | null
   backgroundColor?: Color
   listStyle?: Object
-  menuStyle?: Object
   onHidden: () => void
   visible: boolean
   attachTo?: () => React.Component<any> | null
@@ -51,7 +50,6 @@ export default (props: Props) => {
         listStyle={props.listStyle}
         textColor={props.textColor}
         backgroundColor={props.backgroundColor}
-        style={props.menuStyle}
       />
     </Overlay>
   )

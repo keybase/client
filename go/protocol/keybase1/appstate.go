@@ -43,19 +43,21 @@ func (e MobileAppState) String() string {
 type MobileNetworkState int
 
 const (
-	MobileNetworkState_NONE    MobileNetworkState = 0
-	MobileNetworkState_WIFI    MobileNetworkState = 1
-	MobileNetworkState_CELLUAR MobileNetworkState = 2
-	MobileNetworkState_UNKNOWN MobileNetworkState = 3
+	MobileNetworkState_NONE         MobileNetworkState = 0
+	MobileNetworkState_WIFI         MobileNetworkState = 1
+	MobileNetworkState_CELLUAR      MobileNetworkState = 2
+	MobileNetworkState_UNKNOWN      MobileNetworkState = 3
+	MobileNetworkState_NOTAVAILABLE MobileNetworkState = 4
 )
 
 func (o MobileNetworkState) DeepCopy() MobileNetworkState { return o }
 
 var MobileNetworkStateMap = map[string]MobileNetworkState{
-	"NONE":    0,
-	"WIFI":    1,
-	"CELLUAR": 2,
-	"UNKNOWN": 3,
+	"NONE":         0,
+	"WIFI":         1,
+	"CELLUAR":      2,
+	"UNKNOWN":      3,
+	"NOTAVAILABLE": 4,
 }
 
 var MobileNetworkStateRevMap = map[MobileNetworkState]string{
@@ -63,6 +65,7 @@ var MobileNetworkStateRevMap = map[MobileNetworkState]string{
 	1: "WIFI",
 	2: "CELLUAR",
 	3: "UNKNOWN",
+	4: "NOTAVAILABLE",
 }
 
 func (e MobileNetworkState) String() string {

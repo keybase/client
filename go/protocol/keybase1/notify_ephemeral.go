@@ -13,8 +13,14 @@ type NewTeamEkArg struct {
 	Generation EkGeneration `codec:"generation" json:"generation"`
 }
 
+type NewTeambotEkArg struct {
+	Id         TeamID       `codec:"id" json:"id"`
+	Generation EkGeneration `codec:"generation" json:"generation"`
+}
+
 type NotifyEphemeralInterface interface {
 	NewTeamEk(context.Context, NewTeamEkArg) error
+	NewTeambotEk(context.Context, NewTeambotEkArg) error
 }
 
 func NotifyEphemeralProtocol(i NotifyEphemeralInterface) rpc.Protocol {
@@ -36,6 +42,21 @@ func NotifyEphemeralProtocol(i NotifyEphemeralInterface) rpc.Protocol {
 					return
 				},
 			},
+			"newTeambotEk": {
+				MakeArg: func() interface{} {
+					var ret [1]NewTeambotEkArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]NewTeambotEkArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]NewTeambotEkArg)(nil), args)
+						return
+					}
+					err = i.NewTeambotEk(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -46,5 +67,10 @@ type NotifyEphemeralClient struct {
 
 func (c NotifyEphemeralClient) NewTeamEk(ctx context.Context, __arg NewTeamEkArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyEphemeral.newTeamEk", []interface{}{__arg})
+	return
+}
+
+func (c NotifyEphemeralClient) NewTeambotEk(ctx context.Context, __arg NewTeambotEkArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.newTeambotEk", []interface{}{__arg}, nil)
 	return
 }

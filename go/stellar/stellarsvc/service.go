@@ -566,7 +566,7 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	}
 	if recipient.AccountID == nil {
 		if recipient.User != nil {
-			return res, fmt.Errorf("Assertion resolved to Keybase user %q, but they do not have a Stellar account", recipient.User.Username)
+			return res, fmt.Errorf("Keybase user %q does not have a Stellar account", recipient.User.Username)
 		} else if recipient.Assertion != nil {
 			return res, fmt.Errorf("Could not resolve assertion %q", *recipient.Assertion)
 		} else {
