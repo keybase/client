@@ -358,6 +358,11 @@ export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
     .replace(/#/g, ',')
     .split(',')
 
+export const getUsernamesFromPath = (path: Types.Path): Array<string> => {
+  const elems = Types.getPathElements(path)
+  return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2])
+}
+
 export const humanReadableFileSize = (size: number) => {
   const kib = 1024
   const mib = kib * kib

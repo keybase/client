@@ -13,7 +13,7 @@ type Props = {
   users: Array<string> | null
 }
 
-const ProofBrokenBanner = (props: Props) => {
+const ProofBrokenBannerNonEmpty = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onClickUsername = React.useCallback(
     isMobile
@@ -21,9 +21,6 @@ const ProofBrokenBanner = (props: Props) => {
       : (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     [dispatch]
   )
-  if (!props.users || !props.users.length) {
-    return null
-  }
   const content: Array<string | {text: string; onClick: () => void}> =
     props.users.length === 1
       ? [
@@ -57,5 +54,8 @@ const ProofBrokenBanner = (props: Props) => {
     </Kb.Banner>
   )
 }
+
+// Skip hooks if `users` is empty.
+const ProofBrokenBanner = (props: Props) => !!props.users.length && <ProofBrokenBannerNonEmpty {...props} />
 
 export default ProofBrokenBanner
