@@ -442,6 +442,10 @@ func (p CommandLine) GetForceSecretStoreFile() (bool, bool) {
 	return false, false // not configurable via command line flags
 }
 
+func (p CommandLine) GetRuntimeStatsEnabled() (bool, bool) {
+	return false, false
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {

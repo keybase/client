@@ -2686,3 +2686,22 @@ func (k *SimpleFS) SimpleFSDeobfuscatePath(
 	}
 	return res, nil
 }
+
+// SimpleFSGetStats implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
+	res keybase1.SimpleFSStats, err error) {
+	ctx = k.makeContext(ctx)
+	dbc := k.config.DiskBlockCache()
+	if dbc == nil {
+		return keybase1.SimpleFSStats{}, nil
+	}
+
+	statusMap := dbc.Status(ctx)
+	if status, ok := statusMap["SyncBlockCache"]; ok {
+		res.SyncCacheDbStats = status.BlockDBStats
+	}
+	if status, ok := statusMap["WorkingSetBlockCache"]; ok {
+		res.BlockCacheDbStats = status.BlockDBStats
+	}
+	return res, nil
+}

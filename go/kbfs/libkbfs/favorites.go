@@ -169,11 +169,11 @@ func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	var db *LevelDb
 	var err error
 	if f.config.IsTestMode() {
-		db, err = openLevelDB(storage.NewMemStorage())
+		db, err = openLevelDB(storage.NewMemStorage(), f.config.Mode())
 	} else {
 		db, err = openVersionedLevelDB(f.log, f.config.StorageRoot(),
 			kbfsFavoritesCacheSubfolder, favoritesDiskCacheStorageVersion,
-			favoritesDiskCacheFilename)
+			favoritesDiskCacheFilename, f.config.Mode())
 	}
 	if err != nil {
 		return err

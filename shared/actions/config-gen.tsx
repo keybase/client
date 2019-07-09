@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {ConnectionType} from '@react-native-community/netinfo'
+import {ConnectionType} from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'

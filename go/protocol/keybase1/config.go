@@ -159,6 +159,8 @@ type ExtendedStatus struct {
 	DefaultDeviceID        DeviceID            `codec:"defaultDeviceID" json:"defaultDeviceID"`
 	LocalDbStats           []string            `codec:"localDbStats" json:"localDbStats"`
 	LocalChatDbStats       []string            `codec:"localChatDbStats" json:"localChatDbStats"`
+	LocalBlockCacheDbStats []string            `codec:"localBlockCacheDbStats" json:"localBlockCacheDbStats"`
+	LocalSyncCacheDbStats  []string            `codec:"localSyncCacheDbStats" json:"localSyncCacheDbStats"`
 	CacheDirSizeInfo       []DirSizeInfo       `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
 	UiRouterMapping        map[string]int      `codec:"uiRouterMapping" json:"uiRouterMapping"`
 }
@@ -266,6 +268,28 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.LocalChatDbStats),
+		LocalBlockCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LocalBlockCacheDbStats),
+		LocalSyncCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LocalSyncCacheDbStats),
 		CacheDirSizeInfo: (func(x []DirSizeInfo) []DirSizeInfo {
 			if x == nil {
 				return nil
@@ -902,6 +926,9 @@ type SetProxyDataArg struct {
 type GetProxyDataArg struct {
 }
 
+type ToggleRuntimeStatsArg struct {
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
@@ -933,6 +960,7 @@ type ConfigInterface interface {
 	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
+	ToggleRuntimeStats(context.Context) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1264,6 +1292,16 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"toggleRuntimeStats": {
+				MakeArg: func() interface{} {
+					var ret [1]ToggleRuntimeStatsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.ToggleRuntimeStats(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1403,5 +1441,10 @@ func (c ConfigClient) SetProxyData(ctx context.Context, proxyData ProxyData) (er
 
 func (c ConfigClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []interface{}{GetProxyDataArg{}}, &res)
+	return
+}
+
+func (c ConfigClient) ToggleRuntimeStats(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []interface{}{ToggleRuntimeStatsArg{}}, nil)
 	return
 }

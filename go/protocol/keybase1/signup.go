@@ -40,6 +40,7 @@ type SignupArg struct {
 	GenPGPBatch bool       `codec:"genPGPBatch" json:"genPGPBatch"`
 	GenPaper    bool       `codec:"genPaper" json:"genPaper"`
 	RandomPw    bool       `codec:"randomPw" json:"randomPw"`
+	VerifyEmail bool       `codec:"verifyEmail" json:"verifyEmail"`
 }
 
 type InviteRequestArg struct {

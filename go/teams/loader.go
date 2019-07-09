@@ -657,6 +657,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			return nil, err
 		}
 		mctx.Debug("TeamLoader got %v links", len(teamUpdate.Chain))
+		hiddenPackage.SetRatchetBlindingKeySet(teamUpdate.RatchetBlindingKeySet)
 	}
 
 	tracer.Stage("unpack")
@@ -699,7 +700,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	suppressLoggingUpto := len(links) - 5
 	for i, link := range links {
 		var err error
-		ret, prev, err = l.doOneLink(ctx, arg, ret, hiddenPackage.ChainData(), link, i, suppressLoggingStart, suppressLoggingUpto, lastSeqno, &parentChildOperations, prev, fullVerifyCutoff, readSubteamID, proofSet, lkc, &parentsCache)
+		ret, prev, err = l.doOneLink(mctx, arg, ret, hiddenPackage, link, i, suppressLoggingStart, suppressLoggingUpto, lastSeqno, &parentChildOperations, prev, fullVerifyCutoff, readSubteamID, proofSet, lkc, &parentsCache)
 		if err != nil {
 			return nil, err
 		}
@@ -990,18 +991,21 @@ func (l *TeamLoader) checkNeedRotateWithSigner(mctx libkb.MetaContext, chain *ke
 	return false, nil
 }
 
-func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1.TeamData, hidden *keybase1.HiddenTeamChain, link *ChainLinkUnpacked, i int, suppressLoggingStart int, suppressLoggingUpto int, lastSeqno keybase1.Seqno, parentChildOperations *[](*parentChildOperation), prev libkb.LinkID, fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache, parentsCache *parentChainCache) (*keybase1.TeamData, libkb.LinkID, error) {
+func (l *TeamLoader) doOneLink(mctx libkb.MetaContext, arg load2ArgT, ret *keybase1.TeamData, hiddenPackage *hidden.LoaderPackage, link *ChainLinkUnpacked, i int, suppressLoggingStart int, suppressLoggingUpto int, lastSeqno keybase1.Seqno, parentChildOperations *[](*parentChildOperation), prev libkb.LinkID, fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache, parentsCache *parentChainCache) (*keybase1.TeamData, libkb.LinkID, error) {
 
 	var nilPrev libkb.LinkID
 
+	ctx := mctx.Ctx()
 	if suppressLoggingStart <= i && i < suppressLoggingUpto {
 		if i == suppressLoggingStart {
-			l.G().Log.CDebugf(ctx, "TeamLoader suppressing logs until %v", suppressLoggingUpto)
+			mctx.Debug("TeamLoader suppressing logs until %v", suppressLoggingUpto)
 		}
 		ctx = WithSuppressLogging(ctx, true)
+		mctx = mctx.WithContext(ctx)
 	}
+
 	if !ShouldSuppressLogging(ctx) {
-		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+		mctx.Debug("TeamLoader processing link seqno:%v", link.Seqno())
 	}
 
 	if link.Seqno() > lastSeqno {
@@ -1009,7 +1013,7 @@ func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1
 		// Processing it would require re-checking merkle.
 		// It would be tricky to ignore it because off-chain data is asserted to be in sync with the chain.
 		// So, return an error that the caller will retry.
-		l.G().Log.CDebugf(ctx, "TeamLoader found green link seqno:%v", link.Seqno())
+		mctx.Debug("TeamLoader found green link seqno:%v", link.Seqno())
 		return nil, nilPrev, NewGreenLinkError(link.Seqno())
 	}
 
@@ -1020,6 +1024,10 @@ func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1
 	if !link.Prev().Eq(prev) {
 		return nil, nilPrev, NewPrevError("team replay failed: prev chain broken at link %d (%v != %v)",
 			i, link.Prev(), prev)
+	}
+
+	if err := consumeRatchets(mctx, hiddenPackage, link); err != nil {
+		return nil, nilPrev, err
 	}
 
 	var signer *SignerX
@@ -1038,10 +1046,11 @@ func (l *TeamLoader) doOneLink(ctx context.Context, arg load2ArgT, ret *keybase1
 		*parentChildOperations = append(*parentChildOperations, pco)
 	}
 
-	ret, err = l.applyNewLink(ctx, ret, hidden, link, signer, arg.me)
+	ret, err = l.applyNewLink(ctx, ret, hiddenPackage.ChainData(), link, signer, arg.me)
 	if err != nil {
 		return nil, nilPrev, err
 	}
+
 	return ret, link.LinkID(), nil
 }
 

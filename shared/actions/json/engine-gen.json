@@ -319,6 +319,9 @@
         "keybase1NotifyEphemeralNewTeamEk": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {sessionID: number}"
         },
+        "keybase1NotifyEphemeralNewTeambotEk": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void}"
+        },
         "keybase1NotifyFavoritesFavoritesChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyFavorites.favoritesChanged']['inParam'] & {sessionID: number}"
         },
@@ -357,6 +360,9 @@
         },
         "keybase1NotifyPhoneNumberPhoneNumbersChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']) => void}"
+        },
+        "keybase1NotifyRuntimeStatsRuntimeStatsUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']) => void}"
         },
         "keybase1NotifyServiceShutdown": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}"

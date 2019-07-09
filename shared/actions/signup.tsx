@@ -168,6 +168,7 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
         skipMail: false,
         storeSecret: true,
         username,
+        verifyEmail: true,
       },
       waitingKey: Constants.waitingKey,
     })

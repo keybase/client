@@ -54,8 +54,12 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mctx.ActiveDevice().Name(), newName)
 
-	teamEK2, err := g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
+	ek2, err := g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Metadata.Generation, nil)
 	require.NoError(t, err)
+	typ, err := ek2.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK2 := ek2.Team()
 	require.Equal(t, teamEK1, teamEK2)
 
 	// After self provisioning we should only have a single deviceEK, and have

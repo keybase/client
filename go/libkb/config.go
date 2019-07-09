@@ -917,3 +917,7 @@ func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s
 }
+
+func (f *JSONConfigFile) GetRuntimeStatsEnabled() (bool, bool) {
+	return f.GetBoolAtPath("runtime_stats_enabled")
+}
