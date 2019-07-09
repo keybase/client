@@ -31,7 +31,10 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
             {segment.text.startsWith(' ') && <>&nbsp;</>}
             <Text
               type="BodySmallSemibold"
-              style={colorToTextColorStyles[props.bannerColor]}
+              style={Styles.collapseStyles([
+                colorToTextColorStyles[props.bannerColor],
+                !!segment.onClick && styles.underline,
+              ])}
               className={Styles.classNames({
                 'underline-hover-no-underline': !!segment.onClick,
               })}
@@ -148,6 +151,11 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
+    },
+  }),
+  underline: Styles.platformStyles({
+    isMobile: {
+      textDecorationLine: 'underline',
     },
   }),
 })

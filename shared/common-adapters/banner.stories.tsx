@@ -9,34 +9,34 @@ const load = () => {
     .add('Banner', () => (
       <Box2 direction="vertical" fullWidth={true} gap="small">
         <Banner key="1" color="red">
-          <BannerParagraph bannerColor="red" content="this is a red banner with no action" />
+          <BannerParagraph bannerColor="red" content="This is a red banner with no action." />
         </Banner>
         <Banner key="2" color="blue">
-          <BannerParagraph bannerColor="blue" content="this is a blue banner with no action" />
+          <BannerParagraph bannerColor="blue" content="This is a blue banner with no action." />
         </Banner>
         <Banner key="3" color="yellow">
-          <BannerParagraph bannerColor="yellow" content="this is a yellow banner with no action" />
+          <BannerParagraph bannerColor="yellow" content="This is a yellow banner with no action." />
         </Banner>
         <Banner key="4" color="green">
-          <BannerParagraph bannerColor="green" content="this is a green banner with no action" />
+          <BannerParagraph bannerColor="green" content="This is a green banner with no action." />
         </Banner>
         <Banner key="5" color="grey">
-          <BannerParagraph bannerColor="grey" content="this is a grey banner with no action" />
+          <BannerParagraph bannerColor="grey" content="This is a grey banner with no action." />
         </Banner>
         <Banner key="6" color="red">
           <BannerParagraph
             bannerColor="red"
-            content="this is a red banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
+            content="This is a red banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long."
           />
         </Banner>
         <Banner key="7" color="red" onClose={Sb.action('onClose')}>
           <BannerParagraph
             bannerColor="red"
-            content="this is a red closable banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
+            content="This is a red closable banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long."
           />
         </Banner>
         <Banner key="8" color="red" onClose={Sb.action('onClose')}>
-          <BannerParagraph bannerColor="red" content="this is a closable red banner" />
+          <BannerParagraph bannerColor="red" content="This is a closable red banner." />
         </Banner>
         <Banner key="9" color="red" onClose={Sb.action('onClose')}>
           <BannerParagraph
@@ -58,7 +58,7 @@ const load = () => {
               {onClick: Sb.action('action1'), text: 'action1'},
               ' and ',
               {onClick: Sb.action('action2'), text: 'action2'},
-              ' and new line actions',
+              ' and new line actions.',
             ]}
           />
           <BannerParagraph
@@ -78,7 +78,7 @@ const load = () => {
               {onClick: Sb.action('action1'), text: 'action1'},
               ' and ',
               {onClick: Sb.action('action2'), text: 'action2'},
-              '. blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah',
+              '. Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah.',
             ]}
           />
         </Banner>
