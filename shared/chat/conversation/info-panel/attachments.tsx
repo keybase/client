@@ -235,7 +235,7 @@ export class MediaView {
     if (thumbs.length === 0) return [{
       data: ['media attachments'],
       renderItem: ({item}) => _renderEmptyItem(item),
-      renderSectionHeader: () => null
+      renderSectionHeader: () => null,
     }]
     const sections = formMonths(thumbs).reduce((l, m) => {
       l.push(this._monthToSection(m))
@@ -319,7 +319,7 @@ export class DocView {
     if (docs.length === 0) return [{
       data: ['documents'],
       renderItem: ({item}) => _renderEmptyItem(item),
-      renderSectionHeader: () => null
+      renderSectionHeader: () => null,
     }]
     const sections = formMonths(docs).reduce((l, m) => {
       l.push(this._monthToSection(m))
@@ -389,7 +389,7 @@ export class LinkView {
     if (links.length === 0) return [{
       data: ['links'],
       renderItem: ({item}) => _renderEmptyItem(item),
-      renderSectionHeader: () => null
+      renderSectionHeader: () => null,
     }]
     const sections = formMonths(links).reduce((l, m) => {
       l.push(this._monthToSection(m))
