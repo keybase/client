@@ -512,6 +512,9 @@ async function manageContactsCache(
 
     const components = phoneNumbers.reduce(
       (res, pn) => {
+        // TODO this fails on many phone numbers, contact data from native may
+        // not include countryCode. Make better guesses at properly formatting
+        // this.
         const formatted = getE164(pn.countryCode || '', pn.number || '')
         if (formatted) {
           res.push({
