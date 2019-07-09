@@ -27,7 +27,7 @@ import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import ImagePicker from 'react-native-image-picker'
-import {TypedActions, TypedState} from 'util/container' // how does this work?
+import {TypedActions, TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat} from '../../util/phone-numbers'
 
