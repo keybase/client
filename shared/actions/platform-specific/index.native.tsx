@@ -415,7 +415,7 @@ const loadContactPermissionFromNative = async () => {
 
 const loadContactPermissions = async (
   _,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
   logger
 ) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
@@ -462,7 +462,6 @@ function* requestContactPermissions(
   ])
 }
 
-// TODO: this can race with `loadContactPermissions`. maybe this can get permissions itself?
 async function manageContactsCache(
   state: TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
@@ -521,7 +520,7 @@ async function manageContactsCache(
 
     return ret
   }, [])
-  console.warn(JSON.stringify(mapped, null, 2))
+  console.warn('Contacts imported')
   return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
 }
 
@@ -553,8 +552,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.osNetworkStatusChanged,
     updateMobileNetState
   )
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.mobileAppState],
+  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
   )
