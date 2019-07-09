@@ -1,6 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsGen from '../../actions/settings-gen'
+import {RouteProps} from '../../route-tree/render-route'
 
 type Props = {
   address: string
@@ -41,4 +45,34 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default ConfirmDeleteAddress
+type OwnProps = RouteProps<
+  {
+    address: string
+    type: string
+  },
+  {}
+>
+
+const DeleteModal = (props: OwnProps) => {
+  const dispatch = Container.useDispatch()
+
+  const itemAddress = Container.getRouteProps(props, 'address')
+  const itemType = Container.getRouteProps(props, 'type')
+
+  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onConfirm = React.useCallback(() => {
+    if (itemType === 'phone') {
+      dispatch(SettingsGen.createEditPhone({delete: true, phone: itemAddress}))
+    } else {
+      dispatch(SettingsGen.createEditEmail({delete: true, email: itemAddress}))
+    }
+
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [dispatch, itemAddress, itemType])
+
+  return (
+    <ConfirmDeleteAddress address={itemAddress} type={itemType} onCancel={onCancel} onConfirm={onConfirm} />
+  )
+}
+
+export {ConfirmDeleteAddress, DeleteModal}

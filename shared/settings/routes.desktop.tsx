@@ -18,6 +18,7 @@ import RemoveDevice from '../devices/device-revoke/container'
 import LogOutTab from './logout/container'
 import ChangePassword from './password/container'
 import DisableCertPinningModal from './disable-cert-pinning-modal/container'
+import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
@@ -92,6 +93,9 @@ export const newModalRoutes = {
   },
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
+  settingsDeleteAddress: {
+    getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+  },
   settingsVerifyPhone: {
     getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
   },

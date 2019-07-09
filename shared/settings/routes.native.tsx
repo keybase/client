@@ -19,6 +19,7 @@ import SettingsRoot from '.'
 import WebLink from './web-links.native'
 import LogOutTab from './logout/container'
 import DisableCertPinningModal from './disable-cert-pinning-modal/container'
+import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 import SettingsManageContacts from './account/manage-contacts.native'
 
@@ -69,6 +70,9 @@ export const newModalRoutes = {
   },
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
+  settingsDeleteAddress: {
+    getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+  },
   settingsManageContacts: {
     getScreen: (): typeof SettingsManageContacts => require('./account/manage-contacts.native').default,
   },
