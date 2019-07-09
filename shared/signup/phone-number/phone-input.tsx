@@ -143,6 +143,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   }
 
   componentDidUpdate(prevProps: CountrySelectorProps) {
+    console.log(this.props.selected)
     if (this.props.selected !== prevProps.selected) {
       this._onSelect(this.props.selected)
     }
@@ -160,7 +161,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onHidden()
   }
 
-  _onSelectMenu = selected => {
+  onSelectMenu = selected => {
     this.props.onSelect(selected)
   }
 
@@ -190,7 +191,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
               </Kb.Box2>
             ),
           }}
-          items={menuItems(countryData, this.state.filter, this._onSelectMenu)}
+          items={menuItems(countryData, this.state.filter, this.onSelectMenu)}
           listStyle={styles.countryList}
           onHidden={this.props.onHidden}
           visible={this.props.visible}
@@ -336,6 +337,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   }
 
   _toggleShowingMenu = () => {
+    if (this.state.country === '') {
+      this._countrySelectorRef.current.onSelectMenu(this.props.defaultCountry || defaultCountry)
+    }
     this._countrySelectorRef.current.clearFilter()
     this.props.toggleShowingMenu()
   }
