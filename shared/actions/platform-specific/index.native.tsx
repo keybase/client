@@ -414,9 +414,9 @@ const loadContactPermissionFromNative = async () => {
 }
 
 const loadContactPermissions = async (
-  _,
+  state: TypedState,
   action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
-  logger
+  logger: Saga.SagaLogger
 ) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
@@ -424,6 +424,16 @@ const loadContactPermissions = async (
   }
   const status = await loadContactPermissionFromNative()
   logger.info(`OS status: ${status}`)
+  if (
+    isAndroid &&
+    status === 'undetermined' &&
+    ['never_ask_again', 'undetermined'].includes(state.settings.contacts.permissionStatus)
+  ) {
+    // Workaround PermissionsAndroid.check giving only a boolean. If
+    // `requestPermissions` previously told us never_ask_again that is still the
+    // status
+    return null
+  }
   return SettingsGen.createLoadedContactPermissions({status})
 }
 
@@ -502,11 +512,11 @@ async function manageContactsCache(
 
     const components = phoneNumbers.reduce(
       (res, pn) => {
-        const formatted = getE164(pn.countryCode, pn.number)
+        const formatted = getE164(pn.countryCode || '', pn.number || '')
         if (formatted) {
           res.push({
             label: pn.label,
-            phoneNumber: phoneUtil.parse(pn.countryCode + pn.number),
+            phoneNumber: formatted,
           })
         }
         return res
