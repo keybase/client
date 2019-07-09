@@ -1143,7 +1143,7 @@ export type UnverifiedInboxUIItems = {readonly items?: Array<UnverifiedInboxUIIt
 export type UpdateConversationMembership = {readonly inboxVers: InboxVers; readonly joined?: Array<ConversationMember> | null; readonly removed?: Array<ConversationMember> | null; readonly reset?: Array<ConversationMember> | null; readonly previewed?: Array<ConversationID> | null; readonly unreadUpdate?: UnreadUpdate | null; readonly unreadUpdates?: Array<UnreadUpdate> | null}
 export type UpdateConversations = {readonly inboxVers: InboxVers; readonly convUpdates?: Array<ConversationUpdate> | null}
 export type VersionKind = String
-export type WalletStaticConfig = {readonly secretNoteMaxLength: Int; readonly publicMemoMaxLength: Int}
+export type WalletStaticConfig = {readonly paymentNoteMaxLength: Int; readonly requestNoteMaxLength: Int; readonly publicMemoMaxLength: Int}
 
 export type IncomingCallMapType = {
   'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}) => IncomingReturn

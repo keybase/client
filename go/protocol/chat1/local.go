@@ -5,7 +5,6 @@ package chat1
 
 import (
 	"errors"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -4917,14 +4916,16 @@ func (o ChatStaticConfig) DeepCopy() ChatStaticConfig {
 }
 
 type WalletStaticConfig struct {
-	SecretNoteMaxLength int `codec:"secretNoteMaxLength" json:"secretNoteMaxLength"`
-	PublicMemoMaxLength int `codec:"publicMemoMaxLength" json:"publicMemoMaxLength"`
+	PaymentNoteMaxLength int `codec:"paymentNoteMaxLength" json:"paymentNoteMaxLength"`
+	RequestNoteMaxLength int `codec:"requestNoteMaxLength" json:"requestNoteMaxLength"`
+	PublicMemoMaxLength  int `codec:"publicMemoMaxLength" json:"publicMemoMaxLength"`
 }
 
 func (o WalletStaticConfig) DeepCopy() WalletStaticConfig {
 	return WalletStaticConfig{
-		SecretNoteMaxLength: o.SecretNoteMaxLength,
-		PublicMemoMaxLength: o.PublicMemoMaxLength,
+		PaymentNoteMaxLength: o.PaymentNoteMaxLength,
+		RequestNoteMaxLength: o.RequestNoteMaxLength,
+		PublicMemoMaxLength:  o.PublicMemoMaxLength,
 	}
 }
 

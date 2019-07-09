@@ -1033,7 +1033,8 @@ protocol local {
     array<BuiltinCommandGroup> builtinCommands;
   }
   record WalletStaticConfig {
-    int secretNoteMaxLength;
+    int paymentNoteMaxLength;
+    int requestNoteMaxLength;
     int publicMemoMaxLength;
   }
   record StaticConfig {

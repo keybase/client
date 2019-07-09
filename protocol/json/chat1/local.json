@@ -3056,7 +3056,11 @@
       "fields": [
         {
           "type": "int",
-          "name": "secretNoteMaxLength"
+          "name": "paymentNoteMaxLength"
+        },
+        {
+          "type": "int",
+          "name": "requestNoteMaxLength"
         },
         {
           "type": "int",

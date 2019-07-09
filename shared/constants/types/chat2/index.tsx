@@ -31,7 +31,8 @@ export type _ChatStaticConfig = {
 export type ChatStaticConfig = I.RecordOf<_ChatStaticConfig>
 
 export type _WalletStaticConfig = {
-  secretNoteMaxLength: number
+  paymentNoteMaxLength: number
+  requestNoteMaxLength: number
   publicMemoMaxLength: number
 }
 export type WalletStaticConfig = I.RecordOf<_WalletStaticConfig>

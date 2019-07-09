@@ -6139,8 +6139,9 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 			BuiltinCommands:          tc.Context().CommandsSource.GetBuiltins(ctx),
 		},
 		Wallet: chat1.WalletStaticConfig{
-			SecretNoteMaxLength: 500,
-			PublicMemoMaxLength: 28,
+			PaymentNoteMaxLength: 500,
+			PublicMemoMaxLength:  28,
+			RequestNoteMaxLength: 240,
 		},
 	}, res)
 }

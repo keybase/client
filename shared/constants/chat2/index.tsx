@@ -86,8 +86,9 @@ export const makeStaticConfig = I.Record<Types._StaticConfig>({
     deletableByDeleteHistory: I.Set(),
   })(),
   wallet: I.Record<Types._WalletStaticConfig>({
+    paymentNoteMaxLength: 0,
     publicMemoMaxLength: 0,
-    secretNoteMaxLength: 0,
+    requestNoteMaxLength: 0,
   })(),
 })
 

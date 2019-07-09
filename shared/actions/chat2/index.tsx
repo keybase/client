@@ -2659,6 +2659,7 @@ function* loadStaticConfig(state, action: ConfigGen.DaemonHandshakePayload, logg
       }
       return res
     }, [])
+    console.log('res:', res)
     return Chat2Gen.createStaticConfigLoaded({
       // @ts-ignore codemod-issue
       staticConfig: Constants.makeStaticConfig({

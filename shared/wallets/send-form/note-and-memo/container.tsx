@@ -10,7 +10,9 @@ export const SecretNote = namedConnect(
     const recipientType = state.wallets.building.recipientType
     const building = state.wallets.building
     const built = building.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
-    const maxLength = state.wallets.staticConfig.secretNoteMaxLength
+    const maxLength = building.isRequest
+      ? state.wallets.staticConfig.requestNoteMaxLength
+      : state.wallets.staticConfig.paymentNoteMaxLength
     return {
       maxLength,
       secretNote: building.secretNote.stringValue(),

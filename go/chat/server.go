@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -2652,8 +2653,9 @@ func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, e
 		BuiltinCommands:          h.G().CommandsSource.GetBuiltins(ctx),
 	}
 	walletConfig := chat1.WalletStaticConfig{
-		SecretNoteMaxLength: 500,
-		PublicMemoMaxLength: 28,
+		PaymentNoteMaxLength: libkb.MaxStellarPaymentNoteLength,
+		RequestNoteMaxLength: msgchecker.RequestPaymentTextMaxLength,
+		PublicMemoMaxLength:  libkb.MaxStellarPaymentPublicNoteLength,
 	}
 
 	return chat1.StaticConfig{
