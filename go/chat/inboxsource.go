@@ -724,7 +724,14 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		return types.Inbox{}, err
 	}
 
-	bgEnqueued := 0
+	var bgEnqueued int
+	// Limit the number of jobs we enqueue when on a limited data connection in
+	// mobile.
+	maxBgEnqueued := 10
+	if s.G().MobileNetState.State().IsLimited() {
+		maxBgEnqueued = 3
+	}
+
 	for _, conv := range ib.Inbox.Full().Conversations {
 		// Retention policy expunge
 		expunge := conv.GetExpunge()
@@ -735,12 +742,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 			continue
 		}
 		// Queue all these convs up to be loaded by the background loader. Only
-		// load first 100 non KBFS convs, ACTIVE convs so we don't get the conv
-		// loader too backed up.
+		// load first maxBgEnqueued non KBFS convs, ACTIVE convs so we don't
+		// get the conv loader too backed up.
 		if conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS &&
 			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
 				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
-			bgEnqueued < 50 {
+			bgEnqueued < maxBgEnqueued {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 				types.ConvLoaderPriorityMedium, nil)
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {

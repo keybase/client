@@ -3187,3 +3187,13 @@ func (k TeamEphemeralKeyType) IsTeambot() bool {
 func (k TeamEphemeralKeyType) IsTeam() bool {
 	return k == TeamEphemeralKeyType_TEAM
 }
+
+// IsLimited returns if the network is considered limited based on the type.
+func (s MobileNetworkState) IsLimited() bool {
+	switch s {
+	case MobileNetworkState_WIFI, MobileNetworkState_NOTAVAILABLE:
+		return false
+	default:
+		return true
+	}
+}

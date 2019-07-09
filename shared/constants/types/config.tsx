@@ -4,6 +4,7 @@ import {ConversationIDKey} from './chat2'
 import {Tab} from '../tabs'
 import {RPCError} from '../../util/errors'
 import {LocalPath} from '../../constants/types/fs'
+import * as NetInfo from '@react-native-community/netinfo'
 
 export type _OutOfDate = {
   critical: boolean
@@ -13,6 +14,8 @@ export type _OutOfDate = {
 export type OutOfDate = I.RecordOf<_OutOfDate>
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
+// 'notavailable' is the desktop default
+export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
 export type _State = {
   appFocused: boolean
