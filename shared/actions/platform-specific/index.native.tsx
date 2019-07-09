@@ -545,7 +545,7 @@ async function manageContactsCache(
 // Get phone number in e.164, or null if we can't parse it.
 const getE164 = (countryCode: string, phoneNumber: string) => {
   try {
-    const parsed = phoneUtil.parse(countryCode + phoneNumber)
+    const parsed = phoneUtil.parse(phoneNumber, countryCode)
     return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
   } catch (e) {
     return null
