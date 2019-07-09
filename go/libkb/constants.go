@@ -600,6 +600,7 @@ const (
 	EncryptionReasonErasableKVLocalStorage  EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 	EncryptionReasonTeambotEphemeralKey     EncryptionReason = "Keybase-Teambot-Ephemeral-Key-1"
 	EncryptionReasonContactsLocalStorage    EncryptionReason = "Keybase-Contacts-Local-Storage-1"
+	EncryptionReasonKBFSFavorites           EncryptionReason = "kbfs.favorites" // legacy bad choice of encryption reason, kept as is
 )
 
 type DeriveReason string
