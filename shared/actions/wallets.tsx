@@ -425,9 +425,10 @@ const loadAssets = (
   }
 }
 
-const createPaymentsReceived = (accountID, payments, pending) =>
+const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread) =>
   WalletsGen.createPaymentsReceived({
     accountID,
+    allowClearOldestUnread,
     oldestUnread: payments.oldestUnread
       ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
       : Types.noPaymentID,
@@ -462,7 +463,9 @@ const loadPayments = (state, action: LoadPaymentsActions, logger) => {
     Promise.all([
       RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
       RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-    ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
+    ]).then(([pending, payments]) =>
+      createPaymentsReceived(action.payload.accountID, payments, pending, true)
+    )
   )
 }
 
@@ -475,7 +478,7 @@ const loadMorePayments = (state, action: WalletsGen.LoadMorePaymentsPayload, log
   return (
     cursor &&
     RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID, cursor}).then(
-      payments => createPaymentsReceived(action.payload.accountID, payments, [])
+      payments => createPaymentsReceived(action.payload.accountID, payments, [], false)
     )
   )
 }
