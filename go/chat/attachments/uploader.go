@@ -462,7 +462,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	pp := NewPendingPreviews(u.G())
 	if pre, err = pp.Get(ctx, outboxID); err != nil {
 		u.Debug(ctx, "upload: no pending preview, generating one: %s", err)
-		if pre, err = PreprocessAsset(ctx, u.DebugLabeler, src, filename, u.G().NativeVideoHelper,
+		if pre, err = PreprocessAsset(ctx, u.G(), u.DebugLabeler, src, filename, u.G().NativeVideoHelper,
 			callerPreview); err != nil {
 			return res, err
 		}

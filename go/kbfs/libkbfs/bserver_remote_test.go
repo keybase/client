@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/client/go/kbfs/env"
+
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
@@ -96,7 +98,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	}
 	config := testBlockServerRemoteConfig{newTestCodecGetter(),
 		newTestLogMaker(t), nil, nil, nil}
-	b := newBlockServerRemoteWithClient(config, &fc)
+	b := newBlockServerRemoteWithClient(&env.KBFSContext{}, config, &fc)
 
 	tlfID := tlf.FakeID(2, tlf.Private)
 	bCtx := kbfsblock.MakeFirstContext(
@@ -140,7 +142,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	serverConn, conn := rpc.MakeConnectionForTest(t)
 	config := testBlockServerRemoteConfig{newTestCodecGetter(),
 		newTestLogMaker(t), nil, nil, nil}
-	b := newBlockServerRemoteWithClient(config,
+	b := newBlockServerRemoteWithClient(&env.KBFSContext{}, config,
 		keybase1.BlockClient{Cli: conn.GetClient()})
 
 	f := func(ctx context.Context) error {

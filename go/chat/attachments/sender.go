@@ -32,7 +32,7 @@ func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat
 		return res, err
 	}
 	defer src.Close()
-	pre, err := PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
+	pre, err := PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, nil)
 	if err != nil {
 		return chat1.MakePreviewRes{}, err
 	}
@@ -54,7 +54,7 @@ func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview 
 		return res, err
 	}
 	defer src.Close()
-	return PreprocessAsset(ctx, s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
+	return PreprocessAsset(ctx, s.G(), s.DebugLabeler, src, filename, s.G().NativeVideoHelper, callerPreview)
 }
 
 func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,

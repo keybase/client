@@ -10,6 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
+
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 
@@ -101,7 +104,7 @@ func (p *Preprocess) Export(getLocation func() *chat1.PreviewLocation) (res chat
 	return res, nil
 }
 
-func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRes) (p Preprocess, err error) {
+func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview chat1.MakePreviewRes) (p Preprocess, err error) {
 	ltyp, err := callerPreview.Location.Ltyp()
 	if err != nil {
 		return p, err
@@ -121,7 +124,7 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 			return p, err
 		}
 	case chat1.PreviewLocationTyp_URL:
-		resp, err := http.Get(callerPreview.Location.Url())
+		resp, err := libkb.ProxyHTTPGet(g.Env, callerPreview.Location.Url())
 		if err != nil {
 			return p, err
 		}
@@ -202,11 +205,11 @@ func DetectMIMEType(ctx context.Context, src ReadResetter, filename string) (res
 	return res, nil
 }
 
-func PreprocessAsset(ctx context.Context, log utils.DebugLabeler, src ReadResetter, filename string,
+func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, src ReadResetter, filename string,
 	nvh types.NativeVideoHelper, callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
 		log.Debug(ctx, "preprocessAsset: caller provided preview, using that")
-		if p, err = processCallerPreview(ctx, *callerPreview); err != nil {
+		if p, err = processCallerPreview(ctx, g, *callerPreview); err != nil {
 			log.Debug(ctx, "preprocessAsset: failed to process caller preview, making fresh one: %s", err)
 		} else {
 			return p, nil
