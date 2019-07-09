@@ -30,7 +30,7 @@ const makeInit = ({method, payload, initialStore}: {method: string; payload: any
   const effect: any = mockIncomingCall(payload as any, response as any)
   if (effect) {
     // Throws in the generator only, so we have to stash it
-    let thrown
+    let thrown: Error | null = null
     sagaMiddleware.run(function*(): IterableIterator<any> {
       try {
         yield effect
@@ -50,13 +50,13 @@ const makeInit = ({method, payload, initialStore}: {method: string; payload: any
   }
 }
 
-const startReduxSaga = (initialStore = undefined) => {
+const startReduxSaga = (initialStore?: Object) => {
   const sagaMiddleware = createSagaMiddleware({
     onError: e => {
       throw e
     },
   })
-  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
+  const store = createStore(rootReducer as any, initialStore, applyMiddleware(sagaMiddleware))
   const getState: () => any = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)

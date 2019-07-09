@@ -19,7 +19,7 @@ export type Props = {
   onBack: () => void
   onLoadMore: () => void
   onMarkAsRead: () => void
-  sections: any[]
+  sections: Array<{data: any; title: string; stripeHeader?: boolean}>
 }
 
 const HistoryPlaceholder = () => (
@@ -42,7 +42,7 @@ class Wallet extends React.Component<Props> {
   }
 
   _renderItem = ({item, index, section}) => {
-    const children = []
+    const children: Array<React.ReactNode> = []
     if (item === 'notLoadedYet') {
       children.push(
         <Kb.Box2

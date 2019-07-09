@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -108,6 +107,7 @@ const Body = (props: BodyProps) => {
     props.refresh()
     return () => props.clearTrustlineModal()
   }, [])
+  const {onFocusChange} = props
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
       {props.loaded ? (
@@ -119,8 +119,8 @@ const Body = (props: BodyProps) => {
               placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
               hotkey="f"
               onChange={props.onSearchChange}
-              onFocus={props.onFocusChange && (() => props.onFocusChange(true))}
-              onBlur={props.onFocusChange && (() => props.onFocusChange(false))}
+              onFocus={onFocusChange ? () => onFocusChange(true) : null}
+              onBlur={onFocusChange ? () => onFocusChange(false) : null}
               waiting={props.waitingSearch}
             />
           </Kb.Box2>

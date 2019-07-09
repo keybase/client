@@ -735,10 +735,9 @@ export const getDefaultAccountID = (state: TypedState) => {
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 
-export const getExternalPartners = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.externalPartners
+export const getExternalPartners = (state: TypedState) => state.wallets.externalPartners
 
-export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
+export const getAssets = (state: TypedState, accountID: Types.AccountID): I.List<Types.Assets> =>
   state.wallets.assetsMap.get(accountID, I.List())
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {

@@ -2,11 +2,10 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import {getAccountIDs} from '../../../../constants/wallets'
-import openURL from '../../../../util/open-url'
 import {WalletSwitcher} from '.'
 
 type OwnProps = {
-  getAttachmentRef: () => React.Component<any> | null
+  getAttachmentRef?: (() => React.Component<any>) | null
   showingMenu: boolean
   hideMenu: () => void
 }
@@ -47,4 +46,5 @@ export default Container.connect(
     onWhatIsStellar: dispatchProps.onWhatIsStellar,
     ...ownProps,
   })
-)(WalletSwitcher)
+  // TODO fix
+)(WalletSwitcher) as any

@@ -1,5 +1,5 @@
-import {WalletRow, Props} from '.'
-import {connect} from '../../../../../util/container'
+import {WalletRow} from '.'
+import * as Container from '../../../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../../../constants/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import {AccountID} from '../../../../../constants/types/wallets'
@@ -9,12 +9,7 @@ type OwnProps = {
   hideMenu: () => void
 }
 
-const mapStateToProps = (
-  state,
-  ownProps: {
-    accountID: AccountID
-  }
-) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const account = getAccount(state, ownProps.accountID)
   const name = account.name
   const me = state.config.username || ''
@@ -30,28 +25,22 @@ const mapStateToProps = (
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  _onSelectAccount: (accountID: AccountID) =>
-    dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
-  contents: stateProps.contents,
-  isSelected: stateProps.isSelected,
-  keybaseUser: stateProps.keybaseUser,
-  name: stateProps.name,
-
-  onSelect: () => {
-    // First clear any new payments on the currently selected acct.
-    dispatchProps._onSelectAccount(ownProps.accountID)
-    ownProps.hideMenu()
-  },
-
-  unreadPayments: stateProps.unreadPayments,
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  dispatch => ({
+    _onSelectAccount: (accountID: AccountID) =>
+      dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true})),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    contents: stateProps.contents,
+    isSelected: stateProps.isSelected,
+    keybaseUser: stateProps.keybaseUser,
+    name: stateProps.name,
+    onSelect: () => {
+      // First clear any new payments on the currently selected acct.
+      dispatchProps._onSelectAccount(ownProps.accountID)
+      ownProps.hideMenu()
+    },
+    unreadPayments: stateProps.unreadPayments,
+  })
 )(WalletRow)

@@ -1,4 +1,4 @@
-import Settings, {SettingsProps} from '.'
+import Settings from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as I from 'immutable'
@@ -32,7 +32,7 @@ const prepareExternalPartners = (
     }))
     .toArray()
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   const accountID = Constants.getSelectedAccount(state)
   const account = Constants.getAccount(state, accountID)
   const name = account.name
@@ -52,7 +52,7 @@ const mapStateToProps = state => {
   const canSubmitTx = account.canSubmitTx
   const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
-  const externalPartners = Constants.getExternalPartners(state, accountID)
+  const externalPartners = Constants.getExternalPartners(state)
   return {
     accountID,
     canSubmitTx,
@@ -76,7 +76,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onBack: (accountID: Types.AccountID) => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
@@ -95,7 +95,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
   _onSetupInflation: (accountID: Types.AccountID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setInflation'}]})),
-  _refresh: accountID => {
+  _refresh: (accountID: Types.AccountID) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadInflationDestination({accountID}))
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
@@ -104,26 +104,31 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
-  ...stateProps,
-  externalPartners: prepareExternalPartners(
-    stateProps.externalPartners,
-    stateProps.accountID,
-    stateProps.user
-  ),
-  onBack: () => dispatchProps._onBack(stateProps.accountID),
-  onCurrencyChange: (code: Types.CurrencyCode) =>
-    dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
-  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-  onEditName: () => dispatchProps._onEditName(stateProps.accountID),
-  onMobileOnlyModeChange: (enabled: boolean) =>
-    dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
-  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
-  onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
-  refresh: () => dispatchProps._refresh(stateProps.accountID),
-})
-
+// TODO remove compose
 export default Container.compose(
-  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Settings'),
+  Container.namedConnect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (stateProps, dispatchProps, _: OwnProps) => ({
+      ...stateProps,
+      externalPartners: prepareExternalPartners(
+        stateProps.externalPartners,
+        stateProps.accountID,
+        stateProps.user
+      ),
+      onBack: () => dispatchProps._onBack(stateProps.accountID),
+      onCurrencyChange: (code: Types.CurrencyCode) =>
+        dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
+      onDelete: () => dispatchProps._onDelete(stateProps.accountID),
+      onEditName: () => dispatchProps._onEditName(stateProps.accountID),
+      onMobileOnlyModeChange: (enabled: boolean) =>
+        dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
+      onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
+      onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
+      refresh: () => dispatchProps._refresh(stateProps.accountID),
+    }),
+
+    'Settings'
+  ),
   Container.safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)
