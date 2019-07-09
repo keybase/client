@@ -3,6 +3,7 @@ import * as Sb from '../../../stories/storybook'
 import {SecretNote, PublicMemo} from '.'
 
 const commonProps = {
+  maxLength: 500,
   onChangePublicMemo: Sb.action('onChangePublicMemo'),
   onChangeSecretNote: Sb.action('onChangeSecretNote'),
   publicMemo: '',

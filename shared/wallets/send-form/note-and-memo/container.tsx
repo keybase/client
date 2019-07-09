@@ -10,7 +10,9 @@ export const SecretNote = namedConnect(
     const recipientType = state.wallets.building.recipientType
     const building = state.wallets.building
     const built = building.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
+    const maxLength = state.wallets.staticConfig.secretNoteMaxLength
     return {
+      maxLength,
       secretNote: building.secretNote.stringValue(),
       secretNoteError: built.secretNoteErrMsg.stringValue(),
       toSelf: recipientType === 'otherAccount',
@@ -28,7 +30,9 @@ export const PublicMemo = namedConnect(
   state => {
     const building = state.wallets.building
     const built = state.wallets.builtPayment
+    const maxLength = state.wallets.staticConfig.publicMemoMaxLength
     return {
+      maxLength,
       publicMemo: building.publicMemo.stringValue(),
       publicMemoError: built.publicMemoErrMsg.stringValue(),
     }

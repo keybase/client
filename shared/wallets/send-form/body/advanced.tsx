@@ -32,6 +32,8 @@ const SecretNoteAndPublicMemo = () => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const secretNote = buildingAdvanced.secretNote.stringValue()
   const publicMemo = buildingAdvanced.publicMemo.stringValue()
+  const secretNoteMaxLength = Container.useSelector(state => state.wallets.staticConfig.secretNoteMaxLength)
+  const publicMemoMaxLength = Container.useSelector(state => state.wallets.staticConfig.publicMemoMaxLength)
   return (
     <>
       <SecretNote
@@ -39,11 +41,13 @@ const SecretNoteAndPublicMemo = () => {
         onChangeSecretNote={onChangeSecretNote}
         toSelf={buildingAdvanced.recipientType === 'otherAccount'}
         secretNoteError={null /* TODO PICNIC-142 */}
+        maxLength={secretNoteMaxLength}
       />
       <PublicMemo
         publicMemo={publicMemo}
         onChangePublicMemo={onChangePublicMemo}
         publicMemoError={null /* TODO PICNIC-142 */}
+        maxLength={publicMemoMaxLength}
       />
     </>
   )
