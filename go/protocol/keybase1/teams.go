@@ -3023,6 +3023,7 @@ type RotationType int
 const (
 	RotationType_VISIBLE RotationType = 0
 	RotationType_HIDDEN  RotationType = 1
+	RotationType_CLKR    RotationType = 2
 )
 
 func (o RotationType) DeepCopy() RotationType { return o }
@@ -3030,11 +3031,13 @@ func (o RotationType) DeepCopy() RotationType { return o }
 var RotationTypeMap = map[string]RotationType{
 	"VISIBLE": 0,
 	"HIDDEN":  1,
+	"CLKR":    2,
 }
 
 var RotationTypeRevMap = map[RotationType]string{
 	0: "VISIBLE",
 	1: "HIDDEN",
+	2: "CLKR",
 }
 
 func (e RotationType) String() string {

@@ -74,6 +74,7 @@ const (
 	FeatureIMPTOFU            = Feature("imptofu")
 	FeatureBoxAuditor         = Feature("box_auditor2")
 	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
+	FeatureAdmin              = Feature("admin")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.

@@ -1805,6 +1805,7 @@ export enum RevisionSpanType {
 export enum RotationType {
   visible = 0,
   hidden = 1,
+  clkr = 2,
 }
 
 export enum RuntimeGroup {
