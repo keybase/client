@@ -134,6 +134,11 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
 			if newVers >= 2 {
+				// If we fail to get the inbox version, then the general goal is to just simulate like
+				// we are looking for the previous update to the one we just got (newVers). In order to do
+				// this, we act like our previous inbox version was just missing the inbox version one less
+				// than newVers. That means we are waiting for this single update (which probably isn't
+				// coming, we usually get here if we miss the inbox cache on disk).
 				vers = newVers - 2
 			} else {
 				vers = 0
