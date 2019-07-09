@@ -718,6 +718,26 @@
           "name": "spaceAvailableNotificationThreshold"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSStats",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "blockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "syncCacheDbStats"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1223,6 +1243,31 @@
         }
       ],
       "response": null
+    },
+    "simpleFSObfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSDeobfuscatePath": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    "simpleFSGetStats": {
+      "request": [],
+      "response": "SimpleFSStats"
     }
   },
   "namespace": "keybase.1"

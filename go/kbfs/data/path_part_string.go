@@ -105,6 +105,11 @@ func (pps PathPartString) Plaintext() string {
 	return pps.plaintext
 }
 
+// Obfuscator returns this string's obfuscator.
+func (pps PathPartString) Obfuscator() Obfuscator {
+	return pps.obfuscator
+}
+
 var _ json.Marshaler = PathPartString{}
 
 // MarshalJSON implements the json.Marshaler interface for PathPartString.

@@ -44,6 +44,12 @@ func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
 	return g.k, nil
 }
 
+func (g singleEncryptionKeyGetter) GetFirstTLFCryptKey(
+	ctx context.Context, kmd libkey.KeyMetadata) (
+	kbfscrypto.TLFCryptKey, error) {
+	return g.k, nil
+}
+
 func setupMDJournalTest(t testing.TB, ver kbfsmd.MetadataVer) (
 	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,

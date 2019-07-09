@@ -1024,6 +1024,7 @@ type teamNotifyHandler struct {
 	abandonCh        chan keybase1.TeamID
 	badgeCh          chan keybase1.BadgeState
 	newTeamEKCh      chan keybase1.NewTeamEkArg
+	newTeambotEKCh   chan keybase1.NewTeambotEkArg
 	newlyAddedToTeam chan keybase1.TeamID
 }
 
@@ -1033,6 +1034,7 @@ func newTeamNotifyHandler() *teamNotifyHandler {
 		abandonCh:        make(chan keybase1.TeamID, 10),
 		badgeCh:          make(chan keybase1.BadgeState, 10),
 		newTeamEKCh:      make(chan keybase1.NewTeamEkArg, 10),
+		newTeambotEKCh:   make(chan keybase1.NewTeambotEkArg, 10),
 		newlyAddedToTeam: make(chan keybase1.TeamID, 10),
 	}
 }
@@ -1071,6 +1073,11 @@ func (n *teamNotifyHandler) BadgeState(ctx context.Context, badgeState keybase1.
 
 func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamEkArg) error {
 	n.newTeamEKCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) NewTeambotEk(ctx context.Context, arg keybase1.NewTeambotEkArg) error {
+	n.newTeambotEKCh <- arg
 	return nil
 }
 

@@ -2,11 +2,10 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
-import GetTitles from './'
+import GetTitles, {PathToInfo} from '.'
 import {connect, getRouteProps} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {RouteProps} from '../../../route-tree/render-route'
-import {PathToInfo} from '.'
 
 type OwnProps = RouteProps<
   {

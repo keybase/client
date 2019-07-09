@@ -457,6 +457,10 @@
         {
           "type": "Asset",
           "name": "destinationAsset"
+        },
+        {
+          "type": "string",
+          "name": "sourceInsufficientBalance"
         }
       ]
     }

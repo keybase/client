@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as EngineGen from '../engine-gen-gen'
+import * as TeamBuildingGen from '../team-building-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
@@ -15,6 +16,7 @@ import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
+import {TypedState} from '../../constants/reducer'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
 import * as WalletTypes from '../../constants/types/wallets'
@@ -22,10 +24,10 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
-import chatTeamBuildingSaga from './team-building'
+import commonTeamBuildingSaga, {filterForNs, NSAction} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isMobile} from '../../constants/platform'
+import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -35,7 +37,6 @@ import HiddenString from '../../util/hidden-string'
 import {TypedActions} from 'util/container'
 import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
-import {isIOS} from '../../constants/platform'
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
@@ -837,25 +838,29 @@ const onNewChatActivity = (state, action: EngineGen.Chat1NotifyChatNewChatActivi
       break
     }
     case RPCChatTypes.ChatActivityType.membersUpdate:
-      const convID = activity.membersUpdate && activity.membersUpdate.convID
-      if (convID) {
-        actions = [
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [Types.conversationIDToKey(convID)],
-            force: true,
-          }),
-        ]
+      {
+        const convID = activity.membersUpdate && activity.membersUpdate.convID
+        if (convID) {
+          actions = [
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: [Types.conversationIDToKey(convID)],
+              force: true,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
-      const setAppNotificationSettings = activity.setAppNotificationSettings
-      if (setAppNotificationSettings) {
-        actions = [
-          Chat2Gen.createNotificationSettingsUpdated({
-            conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-            settings: setAppNotificationSettings.settings,
-          }),
-        ]
+      {
+        const setAppNotificationSettings = activity.setAppNotificationSettings
+        if (setAppNotificationSettings) {
+          actions = [
+            Chat2Gen.createNotificationSettingsUpdated({
+              conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+              settings: setAppNotificationSettings.settings,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.teamtype:
@@ -2839,6 +2844,18 @@ const onChatCommandMarkdown = (status, action: EngineGen.Chat1ChatUiChatCommandM
   })
 }
 
+const onChatCommandStatus = (status, action: EngineGen.Chat1ChatUiChatCommandStatusPayload) => {
+  const {convID, displayText, typ, actions} = action.payload.params
+  return Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    info: {
+      actions,
+      displayText,
+      displayType: typ,
+    },
+  })
+}
+
 const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
   const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetMaybeMentionInfo({
@@ -2855,7 +2872,12 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
         RPCChatTypes.localLocationUpdateRpcPromise({
           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
         }),
-      err => logger.warn(err.message),
+      err => {
+        logger.warn(err.message)
+        if (err.code && err.code === 1) {
+          RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
+        }
+      },
       {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)
@@ -2991,6 +3013,27 @@ const addUsersToChannel = (_, action: Chat2Gen.AddUsersToChannelPayload, logger)
 const onMarkInboxSearchOld = state =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
+
+const createConversationFromTeamBuilder = (
+  state: TypedState,
+  {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
+) => [
+  Chat2Gen.createSelectConversation({
+    conversationIDKey: Constants.pendingWaitingConversationIDKey,
+    reason: 'justCreated',
+  }),
+  Chat2Gen.createCreateConversation({
+    participants: state[namespace].teamBuilding.teamBuildingFinishedTeam.toArray().map(u => u.id),
+  }),
+]
+
+export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
+  yield* commonTeamBuildingSaga('chat2')
+  yield* Saga.chainAction<TeamBuildingGen.FinishedTeamBuildingPayload>(
+    TeamBuildingGen.finishedTeamBuilding,
+    filterForNs('chat2', createConversationFromTeamBuilder)
+  )
+}
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
@@ -3498,6 +3541,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     onChatCommandMarkdown,
     'onChatCommandMarkdown'
   )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandStatusPayload>(
+    EngineGen.chat1ChatUiChatCommandStatus,
+    onChatCommandStatus,
+    'onChatCommandStatus'
+  )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,
     onChatMaybeMentionUpdate
@@ -3565,7 +3613,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect, 'onConnect')
 
-  yield Saga.spawn(chatTeamBuildingSaga)
+  yield* chatTeamBuildingSaga()
 }
 
 export default chat2Saga

@@ -157,10 +157,15 @@ type unflushedPathMDInfo struct {
 // blocks will need to be fetched.
 func addUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	log logger.Logger, osg idutil.OfflineStatusGetter, mdInfos []unflushedPathMDInfo,
-	cpp chainsPathPopulator, unflushedPaths unflushedPathsMap) error {
+	log logger.Logger, osg idutil.OfflineStatusGetter,
+	mdInfos []unflushedPathMDInfo, cpp chainsPathPopulator,
+	unflushedPaths unflushedPathsMap) error {
 	// Make chains over the entire range to get the unflushed files.
-	chains := newCRChainsEmpty()
+	chains := newCRChainsEmpty(cpp.obfuscatorMaker())
+	if len(mdInfos) > 0 {
+		mostRecentMDInfo := mdInfos[len(mdInfos)-1]
+		chains.mostRecentChainMDInfo = mostRecentMDInfo.kmd
+	}
 	processedOne := false
 	for _, mdInfo := range mdInfos {
 		offline := keybase1.OfflineAvailability_NONE
@@ -190,9 +195,6 @@ func addUnflushedPaths(ctx context.Context,
 		return nil
 	}
 
-	mostRecentMDInfo := mdInfos[len(mdInfos)-1]
-	chains.mostRecentChainMDInfo = mostRecentMDInfo.kmd
-
 	// Does the last op already have a valid path in each chain?  If
 	// so, we don't need to bother populating the paths, which can
 	// take a fair amount of CPU since the node cache isn't already
@@ -201,7 +203,8 @@ func addUnflushedPaths(ctx context.Context,
 	populatePaths := false
 	for _, chain := range chains.byOriginal {
 		if len(chain.ops) > 0 &&
-			!chain.ops[len(chain.ops)-1].getFinalPath().IsValid() {
+			!chain.ops[len(chain.ops)-1].getFinalPath().
+				IsValidForNotification() {
 			populatePaths = true
 			break
 		}
@@ -217,8 +220,11 @@ func addUnflushedPaths(ctx context.Context,
 	for _, chain := range chains.byOriginal {
 		if len(chain.ops) > 0 {
 			// Use the same final path from the chain for all ops.
+			// Use the plaintext here, since this will be included
+			// directly in the `.kbfs_status` output for unflushed
+			// paths.
 			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().
-				CanonicalPathString()
+				CanonicalPathPlaintext()
 			for _, op := range chain.ops {
 				revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
 				if !ok {

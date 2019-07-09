@@ -13,7 +13,9 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
   switch (action.type) {
     case SignupGen.resetStore: // fallthrough
     case SignupGen.restartSignup:
-      return initialState
+      return initialState.merge({
+        justSignedUpEmail: state.email,
+      })
     case SignupGen.goBackAndClearErrors:
       return state.merge({
         devicenameError: '',
@@ -43,9 +45,15 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
       return username === state.username ? state.merge({usernameError, usernameTaken}) : state
     }
     case SignupGen.checkEmail: {
-      const {email} = action.payload
+      const {email, allowSearch} = action.payload
+      const emailVisible = allowSearch
       const emailError = isValidEmail(email)
-      return state.merge({email, emailError})
+      return state.merge({
+        email,
+        emailError,
+        emailVisible,
+        justSignedUpEmail: email,
+      })
     }
     case SignupGen.requestInvite: {
       const {email, name} = action.payload
@@ -93,6 +101,10 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         : state
     case SignupGen.signedup:
       return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
+    case SignupGen.clearJustSignedUpEmail:
+      return state.merge({
+        justSignedUpEmail: '',
+      })
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state

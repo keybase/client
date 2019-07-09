@@ -50,6 +50,18 @@ helpers.rootLinuxNode(env, {
     [$class: 'RebuildSettings',
       autoRebuild: true,
     ],
+    parameters([
+        string(
+            name: 'kbwebProjectName',
+            defaultValue: '',
+            description: 'The project name of the upstream kbweb build',
+        ),
+        string(
+            name: 'gregorProjectName',
+            defaultValue: '',
+            description: 'The project name of the upstream gregor build',
+        ),
+    ]),
   ])
 
   env.BASEDIR=pwd()
@@ -98,10 +110,40 @@ helpers.rootLinuxNode(env, {
             mysqlImage.pull()
           },
           pull_gregor: {
-            gregorImage.pull()
+            if (cause == "upstream" && kbwebProjectName != '') {
+                retry(3) {
+                    step([$class: 'CopyArtifact',
+                            projectName: "${kbwebProjectName}",
+                            filter: 'kbgregor.tar.gz',
+                            fingerprintArtifacts: true,
+                            selector: [$class: 'TriggeredBuildSelector',
+                                allowUpstreamDependencies: false,
+                                fallbackToLastSuccessful: false,
+                                upstreamFilterStrategy: 'UseGlobalSetting'],
+                            target: '.'])
+                    sh "gunzip -c kbgregor.tar.gz | docker load"
+                }
+            } else {
+                gregorImage.pull()
+            }
           },
           pull_kbweb: {
-            kbwebImage.pull()
+            if (cause == "upstream" && kbwebProjectName != '') {
+                retry(3) {
+                    step([$class: 'CopyArtifact',
+                            projectName: "${kbwebProjectName}",
+                            filter: 'kbweb.tar.gz',
+                            fingerprintArtifacts: true,
+                            selector: [$class: 'TriggeredBuildSelector',
+                                allowUpstreamDependencies: false,
+                                fallbackToLastSuccessful: false,
+                                upstreamFilterStrategy: 'UseGlobalSetting'],
+                            target: '.'])
+                    sh "gunzip -c kbweb.tar.gz | docker load"
+                }
+            } else {
+                kbwebImage.pull()
+            }
           },
           remove_dockers: {
             sh 'docker stop $(docker ps -q) || echo "nothing to stop"'

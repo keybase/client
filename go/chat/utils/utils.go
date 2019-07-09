@@ -14,11 +14,10 @@ import (
 
 	"github.com/keybase/xurls"
 
-	emoji "gopkg.in/kyokomi/emoji.v1"
-
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/unfurl/display"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/kyokomi/emoji"
 
 	"regexp"
 
@@ -1236,7 +1235,7 @@ func formatVideoDuration(ms int) string {
 	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
-func formatVideoSize(bytes int64) string {
+func PresentBytes(bytes int64) string {
 	const (
 		BYTE = 1.0 << (10 * iota)
 		KILOBYTE
@@ -1265,6 +1264,10 @@ func formatVideoSize(bytes int64) string {
 		return "0"
 	}
 	return fmt.Sprintf("%.02f%s", value, unit)
+}
+
+func formatVideoSize(bytes int64) string {
+	return PresentBytes(bytes)
 }
 
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,

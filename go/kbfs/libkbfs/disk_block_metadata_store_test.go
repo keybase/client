@@ -34,6 +34,9 @@ func (t *testBlockMetadataStoreConfig) MakeLogger(
 func (t *testBlockMetadataStoreConfig) StorageRoot() string {
 	return t.storageRoot
 }
+func (t *testBlockMetadataStoreConfig) Mode() InitMode {
+	return modeTest{modeDefault{}}
+}
 
 func makeBlockMetadataStoreForTest(t *testing.T) (
 	blockMetadataStore BlockMetadataStore, tempdir string) {
@@ -44,7 +47,7 @@ func makeBlockMetadataStoreForTest(t *testing.T) (
 		log:         logger.NewTestLogger(t),
 		storageRoot: tempdir,
 	}
-	s, err := newDiskBlockMetadataStore(&config)
+	s, err := newDiskBlockMetadataStore(&config, modeTest{modeDefault{}})
 	require.NoError(t, err)
 	return s, tempdir
 }

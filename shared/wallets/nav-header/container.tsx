@@ -6,6 +6,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 
 const mapStateToPropsHeaderTitle = state => ({
   _account: Constants.getSelectedAccountData(state),
+  airdropSelected: Constants.getAirdropSelected(state),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
   username: state.config.username,
 })
@@ -13,6 +14,7 @@ const mapStateToPropsHeaderTitle = state => ({
 const mergePropsHeaderTitle = s => ({
   accountID: s._account.accountID,
   accountName: s._account.name,
+  airdropSelected: s.airdropSelected,
   isDefault: s._account.isDefault,
   loading: s._account.accountID === Types.noAccountID,
   noDisclaimer: s.noDisclaimer,
@@ -28,6 +30,7 @@ export const HeaderTitle = Container.namedConnect(
 
 const mapStateToPropsHeaderRightActions = state => ({
   _accountID: Constants.getSelectedAccount(state),
+  airdropSelected: Constants.getAirdropSelected(state),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
 })
 const mapDispatchToPropsHeaderRightActions = dispatch => ({
@@ -44,6 +47,7 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
     ),
 })
 const mergePropsHeaderRightActions = (s, d, o) => ({
+  airdropSelected: s.airdropSelected,
   noDisclaimer: s.noDisclaimer,
   onReceive: () => d._onReceive(s._accountID),
 })

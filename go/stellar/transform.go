@@ -117,13 +117,15 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 			}
 		}
 
-		if p.Asset.IsEmpty() && !p.Asset.IsNativeXLM() {
-			// Asset is also expected to be missing.
-			loc.IssuerDescription = FormatAssetIssuerString(p.Asset)
-			issuerAcc := stellar1.AccountID(p.Asset.Issuer)
+		asset := p.Asset // p.Asset is also expected to be missing.
+		if p.Trustline != nil && asset.IsEmpty() {
+			asset = p.Trustline.Asset
+		}
+		if !asset.IsEmpty() && !asset.IsNativeXLM() {
+			loc.IssuerDescription = FormatAssetIssuerString(asset)
+			issuerAcc := stellar1.AccountID(asset.Issuer)
 			loc.IssuerAccountID = &issuerAcc
 		}
-
 	} else {
 		loc, err = newPaymentCommonLocal(mctx, p.TxID, p.Ctime, p.Amount, p.Asset)
 		if err != nil {
@@ -142,6 +144,7 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 		loc.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
+	loc.AssetCode = p.Asset.Code
 	loc.FromAccountID = p.From
 	loc.FromType = stellar1.ParticipantType_STELLAR
 	loc.ToAccountID = &p.To
@@ -155,10 +158,18 @@ func transformPaymentStellar(mctx libkb.MetaContext, acctID stellar1.AccountID, 
 	loc.SourceAsset = p.SourceAsset
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
 
 	loc.IsAdvanced = p.IsAdvanced
 	loc.SummaryAdvanced = p.SummaryAdvanced
 	loc.Operations = p.Operations
+	loc.Unread = p.Unread
+	loc.Trustline = p.Trustline
 
 	return loc, nil
 }
@@ -213,6 +224,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 		}
 	}
 
+	loc.AssetCode = p.Asset.Code
+
 	fillOwnAccounts(mctx, loc, oc)
 	switch {
 	case loc.FromAccountName != "":
@@ -235,6 +248,13 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	loc.SourceAmountMax = p.SourceAmountMax
 	loc.SourceAmountActual = p.SourceAmountActual
 	loc.SourceAsset = p.SourceAsset
+	sourceConvRate, err := stellarnet.GetStellarExchangeRate(loc.SourceAmountActual, p.Amount)
+	if err == nil {
+		loc.SourceConvRate = sourceConvRate
+	} else {
+		loc.SourceConvRate = ""
+	}
+	loc.Unread = p.Unread
 
 	return loc, nil
 }
@@ -258,6 +278,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		return nil, err
 	}
 
+	loc.AssetCode = "XLM" // We can hardcode relay payments, since the asset will always be XLM
 	loc.FromAccountID = p.FromStellar
 	loc.FromUsername, err = lookupUsername(mctx, p.From.Uid)
 	if err != nil {
@@ -536,6 +557,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
+	// 0.5 is the minimum balance necessary to create a trustline and 1.0 is the minimum reserve balance
+	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "1.5")
+	if err != nil {
+		return empty, err
+	}
+
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
 		IsDefault:           isPrimary,
@@ -547,6 +574,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
 		CanSubmitTx:         canSubmitTx,
+		CanAddTrustline:     balanceComparedToTrustlineMin == 1,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
@@ -588,6 +616,19 @@ func (a balanceList) balanceDescription(mctx libkb.MetaContext) (res string, err
 		res += " + more"
 	}
 	return res, nil
+}
+
+// Example: "56.0227002"
+func (a balanceList) nativeBalanceDescription(mctx libkb.MetaContext) (res string) {
+	for _, b := range a {
+		if b.Asset.IsNativeXLM() {
+			res = b.Amount
+		}
+	}
+	if res == "" {
+		res = "0"
+	}
+	return res
 }
 
 // TransformToAirdropStatus takes the result from api server status_check

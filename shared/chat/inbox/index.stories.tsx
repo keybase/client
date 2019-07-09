@@ -134,7 +134,7 @@ const mapPropProviderProps = {
     backgroundColor: isMobile ? commonSmallFilter.backgroundColor : globalColors.blue,
     conversationIDKey: '4',
     hasUnread: false,
-    hasBadge: false,
+    hasBadge: true,
     iconHoverColor: globalColors.white_75,
     isSelected: !isMobile,
     showBold: false,

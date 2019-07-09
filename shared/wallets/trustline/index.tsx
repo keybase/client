@@ -4,13 +4,13 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import {memoize} from '../../util/memoize'
 import Asset from './asset-container'
 
 type _Props = {
   accountID: Types.AccountID
   acceptedAssets: Array<Types.AssetID>
-  balanceAvailableToSend: number
+  balanceAvailableToSend: string
+  canAddTrustline: boolean
   clearTrustlineModal: () => void
   errorMessage?: string
   loaded: boolean
@@ -69,16 +69,7 @@ const getSectionListKey = (props: BodyProps) =>
     props.popularAssets.length ? 'pa' : '_'
   }`
 
-const sectionHeader = section =>
-  !section.title || (
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.sectionHeader}>
-      <Kb.Text type="BodySmall">{section.title}</Kb.Text>
-    </Kb.Box2>
-  )
-
-const haveEnoughBalanceToAccept = memoize(
-  (props: BodyProps) => props.balanceAvailableToSend >= Constants.trustlineHoldingBalance
-)
+const sectionHeader = section => !section.title || <Kb.SectionDivider label={section.title} />
 
 const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.
@@ -90,19 +81,25 @@ const ListUpdateOnMount = (props: BodyProps) => {
   ])
 
   return (
-    <Kb.SectionList
-      key={getSectionListKey(props)}
-      sections={makeSections(props)}
-      renderItem={({index, item}) => (
-        <Asset
-          accountID={props.accountID}
-          firstItem={index === 0}
-          assetID={item}
-          cannotAccept={!haveEnoughBalanceToAccept(props)}
-        />
-      )}
-      renderSectionHeader={({section}) => sectionHeader(section)}
-    />
+    <Kb.BoxGrow>
+      <Kb.SectionList
+        key={getSectionListKey(props)}
+        sections={makeSections(props)}
+        renderItem={({index, item}) => (
+          <Asset
+            accountID={props.accountID}
+            firstItem={index === 0}
+            assetID={item}
+            cannotAccept={!props.canAddTrustline}
+          />
+        )}
+        renderSectionHeader={({section}) => sectionHeader(section)}
+        // Otherwise on mobile when the search box is focused, two taps are
+        // needed to do anything in this list -- one to lose the focus and one
+        // to actually propagate the click even through.
+        keyboardShouldPersistTaps="handled"
+      />
+    </Kb.BoxGrow>
   )
 }
 
@@ -128,7 +125,7 @@ const Body = (props: BodyProps) => {
             />
           </Kb.Box2>
           <Kb.Divider />
-          {!haveEnoughBalanceToAccept(props) && (
+          {!props.canAddTrustline && (
             <Kb.Banner
               color="red"
               text={`Stellar holds ${
@@ -138,7 +135,7 @@ const Body = (props: BodyProps) => {
           )}
           {props.searchingAssets && !props.searchingAssets.length ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
-              <Kb.Text type="BodySmall">No asset is found.</Kb.Text>
+              <Kb.Text type="BodySmall">Sorry! No assets were found. Please try again.</Kb.Text>
             </Kb.Box2>
           ) : (
             <ListUpdateOnMount {...props} />
@@ -225,18 +222,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       padding: Styles.globalMargins.tiny,
-    },
-  }),
-  sectionHeader: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      paddingLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: Styles.globalMargins.mediumLarge,
-    },
-    isMobile: {
-      height: Styles.globalMargins.large,
     },
   }),
 })

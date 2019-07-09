@@ -3,7 +3,7 @@ import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
-import Transaction from '.'
+import {Transaction} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export type OwnProps = {
@@ -14,7 +14,6 @@ export type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
-  _unread: Constants.isPaymentUnread(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
@@ -54,6 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     approxWorth: tx.worthAtSendTime,
     counterparty,
     counterpartyType,
+    fromAirdrop: tx.fromAirdrop,
     isAdvanced: tx.isAdvanced,
     issuerDescription: tx.issuerDescription,
     memo,
@@ -71,7 +71,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     statusDetail: tx.statusDetail,
     summaryAdvanced: tx.summaryAdvanced,
     timestamp: tx.time ? new Date(tx.time) : null,
-    unread: stateProps._unread,
+    trustline: tx.trustline,
+    unread: tx.unread,
     yourRole,
   }
 }

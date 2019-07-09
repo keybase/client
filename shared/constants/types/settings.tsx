@@ -72,6 +72,8 @@ export type _EmailRow = RPCTypes.Email
 export type EmailRow = I.RecordOf<_EmailRow>
 
 export type _EmailState = {
+  addingEmail: string | null
+  addedEmail: string | null // show banner with dismiss on account settings
   emails: I.Map<string, EmailRow> | null
   newEmail: string
   error: Error | null
@@ -107,8 +109,16 @@ export type _PhoneNumbersState = {
 }
 export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
+export type _ContactsState = {
+  importEnabled: boolean | null
+  // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
+  permissionStatus: 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
+}
+export type ContactsState = I.RecordOf<_ContactsState>
+
 export type _State = {
   allowDeleteAccount: boolean
+  contacts: ContactsState
   waitingForResponse: boolean
   invites: InvitesState
   feedback: FeedbackState

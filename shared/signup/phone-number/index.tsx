@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen} from '../common'
+import {SignupScreen, errorBanner} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
@@ -15,9 +15,10 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  // const [allowSearch, onChangeAllowSearch] = React.useState(false)
   const disabled = !valid
-  const onContinue = () => (disabled || props.waiting ? {} : props.onContinue(phoneNumber, allowSearch))
+  const onContinue = () =>
+    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* allowSearch */)
   return (
     <SignupScreen
       buttons={[
@@ -39,32 +40,68 @@ const EnterPhoneNumber = (props: Props) => {
               },
             ]),
       ]}
+      banners={errorBanner(props.error)}
       rightActionLabel="Skip"
       onRightAction={props.onSkip}
       title="Your phone number"
       showHeaderInfoicon={true}
     >
+      <EnterPhoneNumberBody
+        onChangeNumber={onChangePhoneNumber}
+        onChangeValidity={onChangeValidity}
+        onContinue={onContinue}
+        icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
+      />
+    </SignupScreen>
+  )
+}
+
+type BodyProps = {
+  onChangeNumber: (phoneNumber: string) => void
+  onChangeValidity: (valid: boolean) => void
+  onContinue: () => void
+  allowSearch?: boolean
+  onChangeAllowSearch?: (allow: boolean) => void
+  icon: React.ReactNode
+}
+export const EnterPhoneNumberBody = (props: BodyProps) => {
+  const showCheckbox = props.onChangeAllowSearch && Object.prototype.hasOwnProperty.call(props, 'allowSearch')
+  return (
+    <Kb.Box2
+      alignItems="center"
+      direction="vertical"
+      gap={Styles.isMobile ? 'small' : 'medium'}
+      fullWidth={true}
+      style={Styles.globalStyles.flexOne}
+    >
+      {props.icon}
       <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
         <PhoneInput
           style={styles.input}
-          onChangeNumber={onChangePhoneNumber}
-          onChangeValidity={onChangeValidity}
-          onEnterKeyDown={onContinue}
+          onChangeNumber={props.onChangeNumber}
+          onChangeValidity={props.onChangeValidity}
+          onEnterKeyDown={props.onContinue}
         />
-        <Kb.Checkbox
-          label="Allow friends to find you by this phone number"
-          checked={allowSearch}
-          onCheck={onChangeAllowSearch}
-          style={styles.checkbox}
-        />
-        {!!props.error && <Kb.Text type="BodySmallError">{props.error}</Kb.Text>}
+        {!showCheckbox && <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>}
+        {showCheckbox && (
+          <Kb.Checkbox
+            label="Allow friends to find you by this phone number"
+            checked={props.allowSearch}
+            onCheck={props.onChangeAllowSearch}
+            style={styles.checkbox}
+          />
+        )}
       </Kb.Box2>
-    </SignupScreen>
+    </Kb.Box2>
   )
 }
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
+  icon: {
+    height: 96,
+    width: 96,
+  },
   input: Styles.platformStyles({
     isElectron: {
       height: 38,

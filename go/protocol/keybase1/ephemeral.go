@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -196,6 +197,228 @@ func (o TeamEk) DeepCopy() TeamEk {
 	return TeamEk{
 		Seed:     o.Seed.DeepCopy(),
 		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type TeambotEkMetadata struct {
+	Kid              KID          `codec:"kid" json:"teambot_dh_public"`
+	Generation       EkGeneration `codec:"generation" json:"generation"`
+	Uid              UID          `codec:"uid" json:"uid"`
+	UserEkGeneration EkGeneration `codec:"userEkGeneration" json:"user_ek_generation"`
+	HashMeta         HashMeta     `codec:"hashMeta" json:"hash_meta"`
+	Ctime            Time         `codec:"ctime" json:"ctime"`
+}
+
+func (o TeambotEkMetadata) DeepCopy() TeambotEkMetadata {
+	return TeambotEkMetadata{
+		Kid:              o.Kid.DeepCopy(),
+		Generation:       o.Generation.DeepCopy(),
+		Uid:              o.Uid.DeepCopy(),
+		UserEkGeneration: o.UserEkGeneration.DeepCopy(),
+		HashMeta:         o.HashMeta.DeepCopy(),
+		Ctime:            o.Ctime.DeepCopy(),
+	}
+}
+
+type TeambotEkBoxed struct {
+	Box      string            `codec:"box" json:"box"`
+	Metadata TeambotEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeambotEkBoxed) DeepCopy() TeambotEkBoxed {
+	return TeambotEkBoxed{
+		Box:      o.Box,
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type TeambotEk struct {
+	Seed     Bytes32           `codec:"seed" json:"seed"`
+	Metadata TeambotEkMetadata `codec:"metadata" json:"metadata"`
+}
+
+func (o TeambotEk) DeepCopy() TeambotEk {
+	return TeambotEk{
+		Seed:     o.Seed.DeepCopy(),
+		Metadata: o.Metadata.DeepCopy(),
+	}
+}
+
+type TeamEphemeralKeyType int
+
+const (
+	TeamEphemeralKeyType_TEAM    TeamEphemeralKeyType = 0
+	TeamEphemeralKeyType_TEAMBOT TeamEphemeralKeyType = 1
+)
+
+func (o TeamEphemeralKeyType) DeepCopy() TeamEphemeralKeyType { return o }
+
+var TeamEphemeralKeyTypeMap = map[string]TeamEphemeralKeyType{
+	"TEAM":    0,
+	"TEAMBOT": 1,
+}
+
+var TeamEphemeralKeyTypeRevMap = map[TeamEphemeralKeyType]string{
+	0: "TEAM",
+	1: "TEAMBOT",
+}
+
+func (e TeamEphemeralKeyType) String() string {
+	if v, ok := TeamEphemeralKeyTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type TeamEphemeralKey struct {
+	KeyType__ TeamEphemeralKeyType `codec:"keyType" json:"keyType"`
+	Team__    *TeamEk              `codec:"team,omitempty" json:"team,omitempty"`
+	Teambot__ *TeambotEk           `codec:"teambot,omitempty" json:"teambot,omitempty"`
+}
+
+func (o *TeamEphemeralKey) KeyType() (ret TeamEphemeralKeyType, err error) {
+	switch o.KeyType__ {
+	case TeamEphemeralKeyType_TEAM:
+		if o.Team__ == nil {
+			err = errors.New("unexpected nil value for Team__")
+			return ret, err
+		}
+	case TeamEphemeralKeyType_TEAMBOT:
+		if o.Teambot__ == nil {
+			err = errors.New("unexpected nil value for Teambot__")
+			return ret, err
+		}
+	}
+	return o.KeyType__, nil
+}
+
+func (o TeamEphemeralKey) Team() (res TeamEk) {
+	if o.KeyType__ != TeamEphemeralKeyType_TEAM {
+		panic("wrong case accessed")
+	}
+	if o.Team__ == nil {
+		return
+	}
+	return *o.Team__
+}
+
+func (o TeamEphemeralKey) Teambot() (res TeambotEk) {
+	if o.KeyType__ != TeamEphemeralKeyType_TEAMBOT {
+		panic("wrong case accessed")
+	}
+	if o.Teambot__ == nil {
+		return
+	}
+	return *o.Teambot__
+}
+
+func NewTeamEphemeralKeyWithTeam(v TeamEk) TeamEphemeralKey {
+	return TeamEphemeralKey{
+		KeyType__: TeamEphemeralKeyType_TEAM,
+		Team__:    &v,
+	}
+}
+
+func NewTeamEphemeralKeyWithTeambot(v TeambotEk) TeamEphemeralKey {
+	return TeamEphemeralKey{
+		KeyType__: TeamEphemeralKeyType_TEAMBOT,
+		Teambot__: &v,
+	}
+}
+
+func (o TeamEphemeralKey) DeepCopy() TeamEphemeralKey {
+	return TeamEphemeralKey{
+		KeyType__: o.KeyType__.DeepCopy(),
+		Team__: (func(x *TeamEk) *TeamEk {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Team__),
+		Teambot__: (func(x *TeambotEk) *TeambotEk {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teambot__),
+	}
+}
+
+type TeamEphemeralKeyBoxed struct {
+	KeyType__ TeamEphemeralKeyType `codec:"keyType" json:"keyType"`
+	Team__    *TeamEkBoxed         `codec:"team,omitempty" json:"team,omitempty"`
+	Teambot__ *TeambotEkBoxed      `codec:"teambot,omitempty" json:"teambot,omitempty"`
+}
+
+func (o *TeamEphemeralKeyBoxed) KeyType() (ret TeamEphemeralKeyType, err error) {
+	switch o.KeyType__ {
+	case TeamEphemeralKeyType_TEAM:
+		if o.Team__ == nil {
+			err = errors.New("unexpected nil value for Team__")
+			return ret, err
+		}
+	case TeamEphemeralKeyType_TEAMBOT:
+		if o.Teambot__ == nil {
+			err = errors.New("unexpected nil value for Teambot__")
+			return ret, err
+		}
+	}
+	return o.KeyType__, nil
+}
+
+func (o TeamEphemeralKeyBoxed) Team() (res TeamEkBoxed) {
+	if o.KeyType__ != TeamEphemeralKeyType_TEAM {
+		panic("wrong case accessed")
+	}
+	if o.Team__ == nil {
+		return
+	}
+	return *o.Team__
+}
+
+func (o TeamEphemeralKeyBoxed) Teambot() (res TeambotEkBoxed) {
+	if o.KeyType__ != TeamEphemeralKeyType_TEAMBOT {
+		panic("wrong case accessed")
+	}
+	if o.Teambot__ == nil {
+		return
+	}
+	return *o.Teambot__
+}
+
+func NewTeamEphemeralKeyBoxedWithTeam(v TeamEkBoxed) TeamEphemeralKeyBoxed {
+	return TeamEphemeralKeyBoxed{
+		KeyType__: TeamEphemeralKeyType_TEAM,
+		Team__:    &v,
+	}
+}
+
+func NewTeamEphemeralKeyBoxedWithTeambot(v TeambotEkBoxed) TeamEphemeralKeyBoxed {
+	return TeamEphemeralKeyBoxed{
+		KeyType__: TeamEphemeralKeyType_TEAMBOT,
+		Teambot__: &v,
+	}
+}
+
+func (o TeamEphemeralKeyBoxed) DeepCopy() TeamEphemeralKeyBoxed {
+	return TeamEphemeralKeyBoxed{
+		KeyType__: o.KeyType__.DeepCopy(),
+		Team__: (func(x *TeamEkBoxed) *TeamEkBoxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Team__),
+		Teambot__: (func(x *TeambotEkBoxed) *TeambotEkBoxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teambot__),
 	}
 }
 

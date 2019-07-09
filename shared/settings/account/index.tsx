@@ -1,23 +1,39 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import flags from '../../util/feature-flags'
 
 export type Props = {
+  addedEmail: string | null
   contactKeys: I.List<string>
   hasPassword: boolean
   onAddEmail: () => void
   onAddPhone: () => void
+  onClearAddedEmail: () => void
+  onManageContacts: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
+  onReload: () => void
+  waiting: boolean
 } & HeaderHocProps
 
-const EmailPhone = (props: Props) => (
+export const SettingsSection = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+    {children}
+  </Kb.Box2>
+)
+
+const EmailPhone = (props: Props) => (
+  <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-      <Kb.Text type="Header">Email & phone</Kb.Text>
+      <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Text type="Header">Email & phone</Kb.Text>
+        {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
+      </Kb.Box2>
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
         find you by phone number or email.
@@ -32,9 +48,11 @@ const EmailPhone = (props: Props) => (
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <Kb.Button mode="Secondary" onClick={props.onAddEmail} label="Add email" small={true} />
-      <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
+      {flags.sbsContacts && (
+        <Kb.Button mode="Secondary" onClick={props.onAddPhone} label="Add phone" small={true} />
+      )}
     </Kb.ButtonBar>
-  </Kb.Box2>
+  </SettingsSection>
 )
 
 const Password = (props: Props) => {
@@ -45,7 +63,7 @@ const Password = (props: Props) => {
     passwordLabel = 'Set a password'
   }
   return (
-    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+    <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
         <Kb.Text type="Header">Password</Kb.Text>
         <Kb.Text type="BodySmall">
@@ -62,12 +80,12 @@ const Password = (props: Props) => {
           <Kb.Button mode="Secondary" onClick={props.onSetPassword} label={passwordLabel} small={true} />
         </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Box2>
+    </SettingsSection>
   )
 }
 
 const DeleteAccount = (props: Props) => (
-  <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.section}>
+  <SettingsSection>
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
       <Kb.Text type="Header">Delete account</Kb.Text>
       <Kb.Text type="BodySmall">
@@ -83,19 +101,50 @@ const DeleteAccount = (props: Props) => (
         small={true}
       />
     </Kb.ButtonBar>
-  </Kb.Box2>
+  </SettingsSection>
+)
+
+const ManageContacts = (props: Props) => (
+  <SettingsSection>
+    <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+      <Kb.Text type="Header">Manage contacts</Kb.Text>
+      <Kb.Text type="BodySmall">Manage importing the contacts on this device.</Kb.Text>
+    </Kb.Box2>
+    <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
+      <Kb.Button mode="Secondary" onClick={props.onManageContacts} label="Manage contacts" small={true} />
+    </Kb.ButtonBar>
+  </SettingsSection>
 )
 
 const AccountSettings = (props: Props) => (
-  <Kb.ScrollView>
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <EmailPhone {...props} />
-      <Kb.Divider />
-      <Password {...props} />
-      <Kb.Divider />
-      <DeleteAccount {...props} />
-    </Kb.Box2>
-  </Kb.ScrollView>
+  <Kb.Reloadable
+    onReload={props.onReload}
+    reloadOnMount={true}
+    waitingKeys={[Constants.loadSettingsWaitingKey]}
+  >
+    <Kb.ScrollView style={Styles.globalStyles.fullWidth}>
+      {props.addedEmail && (
+        <Kb.Banner
+          color="green"
+          text={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
+          onClose={props.onClearAddedEmail}
+        />
+      )}
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <EmailPhone {...props} />
+        <Kb.Divider />
+        <Password {...props} />
+        {Styles.isMobile && flags.sbsContacts && (
+          <>
+            <Kb.Divider />
+            <ManageContacts {...props} />
+          </>
+        )}
+        <Kb.Divider />
+        <DeleteAccount {...props} />
+      </Kb.Box2>
+    </Kb.ScrollView>
+  </Kb.Reloadable>
 )
 
 const styles = Styles.styleSheetCreate({
@@ -111,6 +160,10 @@ const styles = Styles.styleSheetCreate({
   password: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
+  },
+  progress: {
+    height: 16,
+    width: 16,
   },
   section: Styles.platformStyles({
     isElectron: {

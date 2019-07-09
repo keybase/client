@@ -369,22 +369,23 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryStellar struct {
-	TxID               TransactionID `codec:"txID" json:"txID"`
-	From               AccountID     `codec:"from" json:"from"`
-	To                 AccountID     `codec:"to" json:"to"`
-	Amount             string        `codec:"amount" json:"amount"`
-	Asset              Asset         `codec:"asset" json:"asset"`
-	Ctime              TimeMs        `codec:"ctime" json:"ctime"`
-	CursorToken        string        `codec:"cursorToken" json:"cursorToken"`
-	Unread             bool          `codec:"unread" json:"unread"`
-	IsInflation        bool          `codec:"isInflation" json:"isInflation"`
-	InflationSource    *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
-	SourceAmountMax    string        `codec:"sourceAmountMax" json:"sourceAmountMax"`
-	SourceAmountActual string        `codec:"sourceAmountActual" json:"sourceAmountActual"`
-	SourceAsset        Asset         `codec:"sourceAsset" json:"sourceAsset"`
-	IsAdvanced         bool          `codec:"isAdvanced" json:"isAdvanced"`
-	SummaryAdvanced    string        `codec:"summaryAdvanced" json:"summaryAdvanced"`
-	Operations         []string      `codec:"operations" json:"operations"`
+	TxID               TransactionID          `codec:"txID" json:"txID"`
+	From               AccountID              `codec:"from" json:"from"`
+	To                 AccountID              `codec:"to" json:"to"`
+	Amount             string                 `codec:"amount" json:"amount"`
+	Asset              Asset                  `codec:"asset" json:"asset"`
+	Ctime              TimeMs                 `codec:"ctime" json:"ctime"`
+	CursorToken        string                 `codec:"cursorToken" json:"cursorToken"`
+	Unread             bool                   `codec:"unread" json:"unread"`
+	IsInflation        bool                   `codec:"isInflation" json:"isInflation"`
+	InflationSource    *string                `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
+	SourceAmountMax    string                 `codec:"sourceAmountMax" json:"sourceAmountMax"`
+	SourceAmountActual string                 `codec:"sourceAmountActual" json:"sourceAmountActual"`
+	SourceAsset        Asset                  `codec:"sourceAsset" json:"sourceAsset"`
+	IsAdvanced         bool                   `codec:"isAdvanced" json:"isAdvanced"`
+	SummaryAdvanced    string                 `codec:"summaryAdvanced" json:"summaryAdvanced"`
+	Operations         []string               `codec:"operations" json:"operations"`
+	Trustline          *PaymentTrustlineLocal `codec:"trustline,omitempty" json:"trustline,omitempty"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -421,6 +422,13 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 			}
 			return ret
 		})(o.Operations),
+		Trustline: (func(x *PaymentTrustlineLocal) *PaymentTrustlineLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Trustline),
 	}
 }
 
@@ -446,6 +454,7 @@ type PaymentSummaryDirect struct {
 	Ctime               TimeMs                `codec:"ctime" json:"ctime"`
 	Rtime               TimeMs                `codec:"rtime" json:"rtime"`
 	CursorToken         string                `codec:"cursorToken" json:"cursorToken"`
+	Unread              bool                  `codec:"unread" json:"unread"`
 	FromPrimary         bool                  `codec:"fromPrimary" json:"fromPrimary"`
 	BatchID             string                `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -495,6 +504,7 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		Ctime:               o.Ctime.DeepCopy(),
 		Rtime:               o.Rtime.DeepCopy(),
 		CursorToken:         o.CursorToken,
+		Unread:              o.Unread,
 		FromPrimary:         o.FromPrimary,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,
@@ -599,11 +609,12 @@ func (o ClaimSummary) DeepCopy() ClaimSummary {
 }
 
 type PaymentDetails struct {
-	Summary       PaymentSummary `codec:"summary" json:"summary"`
-	Memo          string         `codec:"memo" json:"memo"`
-	MemoType      string         `codec:"memoType" json:"memoType"`
-	ExternalTxURL string         `codec:"externalTxURL" json:"externalTxURL"`
-	FeeCharged    string         `codec:"feeCharged" json:"feeCharged"`
+	Summary          PaymentSummary `codec:"summary" json:"summary"`
+	Memo             string         `codec:"memo" json:"memo"`
+	MemoType         string         `codec:"memoType" json:"memoType"`
+	ExternalTxURL    string         `codec:"externalTxURL" json:"externalTxURL"`
+	FeeCharged       string         `codec:"feeCharged" json:"feeCharged"`
+	PathIntermediate []Asset        `codec:"pathIntermediate" json:"pathIntermediate"`
 }
 
 func (o PaymentDetails) DeepCopy() PaymentDetails {
@@ -613,6 +624,17 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 		MemoType:      o.MemoType,
 		ExternalTxURL: o.ExternalTxURL,
 		FeeCharged:    o.FeeCharged,
+		PathIntermediate: (func(x []Asset) []Asset {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Asset, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PathIntermediate),
 	}
 }
 

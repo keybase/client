@@ -1,9 +1,8 @@
 import React, {Component} from 'react'
 import Row from '../result-row/container'
-import {Box, Text, NativeFlatList} from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters/mobile.native'
 import {globalColors, globalMargins} from '../../styles'
 import EmptyResults from './empty'
-
 import {Props} from '.'
 
 class SearchResultsList extends Component<Props> {
@@ -26,28 +25,33 @@ class SearchResultsList extends Component<Props> {
   render() {
     const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
-      return <Box />
+      return <Kb.Box />
     } else if (!items.length) {
       return <EmptyResults style={style} />
     }
 
+    let headerComponent = null
+    if (showSearchSuggestions) {
+      headerComponent = (
+        <Kb.Box style={{padding: globalMargins.tiny}}>
+          <Kb.Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
+            Recommendations
+          </Kb.Text>
+        </Kb.Box>
+      )
+    }
+
     return (
-      <Box style={{width: '100%', ...style}}>
-        {showSearchSuggestions && (
-          <Box style={{padding: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
-              Recommendations
-            </Text>
-          </Box>
-        )}
-        <NativeFlatList
+      <Kb.Box style={{width: '100%', ...style}}>
+        <Kb.NativeFlatList
           data={items}
           renderItem={this._renderItem}
           keyExtractor={this._keyExtractor}
           keyboardDismissMode={this.props.keyboardDismissMode}
           keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={headerComponent}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }

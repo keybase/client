@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -88,8 +89,9 @@ func defaultNewFS(ctx context.Context, config libkbfs.Config,
 
 // SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
-	// log for logging - constant, does not need locking.
-	log logger.Logger
+	// logs for logging - constant, do not need locking.
+	log  logger.Logger
+	vlog *libkb.VDebugLog
 	// config for the fs - constant, does not need locking.
 	config libkbfs.Config
 	// The function to call for constructing a new KBFS file system.
@@ -148,6 +150,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		handles:         map[keybase1.OpID]*handle{},
 		inProgress:      map[keybase1.OpID]*inprogress{},
 		log:             log,
+		vlog:            config.MakeVLogger(log),
 		newFS:           defaultNewFS,
 		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
 		localHTTPServer: localHTTPServer,
@@ -358,9 +361,13 @@ func deTy2Ty(et data.EntryType) keybase1.DirentType {
 }
 
 func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.Type) ([]keybase1.Dirent, error) {
-	session, err := k.config.KBPKI().GetCurrentSession(ctx)
-	// Return empty directory listing if we are not logged in.
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, k.config.KBPKI(), true)
 	if err != nil {
+		return nil, err
+	}
+	// Return empty directory listing if we are not logged in.
+	if session.UID.IsNil() {
 		return nil, nil
 	}
 
@@ -450,7 +457,7 @@ func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	k.lock.Unlock()
 	// ignore error, this is just for logging.
 	descBS, _ := json.Marshal(desc)
-	k.log.CDebugf(ctx, "start %X %s", opid, descBS)
+	k.vlog.CLogf(ctx, libkb.VLog1, "start %X %s", opid, descBS)
 	return k.startOpWrapContext(ctx)
 }
 
@@ -939,6 +946,15 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 // this will trigger a network request.
 func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
+	session, err := idutil.GetCurrentSessionIfPossible(
+		ctx, k.config.KBPKI(), true)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+	if session.UID.IsNil() {
+		return keybase1.FavoritesResult{}, nil
+	}
+
 	return k.config.KBFSOps().GetFavoritesAll(ctx)
 }
 
@@ -1345,7 +1361,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 
 func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
 	ctx = k.makeContext(ctx)
-	k.log.CDebugf(ctx, "start sync %s %v", name, logarg)
+	k.vlog.CLogf(ctx, libkb.VLog1, "start sync %s %v", name, logarg)
 	return k.startOpWrapContext(ctx)
 }
 func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
@@ -1693,11 +1709,10 @@ func (k *SimpleFS) getRevisionsFromPath(
 	os.FileInfo, data.PrevRevisions, error) {
 	fs, finalElem, err := k.getFSIfExists(ctx, path)
 	if err != nil {
-		k.log.CDebugf(ctx, "Trouble getting fs for path %s: %+v", path, err)
+		k.log.CDebugf(ctx, "Trouble getting fs for path: %+v", err)
 		return nil, nil, err
 	}
 	// Use LStat so we don't follow symlinks.
-	k.log.CDebugf(ctx, "About to lstat %s", finalElem)
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
 		return nil, nil, err
@@ -1714,7 +1729,7 @@ func (k *SimpleFS) doGetRevisions(
 	ctx context.Context, opID keybase1.OpID, path keybase1.Path,
 	spanType keybase1.RevisionSpanType) (
 	revs []keybase1.DirentWithRevision, err error) {
-	k.log.CDebugf(ctx, "Getting revisions for path %s, spanType=%s",
+	k.vlog.CLogf(ctx, libkb.VLog1, "Getting revisions for path %s, spanType=%s",
 		path, spanType)
 
 	// Both span types return up to 5 revisions.
@@ -2591,4 +2606,102 @@ func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, thresho
 		return libkbfs.ErrNoSettingsDB
 	}
 	return db.SetNotificationThreshold(ctx, threshold)
+}
+
+// SimpleFSObfuscatePath implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSObfuscatePath(
+	ctx context.Context, path keybase1.Path) (res string, err error) {
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return "", err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, midPath, finalElem, err := remoteTlfAndPath(path)
+	if err != nil {
+		return "", err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return "", err
+	}
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return "", err
+	}
+	fs, err := k.newFS(
+		ctx, k.config, tlfHandle, branch, "", false)
+	if err != nil {
+		return "", err
+	}
+	asLibFS, ok := fs.(*libfs.FS)
+	if !ok {
+		return "", errors.Errorf("FS was not a KBFS file system: %T", fs)
+	}
+	p := fs.Join(midPath, finalElem)
+	return stdpath.Join(
+		tlfHandle.GetCanonicalPath(), asLibFS.PathForLogging(p)), nil
+}
+
+// SimpleFSDeobfuscatePath implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSDeobfuscatePath(
+	ctx context.Context, path keybase1.Path) (res []string, err error) {
+	ctx, err = k.startOpWrapContext(k.makeContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	defer func() { libcontext.CleanupCancellationDelayer(ctx) }()
+	t, tlfName, midPath, finalElem, err := remoteTlfAndPath(path)
+	if err != nil {
+		return nil, err
+	}
+	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+	if err != nil {
+		return nil, err
+	}
+	branch, err := k.branchNameFromPath(ctx, tlfHandle, path)
+	if err != nil {
+		return nil, err
+	}
+	fs, err := k.newFS(
+		ctx, k.config, tlfHandle, branch, "", false)
+	if err != nil {
+		return nil, err
+	}
+	asLibFS, ok := fs.(*libfs.FS)
+	if !ok {
+		return nil, errors.Errorf("FS was not a KBFS file system: %T", fs)
+	}
+	p := fs.Join(midPath, finalElem)
+	resWithoutPrefix, err := libfs.Deobfuscate(ctx, asLibFS, p)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range resWithoutPrefix {
+		res = append(res, stdpath.Join(tlfHandle.GetCanonicalPath(), r))
+	}
+	if len(res) == 0 {
+		return nil, errors.New("Found no matching paths")
+	}
+	return res, nil
+}
+
+// SimpleFSGetStats implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
+	res keybase1.SimpleFSStats, err error) {
+	ctx = k.makeContext(ctx)
+	dbc := k.config.DiskBlockCache()
+	if dbc == nil {
+		return keybase1.SimpleFSStats{}, nil
+	}
+
+	statusMap := dbc.Status(ctx)
+	if status, ok := statusMap["SyncBlockCache"]; ok {
+		res.SyncCacheDbStats = status.BlockDBStats
+	}
+	if status, ok := statusMap["WorkingSetBlockCache"]; ok {
+		res.BlockCacheDbStats = status.BlockDBStats
+	}
+	return res, nil
 }

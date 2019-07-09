@@ -11,11 +11,25 @@ import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-spe
 import {types} from '@babel/core'
 
 const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
-  new Promise((resolve, reject) =>
-    ImagePicker.showImagePicker(
+  new Promise((resolve, reject) => {
+    let title = 'Select a photo'
+    let takePhotoButtonTitle = 'Take photo...'
+    switch (action.payload.type) {
+    case Types.MobilePickType.Video:
+      title = 'Select a video'
+      takePhotoButtonTitle = 'Take video...'
+      break
+    case Types.MobilePickType.Mixed:
+      title = 'Select a photo or video'
+      takePhotoButtonTitle = 'Take photo or video...'
+      break
+    }
+    return ImagePicker.showImagePicker(
       {
         mediaType: action.payload.type,
         quality: 1,
+        takePhotoButtonTitle,
+        title,
         videoQuality: 'high',
       },
       response =>
@@ -31,7 +45,7 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
           ? resolve(response.path)
           : reject(new Error('path field is missing from response'))
     )
-  )
+  })
     .then(
       (localPath: string | null) =>
         localPath &&

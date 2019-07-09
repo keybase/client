@@ -604,7 +604,7 @@ func (s *stellarRetryClient) BatchLocal(ctx context.Context, arg stellar1.BatchL
 	return res, err
 }
 
-func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res string, err error) {
+func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res stellar1.AirdropDetails, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.AirdropDetailsLocal(ctx, sessionID)
 		if err == nil {
@@ -667,6 +667,16 @@ func (s *stellarRetryClient) ChangeTrustlineLimitLocal(ctx context.Context, arg 
 func (s *stellarRetryClient) GetTrustlinesLocal(ctx context.Context, arg stellar1.GetTrustlinesLocalArg) (ret []stellar1.Balance, err error) {
 	for i := 0; i < retryCount; i++ {
 		ret, err = s.cli.GetTrustlinesLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return ret, err
+}
+
+func (s *stellarRetryClient) GetTrustlinesForRecipientLocal(ctx context.Context, arg stellar1.GetTrustlinesForRecipientLocalArg) (ret stellar1.RecipientTrustlinesLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		ret, err = s.cli.GetTrustlinesForRecipientLocal(ctx, arg)
 		if err == nil {
 			break
 		}

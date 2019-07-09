@@ -11,7 +11,7 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
   displayName: string,
   options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
 ) =>
-  compose(
+  (compose(
     connect(
       mapStateToProps,
       mapDispatchToProps,
@@ -19,6 +19,19 @@ export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProp
       options
     ),
     setDisplayName(displayName)
-  ) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
+  ) as unknown) as RR.ConnectedComponentType<TMergedProps, TOwnProps>
+
+export const connectDEBUG = <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
+  mapStateToProps: RR.MapStateToProps<TStateProps, TOwnProps>,
+  mapDispatchToProps: RR.MapDispatchToProps<TDispatchProps, TOwnProps>,
+  mergeProps: RR.MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
+  options?: RR.Options<TypedState, TStateProps, TOwnProps, TMergedProps>
+) =>
+  (connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    options
+  ) as unknown) as RR.ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps>
 
 export default connect

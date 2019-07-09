@@ -565,6 +565,14 @@
         {
           "type": "string",
           "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "sourceAmount"
+        },
+        {
+          "type": "stellar1.Asset",
+          "name": "sourceAsset"
         }
       ]
     },
@@ -1539,6 +1547,22 @@
       "fields": [],
       "typedef": "uint64",
       "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "UICommandStatusDisplayTyp",
+      "symbols": [
+        "STATUS_0",
+        "WARNING_1",
+        "ERROR_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UICommandStatusActionTyp",
+      "symbols": [
+        "APPSETTINGS_0"
+      ]
     }
   ],
   "messages": {
@@ -1926,6 +1950,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": "LocationWatchID"
@@ -1939,6 +1967,34 @@
         {
           "name": "id",
           "type": "LocationWatchID"
+        }
+      ],
+      "response": null
+    },
+    "chatCommandStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "displayText",
+          "type": "string"
+        },
+        {
+          "name": "typ",
+          "type": "UICommandStatusDisplayTyp"
+        },
+        {
+          "name": "actions",
+          "type": {
+            "type": "array",
+            "items": "UICommandStatusActionTyp"
+          }
         }
       ],
       "response": null

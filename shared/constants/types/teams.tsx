@@ -3,6 +3,7 @@ import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {RetentionPolicy} from './retention-policy'
 import * as RPCChatTypes from './rpc-chat-gen'
+import {TeamBuildingSubState} from './team-building'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
@@ -145,6 +146,7 @@ export type _State = {
   teamProfileAddList: I.List<TeamProfileAddList>
   newTeams: I.Set<string>
   newTeamRequests: I.List<string>
+  teamBuilding: TeamBuildingSubState
 }
 
 export type State = I.RecordOf<_State>

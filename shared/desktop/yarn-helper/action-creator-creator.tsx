@@ -173,7 +173,7 @@ function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: Ac
 const cleanName = c => c.replace(/-/g, '')
 function makeTypedActions(created) {
   return `// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,no-use-before-define */
   ${created.map(c => `import {Actions as ${cleanName(c)}Actions} from './${c}-gen'`).join('\n')}
 
   export type TypedActions = ${created.map(c => `${cleanName(c)}Actions`).join(' | ')}

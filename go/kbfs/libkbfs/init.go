@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode:                           InitDefaultString,
+		Mode: InitDefaultString,
 	}
 }
 
@@ -660,11 +660,6 @@ func doInit(
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
 	config.SetVLogLevel(kbCtx.GetVDebugSetting())
-	if mode == InitConstrained {
-		// Until we have a way to turn on debug logging for mobile,
-		// log everything.
-		config.SetVLogLevel(libkb.VLog1String)
-	}
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -738,6 +733,17 @@ func doInit(
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
+	// Enable the disk limiter before the keybase service, since if
+	// that service receives a logged-in event it will create a disk
+	// block cache, which requires the disk limiter.
+	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
+	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
+	err = config.EnableDiskLimiter(params.StorageRoot)
+	if err != nil {
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
+		return nil, err
+	}
+
 	if registry := config.MetricsRegistry(); registry != nil {
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
@@ -786,15 +792,6 @@ func doInit(
 		bserv = NewBlockServerMeasured(bserv, registry)
 	}
 	config.SetBlockServer(bserv)
-
-	config.SetDiskBlockCacheFraction(params.DiskBlockCacheFraction)
-	config.SetSyncBlockCacheFraction(params.SyncBlockCacheFraction)
-
-	err = config.EnableDiskLimiter(params.StorageRoot)
-	if err != nil {
-		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
-		return nil, err
-	}
 
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {

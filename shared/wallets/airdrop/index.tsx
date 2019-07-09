@@ -87,7 +87,7 @@ class Airdrop extends React.Component<Props> {
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.fullHeight}>
           {p.signedUp ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
                 <Kb.Icon type="icon-airdrop-star-32" />
                 <Kb.Text type="BodySmallSemibold" style={styles.yourIn}>
@@ -150,7 +150,14 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {!p.signedUp && (
-            <Kb.Button type="Success" label="See if you qualify" onClick={this._onCheckQualify} />
+            <Kb.Box2 direction="horizontal">
+              <Kb.Button
+                style={styles.qualifyButton}
+                type="Success"
+                label="See if you qualify"
+                onClick={this._onCheckQualify}
+              />
+            </Kb.Box2>
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
           <Kb.Box2
@@ -239,6 +246,8 @@ const styles = Styles.styleSheetCreate({
   },
   friendContainer: {
     backgroundColor: Styles.globalColors.blueLighter3,
+    display: 'flex',
+    flexWrap: 'wrap',
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
@@ -269,6 +278,10 @@ const styles = Styles.styleSheetCreate({
   progress: {
     height: 20,
     width: 20,
+  },
+  qualifyButton: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   scrollView: {
     height: '100%',

@@ -32,8 +32,10 @@ type Indexer struct {
 	resumeWait   time.Duration
 	started      bool
 
-	maxSyncConvs   int
-	startSyncDelay time.Duration
+	maxSyncConvs          int
+	startSyncDelay        time.Duration
+	selectiveSyncActiveMu sync.Mutex
+	selectiveSyncActive   bool
 
 	// for testing
 	consumeCh                            chan chat1.ConversationID
@@ -103,8 +105,10 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	if idx.started {
 		return
 	}
-	idx.started = true
-	go idx.SyncLoop(ctx, uid)
+	if !idx.G().IsMobileAppType() {
+		idx.started = true
+		go idx.SyncLoop(ctx, uid)
+	}
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {
@@ -508,11 +512,25 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query, origQuer
 	return sess.run(ctx)
 }
 
+func (idx *Indexer) IsBackgroundActive() bool {
+	idx.selectiveSyncActiveMu.Lock()
+	defer idx.selectiveSyncActiveMu.Unlock()
+	return idx.selectiveSyncActive
+}
+
+func (idx *Indexer) setSelectiveSyncActive(val bool) {
+	idx.selectiveSyncActiveMu.Lock()
+	defer idx.selectiveSyncActiveMu.Unlock()
+	idx.selectiveSyncActive = val
+}
+
 // SelectiveSync queues up a small number of jobs on the background loader
 // periodically so our index can cover all conversations. The number of jobs
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
+	idx.setSelectiveSyncActive(true)
+	defer func() { idx.setSelectiveSyncActive(false) }()
 
 	convMap, err := idx.allConvs(ctx, uid, nil)
 	if err != nil {

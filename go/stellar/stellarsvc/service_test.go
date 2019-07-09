@@ -1276,6 +1276,8 @@ var _ libkb.MerkleStore = (*DummyMerkleStore)(nil)
 func TestGetPartnerUrlsLocal(t *testing.T) {
 	// inject some fake data into the merkle store hanging off G
 	// and then verify that the stellar exchange urls are extracted correctly
+	// the only one of the three that should show up is the stellar_partners url which is
+	// not marked as admin_only.
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
 	ctx := context.Background()
@@ -1302,13 +1304,10 @@ func TestGetPartnerUrlsLocal(t *testing.T) {
 
 	res, err := tc.Srv.GetPartnerUrlsLocal(ctx, 0)
 	require.NoError(t, err)
-	require.Equal(t, len(res), 2)
+	require.Equal(t, len(res), 1)
 	require.Equal(t, res[0].Url, firstPartnerURL)
 	require.Equal(t, res[0].Extra, `{"superfun":true}`)
 	require.False(t, res[0].AdminOnly)
-	require.Equal(t, res[1].Url, secondPartnerURL)
-	require.Equal(t, res[1].Extra, `{"superfun":false}`)
-	require.True(t, res[1].AdminOnly)
 }
 
 func TestAutoClaimLoop(t *testing.T) {

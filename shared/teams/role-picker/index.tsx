@@ -6,7 +6,7 @@ import {Position} from '../../common-adapters/relative-popup-hoc.types'
 import {TeamRoleType as Role} from '../../constants/types/teams'
 import {StylesCrossPlatform} from '../../styles/css'
 // Controls the ordering of the role picker
-const orderedRoles = ['owner', 'admin', 'writer', 'reader']
+const orderedRoles = ['owner', 'admin', 'writer', 'reader'] as const
 
 type DisabledReason = string
 
@@ -236,9 +236,9 @@ const RolePicker = (props: Props) => {
                 icon={nodeMap.icon}
                 onSelect={onSelect}
                 disabledReason={
-                  props.disabledRoles &&
-                  props.disabledRoles[disabledRole] &&
-                  disabledTextHelper(props.disabledRoles[disabledRole])
+                  props.disabledRoles && props.disabledRoles[disabledRole]
+                    ? disabledTextHelper(props.disabledRoles[disabledRole])
+                    : undefined
                 }
               />
             </Kb.ClickableBox>
@@ -414,6 +414,12 @@ export const sendNotificationFooter = (
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )
+
+// Helper for navigating roles with keyboard arrows
+export const nextRoleDown = (currentRole: Role): Role =>
+  orderedRoles[(orderedRoles.indexOf(currentRole) + 1) % orderedRoles.length]
+export const nextRoleUp = (currentRole: Role): Role =>
+  orderedRoles[(orderedRoles.length + (orderedRoles.indexOf(currentRole) - 1)) % orderedRoles.length]
 
 export const roleIconMap = {
   admin: 'iconfont-crown-admin',

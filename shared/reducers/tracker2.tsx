@@ -71,7 +71,7 @@ export default function(
       const reason =
         action.payload.reason ||
         (action.payload.result === 'broken' &&
-          `Some of ${username}'s proofs have changed since you last followed them`)
+          `Some of ${username}'s proofs have changed since you last followed them.`)
 
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
@@ -109,7 +109,7 @@ export default function(
       })
     }
 
-    case Tracker2Gen.updateFollowers:
+    case Tracker2Gen.updateFollowers: {
       const convert = f => f.username
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn(
@@ -121,6 +121,7 @@ export default function(
             })
         ),
       })
+    }
     case Tracker2Gen.proofSuggestionsUpdated:
       return state.merge({proofSuggestions: I.List(action.payload.suggestions)})
     // Saga only actions

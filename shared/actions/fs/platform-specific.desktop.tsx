@@ -50,14 +50,15 @@ function openInDefaultDirectory(openPath: string): Promise<void> {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      SafeElectron.getShell().openExternal(url, {activate: true}, err => {
-        if (err) {
+      SafeElectron.getShell()
+        .openExternal(url, {activate: true})
+        .then(() => {
+          logger.info('Opened directory:', openPath)
+          resolve()
+        })
+        .catch(err => {
           reject(err)
-          return
-        }
-        logger.info('Opened directory:', openPath)
-        resolve()
-      })
+        })
     })
   })
 }
@@ -307,16 +308,12 @@ const uninstallDokan = state => {
 }
 
 const openSecurityPreferences = () => {
-  SafeElectron.getShell().openExternal(
-    'x-apple.systempreferences:com.apple.preference.security?General',
-    {activate: true},
-    err => {
-      if (err) {
-        return
-      }
+  SafeElectron.getShell()
+    .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
+    .then(() => {
       logger.info('Opened Security Preferences')
-    }
-  )
+    })
+    .catch(() => {})
 }
 
 // Invoking the cached installer package has to happen from the topmost process

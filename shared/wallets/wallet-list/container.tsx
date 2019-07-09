@@ -3,21 +3,19 @@ import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
-import openURL from '../../util/open-url'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {
   style: Styles.StylesCrossPlatform
 }
 
-const mapStateToProps = (state: Container.TypedState) => {
-  return {
-    accounts: Constants.getAccountIDs(state),
-    airdropSelected: false, // TODO path === 'airdrop' || path === 'airdropQualify',
-    inAirdrop: state.wallets.airdropState === 'accepted',
-    loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
-  }
-}
+const mapStateToProps = (state: Container.TypedState) => ({
+  accounts: Constants.getAccountIDs(state),
+  airdropIsLive: state.wallets.airdropDetails.isPromoted,
+  airdropSelected: Constants.getAirdropSelected(state),
+  inAirdrop: state.wallets.airdropState === 'accepted',
+  loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
+})
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onAddNew: () => {
@@ -43,11 +41,12 @@ export default Container.connect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     accountIDs: stateProps.accounts.toArray(),
+    airdropIsLive: stateProps.airdropIsLive,
     airdropSelected: stateProps.airdropSelected,
     inAirdrop: stateProps.inAirdrop,
     loading: stateProps.loading,
     onAddNew: dispatchProps.onAddNew,
-    onJoinAirdrop: dispatchProps.onJoinAirdrop,
+    onJoinAirdrop: stateProps.airdropIsLive ? dispatchProps.onJoinAirdrop : null,
     onLinkExisting: dispatchProps.onLinkExisting,
     onWhatIsStellar: dispatchProps.onWhatIsStellar,
     style: ownProps.style,

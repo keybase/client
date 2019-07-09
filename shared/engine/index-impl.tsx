@@ -160,7 +160,7 @@ class Engine {
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
     const {method, param: incomingParam, response} = payload
-    const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
+    const param = incomingParam && incomingParam.length ? incomingParam[0] || {} : {}
     // @ts-ignore codemode issue
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     // @ts-ignore codemode issue

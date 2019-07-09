@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
-type Item =
+export type Item =
   | {
       key: string
       id: Types.DeviceID
@@ -64,7 +64,7 @@ class Devices extends React.PureComponent<Props, State> {
     } else if (item.type === 'revokedNote') {
       return (
         <Kb.Text center={true} type="BodySmall" style={styles.revokedNote}>
-          Revoked devices will no longer be able to access your Keybase account.
+          Revoked devices are no longer able to access your Keybase account.
         </Kb.Text>
       )
     } else {

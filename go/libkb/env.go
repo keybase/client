@@ -128,6 +128,7 @@ func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { re
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
+func (n NullConfiguration) GetRuntimeStatsEnabled() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -1897,6 +1898,13 @@ func (e *Env) ForceSecretStoreFile() bool {
 	)
 }
 
+func (e *Env) GetRuntimeStatsEnabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUNTIME_STATS_ENABLED") },
+		func() (bool, bool) { return e.GetConfig().GetRuntimeStatsEnabled() },
+	)
+}
+
 func (e *Env) RememberPassphrase() bool {
 	return e.GetBool(true,
 		e.cmd.GetRememberPassphrase,
@@ -1928,7 +1936,7 @@ func (e *Env) GetLogFileConfig(filename string) *logger.LogFileConfig {
 
 	if e.GetAppType() == MobileAppType && !e.GetFeatureFlags().Admin(e.GetUID()) {
 		maxKeepFiles = 2
-		maxSize = 16 * opt.MiB // NOTE: If you decrease this, check go/bind/keybase.go:LogSend to make sure we aren't sending more than we store.
+		maxSize = 16 * opt.MiB
 	} else {
 		maxKeepFiles = 3
 		maxSize = 128 * opt.MiB

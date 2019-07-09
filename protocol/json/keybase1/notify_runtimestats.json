@@ -1,0 +1,86 @@
+{
+  "protocol": "NotifyRuntimeStats",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "StatsSeverityLevel",
+      "symbols": [
+        "NORMAL_0",
+        "WARNING_1",
+        "SEVERE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RuntimeStats",
+      "fields": [
+        {
+          "type": "string",
+          "name": "cpu"
+        },
+        {
+          "type": "string",
+          "name": "resident"
+        },
+        {
+          "type": "string",
+          "name": "virt"
+        },
+        {
+          "type": "string",
+          "name": "free"
+        },
+        {
+          "type": "string",
+          "name": "goheap"
+        },
+        {
+          "type": "string",
+          "name": "goheapsys"
+        },
+        {
+          "type": "string",
+          "name": "goreleased"
+        },
+        {
+          "type": "StatsSeverityLevel",
+          "name": "cpuSeverity"
+        },
+        {
+          "type": "StatsSeverityLevel",
+          "name": "residentSeverity"
+        },
+        {
+          "type": "boolean",
+          "name": "convLoaderActive"
+        },
+        {
+          "type": "boolean",
+          "name": "selectiveSyncActive"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "runtimeStatsUpdate": {
+      "request": [
+        {
+          "name": "stats",
+          "type": [
+            null,
+            "RuntimeStats"
+          ]
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

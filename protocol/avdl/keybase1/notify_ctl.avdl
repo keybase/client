@@ -29,6 +29,7 @@ protocol notifyCtl {
     boolean chatattachments;
     boolean wallet;
     boolean audit;
+    boolean runtimestats;
   }
 
   void setNotifications(NotificationChannels channels);

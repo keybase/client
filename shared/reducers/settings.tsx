@@ -6,6 +6,7 @@ import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
 import {actionHasError} from '../util/container'
+import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -20,7 +21,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return initialState
     case SettingsGen.setAllowDeleteAccount:
       return state.merge({allowDeleteAccount: action.payload.allow})
-    case SettingsGen.notificationsToggle:
+    case SettingsGen.notificationsToggle: {
       if (!state.notifications.groups.get('email')) {
         logger.warn('Trying to toggle while not loaded')
         return state
@@ -66,6 +67,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           groups: state.notifications.groups.merge(I.Map(changed)) as any,
         })
       )
+    }
     case SettingsGen.notificationsSaved:
       return state.update('notifications', notifications => notifications.merge({allowEdit: true}))
     case SettingsGen.notificationsRefreshed:
@@ -95,7 +97,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       )
     case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged:
       return state.setIn(
-        ['phone', 'phones'],
+        ['phoneNumbers', 'phones'],
         I.Map((action.payload.params.list || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)]))
       )
     case SettingsGen.loadedRememberPassword:
@@ -170,7 +172,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
               }
         )
       )
-    case SettingsGen.clearPhoneNumberVerification:
+    case SettingsGen.clearPhoneNumberErrors:
+      return state.update('phoneNumbers', pn => pn.merge({error: ''}))
+    case SettingsGen.clearPhoneNumberAdd:
       return state.update('phoneNumbers', pn =>
         pn.merge({
           error: '',
@@ -187,6 +191,43 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('phoneNumbers', pn =>
         pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
       )
+    case SettingsGen.loadedContactImportEnabled:
+      return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
+    case SettingsGen.loadedContactPermissions:
+      return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
+    case SettingsGen.addEmail: {
+      const {email} = action.payload
+      const emailError = isValidEmail(email)
+      return state.update('email', emailState =>
+        emailState.merge({addingEmail: email, error: emailError ? new Error(emailError) : null})
+      )
+    }
+    case SettingsGen.addedEmail: {
+      if (action.payload.email !== state.email.addingEmail) {
+        logger.warn("addedEmail: doesn't match")
+        return state
+      }
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.error ? null : action.payload.email,
+          addingEmail: action.payload.error ? emailState.addingEmail : null,
+          error: action.payload.error || null,
+        })
+      )
+    }
+    case SettingsGen.sentVerificationEmail: {
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.email,
+        })
+      )
+    }
+    case SettingsGen.clearAddingEmail: {
+      return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
+    }
+    case SettingsGen.clearAddedEmail: {
+      return state.update('email', emailState => emailState.merge({addedEmail: null}))
+    }
     // Saga only actions
     case SettingsGen.dbNuke:
     case SettingsGen.deleteAccountForever:
@@ -214,6 +255,10 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.verifyPhoneNumber:
     case SettingsGen.loadProxyData:
     case SettingsGen.saveProxyData:
+    case SettingsGen.loadContactImportEnabled:
+    case SettingsGen.editContactImportEnabled:
+    case SettingsGen.requestContactPermissions:
+    case SettingsGen.toggleRuntimeStats:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

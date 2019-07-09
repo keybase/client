@@ -27,6 +27,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+var errPushOrdererMissingLatestInboxVersion = errors.New("no latest inbox version")
+
 type messageWaiterEntry struct {
 	vers chat1.InboxVers
 	cb   chan struct{}
@@ -64,6 +66,9 @@ func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid grego
 	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		return 0, err
+	}
+	if vers == 0 {
+		return 0, errPushOrdererMissingLatestInboxVersion
 	}
 	return vers, nil
 }
@@ -125,17 +130,32 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	go func(ctx context.Context) {
 		defer close(res)
 		g.Lock()
+		var dur time.Duration
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
-			vers = newVers - 1
-			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
+			if newVers >= 2 {
+				// If we fail to get the inbox version, then the general goal is to just simulate like
+				// we are looking for the previous update to the one we just got (newVers). In order to do
+				// this, we act like our previous inbox version was just missing the inbox version one less
+				// than newVers. That means we are waiting for this single update (which probably isn't
+				// coming, we usually get here if we miss the inbox cache on disk).
+				vers = newVers - 2
+			} else {
+				vers = 0
+			}
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s, proceeding with vers %d",
 				err, vers)
 		}
 		// add extra time if we are multiple updates behind
-		dur := time.Duration(newVers-vers-1) * time.Second
+		dur = time.Duration(newVers-vers-1) * time.Second
 		if dur < 0 {
 			dur = 0
 		}
+		// cap at a minute
+		if dur > time.Minute {
+			dur = time.Minute
+		}
+
 		deadline = deadline.Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()

@@ -104,6 +104,8 @@ class FeedbackContainer extends React.Component<Props, State> {
         sending={this.state.sending}
         sendError={this.state.sendError}
         loggedOut={this.props.loggedOut}
+        showInternalSuccessBanner={true}
+        onFeedbackDone={() => null}
       />
     )
   }

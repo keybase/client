@@ -1,5 +1,4 @@
 import * as React from 'react'
-import GoButton from './go-button'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import TeamBox from './team-box'
@@ -8,6 +7,8 @@ import UserResult from './user-result'
 import flags from '../util/feature-flags'
 import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
+import {Props as OriginalRolePickerProps} from '../teams/role-picker'
+import {TeamRoleType} from '../constants/types/teams'
 
 type SearchResult = {
   userId: string
@@ -15,10 +16,21 @@ type SearchResult = {
   prettyName: string
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
+  isPreExistingTeamMember: boolean
   followingState: FollowingState
 }
 
-export type Props = {
+export type RolePickerProps = {
+  onSelectRole: (role: TeamRoleType) => void
+  sendNotification: boolean
+  changeSendNotification: (sendNotification: boolean) => void
+  showRolePicker: boolean
+  changeShowRolePicker: (showRolePicker: boolean) => void
+  selectedRole: TeamRoleType
+  disabledRoles: OriginalRolePickerProps['disabledRoles']
+}
+
+type Props = {
   fetchUserRecs: () => void
   highlightedIndex: number | null
   onAdd: (userId: string) => void
@@ -46,6 +58,7 @@ export type Props = {
     username: string
   }>
   waitingForCreate: boolean
+  rolePickerProps?: RolePickerProps
 }
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
@@ -60,7 +73,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {Styles.isMobile && (
+        {Styles.isMobile ? (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <TeamBox
               onChangeText={props.onChangeText}
@@ -72,13 +85,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
               teamSoFar={props.teamSoFar}
               onBackspace={props.onBackspace}
               searchString={props.searchString}
+              rolePickerProps={props.rolePickerProps}
             />
-            {!!props.teamSoFar.length && !Styles.isMobile && (
-              <GoButton onClick={props.onFinishTeamBuilding} />
-            )}
           </Kb.Box2>
-        )}
-        {!Styles.isMobile && (
+        ) : (
           <TeamBox
             onChangeText={props.onChangeText}
             onDownArrowKeyDown={props.onDownArrowKeyDown}
@@ -89,6 +99,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             teamSoFar={props.teamSoFar}
             onBackspace={props.onBackspace}
             searchString={props.searchString}
+            rolePickerProps={props.rolePickerProps}
           />
         )}
         {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
@@ -155,6 +166,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 prettyName={result.prettyName}
                 services={result.services}
                 inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
                 followingState={result.followingState}
                 highlight={index === props.highlightedIndex}
                 onAdd={() => props.onAdd(result.userId)}

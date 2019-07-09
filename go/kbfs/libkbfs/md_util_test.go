@@ -122,7 +122,8 @@ func TestGetRevisionByTime(t *testing.T) {
 	t.Log("Create revision 2")
 	t2 := t1.Add(1 * time.Minute)
 	clock.Set(t2)
-	nodeA, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	nodeA, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
 	require.NoError(t, err)
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, nodeA, data, 0)
