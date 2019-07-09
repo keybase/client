@@ -135,11 +135,13 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	var conCache lookupResultCache
 	cacheKey := c.Store.dbKey(mctx.CurrentUID())
 	found, cerr := c.Store.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
-	if cerr != nil {
-		mctx.Warning("Unable to pull cache: %s", cerr)
-	} else if !found {
+	if cerr != nil || !found {
+		if cerr != nil {
+			mctx.Warning("Unable to pull cache: %s", cerr)
+		} else if !found {
+			mctx.Debug("There was no cache, making a new cache object")
+		}
 		conCache = makeNewLookupResultCache()
-		mctx.Debug("There was no cache, making a new cache object")
 	} else {
 		mctx.Debug("Fetched cache, current cache size: %d", len(conCache.Lookups))
 	}
