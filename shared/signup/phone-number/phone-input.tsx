@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import {isIOS, isMobile} from '../../constants/platform'
 import {
   countryData,
+  CountryData,
   codeToCountry,
   areaCodeIsCanadian,
   AsYouTypeFormatter,
@@ -28,8 +29,8 @@ const pickerItems = memoize(countryData =>
   [
     ...prioritizedCountries.map(code => countryData[code]),
     ...Object.values(countryData)
-      .sort((a: any, b: any) => a.name.localeCompare(b.name))
-      .map((cd: any) => {
+      .sort((a: CountryData, b: CountryData) => a.name.localeCompare(b.name))
+      .map((cd: CountryData) => {
         if (prioritizedCountries.includes(cd.alpha2)) {
           return {
             ...cd,
@@ -38,20 +39,20 @@ const pickerItems = memoize(countryData =>
         }
         return cd
       }),
-  ].map((cd: any) => ({label: cd.pickerText, value: cd.alpha2}))
+  ].map((cd: CountryData) => ({label: cd.pickerText, value: cd.alpha2}))
 )
 const menuItems = memoize((countryData, filter, onClick) => {
   const strippedFilter = filterNumeric(filter)
   const lowercaseFilter = filter.toLowerCase()
 
   return Object.values(countryData)
-    .filter((cd: any) => {
+    .filter((cd: CountryData) => {
       if (strippedFilter.length > 0) {
         return filterNumeric(cd.callingCode).startsWith(strippedFilter)
       }
       return cd.pickerText.toLowerCase().includes(filter.toLowerCase())
     })
-    .sort((a: any, b: any) => {
+    .sort((a: CountryData, b: CountryData) => {
       // Special cases
       for (const country of prioritizedCountries) {
         const countryName = countryData[country].name
@@ -106,7 +107,7 @@ const menuItems = memoize((countryData, filter, onClick) => {
       // Fallback to alphabetical sorting
       return a.name.localeCompare(b.name)
     })
-    .map((cd: any) => ({
+    .map((cd: CountryData) => ({
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
       view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,

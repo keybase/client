@@ -8,8 +8,18 @@ const PNF = libphonenumber.PhoneNumberFormat
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
 const supported = phoneUtil.getSupportedRegions()
 
-let countryDataRaw = {}
-let codeToCountryRaw = {}
+export type CountryData = {
+  alpha2: string
+  callingCode: string
+  emoji: string
+  emojiText: string
+  example: string
+  name: string
+  pickerText: string
+}
+
+let countryDataRaw: {[key: string]: CountryData} = {}
+let codeToCountryRaw: {[key: string]: string} = {}
 
 countries.forEach(curr => {
   if (
@@ -39,8 +49,8 @@ countries.forEach(curr => {
   }
 })
 
-export const countryData = countryDataRaw
-export const codeToCountry = codeToCountryRaw
+export const countryData: {[key: string]: CountryData} = countryDataRaw
+export const codeToCountry: {[key: string]: string} = codeToCountryRaw
 
 const canadianAreaCodes = {
   '204': true,
