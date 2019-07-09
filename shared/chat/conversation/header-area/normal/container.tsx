@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
@@ -44,8 +45,17 @@ const mapDispatchToProps = (
 const usePhoneHeader = (props: Props): boolean =>
   props.participants.length === 2 && props.participants.some(participant => participant.endsWith('@phone'))
 
-export default Container.compose(
-  Container.withSafeNavigation,
+const HeaderBranch = (props: Props) => {
+  if (!!props.teamName) {
+    return <ChannelHeader {...props} />
+  }
+  if (usePhoneHeader(props)) {
+    return <PhoneHeader {...props} />
+  }
+  return <UsernameHeader {...props} />
+}
+
+export default Container.withSafeNavigation(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => ({
     badgeNumber: stateProps._badgeMap.reduce(
       (res, currentValue, currentConvID) =>
@@ -66,7 +76,5 @@ export default Container.compose(
     smallTeam: stateProps.smallTeam,
     teamName: stateProps.teamName,
     unMuteConversation: dispatchProps._onUnMuteConversation,
-  })),
-  Container.branch((props: Props) => !!props.teamName, Container.renderComponent(ChannelHeader)),
-  Container.branch(usePhoneHeader, Container.renderComponent(ChannelHeader))
-)(UsernameHeader)
+  }))(HeaderBranch)
+)
