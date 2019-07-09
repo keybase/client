@@ -10,15 +10,16 @@ type ErrProps = {
 }
 
 const Err = (props: ErrProps) => (
-  <Kb.Banner
-    onClose={props.dismiss}
-    content={[
-      props.msg,
-      ...(props.retry ? [' ', {onClick: props.retry, text: 'Retry'}] : []),
-      ...(props.onFeedback ? [' ', {onClick: props.onFeedback, text: 'Let us know'}] : []),
-    ]}
-    color="red"
-  />
+  <Kb.Banner onClose={props.dismiss} color="red">
+    <Kb.BannerParagraph
+      bannerColor="red"
+      content={[
+        props.msg,
+        ...(props.retry ? [' ', {onClick: props.retry, text: 'Retry'}] : []),
+        ...(props.onFeedback ? [' ', {onClick: props.onFeedback, text: 'Let us know'}] : []),
+      ]}
+    />
+  </Kb.Banner>
 )
 
 type ErrsProps = {

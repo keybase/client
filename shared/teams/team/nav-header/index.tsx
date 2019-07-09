@@ -108,15 +108,16 @@ type SubHeaderProps = {
 export const SubHeader = (props: SubHeaderProps) =>
   props.onAddSelf ? (
     <Kb.Box2 direction="horizontal" style={styles.banner} fullWidth={true}>
-      <Kb.Banner
-        color="blue"
-        inline={true}
-        content={[
-          'You are not a member of this team. ',
-          {onClick: props.onAddSelf, text: 'Add yourself'},
-          '?',
-        ]}
-      />
+      <Kb.Banner color="blue" inline={true}>
+        <Kb.BannerParagraph
+          bannerColor="red"
+          content={[
+            'You are not a member of this team. ',
+            {onClick: props.onAddSelf, text: 'Add yourself'},
+            '?',
+          ]}
+        />
+      </Kb.Banner>
     </Kb.Box2>
   ) : null
 

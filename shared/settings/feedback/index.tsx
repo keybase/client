@@ -93,7 +93,9 @@ class Feedback extends React.Component<Props, State> {
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
         <Kb.ScrollView>
           {this.state.showSuccessBanner && (
-            <Kb.Banner color="green" content="Thanks! Your feedback was sent." />
+            <Kb.Banner color="green">
+              <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+            </Kb.Banner>
           )}
           <Kb.Box2 direction="vertical" style={styles.mainBox} gap="xsmall">
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -112,7 +114,11 @@ class Feedback extends React.Component<Props, State> {
                 onChangeText={this._onChangeFeedback}
               />
             </Kb.Box2>
-            {this._sendMaxBytes() && <Kb.Banner color="green" content="next send will include full logs" />}
+            {this._sendMaxBytes() && (
+              <Kb.Banner color="green">
+                <Kb.BannerParagraph bannerColor="green" content="next send will include full logs" />
+              </Kb.Banner>
+            )}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
               <Kb.Checkbox label="" checked={this.state.sendLogs} onCheck={this._onChangeSendLogs} />
               <Kb.Box2 direction="vertical" style={styles.textBox}>

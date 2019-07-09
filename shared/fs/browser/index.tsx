@@ -46,10 +46,12 @@ const WithContent = (props: Props) => (
 
 const SelfReset = (props: Props) => (
   <Kb.Box2 direction="vertical" fullHeight={true}>
-    <Kb.Banner
-      color="red"
-      content="Since you reset your account, participants have to accept to let you back in."
-    />
+    <Kb.Banner color="red">
+      <Kb.BannerParagraph
+        bannerColor="red"
+        content="Since you reset your account, participants have to accept to let you back in."
+      />
+    </Kb.Banner>
     <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
       <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
       <Kb.Icon type="icon-access-denied-266" />

@@ -187,7 +187,13 @@ SignupScreen.defaultProps = {
 }
 
 export const errorBanner = (error: string) =>
-  error.trim() ? [<Kb.Banner key="generalError" color="red" content={error} />] : []
+  error.trim()
+    ? [
+        <Kb.Banner key="generalError" color="red">
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>,
+      ]
+    : []
 
 const styles = Styles.styleSheetCreate({
   backButton: {

@@ -13,101 +13,81 @@ type _Segment = {
 }
 type Segment = _Segment | string | null | false
 
-// See banner.stories.tsx for examples
-type Content =
-  // single paragraph content
-  | string
-  // single paragraph content with an array of segments
-  | (Array<Segment>)
-  // an array of paragraphes, each represented by an array of segments
-  | Array<Array<Segment>>
+type BannerParagraphProps = {
+  bannerColor: Color
+  content: string | Array<Segment>
+}
 
-type Props = {
+export const BannerParagraph = (props: BannerParagraphProps) => (
+  <Text type="BodySmallSemibold" style={styles.text}>
+    {(Array.isArray(props.content) ? props.content : [props.content])
+      .filter(Boolean)
+      .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
+      .map((segment: _Segment, index) =>
+        segment.text === ' ' ? (
+          <>&nbsp;</>
+        ) : (
+          <React.Fragment key={index.toString()}>
+            {segment.text.startsWith(' ') && <>&nbsp;</>}
+            <Text
+              type="BodySmallSemibold"
+              style={Styles.collapseStyles([
+                colorToTextColorStyles[props.bannerColor],
+                !!segment.onClick && styles.underline,
+              ])}
+              onClick={segment.onClick}
+            >
+              {segment.text}
+            </Text>
+            {segment.text.endsWith(' ') && <>&nbsp;</>}
+          </React.Fragment>
+        )
+      )}
+  </Text>
+)
+
+type BannerProps = {
   color: Color
-  content: Content
+  children: React.ReactElement<typeof BannerParagraph> | Array<React.ReactElement<typeof BannerParagraph>>
   inline?: boolean
   narrow?: boolean
   onClose?: () => void
   style?: Styles.StylesCrossPlatform | null
 }
 
-const normalizeContent = (content: Content): Array<Array<_Segment>> => {
-  if (typeof content === 'string') {
-    return [[{text: content}]]
-  }
-  if (!content.length) {
-    return []
-  }
-  const paragraphs: Array<Array<Segment>> = Array.isArray(content[0])
-    ? (content as Array<Array<Segment>>)
-    : [content as Array<Segment>]
-  return paragraphs.map(
-    (paragraph: Array<Segment>) =>
-      paragraph
-        .map((segment: Segment) => (typeof segment === 'string' ? {text: segment} : segment))
-        .filter(Boolean) as Array<_Segment>
-  )
-}
-
-const Banner = (props: Props) => {
-  const paragraphs = normalizeContent(props.content)
-  return (
+export const Banner = (props: BannerProps) => (
+  <Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={Styles.collapseStyles([
+      styles.container,
+      colorToBackgroundColorStyles[props.color],
+      props.inline && styles.containerInline,
+      props.style,
+    ])}
+  >
     <Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([
-        styles.container,
-        colorToBackgroundColorStyles[props.color],
-        props.inline && styles.containerInline,
-        props.style,
-      ])}
+      key="textBox"
+      direction="vertical"
+      style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
+      centerChildren={true}
     >
-      <Box2
-        key="textBox"
-        direction="vertical"
-        style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
-        centerChildren={true}
-      >
-        {paragraphs.map((paragraph, parIndex) => (
-          <Text key={parIndex.toString()} type="BodySmallSemibold" style={styles.text}>
-            {paragraph.map((segment: _Segment, index) =>
-              segment.text === ' ' ? (
-                <>&nbsp;</>
-              ) : (
-                <React.Fragment key={index.toString()}>
-                  {segment.text.startsWith(' ') && <>&nbsp;</>}
-                  <Text
-                    type="BodySmallSemibold"
-                    style={Styles.collapseStyles([
-                      colorToTextColorStyles[props.color],
-                      !!segment.onClick && styles.underline,
-                    ])}
-                    onClick={segment.onClick}
-                  >
-                    {segment.text}
-                  </Text>
-                  {segment.text.endsWith(' ') && <>&nbsp;</>}
-                </React.Fragment>
-              )
-            )}
-          </Text>
-        ))}
-      </Box2>
-      {!!props.onClose && (
-        <Box key="iconBox" style={styles.iconContainer}>
-          <Icon
-            padding="xtiny"
-            sizeType="Small"
-            type="iconfont-close"
-            color={Styles.globalColors.white_90}
-            hoverColor={Styles.globalColors.white}
-            onClick={props.onClose}
-          />
-        </Box>
-      )}
+      {props.children}
     </Box2>
-  )
-}
+    {!!props.onClose && (
+      <Box key="iconBox" style={styles.iconContainer}>
+        <Icon
+          padding="xtiny"
+          sizeType="Small"
+          type="iconfont-close"
+          color={Styles.globalColors.white_90}
+          hoverColor={Styles.globalColors.white}
+          onClick={props.onClose}
+        />
+      </Box>
+    )}
+  </Box2>
+)
 
 const styles = Styles.styleSheetCreate({
   container: {
@@ -190,5 +170,3 @@ const colorToTextColorStyles = Styles.styleSheetCreate({
   red: {color: Styles.globalColors.white},
   yellow: {color: Styles.globalColors.brown_75},
 })
-
-export default Banner

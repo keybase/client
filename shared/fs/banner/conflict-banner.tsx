@@ -25,44 +25,49 @@ const ConflictBanner = (props: Props) => {
     case Types.ConflictStateType.NormalView: {
       const {feedbackAction, helpAction, startRes} = getActions(props)
       if (props.conflictState.stuckInConflict) {
+        const color = props.conflictState.localViewTlfPaths.size ? 'red' : 'yellow'
         return (
-          <Kb.Banner
-            color={props.conflictState.localViewTlfPaths.size ? 'red' : 'yellow'}
-            content={[
-              (props.conflictState.localViewTlfPaths.size
-                ? `This is the rest of the world's view of ${props.tlfPath}. Your changes to this view`
-                : `Your changes to ${props.tlfPath}`) +
-                ' conflict with changes made to this folder on another device. ' +
-                'Automatic conflict resolution has failed,' +
-                ' so you need to manually resolve the conflict. ' +
-                'This is not supposed to happen! ',
-              startRes,
-              feedbackAction,
-              helpAction,
-            ]}
-          />
+          <Kb.Banner color={color}>
+            <Kb.BannerParagraph
+              bannerColor={color}
+              content={[
+                (props.conflictState.localViewTlfPaths.size
+                  ? `This is the rest of the world's view of ${props.tlfPath}. Your changes to this view`
+                  : `Your changes to ${props.tlfPath}`) +
+                  ' conflict with changes made to this folder on another device. ' +
+                  'Automatic conflict resolution has failed,' +
+                  ' so you need to manually resolve the conflict. ' +
+                  'This is not supposed to happen! ',
+                startRes,
+                feedbackAction,
+                helpAction,
+              ]}
+            />
+          </Kb.Banner>
         )
       }
       if (props.conflictState.localViewTlfPaths.size) {
         const localViewCount = props.conflictState.localViewTlfPaths.size
         const {feedbackAction, helpAction} = getActions(props)
         return (
-          <Kb.Banner
-            color="red"
-            content={[
-              `This is the rest of the world's view of ${props.tlfPath}.` +
-                " When you're satisfied with this view, you can delete the local conflict view. ",
-              ...props.conflictState.localViewTlfPaths.toArray().map((tlfPath, idx) => ({
-                onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
-                spaceBefore: true,
-                text:
-                  'See local changes' +
-                  (localViewCount > 1 ? ` (version ${(idx + 1).toString()} of ${localViewCount}` : ''),
-              })),
-              feedbackAction,
-              helpAction,
-            ]}
-          />
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph
+              bannerColor="red"
+              content={[
+                `This is the rest of the world's view of ${props.tlfPath}.` +
+                  " When you're satisfied with this view, you can delete the local conflict view. ",
+                ...props.conflictState.localViewTlfPaths.toArray().map((tlfPath, idx) => ({
+                  onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
+                  spaceBefore: true,
+                  text:
+                    'See local changes' +
+                    (localViewCount > 1 ? ` (version ${(idx + 1).toString()} of ${localViewCount}` : ''),
+                })),
+                feedbackAction,
+                helpAction,
+              ]}
+            />
+          </Kb.Banner>
         )
       }
       return null
@@ -75,18 +80,20 @@ const ConflictBanner = (props: Props) => {
         text: 'See the global view',
       }
       return (
-        <Kb.Banner
-          color="yellow"
-          content={[
-            `You're resolving a conflict in ${props.tlfPath}. This is your local view.` +
-              'You should make sure to copy any changes you want to keep into' +
-              ' the global view before clearing away this view. ',
-            onSeeGlobalView,
-            finishRes,
-            feedbackAction,
-            helpAction,
-          ]}
-        />
+        <Kb.Banner color="yellow">
+          <Kb.BannerParagraph
+            bannerColor="yellow"
+            content={[
+              `You're resolving a conflict in ${props.tlfPath}. This is your local view.` +
+                'You should make sure to copy any changes you want to keep into' +
+                ' the global view before clearing away this view. ',
+              onSeeGlobalView,
+              finishRes,
+              feedbackAction,
+              helpAction,
+            ]}
+          />
+        </Kb.Banner>
       )
     }
     default:

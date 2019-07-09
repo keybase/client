@@ -28,15 +28,16 @@ const PublicBanner = (props: Props) => {
   }, [clearLastPublicBannerClosedTlf, tlfName, lastPublicBannerClosedTlf])
   return (
     (props.writable && props.public && props.lastPublicBannerClosedTlf !== props.tlfName && (
-      <Kb.Banner
-        color="yellow"
-        content={[
-          'Everything you upload in here can be viewed by everyone at ',
-          {onClick: () => openUrl(props.url), text: props.url},
-          '.',
-        ]}
-        onClose={props.onClose}
-      />
+      <Kb.Banner color="yellow" onClose={props.onClose}>
+        <Kb.BannerParagraph
+          bannerColor="yellow"
+          content={[
+            'Everything you upload in here can be viewed by everyone at ',
+            {onClick: () => openUrl(props.url), text: props.url},
+            '.',
+          ]}
+        />
+      </Kb.Banner>
     )) ||
     null
   )

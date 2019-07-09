@@ -43,16 +43,18 @@ const ManageContacts = (props: Props) => {
       <Kb.BoxGrow>
         {/* TODO banner for after you've successfully imported contacts + hook up to service Y2K-192 */}
         {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
-          <Kb.Banner
-            color="red"
-            content={[
-              contactsImported
-                ? "Contact importing is paused because Keybase doesn't have permission to access your contacts. "
-                : "Keybase doesn't have permission to access your contacts. ",
-              {onClick: onOpenAppSettings, text: 'Enable in settings'},
-              '.',
-            ]}
-          />
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph
+              bannerColor="red"
+              content={[
+                contactsImported
+                  ? "Contact importing is paused because Keybase doesn't have permission to access your contacts. "
+                  : "Keybase doesn't have permission to access your contacts. ",
+                {onClick: onOpenAppSettings, text: 'Enable in settings'},
+                '.',
+              ]}
+            />
+          </Kb.Banner>
         )}
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>

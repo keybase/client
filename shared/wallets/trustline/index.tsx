@@ -126,12 +126,16 @@ const Body = (props: BodyProps) => {
           </Kb.Box2>
           <Kb.Divider />
           {!props.canAddTrustline && (
-            <Kb.Banner
-              color="red"
-              content={`Stellar holds ${
-                Constants.trustlineHoldingBalance
-              } XLM per trustline, and your available Lumens balance is ${props.balanceAvailableToSend} XLM.`}
-            />
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph
+                bannerColor="red"
+                content={`Stellar holds ${
+                  Constants.trustlineHoldingBalance
+                } XLM per trustline, and your available Lumens balance is ${
+                  props.balanceAvailableToSend
+                } XLM.`}
+              />
+            </Kb.Banner>
           )}
           {props.searchingAssets && !props.searchingAssets.length ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>

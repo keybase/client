@@ -64,11 +64,12 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
 
     const reloadBanner = this.state.loadedLastModifiedTimestamp !== this.props.lastModifiedTimestamp && (
       <Kb.Box style={styles.bannerContainer}>
-        <Kb.Banner
-          color="blue"
-          content={['The content of this file has updated. ', {onClick: this._reload, text: 'Reload'}, '.']}
-          style={styles.banner}
-        />
+        <Kb.Banner color="blue" style={styles.banner}>
+          <Kb.BannerParagraph
+            bannerColor="blue"
+            content={['The content of this file has updated. ', {onClick: this._reload, text: 'Reload'}, '.']}
+          />
+        </Kb.Banner>
       </Kb.Box>
     )
 
