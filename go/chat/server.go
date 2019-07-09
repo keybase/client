@@ -2646,9 +2646,19 @@ func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase
 
 func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
-	return chat1.StaticConfig{
+
+	chatConfig := chat1.ChatStaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 		BuiltinCommands:          h.G().CommandsSource.GetBuiltins(ctx),
+	}
+	walletConfig := chat1.WalletStaticConfig{
+		SecretNoteMaxLength: 500,
+		PublicMemoMaxLength: 28,
+	}
+
+	return chat1.StaticConfig{
+		Chat:   chatConfig,
+		Wallet: walletConfig,
 	}, nil
 }
 

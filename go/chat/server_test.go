@@ -6134,8 +6134,14 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 	res, err := ctc.as(t, ctc.users()[0]).chatLocalHandler().GetStaticConfig(ctx)
 	require.NoError(t, err)
 	require.Equal(t, chat1.StaticConfig{
-		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
-		BuiltinCommands:          tc.Context().CommandsSource.GetBuiltins(ctx),
+		Chat: chat1.ChatStaticConfig{
+			DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+			BuiltinCommands:          tc.Context().CommandsSource.GetBuiltins(ctx),
+		},
+		Wallet: chat1.WalletStaticConfig{
+			SecretNoteMaxLength: 500,
+			PublicMemoMaxLength: 28,
+		},
 	}, res)
 }
 

@@ -1195,7 +1195,7 @@ const rootReducer = (
     case Chat2Gen.clearAttachmentView:
       return state.deleteIn(['attachmentViewMap', action.payload.conversationIDKey])
     case Chat2Gen.staticConfigLoaded:
-      return state.set('staticConfig', action.payload.staticConfig)
+      return state.set('staticConfig', action.payload.staticConfig.chat)
     case Chat2Gen.metasReceived: {
       return state.merge({
         inboxHasLoaded: action.payload.fromInboxRefresh ? true : state.inboxHasLoaded,

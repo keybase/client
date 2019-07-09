@@ -5,6 +5,7 @@ package chat1
 
 import (
 	"errors"
+
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -4883,13 +4884,13 @@ func (o BuiltinCommandGroup) DeepCopy() BuiltinCommandGroup {
 	}
 }
 
-type StaticConfig struct {
+type ChatStaticConfig struct {
 	DeletableByDeleteHistory []MessageType         `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
 	BuiltinCommands          []BuiltinCommandGroup `codec:"builtinCommands" json:"builtinCommands"`
 }
 
-func (o StaticConfig) DeepCopy() StaticConfig {
-	return StaticConfig{
+func (o ChatStaticConfig) DeepCopy() ChatStaticConfig {
+	return ChatStaticConfig{
 		DeletableByDeleteHistory: (func(x []MessageType) []MessageType {
 			if x == nil {
 				return nil
@@ -4912,6 +4913,30 @@ func (o StaticConfig) DeepCopy() StaticConfig {
 			}
 			return ret
 		})(o.BuiltinCommands),
+	}
+}
+
+type WalletStaticConfig struct {
+	SecretNoteMaxLength int `codec:"secretNoteMaxLength" json:"secretNoteMaxLength"`
+	PublicMemoMaxLength int `codec:"publicMemoMaxLength" json:"publicMemoMaxLength"`
+}
+
+func (o WalletStaticConfig) DeepCopy() WalletStaticConfig {
+	return WalletStaticConfig{
+		SecretNoteMaxLength: o.SecretNoteMaxLength,
+		PublicMemoMaxLength: o.PublicMemoMaxLength,
+	}
+}
+
+type StaticConfig struct {
+	Chat   ChatStaticConfig   `codec:"chat" json:"chat"`
+	Wallet WalletStaticConfig `codec:"wallet" json:"wallet"`
+}
+
+func (o StaticConfig) DeepCopy() StaticConfig {
+	return StaticConfig{
+		Chat:   o.Chat.DeepCopy(),
+		Wallet: o.Wallet.DeepCopy(),
 	}
 }
 

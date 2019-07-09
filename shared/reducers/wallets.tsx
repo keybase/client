@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
 
@@ -20,7 +21,10 @@ const reduceAssetMap = (
     )
   )
 
-export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
+export default function(
+  state: Types.State = initialState,
+  action: WalletsGen.Actions | Chat2Gen.StaticConfigLoadedPayload
+): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
@@ -515,6 +519,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
       return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+    case Chat2Gen.staticConfigLoaded:
+      console.log('action.payload.staticConfig.wallet:', action.payload.staticConfig.wallet)
+      return state.set('staticConfig', action.payload.staticConfig.wallet)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

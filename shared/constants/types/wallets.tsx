@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
+import {WalletStaticConfig} from './chat2'
 
 // When accepting the Stellar disclaimer, next path after acceptance
 export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
@@ -402,6 +403,7 @@ export type _State = {
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
   sep7ConfirmURI: string
+  staticConfig: WalletStaticConfig | null
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>

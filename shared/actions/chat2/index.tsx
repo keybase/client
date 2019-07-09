@@ -2648,11 +2648,11 @@ function* loadStaticConfig(state, action: ConfigGen.DaemonHandshakePayload, logg
     })
   )
   const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(res => {
-    if (!res.deletableByDeleteHistory) {
+    if (!res.chat.deletableByDeleteHistory) {
       logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
       return
     }
-    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce((res, type) => {
+    const deletableByDeleteHistory = res.chat.deletableByDeleteHistory.reduce((res, type) => {
       const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
       if (ourTypes) {
         res.push(...ourTypes)
@@ -2662,11 +2662,14 @@ function* loadStaticConfig(state, action: ConfigGen.DaemonHandshakePayload, logg
     return Chat2Gen.createStaticConfigLoaded({
       // @ts-ignore codemod-issue
       staticConfig: Constants.makeStaticConfig({
-        builtinCommands: (res.builtinCommands || []).reduce((map, c) => {
-          map[c.typ] = c.commands
-          return map
-        }, {}),
-        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+        chat: I.Record({
+          builtinCommands: (res.chat.builtinCommands || []).reduce((map, c) => {
+            map[c.typ] = c.commands
+            return map
+          }, {}),
+          deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
+        })(),
+        wallet: I.Record(res.wallet)(),
       }),
     })
   })

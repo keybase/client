@@ -1028,9 +1028,17 @@ protocol local {
     ConversationBuiltinCommandTyp typ;
     array<ConversationCommand> commands;
   }
-  record StaticConfig {
+  record ChatStaticConfig {
     array<MessageType> deletableByDeleteHistory;
     array<BuiltinCommandGroup> builtinCommands;
+  }
+  record WalletStaticConfig {
+    int secretNoteMaxLength;
+    int publicMemoMaxLength;
+  }
+  record StaticConfig {
+    ChatStaticConfig chat;
+    WalletStaticConfig wallet;
   }
 
   // Respond to an unfurl prompt
