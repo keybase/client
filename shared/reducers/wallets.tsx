@@ -520,7 +520,6 @@ export default function(
     case WalletsGen.setBuiltPaymentAdvanced:
       return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case Chat2Gen.staticConfigLoaded:
-      console.log('action.payload.staticConfig.wallet:', action.payload.staticConfig.wallet)
       return state.set('staticConfig', action.payload.staticConfig.wallet)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
