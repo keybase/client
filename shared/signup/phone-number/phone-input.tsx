@@ -143,7 +143,6 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   }
 
   componentDidUpdate(prevProps: CountrySelectorProps) {
-    console.log(this.props.selected)
     if (this.props.selected !== prevProps.selected) {
       this._onSelect(this.props.selected)
     }
