@@ -1,7 +1,7 @@
 package encrypteddb
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -32,11 +32,14 @@ func GetSecretBoxKey(ctx context.Context, g *libkb.GlobalContext, getSecretUI fu
 	return fkey, nil
 }
 
-type SecretUI struct {
+// NoSecretUI is the default SecretUI for GetSecretBoxKey, because we don't
+// expect to do any interactive key unlocking there. GetSecretBoxKey should
+// only be used where device key is present and unlocked.
+type NoSecretUI struct {
 }
 
-func (d SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
+func (d NoSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, errors.New("no secret UI available")
 }
 
-var DefaultSecretUI = func() libkb.SecretUI { return SecretUI{} }
+var DefaultSecretUI = func() libkb.SecretUI { return NoSecretUI{} }
