@@ -233,7 +233,7 @@ export class MediaView {
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
     if (thumbs.length === 0) return [{
-      data: ['attachments'],
+      data: ['media attachments'],
       renderItem: ({item}) => _renderEmptyItem(item),
       renderSectionHeader: () => null
     }]
