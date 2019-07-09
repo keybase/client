@@ -1036,7 +1036,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.signup.signup': {
-    inParam: {readonly email: String; readonly inviteCode: String; readonly passphrase: String; readonly username: String; readonly deviceName: String; readonly deviceType: DeviceType; readonly storeSecret: Boolean; readonly skipMail: Boolean; readonly genPGPBatch: Boolean; readonly genPaper: Boolean; readonly randomPw: Boolean}
+    inParam: {readonly email: String; readonly inviteCode: String; readonly passphrase: String; readonly username: String; readonly deviceName: String; readonly deviceType: DeviceType; readonly storeSecret: Boolean; readonly skipMail: Boolean; readonly genPGPBatch: Boolean; readonly genPaper: Boolean; readonly randomPw: Boolean; readonly verifyEmail: Boolean}
     outParam: SignupRes
   }
   'keybase.1.streamUi.close': {
