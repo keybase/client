@@ -16,6 +16,20 @@ type Props = {
   registeredForAirdrop: boolean | null
 }
 
+const FollowText = ({followThem, followsYou}) => {
+  let text: string = ''
+  if (followThem) {
+    if (followsYou) {
+      text = 'YOU FOLLOW EACH OTHER'
+    } else {
+      text = 'YOU FOLLOW THEM'
+    }
+  } else if (followsYou) {
+    text = 'FOLLOWS YOU'
+  }
+  return text ? <Kb.Text type="BodySmall">{text}</Kb.Text> : null
+}
+
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
     <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
@@ -28,7 +42,7 @@ const Bio = (p: Props) => (
         </Kb.WithTooltip>
       )}
     </Kb.Box2>
-    {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
+    <FollowText followThem={p.followThem} followsYou={p.followsYou} />
     {p.followersCount !== null && (
       <Kb.Text type="BodySmall">
         <Kb.Text type="BodySmall">
