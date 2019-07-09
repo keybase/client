@@ -4,14 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/keybase/client/go/chat/storage"
+	"sync"
+	"time"
+
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"sync"
-	"time"
 )
 
 type RPCCache struct {
@@ -25,7 +25,12 @@ const (
 
 func newEncryptedDB(g *libkb.GlobalContext) *encrypteddb.EncryptedDB {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
+		// Use EncryptionReasonChatLocalStorage for legacy reasons. This
+		// function used to use chat/storage.GetSecretBoxKey in the past, and
+		// we didn't want users to lose encrypted data after we switched to
+		// more generic encrypteddb.GetSecretBoxKey.
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonChatLocalStorage, "offline rpc cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb

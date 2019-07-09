@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -28,10 +27,12 @@ func (s *ContactCacheStore) dbKey(uid keybase1.UID) libkb.DbKey {
 	}
 }
 
-// NewContactCacheStore creates new ContactCacheStore for given global context.
+// NewContactCacheStore creates new ContactCacheStore for global context. The
+// store is used to securely store cached contact resolutions.
 func NewContactCacheStore(g *libkb.GlobalContext) *ContactCacheStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonContactsLocalStorage, "encrypting contact resolution cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
