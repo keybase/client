@@ -6,15 +6,18 @@
   ],
   "actions": {
     "addPhoneNumber": {
-      "_description": "Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.",
+      "_description": "Add a phone number and kick off a text message with a verification code.",
       "allowSearch": "boolean",
-      "phoneNumber": "string",
-      "resend?": "boolean"
+      "phoneNumber": "string"
     },
     "addedPhoneNumber": {
       "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
       "allowSearch": "boolean",
       "error?": "string",
+      "phoneNumber": "string"
+    },
+    "resendVerificationForPhoneNumber": {
+      "_description": "Resend verification code for a phone number that's already added.",
       "phoneNumber": "string"
     },
     "verifyPhoneNumber": {

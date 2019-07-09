@@ -161,16 +161,18 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
             ? {
                 error: action.payload.error,
                 pendingVerification: '',
-                pendingVerificationAllowSearch: null,
                 verificationState: null,
               }
             : {
                 error: '',
                 pendingVerification: action.payload.phoneNumber,
-                pendingVerificationAllowSearch: action.payload.allowSearch,
                 verificationState: null,
               }
         )
+      )
+    case SettingsGen.resendVerificationForPhoneNumber:
+      return state.update('phoneNumbers', pn =>
+        pn.merge({error: '', pendingVerification: action.payload.phoneNumber, verificationState: null})
       )
     case SettingsGen.clearPhoneNumberErrors:
       return state.update('phoneNumbers', pn => pn.merge({error: ''}))
@@ -179,7 +181,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         pn.merge({
           error: '',
           pendingVerification: '',
-          pendingVerificationAllowSearch: null,
           verificationState: null,
         })
       )

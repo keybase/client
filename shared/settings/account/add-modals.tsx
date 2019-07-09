@@ -188,7 +188,7 @@ export const VerifyPhone = () => {
   }, [verificationState, error, dispatch])
 
   const onResend = React.useCallback(
-    () => dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
+    () => dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber: pendingVerification})),
     [dispatch]
   )
   const onClose = React.useCallback(() => {

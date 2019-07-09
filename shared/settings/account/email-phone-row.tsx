@@ -185,8 +185,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
-    _onVerify: (phoneNumber, allowSearch) => {
-      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber}))
+    _onVerify: phoneNumber => {
+      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
     onDelete: () =>
@@ -212,7 +212,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
-        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber, searchable),
+        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber),
         primary: false,
         searchable,
         type: 'phone' as const,
