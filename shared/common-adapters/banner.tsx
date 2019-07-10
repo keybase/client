@@ -158,20 +158,20 @@ const colorToTextColorStyles = Styles.styleSheetCreate({
   yellow: {color: Styles.globalColors.brown_75},
 })
 
-const colorToIconColor = Styles.styleSheetCreate({
+const colorToIconColor = {
   blue: Styles.globalColors.white_90,
   green: Styles.globalColors.white_90,
   grey: Styles.globalColors.black_50,
   red: Styles.globalColors.white_90,
   yellow: Styles.globalColors.brown_75,
-})
+}
 
-const colorToIconHoverColor = Styles.styleSheetCreate({
+const colorToIconHoverColor = {
   blue: Styles.globalColors.white,
   green: Styles.globalColors.white,
   grey: Styles.globalColors.black,
   red: Styles.globalColors.white,
   yellow: Styles.globalColors.brown,
-})
+}
 
 export default Banner
