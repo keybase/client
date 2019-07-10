@@ -118,6 +118,8 @@ protocol ephemeral {
   record TeambotEkMetadata {
     @jsonkey("teambot_dh_public")
     KID kid;
+    // NOTE this generation is the teamEK generation which this key is derived
+    // from.
     EkGeneration generation;
     UID uid;
     @jsonkey("user_ek_generation")
@@ -135,5 +137,22 @@ protocol ephemeral {
   record TeambotEk {
     Bytes32 seed;
     TeambotEkMetadata metadata;
+  }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  enum TeamEphemeralKeyType {
+    TEAM_0,
+    TEAMBOT_1
+  }
+
+  variant TeamEphemeralKey switch (TeamEphemeralKeyType keyType) {
+    case TEAM: TeamEk;
+    case TEAMBOT: TeambotEk;
+  }
+
+  variant TeamEphemeralKeyBoxed switch (TeamEphemeralKeyType keyType) {
+    case TEAM: TeamEkBoxed;
+    case TEAMBOT: TeambotEkBoxed;
   }
 }

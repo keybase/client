@@ -69,16 +69,8 @@ export function serviceIdToLogo24(service: ServiceId): IconType {
 // or 'foobar@github' if another service
 export type UserId = string
 
-export function parseUserId(
-  id: UserId
-): {
-  username: string
-  serviceId: ServiceId
-} {
-  const [username, maybeServiceId] = id.split('@')
-  let serviceId: ServiceId | null
-
-  switch (maybeServiceId) {
+export function serviceIdFromString(val: string): ServiceId {
+  switch (val) {
     case 'facebook':
     case 'github':
     case 'hackernews':
@@ -86,12 +78,20 @@ export function parseUserId(
     case 'pgp':
     case 'reddit':
     case 'twitter':
-      serviceId = maybeServiceId
-      break
+      return val
     default:
-      serviceId = 'keybase'
+      return 'keybase'
   }
+}
 
+export function parseUserId(
+  id: UserId
+): {
+  username: string
+  serviceId: ServiceId
+} {
+  const [username, maybeServiceId] = id.split('@')
+  const serviceId = serviceIdFromString(maybeServiceId)
   return {
     serviceId,
     username,

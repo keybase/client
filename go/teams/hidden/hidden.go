@@ -76,9 +76,9 @@ type GenerateKeyRotationParams struct {
 
 // GenerateKeyRotation generates and signs a new sig3 KeyRotation. The result can be passed to
 // sig/multi.json and stored along with other sig1, sig2 or sig3 signatures in an atomic transaction.
-func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
+func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
-	s3, ratchet, err := generateKeyRotationSig3(mctx, p)
+	s3, ratchets, err := generateKeyRotationSig3(mctx, p)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,10 +100,10 @@ func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (r
 		Version: 3,
 	}
 
-	return sigMultiItem, ratchet, nil
+	return sigMultiItem, ratchets, nil
 }
 
-func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
+func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
 	outer := sig3.OuterLink{}
 	if p.HiddenPrev != nil {
@@ -206,8 +206,9 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	if err != nil {
 		return nil, nil, err
 	}
-	ratchet = &keybase1.HiddenTeamChainRatchet{
-		Self: &keybase1.LinkTripleAndTime{
+	ratchets = &keybase1.HiddenTeamChainRatchetSet{}
+	ratchets.Add(keybase1.RatchetType_SELF,
+		keybase1.LinkTripleAndTime{
 			Triple: keybase1.LinkTriple{
 				Seqno:   outer.Seqno,
 				SeqType: sig3.ChainTypeTeamPrivateHidden,
@@ -215,8 +216,8 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 			},
 			Time: keybase1.ToTime(now),
 		},
-	}
-	return &bun, ratchet, nil
+	)
+	return &bun, ratchets, nil
 }
 
 func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (err error) {

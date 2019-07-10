@@ -259,7 +259,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 					addMinBanner(bannerTheir, minAmountXLM)
 				} else {
 					sendingToSelf, _, selfSendErr = getGlobal(mctx.G()).OwnAccountCached(mctx, stellar1.AccountID(recipient.AccountID.String()))
-					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()))
+					isFunded, err := bpc.IsAccountFunded(mctx, stellar1.AccountID(recipient.AccountID.String()), arg.Bid)
 					if err != nil {
 						log("error checking recipient funding status %v: %v", *recipient.AccountID, err)
 					} else if !isFunded {
@@ -291,7 +291,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 					if err == nil {
 						if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
 							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-								Level:                 "info",
+								Level: "info",
 								OfferAdvancedSendForm: offerAdvancedForm,
 							})
 						}
@@ -307,6 +307,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 	tracer.Stage("amount + asset")
 	bpaArg := buildPaymentAmountArg{
+		Bid:      arg.Bid,
 		Amount:   arg.Amount,
 		Currency: arg.Currency,
 		Asset:    arg.Asset,
@@ -831,6 +832,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 
 type buildPaymentAmountArg struct {
 	// See buildPaymentLocal in avdl from which these args are copied.
+	Bid      stellar1.BuildPaymentID
 	Amount   string
 	Currency *stellar1.OutsideCurrencyCode
 	Asset    *stellar1.Asset
@@ -952,7 +954,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			log("missing from address so can't convert XLM amount")
 			return res
 		}
-		currency, err := bpc.GetOutsideCurrencyPreference(mctx, *arg.From)
+		currency, err := bpc.GetOutsideCurrencyPreference(mctx, *arg.From, arg.Bid)
 		if err != nil {
 			log("error getting preferred currency for %v: %v", *arg.From, err)
 			return res

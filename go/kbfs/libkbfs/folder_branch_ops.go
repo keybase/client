@@ -7377,7 +7377,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		timedOut = true
 	default:
 	}
-	if timedOut || !mdserver.IsConnected() {
+	if lockBeforeGet == nil && (timedOut || !mdserver.IsConnected()) {
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "Not fetching new updates while offline")
 		return nil

@@ -195,6 +195,15 @@ func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation 
 	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
+func (t *Team) SigningKID(ctx context.Context) (kid keybase1.KID, err error) {
+	gen := t.chain().GetLatestGeneration()
+	chainKey, err := newTeamSigChainState(t).GetPerTeamKeyAtGeneration(gen)
+	if err != nil {
+		return kid, err
+	}
+	return chainKey.SigKID, nil
+}
+
 func (t *Team) SigningKey(ctx context.Context) (key libkb.NaclSigningKeyPair, err error) {
 	km, err := t.getKeyManager(ctx)
 	if err != nil {
@@ -295,6 +304,11 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Bots = x
 
 	return members, nil
 }
@@ -563,6 +577,13 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 }
 
 func (t *Team) rotatePostVisible(ctx context.Context, section SCTeamSection, mr *libkb.MerkleRoot, payloadArgs sigPayloadArgs) error {
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
+	section.Ratchets = ratchet.ToTeamSection()
+	payloadArgs.ratchetBlindingKeys = ratchet.ToSigPayload()
+
 	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, mr, payloadArgs)
 	if err != nil {
 		return err
@@ -609,7 +630,7 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	return err
 }
 
-func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
+func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
 	currentSeqno := t.CurrentSeqno()
 	lastLinkID := t.chain().GetLatestLinkID()
@@ -643,7 +664,7 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		return nil, nil, err
 	}
 
-	ret, ratchet, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
+	ret, ratchets, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
 		TeamID:           t.ID,
 		IsPublic:         t.IsPublic(),
 		IsImplicit:       t.IsImplicit(),
@@ -658,7 +679,7 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		Check:            t.keyManager.Check(),
 	})
 
-	return ret, ratchet, err
+	return ret, ratchets, err
 }
 
 func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
@@ -720,7 +741,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	}
 
 	// create the change membership section + secretBoxes
-	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, err := t.changeMembershipSection(ctx, req, opts.SkipKeyRotation)
+	section, secretBoxes, implicitAdminBoxes, teamEKPayload, memberSet, ratchet, err := t.changeMembershipSection(ctx, req, opts.SkipKeyRotation)
 	if err != nil {
 		return err
 	}
@@ -755,10 +776,11 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 	}
 	// post the change to the server
 	sigPayloadArgs := sigPayloadArgs{
-		secretBoxes:        secretBoxes,
-		implicitAdminBoxes: implicitAdminBoxes,
-		lease:              lease,
-		teamEKPayload:      teamEKPayload,
+		secretBoxes:         secretBoxes,
+		implicitAdminBoxes:  implicitAdminBoxes,
+		lease:               lease,
+		teamEKPayload:       teamEKPayload,
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	}
 
 	if opts.Permanent {
@@ -819,6 +841,10 @@ func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, e
 	return false, nil
 }
 
+func (t *Team) makeRatchet(ctx context.Context) (ret *hidden.Ratchet, err error) {
+	return hidden.MakeRatchet(libkb.NewMetaContext(ctx, t.G()), t.ID)
+}
+
 func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	// If we are owner or admin, we have to downgrade ourselves first.
 	needsReload, err := t.downgradeIfOwnerOrAdmin(ctx)
@@ -850,14 +876,21 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		}
 	}
 
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
+
 	section := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Implicit: t.IsImplicit(),
 		Public:   t.IsPublic(),
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	sigPayloadArgs := sigPayloadArgs{
-		prePayload: libkb.JSONPayload{"permanent": permanent},
+		prePayload:          libkb.JSONPayload{"permanent": permanent},
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	}
 	latestSeqno, err := t.postChangeItem(ctx, section, libkb.LinkTypeLeave, nil, sigPayloadArgs)
 	if err != nil {
@@ -896,10 +929,13 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 		return errors.New("team delete not confirmed")
 	}
 
+	ratchet, err := t.makeRatchet(ctx)
+
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Implicit: t.IsImplicit(),
 		Public:   t.IsPublic(),
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -915,7 +951,10 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 		return err
 	}
 
-	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{})
+	sigPayloadArgs := sigPayloadArgs{
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
+	}
+	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs)
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
@@ -965,15 +1004,20 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 	if err != nil {
 		return err
 	}
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
 	parentSection := SCTeamSection{
 		ID: SCTeamID(parentTeam.ID),
 		Subteam: &SCSubteam{
 			ID:   SCTeamID(t.ID),
 			Name: subteamName, // weird this is required
 		},
-		Admin:   admin,
-		Public:  t.IsPublic(),
-		Entropy: entropy,
+		Admin:    admin,
+		Public:   t.IsPublic(),
+		Entropy:  entropy,
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1007,6 +1051,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigParent, sigSub}
+	ratchet.AddToJSONPayload(payload)
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
@@ -1263,14 +1308,19 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_ADMIN:
-		invites.Admins = &invList
-	case keybase1.TeamRole_WRITER:
-		invites.Writers = &invList
+	case keybase1.TeamRole_BOT:
+		return fmt.Errorf("bot role disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invList
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invList
 	case keybase1.TeamRole_OWNER:
 		invites.Owners = &invList
+	}
+	if invites.Len() == 0 {
+		return fmt.Errorf("invalid invite, 0 members invited")
 	}
 
 	return t.postTeamInvites(ctx, invites)
@@ -1293,6 +1343,11 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
+
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Admin:    admin,
@@ -1300,6 +1355,7 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		Implicit: t.IsImplicit(),
 		Public:   t.IsPublic(),
 		Entropy:  entropy,
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(t.MetaContext(ctx), libkb.TeamMerkleFreshnessForAdmin)
@@ -1321,7 +1377,11 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 		return err
 	}
 
-	payload := t.sigPayload(sigMulti, sigPayloadArgs{})
+	sigPayloadArgs := sigPayloadArgs{
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
+	}
+
+	payload := t.sigPayload(sigMulti, sigPayloadArgs)
 	err = t.postMulti(m, payload)
 	if err != nil {
 		return err
@@ -1382,25 +1442,30 @@ func (t *Team) getAdminPermission(ctx context.Context) (admin *SCTeamAdmin, err 
 	return &ret, nil
 }
 
-func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq, skipKeyRotation bool) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, error) {
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq, skipKeyRotation bool) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *teamEKPayload, *memberSet, *hidden.Ratchet, error) {
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
-		return SCTeamSection{}, nil, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
 	}
 
 	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
 	}
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
-		return SCTeamSection{}, nil, nil, nil, nil, NewSubteamOwnersError()
+		return SCTeamSection{}, nil, nil, nil, nil, nil, NewSubteamOwnersError()
 	}
 
 	// load the member set specified in req
 	memSet, err := newMemberSetChange(ctx, t.G(), req)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
+	}
+
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
 	}
 
 	section := SCTeamSection{
@@ -1408,24 +1473,25 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		Admin:    admin,
 		Implicit: t.IsImplicit(),
 		Public:   t.IsPublic(),
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	section.Members, err = memSet.Section()
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
 	}
 
 	// create secret boxes for recipients, possibly rotating the key
 	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := t.recipientBoxes(ctx, memSet, skipKeyRotation)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
 	}
 
 	section.PerTeamKey = perTeamKeySection
 
 	err = addSummaryHash(&section, secretBoxes)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, nil, nil, err
 	}
 
 	section.CompletedInvites = req.CompletedInvites
@@ -1439,7 +1505,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		section.Members = &SCTeamMembers{}
 	}
 
-	return section, secretBoxes, implicitAdminBoxes, teamEKPayload, memSet, nil
+	return section, secretBoxes, implicitAdminBoxes, teamEKPayload, memSet, ratchet, nil
 }
 
 func (t *Team) changeItemPayload(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) (libkb.JSONPayload, keybase1.Seqno, error) {
@@ -1636,7 +1702,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing members, so remove them from the set
+	// don't need keys for existing or bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
@@ -1658,7 +1724,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members
+	// rotate the team key for all current members except bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err
@@ -1729,20 +1795,22 @@ func (t *Team) storeTeamEKPayload(ctx context.Context, teamEKPayload *teamEKPayl
 	// Add the new teamEK box to local storage, if it was created above.
 	if teamEKPayload != nil && teamEKPayload.box != nil {
 		mctx := libkb.NewMetaContext(ctx, t.G())
-		if err := t.G().GetTeamEKBoxStorage().Put(mctx, t.ID, teamEKPayload.metadata.Generation, *teamEKPayload.box); err != nil {
+		boxed := keybase1.NewTeamEphemeralKeyBoxedWithTeam(*teamEKPayload.box)
+		if err := t.G().GetTeamEKBoxStorage().Put(mctx, t.ID, teamEKPayload.metadata.Generation, boxed); err != nil {
 			t.G().Log.CErrorf(ctx, "error while saving teamEK box: %s", err)
 		}
 	}
 }
 
 type sigPayloadArgs struct {
-	secretBoxes        *PerTeamSharedSecretBoxes
-	implicitAdminBoxes map[keybase1.TeamID]*PerTeamSharedSecretBoxes
-	lease              *libkb.Lease
-	prePayload         libkb.JSONPayload
-	legacyTLFUpgrade   *keybase1.TeamGetLegacyTLFUpgrade
-	teamEKBoxes        *[]keybase1.TeamEkBoxMetadata
-	teamEKPayload      *teamEKPayload
+	secretBoxes         *PerTeamSharedSecretBoxes
+	implicitAdminBoxes  map[keybase1.TeamID]*PerTeamSharedSecretBoxes
+	lease               *libkb.Lease
+	prePayload          libkb.JSONPayload
+	legacyTLFUpgrade    *keybase1.TeamGetLegacyTLFUpgrade
+	teamEKBoxes         *[]keybase1.TeamEkBoxMetadata
+	teamEKPayload       *teamEKPayload
+	ratchetBlindingKeys hidden.EncodedRatchetBlindingKeySet
 }
 
 func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
@@ -1764,6 +1832,7 @@ func (t *Team) sigPayload(sigMulti []libkb.SigMultiItem, args sigPayloadArgs) li
 	if args.legacyTLFUpgrade != nil {
 		payload["legacy_tlf_upgrade"] = args.legacyTLFUpgrade
 	}
+	args.ratchetBlindingKeys.AddToJSONPayload(payload)
 	if args.teamEKBoxes != nil && len(*args.teamEKBoxes) > 0 {
 		payload["team_ek_rebox"] = libkb.JSONPayload{
 			"boxes":   args.teamEKBoxes,
@@ -1907,15 +1976,23 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
+
 	section := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Admin:    admin,
 		Settings: &scSettings,
 		Implicit: t.IsImplicit(),
 		Public:   t.IsPublic(),
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
-	payloadArgs := sigPayloadArgs{}
+	payloadArgs := sigPayloadArgs{
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
+	}
 	var maybeEKPayload *teamEKPayload
 	if rotate {
 		// Create empty Members section. We are not changing memberships, but
@@ -2054,6 +2131,11 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return err
 	}
 
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
+
 	upgrade := SCTeamKBFSLegacyUpgrade{
 		AppType:          appType,
 		KeysetHash:       hash,
@@ -2067,6 +2149,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		KBFS: &SCTeamKBFS{
 			Keyset: &upgrade,
 		},
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := m.G().MerkleClient.FetchRootFromServer(m, libkb.TeamMerkleFreshnessForAdmin)
@@ -2089,6 +2172,7 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 			TeamGeneration:   latestKey.KeyGeneration,
 			AppType:          appType,
 		},
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	})
 
 	err = t.postMulti(m, payload)
@@ -2109,6 +2193,11 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 		return nil
 	}
 
+	ratchet, err := t.makeRatchet(ctx)
+	if err != nil {
+		return err
+	}
+
 	teamSection := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Implicit: t.IsImplicit(),
@@ -2118,6 +2207,7 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 				ID: tlfID,
 			},
 		},
+		Ratchets: ratchet.ToTeamSection(),
 	}
 
 	mr, err := m.G().MerkleClient.FetchRootFromServer(m, libkb.TeamMerkleFreshnessForAdmin)
@@ -2133,7 +2223,10 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 		return err
 	}
 
-	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs{})
+	sigPayloadArgs := sigPayloadArgs{
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
+	}
+	payload := t.sigPayload([]libkb.SigMultiItem{sigMultiItem}, sigPayloadArgs)
 	err = t.postMulti(libkb.NewMetaContext(ctx, t.G()), payload)
 	if err != nil {
 		return err

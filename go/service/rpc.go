@@ -28,7 +28,7 @@ func newConnTransport(g *libkb.GlobalContext, host string) *connTransport {
 
 func (t *connTransport) Dial(context.Context) (rpc.Transporter, error) {
 	var err error
-	t.conn, err = net.Dial("tcp", t.host)
+	t.conn, err = libkb.ProxyDial(t.G().Env, "tcp", t.host)
 	if err != nil {
 		return nil, err
 	}

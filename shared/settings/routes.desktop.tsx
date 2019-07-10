@@ -3,20 +3,47 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
+import FsTab from './files/container'
+import AdvancedTab from './advanced/container'
+import ChatTab from './chat/container'
+import DeleteMeTab from './delete/container'
+import InvitationsTab from './invites/container'
+import AccountTab from './account/container'
+import FeedbackTab from './feedback/container'
+import NotificationsTab from './notifications/container'
+import DbNukeConfirm from './db-nuke-confirm/container'
+import DeleteConfirm from './delete-confirm/container'
+import InviteSent from './invite-generated/container'
+import RemoveDevice from '../devices/device-revoke/container'
+import LogOutTab from './logout/container'
+import ChangePassword from './password/container'
+import DisableCertPinningModal from './disable-cert-pinning-modal/container'
+import {DeleteModal} from './account/confirm-delete'
+import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
-  [Constants.fsTab]: {getScreen: () => require('./files/container').default},
-  [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
-  [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
-  [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
-  [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
-  [Constants.accountTab]: {getScreen: () => require('./account/container').default},
-  [Constants.feedbackTab]: {getScreen: () => require('./feedback/container').default},
-  [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
-  dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
-  deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
-  inviteSent: {getScreen: () => require('./invite-generated/container').default},
-  removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
+  // TODO connect broken
+  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
+  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
+  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  // TODO connect broken
+  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
+  // TODO connect broken
+  [Constants.invitationsTab]: {
+    getScreen: (): typeof InvitationsTab => require('./invites/container').default,
+  },
+  [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
+  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
+  [Constants.notificationsTab]: {
+    getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
+  },
+  // TODO connect broken
+  dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
+  // TODO connect broken
+  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
+  inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
+  // TODO connect broken
+  removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
 
 class SettingsSubNav extends React.PureComponent<any> {
@@ -55,10 +82,21 @@ export const newRoutes = {
   settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
 export const newModalRoutes = {
-  [Constants.logOutTab]: {getScreen: () => require('./logout/container').default},
-  changePassword: {getScreen: () => require('./password/container').default},
-  disableCertPinningModal: {getScreen: () => require('./disable-cert-pinning-modal/container').default},
-  settingsAddEmail: {getScreen: () => require('./account/add-modals').Email},
-  settingsAddPhone: {getScreen: () => require('./account/add-modals').Phone},
-  settingsVerifyPhone: {getScreen: () => require('./account/add-modals').VerifyPhone},
+  // TODO connect broken
+  [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
+  // TODO connect broken
+  changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
+  // TODO connect broken
+  disableCertPinningModal: {
+    getScreen: (): typeof DisableCertPinningModal =>
+      require('./disable-cert-pinning-modal/container').default,
+  },
+  settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
+  settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
+  settingsDeleteAddress: {
+    getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+  },
+  settingsVerifyPhone: {
+    getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
+  },
 }

@@ -239,6 +239,7 @@
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
+      "allowClearOldestUnread": "boolean",
       "paymentCursor": "StellarRPCTypes.PageCursor | null",
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>",

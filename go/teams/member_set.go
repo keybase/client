@@ -20,6 +20,7 @@ type memberSet struct {
 	Admins  []member
 	Writers []member
 	Readers []member
+	Bots    []member
 	None    []member
 
 	// the per-user-keys of everyone in the lists above
@@ -69,6 +70,7 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 	m.Admins = append(m.Admins, other.Admins...)
 	m.Writers = append(m.Writers, other.Writers...)
 	m.Readers = append(m.Readers, other.Readers...)
+	m.Bots = append(m.Bots, other.Bots...)
 	m.None = append(m.None, other.None...)
 
 	for k, v := range other.recipients {
@@ -78,6 +80,7 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 
 func (m *memberSet) nonAdmins() []member {
 	var ret []member
+	ret = append(ret, m.Bots...)
 	ret = append(ret, m.Readers...)
 	ret = append(ret, m.Writers...)
 	return ret
@@ -109,6 +112,11 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 		return err
 	}
 	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true, forcePoll)
+	if err != nil {
+		return err
+	}
+	// bots are not recipients of of the PTK
+	m.Bots, err = m.loadGroup(ctx, g, req.Bots, false, forcePoll)
 	if err != nil {
 		return err
 	}
@@ -227,15 +235,21 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 	}
 }
 
-// AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None.
+// AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None or m.Bots.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) (err error) {
 
 	defer g.CTrace(ctx, "memberSet#AddRemainingRecipients", func() error { return err })()
 
-	// make a map of the None members
-	noneMap := make(map[keybase1.UserVersion]bool)
+	// make a map of the None and Bot members
+	filtered := make(map[keybase1.UserVersion]bool)
 	for _, n := range m.None {
-		noneMap[n.version] = true
+		filtered[n.version] = true
+	}
+	for _, n := range m.Bots {
+		filtered[n.version] = true
+	}
+	for _, uv := range existing.Bots {
+		filtered[uv] = true
 	}
 
 	auv := existing.AllUserVersions()
@@ -245,7 +259,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	}
 
 	for _, uv := range auv {
-		if noneMap[uv] {
+		if filtered[uv] {
 			continue
 		}
 		if _, ok := m.recipients[uv]; ok {
@@ -297,6 +311,10 @@ func (m *memberSet) Section() (res *SCTeamMembers, err error) {
 	if err != nil {
 		return nil, err
 	}
+	res.Bots, err = m.nameSeqList(m.Bots)
+	if err != nil {
+		return nil, err
+	}
 	res.None, err = m.nameSeqList(m.None)
 	if err != nil {
 		return nil, err
@@ -309,9 +327,9 @@ func (m *memberSet) HasRemoval() bool {
 }
 
 func (m *memberSet) HasAdditions() bool {
-	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers)) > 0
+	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers) + len(m.Bots)) > 0
 }
 
 func (m *memberSet) empty() bool {
-	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.None) == 0
+	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.Bots) == 0 && len(m.None) == 0
 }

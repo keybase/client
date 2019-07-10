@@ -4,4 +4,5 @@ protocol NotifyEphemeral {
 
   @notify("")
   void newTeamEk(TeamID id, EkGeneration generation);
+  void newTeambotEk(TeamID id, EkGeneration generation);
 }

@@ -1376,7 +1376,7 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 }
 
 func (c *ConfigLocal) resetDiskMDCacheLocked() error {
-	dmc, err := newDiskMDCacheLocal(c, c.storageRoot)
+	dmc, err := newDiskMDCacheLocal(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1399,7 +1399,7 @@ func (c *ConfigLocal) MakeDiskMDCacheIfNotExists() error {
 }
 
 func (c *ConfigLocal) resetDiskQuotaCacheLocked() error {
-	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot)
+	dqc, err := newDiskQuotaCacheLocal(c, c.storageRoot, c.mode)
 	if err != nil {
 		return err
 	}
@@ -1432,7 +1432,7 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	if c.blockMetadataStore != nil {
 		return nil
 	}
-	c.blockMetadataStore, err = newDiskBlockMetadataStore(c)
+	c.blockMetadataStore, err = newDiskBlockMetadataStore(c, c.mode)
 	if err != nil {
 		// TODO (KBFS-3659): when we can open levelDB read-only,
 		//  do that instead of returning a Noop version.
@@ -1448,7 +1448,7 @@ func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 	if err != nil {
 		return nil, err
 	}
-	return openLevelDB(stor)
+	return openLevelDB(stor, c.mode)
 }
 
 func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {

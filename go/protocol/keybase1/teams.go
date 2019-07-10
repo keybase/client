@@ -17,6 +17,7 @@ const (
 	TeamRole_WRITER TeamRole = 2
 	TeamRole_ADMIN  TeamRole = 3
 	TeamRole_OWNER  TeamRole = 4
+	TeamRole_BOT    TeamRole = 5
 )
 
 func (o TeamRole) DeepCopy() TeamRole { return o }
@@ -27,6 +28,7 @@ var TeamRoleMap = map[string]TeamRole{
 	"WRITER": 2,
 	"ADMIN":  3,
 	"OWNER":  4,
+	"BOT":    5,
 }
 
 var TeamRoleRevMap = map[TeamRole]string{
@@ -35,6 +37,7 @@ var TeamRoleRevMap = map[TeamRole]string{
 	2: "WRITER",
 	3: "ADMIN",
 	4: "OWNER",
+	5: "BOT",
 }
 
 func (e TeamRole) String() string {
@@ -336,6 +339,7 @@ type TeamMembers struct {
 	Admins  []UserVersion `codec:"admins" json:"admins"`
 	Writers []UserVersion `codec:"writers" json:"writers"`
 	Readers []UserVersion `codec:"readers" json:"readers"`
+	Bots    []UserVersion `codec:"bots" json:"bots"`
 }
 
 func (o TeamMembers) DeepCopy() TeamMembers {
@@ -384,6 +388,17 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []UserVersion) []UserVersion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserVersion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 	}
 }
 
@@ -439,6 +454,7 @@ type TeamMembersDetails struct {
 	Admins  []TeamMemberDetails `codec:"admins" json:"admins"`
 	Writers []TeamMemberDetails `codec:"writers" json:"writers"`
 	Readers []TeamMemberDetails `codec:"readers" json:"readers"`
+	Bots    []TeamMemberDetails `codec:"bots" json:"bots"`
 }
 
 func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
@@ -487,6 +503,17 @@ func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []TeamMemberDetails) []TeamMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 	}
 }
 
@@ -530,6 +557,7 @@ type TeamChangeReq struct {
 	Admins           []UserVersion                           `codec:"admins" json:"admins"`
 	Writers          []UserVersion                           `codec:"writers" json:"writers"`
 	Readers          []UserVersion                           `codec:"readers" json:"readers"`
+	Bots             []UserVersion                           `codec:"bots" json:"bots"`
 	None             []UserVersion                           `codec:"none" json:"none"`
 	CompletedInvites map[TeamInviteID]UserVersionPercentForm `codec:"completedInvites" json:"completedInvites"`
 }
@@ -580,6 +608,17 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []UserVersion) []UserVersion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserVersion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 		None: (func(x []UserVersion) []UserVersion {
 			if x == nil {
 				return nil
@@ -614,6 +653,7 @@ type TeamPlusApplicationKeys struct {
 	Application     TeamApplication      `codec:"application" json:"application"`
 	Writers         []UserVersion        `codec:"writers" json:"writers"`
 	OnlyReaders     []UserVersion        `codec:"onlyReaders" json:"onlyReaders"`
+	OnlyBots        []UserVersion        `codec:"onlyBots" json:"onlyBots"`
 	ApplicationKeys []TeamApplicationKey `codec:"applicationKeys" json:"applicationKeys"`
 }
 
@@ -646,6 +686,17 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 			}
 			return ret
 		})(o.OnlyReaders),
+		OnlyBots: (func(x []UserVersion) []UserVersion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserVersion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.OnlyBots),
 		ApplicationKeys: (func(x []TeamApplicationKey) []TeamApplicationKey {
 			if x == nil {
 				return nil
@@ -822,35 +873,53 @@ func (o FastTeamData) DeepCopy() FastTeamData {
 	}
 }
 
-type HiddenTeamChainRatchet struct {
-	Main    *LinkTripleAndTime `codec:"main,omitempty" json:"main,omitempty"`
-	Blinded *LinkTripleAndTime `codec:"blinded,omitempty" json:"blinded,omitempty"`
-	Self    *LinkTripleAndTime `codec:"self,omitempty" json:"self,omitempty"`
+type RatchetType int
+
+const (
+	RatchetType_MAIN    RatchetType = 0
+	RatchetType_BLINDED RatchetType = 1
+	RatchetType_SELF    RatchetType = 2
+)
+
+func (o RatchetType) DeepCopy() RatchetType { return o }
+
+var RatchetTypeMap = map[string]RatchetType{
+	"MAIN":    0,
+	"BLINDED": 1,
+	"SELF":    2,
 }
 
-func (o HiddenTeamChainRatchet) DeepCopy() HiddenTeamChainRatchet {
-	return HiddenTeamChainRatchet{
-		Main: (func(x *LinkTripleAndTime) *LinkTripleAndTime {
+var RatchetTypeRevMap = map[RatchetType]string{
+	0: "MAIN",
+	1: "BLINDED",
+	2: "SELF",
+}
+
+func (e RatchetType) String() string {
+	if v, ok := RatchetTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type HiddenTeamChainRatchetSet struct {
+	Ratchets map[RatchetType]LinkTripleAndTime `codec:"ratchets" json:"ratchets"`
+}
+
+func (o HiddenTeamChainRatchetSet) DeepCopy() HiddenTeamChainRatchetSet {
+	return HiddenTeamChainRatchetSet{
+		Ratchets: (func(x map[RatchetType]LinkTripleAndTime) map[RatchetType]LinkTripleAndTime {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Main),
-		Blinded: (func(x *LinkTripleAndTime) *LinkTripleAndTime {
-			if x == nil {
-				return nil
+			ret := make(map[RatchetType]LinkTripleAndTime, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
 			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Blinded),
-		Self: (func(x *LinkTripleAndTime) *LinkTripleAndTime {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Self),
+			return ret
+		})(o.Ratchets),
 	}
 }
 
@@ -866,7 +935,7 @@ type HiddenTeamChain struct {
 	Outer             map[Seqno]LinkID               `codec:"outer" json:"outer"`
 	Inner             map[Seqno]HiddenTeamChainLink  `codec:"inner" json:"inner"`
 	ReaderPerTeamKeys map[PerTeamKeyGeneration]Seqno `codec:"readerPerTeamKeys" json:"readerPerTeamKeys"`
-	Ratchet           HiddenTeamChainRatchet         `codec:"ratchet" json:"ratchet"`
+	RatchetSet        HiddenTeamChainRatchetSet      `codec:"ratchetSet" json:"ratchetSet"`
 	CachedAt          Time                           `codec:"cachedAt" json:"cachedAt"`
 }
 
@@ -927,8 +996,8 @@ func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 			}
 			return ret
 		})(o.ReaderPerTeamKeys),
-		Ratchet:  o.Ratchet.DeepCopy(),
-		CachedAt: o.CachedAt.DeepCopy(),
+		RatchetSet: o.RatchetSet.DeepCopy(),
+		CachedAt:   o.CachedAt.DeepCopy(),
 	}
 }
 

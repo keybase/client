@@ -539,4 +539,11 @@ protocol SimpleFS {
   // simpleFSDeobfuscatePath returns a set of plaintext paths for the given
   // obfuscated KBFS path.
   array<string> simpleFSDeobfuscatePath(Path path);
+
+  record SimpleFSStats {
+    array<string> blockCacheDbStats;
+    array<string> syncCacheDbStats;
+  }
+
+  SimpleFSStats simpleFSGetStats();
 }

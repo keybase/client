@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
@@ -20,12 +19,13 @@ type BuildPaymentCache interface {
 	// AccountSeqno should be cached _but_ it should also be busted asap.
 	// Because it is used to prevent users from sending payments twice in a row.
 	AccountSeqno(libkb.MetaContext, stellar1.AccountID) (string, error)
-	IsAccountFunded(libkb.MetaContext, stellar1.AccountID) (bool, error)
+	IsAccountFunded(libkb.MetaContext, stellar1.AccountID, stellar1.BuildPaymentID) (bool, error)
 	LookupRecipient(libkb.MetaContext, stellarcommon.RecipientInput) (stellarcommon.Recipient, error)
 	GetOutsideExchangeRate(libkb.MetaContext, stellar1.OutsideCurrencyCode) (stellar1.OutsideExchangeRate, error)
 	AvailableXLMToSend(libkb.MetaContext, stellar1.AccountID) (string, error)
-	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
+	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID, stellar1.BuildPaymentID) (stellar1.OutsideCurrencyCode, error)
 	ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error)
+	InformDefaultCurrencyChange(mctx libkb.MetaContext)
 }
 
 // Each instance is tied to a UV login. Must be discarded when switching users.
@@ -35,26 +35,21 @@ type buildPaymentCache struct {
 	sync.Mutex
 	remoter remote.Remoter
 
-	lookupRecipientLocktab libkb.LockTable
-	lookupRecipientCache   *lru.Cache
-
-	shouldOfferAdvancedSendLocktab libkb.LockTable
-	shouldOfferAdvancedSendCache   *lru.Cache
+	accountFundedCache             *TimeCache
+	lookupRecipientCache           *TimeCache
+	shouldOfferAdvancedSendCache   *TimeCache
+	currencyPreferenceCache        *TimeCache
+	currencyPreferenceForeverCache *TimeCache
 }
 
 func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
-	lookupRecipientCache, err := lru.New(50)
-	if err != nil {
-		panic(err)
-	}
-	shouldOfferAdvancedSendCache, err := lru.New(50)
-	if err != nil {
-		panic(err)
-	}
 	return &buildPaymentCache{
-		remoter:                      remoter,
-		lookupRecipientCache:         lookupRecipientCache,
-		shouldOfferAdvancedSendCache: shouldOfferAdvancedSendCache,
+		remoter:                        remoter,
+		accountFundedCache:             NewTimeCache("accountFundedCache", 20, 0 /*forever*/),
+		lookupRecipientCache:           NewTimeCache("lookupRecipient", 20, time.Minute),
+		shouldOfferAdvancedSendCache:   NewTimeCache("shouldOfferAdvancedSend", 20, time.Minute),
+		currencyPreferenceCache:        NewTimeCache("currencyPreference", 20, 5*time.Minute),
+		currencyPreferenceForeverCache: NewTimeCache("currencyPreferenceForever", 20, 0 /*forever*/),
 	}
 }
 
@@ -69,73 +64,37 @@ func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
 }
 
 func (c *buildPaymentCache) IsAccountFunded(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (bool, error) {
-	return isAccountFunded(mctx.Ctx(), c.remoter, accountID)
-}
-
-type lookupRecipientCacheEntry struct {
-	Recipient stellarcommon.Recipient
-	Time      time.Time
+	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res bool, err error) {
+	fill := func() (interface{}, error) {
+		funded, err := isAccountFunded(mctx.Ctx(), c.remoter, accountID)
+		res = funded
+		return funded, err
+	}
+	if !bid.IsNil() {
+		key := fmt.Sprintf("%v:%v", accountID, bid)
+		err = c.accountFundedCache.GetWithFill(mctx, key, &res, fill)
+		return res, err
+	}
+	_, err = fill()
+	return res, err
 }
 
 func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
-	lock := c.lookupRecipientLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), string(to))
-	defer lock.Release(mctx.Ctx())
-	if val, ok := c.lookupRecipientCache.Get(to); ok {
-		if entry, ok := val.(lookupRecipientCacheEntry); ok {
-			if mctx.G().GetClock().Now().Sub(entry.Time) <= time.Minute {
-				// Cache hit
-				mctx.Debug("bpc.LookupRecipient cache hit")
-				return entry.Recipient, nil
-			}
-		} else {
-			mctx.Debug("bpc.LookupRecipient bad cached type: %T", val)
-		}
-		c.lookupRecipientCache.Remove(to)
+	fill := func() (interface{}, error) {
+		return LookupRecipient(mctx, to, false /* isCLI */)
 	}
-	res, err = LookupRecipient(mctx, to, false /* isCLI */)
-	if err != nil {
-		return res, err
-	}
-	c.lookupRecipientCache.Add(to, lookupRecipientCacheEntry{
-		Time:      time.Now().Round(0),
-		Recipient: res,
-	})
-	return res, nil
+	err = c.lookupRecipientCache.GetWithFill(mctx, string(to), &res, fill)
+	return res, err
 }
 
-type shouldOfferAdvancedSendCacheEntry struct {
-	res  stellar1.AdvancedBanner
-	time time.Time
-}
-
-func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (stellar1.AdvancedBanner, error) {
-	fromTo := from.String() + ":" + to.String()
-
-	lock := c.shouldOfferAdvancedSendLocktab.AcquireOnName(mctx.Ctx(), mctx.G(), fromTo)
-	defer lock.Release(mctx.Ctx())
-	if val, ok := c.shouldOfferAdvancedSendCache.Get(fromTo); ok {
-		if entry, ok := val.(shouldOfferAdvancedSendCacheEntry); ok {
-			if mctx.G().GetClock().Now().Sub(entry.time) <= time.Minute {
-				// Cache hit
-				mctx.Debug("bpc.ShouldOfferAdvancedSend cache hit")
-				return entry.res, nil
-			}
-		} else {
-			mctx.Debug("bpc.ShouldOfferAdvancedSend bad cached type: %T", val)
-		}
-		c.shouldOfferAdvancedSendCache.Remove(fromTo)
+func (c *buildPaymentCache) ShouldOfferAdvancedSend(mctx libkb.MetaContext, from, to stellar1.AccountID) (res stellar1.AdvancedBanner, err error) {
+	key := from.String() + ":" + to.String()
+	fill := func() (interface{}, error) {
+		return ShouldOfferAdvancedSend(mctx, c.remoter, from, to)
 	}
-	res, err := ShouldOfferAdvancedSend(mctx, c.remoter, from, to)
-	if err != nil {
-		return res, err
-	}
-	c.shouldOfferAdvancedSendCache.Add(fromTo, shouldOfferAdvancedSendCacheEntry{
-		time: time.Now().Round(0),
-		res:  res,
-	})
-	return res, nil
+	err = c.shouldOfferAdvancedSendCache.GetWithFill(mctx, key, &res, fill)
+	return res, err
 }
 
 func (c *buildPaymentCache) GetOutsideExchangeRate(mctx libkb.MetaContext,
@@ -157,7 +116,25 @@ func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
 }
 
 func (c *buildPaymentCache) GetOutsideCurrencyPreference(mctx libkb.MetaContext,
-	accountID stellar1.AccountID) (stellar1.OutsideCurrencyCode, error) {
-	cr, err := GetCurrencySetting(mctx, accountID)
-	return cr.Code, err
+	accountID stellar1.AccountID, bid stellar1.BuildPaymentID) (res stellar1.OutsideCurrencyCode, err error) {
+	fillInner := func() (interface{}, error) {
+		cr, err := GetCurrencySetting(mctx, accountID)
+		return cr.Code, err
+	}
+	fillOuter := func() (interface{}, error) {
+		err := c.currencyPreferenceCache.GetWithFill(mctx, accountID.String(), &res, fillInner)
+		return res, err
+	}
+	if !bid.IsNil() {
+		foreverKey := fmt.Sprintf("%v:%v", accountID, bid)
+		err = c.currencyPreferenceForeverCache.GetWithFill(mctx, foreverKey, &res, fillOuter)
+		return res, err
+	}
+	_, err = fillOuter()
+	return res, err
+}
+
+func (c *buildPaymentCache) InformDefaultCurrencyChange(mctx libkb.MetaContext) {
+	c.currencyPreferenceCache.Clear()
+	c.currencyPreferenceForeverCache.Clear()
 }

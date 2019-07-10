@@ -30,7 +30,7 @@ func newDiskMDCacheLocalForTestWithStorage(
 	cache, err := newDiskMDCacheLocalFromStorage(&testDiskMDCacheConfig{
 		newTestCodecGetter(),
 		newTestLogMaker(t),
-	}, s)
+	}, s, modeTest{modeDefault{}})
 	require.NoError(t, err)
 	err = cache.WaitUntilStarted()
 	require.NoError(t, err)

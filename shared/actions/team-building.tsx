@@ -6,6 +6,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
+import flags from '../util/feature-flags'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -13,27 +14,22 @@ export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}
 const apiSearch = (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
-  limit: number,
+  maxResults: number,
   includeServicesSummary: boolean
-): Promise<Array<TeamBuildingTypes.User>> =>
-  RPCTypes.apiserverGetWithSessionRpcPromise({
-    args: [
-      {key: 'q', value: query},
-      {key: 'num_wanted', value: String(limit)},
-      {key: 'service', value: service === 'keybase' ? '' : service},
-      {key: 'include_services_summary', value: includeServicesSummary ? '1' : '0'},
-    ],
-    endpoint: 'user/user_search',
+): Promise<Array<TeamBuildingTypes.User>> => {
+  return RPCTypes.userSearchUserSearchRpcPromise({
+    includeContacts: flags.sbsContacts && service === 'keybase',
+    includeServicesSummary,
+    maxResults,
+    query,
+    service,
   })
-    .then(results =>
-      JSON.parse(results.body)
-        .list.map(r => Constants.parseRawResultToUser(r, service))
-        .filter(u => !!u)
-    )
+    .then(results => results.map(r => Constants.parseRawResultToUser(r, service)).filter(Boolean))
     .catch(err => {
       logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
       return []
     })
+}
 
 function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
   const teamBuildingState = state[namespace].teamBuilding
@@ -121,16 +117,38 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
 }
 
 const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
-  RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50})
-    .then((suggestions: Array<RPCTypes.InterestingPerson> | null) =>
-      (suggestions || []).map(
-        ({username, fullname}): TeamBuildingTypes.User => ({
-          id: username,
-          prettyName: fullname,
-          serviceMap: {keybase: username},
+  Promise.all([
+    RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
+    flags.sbsContacts
+      ? RPCTypes.contactsLookupSavedContactsListRpcPromise()
+      : Promise.resolve([] as RPCTypes.ProcessedContact[]),
+  ])
+    .then(([_suggestionRes, _contactRes]) => {
+      const suggestionRes = _suggestionRes || []
+      const contactRes = _contactRes || []
+      const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
+      const contacts = contactRes.map(
+        (x): TeamBuildingTypes.User => ({
+          id: x.assertion,
+          prettyName: x.displayLabel,
+          serviceMap: {keybase: x.username},
         })
       )
-    )
+      let suggestions = suggestionRes
+        .filter(({username}) => !contactUsernames.has(username))
+        .map(
+          ({username, fullname}): TeamBuildingTypes.User => ({
+            id: username,
+            prettyName: fullname,
+            serviceMap: {keybase: username},
+          })
+        )
+      const expectingContacts = flags.sbsContacts && state.settings.contacts.importEnabled
+      if (expectingContacts) {
+        suggestions = suggestions.slice(0, 5)
+      }
+      return suggestions.concat(contacts)
+    })
     .catch(e => {
       logger.error(`Error in fetching recs`)
       return []

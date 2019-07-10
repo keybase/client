@@ -161,16 +161,18 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
             ? {
                 error: action.payload.error,
                 pendingVerification: '',
-                pendingVerificationAllowSearch: null,
                 verificationState: null,
               }
             : {
                 error: '',
                 pendingVerification: action.payload.phoneNumber,
-                pendingVerificationAllowSearch: action.payload.allowSearch,
                 verificationState: null,
               }
         )
+      )
+    case SettingsGen.resendVerificationForPhoneNumber:
+      return state.update('phoneNumbers', pn =>
+        pn.merge({error: '', pendingVerification: action.payload.phoneNumber, verificationState: null})
       )
     case SettingsGen.clearPhoneNumberErrors:
       return state.update('phoneNumbers', pn => pn.merge({error: ''}))
@@ -179,7 +181,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         pn.merge({
           error: '',
           pendingVerification: '',
-          pendingVerificationAllowSearch: null,
           verificationState: null,
         })
       )
@@ -195,6 +196,8 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
     case SettingsGen.loadedContactPermissions:
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
+    case SettingsGen.setContactImportedCount:
+      return state.update('contacts', contacts => contacts.set('importedCount', action.payload.count))
     case SettingsGen.addEmail: {
       const {email} = action.payload
       const emailError = isValidEmail(email)
@@ -258,6 +261,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.loadContactImportEnabled:
     case SettingsGen.editContactImportEnabled:
     case SettingsGen.requestContactPermissions:
+    case SettingsGen.toggleRuntimeStats:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

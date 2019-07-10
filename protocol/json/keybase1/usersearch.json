@@ -1,0 +1,194 @@
+{
+  "protocol": "userSearch",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "contacts.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "APIUserServiceIDWithContact",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "APIUserKeybaseResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "pictureUrl",
+          "jsonkey": "picture_url"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fullName",
+          "jsonkey": "full_name"
+        },
+        {
+          "type": "double",
+          "name": "rawScore",
+          "jsonkey": "raw_score"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "stellar"
+        },
+        {
+          "type": "boolean",
+          "name": "isFollowee",
+          "jsonkey": "is_followee"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "APIUserServiceResult",
+      "fields": [
+        {
+          "type": "APIUserServiceIDWithContact",
+          "name": "serviceName",
+          "jsonkey": "service_name"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "pictureUrl",
+          "jsonkey": "picture_url"
+        },
+        {
+          "type": "string",
+          "name": "bio"
+        },
+        {
+          "type": "string",
+          "name": "location"
+        },
+        {
+          "type": "string",
+          "name": "fullName",
+          "jsonkey": "full_name"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "confirmed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "APIUserServiceSummary",
+      "fields": [
+        {
+          "type": "APIUserServiceIDWithContact",
+          "name": "serviceName",
+          "jsonkey": "service_name"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "APIUserSearchResult",
+      "fields": [
+        {
+          "type": "double",
+          "name": "score"
+        },
+        {
+          "type": [
+            null,
+            "APIUserKeybaseResult"
+          ],
+          "name": "keybase"
+        },
+        {
+          "type": [
+            null,
+            "APIUserServiceResult"
+          ],
+          "name": "service"
+        },
+        {
+          "type": [
+            null,
+            "ProcessedContact"
+          ],
+          "name": "contact"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "APIUserServiceSummary",
+            "keys": "APIUserServiceIDWithContact"
+          },
+          "name": "servicesSummary",
+          "jsonkey": "services_summary"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "userSearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "service",
+          "type": "string"
+        },
+        {
+          "name": "maxResults",
+          "type": "int"
+        },
+        {
+          "name": "includeServicesSummary",
+          "type": "boolean"
+        },
+        {
+          "name": "includeContacts",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "APIUserSearchResult"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

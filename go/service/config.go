@@ -432,3 +432,18 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 
 	return nil
 }
+
+func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
+	configWriter := h.G().Env.GetConfigWriter()
+	curValue := h.G().Env.GetRuntimeStatsEnabled()
+	configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	if err := h.G().ConfigReload(); err != nil {
+		return err
+	}
+	if curValue {
+		<-h.svc.runtimeStats.Stop(ctx)
+	} else {
+		h.svc.runtimeStats.Start(ctx)
+	}
+	return nil
+}

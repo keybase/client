@@ -67,7 +67,7 @@ func (l *LiveLocationTracker) Stop(ctx context.Context) chan struct{} {
 	defer l.Unlock()
 	ch := make(chan struct{})
 	for _, t := range l.trackers {
-		close(t.stopCh)
+		t.Stop()
 	}
 	go func() {
 		l.eg.Wait()
@@ -98,7 +98,15 @@ func (l *LiveLocationTracker) restoreLocked(ctx context.Context) {
 		l.Debug(ctx, "restoreLocked: failed to read, skipping: %s", err)
 		return
 	}
+	if len(trackers) == 0 {
+		return
+	}
+	l.Debug(ctx, "restoreLocked: restored %d trackers", len(trackers))
+	l.trackers = make(map[types.LiveLocationKey]*locationTrack)
 	for _, t := range trackers {
+		if t.IsStopped() {
+			continue
+		}
 		l.trackers[t.Key()] = t
 		l.eg.Go(func() error { return l.tracker(t) })
 	}
@@ -346,7 +354,7 @@ func (l *LiveLocationTracker) GetCurrentPosition(ctx context.Context, convID cha
 	defer l.Unlock()
 	// start up a live location tracker for a small amount of time to make sure we get a good
 	// coordinate
-	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords)
+	t := newLocationTrack(convID, msgID, l.clock.Now().Add(4*time.Second), true, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
@@ -357,7 +365,7 @@ func (l *LiveLocationTracker) StartTracking(ctx context.Context, convID chat1.Co
 	defer l.Trace(ctx, func() error { return nil }, "StartTracking")()
 	l.Lock()
 	defer l.Unlock()
-	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords)
+	t := newLocationTrack(convID, msgID, endTime, false, l.maxCoords, false)
 	l.trackers[t.Key()] = t
 	l.saveLocked(ctx)
 	l.eg.Go(func() error { return l.tracker(t) })
@@ -408,8 +416,7 @@ func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
 	l.Lock()
 	defer l.Unlock()
 	for _, t := range l.trackers {
-		delete(l.trackers, t.Key())
-		close(t.stopCh)
+		t.Stop()
 	}
 	l.saveLocked(ctx)
 }

@@ -174,17 +174,27 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onMakeSearchable: () =>
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
-    onDelete: () => dispatch(SettingsGen.createEditEmail({delete: true, email: ownProps.contactKey})),
+    onDelete: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {address: ownProps.contactKey, type: 'email'}, selected: 'settingsDeleteAddress'}],
+        })
+      ),
     onMakePrimary: () =>
       dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
-    _onVerify: (phoneNumber, allowSearch) => {
-      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber}))
+    _onVerify: phoneNumber => {
+      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
       dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
     },
-    onDelete: () => dispatch(SettingsGen.createEditPhone({delete: true, phone: ownProps.contactKey})),
+    onDelete: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {address: ownProps.contactKey, type: 'phone'}, selected: 'settingsDeleteAddress'}],
+        })
+      ),
     onMakePrimary: () => {}, // this is not a supported phone action
     onToggleSearchable: () =>
       dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, toggleSearchable: true})),
@@ -202,7 +212,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
-        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber, searchable),
+        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber),
         primary: false,
         searchable,
         type: 'phone' as const,
