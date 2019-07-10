@@ -67,8 +67,8 @@ const Banner = (props: Props) => (
           padding="xtiny"
           sizeType="Small"
           type="iconfont-close"
-          color={Styles.globalColors.white_90}
-          hoverColor={Styles.globalColors.white}
+          color={colorToIconColor[props.color]}
+          hoverColor={colorToIconHoverColor[props.color]}
           onClick={props.onClose}
         />
       </Box>
@@ -156,6 +156,22 @@ const colorToTextColorStyles = Styles.styleSheetCreate({
   grey: {color: Styles.globalColors.black_50},
   red: {color: Styles.globalColors.white},
   yellow: {color: Styles.globalColors.brown_75},
+})
+
+const colorToIconColor = Styles.styleSheetCreate({
+  blue: Styles.globalColors.white_90,
+  green: Styles.globalColors.white_90,
+  grey: Styles.globalColors.black_50,
+  red: Styles.globalColors.white_90,
+  yellow: Styles.globalColors.brown_75,
+})
+
+const colorToIconHoverColor = Styles.styleSheetCreate({
+  blue: Styles.globalColors.white,
+  green: Styles.globalColors.white,
+  grey: Styles.globalColors.black,
+  red: Styles.globalColors.white,
+  yellow: Styles.globalColors.brown,
 })
 
 export default Banner
