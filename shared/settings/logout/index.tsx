@@ -67,7 +67,7 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={!!this.props.checkPasswordIsCorrect}
+                disabled={!!this.props.checkPasswordIsCorrect || this.state.password === ''}
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)
