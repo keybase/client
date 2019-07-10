@@ -424,6 +424,7 @@ type _PreviewConversationPayload = {
     | 'memberView'
     | 'newChannel'
     | 'transaction'
+    | 'sentPayment'
     | 'requestedPayment'
     | 'teamMention'
 }

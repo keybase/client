@@ -151,7 +151,6 @@ const sendPayment = state => {
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
       asset: emptyAsset,
-      // FIXME -- support other assets.
       bid: state.wallets.building.bid,
       bypassBid: false,
       bypassReview: false,
@@ -172,6 +171,7 @@ const sendPayment = state => {
       WalletsGen.createSentPayment({
         kbTxID: new HiddenString(res.kbTxID),
         lastSentXLM: !notXLM,
+        jumpToChat: res.jumpToChat,
       })
     )
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
@@ -838,7 +838,19 @@ const maybeNavigateAwayFromSendForm = state => {
   return actions
 }
 
-const maybeNavigateToConversation = (state, action: WalletsGen.RequestedPaymentPayload, logger) => {
+const maybeNavigateToConversationFromPayment = (state, action: WalletsGen.SentPaymentPayload, logger) => {
+  const actions = maybeNavigateAwayFromSendForm(state)
+  if (action.payload.jumpToChat) {
+    logger.info('Navigating to conversation because we sent a payment')
+    actions.push(Chat2Gen.createPreviewConversation({
+      participants: [action.payload.jumpToChat],
+      reason: 'sentPayment',
+    }))
+  }
+  return actions
+}
+
+const maybeNavigateToConversationFromRequest = (state, action: WalletsGen.RequestedPaymentPayload, logger) => {
   logger.info('Navigating to conversation because we requested a payment')
   return Chat2Gen.createPreviewConversation({
     participants: [action.payload.requestee],
@@ -1324,7 +1336,11 @@ const sendPaymentAdvanced = state =>
       source: state.wallets.buildingAdvanced.senderAccountID,
     },
     Constants.sendPaymentAdvancedWaitingKey
-  ).then(() => RouteTreeGen.createClearModals())
+  ).then(res => WalletsGen.createSentPayment({
+    kbTxID: new HiddenString(res.kbTxID),
+    lastSentXLM: false,
+    jumpToChat: res.jumpToChat,
+  }))
 
 function* loadStaticConfig(state, action: ConfigGen.DaemonHandshakePayload, logger) {
   if (state.wallets.staticConfig) {
@@ -1585,10 +1601,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     'clearErrors'
   )
 
-  yield* Saga.chainAction<WalletsGen.SentPaymentPayload | WalletsGen.AbandonPaymentPayload>(
-    [WalletsGen.abandonPayment, WalletsGen.sentPayment],
+  yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(
+    [WalletsGen.abandonPayment],
     maybeNavigateAwayFromSendForm,
     'maybeNavigateAwayFromSendForm'
+  )
+
+  yield* Saga.chainAction<WalletsGen.SentPaymentPayload>(
+    [WalletsGen.sentPayment],
+    maybeNavigateToConversationFromPayment,
+    'maybeNavigateToConversationFromPayment'
   )
 
   yield* Saga.chainGenerator<WalletsGen.RequestPaymentPayload>(
@@ -1603,8 +1625,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<WalletsGen.RequestedPaymentPayload>(
     WalletsGen.requestedPayment,
-    maybeNavigateToConversation,
-    'maybeNavigateToConversation'
+    maybeNavigateToConversationFromRequest,
+    'maybeNavigateToConversationFromRequest'
   )
 
   // Effects of abandoning payments

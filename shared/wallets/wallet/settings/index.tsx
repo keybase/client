@@ -19,10 +19,12 @@ export type SettingsProps = {
   currencies: I.List<Types.Currency>
   canSubmitTx: boolean
   externalPartners: Array<Types.PartnerUrl & {showDivider: boolean}>
+  leaveOnFallingEdge: boolean
   mobileOnlyMode: boolean
   mobileOnlyEditable: boolean
   mobileOnlyWaiting: boolean
   onBack: () => void
+  onLeaveSettings: () => void
   onDelete: () => void
   onSetDefault: () => void
   onEditName: () => void
@@ -62,16 +64,11 @@ const PartnerRow = (props: PartnerRowProps) => (
         <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
           {props.title}
         </Kb.Text>
-        <Kb.Icon
-          fontSize={Styles.isMobile ? 16 : 12}
-          style={styles.openIcon}
-          type="iconfont-open-browser"
-        />
+        <Kb.Icon fontSize={Styles.isMobile ? 16 : 12} style={styles.openIcon} type="iconfont-open-browser" />
       </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.noShrink}>
-    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.noShrink} />
   </Kb.Box2>
 )
 
@@ -79,6 +76,13 @@ class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
     this.props.refresh()
   }
+
+  componentDidUpdate(prevProps: SettingsProps) {
+    if (!this.props.leaveOnFallingEdge && prevProps.leaveOnFallingEdge) {
+      this.props.onLeaveSettings()
+    }
+  }
+
   render() {
     const props = this.props
     return (

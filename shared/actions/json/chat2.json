@@ -68,6 +68,7 @@
         "'memberView'",
         "'newChannel'",
         "'transaction'",
+        "'sentPayment'",
         "'requestedPayment'",
         "'teamMention'"
       ]

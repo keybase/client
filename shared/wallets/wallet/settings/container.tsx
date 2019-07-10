@@ -65,6 +65,7 @@ const mapStateToProps = state => {
         ? ''
         : inflationDest.name || inflationDest.accountID,
     isDefault: account.isDefault,
+    leaveOnFallingEdge: !!state.wallets.building.get('bid'),
     mobileOnlyEditable,
     mobileOnlyMode,
     mobileOnlyWaiting,
@@ -87,6 +88,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]})),
   _onEditName: (accountID: Types.AccountID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})),
+  _onLeaveSettings: (accountID: Types.AccountID) => {
+    dispatch(RouteTreeGen.createNavigateTo({path: ['walletsRoot']}))
+    dispatch(WalletsGen.createLoadPayments({accountID}))
+  },
   _onSetDefault: (accountID: Types.AccountID) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setDefaultAccount'}]})
@@ -116,6 +121,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onEditName: () => dispatchProps._onEditName(stateProps.accountID),
+  onLeaveSettings: () => dispatchProps._onLeaveSettings(stateProps.accountID),
   onMobileOnlyModeChange: (enabled: boolean) =>
     dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
