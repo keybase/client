@@ -9,6 +9,7 @@ const initialState = Constants.makeState()
 export default function(state: Types.State = initialState, action: ProvisionGen.Actions): Types.State {
   switch (action.type) {
     case ProvisionGen.resetStore:
+      return initialState
     case ProvisionGen.startProvision:
       return action.payload && action.payload.initUsername
         ? initialState.merge({initialUsername: action.payload.initUsername})

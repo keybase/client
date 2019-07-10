@@ -691,7 +691,7 @@ describe('final errors show', () => {
 
 describe('reset works', () => {
   const {getState, dispatch} = startReduxSaga()
-  dispatch({type: 'common:resetStore'})
+  dispatch({type: 'common:resetStore', payload: {}})
   expect(getState().provision).toEqual(Constants.makeState())
 })
 

@@ -270,7 +270,7 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
   }
 }
 
-const resetGlobalStore = (): any => ({payload: null, type: 'common:resetStore'})
+const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only

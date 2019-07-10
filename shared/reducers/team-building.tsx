@@ -11,12 +11,15 @@ export default function(
   state: Types.TeamBuildingSubState,
   action: TeamBuildingGen.Actions
 ): Types.TeamBuildingSubState {
+  if (action.type === TeamBuildingGen.resetStore) {
+    return Constants.makeSubState()
+  }
+
   if (action.payload.namespace !== namespace) {
     return state
   }
 
   switch (action.type) {
-    case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
       return Constants.makeSubState()
     case TeamBuildingGen.selectRole:

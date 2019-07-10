@@ -17,7 +17,7 @@ export type _State = {
   nameError: string
   password: HiddenString
   passwordError: HiddenString
-  signupError: RPCError
+  signupError: RPCError | null
   username: string
   usernameError: string
   usernameTaken: string
