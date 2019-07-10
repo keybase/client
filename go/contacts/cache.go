@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -28,10 +27,12 @@ func (s *ContactCacheStore) dbKey(uid keybase1.UID) libkb.DbKey {
 	}
 }
 
-// NewContactCacheStore creates new ContactCacheStore for given global context.
+// NewContactCacheStore creates new ContactCacheStore for global context. The
+// store is used to securely store cached contact resolutions.
 func NewContactCacheStore(g *libkb.GlobalContext) *ContactCacheStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonContactsLocalStorage, "encrypting contact resolution cache")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
@@ -134,11 +135,13 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	var conCache lookupResultCache
 	cacheKey := c.Store.dbKey(mctx.CurrentUID())
 	found, cerr := c.Store.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
-	if cerr != nil {
-		mctx.Warning("Unable to pull cache: %s", cerr)
-	} else if !found {
+	if cerr != nil || !found {
+		if cerr != nil {
+			mctx.Warning("Unable to pull cache: %s", cerr)
+		} else if !found {
+			mctx.Debug("There was no cache, making a new cache object")
+		}
 		conCache = makeNewLookupResultCache()
-		mctx.Debug("There was no cache, making a new cache object")
 	} else {
 		mctx.Debug("Fetched cache, current cache size: %d", len(conCache.Lookups))
 	}
