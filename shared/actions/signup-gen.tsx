@@ -241,4 +241,4 @@ export type Actions =
   | RestartSignupPayload
   | SignedupPayload
   | SignedupPayloadError
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

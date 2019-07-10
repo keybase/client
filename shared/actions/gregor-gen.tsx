@@ -66,4 +66,4 @@ export type Actions =
   | PushStatePayload
   | UpdateCategoryPayload
   | UpdateReachablePayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

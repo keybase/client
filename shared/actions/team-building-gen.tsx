@@ -128,4 +128,4 @@ export type Actions =
   | SearchPayload
   | SearchResultsLoadedPayload
   | SelectRolePayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

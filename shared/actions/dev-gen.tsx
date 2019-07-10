@@ -36,4 +36,4 @@ export type UpdateDebugConfigPayload = {
 export type Actions =
   | DebugCountPayload
   | UpdateDebugConfigPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

@@ -255,4 +255,4 @@ export type Actions =
   | SubmitTextCodePayload
   | SubmitUsernamePayload
   | SwitchToGPGSignOnlyPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

@@ -405,4 +405,4 @@ export type Actions =
   | UpdateSigIDPayload
   | UpdateUsernamePayload
   | UploadAvatarPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

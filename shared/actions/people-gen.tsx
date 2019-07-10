@@ -66,4 +66,4 @@ export type Actions =
   | MarkViewedPayload
   | PeopleDataProcessedPayload
   | SkipTodoPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

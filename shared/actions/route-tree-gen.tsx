@@ -125,4 +125,4 @@ export type Actions =
   | SwitchRouteDefPayload
   | SwitchTabPayload
   | SwitchToPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

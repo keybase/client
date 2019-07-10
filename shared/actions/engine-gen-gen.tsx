@@ -3270,4 +3270,4 @@ export type Actions =
   | Stellar1NotifyRecentPaymentsUpdatePayload
   | Stellar1NotifyRequestStatusNotificationPayload
   | Stellar1UiPaymentReviewedPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}
