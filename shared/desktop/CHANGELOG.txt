@@ -1,3 +1,4 @@
-• Updated Files tab
-• See all your attachments in the chat info panel
-• Better scrolling in profile screen
+- Better feedback on slash commands
+- Improved adding members to a team
+- Type '/location' to share your location with the channel on mobile
+- Better feedback sending
