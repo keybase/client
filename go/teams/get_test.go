@@ -135,6 +135,7 @@ func TestTeamDetailsAsImplicitAdmin(t *testing.T) {
 	require.Len(t, team.Members.Admins, 0, "should be no team members in subteam")
 	require.Len(t, team.Members.Writers, 0, "should be no team members in subteam")
 	require.Len(t, team.Members.Readers, 0, "should be no team members in subteam")
+	require.Len(t, team.Members.Bots, 0, "should be no team members in subteam")
 }
 
 // Test loading when you have become an admin after

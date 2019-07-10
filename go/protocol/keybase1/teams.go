@@ -17,6 +17,7 @@ const (
 	TeamRole_WRITER TeamRole = 2
 	TeamRole_ADMIN  TeamRole = 3
 	TeamRole_OWNER  TeamRole = 4
+	TeamRole_BOT    TeamRole = 5
 )
 
 func (o TeamRole) DeepCopy() TeamRole { return o }
@@ -27,6 +28,7 @@ var TeamRoleMap = map[string]TeamRole{
 	"WRITER": 2,
 	"ADMIN":  3,
 	"OWNER":  4,
+	"BOT":    5,
 }
 
 var TeamRoleRevMap = map[TeamRole]string{
@@ -35,6 +37,7 @@ var TeamRoleRevMap = map[TeamRole]string{
 	2: "WRITER",
 	3: "ADMIN",
 	4: "OWNER",
+	5: "BOT",
 }
 
 func (e TeamRole) String() string {
@@ -336,6 +339,7 @@ type TeamMembers struct {
 	Admins  []UserVersion `codec:"admins" json:"admins"`
 	Writers []UserVersion `codec:"writers" json:"writers"`
 	Readers []UserVersion `codec:"readers" json:"readers"`
+	Bots    []UserVersion `codec:"bots" json:"bots"`
 }
 
 func (o TeamMembers) DeepCopy() TeamMembers {
@@ -384,6 +388,17 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []UserVersion) []UserVersion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserVersion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 	}
 }
 
@@ -439,6 +454,7 @@ type TeamMembersDetails struct {
 	Admins  []TeamMemberDetails `codec:"admins" json:"admins"`
 	Writers []TeamMemberDetails `codec:"writers" json:"writers"`
 	Readers []TeamMemberDetails `codec:"readers" json:"readers"`
+	Bots    []TeamMemberDetails `codec:"bots" json:"bots"`
 }
 
 func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
@@ -487,6 +503,17 @@ func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []TeamMemberDetails) []TeamMemberDetails {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamMemberDetails, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 	}
 }
 
@@ -530,6 +557,7 @@ type TeamChangeReq struct {
 	Admins           []UserVersion                           `codec:"admins" json:"admins"`
 	Writers          []UserVersion                           `codec:"writers" json:"writers"`
 	Readers          []UserVersion                           `codec:"readers" json:"readers"`
+	Bots             []UserVersion                           `codec:"bots" json:"bots"`
 	None             []UserVersion                           `codec:"none" json:"none"`
 	CompletedInvites map[TeamInviteID]UserVersionPercentForm `codec:"completedInvites" json:"completedInvites"`
 }
@@ -580,6 +608,17 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []UserVersion) []UserVersion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserVersion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 		None: (func(x []UserVersion) []UserVersion {
 			if x == nil {
 				return nil
@@ -614,6 +653,7 @@ type TeamPlusApplicationKeys struct {
 	Application     TeamApplication      `codec:"application" json:"application"`
 	Writers         []UserVersion        `codec:"writers" json:"writers"`
 	OnlyReaders     []UserVersion        `codec:"onlyReaders" json:"onlyReaders"`
+	OnlyBots        []UserVersion        `codec:"onlyBots" json:"onlyBots"`
 	ApplicationKeys []TeamApplicationKey `codec:"applicationKeys" json:"applicationKeys"`
 }
 
@@ -646,6 +686,17 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 			}
 			return ret
 		})(o.OnlyReaders),
+		OnlyBots: (func(x []UserVersion) []UserVersion {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserVersion, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.OnlyBots),
 		ApplicationKeys: (func(x []TeamApplicationKey) []TeamApplicationKey {
 			if x == nil {
 				return nil

@@ -3,12 +3,12 @@
 protocol teams {
 
   enum TeamRole {
-    // These must be ordered by privilege.
     NONE_0,
     READER_1,
     WRITER_2,
     ADMIN_3,
-    OWNER_4
+    OWNER_4,
+    BOT_5
   }
 
   // Note: If you add to this list, take heed.
@@ -135,6 +135,7 @@ protocol teams {
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
+    array<UserVersion> bots;
   }
 
   enum TeamMemberStatus {
@@ -157,6 +158,7 @@ protocol teams {
     array<TeamMemberDetails> admins;
     array<TeamMemberDetails> writers;
     array<TeamMemberDetails> readers;
+    array<TeamMemberDetails> bots;
   }
 
   record TeamDetails {
@@ -175,6 +177,7 @@ protocol teams {
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
+    array<UserVersion> bots;
     array<UserVersion> none;
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
   }
@@ -188,6 +191,7 @@ protocol teams {
 
     array<UserVersion> writers;
     array<UserVersion> onlyReaders;
+    array<UserVersion> onlyBots;
 
     array<TeamApplicationKey> applicationKeys;
   }
