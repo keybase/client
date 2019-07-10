@@ -138,13 +138,10 @@ class Header extends React.PureComponent<Props> {
     }
 
     // Normally this component is responsible for rendering the system buttons,
-    // but if we're showing a banner then that component needs to do it.
-    const airdropShowSystemButtons =
-      flags.airdrop &&
-      this.props.loggedIn &&
-      this.props.airdropWillShowBanner &&
-      !Platform.isMac &&
-      !initialUseNativeFrame
+    // but if we're showing a banner then that banner component needs to do it.
+    const windowDecorationsAreNeeded = !Platform.isMac && !initialUseNativeFrame
+    const windowDecorationsDrawnByBanner =
+      windowDecorationsAreNeeded && flags.airdrop && this.props.loggedIn && this.props.airdropWillShowBanner
 
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
@@ -165,7 +162,7 @@ class Header extends React.PureComponent<Props> {
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
         {flags.airdrop && this.props.loggedIn && (
-          <AirdropBanner showSystemButtons={airdropShowSystemButtons} />
+          <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
         )}
         <Kb.Box2
           noShrink={true}
@@ -206,7 +203,7 @@ class Header extends React.PureComponent<Props> {
                 />
               )}
               {!title && rightActions}
-              {!airdropShowSystemButtons && !Platform.isMac && <SystemButtons />}
+              {windowDecorationsAreNeeded && !windowDecorationsDrawnByBanner && <SystemButtons />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
