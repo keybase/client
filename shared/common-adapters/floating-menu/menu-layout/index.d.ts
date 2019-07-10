@@ -5,7 +5,7 @@ export type MenuItem = {
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
   newTag?: boolean | null
-  onClick?: (evt?: React.SyntheticEvent) => void | null
+  onClick?: ((evt?: React.SyntheticEvent) => void) | null
   onPress?: void
   style?: Object
   subTitle?: string

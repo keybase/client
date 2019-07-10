@@ -10,7 +10,7 @@ import getFilteredRowsAndMetadata from '../inbox/container/filtered'
 type OwnProps = {
   filter?: string
   focusFilterOnMount?: boolean | null
-  onDone?: () => void | null
+  onDone?: (() => void )| null
   onSelect: (conversationIDKey: Types.ConversationIDKey) => void
   onSetFilter?: (filter: string) => void
   selected: Types.ConversationIDKey

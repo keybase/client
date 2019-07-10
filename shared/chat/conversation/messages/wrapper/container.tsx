@@ -10,7 +10,7 @@ import {namedConnect, isMobile} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  measure: () => void | null
+  measure: (() => void )| null
   ordinal: Types.Ordinal
   previous: Types.Ordinal | null
 }

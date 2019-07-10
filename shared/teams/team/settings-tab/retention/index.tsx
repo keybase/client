@@ -39,8 +39,8 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     saving: false,
     selected: retentionPolicies.policyRetain,
   }
-  _timeoutID: NodeJS.Timeout | null
-  _showSaved: boolean
+  _timeoutID: NodeJS.Timeout | undefined
+  _showSaved: boolean = false
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -92,15 +92,18 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     if (this.props.showInheritOption) {
       policies.unshift(retentionPolicies.policyInherit)
     }
-    const items = policies.reduce((arr, policy) => {
+    const items = policies.reduce<State['items']>((arr, policy) => {
       switch (policy.type) {
         case 'retain':
         case 'expire':
-          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}]
+          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title} as MenuItem]
         case 'inherit':
           if (this.props.teamPolicy) {
             return [
-              {onClick: () => this._onSelect(policy), title: `Team default (${this.props.teamPolicy.title})`},
+              {
+                onClick: () => this._onSelect(policy),
+                title: `Team default (${this.props.teamPolicy.title})`,
+              } as MenuItem,
               'Divider',
               ...arr,
             ]
@@ -124,13 +127,13 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
                   <Kb.Icon type="iconfont-timer" />
                   <Kb.Text
                     type={Styles.isMobile ? 'BodyBig' : 'Body'}
-                    style={Styles.isMobile ? {color: Styles.globalColors.blueDark} : null}
+                    style={Styles.isMobile ? {color: Styles.globalColors.blueDark} : undefined}
                   >
                     {policy.title}
                   </Kb.Text>
                 </Kb.Box2>
               ),
-            },
+            } as MenuItem,
           ]
       }
       return arr
@@ -146,7 +149,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
   }
 
   _label = () => {
-    return policyToLabel(this.state.selected, this.props.teamPolicy)
+    return policyToLabel(this.state.selected, this.props.teamPolicy || null)
   }
 
   _init = () => {

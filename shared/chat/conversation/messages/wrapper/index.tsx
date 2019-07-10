@@ -52,12 +52,12 @@ export type Props = {
   isRevoked: boolean
   showCoinsIcon: boolean
   showUsername: string
-  measure: () => void | null
+  measure: (() => void) | null
   message: Types.Message
   onAuthorClick: () => void
-  onCancel: () => void | null
-  onEdit: () => void | null
-  onRetry: () => void | null
+  onCancel: (() => void) | null
+  onEdit: (() => void) | null
+  onRetry: (() => void) | null
   orangeLineAbove: boolean
   previous: Types.Message | null
   shouldShowPopup: boolean

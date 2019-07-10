@@ -36,7 +36,7 @@ export function connectedPropsToProps<T>(
   const userData = userDataFromState(stateProps, connectedProps.usernames).filter(
     u => !connectedProps.skipSelf || !u.you
   )
-  let onUsernameClickedNew: (username: string) => void | null
+  let onUsernameClickedNew: ((username: string) => void )| null
   if (connectedProps.onUsernameClicked === 'tracker') {
     onUsernameClickedNew = dispatchProps.onOpenTracker
   } else if (connectedProps.onUsernameClicked === 'profile') {

@@ -14,7 +14,7 @@ export type _Props = {
   exploded: boolean
   explodesAt: number
   messageKey: string
-  onClick: () => void | null
+  onClick: (() => void )| null
   pending: boolean
   style?: Styles.StylesCrossPlatform
 }

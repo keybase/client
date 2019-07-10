@@ -14,7 +14,7 @@ type MenuRowProps = {
   newTag?: boolean | null
   index: number
   numItems: number
-  onHidden?: () => void | null
+  onHidden?: (() => void )| null
 } & MenuItem
 
 const MenuRow = (props: MenuRowProps) => (

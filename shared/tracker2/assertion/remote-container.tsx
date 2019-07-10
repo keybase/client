@@ -60,8 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 // Just to get the stories working short term. TODO remove and use newer story wrapper
-const ConnectedAssertion =
-  __STORYBOOK__
-    ? Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Assertion')(Assertion)
-    : Container.remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Assertion)
+const ConnectedAssertion = __STORYBOOK__
+  ? Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Assertion')(Assertion)
+  : Container.remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Assertion as any)
 export default ConnectedAssertion

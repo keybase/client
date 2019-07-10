@@ -20,8 +20,8 @@ export type Props = {
   header?: React.ReactNode
   icon?: IconType
   iconColor?: Styles.Color
-  onCancel: () => void | null
-  onConfirm: () => void | null
+  onCancel: (() => void )| null
+  onConfirm: (() => void )| null
   prompt: string
   waitingKey?: string
 }

@@ -42,7 +42,7 @@ type Props = {
   onSent: () => void
   conversation: Person | Group | SmallTeam | BigTeam | None
   pathTextToCopy: string
-  send?: () => void | null
+  send?: (() => void )| null
   sendLinkToChatState: Types.SendLinkToChatState
 }
 

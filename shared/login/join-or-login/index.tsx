@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 
 type Props = {
   bannerMessage: string | null
-  onFeedback: () => void | null
+  onFeedback: (() => void )| null
   onLogin: () => void
   onSignup: () => void
 }

@@ -28,12 +28,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   return {
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
-      const onCancel: () => void | null = Container.getRouteProps(ownProps, 'onCancel')
+      const onCancel: (() => void) | null = Container.getRouteProps(ownProps, 'onCancel')
       onCancel && onCancel()
     },
     onConfirm: () => {
       dispatch(RouteTreeGen.createNavigateUp())
-      const cb: () => void | null = Container.getRouteProps(ownProps, 'onConfirm')
+      const cb: (() => void) | null = Container.getRouteProps(ownProps, 'onConfirm')
       cb && cb()
     },
   }

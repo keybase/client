@@ -24,7 +24,7 @@ export type OwnProps = {
   isTeam?: boolean
   loadingColor?: string
   onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: (e?: React.SyntheticEvent) => void | null
+  onEditAvatarClick?: ((e?: React.SyntheticEvent) => void) | null
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
@@ -48,7 +48,7 @@ type Props = {
   loadingColor?: string
   name: string
   onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: (e?: React.SyntheticEvent) => void | null
+  onEditAvatarClick?: ((e?: React.SyntheticEvent) => void) | null
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean

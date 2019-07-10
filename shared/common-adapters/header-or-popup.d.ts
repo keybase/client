@@ -1,7 +1,7 @@
 import * as Styles from '../styles'
 export type Props = {
-  onCancel?: () => void | null
-  onBack?: () => void | null
+  onCancel?: (() => void) | null
+  onBack?: (() => void) | null
   style?: Styles.StylesCrossPlatform | null
 }
 

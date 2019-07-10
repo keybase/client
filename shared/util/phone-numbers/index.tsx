@@ -38,8 +38,8 @@ countries.forEach(curr => {
     countryDataRaw[curr.alpha2] = {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
-      emoji: curr.emoji,
-      emojiText: emojiIndexByChar[curr.emoji],
+      emoji: curr.emoji || '',
+      emojiText: emojiIndexByChar[curr.emoji || -1] || '',
       example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
       pickerText:

@@ -8,11 +8,7 @@ import {TypedState} from '../constants/reducer'
 export const flushPromises = <T extends {}>(result?: T): Promise<T> =>
   new Promise(resolve => setImmediate(() => resolve(result)))
 
-export const makeStartReduxSaga = (
-  rootSaga: any,
-  initialStore: Object | null,
-  init: (dispatch: any) => void
-) => {
+export const makeStartReduxSaga = (rootSaga: any, initialStore: any, init: (dispatch: any) => void) => {
   return (is?: Object | null) => {
     const sagaMiddleware = createSagaMiddleware({
       onError: e => {

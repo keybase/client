@@ -9,7 +9,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  measure: () => void | null
+  measure: (() => void )| null
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {

@@ -12,11 +12,11 @@ export type Props = {
   followIconType: IconType | null
   followIconStyle: IconStyle
   isTeam: boolean
-  load: () => void | null
+  load: (() => void) | null
   name: string
   loadingColor?: string
-  onClick?: () => void | null
-  onEditAvatarClick?: (e: React.SyntheticEvent) => void | null
+  onClick?: (() => void) | null
+  onEditAvatarClick?: ((e: React.SyntheticEvent) => void) | null
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean

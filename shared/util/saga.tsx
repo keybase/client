@@ -34,7 +34,7 @@ export class SagaLogger {
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Iterable<Array<any>> {
-  const results = []
+  const results: Array<unknown> = []
   for (let i = 0; i < effects.length; i++) {
     results.push(yield effects[i])
   }
@@ -56,8 +56,10 @@ function* chainAction<
   // tag for logger
   fcnTag?: string
 ): Iterable<any> {
-    // @ts-ignore TODO fix
-    return yield Effects.takeEvery<Actions>(pattern as RS.Pattern, function* chainActionHelper(action: Actions) {
+  // @ts-ignore TODO fix
+  return yield Effects.takeEvery<Actions>(pattern as RS.Pattern, function* chainActionHelper(
+    action: Actions
+  ) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {
       const state = yield* selectState()
@@ -99,7 +101,7 @@ function* chainGenerator<
   // tag for logger
   fcnTag?: string
 ): Iterable<any> {
-    // @ts-ignore TODO fix
+  // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {

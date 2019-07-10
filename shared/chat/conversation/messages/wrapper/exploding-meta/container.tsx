@@ -15,7 +15,7 @@ const emptyProps = {
 
 export type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  onClick: () => void | null
+  onClick: (() => void )| null
   ordinal: Types.Ordinal
   style?: StylesCrossPlatform
 }

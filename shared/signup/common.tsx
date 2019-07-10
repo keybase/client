@@ -128,7 +128,7 @@ type SignupScreenProps = {
   titleComponent?: React.ReactNode
   header?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: () => void | null
+  onRightAction?: (() => void) | null
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
   showHeaderInfoicon?: boolean

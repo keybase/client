@@ -15,21 +15,21 @@ type Props = {
   path: Types.Path
   routePath: I.List<string>
   shouldHideMenu: boolean
-  copyPath?: () => void | null
-  delete?: () => void | null
-  download?: () => void | null
-  ignoreTlf?: () => void | null
-  moveOrCopy?: () => void | null
+  copyPath?: (() => void) | null
+  delete?: (() => void) | null
+  download?: (() => void) | null
+  ignoreTlf?: (() => void) | null
+  moveOrCopy?: (() => void) | null
   me: string
-  newFolder?: () => void | null
-  openChatNonTeam?: () => void | null
-  openChatTeam?: () => void | null
+  newFolder?: (() => void) | null
+  openChatNonTeam?: (() => void) | null
+  openChatTeam?: (() => void) | null
   pathItemType: Types.PathType
   saveMedia?: ActionOrInProgress | null
-  showInSystemFileManager?: () => void | null
-  share?: () => void | null
-  sendAttachmentToChat?: () => void | null
-  sendLinkToChat?: () => void | null
+  showInSystemFileManager?: (() => void) | null
+  share?: (() => void) | null
+  sendAttachmentToChat?: (() => void) | null
+  sendLinkToChat?: (() => void) | null
   sendToOtherApp?: ActionOrInProgress | null
 }
 

@@ -33,7 +33,7 @@ const canOpenInDestinationPicker = (stateProps, ownProps) =>
       stateProps._destinationPicker.source.path !== ownProps.path))
 
 type MergedProps = OwnProps & {
-  onOpen: () => void | null
+  onOpen: (() => void )| null
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps => ({

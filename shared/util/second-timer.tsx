@@ -23,7 +23,7 @@ type Ref = {
 
 class Ticker {
   refs: Array<Ref> = []
-  intervalID: NodeJS.Timeout | null
+  intervalID: NodeJS.Timeout | undefined
 
   addObserver = (fn: () => void): TickerID => {
     if (!this.intervalID) {
@@ -40,7 +40,7 @@ class Ticker {
       this.refs.splice(index, 1)
       if (this.refs.length === 0 && this.intervalID) {
         clearInterval(this.intervalID)
-        this.intervalID = null
+        this.intervalID = undefined
       }
       return true
     }

@@ -13,12 +13,12 @@ type Props = {
   notAUser: boolean
   onCopyAddress: () => void
   onRequestLumens: () => void
-  onRecheck: () => void | null
-  onRevoke: () => void | null
+  onRecheck: (() => void) | null
+  onRevoke: (() => void) | null
   onSendLumens: () => void
-  onShowProof: () => void | null
-  onShowSite: () => void | null
-  onCreateProof: () => void | null
+  onShowProof: (() => void) | null
+  onShowSite: (() => void) | null
+  onCreateProof: (() => void) | null
   onWhatIsStellar: () => void
   proofURL: string
   siteIcon: Types.SiteIconSet | null
@@ -162,8 +162,8 @@ class _StellarValue extends React.PureComponent<
 }
 const StellarValue = Kb.OverlayParentHOC(_StellarValue)
 
-const Value = p => {
-  let content = null
+const Value = (p: Props) => {
+  let content: JSX.Element | null = null
   if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {

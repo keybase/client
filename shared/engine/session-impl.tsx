@@ -31,7 +31,7 @@ class Session {
   // Name of the start method, just to help debug
   _startMethod: MethodKey | null
   // Start callback so we can cancel our own callback
-  _startCallback: (err?: RPCError, ...args: Array<any>) => void | null
+  _startCallback: ((err?: RPCError, ...args: Array<any>) => void) | null
 
   // Allow us to make calls
   _invoke: invokeType
@@ -123,7 +123,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: Object, callback: () => void | null) {
+  start(method: MethodKey, param: Object, callback: (() => void )| null) {
     this._startMethod = method
     this._startCallback = callback
 

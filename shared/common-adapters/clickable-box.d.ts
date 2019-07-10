@@ -10,8 +10,8 @@ export type Props = {
   onPress?: void
   onLongPress?: ((event: React.SyntheticEvent) => void) | null
   underlayColor?: string | null
-  onPressIn?: () => void | null
-  onPressOut?: () => void | null
+  onPressIn?: (() => void) | null
+  onPressOut?: (() => void) | null
   feedback?: boolean
   // mobile only
   activeOpacity?: number

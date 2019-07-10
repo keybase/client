@@ -26,11 +26,11 @@ export type Props = {
   following: Array<string> | null
   followingCount: number
   notAUser: boolean
-  onAddIdentity: () => void | null
+  onAddIdentity: (() => void) | null
   onBack: () => void
   onReload: () => void
   onSearch: () => void
-  onEditAvatar: () => void | null
+  onEditAvatar: (() => void) | null
   reason: string
   state: Types.DetailsState
   suggestionKeys: Array<string> | null
@@ -177,10 +177,10 @@ class FriendRow extends React.Component<FriendRowProps> {
 }
 
 export type BioTeamProofsProps = {
-  onAddIdentity: () => void | null
+  onAddIdentity: (() => void )| null
   assertionKeys: Array<string> | null
   backgroundColorType: BackgroundColorType
-  onEditAvatar: () => void | null
+  onEditAvatar: (() => void )| null
   notAUser: boolean
   suggestionKeys: Array<string> | null
   username: string
