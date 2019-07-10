@@ -141,7 +141,7 @@ func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 }
 
 func (r *AttachmentHTTPSrv) randURLKey(prefix string) (string, error) {
-	return libkb.RandHexString(prefix, 40)
+	return libkb.RandHexString(prefix, 32)
 }
 
 func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload interface{}) string {
