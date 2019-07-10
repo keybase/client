@@ -273,22 +273,40 @@ func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Co
 		if m[conv.GetConvID().String()] {
 			continue
 		}
-		if conv.Metadata.Status == chat1.ConversationStatus_BLOCKED {
-			continue
-		}
-		switch conv.GetMembersType() {
-		case chat1.ConversationMembersType_TEAM:
-			// include if this is a simple team, or the topic name has changed
-			if conv.GetTopicType() != chat1.TopicType_CHAT ||
-				conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
-				conv.GetConvID().Eq(s.GetSelectedConversation()) {
-				m[conv.GetConvID().String()] = true
-			}
-		default:
+		if s.shouldUnboxSyncConv(conv) {
 			m[conv.GetConvID().String()] = true
 		}
 	}
 	return m
+}
+
+func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
+	// Skips convs we don't care for.
+	switch conv.Metadata.Status {
+	case chat1.ConversationStatus_BLOCKED,
+		chat1.ConversationStatus_IGNORED,
+		chat1.ConversationStatus_REPORTED:
+		return false
+	}
+	// Only let through ACTIVE/PREVIEW convs.
+	if conv.ReaderInfo != nil {
+		switch conv.ReaderInfo.Status {
+		case chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW:
+		default:
+			return false
+		}
+	}
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		// include if this is a simple team or we are currently viewing the
+		// conv.
+		return conv.GetTopicType() != chat1.TopicType_CHAT ||
+			conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
+			conv.GetConvID().Eq(s.GetSelectedConversation())
+	default:
+		return true
+	}
 }
 
 func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
@@ -440,6 +458,12 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			}
 		}
 
+		var queuedConvs, maxConvs int
+		state := s.G().MobileNetState.State()
+		if state.IsLimited() {
+			maxConvs = 3
+		}
+
 		// Dispatch background jobs
 		for _, rc := range iboxSyncRes.FilteredConvs {
 			conv := rc.Conv
@@ -465,13 +489,20 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 				}
+				queuedConvs++
 			} else {
+				// If we are a limited data connection only queue selected
+				// convs up to maxConvs
+				if state.IsLimited() && (queuedConvs >= maxConvs || !s.shouldUnboxSyncConv(conv)) {
+					continue
+				}
 				// Everything else just queue up here
 				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
 					types.ConvLoaderPriorityHigh, newConvLoaderPagebackHook(s.G(), 0, 5))
 				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 				}
+				queuedConvs++
 			}
 		}
 	}

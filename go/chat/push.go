@@ -39,9 +39,8 @@ type gregorMessageOrderer struct {
 	utils.DebugLabeler
 	sync.Mutex
 
-	clock      clockwork.Clock
-	waiters    map[string][]messageWaiterEntry
-	noInboxDur time.Duration
+	clock   clockwork.Clock
+	waiters map[string][]messageWaiterEntry
 }
 
 func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
@@ -50,7 +49,6 @@ func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorMessageOrderer", false),
 		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
-		noInboxDur:   time.Second,
 	}
 }
 
@@ -135,25 +133,29 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		var dur time.Duration
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
-			if err == errPushOrdererMissingLatestInboxVersion {
-				g.Debug(ctx, "WaitForTurn: no inbox version, setting fixed duration of %v", g.noInboxDur)
+			if newVers >= 2 {
+				// If we fail to get the inbox version, then the general goal is to just simulate like
+				// we are looking for the previous update to the one we just got (newVers). In order to do
+				// this, we act like our previous inbox version was just missing the inbox version one less
+				// than newVers. That means we are waiting for this single update (which probably isn't
+				// coming, we usually get here if we miss the inbox cache on disk).
+				vers = newVers - 2
 			} else {
-				vers = newVers - 1
-				g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
-					err, vers)
+				vers = 0
 			}
-			dur = g.noInboxDur
-		} else {
-			// add extra time if we are multiple updates behind
-			dur = time.Duration(newVers-vers-1) * time.Second
-			if dur < 0 {
-				dur = 0
-			}
-			// cap at a minute
-			if dur > time.Minute {
-				dur = time.Minute
-			}
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s, proceeding with vers %d",
+				err, vers)
 		}
+		// add extra time if we are multiple updates behind
+		dur = time.Duration(newVers-vers-1) * time.Second
+		if dur < 0 {
+			dur = 0
+		}
+		// cap at a minute
+		if dur > time.Minute {
+			dur = time.Minute
+		}
+
 		deadline = deadline.Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()

@@ -105,7 +105,7 @@ export const WalletSwitcher = (props: Props) => {
           {
             key: 'airdrop',
             onPress: props.onJoinAirdrop,
-            title: 'Join the airdrop',
+            title: props.inAirdrop ? 'Airdrop' : 'Join the airdrop',
             type: 'airdrop',
           },
         ] as const)

@@ -70,10 +70,11 @@ type FeatureFlagSet struct {
 }
 
 const (
-	FeatureFTL                = Feature("ftl")
-	FeatureIMPTOFU            = Feature("imptofu")
-	FeatureBoxAuditor         = Feature("box_auditor2")
-	ExperimentalGenericProofs = Feature("experimental_generic_proofs")
+	FeatureFTL                        = Feature("ftl")
+	FeatureIMPTOFU                    = Feature("imptofu")
+	FeatureBoxAuditor                 = Feature("box_auditor2")
+	ExperimentalGenericProofs         = Feature("experimental_generic_proofs")
+	FeatureCheckForHiddenChainSupport = Feature("check_for_hidden_chain_support")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.

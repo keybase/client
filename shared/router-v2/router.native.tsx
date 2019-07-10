@@ -71,16 +71,18 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
 )
 
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
-const getBadgeNumber = (navBadges, routeName) =>
-  routeName === Tabs.settingsTab
-    ? settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
-    : navBadges.get(routeName)
 
 type OwnProps = {focused: boolean; routeName: Tabs.Tab}
 const ConnectedTabBarIcon = connect(
-  (state: any, {routeName}: OwnProps) => ({
-    badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName),
-  }),
+  (state, {routeName}: OwnProps) => {
+    const onSettings = routeName === Tabs.settingsTab
+    const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
+      (res, tab) => res + (state.notifications.navBadges.get(tab) || 0),
+      // notifications gets badged on native if there's no push, special case
+      onSettings && !state.push.hasPermissions ? 1 : 0
+    )
+    return {badgeNumber}
+  },
   () => ({}),
   (s, _, o: OwnProps) => ({
     badgeNumber: s.badgeNumber,

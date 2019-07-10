@@ -1944,13 +1944,14 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
 			return conn, token, err
 		}
-		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+		conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log},
-			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{})
+			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{},
+			libkb.NewProxyDialable(g.Env))
 	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength)
+		t := rpc.NewConnectionTransportWithDialable(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength, libkb.NewProxyDialable(g.GetEnv()))
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
 			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})

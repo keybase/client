@@ -237,8 +237,9 @@ export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends Co
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
   :   [
-        "just to help you debug what's going on",
+        "missing props:",
         Exclude<keyof GetProps<C>, keyof TMergedProps>,
+        "extra props:",
         Exclude<keyof TMergedProps, keyof GetProps<C>>,
         GetProps<C>,
         TMergedProps

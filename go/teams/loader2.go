@@ -257,22 +257,33 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	}
 
 	minRole := link.outerLink.LinkType.RequiresAtLeastRole()
+	linkType := link.outerLink.LinkType
 	// Note: If minRole is OWNER it will be treated as ADMIN here (weaker check).
 	if !ShouldSuppressLogging(ctx) {
-		l.G().Log.CDebugf(ctx, "verifyLink minRole:%v", minRole)
+		l.G().Log.CDebugf(ctx, "verifyLink: %v minRole:%v", linkType, minRole)
 	}
 
 	switch minRole {
 	case keybase1.TeamRole_NONE:
 		// Anyone can make this link. These didn't exist at the time.
 		return &signer, nil
+	case keybase1.TeamRole_BOT:
+		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_BOT)
+		if err == nil {
+			return &signer, err
+		}
+		if !ShouldSuppressLogging(ctx) {
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_BOT, err)
+		}
+		// Fall through to a higher role check
+		fallthrough
 	case keybase1.TeamRole_READER:
 		err = l.verifyExplicitPermission(ctx, state, link, signerUV, keybase1.TeamRole_READER)
 		if err == nil {
 			return &signer, err
 		}
 		if !ShouldSuppressLogging(ctx) {
-			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_READER, err)
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_READER, err)
 		}
 		// Fall through to a higher role check
 		fallthrough
@@ -282,7 +293,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 			return &signer, err
 		}
 		if !ShouldSuppressLogging(ctx) {
-			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", keybase1.TeamRole_WRITER, err)
+			l.G().Log.CDebugf(ctx, "verifyLink: %v not a %v: %v", linkType, keybase1.TeamRole_WRITER, err)
 		}
 		// Fall through to a higher role check
 		fallthrough
@@ -967,7 +978,7 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 	return newName, nil
 }
 
-// computeSeedChecks looks at the PerTeamKeySeedsUnverified for the the given team and adds the
+// computeSeedChecks looks at the PerTeamKeySeedsUnverified for the given team and adds the
 // PerTeamSeedChecks to the sequence. We make the assumption that, potentially, all such links are
 // null because it's a legacy team. OR only the new links are null since they were just added.
 // In either case, after this function runs, all seeds get seed checks computed.

@@ -217,11 +217,11 @@ func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamI
 	// from cache, but if the KID doesn't match, we try a forced reload to see
 	// if the cache might've been stale. Only if the KID still doesn't match
 	// after the reload do we complain.
-	teamSigningKey, err := team.SigningKey(mctx.Ctx())
+	teamSigningKID, err := team.SigningKID(mctx.Ctx())
 	if err != nil {
 		return nil, err
 	}
-	if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
+	if !teamSigningKID.Equal(signerKey.GetKID()) {
 		// The latest PTK might be stale. Force a reload, then check this over again.
 		team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 			ID:          team.ID,
@@ -230,13 +230,13 @@ func verifyTeambotSigWithLatestPTK(mctx libkb.MetaContext, teamID keybase1.TeamI
 		if err != nil {
 			return nil, err
 		}
-		teamSigningKey, err = team.SigningKey(mctx.Ctx())
+		teamSigningKID, err = team.SigningKID(mctx.Ctx())
 		if err != nil {
 			return nil, err
 		}
-		if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
+		if !teamSigningKID.Equal(signerKey.GetKID()) {
 			return nil, fmt.Errorf("teambotEK returned for PTK signing KID %s, but latest is %s",
-				signerKey.GetKID(), teamSigningKey.GetKID())
+				signerKey.GetKID(), teamSigningKID)
 		}
 	}
 

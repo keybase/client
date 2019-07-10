@@ -18,12 +18,17 @@ const disabledDescription =
   'Import your phone contacts and start encrypted chats with your friends. Your contacts never leave this device.'
 
 const ManageContacts = (props: Props) => {
+  const dispatch = Container.useDispatch()
+
   const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
   const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
-  const dispatch = Container.useDispatch()
+  const importedCount = Container.useSelector(s => s.settings.contacts.importedCount)
+  const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
+
   if (contactsImported === null) {
     dispatch(SettingsGen.createLoadContactImportEnabled())
   }
+
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onToggle = React.useCallback(
     () =>
@@ -35,13 +40,14 @@ const ManageContacts = (props: Props) => {
     [dispatch, contactsImported, status]
   )
   const onOpenAppSettings = React.useCallback(() => dispatch(ConfigGen.createOpenAppSettings()), [dispatch])
-  const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
       <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
-        {/* TODO banner for after you've successfully imported contacts + hook up to service Y2K-192 */}
+        {importedCount !== null && (
+          <Kb.Banner color="green">{`You imported ${importedCount} contacts.`}</Kb.Banner>
+        )}
         {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
           <Kb.Banner color="red">
             <Kb.BannerParagraph

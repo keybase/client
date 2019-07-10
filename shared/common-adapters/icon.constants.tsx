@@ -2593,6 +2593,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-reply': {
+    charCode: 0xe995,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-return': {
     charCode: 0xe96a,
     gridSize: 16,

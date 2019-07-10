@@ -1466,11 +1466,6 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^12.0.9"
 
-"@kudo-ci/jsc-android@245459-fix-clear-cache-no-dfg":
-  version "245459.9000.0"
-  resolved "https://registry.yarnpkg.com/@kudo-ci/jsc-android/-/jsc-android-245459.9000.0.tgz#2620f6e1a775902c4869f1ab59a410f475f5295d"
-  integrity sha512-McyqU5jCVxxfSJ9XzrcUe0/Rkew4ZqBBDlTio/66aH4I6EbBzsGri/1sU+0SXY3BOy++wrqdSJDAmB3k3AVP6Q==
-
 "@most/multicast@^1.2.5":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@most/multicast/-/multicast-1.3.0.tgz#e01574840df634478ac3fabd164c6e830fb3b966"
@@ -7116,6 +7111,13 @@ expo-constants@~5.0.0:
   integrity sha512-KFy4dyZoAAbmdRF3JgeG5O3HhvmqOEqrVfh4rE7VxJH2DAZGiLMfAB7rXE6n+y9ozF9L9e/+RmVnSdmmG4UPfg==
   dependencies:
     ua-parser-js "^0.7.19"
+
+expo-contacts@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/expo-contacts/-/expo-contacts-5.0.1.tgz#e331aeeac8f83bff40456949acb2f38a0abc5065"
+  integrity sha512-JGse0n6n4xzuHJO6DSIWfqponUXV3IyjfwyRT0I+XUKRWXlb8EL4xZ9+IBr86k6ShzzqHsMNCYHJ1+uigGVVWA==
+  dependencies:
+    uuid-js "^0.7.5"
 
 expo-file-system@~5.0.0:
   version "5.0.0"
@@ -13518,10 +13520,10 @@ react-native-webview@5.8.2:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
 
-react-native@0.59.9:
-  version "0.59.9"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.59.9.tgz#c94ee4fa35121720c05235a2dd6cdd2784bf5177"
-  integrity sha512-/+8EgIZwFpYHyyJ7Zav7B6LHNrytwUQ+EKGT/QV7HSrgpf2Y5NZNeUYUHKiVKLYpBip1G32/LcAECQj37YRwGQ==
+react-native@0.59.10:
+  version "0.59.10"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.59.10.tgz#352f381e382f93a0403be499c9e384bf51c2591c"
+  integrity sha512-guB9YW+pBqS1dnfZ4ntzjINopiCUAbdmshU2wMWD1W32fRczLAopi/7Q2iHKP8LTCdxuYZV3fa9Mew5PSuANAw==
   dependencies:
     "@babel/runtime" "^7.0.0"
     "@react-native-community/cli" "^1.2.1"

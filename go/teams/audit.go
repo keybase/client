@@ -28,11 +28,20 @@ var desktopParams = libkb.TeamAuditParams{
 	LRUSize:               1000,
 }
 
-var mobileParams = libkb.TeamAuditParams{
+var mobileParamsWifi = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(100000),
 	NumPreProbes:          10,
 	NumPostProbes:         10,
+	Parallelism:           3,
+	LRUSize:               500,
+}
+
+var mobileParamsNoWifi = libkb.TeamAuditParams{
+	RootFreshness:         15 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(150000),
+	NumPreProbes:          5,
+	NumPostProbes:         5,
 	Parallelism:           3,
 	LRUSize:               500,
 }
@@ -58,7 +67,10 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 		return devParams
 	}
 	if libkb.IsMobilePlatform() {
-		return mobileParams
+		if m.G().MobileNetState.State().IsLimited() {
+			return mobileParamsNoWifi
+		}
+		return mobileParamsWifi
 	}
 	return desktopParams
 }

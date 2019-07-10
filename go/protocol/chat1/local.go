@@ -422,6 +422,7 @@ type MessageSystemAddedToTeam struct {
 	Admins  []string `codec:"admins" json:"admins"`
 	Writers []string `codec:"writers" json:"writers"`
 	Readers []string `codec:"readers" json:"readers"`
+	Bots    []string `codec:"bots" json:"bots"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -473,6 +474,17 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 	}
 }
 

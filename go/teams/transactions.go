@@ -368,8 +368,11 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 
 func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 	switch role {
-	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER,
-		keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+	case keybase1.TeamRole_BOT,
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_ADMIN,
+		keybase1.TeamRole_OWNER:
 		return nil
 	default:
 		return fmt.Errorf("Unexpected role: %v (%d)", role, int(role))

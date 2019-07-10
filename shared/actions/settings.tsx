@@ -381,33 +381,40 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
   )
 }
 
-const loadSettings = (state: TypedState) =>
+const loadSettings = (state: TypedState, _, logger: Saga.SagaLogger) =>
   state.config.loggedIn &&
-  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey).then(settings => {
-    const emailMap: I.Map<string, Types.EmailRow> = I.Map(
-      (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
-    )
-    const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
-    )
-    const loadedAction = SettingsGen.createLoadedSettings({
-      emails: emailMap,
-      phones: phoneMap,
-    })
+  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey)
+    .then(settings => {
+      const emailMap: I.Map<string, Types.EmailRow> = I.Map(
+        (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
+      )
+      const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
+        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+      )
+      const loadedAction = SettingsGen.createLoadedSettings({
+        emails: emailMap,
+        phones: phoneMap,
+      })
 
-    const emailCount = (settings.emails || []).reduce((count, row) => (row.isVerified ? count : count + 1), 0)
-    const phoneCount = (settings.phoneNumbers || []).reduce(
-      (count, row) => (row.verified ? count : count + 1),
-      0
-    )
+      const emailCount = (settings.emails || []).reduce(
+        (count, row) => (row.isVerified ? count : count + 1),
+        0
+      )
+      const phoneCount = (settings.phoneNumbers || []).reduce(
+        (count, row) => (row.verified ? count : count + 1),
+        0
+      )
 
-    const badgeAction = NotificationsGen.createSetBadgeCounts({
-      counts: I.Map({
-        [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
-      }) as I.Map<Tabs.Tab, number>,
+      const badgeAction = NotificationsGen.createSetBadgeCounts({
+        counts: I.Map({
+          [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
+        }) as I.Map<Tabs.Tab, number>,
+      })
+      return [loadedAction, badgeAction]
     })
-    return [loadedAction, badgeAction]
-  })
+    .catch(e => {
+      logger.warn(`Error loading settings: ${e.message}`)
+    })
 
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
   visibility === ChatTypes.Keybase1.IdentityVisibility.private
@@ -591,7 +598,7 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
 // this happens.
 const loadHasRandomPW = (state: TypedState) =>
   state.settings.password.randomPW === null
-    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
+    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false, noShortTimeout: false})
         .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
         .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
     : null
@@ -604,16 +611,7 @@ const stop = (_, action: SettingsGen.StopPayload) =>
 
 const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPayload, logger) => {
   logger.info('adding phone number')
-  let {phoneNumber, allowSearch, resend = false} = action.payload
-  if (resend) {
-    logger.info('resending verification code')
-    phoneNumber = state.settings.phoneNumbers.pendingVerification
-    allowSearch = state.settings.phoneNumbers.pendingVerificationAllowSearch
-    if (!phoneNumber || allowSearch === null) {
-      logger.error("Tried to resend verification code, but couldn't find stashed fields.")
-      throw new Error("Tried to resend verification code, but couldn't find stashed fields.")
-    }
-  }
+  const {phoneNumber, allowSearch} = action.payload
   const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
   return RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
     {phoneNumber, visibility},
@@ -627,6 +625,19 @@ const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPay
       logger.warn('error ', err.message)
       return SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
     })
+}
+
+const resendVerificationForPhoneNumber = (
+  state: TypedState,
+  action: SettingsGen.ResendVerificationForPhoneNumberPayload,
+  logger
+) => {
+  const {phoneNumber} = action.payload
+  logger.info(`resending verification code for ${phoneNumber}`)
+  return RPCTypes.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
+    {phoneNumber},
+    Constants.resendVerificationForPhoneWaitingKey
+  )
 }
 
 const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logger) => {
@@ -650,7 +661,14 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
-const loadContactImportEnabled = async (state: TypedState, _, logger) => {
+const loadContactImportEnabled = async (
+  state: TypedState,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload,
+  logger
+) => {
+  if (action.type === ConfigGen.bootstrapStatusLoaded && !action.payload.loggedIn) {
+    return
+  }
   if (!state.config.username) {
     logger.warn('no username')
     return
@@ -796,10 +814,17 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     verifyPhoneNumber,
     'verifyPhoneNumber'
   )
+  yield* Saga.chainAction<SettingsGen.ResendVerificationForPhoneNumberPayload>(
+    SettingsGen.resendVerificationForPhoneNumber,
+    resendVerificationForPhoneNumber,
+    'resendVerificationForPhoneNumber'
+  )
 
   // Contacts
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
-    SettingsGen.loadContactImportEnabled,
+  yield* Saga.chainAction<
+    SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload
+  >(
+    [SettingsGen.loadContactImportEnabled, ConfigGen.bootstrapStatusLoaded],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )

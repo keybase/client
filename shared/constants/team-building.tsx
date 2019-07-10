@@ -74,6 +74,13 @@ const parseRawResultToUser = (
       prettyName: result.keybase.fullName || result.keybase.username,
       serviceMap,
     }
+  } else if (service === 'keybase' && result.contact) {
+    return {
+      id: result.contact.assertion,
+      // TODO: prettyName is a placeholder
+      prettyName: result.contact.displayName,
+      serviceMap,
+    }
   } else if (result.service) {
     if (result.service.serviceName !== service) {
       // This shouldn't happen
