@@ -984,6 +984,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 			return conversationLocal
 		}
+		conversationLocal.Info.Participants, err = utils.AttachContactNames(s.G().MetaContext(ctx))
 	default:
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			"unknown members type", conversationRemote, unverifiedTLFName,

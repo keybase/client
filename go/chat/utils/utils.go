@@ -190,6 +190,12 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) withContacts []chat1.ConversationLocalParticipant {
+	for _, participant := range participants {
+
+	}
+}
+
 const (
 	ChatTopicIDLen    = 16
 	ChatTopicIDSuffix = 0x20
