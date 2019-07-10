@@ -269,7 +269,7 @@ func featureGateForTeamFromServer(mctx libkb.MetaContext, teamID keybase1.TeamID
 }
 
 func checkFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (ok bool, err error) {
-	admin := mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureAdmin)
+	admin := mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureCheckForHiddenChainSupport)
 	runmode := mctx.G().Env.GetRunMode()
 	if runmode != libkb.ProductionRunMode {
 		return true, nil
