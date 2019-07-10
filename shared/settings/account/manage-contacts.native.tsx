@@ -46,18 +46,21 @@ const ManageContacts = (props: Props) => {
       <Kb.HeaderHocHeader title="Contacts" onBack={onBack} />
       <Kb.BoxGrow>
         {importedCount !== null && (
-          <Kb.Banner color="green" text={`You imported ${importedCount} contacts.`} />
+          <Kb.Banner color="green">{`You imported ${importedCount} contacts.`}</Kb.Banner>
         )}
         {(status === 'never_ask_again' || (Styles.isAndroid && status !== 'granted' && contactsImported)) && (
-          <Kb.Banner
-            color="red"
-            text={
-              contactsImported
-                ? "Contact importing is paused because Keybase doesn't have permission to access your contacts."
-                : "Keybase doesn't have permission to access your contacts."
-            }
-            actions={[{onClick: onOpenAppSettings, title: 'Enable in settings.'}]}
-          />
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph
+              bannerColor="red"
+              content={[
+                contactsImported
+                  ? "Contact importing is paused because Keybase doesn't have permission to access your contacts. "
+                  : "Keybase doesn't have permission to access your contacts. ",
+                {onClick: onOpenAppSettings, text: 'Enable in settings'},
+                '.',
+              ]}
+            />
+          </Kb.Banner>
         )}
         <SettingsSection>
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>

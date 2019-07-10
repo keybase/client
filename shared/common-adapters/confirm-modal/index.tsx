@@ -3,7 +3,7 @@ import WaitingButton from '../waiting-button'
 import {Box, Box2} from '../box'
 import HeaderOrPopup from '../header-or-popup'
 import ButtonBar from '../button-bar'
-import Banner from '../banner'
+import {Banner, BannerParagraph} from '../banner'
 import Icon from '../icon'
 import ScrollView from '../scroll-view'
 import Text from '../text'
@@ -41,7 +41,15 @@ class ConfirmModal extends React.PureComponent<Props> {
               }
             : undefined
         }
-        banners={this.props.error ? [<Banner key="error" color="red" text={this.props.error} />] : []}
+        banners={
+          this.props.error
+            ? [
+                <Banner key="error" color="red">
+                  <BannerParagraph bannerColor="red" content={this.props.error} />
+                </Banner>,
+              ]
+            : []
+        }
         footer={{
           content: (
             <ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>

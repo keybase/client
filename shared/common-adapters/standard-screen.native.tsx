@@ -3,26 +3,27 @@ import {Props} from './standard-screen'
 import {NativeScrollView} from './native-wrappers.native'
 import HeaderHoc from './header-hoc'
 import * as Styles from '../styles'
-import Banner from './banner'
+import {Banner, BannerParagraph} from './banner'
 import Box from './box'
 import Text from './text'
 
 const Kb = {
   Banner,
+  BannerParagraph,
   Box,
   NativeScrollView,
   Text,
 }
 
 const StandardScreen = (props: Props) => {
+  const color = props.notification.type === 'error' ? 'red' : 'blue'
   return (
     // @ts-ignore for now
     <Kb.NativeScrollView scrollEnabled={props.scrollEnabled}>
       {!!props.notification && (
-        <Kb.Banner
-          color={props.notification.type === 'error' ? 'red' : 'blue'}
-          text={props.notification.message}
-        />
+        <Kb.Banner color={color}>
+          <Kb.BannerParagraph bannerColor={color} content={props.notification.message} />
+        </Kb.Banner>
       )}
       <Kb.Box
         style={Styles.collapseStyles([

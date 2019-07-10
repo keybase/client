@@ -288,7 +288,11 @@ class EditAvatar extends React.Component<_Props, State> {
         onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
       >
-        {!!this.props.error && <Kb.Banner text={this.props.error} color="red" />}
+        {!!this.props.error && (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
+          </Kb.Banner>
+        )}
         <Kb.Box
           className={Styles.classNames({dropping: this.state.dropping})}
           onDragLeave={this._onDragLeave}

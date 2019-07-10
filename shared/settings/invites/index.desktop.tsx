@@ -45,7 +45,11 @@ class Invites extends Component<Props, State> {
     const props = this.props
     return (
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
-        {!!this.props.error && <Kb.Banner color="red" text={this.props.error.message} />}
+        {!!this.props.error && (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={this.props.error.message} />
+          </Kb.Banner>
+        )}
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
