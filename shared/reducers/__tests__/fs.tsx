@@ -20,7 +20,7 @@ const getFolderOrFail = (pathItems, path): Types.FolderPathItem => {
 
 const state0 = Constants.makeState({
   pathItems: I.Map({
-    [file0Path]: Constants.makeFile({
+    [file0Path || '']: Constants.makeFile({
       lastModifiedTimestamp: 1,
       lastWriter: 'foo',
       mimeType: Constants.makeMime({
@@ -29,12 +29,12 @@ const state0 = Constants.makeState({
       }),
       name: 'file0',
     }),
-    [folder0Path]: Constants.makeFolder({
+    [folder0Path || '']: Constants.makeFolder({
       children: I.Set(),
       name: 'folder0',
       progress: Types.ProgressType.Pending,
     }),
-    [kbkbfstestPath]: Constants.makeFolder({
+    [kbkbfstestPath || '']: Constants.makeFolder({
       children: I.Set(['file0', 'folder0']),
       name: 'kbkbfstest',
       prefetchStatus: Constants.makePrefetchInProgress(),
