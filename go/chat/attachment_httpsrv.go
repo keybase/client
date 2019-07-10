@@ -224,7 +224,7 @@ func (r *AttachmentHTTPSrv) servePendingPreview(ctx context.Context, w http.Resp
 	key := req.URL.Query().Get("key")
 	intOutboxID, ok := r.urlMap.Get(key)
 	if !ok {
-		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
+		r.makeError(ctx, w, http.StatusNotFound, "missing key: %s", key)
 		return
 	}
 	outboxID, ok := intOutboxID.(chat1.OutboxID)
