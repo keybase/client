@@ -75,10 +75,10 @@ type Signer struct {
 }
 
 type Team struct {
-	Admin      *ChainLocation `codec:"a,omitempty"` // If working as an implicit admin, where that permission comes from
-	TeamID     TeamID         `codec:"i"`
-	IsImplicit bool           `codec:"m"`
-	IsPublic   bool           `codec:"p"`
+	ImplicitAdmin *ChainLocation `codec:"a,omitempty"` // If working as an implicit admin, where that permission comes from
+	TeamID        TeamID         `codec:"i"`
+	IsImplicit    bool           `codec:"m"`
+	IsPublic      bool           `codec:"p"`
 }
 
 type ChainLocation struct {
