@@ -31,7 +31,7 @@ class LogOut extends React.Component<Props, State> {
   }
 
   render() {
-    const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
+    const inputType = this.state.showTyping ? 'text' : 'password'
     const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
     return (
       this.props.hasRandomPW == null ? (
@@ -50,7 +50,7 @@ class LogOut extends React.Component<Props, State> {
           <Kb.Modal
             banners={[
               this.props.checkPasswordIsCorrect === false && <Kb.Banner color="red" text="Wrong password. Please try again." />,
-              this.props.checkPasswordIsCorrect === true && <Kb.Banner color="green" text="Your password is correct." />
+              this.props.checkPasswordIsCorrect === true && <Kb.Banner color="green" text="Your password is correct." />,
             ]}
             footer={{
               content: !this.props.checkPasswordIsCorrect ? (
@@ -75,7 +75,7 @@ class LogOut extends React.Component<Props, State> {
                     type="Success"
                   />
                 </Kb.ButtonBar>
-              )
+              ),
             }}
             header={{
               leftButton: Styles.isMobile ? (
