@@ -6,7 +6,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {MenuItems} from '../../common-adapters/floating-menu/menu-layout'
 
 // props exported for stories
 export type Props = {
@@ -45,7 +44,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     subtitle = addSpacer(subtitle, 'Not searchable')
   }
 
-  const menuItems: MenuItems = []
+  const menuItems: Kb.MenuItems = []
   if (!props.verified) {
     menuItems.push({
       decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),

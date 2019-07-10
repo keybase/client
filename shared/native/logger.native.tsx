@@ -11,7 +11,7 @@ const actuallyLog = debounce(() => {
   toSend = []
 }, 5 * 1000)
 
-let toSend = []
+let toSend: Array<[string, string]> = []
 
 const log = (tagPrefix: string, toLog: string) => {
   toSend.push([tagPrefix, toLog])

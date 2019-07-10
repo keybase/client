@@ -4,10 +4,10 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 
 type Props = {
-  path: Types.Path
+  // path: Types.Path
 }
 
-export default ({path}: Props) => (
+export default (_: Props) => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.container} fullWidth={true} gap="small">
     <Kb.ProgressIndicator type="Large" />
     <Kb.Text type="BodySmall">Loading ...</Kb.Text>

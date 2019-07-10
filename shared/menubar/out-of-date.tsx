@@ -16,7 +16,7 @@ const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
 
 const OutOfDate = ({outOfDate, updateNow}: Props) =>
   flags.outOfDateBanner &&
-  !!outOfDate && (
+  !!outOfDate ? (
     <Kb.Box2
       style={outOfDate.critical ? styles.boxCritical : styles.boxNonCritical}
       fullWidth={true}
@@ -54,7 +54,7 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
         </Kb.Text>
       )}
     </Kb.Box2>
-  )
+  ): null
 
 const styles = Styles.styleSheetCreate({
   boxCritical: {

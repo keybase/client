@@ -3,8 +3,8 @@ import * as Sb from '../../../stories/storybook'
 import RequestInvite from '.'
 
 const props = {
-  emailError: undefined,
-  nameError: undefined,
+  emailError: '',
+  nameError: '',
   onBack: Sb.action('onBack'),
   onSubmit: Sb.action('onSubmit'),
 }

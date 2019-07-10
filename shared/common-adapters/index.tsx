@@ -36,6 +36,7 @@ export {EmojiIfExists} from './markdown/react'
 export {default as ErrorBoundary} from './error-boundary'
 export {default as FloatingBox} from './floating-box'
 export {default as FloatingMenu} from './floating-menu'
+export {MenuItems as FloatingMenuItems} from './floating-menu/menu-layout'
 export {default as FloatingPicker} from './floating-picker'
 export {default as OverlayParentHOC} from './overlay/parent-hoc'
 export type OverlayParentProps = OverlayParentProps

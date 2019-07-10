@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
-import {MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
@@ -28,7 +27,7 @@ export type Props = {
 type State = {
   saving: boolean
   selected: RetentionPolicy
-  items: Array<MenuItem | 'Divider' | null>
+  items: Kb.MenuItems
 }
 
 type PropsWithOverlay<P> = {} & P & Kb.OverlayParentProps
@@ -96,17 +95,17 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
       switch (policy.type) {
         case 'retain':
         case 'expire':
-          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title} as MenuItem]
+          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}] as Kb.MenuItems
         case 'inherit':
           if (this.props.teamPolicy) {
             return [
               {
                 onClick: () => this._onSelect(policy),
                 title: `Team default (${this.props.teamPolicy.title})`,
-              } as MenuItem,
+              },
               'Divider',
               ...arr,
-            ]
+            ] as Kb.MenuItems
           } else {
             throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
           }
@@ -133,8 +132,8 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
                   </Kb.Text>
                 </Kb.Box2>
               ),
-            } as MenuItem,
-          ]
+            },
+          ] as Kb.MenuItems
       }
       return arr
     }, [])

@@ -3,7 +3,7 @@ import * as Sb from '../../../stories/storybook'
 import InviteCode from '.'
 
 const props = {
-  error: undefined,
+  error: '',
   onBack: Sb.action('onBack'),
   onRequestInvite: Sb.action('onRequestInvite'),
   onSubmit: Sb.action('onInviteCodeSubmit'),

@@ -6,6 +6,7 @@ import {
   FloatingMenu,
   HOCTimers,
   Icon,
+  MenuItems,
   ProgressIndicator,
   Text,
   PropsWithTimer,
@@ -14,7 +15,6 @@ import {
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, TickerID} from '../../../../../util/second-timer'
-import {MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
@@ -29,7 +29,7 @@ type Props = {
   deviceType: DeviceType
   explodesAt: number
   hideTimer: boolean
-  items: Array<MenuItem | 'Divider' | null>
+  items: MenuItems
   onHidden: () => void
   position: Position
   style?: Styles.StylesCrossPlatform

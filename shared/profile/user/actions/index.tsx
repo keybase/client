@@ -5,7 +5,6 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
-import {MenuItems} from '../../../common-adapters/floating-menu/menu-layout'
 
 type Props = {
   followThem: boolean
@@ -152,7 +151,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     p.blocked
       ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
       : {danger: true, onClick: p.onBlock, title: 'Block'},
-  ].reduce<MenuItems>((arr, i) => {
+  ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr
   }, [])

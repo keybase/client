@@ -4,8 +4,7 @@ import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {MenuItem} from '../../common-adapters/floating-menu/menu-layout'
-import {FloatingMenu} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 
 type OwnProps = {
   attachTo: (() => React.Component<any>) | null
@@ -58,7 +57,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
 
 type Props = {
   attachTo: () => React.Component<any> | null
-  items: Array<MenuItem | 'Divider' | null>
+  items: Kb.MenuItems
   onHidden: () => void
   visible: boolean
 }
@@ -69,7 +68,7 @@ const TeamMenu = ({attachTo, items, onHidden, visible}: Props) => {
     return null
   }
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={attachTo}
       closeOnSelect={true}
       items={items}
@@ -83,7 +82,7 @@ export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const items: Array<MenuItem | 'Divider' | null> = []
+    const items: Kb.MenuItems = []
     if (stateProps.canManageChat) {
       items.push({
         onClick: dispatchProps.onManageChat,

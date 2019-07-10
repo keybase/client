@@ -35,9 +35,7 @@ const load = () => {
         />
       </Kb.Box2>
     ))
-  Sb.storiesOf('Files/SimpleScreens', module).add('Loading', () => (
-    <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />
-  ))
+  Sb.storiesOf('Files/SimpleScreens', module).add('Loading', () => <Loading />)
 }
 
 export default load
