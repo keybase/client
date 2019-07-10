@@ -15,6 +15,7 @@ import {quit, hideWindow} from '../../util/quit-helper'
 import {tabRoots} from '../routes'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
+import * as SignupGen from '../../actions/signup-gen'
 
 type OwnProps = {
   navigation: any
@@ -23,6 +24,8 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
+  _peopleJustSignedUpEmail: state.signup.justSignedUpEmail,
+  _settingsEmailBanner: state.settings.email.addedEmail,
   _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
@@ -32,13 +35,23 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
-  _onTabClick: (tab, walletsAcceptedDisclaimer) => {
+  _onTabClick: (tab, peopleJustSignedUpEmail, settingsEmailBanner) => {
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
     if (ownProps.selectedTab !== Tabs.chatTab && tab === Tabs.chatTab) {
       dispatch(Chat2Gen.createTabSelected())
     }
+
+    // Clear "just signed up email" when you leave the people tab after signup
+    if (peopleJustSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
+      dispatch(SignupGen.createClearJustSignedUpEmail())
+    }
+    // Clear "check your inbox" in settings when you leave the settings tab
+    if (settingsEmailBanner && ownProps.selectedTab === Tabs.settingsTab && tab !== Tabs.settingsTab) {
+      dispatch(SettingsGen.createClearAddedEmail())
+    }
+
     if (ownProps.selectedTab === tab) {
       ownProps.navigation.navigate(tabRoots[tab])
     } else {
@@ -75,7 +88,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
-  onTabClick: (tab: Tabs.AppTab) => dispatchProps._onTabClick(tab, stateProps._walletsAcceptedDisclaimer),
+  onTabClick: (tab: Tabs.AppTab) =>
+    dispatchProps._onTabClick(tab, stateProps._peopleJustSignedUpEmail, stateProps._settingsEmailBanner),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,

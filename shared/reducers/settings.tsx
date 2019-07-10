@@ -2,6 +2,7 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as SettingsGen from '../actions/settings-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
@@ -14,6 +15,7 @@ type Actions =
   | SettingsGen.Actions
   | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
   | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+  | RouteTreeGen.SwitchToPayload
 
 function reducer(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -228,7 +230,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.clearAddingEmail: {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
     }
-    case SettingsGen.clearAddedEmail: {
+    // Also hooked up into switchTo so that tab changes trigger it
+    case SettingsGen.clearAddedEmail:
+    case RouteTreeGen.switchTo: {
       return state.update('email', emailState => emailState.merge({addedEmail: null}))
     }
     // Saga only actions
