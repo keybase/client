@@ -38,6 +38,7 @@ const colors = {
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',
   blue_60_on_white: 'rgb(133,198,255)',
+  brown: 'rgba(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
   brown_75_on_white: 'rgb(117,87,78)',
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
