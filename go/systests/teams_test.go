@@ -1576,6 +1576,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{AssertionOrEmail: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
 		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
 		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
 	}
 	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
 	require.NoError(t, err)
