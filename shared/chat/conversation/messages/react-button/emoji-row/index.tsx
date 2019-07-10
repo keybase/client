@@ -135,6 +135,10 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: Styles.globalMargins.small,
   },
+  icon: {
+    position: 'relative',
+    top: 1,
+  },
   pickerContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -142,10 +146,6 @@ const styles = Styles.styleSheetCreate({
       margin: Styles.globalMargins.tiny,
     },
   }),
-  icon: {
-    position: 'relative',
-    top: 1,
-  },
 })
 
 export default EmojiRow
