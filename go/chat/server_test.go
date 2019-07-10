@@ -3818,7 +3818,6 @@ func TestChatSrvMakePreview(t *testing.T) {
 	typ, err := res.Location.Ltyp()
 	require.NoError(t, err)
 	require.Equal(t, chat1.PreviewLocationTyp_URL, typ)
-	require.True(t, strings.Contains(res.Location.Url(), outboxID.String()))
 	resp, err := http.Get(res.Location.Url())
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
