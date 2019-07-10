@@ -77,7 +77,7 @@ const AssetList = ({accountID, isSender, username}) => {
                       type="BodyExtrabold"
                       lineClamp={1}
                       ellipsizeMode="tail"
-                      style={selected && styles.textSelected}
+                      style={selected ? styles.textSelected : undefined}
                     >
                       {asset === 'native' ? 'XLM' : asset.code}
                     </Kb.Text>
@@ -85,7 +85,7 @@ const AssetList = ({accountID, isSender, username}) => {
                       type="BodySmall"
                       lineClamp={1}
                       ellipsizeMode="middle"
-                      style={selected && styles.textSelected}
+                      style={selected ? styles.textSelected : undefined}
                     >
                       {asset === 'native'
                         ? 'Stellar Lumens'

@@ -128,14 +128,14 @@ const Header = (props: HeaderProps) => (
 )
 
 type PaymentInfoProps = {
-  amount: string | null // TODO is this ok
+  amount: string
   availableToSendNative: string
   displayAmountFiat: string
   memo: string | null
   message: string | null
   onChangeAmount: (amount: string) => void
   recipient: string
-  userAmount: string | null // TODO is this ok
+  userAmount: string
 }
 const PaymentInfo = (props: PaymentInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -194,14 +194,14 @@ const SEP7Confirm = (props: Props) => (
       <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
         {props.operation === 'pay' ? (
           <PaymentInfo
-            amount={props.amount}
+            amount={props.amount || '' /*is this ok?*/}
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
             memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
-            recipient={props.recipient}
-            userAmount={props.userAmount}
+            recipient={props.recipient || '' /* is this ok? */}
+            userAmount={props.userAmount || '' /* is this ok? */}
           />
         ) : (
           <TxInfo

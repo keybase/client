@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 })
 
 const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
-  if (stateProps.loading) {
+  if (stateProps.loading || !stateProps.sep7ConfirmInfo /* TODO is this ok*/) {
     return {
       amount: null,
       availableToSendNative: '',

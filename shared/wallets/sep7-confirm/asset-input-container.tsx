@@ -1,5 +1,4 @@
-import AssetInput, {Props} from '../send-form/asset-input/asset-input-basic'
-import * as React from 'react'
+import AssetInput from '../send-form/asset-input/asset-input-basic'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 
@@ -12,7 +11,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   const currency = 'XLM'
   return {
     bottomLabel: `Your primary account has ${
-      state.wallets.sep7ConfirmInfo.availableToSendNative
+      state.wallets.sep7ConfirmInfo ? state.wallets.sep7ConfirmInfo.availableToSendNative : '(unknown)' // TODO is this ok
     } available to send.`,
     currencyLoading: false,
     displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
@@ -21,7 +20,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+const mapDispatchToProps = (_: Container.TypedDispatch) => ({
   onChangeDisplayUnit: undefined, // Add when non-native assets are supported
 })
 
