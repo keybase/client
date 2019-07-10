@@ -64,6 +64,7 @@ func TestTransactions1(t *testing.T) {
 	require.Equal(t, 1, len(members.Writers))
 	require.Equal(t, other.GetUserVersion(), members.Writers[0])
 	require.Equal(t, 0, len(members.Readers))
+	require.Equal(t, 0, len(members.Bots))
 
 	invites := team.GetActiveAndObsoleteInvites()
 	require.Equal(t, 2, len(invites))

@@ -176,6 +176,7 @@
   "keybase.1.pgp.pgpStorageDismiss": {"promise": true},
   "keybase.1.phoneNumbers.addPhoneNumber": {"promise": true},
   "keybase.1.phoneNumbers.deletePhoneNumber": {"promise": true},
+  "keybase.1.phoneNumbers.resendVerificationForPhoneNumber": {"promise": true},
   "keybase.1.phoneNumbers.setVisibilityPhoneNumber": {"promise": true},
   "keybase.1.phoneNumbers.verifyPhoneNumber": {"promise": true},
   "keybase.1.pprof.logProcessorProfile": {"promise": true},

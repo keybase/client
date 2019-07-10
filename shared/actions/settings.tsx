@@ -611,16 +611,7 @@ const stop = (_, action: SettingsGen.StopPayload) =>
 
 const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPayload, logger) => {
   logger.info('adding phone number')
-  let {phoneNumber, allowSearch, resend = false} = action.payload
-  if (resend) {
-    logger.info('resending verification code')
-    phoneNumber = state.settings.phoneNumbers.pendingVerification
-    allowSearch = state.settings.phoneNumbers.pendingVerificationAllowSearch
-    if (!phoneNumber || allowSearch === null) {
-      logger.error("Tried to resend verification code, but couldn't find stashed fields.")
-      throw new Error("Tried to resend verification code, but couldn't find stashed fields.")
-    }
-  }
+  const {phoneNumber, allowSearch} = action.payload
   const visibility = allowSearch ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
   return RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
     {phoneNumber, visibility},
@@ -634,6 +625,19 @@ const addPhoneNumber = (state: TypedState, action: SettingsGen.AddPhoneNumberPay
       logger.warn('error ', err.message)
       return SettingsGen.createAddedPhoneNumber({allowSearch, error: err.message, phoneNumber})
     })
+}
+
+const resendVerificationForPhoneNumber = (
+  state: TypedState,
+  action: SettingsGen.ResendVerificationForPhoneNumberPayload,
+  logger
+) => {
+  const {phoneNumber} = action.payload
+  logger.info(`resending verification code for ${phoneNumber}`)
+  return RPCTypes.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
+    {phoneNumber},
+    Constants.resendVerificationForPhoneWaitingKey
+  )
 }
 
 const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logger) => {
@@ -657,7 +661,14 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
     })
 }
 
-const loadContactImportEnabled = async (state: TypedState, _, logger) => {
+const loadContactImportEnabled = async (
+  state: TypedState,
+  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload,
+  logger
+) => {
+  if (action.type === ConfigGen.bootstrapStatusLoaded && !action.payload.loggedIn) {
+    return
+  }
   if (!state.config.username) {
     logger.warn('no username')
     return
@@ -803,10 +814,17 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     verifyPhoneNumber,
     'verifyPhoneNumber'
   )
+  yield* Saga.chainAction<SettingsGen.ResendVerificationForPhoneNumberPayload>(
+    SettingsGen.resendVerificationForPhoneNumber,
+    resendVerificationForPhoneNumber,
+    'resendVerificationForPhoneNumber'
+  )
 
   // Contacts
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
-    SettingsGen.loadContactImportEnabled,
+  yield* Saga.chainAction<
+    SettingsGen.LoadContactImportEnabledPayload | ConfigGen.BootstrapStatusLoadedPayload
+  >(
+    [SettingsGen.loadContactImportEnabled, ConfigGen.bootstrapStatusLoaded],
     loadContactImportEnabled,
     'loadContactImportEnabled'
   )

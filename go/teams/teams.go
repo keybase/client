@@ -195,6 +195,15 @@ func (t *Team) SeitanInviteTokenKeyAtGeneration(ctx context.Context, generation 
 	return t.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN, generation)
 }
 
+func (t *Team) SigningKID(ctx context.Context) (kid keybase1.KID, err error) {
+	gen := t.chain().GetLatestGeneration()
+	chainKey, err := newTeamSigChainState(t).GetPerTeamKeyAtGeneration(gen)
+	if err != nil {
+		return kid, err
+	}
+	return chainKey.SigKID, nil
+}
+
 func (t *Team) SigningKey(ctx context.Context) (key libkb.NaclSigningKeyPair, err error) {
 	km, err := t.getKeyManager(ctx)
 	if err != nil {
@@ -295,6 +304,11 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 		return keybase1.TeamMembers{}, err
 	}
 	members.Readers = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_BOT)
+	if err != nil {
+		return keybase1.TeamMembers{}, err
+	}
+	members.Bots = x
 
 	return members, nil
 }
@@ -485,11 +499,9 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
 	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
 
-	if rt == keybase1.RotationType_HIDDEN {
-		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
-		if err != nil {
-			return err
-		}
+	rt, err = hidden.CheckFeatureGateForSupportWithRotationType(mctx, t.ID, true /* isWrite */, rt)
+	if err != nil {
+		return err
 	}
 
 	// initialize key manager
@@ -1294,14 +1306,19 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
-	case keybase1.TeamRole_ADMIN:
-		invites.Admins = &invList
-	case keybase1.TeamRole_WRITER:
-		invites.Writers = &invList
+	case keybase1.TeamRole_BOT:
+		return fmt.Errorf("bot role disallowed for invites")
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invList
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invList
 	case keybase1.TeamRole_OWNER:
 		invites.Owners = &invList
+	}
+	if invites.Len() == 0 {
+		return fmt.Errorf("invalid invite, 0 members invited")
 	}
 
 	return t.postTeamInvites(ctx, invites)
@@ -1683,7 +1700,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet, skipKeyRot
 		t.G().Log.CDebugf(ctx, "recipientBoxes: Skipping key rotation")
 	}
 
-	// don't need keys for existing members, so remove them from the set
+	// don't need keys for existing or bot members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.CDebugf(ctx, "team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
@@ -1705,7 +1722,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 		return nil, nil, nil, err
 	}
 
-	// rotate the team key for all current members
+	// rotate the team key for all current members except bots.
 	existing, err := t.Members()
 	if err != nil {
 		return nil, nil, nil, err

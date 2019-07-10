@@ -855,6 +855,10 @@ export type MessageTypes = {
     inParam: {readonly phoneNumber: PhoneNumber}
     outParam: void
   }
+  'keybase.1.phoneNumbers.resendVerificationForPhoneNumber': {
+    inParam: {readonly phoneNumber: PhoneNumber}
+    outParam: void
+  }
   'keybase.1.phoneNumbers.setVisibilityPhoneNumber': {
     inParam: {readonly phoneNumber: PhoneNumber; readonly visibility: IdentityVisibility}
     outParam: void
@@ -1801,6 +1805,7 @@ export enum RevisionSpanType {
 export enum RotationType {
   visible = 0,
   hidden = 1,
+  clkr = 2,
 }
 
 export enum RuntimeGroup {
@@ -2123,6 +2128,7 @@ export enum TeamRole {
   writer = 2,
   admin = 3,
   owner = 4,
+  bot = 5,
 }
 
 export enum TeamStatus {
@@ -2582,7 +2588,7 @@ export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readon
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
-export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
+export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
 export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
@@ -2617,8 +2623,8 @@ export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly e
 export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus}
 export type TeamMemberOutFromReset = {readonly teamName: String; readonly resetUser: TeamResetUser}
 export type TeamMemberOutReset = {readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
-export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null}
-export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null}
+export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null}
+export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly bots?: Array<TeamMemberDetails> | null}
 export type TeamName = {readonly parts?: Array<TeamNamePart> | null}
 export type TeamNameLogPoint = {readonly lastPart: TeamNamePart; readonly seqno: Seqno}
 export type TeamNamePart = String
@@ -2626,7 +2632,7 @@ export type TeamNewlyAddedRow = {readonly id: TeamID; readonly name: String}
 export type TeamOpenReqMsg = {readonly teamID: TeamID; readonly tars?: Array<TeamAccessRequest> | null}
 export type TeamOpenSweepMsg = {readonly teamID: TeamID; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSubteams: Boolean; readonly createChannel: Boolean; readonly chat: Boolean; readonly deleteChannel: Boolean; readonly renameChannel: Boolean; readonly renameTeam: Boolean; readonly editChannelDescription: Boolean; readonly editTeamDescription: Boolean; readonly setTeamShowcase: Boolean; readonly setMemberShowcase: Boolean; readonly setRetentionPolicy: Boolean; readonly setMinWriterRole: Boolean; readonly changeOpenTeam: Boolean; readonly leaveTeam: Boolean; readonly joinTeam: Boolean; readonly setPublicityAny: Boolean; readonly listFirst: Boolean; readonly changeTarsDisabled: Boolean; readonly deleteChatHistory: Boolean; readonly deleteOtherMessages: Boolean; readonly deleteTeam: Boolean}
-export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
+export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly onlyBots?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type TeamProfileAddEntry = {readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
 export type TeamRequestAccessResult = {readonly open: Boolean}
@@ -3048,6 +3054,7 @@ export const pgpPgpKeyGenDefaultRpcSaga = (p: {params: MessageTypes['keybase.1.p
 export const pgpPgpStorageDismissRpcPromise = (params: MessageTypes['keybase.1.pgp.pgpStorageDismiss']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pgp.pgpStorageDismiss']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pgp.pgpStorageDismiss', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const phoneNumbersAddPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.addPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.addPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const phoneNumbersDeletePhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.deletePhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.deletePhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.deletePhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const phoneNumbersResendVerificationForPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.resendVerificationForPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.resendVerificationForPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.resendVerificationForPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const phoneNumbersSetVisibilityPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.setVisibilityPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.setVisibilityPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.setVisibilityPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const phoneNumbersVerifyPhoneNumberRpcPromise = (params: MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.phoneNumbers.verifyPhoneNumber']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.phoneNumbers.verifyPhoneNumber', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const pprofLogProcessorProfileRpcPromise = (params: MessageTypes['keybase.1.pprof.logProcessorProfile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.pprof.logProcessorProfile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.pprof.logProcessorProfile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

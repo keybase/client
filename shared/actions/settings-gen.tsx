@@ -64,10 +64,12 @@ export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
+export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const setContactImportedCount = 'settings:setContactImportedCount'
 export const stop = 'settings:stop'
 export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
@@ -81,11 +83,7 @@ export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
 type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
-type _AddPhoneNumberPayload = {
-  readonly allowSearch: boolean
-  readonly phoneNumber: string
-  readonly resend?: boolean
-}
+type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
 type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
@@ -160,6 +158,7 @@ type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _RequestContactPermissionsPayload = {readonly thenToggleImportOn?: boolean}
+type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
   readonly feedback: string
@@ -168,6 +167,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
+type _SetContactImportedCountPayload = {readonly count: number | null}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -187,7 +187,7 @@ type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
 /**
- * Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.
+ * Add a phone number and kick off a text message with a verification code.
  */
 export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
   payload,
@@ -236,6 +236,12 @@ export const createUnfurlSettingsRefresh = (
 export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
+/**
+ * Resend verification code for a phone number that's already added.
+ */
+export const createResendVerificationForPhoneNumber = (
+  payload: _ResendVerificationForPhoneNumberPayload
+): ResendVerificationForPhoneNumberPayload => ({payload, type: resendVerificationForPhoneNumber})
 /**
  * Reset state used for adding an email.
  */
@@ -456,6 +462,9 @@ export const createSentVerificationEmail = (
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
+export const createSetContactImportedCount = (
+  payload: _SetContactImportedCountPayload
+): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
   payload,
@@ -675,6 +684,10 @@ export type RequestContactPermissionsPayload = {
   readonly payload: _RequestContactPermissionsPayload
   readonly type: typeof requestContactPermissions
 }
+export type ResendVerificationForPhoneNumberPayload = {
+  readonly payload: _ResendVerificationForPhoneNumberPayload
+  readonly type: typeof resendVerificationForPhoneNumber
+}
 export type SaveProxyDataPayload = {
   readonly payload: _SaveProxyDataPayload
   readonly type: typeof saveProxyData
@@ -687,6 +700,10 @@ export type SentVerificationEmailPayload = {
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
+}
+export type SetContactImportedCountPayload = {
+  readonly payload: _SetContactImportedCountPayload
+  readonly type: typeof setContactImportedCount
 }
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
 export type ToggleRuntimeStatsPayload = {
@@ -784,10 +801,12 @@ export type Actions =
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
+  | ResendVerificationForPhoneNumberPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SentVerificationEmailPayload
   | SetAllowDeleteAccountPayload
+  | SetContactImportedCountPayload
   | StopPayload
   | ToggleRuntimeStatsPayload
   | TracePayload

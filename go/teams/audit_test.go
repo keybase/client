@@ -14,12 +14,12 @@ import (
 // the audit should still succeed.
 func TestAuditStaleTeam(t *testing.T) {
 
-	fus, tcs, cleanup := setupNTests(t, 3)
+	fus, tcs, cleanup := setupNTests(t, 4)
 	defer cleanup()
 
 	t.Logf("create team")
 	teamName, _ := createTeam2(*tcs[0])
-	m := make([]libkb.MetaContext, 3)
+	m := make([]libkb.MetaContext, 4)
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
@@ -29,6 +29,7 @@ func TestAuditStaleTeam(t *testing.T) {
 		A = 0
 		B = 1
 		C = 2
+		D = 3
 	)
 
 	t.Logf("A adds B to the team as an admin")
@@ -49,8 +50,18 @@ func TestAuditStaleTeam(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	addD := func(asUser int) {
+		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username, keybase1.TeamRole_BOT)
+		require.NoError(t, err)
+	}
+
 	rmC := func(asUser int) {
 		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[C].Username)
+		require.NoError(t, err)
+	}
+
+	rmD := func(asUser int) {
+		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[D].Username)
 		require.NoError(t, err)
 	}
 
@@ -77,13 +88,15 @@ func TestAuditStaleTeam(t *testing.T) {
 		}
 	}
 
-	// A adds C to the team and triggers an Audit
+	// A adds C and D to the team and triggers an Audit
 	setFastAudits(m[A])
 	addC(A)
+	addD(A)
 
 	// A removes C from the team, and loads the team, but does *not* trigger an audit
 	setSlowAudits(m[A])
 	rmC(A)
+	rmD(A)
 	load(A)
 
 	t.Logf("User B rotates the key a bunch of times")
@@ -105,12 +118,12 @@ func TestAuditStaleTeam(t *testing.T) {
 }
 
 func TestAuditRotateAudit(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
+	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
 
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
-	m := make([]libkb.MetaContext, 2)
+	m := make([]libkb.MetaContext, 3)
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
@@ -119,6 +132,7 @@ func TestAuditRotateAudit(t *testing.T) {
 	const (
 		A = 0
 		B = 1
+		C = 2
 	)
 
 	load := func() {
@@ -135,8 +149,18 @@ func TestAuditRotateAudit(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	addC := func() {
+		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username, keybase1.TeamRole_BOT)
+		require.NoError(t, err)
+	}
+
 	rmB := func() {
 		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username)
+		require.NoError(t, err)
+	}
+
+	rmC := func() {
+		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[C].Username)
 		require.NoError(t, err)
 	}
 
@@ -167,4 +191,10 @@ func TestAuditRotateAudit(t *testing.T) {
 	addB()
 	load()
 	assertAuditTo(keybase1.Seqno(4))
+	addC()
+	load()
+	assertAuditTo(keybase1.Seqno(5))
+	rmC()
+	load()
+	assertAuditTo(keybase1.Seqno(6))
 }
