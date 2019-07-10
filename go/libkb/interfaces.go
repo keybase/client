@@ -1062,3 +1062,12 @@ type SaltpackReceiverSymmetricKey struct {
 	Key        [32]byte
 	Identifier []byte
 }
+
+type StandaloneChatConnector interface {
+	StartStandaloneChat(g *GlobalContext) error
+}
+
+type SyncedContactListProvider interface {
+	SaveProcessedContacts(MetaContext, []keybase1.ProcessedContact) error
+	RetrieveContacts(MetaContext) ([]keybase1.ProcessedContact, error)
+}

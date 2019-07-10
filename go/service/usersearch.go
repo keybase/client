@@ -21,14 +21,12 @@ import (
 type UserSearchHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	savedContacts *contacts.SavedContactsStore
 }
 
-func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, pbs *contacts.SavedContactsStore) *UserSearchHandler {
+func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserSearchHandler {
 	handler := &UserSearchHandler{
-		Contextified:  libkb.NewContextified(g),
-		BaseHandler:   NewBaseHandler(g, xp),
-		savedContacts: pbs,
+		Contextified: libkb.NewContextified(g),
+		BaseHandler:  NewBaseHandler(g, xp),
 	}
 	return handler
 }
@@ -141,7 +139,8 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 	return false, 0
 }
 
-func contactSearch(mctx libkb.MetaContext, store *contacts.SavedContactsStore, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+	store := mctx.G().SyncedContactList
 	contactsRes, err := store.RetrieveContacts(mctx)
 	if err != nil {
 		return res, err
@@ -185,9 +184,11 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 
 	res, err = doSearchRequest(mctx, arg)
 	if arg.IncludeContacts {
-		contactsRes, err := contactSearch(mctx, h.savedContacts, arg)
-		if err != nil {
-			return nil, err
+		contactsRes, err := contactSearch(mctx, arg)
+		switch err.(type) {
+		case nil, contacts.NoSavedContactsErr:
+		default:
+			return res, err
 		}
 		if len(contactsRes) > 0 {
 			var res2 []keybase1.APIUserSearchResult
