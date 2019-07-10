@@ -51,7 +51,10 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
 
 type BannerProps = {
   color: Color
-  children: React.ReactElement<typeof BannerParagraph> | Array<React.ReactElement<typeof BannerParagraph>>
+  children:
+    | string
+    | React.ReactElement<typeof BannerParagraph>
+    | Array<React.ReactElement<typeof BannerParagraph>>
   inline?: boolean
   narrow?: boolean
   onClose?: () => void
@@ -75,7 +78,11 @@ export const Banner = (props: BannerProps) => (
       style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
       centerChildren={true}
     >
-      {props.children}
+      {typeof props.children === 'string' ? (
+        <BannerParagraph bannerColor={props.color} content={props.children} />
+      ) : (
+        props.children
+      )}
     </Box2>
     {!!props.onClose && (
       <Box key="iconBox" style={styles.iconContainer}>
