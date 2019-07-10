@@ -26,7 +26,6 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
   _peopleJustSignedUpEmail: state.signup.justSignedUpEmail,
   _settingsEmailBanner: state.settings.email.addedEmail,
-  _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
   uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
