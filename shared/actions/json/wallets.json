@@ -496,6 +496,10 @@
     "setTrustlineExpanded": {
       "expanded": "boolean",
       "assetID": "Types.AssetID"
+    },
+    "staticConfigLoaded": {
+      "_description": "Static configuration info was loaded from the service.",
+      "staticConfig": "Types.StaticConfig"
     }
   }
 }

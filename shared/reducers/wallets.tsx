@@ -516,8 +516,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
       return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
-    // case Chat2Gen.staticConfigLoaded:
-    // return state.set('staticConfig', action.payload.staticConfig.wallet)
+    case WalletsGen.staticConfigLoaded:
+      return state.set('staticConfig', action.payload.staticConfig)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

@@ -359,6 +359,8 @@ export type _Trustline = {
 }
 export type Trustline = I.RecordOf<_Trustline>
 
+export type StaticConfig = I.RecordOf<StellarRPCTypes.StaticConfig>
+
 export type _State = {
   acceptedDisclaimer: boolean
   acceptingDisclaimerDelay: boolean
@@ -402,7 +404,7 @@ export type _State = {
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
   sep7ConfirmURI: string
-  staticConfig: StellarRPCTypes.StaticConfig | null
+  staticConfig: StaticConfig | null
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>

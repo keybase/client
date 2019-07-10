@@ -1323,6 +1323,35 @@ const sendPaymentAdvanced = state =>
     Constants.sendPaymentAdvancedWaitingKey
   ).then(() => RouteTreeGen.createClearModals())
 
+function* loadStaticConfig(state, action: ConfigGen.DaemonHandshakePayload, logger) {
+  if (state.wallets.staticConfig) {
+    return
+  }
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: 'wallets.loadStatic',
+      version: action.payload.version,
+    })
+  )
+  const loadAction = yield RPCStellarTypes.localGetStaticConfigRpcPromise().then(res =>
+    WalletsGen.createStaticConfigLoaded({
+      staticConfig: I.Record(res)(),
+    })
+  )
+
+  if (loadAction) {
+    yield Saga.put(loadAction)
+  }
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: false,
+      name: 'wallets.loadStatic',
+      version: action.payload.version,
+    })
+  )
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CreateNewAccountPayload>(
     WalletsGen.createNewAccount,
@@ -1766,6 +1795,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.sendPaymentAdvanced,
     sendPaymentAdvanced,
     'sendPaymentAdvanced'
+  )
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    loadStaticConfig,
+    'loadStaticConfig'
   )
 }
 
