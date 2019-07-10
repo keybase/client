@@ -82,6 +82,30 @@
         {
           "type": "KBFSArchivedParam",
           "name": "archivedParam"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -114,7 +138,7 @@
             "name": "KBFS",
             "def": false
           },
-          "body": "string"
+          "body": "KBFSPath"
         },
         {
           "label": {
@@ -786,13 +810,6 @@
         {
           "name": "refreshSubscription",
           "type": "boolean"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -815,13 +832,6 @@
         {
           "name": "refreshSubscription",
           "type": "boolean"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -848,13 +858,6 @@
         {
           "name": "depth",
           "type": "int"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -883,13 +886,6 @@
         {
           "name": "dest",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -904,13 +900,6 @@
         {
           "name": "link",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -929,13 +918,6 @@
         {
           "name": "dest",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -954,13 +936,6 @@
         {
           "name": "dest",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -975,13 +950,6 @@
         {
           "name": "dest",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1000,13 +968,6 @@
         {
           "name": "flags",
           "type": "OpenFlags"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1021,13 +982,6 @@
         {
           "name": "flag",
           "type": "DirentType"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1046,13 +1000,6 @@
         {
           "name": "size",
           "type": "int"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": "FileContent",
@@ -1071,13 +1018,6 @@
         {
           "name": "content",
           "type": "bytes"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1096,13 +1036,6 @@
         {
           "name": "recursive",
           "type": "boolean"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1113,13 +1046,6 @@
         {
           "name": "path",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         },
         {
           "name": "refreshSubscription",
@@ -1142,13 +1068,6 @@
         {
           "name": "spanType",
           "type": "RevisionSpanType"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1227,13 +1146,6 @@
         {
           "name": "path",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null
@@ -1243,13 +1155,6 @@
         {
           "name": "path",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null
@@ -1259,13 +1164,6 @@
         {
           "name": "path",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null,
@@ -1340,13 +1238,6 @@
         {
           "name": "path",
           "type": "Path"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": "FolderSyncConfigAndStatus"
@@ -1360,13 +1251,6 @@
         {
           "name": "config",
           "type": "FolderSyncConfig"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
         }
       ],
       "response": null

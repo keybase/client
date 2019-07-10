@@ -213,17 +213,17 @@ func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
 }
 
 func (s SimpleFSMock) SimpleFSClearConflictState(_ context.Context,
-	_ keybase1.SimpleFSClearConflictStateArg) error {
+	_ keybase1.Path) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSFinishResolvingConflict(_ context.Context,
-	_ keybase1.SimpleFSFinishResolvingConflictArg) error {
+	_ keybase1.Path) error {
 	return nil
 }
 
 func (s SimpleFSMock) SimpleFSForceStuckConflict(_ context.Context,
-	_ keybase1.SimpleFSForceStuckConflictArg) error {
+	_ keybase1.Path) error {
 	return nil
 }
 
@@ -247,7 +247,7 @@ func (s SimpleFSMock) SimpleFSGetTeamQuotaUsage(
 
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSFolderSyncConfigAndStatus(
-	_ context.Context, _ keybase1.SimpleFSFolderSyncConfigAndStatusArg) (
+	_ context.Context, _ keybase1.Path) (
 	keybase1.FolderSyncConfigAndStatus, error) {
 	return keybase1.FolderSyncConfigAndStatus{}, nil
 }
@@ -697,7 +697,7 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	clientMock := SimpleFSMock{
 		ListResult: &mockResults,
 	}
-	path1 = keybase1.NewPathWithKbfs("/private/foobar/temp/*.txt")
+	path1 = keybase1.NewPathWithKbfsPath("/private/foobar/temp/*.txt")
 
 	paths, err = doSimpleFSGlob(context.TODO(), tc.G, clientMock, []keybase1.Path{path1})
 	require.NoError(t, err)

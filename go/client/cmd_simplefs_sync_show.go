@@ -171,7 +171,7 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 		printPrefetchStatus(ui, res.OverallStatus, "")
 		printLocalStats(ui, res.OverallStatus)
 	} else {
-		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, keybase1.SimpleFSFolderSyncConfigAndStatusArg{Path: c.path})
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, c.path)
 		if err != nil {
 			return err
 		}

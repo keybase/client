@@ -228,23 +228,23 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSClearConflictState': {
-    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly path: Path}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSFinishResolvingConflict': {
-    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly path: Path}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus': {
-    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly path: Path}
     outParam: FolderSyncConfigAndStatus
   }
   'keybase.1.SimpleFS.simpleFSList': {
-    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSListFavorites': {
@@ -252,15 +252,15 @@ export type MessageTypes = {
     outParam: FavoritesResult
   }
   'keybase.1.SimpleFS.simpleFSListRecursiveToDepth': {
-    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly depth: Int; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean; readonly depth: Int}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSMove': {
-    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSOpen': {
-    inParam: {readonly opID: OpID; readonly dest: Path; readonly flags: OpenFlags; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly opID: OpID; readonly dest: Path; readonly flags: OpenFlags}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSReadList': {
@@ -268,7 +268,7 @@ export type MessageTypes = {
     outParam: SimpleFSListResult
   }
   'keybase.1.SimpleFS.simpleFSRemove': {
-    inParam: {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSetDebugLevel': {
@@ -276,7 +276,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig': {
-    inParam: {readonly path: Path; readonly config: FolderSyncConfig; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+    inParam: {readonly path: Path; readonly config: FolderSyncConfig}
     outParam: void
   }
   'keybase.1.SimpleFS.simpleFSSetNotificationThreshold': {
@@ -288,7 +288,7 @@ export type MessageTypes = {
     outParam: FSSettings
   }
   'keybase.1.SimpleFS.simpleFSStat': {
-    inParam: {readonly path: Path; readonly identifyBehavior?: TLFIdentifyBehavior | null; readonly refreshSubscription: Boolean}
+    inParam: {readonly path: Path; readonly refreshSubscription: Boolean}
     outParam: Dirent
   }
   'keybase.1.SimpleFS.simpleFSSubscribeNonPath': {
@@ -2471,7 +2471,8 @@ export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null;
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision | null} | {KBFSArchivedType: KBFSArchivedType.time; time: Time | null} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String | null} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String | null}
-export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam}
+export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSRevision = Int64
 export type KBFSRoot = {readonly treeID: MerkleTreeID; readonly root: KBFSRootHash}
 export type KBFSRootHash = Bytes
@@ -2542,7 +2543,7 @@ export type ParamProofLogoConfig = {readonly svgBlack: String; readonly svgFull:
 export type ParamProofServiceConfig = {readonly version: Int; readonly domain: String; readonly displayName: String; readonly logo?: ParamProofLogoConfig | null; readonly description: String; readonly usernameConfig: ParamProofUsernameConfig; readonly brandColor: String; readonly prefillUrl: String; readonly profileUrl: String; readonly checkUrl: String; readonly checkPath?: Array<SelectorEntry> | null; readonly avatarPath?: Array<SelectorEntry> | null}
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
-export type Path = {PathType: PathType.local; local: String | null} | {PathType: PathType.kbfs; kbfs: String | null} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath | null}
+export type Path = {PathType: PathType.local; local: String | null} | {PathType: PathType.kbfs; kbfs: KBFSPath | null} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath | null}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
 export type PerTeamKeyAndCheck = {readonly ptk: PerTeamKey; readonly check: PerTeamSeedCheckPostImage}
 export type PerTeamKeyGeneration = Int

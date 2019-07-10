@@ -96,5 +96,5 @@ func BuildProtocolPathForTlfName(
 	}
 
 	return keybase1.NewPathWithKbfs(
-		"/" + string(pathType) + "/" + string(tlfName))
+		keybase1.KBFSPath{Path: "/" + string(pathType) + "/" + string(tlfName)})
 }

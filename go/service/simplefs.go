@@ -425,7 +425,7 @@ func (s *SimpleFSHandler) SimpleFSGetTeamQuotaUsage(
 
 // SimpleFSFolderSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
-	ctx context.Context, arg keybase1.SimpleFSFolderSyncConfigAndStatusArg) (
+	ctx context.Context, path keybase1.Path) (
 	keybase1.FolderSyncConfigAndStatus, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
@@ -433,7 +433,7 @@ func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
 	if err != nil {
 		return keybase1.FolderSyncConfigAndStatus{}, err
 	}
-	return cli.SimpleFSFolderSyncConfigAndStatus(ctx, arg)
+	return cli.SimpleFSFolderSyncConfigAndStatus(ctx, path)
 }
 
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
@@ -462,38 +462,38 @@ func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
 
 // SimpleFSClearConflictState implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
-	arg keybase1.SimpleFSClearConflictStateArg) error {
+	path keybase1.Path) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSClearConflictState(ctx, arg)
+	return cli.SimpleFSClearConflictState(ctx, path)
 }
 
 // SimpleFSFinishResolvingConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSFinishResolvingConflict(ctx context.Context,
-	arg keybase1.SimpleFSFinishResolvingConflictArg) error {
+	path keybase1.Path) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSFinishResolvingConflict(ctx, arg)
+	return cli.SimpleFSFinishResolvingConflict(ctx, path)
 }
 
 // SimpleFSForceStuckConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
-	ctx context.Context, arg keybase1.SimpleFSForceStuckConflictArg) error {
+	ctx context.Context, path keybase1.Path) error {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSForceStuckConflict(ctx, arg)
+	return cli.SimpleFSForceStuckConflict(ctx, path)
 }
 
 // SimpleFSAreWeConnectedToMDServer implements the SimpleFSInterface.

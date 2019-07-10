@@ -346,7 +346,10 @@ export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
 export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
   PathType: RPCTypes.PathType.kbfs,
-  kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
+  kbfs: {
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+    path: Types.pathToString(path).substring('/keybase'.length) || '/',
+  },
 })
 
 export const pathTypeToTextType = (type: Types.PathType) =>
