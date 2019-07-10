@@ -68,8 +68,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdVerify(cl, g),
 		NewCmdVersion(cl, g),
 		newCmdWallet(cl, g),
-		NewCmdPhoneNumber(cl, g),
-		NewCmdEmail(cl, g),
 		newCmdUploadAvatar(cl, g),
 		NewCmdAudit(cl, g),
 	}
