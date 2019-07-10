@@ -40,7 +40,7 @@ class LogOut extends React.Component<Props, State> {
     const inputType = this.state.showTyping ? 'text' : 'password'
     const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
     return this.props.hasRandomPW === null ? (
-      <Kb.Modal>
+      <Kb.Modal onClose={this.props.onCancel}>
         <Kb.ProgressIndicator style={styles.progress} type="Huge" />
       </Kb.Modal>
     ) : this.props.hasRandomPW ? (
