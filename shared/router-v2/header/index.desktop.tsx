@@ -294,10 +294,14 @@ const styles = Styles.styleSheetCreate({
   topRightContainer: {flex: 1, justifyContent: 'flex-end'},
 })
 
-export default Container.connect(
-  (state: Container.TypedState) => ({
-    airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
-  }),
-  () => ({}),
-  (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps, ...ownProps})
-)(Header)
+const mapStateToProps = (state: Container.TypedState) => ({
+  airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
+})
+
+const mapDispatchToProps = () => ({})
+
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({
+  ...s,
+  ...d,
+  ...o,
+}))(Header)
