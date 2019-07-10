@@ -1,8 +1,5 @@
 import * as React from 'react'
 
-type Props = {
-  persistRoute: (arg0: any) => void
-}
-
+export type Props = {persistRoute: (path: string) => void}
 declare class Router extends React.Component<Props> {}
 export default Router

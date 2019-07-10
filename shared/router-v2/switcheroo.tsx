@@ -7,8 +7,8 @@ import * as ConfigGen from '../actions/config-gen'
 type OwnProps = {}
 
 type Props = {
-  updateNavigator: (arg0: any) => void
-  persistRoute: (arg0: any) => void
+  updateNavigator: (nav: unknown) => void
+  persistRoute: (path: string) => void
 }
 
 // TODO remove this class
@@ -18,13 +18,11 @@ class RouterSwitcheroo extends React.PureComponent<Props> {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  persistRoute: path => dispatch(ConfigGen.createPersistRoute({path})),
-  updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
-})
-
 export default connect(
   () => ({}),
-  mapDispatchToProps,
+  dispatch => ({
+    persistRoute: path => dispatch(ConfigGen.createPersistRoute({path})),
+    updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
+  }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(RouterSwitcheroo)

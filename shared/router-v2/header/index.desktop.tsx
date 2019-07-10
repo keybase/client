@@ -98,7 +98,7 @@ class Header extends React.PureComponent<Props> {
       return null
     }
 
-    let title = null
+    let title: React.ReactNode | string = null
     if (opt.title) {
       title = <PlainTitle title={opt.title} />
     }
@@ -112,19 +112,19 @@ class Header extends React.PureComponent<Props> {
       }
     }
 
-    let rightActions = null
+    let rightActions: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.headerRightActions)) {
       const CustomActions = opt.headerRightActions
       rightActions = <CustomActions />
     }
 
-    let subHeader = null
+    let subHeader: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.subHeader)) {
       const CustomSubHeader = opt.subHeader
       subHeader = <CustomSubHeader />
     }
 
-    let style = null
+    let style: Styles.StylesCrossPlatform = null
     if (opt.headerTransparent) {
       style = {position: 'absolute'}
     }

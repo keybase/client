@@ -16,7 +16,7 @@ function Modal<P extends {}>(
 ) {
   const withPopup = Kb.PopupDialogHoc(C)
   return connect(
-    (_, op: P) => ({}),
+    () => ({}),
     dispatchProps,
     (_, dp, op: P) => ({...dp, ...op})
     // @ts-ignore TODO figure out this types
@@ -32,7 +32,7 @@ export function modalizeRoute(route: Route) {
   if (route.screen) {
     toMerge = {screen: Modal(route.screen)}
   } else if (route.getScreen) {
-    let _cached = null
+    let _cached: unknown = null
     toMerge = {
       getScreen: () => {
         if (_cached) {
