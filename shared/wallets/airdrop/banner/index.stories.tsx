@@ -8,6 +8,7 @@ const props = {
   onCancel: Sb.action('onCancel'),
   onCheckQualify: Sb.action('onCheckQualify'),
   show: true,
+  showSystemButtons: false,
 }
 
 const load = () => {

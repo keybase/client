@@ -69,7 +69,7 @@ const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
 
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
-    {Styles.isMobile && <AirdropBanner />}
+    {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
     {!!props.signupEmail && (
       <EmailVerificationBanner
         email={props.signupEmail}
