@@ -92,7 +92,7 @@ const mapDispatchToProps = (dispatch, ownProps): DispatchProps => ({
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   // Gather contextual team membership info
   const yourInfo = stateProps._memberInfo.get(stateProps._you)
-  const userInfo: Types.MemberInfo | null = stateProps._memberInfo.get(stateProps._username)
+  const userInfo: Types.MemberInfo | undefined = stateProps._memberInfo.get(stateProps._username)
   const you = {
     type: yourInfo ? yourInfo.type : null,
     username: stateProps._you,
@@ -166,4 +166,4 @@ class TeamMemberStateWrapper extends React.Component<Props, State> {
 export default compose(
   Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
   HeaderHoc
-)(TeamMemberStateWrapper)
+)(TeamMemberStateWrapper as any) as any

@@ -14,6 +14,7 @@ import {globalStyles} from '../../styles'
 export type Props = {
   teamname: Types.Teamname
   selectedTab: string
+  // TODO better type
   rows: Array<any>
   setSelectedTab: (arg0: Types.TabKey) => void
 }

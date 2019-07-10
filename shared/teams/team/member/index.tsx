@@ -38,6 +38,7 @@ export type Props = MemberProps & RolePickerSpecificProps
 
 export const TeamMember = (props: Props) => {
   const {user, you} = props
+  const iconType = user.type && roleIconMap[user.type]
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
       <Kb.Box
@@ -62,16 +63,16 @@ export const TeamMember = (props: Props) => {
             showFollowingStatus={true}
             size={64}
           />
-          {user.type && !!roleIconMap[user.type] && (
+          {iconType ? (
             <Kb.Icon
-              type={roleIconMap[user.type]}
+              type={iconType}
               style={{
                 alignSelf: 'center',
                 margin: Styles.globalMargins.tiny,
               }}
               fontSize={28}
             />
-          )}
+          ) : null}
           <Kb.Avatar
             style={{alignSelf: 'center', marginLeft: Styles.globalMargins.tiny}}
             isTeam={true}

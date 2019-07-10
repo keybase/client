@@ -45,6 +45,8 @@ const _HeaderRightActions = (props: Props) => (
     <Kb.Button mode="Secondary" small={true} ref={props.setAttachmentRef} onClick={props.toggleShowingMenu}>
       <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
     </Kb.Button>
+    {/*
+    // @ts-ignore */}
     <TeamMenu
       attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}

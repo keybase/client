@@ -187,7 +187,7 @@ const disabledTextHelper = (text: string) => (
   </Kb.Text>
 )
 
-const headerTextHelper = (text: string | null) =>
+const headerTextHelper = (text: string | undefined) =>
   !!text && (
     <>
       <Kb.Text type="BodySmall" style={styles.headerText}>
@@ -219,14 +219,12 @@ const RolePicker = (props: Props) => {
     <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
       {headerTextHelper(props.headerText)}
       {map(
-        roleElementHelper(selectedRole),
+        roleElementHelper(selectedRole || null),
         ({role, ...nodeMap}: {[K in string]: React.ReactNode}): React.ReactNode => {
           // Using as to avoid lots of ts-ignore.
           const disabledRole = role as Role
-          const onSelect =
-            props.disabledRoles && props.disabledRoles[disabledRole]
-              ? undefined
-              : () => props.onSelectRole(disabledRole)
+          const disabled = props.disabledRoles && props.disabledRoles[disabledRole]
+          const onSelect = disabled ? null : () => props.onSelectRole(disabledRole)
           return (
             <Kb.ClickableBox key={role as string} onClick={onSelect}>
               <RoleRow
@@ -235,11 +233,7 @@ const RolePicker = (props: Props) => {
                 body={nodeMap.body}
                 icon={nodeMap.icon}
                 onSelect={onSelect}
-                disabledReason={
-                  props.disabledRoles && props.disabledRoles[disabledRole]
-                    ? disabledTextHelper(props.disabledRoles[disabledRole])
-                    : undefined
-                }
+                disabledReason={disabled ? disabledTextHelper(disabled) : undefined}
               />
             </Kb.ClickableBox>
           )
@@ -250,9 +244,9 @@ const RolePicker = (props: Props) => {
         {footerButtonsHelper(
           props.onCancel,
           selectedRole && props.selectedRole !== props.presetRole
-            ? () => props.onConfirm(selectedRole)
+            ? () => selectedRole && props.onConfirm(selectedRole)
             : undefined,
-          props.confirmLabel || confirmLabelHelper(props.presetRole, selectedRole)
+          props.confirmLabel || confirmLabelHelper(props.presetRole || null, selectedRole || null)
         )}
       </Kb.Box2>
     </Kb.Box2>

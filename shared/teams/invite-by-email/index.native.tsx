@@ -37,7 +37,7 @@ const AccessDenied = ({openAppSettings}) => (
   </Kb.Box>
 )
 
-const contactRow = (i: number, props: ContactRowProps) => {
+const contactRow = (_: number, props: ContactRowProps) => {
   const source =
     typeof props.contact.thumbnailPath === 'string'
       ? {uri: `file://${props.contact.thumbnailPath}`}
@@ -128,9 +128,9 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
         return true
       }
       return (
-        this._trim(contact.contact.name).includes(filter) ||
-        this._trim(contact.contact.email).includes(filter) ||
-        this._trim(contact.contact.phoneNo).includes(filter)
+        this._trim(contact.contact.name || '').includes(filter) ||
+        this._trim(contact.contact.email || '').includes(filter) ||
+        this._trim(contact.contact.phoneNo || '').includes(filter)
       )
     })
     let contents

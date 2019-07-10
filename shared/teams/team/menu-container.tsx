@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
@@ -14,7 +14,7 @@ type OwnProps = {
   visible: boolean
 }
 
-const mapStateToProps = (state, {teamname}: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
@@ -27,7 +27,7 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -56,36 +56,6 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const items: Array<MenuItem | 'Divider' | null> = []
-  if (stateProps.canManageChat) {
-    items.push({
-      onClick: dispatchProps.onManageChat,
-      subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
-      title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
-    })
-  }
-  if (stateProps.canLeaveTeam) {
-    items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
-  }
-  if (stateProps.canCreateSubteam) {
-    items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
-  }
-  if (stateProps.canViewFolder) {
-    items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
-  }
-  if (stateProps.canDeleteTeam) {
-    items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
-  }
-
-  return {
-    attachTo: ownProps.attachTo,
-    items,
-    onHidden: ownProps.onHidden,
-    visible: ownProps.visible,
-  }
-}
-
 type Props = {
   attachTo: () => React.Component<any> | null
   items: Array<MenuItem | 'Divider' | null>
@@ -109,8 +79,36 @@ const TeamMenu = ({attachTo, items, onHidden, visible}: Props) => {
   )
 }
 
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
-)(TeamMenu)
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const items: Array<MenuItem | 'Divider' | null> = []
+    if (stateProps.canManageChat) {
+      items.push({
+        onClick: dispatchProps.onManageChat,
+        subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
+        title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
+      })
+    }
+    if (stateProps.canLeaveTeam) {
+      items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
+    }
+    if (stateProps.canCreateSubteam) {
+      items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
+    }
+    if (stateProps.canViewFolder) {
+      items.push({onClick: dispatchProps.onOpenFolder, title: 'Open folder'})
+    }
+    if (stateProps.canDeleteTeam) {
+      items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
+    }
+
+    return {
+      attachTo: ownProps.attachTo,
+      items,
+      onHidden: ownProps.onHidden,
+      visible: ownProps.visible,
+    }
+  }
+)(TeamMenu) as any

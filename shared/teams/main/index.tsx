@@ -145,7 +145,8 @@ class Teams extends React.PureComponent<Props, State> {
       }
       case 'team': {
         const name = item.team
-        const resetUserCount = (this.props.teamresetusers[name] && this.props.teamresetusers[name].size) || 0
+        const reset = this.props.teamresetusers[name]
+        const resetUserCount = (reset && reset.size) || 0
         return (
           <TeamRow
             firstItem={index === 1}

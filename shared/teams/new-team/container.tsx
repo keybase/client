@@ -44,11 +44,11 @@ export default Container.compose(
   Container.withStateHandlers(({joinSubteam}: any) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
-  }),
+  } as any),
   Container.withHandlers({
     onSubmit: ({joinSubteam, _onCreateNewTeam}) => (fullName: string) =>
       _onCreateNewTeam(joinSubteam, fullName),
-  }),
+  } as any),
   Container.lifecycle({
     componentDidMount() {
       this.props.onSetTeamCreationError('')
