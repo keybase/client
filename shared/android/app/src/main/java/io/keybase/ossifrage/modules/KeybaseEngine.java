@@ -61,36 +61,35 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         @Override
         public void run() {
-          do {
-              try {
-                  final String data = readB64();
+            do {
+                try {
+                    final String data = readB64();
 
-                  if (!reactContext.hasActiveCatalystInstance()) {
-                      NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
-                  }
+                    if (!reactContext.hasActiveCatalystInstance()) {
+                        NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
+                    }
 
-                  long runtimePtr = this.reactContext.getJavaScriptContextHolder().get();
-                  if (useJSI) {
-                    this.reactContext.getCatalystInstance().getReactQueueConfiguration().getJSQueueThread().callOnQueue((Callable<Void>) () -> {
-                      forwardEngineData(
-                        runtimePtr,
-                        data
-                      );
-                      return null;
-                    });
-                  } else {
-                    reactContext
-                      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                      .emit(KeybaseEngine.RPC_EVENT_NAME, data);
-                  }
-              } catch (Exception e) {
-                if (e.getMessage().equals("Read error: EOF")) {
-                    NativeLogger.info("Got EOF from read. Likely because of reset.");
-                } else {
-                    NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                    if (useJSI) {
+                        long runtimePtr = this.reactContext.getJavaScriptContextHolder().get();
+                        this.reactContext.getCatalystInstance().getReactQueueConfiguration().getJSQueueThread().runOnQueue((Runnable) () -> {
+                            forwardEngineData(
+                              runtimePtr,
+                              data
+                            );
+                        });
+                    } else {
+                        reactContext
+                          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                          .emit(KeybaseEngine.RPC_EVENT_NAME, data);
+                    }
+                } catch (Exception e) {
+                    if (e.getMessage().equals("Read error: EOF")) {
+                        NativeLogger.info("Got EOF from read. Likely because of reset.");
+                    } else {
+                        NativeLogger.error("Exception in ReadFromKBLib.run", e);
+                    }
                 }
-              }
-          } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
+            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
         }
     }
 

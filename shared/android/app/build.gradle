@@ -194,6 +194,14 @@ android {
             signingConfig buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
         }
+        // KB:
+        releaseUnsigned2.initWith(buildTypes.release)
+        // KB:
+        releaseUnsigned2 {
+            applicationIdSuffix ".unsigned2"
+            signingConfig buildTypes.debug.signingConfig
+            matchingFallbacks = ['release']
+        }
     }
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->

@@ -9,7 +9,8 @@ import {measureStart, measureStop} from '../util/user-timings'
 import {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {isAndroid} from '../constants/platform'
 
-const useJSI = forceJSIForEngine || (!__DEV__ && isAndroid)
+// const useJSI = forceJSIForEngine || (!__DEV__ && isAndroid)
+const useJSI = true
 
 const nativeBridge: {
   runWithData: (arg0: string) => void

@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
+import PingTest from './ping-test'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -182,6 +183,7 @@ class Developer extends React.Component<Props, State> {
           Please don't do anything below here unless instructed to by a developer.
         </Kb.Text>
         <Kb.Divider style={styles.divider} />
+        <PingTest />
         <Kb.Button style={styles.developerButtons} type="Danger" label="DB Nuke" onClick={props.onDBNuke} />
         <Kb.Button
           style={styles.developerButtons}
