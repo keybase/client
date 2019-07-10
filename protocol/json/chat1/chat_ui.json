@@ -237,6 +237,30 @@
     },
     {
       "type": "record",
+      "name": "UIParticipant",
+      "fields": [
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "contactName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fullName"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "InboxUIItem",
       "fields": [
         {
@@ -286,17 +310,9 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UIParticipant"
           },
           "name": "participants"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "string",
-            "keys": "string"
-          },
-          "name": "fullNames"
         },
         {
           "type": {

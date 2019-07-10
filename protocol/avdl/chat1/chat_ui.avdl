@@ -60,6 +60,12 @@ protocol chatUi {
     boolean offline;
   }
 
+  record UIParticipant {
+    string assertion;
+    union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
+    union { null, string } fullName;
+  }
+
   record InboxUIItem {
     string convID;
     TopicType topicType;
@@ -72,8 +78,7 @@ protocol chatUi {
     string headline;
     string headlineDecorated;
     keybase1.TLFVisibility visibility;
-    array<string> participants;
-    map<string, string> fullNames;
+    array<UIParticipant> participants;
     array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;

@@ -1147,14 +1147,22 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	return res
 }
 
+func getContactName(ctx context.Context, p chat1.ConversationLocalParticipant) *string {
+	if strings.HasSuffix(p.Username, "@phone") || strings.HasSuffix(p.Username, "@email") {
+
+	}
+	return nil
+}
+
 func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
-	var writerNames []string
-	fullNames := make(map[string]string)
+	var writerNames []chat1.UIParticipant
 	for _, p := range rawConv.Info.Participants {
-		writerNames = append(writerNames, p.Username)
-		if p.Fullname != nil {
-			fullNames[p.Username] = *p.Fullname
-		}
+		contactName := getContactName(ctx, p)
+		writerNames = append(writerNames, chat1.UIParticipant{
+			Assertion:   p.Username,
+			ContactName: contactName,
+			FullName:    p.Fullname,
+		})
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
@@ -1165,7 +1173,6 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
 	res.Participants = writerNames
-	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()

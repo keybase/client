@@ -246,10 +246,10 @@ function* unboxRows(
     const infoMap = state.users.infoMap
     let added = false
     // We get some info about users also so update that too
-    const usernameToFullname = Object.keys(inboxUIItem.fullNames).reduce((map, username) => {
-      if (!infoMap.get(username)) {
+    const usernameToFullname = inboxUIItem.participants.reduce((map, part) => {
+      if (!infoMap.get(part.assertion) && part.fullName) {
         added = true
-        map[username] = inboxUIItem.fullNames[username]
+        map[part.assertion] = part.fullName
       }
       return map
     }, {})
@@ -412,7 +412,10 @@ const chatActivityToMetasAction = (
   const conversationIDKey = meta
     ? meta.conversationIDKey
     : conv && Types.stringToConversationIDKey(conv.convID)
-  const usernameToFullname = (conv && conv.fullNames) || {}
+  const usernameToFullname = ((conv && conv.participants) || []).reduce(
+    (map, part) => (part.fullName ? {...map, [part.assertion]: part.fullName} : map),
+    {}
+  )
   // We ignore inbox rows that are blocked/reported or have no content
   const isADelete =
     !ignoreDelete &&
