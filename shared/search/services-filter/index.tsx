@@ -40,7 +40,7 @@ const unselectedIconMap: {[K in Types.Service]: IconType} = {
 }
 
 const Service = ({service, selected, hovering, onHover, onSelect}) => {
-  let backgroundColor
+  let backgroundColor: string | undefined
 
   if (hovering && !selected) {
     backgroundColor = globalColors.blueLighter2
@@ -121,7 +121,7 @@ class Filter extends Component<
   render() {
     return (
       <Box style={styleServices}>
-        {servicesOrder.map((service: Types.Service) => (
+        {servicesOrder.map(service => (
           <Service
             key={service}
             service={service}

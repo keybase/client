@@ -13,12 +13,7 @@ import {RouteProps} from '../../route-tree/render-route'
 import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps<
-  {
-    username: string
-  },
-  {}
->
+type OwnProps = RouteProps< { username: string } >
 
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {

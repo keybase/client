@@ -6,12 +6,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import logger from '../../../../../logger'
 import InflationDestination from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { accountID: Types.AccountID } >
 
 const mapStateToProps = (state, ownProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID')

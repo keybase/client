@@ -4,7 +4,7 @@ import {connect} from '../../util/container'
 import {RouteProps} from '../../route-tree/render-route'
 import openURL from '../../util/open-url'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   error: state.provision.finalError,

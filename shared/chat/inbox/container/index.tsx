@@ -97,7 +97,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isSearching: stateProps.isSearching,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {
-      // $ForceType
       if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
         return
       }

@@ -8,7 +8,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import flags from '../../../util/feature-flags'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 // Note: `props.user` is only the Keybase username if this is the primary
 // account. Non-primary accounts are not associated with usernames.

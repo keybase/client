@@ -8,8 +8,7 @@ type OwnProps = Container.RouteProps<
     username: string
     teamname: string
     email: string
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state, ownProps) => ({

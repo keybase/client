@@ -8,7 +8,7 @@ import Participants from './participants/container'
 import {anyWaiting} from '../../constants/waiting'
 import {namedConnect, isMobile, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => {
   const build = state.wallets.building

@@ -408,7 +408,7 @@ const Connected: React.ComponentType<OwnProps> = compose(
   isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-class StateWrapperForTeamBuilding extends React.Component<RouteProps<{}, {}>, LocalState> {
+class StateWrapperForTeamBuilding extends React.Component<RouteProps, LocalState> {
   state: LocalState = initialState
 
   changeShowRolePicker = (showRolePicker: boolean) => this.setState({showRolePicker})

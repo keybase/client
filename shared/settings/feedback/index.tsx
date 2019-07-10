@@ -28,9 +28,9 @@ type Props = {
 type State = {
   clickCount: number
   email: string | null
-  showSuccessBanner: boolean
-  sendLogs: boolean
   feedback: string
+  sendLogs: boolean
+  showSuccessBanner: boolean
 }
 
 const clickThreshold = 7
@@ -39,7 +39,7 @@ class Feedback extends React.Component<Props, State> {
   state = {
     clickCount: 0,
     email: null,
-    feedback: this.props.feedback,
+    feedback: this.props.feedback || '',
     sendLogs: true,
     showSuccessBanner: false,
   }
@@ -81,7 +81,7 @@ class Feedback extends React.Component<Props, State> {
     const sendMaxBytes = this._sendMaxBytes()
     this.setState({clickCount: 0, showSuccessBanner: false})
     this.props.onSendFeedback(
-      this.state.email ? `${this.state.feedback} (email: ${this.state.email} )` : this.state.feedback,
+      this.state.email ? `${this.state.feedback} (email: ${this.state.email || ''} )` : this.state.feedback,
       this.state.sendLogs,
       sendMaxBytes
     )
@@ -116,8 +116,8 @@ class Feedback extends React.Component<Props, State> {
               <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
                 <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
-                  This includes some private metadata info (e.g., file sizes, but not names or contents) but it will
-                  help the developers fix bugs more quickly.
+                  This includes some private metadata info (e.g., file sizes, but not names or contents) but
+                  it will help the developers fix bugs more quickly.
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
@@ -156,25 +156,13 @@ export default Feedback
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
+    common: {flex: 1},
   }),
-  mainBox: {
-    padding: Styles.globalMargins.small,
-  },
-  outerStyle: {
-    backgroundColor: 'white',
-  },
-  smallLabel: {
-    color: 'black',
-  },
+  mainBox: {padding: Styles.globalMargins.small},
+  outerStyle: {backgroundColor: 'white'},
+  smallLabel: {color: 'black'},
   text: Styles.platformStyles({
-    isElectron: {
-      cursor: 'default',
-    },
+    isElectron: {cursor: 'default'},
   }),
-  textBox: {
-    flex: 1,
-  },
+  textBox: {flex: 1},
 })

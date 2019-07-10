@@ -8,7 +8,7 @@ import Onboarding from '../onboarding/container'
 import {partition} from 'lodash-es'
 import Wallet, {Props} from '.'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => {
   const accountID = Constants.getSelectedAccount(state)

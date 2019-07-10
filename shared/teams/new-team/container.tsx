@@ -6,13 +6,7 @@ import {upperFirst} from 'lodash-es'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps<
-  {
-    makeSubteam: boolean
-    name: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { makeSubteam: boolean; name: string } >
 
 const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),

@@ -14,7 +14,7 @@ export type MenuItem = {
 }
 
 type _InnerMenuItem = MenuItem | 'Divider' | null
-export type MenuItems = ReadonlyArray<_InnerMenuItem>
+export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
   items: MenuItems

@@ -19,13 +19,7 @@ import {
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
-type OwnProps = Container.RouteProps<
-  {
-    username: string
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { username: string; teamname: string } >
 
 type StateProps = {
   disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker

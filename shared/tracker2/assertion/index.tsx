@@ -125,9 +125,9 @@ class _StellarValue extends React.PureComponent<
       {newTag: true, onClick: this.props.onSendLumens, title: 'Send Lumens (XLM)'},
       {newTag: true, onClick: this.props.onRequestLumens, title: 'Request Lumens (XLM)'},
       {onClick: this.props.onCopyAddress, title: 'Copy address'},
-      'Divider',
+      'Divider' as const,
       {onClick: this.props.onWhatIsStellar, title: 'What is Stellar?'},
-    ] as const
+    ]
 
     return Styles.isMobile ? (
       <Kb.Text

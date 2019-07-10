@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import SetDefaultAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<{accountID: Types.AccountID}, {}>
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID')

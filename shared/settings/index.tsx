@@ -14,7 +14,7 @@ import * as I from 'immutable'
 type OwnProps = {
   routeSelected: Types.Tab
   children: React.ReactNode
-} & RouteProps<{}, {}>
+} & RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
@@ -59,7 +59,7 @@ const Connected = compose(
       requestIdleCallback(loadHasRandomPW)
     },
   })
-)(SettingsContainer)
+)(SettingsContainer as any)
 
 // @ts-ignore TODO fix
 Connected.navigationOptions = {

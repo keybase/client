@@ -20,12 +20,7 @@ import {
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
 
-type OwnProps = RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = RouteProps< { teamname: string } >
 
 const cleanPhoneNumber: (arg0: string) => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')

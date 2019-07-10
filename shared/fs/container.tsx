@@ -118,12 +118,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = RouteProps<
-  {
-    path: Types.Path
-  },
-  {}
->
+type OwnProps = RouteProps<{path: Types.Path}>
 
 const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FsMain')(ChooseComponent)
 

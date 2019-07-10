@@ -140,7 +140,6 @@ export const dumpLogs = (_?: any, action?: ConfigGen.DumpLogsPayload) =>
   logger
     .dump()
     .then(fromRender => {
-      // $ForceType
       const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
       return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
     })

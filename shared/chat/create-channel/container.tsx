@@ -5,7 +5,7 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
 
-type OwnProps = Container.RouteProps<{teamname: string}, {}>
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 type Props = {
   _onCreateChannel: (o: {channelname: string; description: string; teamname: string}) => void

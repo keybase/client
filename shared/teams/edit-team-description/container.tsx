@@ -4,12 +4,7 @@ import EditTeamDescription from '.'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { teamname: string } >
 
 const mapStateToProps = (state, ownProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')

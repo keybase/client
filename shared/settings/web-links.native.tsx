@@ -2,13 +2,7 @@ import {HeaderHoc, NativeWebView} from '../common-adapters/mobile.native'
 import {TypedState} from '../constants/reducer'
 import {connect, compose, defaultProps, RouteProps} from '../util/container'
 
-type OwnProps = RouteProps<
-  {
-    source: string
-    title: string
-  },
-  {}
->
+type OwnProps = RouteProps<{source: string; title: string}>
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   source: ownProps.routeProps.get('source'),

@@ -4,12 +4,7 @@ import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
 import {connect, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<
-  {
-    id: string
-  },
-  {}
->
+type OwnProps = RouteProps< { id: string } >
 
 const mapStateToProps = (state, {routeProps}) => {
   const gitMap = Constants.getIdToGit(state)

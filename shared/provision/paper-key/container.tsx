@@ -4,7 +4,7 @@ import {connect} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),

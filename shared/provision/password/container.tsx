@@ -12,7 +12,7 @@ type OwnProps = {
   prompt: string
   username: string | null
   waitingForResponse: boolean
-} & RouteProps<{}, {}>
+} & RouteProps
 
 type State = {
   showTyping: boolean

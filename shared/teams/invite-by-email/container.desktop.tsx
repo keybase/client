@@ -5,12 +5,7 @@ import * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 import {connect, getRouteProps, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = RouteProps< { teamname: string } >
 
 const mapStateToProps = (state, ownProps) => {
   const teamname = getRouteProps(ownProps, 'teamname')

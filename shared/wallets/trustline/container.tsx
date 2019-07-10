@@ -7,12 +7,7 @@ import * as Waiting from '../../constants/waiting'
 import {debounce} from 'lodash-es'
 import Trustline from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { accountID: Types.AccountID } >
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID

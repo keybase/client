@@ -11,13 +11,7 @@ import openURL from '../../util/open-url'
 import TransactionDetails from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-    paymentID: Types.PaymentID
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID; paymentID: Types.PaymentID}>
 
 const mapStateToProps = (state, ownProps) => {
   const you = state.config.username || ''

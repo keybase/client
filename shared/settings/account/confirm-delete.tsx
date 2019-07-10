@@ -45,13 +45,7 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-type OwnProps = RouteProps<
-  {
-    address: string
-    type: string
-  },
-  {}
->
+type OwnProps = RouteProps<{address: string; type: string}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()

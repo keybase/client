@@ -11,8 +11,7 @@ type OwnProps = Container.RouteProps<
     entityType: RetentionEntityType
     onCancel: (() => void) | null
     onConfirm: (() => void) | null
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -47,4 +46,5 @@ const withState = Container.withStateHandlers<
   {}
 >({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 
-export default connected(withState(RetentionWarning))
+// @ts-ignore
+export default connected(withState(RetentionWarning)) as any

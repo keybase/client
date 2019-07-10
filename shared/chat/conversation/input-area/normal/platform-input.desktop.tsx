@@ -154,7 +154,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
           .call(fileList, (f: File) => {
             // We rely on path being here, even though it's
             // not part of the File spec.
-            // $ForceType
             const path: string = f.path
             return path
           })

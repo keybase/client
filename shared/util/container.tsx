@@ -20,7 +20,12 @@ export const networkErrorCodes = [
 
 export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
 
-export function getRouteProps <T = any>(ownProps: {navigation: {getParam: (key: string) => unknown}}, key: string) { return ownProps.navigation.getParam(key) as T }
+export function getRouteProps<T = any>(
+  ownProps: {navigation: {getParam: (key: string) => unknown}},
+  key: string
+) {
+  return ownProps.navigation.getParam(key) as T
+}
 
 export type TypedDispatch = (action: TypedActions) => void
 export type Dispatch = TypedDispatch
@@ -37,7 +42,7 @@ export function usePrevious<T>(value: T) {
 }
 
 export type Route = {
-  getScreen: () => React.ComponentType
+  getScreen: () => React.ComponentType<{} | {routeProps: RouteProps<any>}>
   screen?: React.ComponentType
   upgraded?: boolean
 }
@@ -63,7 +68,7 @@ export {isMobile} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {default as withSafeNavigation} from './safe-navigation'
-export type RouteProps<P, S> = _RouteProps<P, S>
+export type RouteProps<P = {}> = _RouteProps<P>
 export type TypedActions = TypedActions
 export type TypedState = TypedState
 export type PropsWithSafeNavigation<P> = _PropsWithSafeNavigation<P>

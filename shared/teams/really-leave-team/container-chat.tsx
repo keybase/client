@@ -7,12 +7,7 @@ import {getCanPerform, hasCanPerform, leaveTeamWaitingKey} from '../../constants
 import {Teamname} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { teamname: string } >
 
 type Props = {
   _canLeaveTeam: boolean

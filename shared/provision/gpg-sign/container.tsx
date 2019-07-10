@@ -3,7 +3,7 @@ import {connect} from '../../util/container'
 import {RouteProps} from '../../route-tree/render-route'
 import GPGSign from '.'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   importError: state.provision.gpgImportError,

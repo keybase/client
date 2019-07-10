@@ -7,12 +7,7 @@ import LastOwnerDialog from './last-owner'
 import {isLastOwner, leaveTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { teamname: string } >
 
 const mapStateToProps = (state, ownProps) => {
   const name = Container.getRouteProps(ownProps, 'teamname')

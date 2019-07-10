@@ -143,7 +143,6 @@ const getDecorate = (message, you) => {
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {previous, message, _you} = stateProps
   let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
-  // $ForceType
   const outboxID = message.outboxID
   let {allowCancelRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(message, _you)
 
@@ -158,7 +157,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
       : null
 
-  // $ForceType
   const forceAsh = !!message.explodingUnreadable
 
   return {

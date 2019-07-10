@@ -290,12 +290,7 @@ const ConnectedInfoPanel = connect(
   mergeProps
 )(InfoPanel)
 
-type SelectorOwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-  },
-  {}
->
+type SelectorOwnProps = RouteProps< { conversationIDKey: Types.ConversationIDKey } >
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   const conversationIDKey: Types.ConversationIDKey = getRouteProps(ownProps, 'conversationIDKey')

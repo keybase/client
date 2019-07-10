@@ -15,8 +15,7 @@ type Props = Container.RouteProps<
     // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
     username: string
     isSender: boolean
-  },
-  {}
+  }
 >
 
 const AssetList = ({accountID, isSender, username}) => {

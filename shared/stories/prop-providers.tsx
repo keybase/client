@@ -103,7 +103,6 @@ const CopyText = () => ({
   CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
 })
 
-// $ForceType
 const Channel = ({name, convID, key, style}) => ({
   convID,
   key,
@@ -125,7 +124,6 @@ const usernameToTheme = {
   notFollowing: 'nonFollow',
 }
 
-// $ForceType
 const Mention = ({username, key, style}) => ({
   key,
   onClick: action('onClick Mention'),

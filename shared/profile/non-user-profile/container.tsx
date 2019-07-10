@@ -14,8 +14,7 @@ type OwnProps = RouteProps<
     fullUsername: string
     profileUrl: string
     serviceName: Service
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state, {routeProps}) => {

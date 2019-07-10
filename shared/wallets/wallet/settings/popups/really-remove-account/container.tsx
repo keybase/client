@@ -7,12 +7,7 @@ import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { accountID: Types.AccountID } >
 
 const mapStateToProps = (state, ownProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID')

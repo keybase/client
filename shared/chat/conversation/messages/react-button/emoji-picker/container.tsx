@@ -8,13 +8,7 @@ import {RouteProps} from '../../../../../route-tree/render-route'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import EmojiPicker from '.'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-    ordinal: Types.Ordinal
-  },
-  {}
->
+type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey; ordinal: Types.Ordinal}>
 
 type WrapperProps = {
   topReacjis: Array<string>

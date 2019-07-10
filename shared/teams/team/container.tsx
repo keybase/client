@@ -12,7 +12,7 @@ import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from '
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = Container.RouteProps<{teamname: string}, {}> & {
+type OwnProps = Container.RouteProps<{teamname: string}> & {
   selectedTab: string
   setSelectedTab: (arg0: string) => void
 }

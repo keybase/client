@@ -151,6 +151,7 @@ const UserInputEditable: any = compose(
       }
     },
   } as any)
+  // @ts-ignore
 )(UserInput)
 
 const defaultBoxStyle = {

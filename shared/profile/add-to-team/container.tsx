@@ -11,12 +11,7 @@ import {HeaderOnMobile} from '../../common-adapters'
 import {sendNotificationFooter} from '../../teams/role-picker'
 import {TeamRoleType, MaybeTeamRoleType, Teamname} from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps<
-  {
-    username: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { username: string } >
 
 const mapStateToProps = (state, ownProps) => {
   return {

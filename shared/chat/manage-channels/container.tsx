@@ -12,7 +12,7 @@ import {formatTimeRelativeToNow} from '../../util/timestamp'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 import {isEqual} from 'lodash-es'
 
-type OwnProps = Container.RouteProps<{teamname: string}, {}>
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamname = Container.getRouteProps<string>(ownProps, 'teamname')

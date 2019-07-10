@@ -4,12 +4,7 @@ import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import EditProfile from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    username: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{username: string}>
 
 const mapStateToProps = state => {
   const d = Constants.getDetails(state, state.config.username)

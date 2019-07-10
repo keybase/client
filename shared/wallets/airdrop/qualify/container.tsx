@@ -3,7 +3,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {connect, RouteProps} from '../../../util/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   _rows: state.wallets.airdropQualifications,
