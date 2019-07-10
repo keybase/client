@@ -355,6 +355,13 @@
             "items": "string"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "bots"
         }
       ]
     },

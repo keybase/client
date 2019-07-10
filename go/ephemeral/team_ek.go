@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 )
@@ -30,6 +31,18 @@ func newTeamEKSeedFromBytes(b []byte) (s TeamEKSeed, err error) {
 
 func (s *TeamEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonTeamEKEncryption)
+}
+
+type TeamEphemeralKeyer struct{}
+
+var _ EphemeralKeyer = (*TeamEphemeralKeyer)(nil)
+
+func NewTeamEphemeralKeyer() *TeamEphemeralKeyer {
+	return &TeamEphemeralKeyer{}
+}
+
+func (k *TeamEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
+	return keybase1.TeamEphemeralKeyType_TEAM
 }
 
 func postNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string,
@@ -141,7 +154,7 @@ func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 		return metadata, err
 	}
 
-	sig, boxes, metadata, myBox, err := prepareNewTeamEK(mctx, teamID, signingKey, membersMetadata, merkleRoot)
+	sig, boxes, teamEKMetadata, myBox, err := prepareNewTeamEK(mctx, teamID, signingKey, membersMetadata, merkleRoot)
 	if err != nil {
 		return metadata, err
 	}
@@ -154,11 +167,119 @@ func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 		mctx.Debug("No box made for own teamEK")
 	} else {
 		storage := mctx.G().GetTeamEKBoxStorage()
-		if err = storage.Put(mctx, teamID, metadata.Generation, *myBox); err != nil {
+		boxed := keybase1.NewTeamEphemeralKeyBoxedWithTeam(*myBox)
+		if err = storage.Put(mctx, teamID, teamEKMetadata.Generation, boxed); err != nil {
 			return metadata, err
 		}
 	}
-	return metadata, nil
+	return teamEKMetadata, nil
+}
+
+func (k *TeamEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEphemeralKeyBoxed, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/team_ek_box",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"team_id":    libkb.S{Val: string(teamID)},
+			"generation": libkb.U{Val: uint64(generation)},
+		},
+	}
+
+	var result TeamEKBoxedResponse
+	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
+	if err != nil {
+		err = errFromAppStatus(err)
+		return teamEK, err
+	}
+
+	err = res.Body.UnmarshalAgain(&result)
+	if err != nil {
+		return teamEK, err
+	}
+
+	if result.Result == nil {
+		err = newEKMissingBoxErr(mctx, TeamEKStr, generation)
+		return teamEK, err
+	}
+
+	// Although we verify the signature is valid, it's possible that this key
+	// was signed with a PTK that is not our latest and greatest. We allow this
+	// when we are using this ek for *decryption*. When getting a key for
+	// *encryption* callers are responsible for verifying the signature is
+	// signed by the latest PTK or generating a new EK. This logic currently
+	// lives in ephemeral/lib.go#GetOrCreateLatestTeamEK (#newTeamEKNeeded)
+	_, teamEKStatement, err := extractTeamEKStatementFromSig(result.Result.Sig)
+	if err != nil {
+		return teamEK, err
+	} else if teamEKStatement == nil { // shouldn't happen
+		return teamEK, fmt.Errorf("unable to fetch valid teamEKStatement")
+	}
+
+	teamEKMetadata := teamEKStatement.CurrentTeamEkMetadata
+	if generation != teamEKMetadata.Generation {
+		// sanity check that we got the right generation
+		return teamEK, newEKCorruptedErr(mctx, TeamEKStr, generation, teamEKMetadata.Generation)
+	}
+	teamEKBoxed := keybase1.TeamEkBoxed{
+		Box:              result.Result.Box,
+		UserEkGeneration: result.Result.UserEKGeneration,
+		Metadata:         teamEKMetadata,
+	}
+
+	return keybase1.NewTeamEphemeralKeyBoxedWithTeam(teamEKBoxed), nil
+}
+
+func (k *TeamEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEphemeralKeyBoxed,
+	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("TeamEKBoxStorage#unbox: teamEKGeneration: %v", boxed.Generation()),
+		func() error { return err })()
+
+	typ, err := boxed.KeyType()
+	if err != nil {
+		return ek, err
+	}
+	if !typ.IsTeam() {
+		return ek, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
+	}
+
+	teamEKBoxed := boxed.Team()
+	teamEKGeneration := teamEKBoxed.Metadata.Generation
+	userEKBoxStorage := mctx.G().GetUserEKBoxStorage()
+	userEK, err := userEKBoxStorage.Get(mctx, teamEKBoxed.UserEkGeneration, contentCtime)
+	if err != nil {
+		mctx.Debug("unable to get from userEKStorage %v", err)
+		switch err.(type) {
+		case EphemeralKeyError:
+			return ek, newEKUnboxErr(mctx, TeamEKStr, teamEKGeneration, UserEKStr,
+				teamEKBoxed.UserEkGeneration, contentCtime)
+		}
+		return ek, err
+	}
+
+	userSeed := UserEKSeed(userEK.Seed)
+	userKeypair := userSeed.DeriveDHKey()
+
+	msg, _, err := userKeypair.DecryptFromString(teamEKBoxed.Box)
+	if err != nil {
+		mctx.Debug("unable to decrypt teamEKBoxed %v", err)
+		return ek, newEKUnboxErr(mctx, TeamEKStr, teamEKGeneration, UserEKStr,
+			teamEKBoxed.UserEkGeneration, contentCtime)
+	}
+
+	seed, err := newTeamEKSeedFromBytes(msg)
+	if err != nil {
+		return ek, err
+	}
+
+	keypair := seed.DeriveDHKey()
+	if !keypair.GetKID().Equal(teamEKBoxed.Metadata.Kid) {
+		return ek, fmt.Errorf("Failed to verify server given seed against signed KID %s", teamEKBoxed.Metadata.Kid)
+	}
+
+	return keybase1.NewTeamEphemeralKeyWithTeam(keybase1.TeamEk{
+		Seed:     keybase1.Bytes32(seed),
+		Metadata: teamEKBoxed.Metadata,
+	}), nil
 }
 
 // There are plenty of race conditions where the PTK or teamEK or
@@ -190,7 +311,7 @@ func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error
 			return err
 		}
 	}
-	return nil
+	return err
 }
 
 func ForcePublishNewTeamEKForTesting(mctx libkb.MetaContext, teamID keybase1.TeamID,

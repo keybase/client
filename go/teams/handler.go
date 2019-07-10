@@ -191,7 +191,8 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 				if err != nil {
 					continue
 				}
-				if role == keybase1.TeamRole_READER || role == keybase1.TeamRole_WRITER {
+				switch role {
+				case keybase1.TeamRole_BOT, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 					changeReq.None = append(changeReq.None, memberUV)
 				}
 			}
@@ -230,7 +231,8 @@ func invalidateCaches(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 	// this team.
 	mctx.G().NotifyRouter.HandleFavoritesChanged(mctx.G().GetMyUID())
 	if ekLib := mctx.G().GetEKLib(); ekLib != nil {
-		ekLib.PurgeCachesForTeamID(mctx, teamID)
+		ekLib.PurgeTeamEKCachesForTeamID(mctx, teamID)
+		ekLib.PurgeTeambotEKCachesForTeamID(mctx, teamID)
 	}
 }
 
@@ -479,7 +481,9 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		}
 
 		joinAsRole := team.chain().inner.OpenTeamJoinAs
-		if joinAsRole != keybase1.TeamRole_READER && joinAsRole != keybase1.TeamRole_WRITER {
+		switch joinAsRole {
+		case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
+		default:
 			return fmt.Errorf("unexpected role to add to open team: %v", joinAsRole)
 		}
 

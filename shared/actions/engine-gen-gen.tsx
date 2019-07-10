@@ -122,6 +122,7 @@ export const keybase1NotifyEmailAddressEmailAddressVerified =
   'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
 export const keybase1NotifyEmailAddressEmailsChanged = 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
+export const keybase1NotifyEphemeralNewTeambotEk = 'engine-gen:keybase1NotifyEphemeralNewTeambotEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
 export const keybase1NotifyFSFSFavoritesChanged = 'engine-gen:keybase1NotifyFSFSFavoritesChanged'
@@ -137,6 +138,8 @@ export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1Noti
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
 export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
+export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
+  'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -1035,6 +1038,15 @@ type _Keybase1NotifyEphemeralNewTeamEkPayload = {
     sessionID: number
   }
 }
+type _Keybase1NotifyEphemeralNewTeambotEkPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void
+  }
+}
 type _Keybase1NotifyFSFSActivityPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {
     sessionID: number
@@ -1147,6 +1159,17 @@ type _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
     error: keybase1Types.IncomingErrorCallback
     result: (
       param: keybase1Types.MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']
     ) => void
   }
 }
@@ -2042,6 +2065,9 @@ export const createKeybase1NotifyEmailAddressEmailsChanged = (
 export const createKeybase1NotifyEphemeralNewTeamEk = (
   payload: _Keybase1NotifyEphemeralNewTeamEkPayload
 ): Keybase1NotifyEphemeralNewTeamEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
+export const createKeybase1NotifyEphemeralNewTeambotEk = (
+  payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
+): Keybase1NotifyEphemeralNewTeambotEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeambotEk})
 export const createKeybase1NotifyFSFSActivity = (
   payload: _Keybase1NotifyFSFSActivityPayload
 ): Keybase1NotifyFSFSActivityPayload => ({payload, type: keybase1NotifyFSFSActivity})
@@ -2095,6 +2121,12 @@ export const createKeybase1NotifyPhoneNumberPhoneNumbersChanged = (
 ): Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload => ({
   payload,
   type: keybase1NotifyPhoneNumberPhoneNumbersChanged,
+})
+export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
+  payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+): Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload => ({
+  payload,
+  type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
 })
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
@@ -2738,6 +2770,10 @@ export type Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly payload: _Keybase1NotifyEphemeralNewTeamEkPayload
   readonly type: typeof keybase1NotifyEphemeralNewTeamEk
 }
+export type Keybase1NotifyEphemeralNewTeambotEkPayload = {
+  readonly payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
+  readonly type: typeof keybase1NotifyEphemeralNewTeambotEk
+}
 export type Keybase1NotifyFSFSActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSActivityPayload
   readonly type: typeof keybase1NotifyFSFSActivity
@@ -2789,6 +2825,10 @@ export type Keybase1NotifyPaperKeyPaperKeyCachedPayload = {
 export type Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
   readonly payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   readonly type: typeof keybase1NotifyPhoneNumberPhoneNumbersChanged
+}
+export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
+  readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
 }
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
@@ -3152,6 +3192,7 @@ export type Actions =
   | Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   | Keybase1NotifyEmailAddressEmailsChangedPayload
   | Keybase1NotifyEphemeralNewTeamEkPayload
+  | Keybase1NotifyEphemeralNewTeambotEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
   | Keybase1NotifyFSFSFavoritesChangedPayload
@@ -3165,6 +3206,7 @@ export type Actions =
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+  | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload

@@ -2,18 +2,19 @@ import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {namedConnect} from '../../util/container'
+import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
+import {PickerItem} from '../../common-adapters/floating-picker'
 
 type OwnProps = {}
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   areSettingsLoading: state.fs.settings.isLoading,
   driverStatus: state.fs.sfmi.driverStatus,
   spaceAvailableNotificationThreshold: state.fs.settings.spaceAvailableNotificationThreshold,
   title: 'Files',
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onDisable: () => dispatch(FsGen.createDriverDisable()),
   onDisableSyncNotifications: () =>
@@ -26,17 +27,20 @@ const mapDispatchToProps = dispatch => ({
   onShowKextPermissionPopup: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']})),
 })
 
-const SettingsFiles = namedConnect(
+const SettingsFiles = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({
+  (s, d, o: OwnProps) => ({
     ...s,
     ...o,
     ...d,
-    allowedThresholds: allowedNotificationThresholds.map(i => ({
-      label: Constants.humanizeBytes(i, 0),
-      value: i,
-    })),
+    allowedThresholds: allowedNotificationThresholds.map(
+      i =>
+        ({
+          label: Constants.humanizeBytes(i, 0),
+          value: i,
+        } as PickerItem<number>)
+    ),
     humanizedNotificationThreshold: Constants.humanizeBytes(
       s.spaceAvailableNotificationThreshold || defaultNotificationThreshold,
       0

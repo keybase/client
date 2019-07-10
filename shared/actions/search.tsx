@@ -11,25 +11,6 @@ import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {ServiceId, serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 
-type RawResult = {
-  score: number
-  keybase: {
-    username: string
-    uid: string
-    picture_url: string | null
-    full_name: string | null
-    is_followee: boolean
-  } | null
-  service: {
-    service_name: ServiceId
-    username: string
-    picture_url: string | null
-    bio: string | null
-    location: string | null
-    full_name: string | null
-  } | null
-}
-
 function _serviceToApiServiceName(service: Types.Service): string {
   return (
     {
@@ -150,6 +131,7 @@ function callSearch(
   limit: number = 20
 ): Promise<Array<RPCTypes.APIUserSearchResult>> {
   return RPCTypes.userSearchUserSearchRpcPromise({
+    includeContacts: false,
     includeServicesSummary: false,
     maxResults: limit,
     query: trim(searchTerm),

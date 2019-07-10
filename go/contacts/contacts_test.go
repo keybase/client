@@ -183,10 +183,11 @@ func TestLookupContacts(t *testing.T) {
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 3)
-	for _, r := range res {
+	for i, r := range res {
 		require.Equal(t, "Joe", r.DisplayName)
 		require.False(t, r.Resolved)
 		require.True(t, r.Uid.IsNil())
+		require.Equal(t, formatSBSAssertion(contactList[0].Components[i]), r.Assertion)
 	}
 
 	// At least one of the components resolves the user, return just that one
@@ -219,6 +220,11 @@ func TestLookupContacts(t *testing.T) {
 		"joe (1)",
 		"ed (2)",
 	}, stringifyResults(res))
+	// Even if contact resolves to a Keybase user, assertion should still be an
+	// imptofu assertion (rather than username or username@keybase). This is
+	// required, so resolver is involved when starting a conversation.
+	require.Equal(t, "1111222@phone", res[0].Assertion)
+	require.Equal(t, "199123@phone", res[1].Assertion)
 
 	// Test with email
 	provider = makeProvider(t)
@@ -292,6 +298,11 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 		`"Alice" "+199123 (Work)"`,
 	}
 	require.Equal(t, expected, displayResults(res))
+
+	require.Equal(t, "[charlie+test@keyba.se]@email", res[0].Assertion)
+	require.Equal(t, "123456@phone", res[1].Assertion)
+	require.Equal(t, "1111222@phone", res[2].Assertion)
+	require.Equal(t, "199123@phone", res[3].Assertion)
 }
 
 func TestEmptyComponentLabels(t *testing.T) {

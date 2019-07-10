@@ -12,6 +12,7 @@ export type _State = {
   emailVisible: boolean
   inviteCode: string
   inviteCodeError: string
+  justSignedUpEmail: string
   name: string
   nameError: string
   password: HiddenString

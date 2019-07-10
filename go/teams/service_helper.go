@@ -98,6 +98,7 @@ func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, member
 		&members.Admins,
 		&members.Writers,
 		&members.Readers,
+		&members.Bots,
 	}
 	for _, rows := range lists {
 		filtered := []keybase1.TeamMemberDetails{}
@@ -124,6 +125,7 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 		&members.Admins,
 		&members.Writers,
 		&members.Readers,
+		&members.Bots,
 	}
 	// Scan for active rows
 	for _, rows := range lists {
@@ -163,6 +165,10 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 		return ret, err
 	}
 	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
+	if err != nil {
+		return ret, err
+	}
+	ret.Bots, err = userVersionsToDetails(ctx, g, m.Bots)
 	if err != nil {
 		return ret, err
 	}
@@ -235,6 +241,14 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 		return err
 	}
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
+}
+
+func SetRoleBot(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return err
+	}
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Bots: []keybase1.UserVersion{uv}})
 }
 
 func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
@@ -672,7 +686,21 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return role, err
 }
 
+func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+	return remove(ctx, g, teamGetter, username)
+}
+
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByStringName(ctx, g, teamname, false)
+	}
+	return remove(ctx, g, teamGetter, username)
+}
+
+func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error), username string) error {
 	var inviteRequired bool
 	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
@@ -693,11 +721,11 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	}
 
 	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
-		return Leave(ctx, g, teamname, false)
+		return leave(ctx, g, teamGetter, false)
 	}
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := teamGetter()
 		if err != nil {
 			return err
 		}
@@ -715,7 +743,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
 			return libkb.NotFoundError{Msg: fmt.Sprintf(
-				"user %q is not a member of team %q", username, teamname)}
+				"user %q is not a member of team %q", username, t.Name())}
 		}
 		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 		opts := ChangeMembershipOptions{
@@ -758,9 +786,9 @@ func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname stri
 	})
 }
 
-func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
+func leave(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error), permanent bool) error {
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+		t, err := teamGetter()
 		if err != nil {
 			return err
 		}
@@ -773,6 +801,20 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 
 		return nil
 	})
+}
+
+func LeaveByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, permanent bool) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+	return leave(ctx, g, teamGetter, permanent)
+}
+
+func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByStringName(ctx, g, teamname, false)
+	}
+	return leave(ctx, g, teamGetter, permanent)
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {
@@ -1013,6 +1055,8 @@ func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.Team
 		req.Writers = list
 	case keybase1.TeamRole_READER:
 		req.Readers = list
+	case keybase1.TeamRole_BOT:
+		req.Bots = list
 	default:
 		return keybase1.TeamChangeReq{}, errors.New("invalid team role")
 	}

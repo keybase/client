@@ -64,8 +64,6 @@ type Stellar struct {
 	// Slot for build payments that do not use BuildPaymentID.
 	buildPaymentSlot *slotctx.PrioritySlot
 
-	migrationLock sync.Mutex
-
 	badger *badges.Badger
 }
 
@@ -585,6 +583,12 @@ func (s *Stellar) InformBundle(mctx libkb.MetaContext, rev stellar1.BundleRevisi
 			Revision: rev,
 			Accounts: accounts,
 		}
+	}()
+}
+
+func (s *Stellar) InformDefaultCurrencyChange(mctx libkb.MetaContext) {
+	go func() {
+		s.getBuildPaymentCache().InformDefaultCurrencyChange(mctx)
 	}()
 }
 

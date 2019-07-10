@@ -56,10 +56,14 @@ func TestNewTeamEK(t *testing.T) {
 	maxGeneration, err := teamEKBoxStorage.MaxGeneration(mctx, teamID, false)
 	require.NoError(t, err)
 	ek, err := teamEKBoxStorage.Get(mctx, teamID, maxGeneration, nil)
+	typ, err := ek.KeyType()
 	require.NoError(t, err)
-	require.Equal(t, ek.Metadata, publishedMetadata)
+	require.True(t, typ.IsTeam())
+	teamEK := ek.Team()
+	require.NoError(t, err)
+	require.Equal(t, teamEK.Metadata, publishedMetadata)
 
-	s := NewTeamEKBoxStorage()
+	s := NewTeamEKBoxStorage(NewTeamEphemeralKeyer())
 	// Put our storage in a bad state by deleting the maxGeneration
 	err = s.Delete(mctx, teamID, keybase1.EkGeneration(1))
 	require.NoError(t, err)

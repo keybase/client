@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -101,6 +102,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 		Admins:  &[]SCTeamMember{},
 		Writers: &[]SCTeamMember{},
 		Readers: &[]SCTeamMember{},
+		Bots:    &[]SCTeamMember{},
 	}
 	if len(owners) > 0 {
 		members.Owners = &owners
@@ -310,6 +312,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 		Admins:  &[]SCTeamMember{},
 		Writers: &[]SCTeamMember{},
 		Readers: &[]SCTeamMember{},
+		Bots:    &[]SCTeamMember{},
 	}
 
 	var scSettings *SCTeamSettings
@@ -383,7 +386,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	// starts a root team, and so making that link is very similar to what the
 	// CreateTeamEngine does.
 
-	newSubteamSig, err := generateNewSubteamSigForParentChain(mctx, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
+	newSubteamSig, ratchet, err := generateNewSubteamSigForParentChain(mctx, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
 	if err != nil {
 		return nil, err
 	}
@@ -414,6 +417,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{newSubteamSig, subteamHeadSig}
 	payload["per_team_key"] = secretboxes
+	ratchet.AddToJSONPayload(payload)
 
 	_, err = g.API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
@@ -454,19 +458,19 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 	return teamSection, nil
 }
 
-func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
-	newSubteamSigBody, err := NewSubteamSig(m.G(), me, signingKey, parentTeam, subteamName, subteamID, admin)
+func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, r *hidden.Ratchet, err error) {
+	newSubteamSigBody, ratchet, err := NewSubteamSig(m, me, signingKey, parentTeam, subteamName, subteamID, admin)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	newSubteamSigJSON, err := newSubteamSigBody.Marshal()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
 
@@ -483,7 +487,7 @@ func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSi
 		nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	item = &libkb.SigMultiItem{
@@ -495,7 +499,7 @@ func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSi
 		TeamID:     parentTeam.GetID(),
 		Version:    libkb.KeybaseSignatureV2,
 	}
-	return item, nil
+	return item, ratchet, nil
 }
 
 func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me libkb.UserForSignatures,
@@ -512,6 +516,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		Admins:  &[]SCTeamMember{},
 		Writers: &[]SCTeamMember{},
 		Readers: &[]SCTeamMember{},
+		Bots:    &[]SCTeamMember{},
 	}
 
 	memSet := newMemberSet()
@@ -532,6 +537,8 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 			members.Admins = &memList
 		case keybase1.TeamRole_OWNER:
 			return nil, nil, errors.New("Cannot add self as owner to a subteam")
+		case keybase1.TeamRole_BOT:
+			return nil, nil, errors.New("Cannot add self as bot to a subteam")
 		}
 		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
 	}

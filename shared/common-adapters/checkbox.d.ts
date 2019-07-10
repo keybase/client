@@ -1,7 +1,8 @@
 import {Component, ReactNode} from 'react'
-import {StylesCrossPlatform} from '../styles'
+import {Color, StylesCrossPlatform} from '../styles'
 
 export type Props = {
+  boxBackgroundColor?: Color // desktop only
   key?: string
   label?: string
   labelComponent?: ReactNode

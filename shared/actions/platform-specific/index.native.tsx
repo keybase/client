@@ -27,33 +27,38 @@ import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import ImagePicker from 'react-native-image-picker'
-import {TypedActions, TypedState} from 'util/container'
+import {TypedActions, TypedState} from '../../util/container'
+import * as Contacts from 'expo-contacts'
+import {phoneUtil, PhoneNumberFormat} from '../../util/phone-numbers'
 
 type NextURI = string
+
+const requestPermissionsToWrite = (): Promise<void> => {
+  if (isAndroid) {
+    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+      message: 'Keybase needs access to your storage so we can download a file.',
+      title: 'Keybase Storage Permission',
+    }).then(permissionStatus =>
+      permissionStatus !== 'granted'
+        ? Promise.reject(new Error('Unable to acquire storage permissions'))
+        : Promise.resolve()
+    )
+  }
+  return Promise.resolve()
+}
+
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  return CameraRoll.saveToCameraRoll(goodPath)
+  return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
 }
 
 async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
-  if (!isIOS) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        message: 'Keybase needs access to your storage so we can download an attachment.',
-        title: 'Keybase Storage Permission',
-      }
-    )
-    if (permissionStatus !== 'granted') {
-      logger.error(logPrefix + 'Unable to acquire storage permissions')
-      throw new Error('Unable to acquire storage permissions')
-    }
-  }
   try {
+    await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(fileURL, saveType)
     logger.info(logPrefix + 'Success')
@@ -399,24 +404,36 @@ const expoPermissionStatusMap = {
   [Permissions.PermissionStatus.UNDETERMINED]: 'undetermined' as const,
 }
 
+const loadContactPermissionFromNative = async () => {
+  if (isIOS) {
+    return expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
+  }
+  return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
+    ? 'granted'
+    : 'undetermined'
+}
+
 const loadContactPermissions = async (
-  _,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
-  logger
+  state: TypedState,
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  logger: Saga.SagaLogger
 ) => {
   if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
     // only reload on foreground
     return
   }
-  let status = null
-  if (isIOS) {
-    status = expoPermissionStatusMap[(await Permissions.getAsync(Permissions.CONTACTS)).status]
-  } else {
-    status = (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_CONTACTS))
-      ? 'granted'
-      : 'undetermined'
-  }
+  const status = await loadContactPermissionFromNative()
   logger.info(`OS status: ${status}`)
+  if (
+    isAndroid &&
+    status === 'undetermined' &&
+    ['never_ask_again', 'undetermined'].includes(state.settings.contacts.permissionStatus)
+  ) {
+    // Workaround PermissionsAndroid.check giving only a boolean. If
+    // `requestPermissions` previously told us never_ask_again that is still the
+    // status
+    return null
+  }
   return SettingsGen.createLoadedContactPermissions({status})
 }
 
@@ -455,6 +472,86 @@ function* requestContactPermissions(
   ])
 }
 
+async function manageContactsCache(
+  state: TypedState,
+  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  logger: Saga.SagaLogger
+) {
+  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
+    return
+  }
+
+  if (state.settings.contacts.importEnabled === false) {
+    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
+      SettingsGen.createSetContactImportedCount({count: null})
+    )
+  }
+
+  // get permissions if we haven't loaded them for some reason
+  let {permissionStatus} = state.settings.contacts
+  if (permissionStatus === 'unknown') {
+    permissionStatus = await loadContactPermissionFromNative()
+  }
+  const perm = permissionStatus === 'granted'
+
+  const enabled = state.settings.contacts.importEnabled
+  if (!enabled || !perm) {
+    if (enabled && !perm) {
+      logger.info('contact import enabled but no contact permissions')
+    }
+    if (enabled === null) {
+      logger.info("haven't loaded contact import enabled")
+    }
+    return
+  }
+
+  // feature enabled and permission granted
+  const contacts = await Contacts.getContactsAsync()
+  const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
+    const {name, phoneNumbers = [], emails = []} = contact
+
+    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+      // TODO this fails on many phone numbers, contact data from native may
+      // not include countryCode. Make better guesses at properly formatting
+      // this.
+      const formatted = getE164(pn.countryCode || '', pn.number || '')
+      if (formatted) {
+        res.push({
+          label: pn.label,
+          phoneNumber: formatted,
+        })
+      }
+      return res
+    }, [])
+
+    components.push(...emails.map(e => ({email: e.email, label: e.label})))
+    if (components.length) {
+      ret.push({components, name})
+    }
+
+    return ret
+  }, [])
+  logger.info(`Importing ${mapped.length} contacts.`)
+  return RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
+    .then(() => {
+      logger.info(`Success`)
+      return SettingsGen.createSetContactImportedCount({count: mapped.length})
+    })
+    .catch(e => {
+      logger.error('Error saving contacts list: ', e.message)
+    })
+}
+
+// Get phone number in e.164, or null if we can't parse it.
+const getE164 = (countryCode: string, phoneNumber: string) => {
+  try {
+    const parsed = phoneUtil.parse(phoneNumber, countryCode)
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
+  } catch (e) {
+    return null
+  }
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
@@ -473,8 +570,8 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.osNetworkStatusChanged,
     updateMobileNetState
   )
-  yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.mobileAppState],
+  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
     loadContactPermissions,
     'loadContactPermissions'
   )
@@ -482,6 +579,11 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.requestContactPermissions,
     requestContactPermissions,
     'requestContactPermissions'
+  )
+  yield* Saga.chainAction<SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload>(
+    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
+    manageContactsCache,
+    'manageContactsCache'
   )
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

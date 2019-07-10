@@ -29,25 +29,6 @@ const load = () => {
         />
       </Wrapper>
     ))
-    .add('Success w/ Custom Notification Element', () => (
-      <Wrapper>
-        <StandardScreen
-          {...props}
-          notification={{
-            message: (
-              <Text type="BodySmallSemibold" style={{color: globalColors.white}}>
-                You won a unicorn!{' '}
-                <Text type="BodySmallSemibold" style={{color: globalColors.white}}>
-                  Make sure to feed it
-                </Text>{' '}
-                :-)
-              </Text>
-            ),
-            type: 'success',
-          }}
-        />
-      </Wrapper>
-    ))
     .add('Back Button', () => (
       <Wrapper>
         <StandardScreen {...props} onClose={null} onBack={action('onBack')} />

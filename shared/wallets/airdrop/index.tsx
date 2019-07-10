@@ -150,12 +150,14 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {!p.signedUp && (
-            <Kb.Button
-              style={styles.qualifyButton}
-              type="Success"
-              label="See if you qualify"
-              onClick={this._onCheckQualify}
-            />
+            <Kb.Box2 direction="horizontal">
+              <Kb.Button
+                style={styles.qualifyButton}
+                type="Success"
+                label="See if you qualify"
+                onClick={this._onCheckQualify}
+              />
+            </Kb.Box2>
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
           <Kb.Box2
