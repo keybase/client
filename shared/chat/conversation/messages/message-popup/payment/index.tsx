@@ -78,19 +78,19 @@ const Header = (props: HeaderProps) =>
           type={props.icon === 'sending' ? sendIcon : receiveIcon}
           style={Kb.iconCastPlatformStyles(styles.headerIcon)}
         />
-        <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+        <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
           {toUpper(props.topLine)}
         </Kb.Text>
-        <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
+        <Kb.Text type="HeaderExtrabold" style={headerTextStyle(props)}>
           {props.amountNominal}
         </Kb.Text>
         {!!props.bottomLine && (
-          <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+          <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
             {toUpper(props.bottomLine)}
           </Kb.Text>
         )}
         {!!props.approxWorth && (
-          <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+          <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
             (APPROXIMATELY {props.approxWorth})
           </Kb.Text>
         )}
@@ -198,7 +198,6 @@ const PaymentPopup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  colorWhite: {color: Styles.globalColors.white},
   errorDetails: {
     maxWidth: 200,
     paddingLeft: Styles.globalMargins.tiny,
@@ -215,20 +214,12 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.small,
     },
   }),
+  headerTextNotPending: {color: Styles.globalColors.white},
+  headerTextPending: {color: Styles.globalColors.black_50},
   headerTop: Styles.platformStyles({
     common: {
       alignItems: 'center',
       backgroundColor: Styles.globalColors.purpleDark,
-      paddingBottom: Styles.globalMargins.small,
-    },
-    isElectron: {
-      paddingTop: Styles.globalMargins.small,
-    },
-  }),
-  pendingHeaderTop: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.black_20,
       paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
@@ -254,6 +245,16 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
+  pendingHeaderTop: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.black_05,
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
   popupContainer: Styles.platformStyles({
     isElectron: {maxWidth: 240, minWidth: 200},
   }),
@@ -261,6 +262,10 @@ const styles = Styles.styleSheetCreate({
 
 const headerTop = (props: HeaderProps) => {
   return props.status === 'pending' ? styles.pendingHeaderTop : styles.headerTop
+}
+
+const headerTextStyle = (props: HeaderProps) => {
+  return props.status === 'pending' ? styles.headerTextPending : styles.headerTextNotPending
 }
 
 export default PaymentPopup
