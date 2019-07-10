@@ -4,10 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import PaymentPathCircle, {
-  pathCircleLargeDiameter,
-  pathCircleSmallDiameter,
-} from '../common/payment-path-circle'
+import PaymentPathCircle, {pathCircleDiameter} from '../common/payment-path-circle'
 
 export type Asset = {
   code: string
@@ -45,9 +42,9 @@ const PaymentPathStart = (props: PaymentPathStartProps) => (
     fullWidth={true}
     alignItems="center"
     gap="small"
-    style={styles.paymentPathStartOrEnd}
+    style={styles.paymentPathStop}
   >
-    <PaymentPathCircle isLarge={true} />
+    <PaymentPathCircle />
     <Kb.Text type="BodyBigExtrabold">
       -{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -61,9 +58,9 @@ const PaymentPathEnd = (props: PaymentPathEndProps) => (
     fullWidth={true}
     alignItems="center"
     gap="small"
-    style={styles.paymentPathStartOrEnd}
+    style={styles.paymentPathStop}
   >
-    <PaymentPathCircle isLarge={true} />
+    <PaymentPathCircle />
     <Kb.Text type="BodyBigExtrabold" style={styles.paymentPathEndText}>
       +{props.assetLabel}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -79,7 +76,7 @@ const PaymentPathStop = (props: PaymentPathStopProps) => (
     fullWidth={true}
     gap="medium"
   >
-    <PaymentPathCircle isLarge={false} />
+    <PaymentPathCircle />
     <Kb.Text type="BodyBigExtrabold">
       {props.assetCode}
       <Kb.Text type="BodySmall">/{props.issuer}</Kb.Text>
@@ -127,20 +124,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.purpleLight,
     height: Styles.globalMargins.medium,
     // Line width is 2, so to center it between the large circle, divide by 2 and subtract half the width
-    marginLeft: pathCircleLargeDiameter / 2 - 1,
-    marginRight: pathCircleLargeDiameter / 2 - 1,
+    marginLeft: pathCircleDiameter / 2 - 1,
+    marginRight: pathCircleDiameter / 2 - 1,
     width: 2,
-  },
-  paymentPathStartOrEnd: {
-    height: pathTextHeight,
-    marginBottom: (pathCircleLargeDiameter - pathTextHeight) / 2,
-    marginTop: (pathCircleLargeDiameter - pathTextHeight) / 2,
   },
   paymentPathStop: {
     height: pathTextHeight,
-    marginBottom: (pathCircleSmallDiameter - pathTextHeight) / 2,
+    marginBottom: (pathCircleDiameter - pathTextHeight) / 2,
     // Center the small circle
-    marginLeft: pathCircleLargeDiameter / 2 - pathCircleSmallDiameter / 2,
-    marginTop: (pathCircleSmallDiameter - pathTextHeight) / 2,
+    marginLeft: pathCircleDiameter / 2 - pathCircleDiameter / 2,
+    marginTop: (pathCircleDiameter - pathTextHeight) / 2,
   },
 })
