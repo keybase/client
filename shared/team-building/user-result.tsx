@@ -74,7 +74,7 @@ class Row extends React.Component<Props, LocalState> {
           <Username
             isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
-            username={serviceUsername}
+            username={serviceUsername || ''}
             prettyName={this.props.prettyName}
             followingState={this.props.followingState}
           />

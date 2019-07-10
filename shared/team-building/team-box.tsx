@@ -85,7 +85,7 @@ const TeamBox = (props: Props) => {
               onConfirm={props.onFinishTeamBuilding}
               onSelectRole={props.rolePickerProps.onSelectRole}
               selectedRole={props.rolePickerProps.selectedRole}
-              onCancel={() => props.rolePickerProps.changeShowRolePicker(false)}
+              onCancel={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(false)}
               disabledRoles={props.rolePickerProps.disabledRoles}
               confirmLabel={`Add as ${pluralize(props.rolePickerProps.selectedRole, props.teamSoFar.length)}`}
               footerComponent={sendNotificationFooter(
@@ -94,7 +94,10 @@ const TeamBox = (props: Props) => {
                 props.rolePickerProps.changeSendNotification
               )}
             >
-              <GoButton label="Add" onClick={() => props.rolePickerProps.changeShowRolePicker(true)} />
+              <GoButton
+                label="Add"
+                onClick={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(true)}
+              />
             </FloatingRolePicker>
           ) : (
             <GoButton label="Go!" onClick={props.onFinishTeamBuilding} />

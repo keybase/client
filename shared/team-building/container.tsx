@@ -112,7 +112,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   ])
 
   const preExistingTeamMembers: I.Map<string, MemberInfo> = ownProps.teamname
-    ? state.teams.teamNameToMembers.get(ownProps.teamname)
+    ? state.teams.teamNameToMembers.get(ownProps.teamname) || I.Map()
     : I.Map()
 
   const disabledRoles = ownProps.teamname
@@ -376,15 +376,19 @@ const mergeProps = (
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: ownProps.showRolePicker
-      ? rolePickerArrowKeyFns.downArrow
-      : deriveOnDownArrowKeyDown((userResultsToShow || []).length - 1, ownProps.incHighlightIndex),
+    onDownArrowKeyDown:
+      ownProps.showRolePicker && rolePickerArrowKeyFns
+        ? rolePickerArrowKeyFns.downArrow
+        : deriveOnDownArrowKeyDown((userResultsToShow || []).length - 1, ownProps.incHighlightIndex),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onMakeItATeam: () => console.log('todo'),
     onRemove: dispatchProps.onRemove,
     onSearchForMore,
-    onUpArrowKeyDown: ownProps.showRolePicker ? rolePickerArrowKeyFns.upArrow : ownProps.decHighlightIndex,
+    onUpArrowKeyDown:
+      ownProps.showRolePicker && rolePickerArrowKeyFns
+        ? rolePickerArrowKeyFns.upArrow
+        : ownProps.decHighlightIndex,
     recommendations,
     rolePickerProps,
     searchResults,

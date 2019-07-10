@@ -86,8 +86,8 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
         {showCheckbox && (
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
-            checked={props.allowSearch}
-            onCheck={props.onChangeAllowSearch}
+            checked={props.allowSearch || false}
+            onCheck={props.onChangeAllowSearch || null}
             style={styles.checkbox}
           />
         )}

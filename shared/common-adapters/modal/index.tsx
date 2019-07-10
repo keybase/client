@@ -32,7 +32,7 @@ type Props = {
   banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
-  onClose: () => void
+  onClose?: () => void
   footer?: FooterProps
   mode: 'Default' | 'Wide'
 }

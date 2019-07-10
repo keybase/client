@@ -28,9 +28,9 @@ const prioritizedCountries = ['US', 'CA', 'GB']
 const pickerItems = memoize(countryData =>
   [
     ...prioritizedCountries.map(code => countryData[code]),
-    ...Object.values(countryData)
-      .sort((a: CountryData, b: CountryData) => a.name.localeCompare(b.name))
-      .map((cd: CountryData) => {
+    ...Object.values<CountryData>(countryData)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(cd => {
         if (prioritizedCountries.includes(cd.alpha2)) {
           return {
             ...cd,
@@ -39,14 +39,14 @@ const pickerItems = memoize(countryData =>
         }
         return cd
       }),
-  ].map((cd: CountryData) => ({label: cd.pickerText, value: cd.alpha2}))
+  ].map(cd => ({label: cd.pickerText, value: cd.alpha2}))
 )
 const menuItems = memoize((countryData, filter, onClick) => {
   const strippedFilter = filterNumeric(filter)
   const lowercaseFilter = filter.toLowerCase()
 
-  return Object.values(countryData)
-    .filter((cd: CountryData) => {
+  return Object.values<CountryData>(countryData)
+    .filter(cd => {
       if (strippedFilter.length > 0) {
         return filterNumeric(cd.callingCode).startsWith(strippedFilter)
       }
@@ -337,14 +337,15 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
   _toggleShowingMenu = () => {
     if (this.state.country === '') {
-      this._countrySelectorRef.current.onSelectMenu(this.props.defaultCountry || defaultCountry)
+      this._countrySelectorRef.current &&
+        this._countrySelectorRef.current.onSelectMenu(this.props.defaultCountry || defaultCountry)
     }
-    this._countrySelectorRef.current.clearFilter()
+    this._countrySelectorRef.current && this._countrySelectorRef.current.clearFilter()
     this.props.toggleShowingMenu()
   }
 
   _onPrefixEnter = () => {
-    this._phoneInputRef.current.focus()
+    this._phoneInputRef.current && this._phoneInputRef.current.focus()
   }
 
   _renderCountrySelector = () => {
@@ -393,7 +394,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
             </Kb.Box2>
           </Kb.ClickableBox>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : null} style={styles.fullWidth}>
+        <Kb.Box2 direction="horizontal" gap={isMobile ? 'tiny' : undefined} style={styles.fullWidth}>
           {isMobile && (
             <Kb.Box2
               alignItems="center"

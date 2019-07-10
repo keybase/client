@@ -62,7 +62,10 @@ const createPropProvider = (...maps: SelectorMap[]) => {
     // @ts-ignore complains about merged
     <Provider
       key={`provider:${uniqueProviderKey++}`}
-      store={createStore(state => state, merged)}
+      store={
+        // @ts-ignore
+        createStore(state => state, merged)
+      }
       merged={merged}
     >
       <GatewayProvider>

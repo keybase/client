@@ -45,18 +45,17 @@ const ServiceIconDesktop = (props: IconProps) => (
           style={styles.serviceIcon}
         />
       </Kb.WithTooltip>
-      {!!props.showCount &&
-        (Number.isInteger(props.count) ? (
-          <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
-            {props.count && props.count > 10 ? '10+' : props.count}
-          </Kb.Text>
-        ) : (
-          <Kb.Icon
-            type="icon-progress-grey-animated"
-            color={Styles.globalColors.greyDark}
-            style={styles.pendingIcon}
-          />
-        ))}
+      {!!props.showCount && props.count !== null ? (
+        <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
+          {props.count && props.count > 10 ? '10+' : props.count}
+        </Kb.Text>
+      ) : (
+        <Kb.Icon
+          type="icon-progress-grey-animated"
+          color={Styles.globalColors.greyDark}
+          style={styles.pendingIcon}
+        />
+      )}
     </Kb.Box2>
     <Kb.Box2
       direction="horizontal"
@@ -80,14 +79,14 @@ const ServiceIconMobile = (props: IconProps) => (
           {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
         ])}
       />
-      {!!props.showCount && !Number.isInteger(props.count) && (
+      {!!props.showCount && props.count === null && (
         <Kb.Icon
           type="icon-progress-grey-animated"
           color={Styles.globalColors.greyDark}
           style={styles.pendingIcon}
         />
       )}
-      {!!props.showCount && Number.isInteger(props.count) && (
+      {!!props.showCount && props.count !== null && (
         <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
           {props.count && props.count === 11 ? '10+' : props.count}
         </Kb.Text>
@@ -113,7 +112,7 @@ const ServiceTabBar = (props: Props) => (
         key={service}
         service={service}
         onClick={() => props.onChangeService(service)}
-        count={props.serviceResultCount[service]}
+        count={props.serviceResultCount[service] || null}
         showCount={props.showServiceResultCount}
         isActive={props.selectedService === service}
       />

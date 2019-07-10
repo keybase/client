@@ -61,7 +61,7 @@ export const InfoIcon = Container.namedConnect(
 )(Kb.OverlayParentHOC(_InfoIcon))
 
 type HeaderProps = {
-  onBack: () => void
+  onBack?: (() => void) | null
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
@@ -145,7 +145,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
         titleComponent={props.titleComponent}
         showInfoIcon={!!props.showHeaderInfoicon}
         showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={props.headerStyle}
+        style={props.headerStyle || null}
         negative={!!props.negativeHeader}
       />
     )}

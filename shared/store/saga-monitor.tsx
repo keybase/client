@@ -148,6 +148,7 @@ function effectTriggered(desc) {
     start: time(),
   })
   if (desc.root) {
+    // @ts-ignore
     rootEffects.push(desc.effectId)
   }
 }
@@ -438,10 +439,12 @@ function logFormatter() {
         args.shift()
       }
     }
+    // @ts-ignore
     logs.push({msg, args})
   }
 
   function appendData(...data) {
+    // @ts-ignore
     suffix = suffix.concat(data)
   }
 
@@ -475,7 +478,9 @@ function logFormatter() {
     let msgs = [],
       msgsArgs = []
     for (var i = 0; i < logs.length; i++) {
+      // @ts-ignore
       msgs.push(logs[i].msg)
+      // @ts-ignore
       msgsArgs = msgsArgs.concat(logs[i].args)
     }
     return [msgs.join('')].concat(msgsArgs).concat(suffix)

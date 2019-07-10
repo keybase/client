@@ -26,6 +26,7 @@ export default connect(
     }
 
     return {
+      // @ts-ignore
       gigabytes: availablePlan.gigabytes,
       numStars: planToStars(selectedLevel),
       paymentOption: {
@@ -33,6 +34,7 @@ export default connect(
         type: 'credit-card-no-past',
       },
       plan: selectedLevel,
+      // @ts-ignore
       price: priceToString(availablePlan.price_pennies),
     }
   },
