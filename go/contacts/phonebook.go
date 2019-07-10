@@ -21,6 +21,8 @@ type SavedContactsStore struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
+var _ libkb.SyncedContactListProvider = (*SavedContactsStore)(nil)
+
 // NewSavedContactsStore creates a new SavedContactsStore for global context.
 // The store is used to securely store list of resolved contacts.
 func NewSavedContactsStore(g *libkb.GlobalContext) *SavedContactsStore {
@@ -34,6 +36,10 @@ func NewSavedContactsStore(g *libkb.GlobalContext) *SavedContactsStore {
 	return &SavedContactsStore{
 		encryptedDB: encrypteddb.New(g, dbFn, keyFn),
 	}
+}
+
+func ServiceInit(g *libkb.GlobalContext) {
+	g.SyncedContactList = NewSavedContactsStore(g)
 }
 
 func savedContactsDbKey(uid keybase1.UID) libkb.DbKey {
@@ -50,11 +56,12 @@ type savedContactsCache struct {
 
 const savedContactsCurrentVer = 1
 
-func (s *SavedContactsStore) SaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
+func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (err error) {
 	results, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
 	if err != nil {
 		return err
 	}
+	s := mctx.G().SyncedContactList
 	return s.SaveProcessedContacts(mctx, results)
 }
 
