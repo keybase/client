@@ -28,8 +28,7 @@ export const systemPreferences = {}
 export const ipcMain = {on: () => {}}
 export const app = {getPath: () => '', on: () => {}}
 export const screen = {}
-
-export const BrowserWindow = {}
+export const BrowserWindow = {getFocusedWindow: () => {}}
 export const Menu = {}
 export const powerMonitor = {}
 export const powerSaveBlocker = {}
