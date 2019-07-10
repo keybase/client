@@ -6,7 +6,7 @@ import * as Container from '../../../util/container'
 import * as Platform from '../../../constants/platform'
 
 type OwnProps = {
-  showSystemButtons?: boolean
+  showSystemButtons: boolean
 }
 
 const mapStateToProps = (state: Container.TypedState) => ({

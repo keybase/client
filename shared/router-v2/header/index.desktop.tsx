@@ -15,7 +15,14 @@ import * as ReactIs from 'react-is'
 // A mobile-like header for desktop
 
 // Fix this as we figure out what this needs to be
-type Props = any
+type Props = {
+  allowBack: boolean
+  airdropWillShowBanner: boolean
+  loggedIn: boolean
+  onPop: () => void
+  options: any
+  style?: any
+}
 
 const useNativeFrame = new AppState().state.useNativeFrame
 const initialUseNativeFrame =

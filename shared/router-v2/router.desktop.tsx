@@ -73,6 +73,8 @@ class AppView extends React.PureComponent<any> {
           style={selectedTab ? styles.contentArea : styles.contentAreaLogin}
         >
           {scene}
+          {/*
+          // @ts-ignore Header typing not finished yet */}
           <Header
             loggedIn={!!selectedTab}
             options={descriptor.options}
