@@ -1,22 +1,15 @@
-import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import SEP7Confirm from '.'
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const error = state.wallets.sep7ConfirmError
-  if (error) {
-    return {error}
-  }
-  return {
-    inputURI: state.wallets.sep7ConfirmURI,
-    loading: !state.wallets.sep7ConfirmInfo,
-    sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
-    waitingKey: Constants.sep7WaitingKey,
-  }
-}
+const mapStateToProps = (state: Container.TypedState) => ({
+  _inputURI: state.wallets.sep7ConfirmURI,
+  loading: !state.wallets.sep7ConfirmInfo,
+  sep7ConfirmInfo: state.wallets.sep7ConfirmInfo,
+  waitingKey: Constants.sep7WaitingKey,
+})
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAcceptPay: (inputURI: string, amount: string) =>
@@ -25,51 +18,71 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps) => {
-    const {
-      amount,
-      assetCode,
-      availableToSendFiat,
-      availableToSendNative,
-      assetIssuer,
-      callbackURL,
-      displayAmountFiat,
-      memo,
-      memoType,
-      message,
-      operation,
-      originDomain,
-      recipient,
-      summary,
-      xdr,
-    } = stateProps.sep7ConfirmInfo
+const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  if (stateProps.loading) {
     return {
-      ...ownProps,
-      amount,
-      assetCode,
-      assetIssuer,
-      availableToSendFiat,
-      availableToSendNative,
-      callbackURL,
-      displayAmountFiat,
-      error: stateProps.error,
-      inputURI: stateProps.inputURI,
-      loading: stateProps.loading,
-      memo,
-      memoType,
-      message,
-      onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps.inputURI, amount),
-      onAcceptTx: () => dispatchProps._onAcceptTx(stateProps.inputURI),
+      amount: null,
+      availableToSendNative: '',
+      callbackURL: null,
+      displayAmountFiat: '',
+      loading: true,
+      memo: null,
+      memoType: null,
+      message: null,
+      onAcceptPay: (amount: string) => null,
+      onAcceptTx: () => null,
       onBack: dispatchProps.onClose,
-      operation,
-      originDomain,
-      recipient,
-      summary,
+      operation: 'pay' as const,
+      originDomain: '',
+      recipient: null,
+      summary: {
+        fee: '',
+        memo: '',
+        memoType: '',
+        operations: [],
+        source: '',
+      },
       waitingKey: stateProps.waitingKey,
-      xdr,
     }
   }
-)(SEP7Confirm)
+  const {
+    amount,
+    availableToSendNative,
+    callbackURL,
+    displayAmountFiat,
+    memo,
+    memoType,
+    message,
+    originDomain,
+    recipient,
+    summary,
+  } = stateProps.sep7ConfirmInfo
+
+  const rawOp = stateProps.sep7ConfirmInfo.operation
+  const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
+
+  if (operation === '') {
+    throw new Error('invalid operation' + stateProps.sep7ConfirmInfo.operation)
+  }
+
+  return {
+    amount,
+    availableToSendNative,
+    callbackURL,
+    displayAmountFiat,
+    loading: stateProps.loading,
+    memo,
+    memoType,
+    message,
+    onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps._inputURI, amount),
+    onAcceptTx: () => dispatchProps._onAcceptTx(stateProps._inputURI),
+    onBack: dispatchProps.onClose,
+    operation,
+    originDomain,
+    recipient,
+    summary,
+    waitingKey: stateProps.waitingKey,
+  }
+})(SEP7Confirm)
+
+export default Connected

@@ -3,8 +3,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import AddPeopleHow from './add-people-how/container'
-// @ts-ignore not typed yet
-import {Response} from 'react-native-image-picker'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import * as Styles from '../../../styles'
 
@@ -23,7 +21,7 @@ export type Props = {
   onAddSelf: () => void
   onChat: () => void
   onEditDescription: () => void
-  onEditIcon: (image?: Response) => void
+  onEditIcon: (image?) => void
   onFilePickerError: (error: Error) => void
   onRename: (() => void) | null
 } & Kb.OverlayParentProps

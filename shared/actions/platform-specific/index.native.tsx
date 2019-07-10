@@ -26,35 +26,37 @@ import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-// @ts-ignore codemod-issue
-import {showImagePicker, Response} from 'react-native-image-picker'
+import ImagePicker from 'react-native-image-picker'
 import {TypedActions, TypedState} from 'util/container'
 
 type NextURI = string
+
+const requestPermissionsToWrite = (): Promise<void> => {
+  if (isAndroid) {
+    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
+      message: 'Keybase needs access to your storage so we can download a file.',
+      title: 'Keybase Storage Permission',
+    }).then(permissionStatus =>
+      permissionStatus !== 'granted'
+        ? Promise.reject(new Error('Unable to acquire storage permissions'))
+        : Promise.resolve()
+    )
+  }
+  return Promise.resolve()
+}
+
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  return CameraRoll.saveToCameraRoll(goodPath)
+  return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
 }
 
 async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
-  if (!isIOS) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        message: 'Keybase needs access to your storage so we can download an attachment.',
-        title: 'Keybase Storage Permission',
-      }
-    )
-    if (permissionStatus !== 'granted') {
-      logger.error(logPrefix + 'Unable to acquire storage permissions')
-      throw new Error('Unable to acquire storage permissions')
-    }
-  }
   try {
+    await requestPermissionsToWrite()
     logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(fileURL, saveType)
     logger.info(logPrefix + 'Success')
@@ -379,7 +381,7 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
 
 const editAvatar = (): Promise<TypedActions> =>
   new Promise((resolve, reject) => {
-    showImagePicker({mediaType: 'photo'}, (response: Response) => {
+    ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
       if (response.didCancel) {
         resolve()
       } else if (response.error) {

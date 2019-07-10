@@ -398,6 +398,7 @@ const mergeProps = (
   }
 }
 
+// TODO fix typing, remove compose
 const Connected: React.ComponentType<OwnProps> = compose(
   namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'TeamBuilding'),
   isMobile ? HeaderHoc : PopupDialogHoc

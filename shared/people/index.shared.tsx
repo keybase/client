@@ -29,6 +29,7 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
       )
     case 'notification':
       return (
+        // @ts-ignore not sure why this is being weird w/ records
         <FollowNotification
           type={item.type}
           newFollows={item.newFollows}
@@ -57,9 +58,25 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
   return null
 }
 
+const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
+  return (
+    <Kb.Banner
+      color="green"
+      text={`Welcome to Keybase! A verification link was sent to ${email}.`}
+      onClose={clearJustSignedUpEmail}
+    />
+  )
+}
+
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {Styles.isMobile && <AirdropBanner />}
+    {!!props.signupEmail && (
+      <EmailVerificationBanner
+        email={props.signupEmail}
+        clearJustSignedUpEmail={props.clearJustSignedUpEmail}
+      />
+    )}
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}

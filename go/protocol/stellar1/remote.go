@@ -454,6 +454,7 @@ type PaymentSummaryDirect struct {
 	Ctime               TimeMs                `codec:"ctime" json:"ctime"`
 	Rtime               TimeMs                `codec:"rtime" json:"rtime"`
 	CursorToken         string                `codec:"cursorToken" json:"cursorToken"`
+	Unread              bool                  `codec:"unread" json:"unread"`
 	FromPrimary         bool                  `codec:"fromPrimary" json:"fromPrimary"`
 	BatchID             string                `codec:"batchID" json:"batchID"`
 	FromAirdrop         bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
@@ -503,6 +504,7 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		Ctime:               o.Ctime.DeepCopy(),
 		Rtime:               o.Rtime.DeepCopy(),
 		CursorToken:         o.CursorToken,
+		Unread:              o.Unread,
 		FromPrimary:         o.FromPrimary,
 		BatchID:             o.BatchID,
 		FromAirdrop:         o.FromAirdrop,

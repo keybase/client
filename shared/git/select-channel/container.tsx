@@ -63,6 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
+// TODO Fix this. This is typed as any
 export default compose(
   connect(
     mapStateToProps,

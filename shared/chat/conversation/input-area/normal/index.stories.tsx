@@ -117,6 +117,7 @@ const InputContainer = (props: Props) => {
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
     showCommandMarkdown: false,
+    showCommandStatus: false,
     showGiphySearch: false,
     showReplyPreview: false,
     showTypingStatus: false,

@@ -69,7 +69,7 @@ if (!__STORYBOOK__) {
       const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf8'))
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
-      if (pathJson.hasOwnProperty('PERF')) {
+      if (Object.prototype.hasOwnProperty.call(pathJson, 'PERF')) {
         PERF = pathJson.PERF
       }
     } catch (e) {

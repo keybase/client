@@ -6,9 +6,12 @@ import {
   createLoadHasRandomPw,
   createOnChangeLockdownMode,
   createOnChangeUseNativeFrame,
+  createOnChangeRememberPassword,
   createLoadProxyData,
+  createLoadRememberPassword,
   createSaveProxyData,
   createCertificatePinningToggled,
+  createToggleRuntimeStats,
 } from '../../actions/settings-gen'
 import * as FSGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -17,11 +20,11 @@ import * as Constants from '../../constants/settings'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from './index'
-import {connect, lifecycle} from '../../util/container'
+import {connect, lifecycle, TypedState} from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 type OwnProps = {}
-const mapStateToProps = state => {
+const mapStateToProps = (state: TypedState) => {
   const settingLockdownMode = anyWaiting(state, Constants.setLockdownModeWaitingKey)
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
@@ -31,6 +34,7 @@ const mapStateToProps = state => {
     openAtLogin: state.config.openAtLogin,
     processorProfileInProgress: Constants.processorProfileInProgress(state),
     proxyData: state.settings.proxyData,
+    rememberPassword: state.settings.password.rememberPassword,
     setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
@@ -42,9 +46,12 @@ const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
   _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
   _loadProxyData: () => dispatch(createLoadProxyData()),
+  _loadRememberPassword: () => dispatch(createLoadRememberPassword()),
   _resetCertPinningToggle: () => dispatch(createCertificatePinningToggled({toggled: null})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
+  onChangeRememberPassword: (checked: boolean) =>
+    dispatch(createOnChangeRememberPassword({remember: checked})),
   onChangeUseNativeFrame: (checked: boolean) => dispatch(createOnChangeUseNativeFrame({enabled: checked})),
   onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
   onDisableCertPinning: () =>
@@ -53,6 +60,7 @@ const mapDispatchToProps = dispatch => ({
   onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
+  onToggleRuntimeStats: () => dispatch(createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
 })
@@ -68,6 +76,7 @@ export default compose(
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
       this.props._loadProxyData()
+      this.props._loadRememberPassword()
     },
     componentWillUnmount() {
       this.props._resetCertPinningToggle()

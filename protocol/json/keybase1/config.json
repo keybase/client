@@ -299,6 +299,20 @@
         {
           "type": {
             "type": "array",
+            "items": "string"
+          },
+          "name": "localBlockCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localSyncCacheDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "DirSizeInfo"
           },
           "name": "cacheDirSizeInfo"
@@ -692,20 +706,6 @@
           "name": "fullname"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "following"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "followers"
-        },
-        {
           "type": "UserReacjis",
           "name": "userReacjis"
         }
@@ -977,6 +977,15 @@
       ],
       "response": "BootstrapStatus"
     },
+    "requestFollowerInfo": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": null
+    },
     "getRememberPassphrase": {
       "request": [
         {
@@ -1031,6 +1040,10 @@
     "getProxyData": {
       "request": [],
       "response": "ProxyData"
+    },
+    "toggleRuntimeStats": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -3,18 +3,47 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
+import AirdropQualify from './airdrop/qualify/container'
+import CreateNewAccount from './create-account/container'
+import ExportSecretKey from './export-secret-key/container'
+import LinkExisting from './link-existing/container'
+import {
+  RenameAccountPopup,
+  ReallyRemoveAccountPopup,
+  RemoveAccountPopup,
+  InflationDestination,
+  SetDefaultAccountPopup,
+} from './wallet/settings/popups'
+import Receive from './receive-modal/container'
+import Sep7Confirm from './sep7-confirm/container'
+import Sep7ConfirmError from './sep7-confirm/error'
+import Trustline from './trustline/container'
+import WalletOnboarding from './onboarding/container'
+import WhatIsStellarModal from './what-is-stellar-modal'
+import Airdrop from './airdrop/container'
+import Settings from './wallet/settings/container'
+import TransactionDetails from './transaction-details/container'
+import Wallet from './wallet/container'
 
 const sharedRoutes = {
-  airdrop: {getScreen: () => require('./airdrop/container').default, upgraded: true},
-  settings: {getScreen: () => require('./wallet/settings/container').default, upgraded: true},
-  transactionDetails: {getScreen: () => require('./transaction-details/container').default, upgraded: true},
+  airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default, upgraded: true},
+  // TODO connect broken
+  settings: {
+    getScreen: (): typeof Settings => require('./wallet/settings/container').default,
+    upgraded: true,
+  },
+  // TODO connect broken
+  transactionDetails: {
+    getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,
+    upgraded: true,
+  },
 }
 
 const walletsSubRoutes = isMobile
   ? {}
   : {
       ...sharedRoutes,
-      wallet: {getScreen: () => require('./wallet/container').default, upgraded: true},
+      wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default, upgraded: true},
     }
 
 class WalletsSubNav extends React.PureComponent<any> {
@@ -72,27 +101,60 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
-  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default, upgraded: true},
-  createNewAccount: {getScreen: () => require('./create-account/container').default, upgraded: true},
-  exportSecretKey: {getScreen: () => require('./export-secret-key/container').default, upgraded: true},
-  linkExisting: {getScreen: () => require('./link-existing/container').default, upgraded: true},
+  airdropQualify: {
+    getScreen: (): typeof AirdropQualify => require('./airdrop/qualify/container').default,
+    upgraded: true,
+  },
+  createNewAccount: {
+    getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
+    upgraded: true,
+  },
+  exportSecretKey: {
+    getScreen: (): typeof ExportSecretKey => require('./export-secret-key/container').default,
+    upgraded: true,
+  },
+  linkExisting: {
+    getScreen: (): typeof LinkExisting => require('./link-existing/container').default,
+    upgraded: true,
+  },
   reallyRemoveAccount: {
-    getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup,
+    getScreen: (): typeof ReallyRemoveAccountPopup =>
+      require('./wallet/settings/popups').ReallyRemoveAccountPopup,
     upgraded: true,
   },
-  receive: {getScreen: () => require('./receive-modal/container').default, upgraded: true},
-  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup, upgraded: true},
-  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup, upgraded: true},
-  sep7Confirm: {getScreen: () => require('./sep7-confirm/container').default, upgraded: true},
+  receive: {getScreen: (): typeof Receive => require('./receive-modal/container').default, upgraded: true},
+  removeAccount: {
+    getScreen: (): typeof RemoveAccountPopup => require('./wallet/settings/popups').RemoveAccountPopup,
+    upgraded: true,
+  },
+  renameAccount: {
+    getScreen: (): typeof RenameAccountPopup => require('./wallet/settings/popups').RenameAccountPopup,
+    upgraded: true,
+  },
+  sep7Confirm: {
+    getScreen: (): typeof Sep7Confirm => require('./sep7-confirm/container').default,
+    upgraded: true,
+  },
+  sep7ConfirmError: {
+    getScreen: (): typeof Sep7ConfirmError => require('./sep7-confirm/error').default,
+    upgraded: true,
+  },
   setDefaultAccount: {
-    getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup,
+    getScreen: (): typeof SetDefaultAccountPopup =>
+      require('./wallet/settings/popups').SetDefaultAccountPopup,
     upgraded: true,
   },
-  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination, upgraded: true},
-  trustline: {getScreen: () => require('./trustline/container').default, upgraded: true},
-  walletOnboarding: {getScreen: () => require('./onboarding/container').default, upgraded: true},
+  setInflation: {
+    getScreen: (): typeof InflationDestination => require('./wallet/settings/popups').InflationDestination,
+    upgraded: true,
+  },
+  trustline: {getScreen: (): typeof Trustline => require('./trustline/container').default, upgraded: true},
+  walletOnboarding: {
+    getScreen: (): typeof WalletOnboarding => require('./onboarding/container').default,
+    upgraded: true,
+  },
   whatIsStellarModal: {
-    getScreen: () => require('./what-is-stellar-modal').default,
+    getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
     upgraded: true,
   },
 }

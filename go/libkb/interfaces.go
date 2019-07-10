@@ -15,7 +15,6 @@ package libkb
 import (
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -114,6 +113,7 @@ type configGetter interface {
 	GetExtraNetLogging() (bool, bool)
 	GetForceLinuxKeyring() (bool, bool)
 	GetForceSecretStoreFile() (bool, bool)
+	GetRuntimeStatsEnabled() (bool, bool)
 }
 
 type CommandLine interface {
@@ -430,8 +430,10 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatWatchPosition(context.Context) (chat1.LocationWatchID, error)
+	ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error)
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
+	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
+		[]chat1.UICommandStatusActionTyp) error
 }
 
 type PromptDefault int
@@ -721,7 +723,7 @@ type FastTeamLoader interface {
 type HiddenTeamChainManager interface {
 	// We got gossip about what the latest chain-tail should be, so ratchet the
 	// chain forward; the next call to Advance() has to match.
-	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchet) error
+	Ratchet(MetaContext, keybase1.TeamID, keybase1.HiddenTeamChainRatchetSet) error
 	// We got a bunch of new links downloaded via slow or fast loader, so add them
 	// onto the HiddenTeamChain state. Ensure that the updated state is at least up to the
 	// given ratchet value.
@@ -788,12 +790,12 @@ type Stellar interface {
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
 	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
-	GetMigrationLock() *sync.Mutex
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
 	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
+	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
 }
 
 type DeviceEKStorage interface {
@@ -820,8 +822,8 @@ type UserEKBoxStorage interface {
 }
 
 type TeamEKBoxStorage interface {
-	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	Put(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEphemeralKeyBoxed) error
+	Get(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	MaxGeneration(mctx MetaContext, teamID keybase1.TeamID, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(mctx MetaContext, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	PurgeCacheForTeamID(mctx MetaContext, teamID keybase1.TeamID) error
@@ -831,10 +833,18 @@ type TeamEKBoxStorage interface {
 
 type EKLib interface {
 	KeygenIfNeeded(mctx MetaContext) error
+	// Team ephemeral keys
 	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
 	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
-	PurgeCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	PurgeCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+	PurgeTeamEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeamEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+
+	// Teambot ephemeral keys
+	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeambotEk, bool, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeambotEk, error)
+	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(mctx MetaContext, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)

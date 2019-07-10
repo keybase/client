@@ -170,6 +170,7 @@ protocol constants {
     SCEphemeralMemberAfterEK_2907,
     SCEphemeralDeviceStale_2908,
     SCEphemeralUserStale_2909,
+    SCEphemeralTeambotGenerationExists_2910,
     SCStellarError_3100,
     SCStellarBadInput_3101,
     SCStellarWrongRevision_3102,
@@ -204,6 +205,11 @@ protocol constants {
     SCNISTBadClock_3219,
     SCNISTSigBadCtime_3220,
     SCBadSignupUsernameDeleted_3221,
+    SCPhoneNumberUnknown_3400,
+    SCPhoneNumberAlreadyVerified_3401,
+    SCPhoneNumberVerificationCodeExpired_3402,
+    SCPhoneNumberWrongVerificationCode_3403,
+    SCPhoneNumberLimitExceeded_3404,
     SCNoPaperKeys_3605
   }
 }

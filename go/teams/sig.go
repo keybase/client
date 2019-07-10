@@ -64,10 +64,11 @@ func NewImplicitTeamName() (res keybase1.TeamName, err error) {
 	return res, err
 }
 
-func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
+func NewSubteamSig(mctx libkb.MetaContext, me libkb.UserForSignatures, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, *hidden.Ratchet, error) {
+	g := mctx.G()
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ret, err := libkb.ProofMetadata{
 		SigningUser: me,
@@ -80,12 +81,17 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 		PrevLinkID:  prevLinkID,
 	}.ToJSON(metaContext(g))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	entropy, err := makeSCTeamEntropy()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	ratchet, err := hidden.MakeRatchet(mctx, parentTeam.GetID())
+	if err != nil {
+		return nil, nil, err
 	}
 
 	teamSection := SCTeamSection{
@@ -94,16 +100,17 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 			ID:   (SCTeamID)(subteamID),
 			Name: (SCTeamName)(subteamName.String()),
 		},
-		Admin:   admin,
-		Entropy: entropy,
+		Admin:    admin,
+		Entropy:  entropy,
+		Ratchets: ratchet.ToTeamSection(),
 	}
 	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ret.SetValueAtPath("body.team", teamSectionJSON)
 
-	return ret, nil
+	return ret, ratchet, nil
 }
 
 func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection, merkleRoot libkb.MerkleRoot) (*jsonw.Wrapper, error) {

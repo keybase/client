@@ -7,7 +7,7 @@ export type Props = {
   children?: any | null
   borderless?: boolean
   notification?: {
-    message: string | React.ReactNode
+    message: string
     type: NotificationType
   } | null
   style?: StylesCrossPlatform

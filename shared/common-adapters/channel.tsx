@@ -1,7 +1,6 @@
 import React from 'react'
-import Text from './text'
+import Text, {StylesTextCrossPlatform} from './text'
 import {ConversationIDKey} from '../constants/types/chat2'
-import {StylesTextCrossPlatform} from '../common-adapters/text'
 
 export type Props = {
   name: string

@@ -11,6 +11,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as WaitingGen from '../actions/waiting-gen'
+import * as Tabs from '../constants/tabs'
+import * as NotificationsGen from '../actions/notifications-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
@@ -379,19 +381,40 @@ const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccou
   )
 }
 
-const loadSettings = () =>
-  RPCTypes.userLoadMySettingsRpcPromise().then(settings => {
-    const emailMap: I.Map<string, Types.EmailRow> = I.Map(
-      (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
-    )
-    const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-      (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
-    )
-    return SettingsGen.createLoadedSettings({
-      emails: emailMap,
-      phones: phoneMap,
+const loadSettings = (state: TypedState, _, logger: Saga.SagaLogger) =>
+  state.config.loggedIn &&
+  RPCTypes.userLoadMySettingsRpcPromise(null, Constants.loadSettingsWaitingKey)
+    .then(settings => {
+      const emailMap: I.Map<string, Types.EmailRow> = I.Map(
+        (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
+      )
+      const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
+        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+      )
+      const loadedAction = SettingsGen.createLoadedSettings({
+        emails: emailMap,
+        phones: phoneMap,
+      })
+
+      const emailCount = (settings.emails || []).reduce(
+        (count, row) => (row.isVerified ? count : count + 1),
+        0
+      )
+      const phoneCount = (settings.phoneNumbers || []).reduce(
+        (count, row) => (row.verified ? count : count + 1),
+        0
+      )
+
+      const badgeAction = NotificationsGen.createSetBadgeCounts({
+        counts: I.Map({
+          [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
+        }) as I.Map<Tabs.Tab, number>,
+      })
+      return [loadedAction, badgeAction]
     })
-  })
+    .catch(e => {
+      logger.warn(`Error loading settings: ${e.message}`)
+    })
 
 const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
   visibility === ChatTypes.Keybase1.IdentityVisibility.private
@@ -408,7 +431,9 @@ const editEmail = (state, action: SettingsGen.EditEmailPayload, logger) => {
     return RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
   }
   if (action.payload.verify) {
-    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
+    return RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email}).then(() =>
+      SettingsGen.createSentVerificationEmail({email: action.payload.email})
+    )
   }
   if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
     return RPCTypes.emailsSetVisibilityEmailRpcPromise({
@@ -495,6 +520,9 @@ const saveProxyData = (_, proxyDataPayload: SettingsGen.SaveProxyDataPayload) =>
     logger.warn('Error in saving proxy data', err)
   )
 
+const toggleRuntimeStats = () =>
+  RPCTypes.configToggleRuntimeStatsRpcPromise().catch(err => logger.warn('error toggling runtime stats', err))
+
 const setLockdownMode = (state: TypedState, action: SettingsGen.OnChangeLockdownModePayload) =>
   state.config.loggedIn &&
   RPCTypes.accountSetLockdownModeRpcPromise(
@@ -570,7 +598,7 @@ const unfurlSettingsSaved = (state: TypedState, action: SettingsGen.UnfurlSettin
 // this happens.
 const loadHasRandomPW = (state: TypedState) =>
   state.settings.password.randomPW === null
-    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
+    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false, noShortTimeout: false})
         .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
         .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
     : null
@@ -620,8 +648,12 @@ const verifyPhoneNumber = (_, action: SettingsGen.VerifyPhoneNumberPayload, logg
       return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
     })
     .catch(err => {
-      logger.warn('error ', err.message)
-      return SettingsGen.createVerifiedPhoneNumber({error: err.message, phoneNumber})
+      const message =
+        err.code === RPCTypes.StatusCode.scphonenumberwrongverificationcode
+          ? 'Incorrect code, please try again.'
+          : err.message
+      logger.warn('error ', message)
+      return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
     })
 }
 
@@ -661,6 +693,29 @@ const editContactImportEnabled = (
       ).then(() => SettingsGen.createLoadContactImportEnabled())
     : logger.warn('no username')
 
+const addEmail = (state: TypedState, action: SettingsGen.AddEmailPayload, logger: Saga.SagaLogger) => {
+  if (state.settings.email.error) {
+    logger.info('email error; bailing')
+    return
+  }
+  const {email, searchable} = action.payload
+  return RPCTypes.emailsAddEmailRpcPromise(
+    {
+      email,
+      visibility: searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private,
+    },
+    Constants.addEmailWaitingKey
+  )
+    .then(() => {
+      logger.info('success')
+      return SettingsGen.createAddedEmail({email})
+    })
+    .catch(err => {
+      logger.warn(`error: ${err.message}`)
+      return SettingsGen.createAddedEmail({email, error: err})
+    })
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -678,12 +733,9 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.deleteAccountForever,
     deleteAccountForever
   )
-  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>(SettingsGen.loadSettings, loadSettings)
-  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
-  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
-  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
-    SettingsGen.onSubmitNewEmail,
-    onSubmitNewEmail
+  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload>(
+    [SettingsGen.loadSettings, ConfigGen.bootstrapStatusLoaded],
+    loadSettings
   )
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
     SettingsGen.onSubmitNewPassword,
@@ -733,7 +785,14 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.LoadProxyDataPayload>(SettingsGen.loadProxyData, loadProxyData)
   yield* Saga.chainAction<SettingsGen.SaveProxyDataPayload>(SettingsGen.saveProxyData, saveProxyData)
 
+  // Runtime Stats
+  yield* Saga.chainAction<SettingsGen.ToggleRuntimeStatsPayload>(
+    SettingsGen.toggleRuntimeStats,
+    toggleRuntimeStats
+  )
+
   // Phone numbers
+  yield* Saga.chainAction<SettingsGen.EditPhonePayload>(SettingsGen.editPhone, editPhone, 'editPhone')
   yield* Saga.chainAction<SettingsGen.AddPhoneNumberPayload>(
     SettingsGen.addPhoneNumber,
     addPhoneNumber,
@@ -745,6 +804,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     'verifyPhoneNumber'
   )
 
+  // Contacts
   yield* Saga.chainAction<SettingsGen.LoadContactImportEnabledPayload>(
     SettingsGen.loadContactImportEnabled,
     loadContactImportEnabled,
@@ -754,6 +814,14 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.editContactImportEnabled,
     editContactImportEnabled,
     'editContactImportEnabled'
+  )
+
+  // Emails
+  yield* Saga.chainAction<SettingsGen.EditEmailPayload>(SettingsGen.editEmail, editEmail, 'editEmail')
+  yield* Saga.chainAction<SettingsGen.AddEmailPayload>(SettingsGen.addEmail, addEmail, 'addEmail')
+  yield* Saga.chainGenerator<SettingsGen.OnSubmitNewEmailPayload>(
+    SettingsGen.onSubmitNewEmail,
+    onSubmitNewEmail
   )
 }
 

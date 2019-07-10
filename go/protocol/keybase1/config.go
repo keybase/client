@@ -159,6 +159,8 @@ type ExtendedStatus struct {
 	DefaultDeviceID        DeviceID            `codec:"defaultDeviceID" json:"defaultDeviceID"`
 	LocalDbStats           []string            `codec:"localDbStats" json:"localDbStats"`
 	LocalChatDbStats       []string            `codec:"localChatDbStats" json:"localChatDbStats"`
+	LocalBlockCacheDbStats []string            `codec:"localBlockCacheDbStats" json:"localBlockCacheDbStats"`
+	LocalSyncCacheDbStats  []string            `codec:"localSyncCacheDbStats" json:"localSyncCacheDbStats"`
 	CacheDirSizeInfo       []DirSizeInfo       `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
 	UiRouterMapping        map[string]int      `codec:"uiRouterMapping" json:"uiRouterMapping"`
 }
@@ -266,6 +268,28 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.LocalChatDbStats),
+		LocalBlockCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LocalBlockCacheDbStats),
+		LocalSyncCacheDbStats: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LocalSyncCacheDbStats),
 		CacheDirSizeInfo: (func(x []DirSizeInfo) []DirSizeInfo {
 			if x == nil {
 				return nil
@@ -622,42 +646,18 @@ type BootstrapStatus struct {
 	DeviceID    DeviceID    `codec:"deviceID" json:"deviceID"`
 	DeviceName  string      `codec:"deviceName" json:"deviceName"`
 	Fullname    FullName    `codec:"fullname" json:"fullname"`
-	Following   []string    `codec:"following" json:"following"`
-	Followers   []string    `codec:"followers" json:"followers"`
 	UserReacjis UserReacjis `codec:"userReacjis" json:"userReacjis"`
 }
 
 func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 	return BootstrapStatus{
-		Registered: o.Registered,
-		LoggedIn:   o.LoggedIn,
-		Uid:        o.Uid.DeepCopy(),
-		Username:   o.Username,
-		DeviceID:   o.DeviceID.DeepCopy(),
-		DeviceName: o.DeviceName,
-		Fullname:   o.Fullname.DeepCopy(),
-		Following: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Following),
-		Followers: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Followers),
+		Registered:  o.Registered,
+		LoggedIn:    o.LoggedIn,
+		Uid:         o.Uid.DeepCopy(),
+		Username:    o.Username,
+		DeviceID:    o.DeviceID.DeepCopy(),
+		DeviceName:  o.DeviceName,
+		Fullname:    o.Fullname.DeepCopy(),
 		UserReacjis: o.UserReacjis.DeepCopy(),
 	}
 }
@@ -901,6 +901,10 @@ type GetBootstrapStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type RequestFollowerInfoArg struct {
+	Uid UID `codec:"uid" json:"uid"`
+}
+
 type GetRememberPassphraseArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -920,6 +924,9 @@ type SetProxyDataArg struct {
 }
 
 type GetProxyDataArg struct {
+}
+
+type ToggleRuntimeStatsArg struct {
 }
 
 type ConfigInterface interface {
@@ -945,6 +952,7 @@ type ConfigInterface interface {
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
+	RequestFollowerInfo(context.Context, UID) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
 	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
@@ -952,6 +960,7 @@ type ConfigInterface interface {
 	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
+	ToggleRuntimeStats(context.Context) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1198,6 +1207,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"requestFollowerInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestFollowerInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RequestFollowerInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RequestFollowerInfoArg)(nil), args)
+						return
+					}
+					err = i.RequestFollowerInfo(ctx, typedArgs[0].Uid)
+					return
+				},
+			},
 			"getRememberPassphrase": {
 				MakeArg: func() interface{} {
 					var ret [1]GetRememberPassphraseArg
@@ -1265,6 +1289,16 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.GetProxyData(ctx)
+					return
+				},
+			},
+			"toggleRuntimeStats": {
+				MakeArg: func() interface{} {
+					var ret [1]ToggleRuntimeStatsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.ToggleRuntimeStats(ctx)
 					return
 				},
 			},
@@ -1375,6 +1409,12 @@ func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (re
 	return
 }
 
+func (c ConfigClient) RequestFollowerInfo(ctx context.Context, uid UID) (err error) {
+	__arg := RequestFollowerInfoArg{Uid: uid}
+	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{__arg}, nil)
+	return
+}
+
 func (c ConfigClient) GetRememberPassphrase(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := GetRememberPassphraseArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getRememberPassphrase", []interface{}{__arg}, &res)
@@ -1401,5 +1441,10 @@ func (c ConfigClient) SetProxyData(ctx context.Context, proxyData ProxyData) (er
 
 func (c ConfigClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []interface{}{GetProxyDataArg{}}, &res)
+	return
+}
+
+func (c ConfigClient) ToggleRuntimeStats(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []interface{}{ToggleRuntimeStatsArg{}}, nil)
 	return
 }

@@ -230,7 +230,8 @@ func invalidateCaches(mctx libkb.MetaContext, teamID keybase1.TeamID) {
 	// this team.
 	mctx.G().NotifyRouter.HandleFavoritesChanged(mctx.G().GetMyUID())
 	if ekLib := mctx.G().GetEKLib(); ekLib != nil {
-		ekLib.PurgeCachesForTeamID(mctx, teamID)
+		ekLib.PurgeTeamEKCachesForTeamID(mctx, teamID)
+		ekLib.PurgeTeambotEKCachesForTeamID(mctx, teamID)
 	}
 }
 

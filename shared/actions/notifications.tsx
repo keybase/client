@@ -29,6 +29,7 @@ const setupNotifications = () =>
       paperkeys: false,
       pgp: true,
       reachability: true,
+      runtimestats: true,
       service: true,
       session: true,
       team: true,

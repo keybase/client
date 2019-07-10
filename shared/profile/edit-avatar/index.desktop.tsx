@@ -331,9 +331,9 @@ class EditAvatar extends React.Component<_Props, State> {
               type="file"
             />
             {this.state.loading && (
-              <Kb.Box style={styles.spinnerContainer}>
-                <Kb.ProgressIndicator style={Kb.iconCastPlatformStyles(styles.spinner)} />
-              </Kb.Box>
+              <Kb.Box2 direction="vertical" fullHeight={true} style={styles.spinnerContainer}>
+                <Kb.ProgressIndicator type="Large" style={Kb.iconCastPlatformStyles(styles.spinner)} />
+              </Kb.Box2>
             )}
             <Kb.OrientedImage
               forwardedRef={this._image}
@@ -457,16 +457,11 @@ const styles = Styles.styleSheetCreate({
   },
   overflowHidden: {overflow: 'hidden'},
   spinner: {
-    left: '50%',
-    marginLeft: -30,
-    marginTop: -30,
-    position: 'absolute',
-    top: '50%',
+    alignSelf: 'center',
   },
   spinnerContainer: {
     backgroundColor: Styles.globalColors.grey,
-    height: '100%',
-    width: '100%',
+    justifyContent: 'center',
   },
 })
 

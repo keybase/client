@@ -58,6 +58,10 @@ class UnfurlGiphy extends React.Component<Props> {
 
 const styles = Styles.styleSheetCreate({
   collapse: Styles.platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: Styles.globalMargins.xxtiny,
+    },
     isMobile: {
       alignSelf: 'center',
     },

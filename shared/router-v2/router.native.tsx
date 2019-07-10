@@ -6,7 +6,7 @@ import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
-import {createStackNavigator} from 'react-navigation-stack'
+import Stack from 'react-navigation-stack'
 import * as Tabs from '../constants/tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -17,6 +17,7 @@ import * as Shim from './shim.native'
 import {debounce} from 'lodash-es'
 import logger from '../logger'
 import OutOfDate from '../app/out-of-date'
+import RuntimeStats from '../app/runtime-stats/container'
 
 // turn on screens
 useScreens()
@@ -70,16 +71,18 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
 )
 
 const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
-const getBadgeNumber = (navBadges, routeName) =>
-  routeName === Tabs.settingsTab
-    ? settingsTabChildren.reduce((res, tab) => res + (navBadges.get(tab) || 0), 0)
-    : navBadges.get(routeName)
 
 type OwnProps = {focused: boolean; routeName: Tabs.Tab}
 const ConnectedTabBarIcon = connect(
-  (state: any, {routeName}: OwnProps) => ({
-    badgeNumber: getBadgeNumber(state.notifications.navBadges, routeName),
-  }),
+  (state, {routeName}: OwnProps) => {
+    const onSettings = routeName === Tabs.settingsTab
+    const badgeNumber = (onSettings ? settingsTabChildren : [routeName]).reduce(
+      (res, tab) => res + (state.notifications.navBadges.get(tab) || 0),
+      // notifications gets badged on native if there's no push, special case
+      onSettings && !state.push.hasPermissions ? 1 : 0
+    )
+    return {badgeNumber}
+  },
   () => ({}),
   (s, _, o: OwnProps) => ({
     badgeNumber: s.badgeNumber,
@@ -98,7 +101,7 @@ const TabBarIconContainer = props => (
 
 const TabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
-    map[tab] = createStackNavigator(Shim.shim(routes), {
+    map[tab] = Stack.createStackNavigator(Shim.shim(routes), {
       defaultNavigationOptions,
       headerMode,
       initialRouteName: tabRoots[tab],
@@ -150,7 +153,7 @@ const tabStyles = Styles.styleSheetCreate({
   },
 })
 
-const LoggedInStackNavigator = createStackNavigator(
+const LoggedInStackNavigator = Stack.createStackNavigator(
   {
     Main: TabNavigator,
     ...Shim.shim(modalRoutes),
@@ -161,7 +164,7 @@ const LoggedInStackNavigator = createStackNavigator(
   }
 )
 
-const LoggedOutStackNavigator = createStackNavigator(
+const LoggedOutStackNavigator = Stack.createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
     defaultNavigationOptions: {
@@ -264,6 +267,7 @@ class RNApp extends React.PureComponent<any, any> {
         <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
         <GlobalError />
         <OutOfDate />
+        <RuntimeStats />
       </>
     )
   }

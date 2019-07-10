@@ -4,7 +4,6 @@ import (
 	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	sig3 "github.com/keybase/client/go/sig3"
 	storage "github.com/keybase/client/go/teams/storage"
 )
 
@@ -38,7 +37,7 @@ func (m *ChainManager) Tail(mctx libkb.MetaContext, id keybase1.TeamID) (*keybas
 	if state == nil {
 		return nil, nil
 	}
-	return state.Ratchet.MaxTriple(), nil
+	return state.MaxTriple(), nil
 }
 
 func (m *ChainManager) loadLocked(mctx libkb.MetaContext, arg loadArg) (ret *keybase1.HiddenTeamChain, frozen bool, err error) {
@@ -147,58 +146,25 @@ func (m *ChainManager) loadAndMutate(mctx libkb.MetaContext, arg loadArg) (state
 	return state, nil
 }
 
-func (m *ChainManager) checkRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.LinkTripleAndTime) (err error) {
-	if ratchet.Triple.SeqType != sig3.ChainTypeTeamPrivateHidden {
-		return NewManagerError("bad chain type: %s", ratchet.Triple.SeqType)
-	}
-
-	// The new ratchet can't clash the existing accepted ratchets
-	for _, accepted := range state.Ratchet.Flat() {
-		if accepted.Clashes(ratchet) {
-			return NewManagerError("bad ratchet, clashes existing pin: %+v != %v", accepted, accepted)
-		}
-	}
-
-	q := ratchet.Triple.Seqno
-	link, ok := state.Outer[q]
-
-	// If either the ratchet didn't match a known link, or equals what's already there, great.
-	if ok && !link.Eq(ratchet.Triple.LinkID) {
-		return NewManagerError("Ratchet failed to match a currently accepted chainlink: %+v", ratchet)
-	}
-
-	return nil
-}
-
-func (m *ChainManager) checkRatchets(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchet) (err error) {
-	for _, r := range ratchet.Flat() {
-		err = m.checkRatchet(mctx, state, r)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (m *ChainManager) ratchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchet) (ret bool, err error) {
-	err = m.checkRatchets(mctx, state, ratchet)
+func (m *ChainManager) ratchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, ratchet keybase1.HiddenTeamChainRatchetSet) (ret bool, err error) {
+	err = checkRatchets(mctx, state, ratchet)
 	if err != nil {
 		return false, err
 	}
-	updated := state.Ratchet.Merge(ratchet)
+	updated := state.RatchetSet.Merge(ratchet)
 	return updated, nil
 }
 
 // Ratchet should be called when we know about advances in this chain but don't necessarily have the links to back the
 // ratchet up. We'll check them later when next we refresh. But we do check that the ratchet is consistent with the known
 // data (and ratchets) that we have.
-func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratchet keybase1.HiddenTeamChainRatchet) (err error) {
+func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratchets keybase1.HiddenTeamChainRatchetSet) (err error) {
 	mctx = withLogTag(mctx)
-	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Ratchet(%s, %+v)", id, ratchet), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("hidden.ChainManager#Ratchet(%s, %+v)", id, ratchets), func() error { return err })()
 	arg := loadArg{
 		id: id,
 		mutate: func(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (bool, error) {
-			return m.ratchet(mctx, state, ratchet)
+			return m.ratchet(mctx, state, ratchets)
 		},
 	}
 	_, err = m.loadAndMutate(mctx, arg)
@@ -209,6 +175,12 @@ func (m *ChainManager) Ratchet(mctx libkb.MetaContext, id keybase1.TeamID, ratch
 }
 
 func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (err error) {
+
+	// nothing to check if no new links
+	if len(newData.Outer) == 0 {
+		return nil
+	}
+
 	if expectedPrev == nil {
 		_, ok := newData.Outer[keybase1.Seqno(1)]
 		if !ok {
@@ -227,7 +199,7 @@ func (m *ChainManager) checkPrev(mctx libkb.MetaContext, state *keybase1.HiddenT
 }
 
 func (m *ChainManager) advance(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain, newData keybase1.HiddenTeamChain, expectedPrev *keybase1.LinkTriple) (update bool, err error) {
-	err = m.checkRatchetsOnAdvance(mctx, state.Ratchet, newData)
+	err = m.checkRatchetsOnAdvance(mctx, state.RatchetSet, newData)
 	if err != nil {
 		return false, err
 	}
@@ -251,8 +223,8 @@ func (m *ChainManager) checkRatchetOnAdvance(mctx libkb.MetaContext, r keybase1.
 	return nil
 }
 
-func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchet keybase1.HiddenTeamChainRatchet, newData keybase1.HiddenTeamChain) (err error) {
-	for _, r := range ratchet.Flat() {
+func (m *ChainManager) checkRatchetsOnAdvance(mctx libkb.MetaContext, ratchets keybase1.HiddenTeamChainRatchetSet, newData keybase1.HiddenTeamChain) (err error) {
+	for _, r := range ratchets.Flat() {
 		err = m.checkRatchetOnAdvance(mctx, r, newData)
 		if err != nil {
 			return err

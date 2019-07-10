@@ -298,16 +298,18 @@ protocol teams {
     boolean loadedLatest;
   }
 
-  record HiddenTeamChainRatchet{
+  enum RatchetType {
     // Ratchets that come as "down pointers" from the main team chean.
-    union { null, LinkTripleAndTime } main;
-
+    MAIN_0,
     // Ratchets that come from the blinded merkle tree for this team.
-    union { null, LinkTripleAndTime } blinded;
-
+    BLINDED_1,
     // When we make changes to the hidden chain ourselves, then we bump this
     // ratchet.
-    union { null, LinkTripleAndTime } self;
+    SELF_2
+  }
+
+  record HiddenTeamChainRatchetSet{
+    map<RatchetType,LinkTripleAndTime> ratchets;
   }
 
   record HiddenTeamChain {
@@ -344,7 +346,7 @@ protocol teams {
     // This is the latest hidden chain tail link known for this team;
     // the existence of a known ratchet means the team better be at least up to this
     // point, and maybe beyond it.
-    HiddenTeamChainRatchet ratchet;
+    HiddenTeamChainRatchetSet ratchetSet;
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;

@@ -838,25 +838,29 @@ const onNewChatActivity = (state, action: EngineGen.Chat1NotifyChatNewChatActivi
       break
     }
     case RPCChatTypes.ChatActivityType.membersUpdate:
-      const convID = activity.membersUpdate && activity.membersUpdate.convID
-      if (convID) {
-        actions = [
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [Types.conversationIDToKey(convID)],
-            force: true,
-          }),
-        ]
+      {
+        const convID = activity.membersUpdate && activity.membersUpdate.convID
+        if (convID) {
+          actions = [
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: [Types.conversationIDToKey(convID)],
+              force: true,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
-      const setAppNotificationSettings = activity.setAppNotificationSettings
-      if (setAppNotificationSettings) {
-        actions = [
-          Chat2Gen.createNotificationSettingsUpdated({
-            conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-            settings: setAppNotificationSettings.settings,
-          }),
-        ]
+      {
+        const setAppNotificationSettings = activity.setAppNotificationSettings
+        if (setAppNotificationSettings) {
+          actions = [
+            Chat2Gen.createNotificationSettingsUpdated({
+              conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+              settings: setAppNotificationSettings.settings,
+            }),
+          ]
+        }
       }
       break
     case RPCChatTypes.ChatActivityType.teamtype:
@@ -2840,6 +2844,18 @@ const onChatCommandMarkdown = (status, action: EngineGen.Chat1ChatUiChatCommandM
   })
 }
 
+const onChatCommandStatus = (status, action: EngineGen.Chat1ChatUiChatCommandStatusPayload) => {
+  const {convID, displayText, typ, actions} = action.payload.params
+  return Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    info: {
+      actions,
+      displayText,
+      displayType: typ,
+    },
+  })
+}
+
 const onChatMaybeMentionUpdate = (state, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
   const {teamName, channel, info} = action.payload.params
   return Chat2Gen.createSetMaybeMentionInfo({
@@ -2856,7 +2872,12 @@ const onChatWatchPosition = (state, action: EngineGen.Chat1ChatUiChatWatchPositi
         RPCChatTypes.localLocationUpdateRpcPromise({
           coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
         }),
-      err => logger.warn(err.message),
+      err => {
+        logger.warn(err.message)
+        if (err.code && err.code === 1) {
+          RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
+        }
+      },
       {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)
@@ -3519,6 +3540,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1ChatUiChatCommandMarkdown,
     onChatCommandMarkdown,
     'onChatCommandMarkdown'
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandStatusPayload>(
+    EngineGen.chat1ChatUiChatCommandStatus,
+    onChatCommandStatus,
+    'onChatCommandStatus'
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload>(
     EngineGen.chat1ChatUiChatMaybeMentionUpdate,

@@ -36,7 +36,7 @@ func newMockChatUI() *mockChatUI {
 	}
 }
 
-func (m *mockChatUI) ChatWatchPosition(context.Context) (chat1.LocationWatchID, error) {
+func (m *mockChatUI) ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error) {
 	m.watchID++
 	m.watchCh <- m.watchID
 	return m.watchID, nil
@@ -47,18 +47,28 @@ func (m *mockChatUI) ChatClearWatch(ctx context.Context, watchID chat1.LocationW
 	return nil
 }
 
+func (m *mockChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
+	chat1.UICommandStatusDisplayTyp, []chat1.UICommandStatusActionTyp) error {
+	return nil
+}
+
+type unfurlData struct {
+	done   bool
+	coords []chat1.Coordinate
+}
+
 type mockUnfurler struct {
 	globals.Contextified
 	types.Unfurler
 	t        *testing.T
-	unfurlCh chan []chat1.Coordinate
+	unfurlCh chan unfurlData
 }
 
 func newMockUnfurler(g *globals.Context, t *testing.T) *mockUnfurler {
 	return &mockUnfurler{
 		Contextified: globals.NewContextified(g),
 		t:            t,
-		unfurlCh:     make(chan []chat1.Coordinate, 10),
+		unfurlCh:     make(chan unfurlData, 10),
 	}
 }
 
@@ -78,22 +88,30 @@ func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 	livekey := u.Query().Get("livekey")
 	slat := u.Query().Get("lat")
 	slon := u.Query().Get("lon")
+	sdone := u.Query().Get("done")
 	shouldNotify := false
 	if len(livekey) > 0 {
+		done, err := strconv.ParseBool(sdone)
+		require.NoError(m.t, err)
 		shouldNotify = true
-		m.unfurlCh <- m.G().LiveLocationTracker.GetCoordinates(ctx, types.LiveLocationKey(livekey))
+		m.unfurlCh <- unfurlData{
+			done:   done,
+			coords: m.G().LiveLocationTracker.GetCoordinates(ctx, types.LiveLocationKey(livekey)),
+		}
 	} else if len(slat) > 0 {
 		shouldNotify = true
 		lat, err := strconv.ParseFloat(slat, 64)
 		require.NoError(m.t, err)
 		lon, err := strconv.ParseFloat(slon, 64)
 		require.NoError(m.t, err)
-		m.unfurlCh <- []chat1.Coordinate{
-			chat1.Coordinate{
-				Lat: lat,
-				Lon: lon,
-			},
-		}
+		m.unfurlCh <- unfurlData{
+			done: true,
+			coords: []chat1.Coordinate{
+				chat1.Coordinate{
+					Lat: lat,
+					Lon: lon,
+				},
+			}}
 	}
 	if !shouldNotify {
 		return
@@ -110,13 +128,15 @@ func (m *mockUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convI
 		&activity, chat1.ChatActivitySource_LOCAL)
 }
 
-func checkCoords(t *testing.T, unfurler *mockUnfurler, refcoords []chat1.Coordinate, timeout time.Duration) {
+func checkCoords(t *testing.T, unfurler *mockUnfurler, refcoords []chat1.Coordinate, timeout time.Duration) bool {
+	var dat unfurlData
 	select {
-	case coords := <-unfurler.unfurlCh:
-		require.Equal(t, refcoords, coords)
+	case dat = <-unfurler.unfurlCh:
+		require.Equal(t, refcoords, dat.coords)
 	case <-time.After(timeout):
 		require.Fail(t, "no map unfurl")
 	}
+	return dat.done
 }
 
 func updateCoords(t *testing.T, livelocation *maps.LiveLocationTracker, coords []chat1.Coordinate,
@@ -339,8 +359,11 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	default:
 	}
 	// trackers fire after time moves up
-	checkCoords(t, unfurler, coords, timeout)
-	checkCoords(t, unfurler, coords, timeout)
+	done1 := checkCoords(t, unfurler, coords, timeout)
+	done2 := checkCoords(t, unfurler, coords, timeout)
+	if !(done1 || done2) {
+		checkCoords(t, unfurler, coords, timeout) // tracker 1 expires and posts again
+	}
 	select {
 	case <-unfurler.unfurlCh:
 		require.Fail(t, "no more unfurls here")
@@ -373,4 +396,48 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no clear call")
 	}
+}
+
+func TestChatSrvLiveLocationStopTracking(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvLiveLocationStopTracking", 1)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	chatUI := newMockChatUI()
+	clock := clockwork.NewFakeClock()
+	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
+	timeout := 20 * time.Second
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	coordsCh := make(chan struct{}, 10)
+	unfurler := newMockUnfurler(tc.Context(), t)
+	tc.ChatG.Unfurler = unfurler
+	livelocation := maps.NewLiveLocationTracker(tc.Context())
+	livelocation.SetClock(clock)
+	livelocation.TestingCoordsAddedCh = coordsCh
+	tc.ChatG.LiveLocationTracker = livelocation
+	tc.ChatG.CommandsSource.(*commands.Source).SetClock(clock)
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
+	require.False(t, livelocation.ActivelyTracking(context.TODO()))
+
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/location live 1h",
+	}))
+	coords := []chat1.Coordinate{chat1.Coordinate{
+		Lat: 40.800348,
+		Lon: -73.968784,
+	}}
+	updateCoords(t, livelocation, coords, nil, coordsCh)
+	checkCoords(t, unfurler, coords, timeout)
+
+	livelocation.StopAllTracking(context.TODO())
+	checkCoords(t, unfurler, coords, timeout)
+
+	livelocation.Start(context.TODO(), users[0].User.GetUID().ToBytes())
+	require.False(t, livelocation.ActivelyTracking(context.TODO()))
 }
