@@ -9,7 +9,7 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import Available from '../available/container'
 import {AmountInput, sharedStyles} from './shared'
 import CalculateAdvancedButton from '../calculate-advanced-button'
-import PaymentPathCircle, {pathCircleSmallDiameter} from '../../common/payment-path-circle'
+import PaymentPathCircle, {pathCircleDiameter} from '../../common/payment-path-circle'
 
 type EmptyProps = {}
 
@@ -148,7 +148,7 @@ export const AssetPathIntermediate = () => {
           styles.intermediateTopCircleContainer,
         ])}
       >
-        <PaymentPathCircle isLarge={false} />
+        <PaymentPathCircle />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
@@ -158,7 +158,7 @@ export const AssetPathIntermediate = () => {
           styles.intermediateBottomCircleContainer,
         ])}
       >
-        <PaymentPathCircle isLarge={false} />
+        <PaymentPathCircle />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
@@ -220,7 +220,7 @@ export const AssetPathIntermediate = () => {
                   style={styles.intermediateAssetPathItemCircleContainerOuter}
                 >
                   <Kb.Box style={styles.intermediateAssetPathItemCircleContainerInner}>
-                    <PaymentPathCircle isLarge={false} />
+                    <PaymentPathCircle />
                   </Kb.Box>
                 </Kb.Box2>
               </Kb.Box2>
@@ -401,8 +401,8 @@ const styles = Styles.styleSheetCreate({
     width: 2,
   },
   intermediateLineContainer: {
-    bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleSmallDiameter),
-    top: -(Styles.globalMargins.medium - pathCircleSmallDiameter),
+    bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleDiameter),
+    top: -(Styles.globalMargins.medium - pathCircleDiameter),
   },
   intermediateTopCircleContainer: {
     top: -Styles.globalMargins.medium,
