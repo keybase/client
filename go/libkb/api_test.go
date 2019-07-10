@@ -5,10 +5,11 @@ package libkb
 
 import (
 	"crypto/x509"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -236,4 +237,21 @@ func TestInstallIDHeaders(t *testing.T) {
 	if installID != "dummy-install-id" {
 		t.Fatalf("expected install ID to be reflected back, got %s", res.Body.MarshalPretty())
 	}
+}
+
+func TestIced3(t *testing.T) {
+	type versionRes struct {
+		AppStatusEmbed
+		Version string `jsonkey:"version"`
+	}
+
+	tc := SetupTest(t, "prod_ca", 1)
+	defer tc.Cleanup()
+	mctx := NewMetaContextForTest(tc)
+
+	arg := APIArg{Endpoint: "test/iced_ver"}
+	var res versionRes
+	err := tc.G.API.GetDecode(mctx, arg, &res)
+	require.NoError(t, err)
+	require.Equal(t, "iced3", res.Version)
 }
