@@ -102,7 +102,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   }
 
   render() {
-    let content = null
+    let content: React.ReactNode = null
     switch (this.state.view) {
       case 'key':
         content = (

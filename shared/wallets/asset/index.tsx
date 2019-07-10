@@ -32,9 +32,9 @@ export default class Asset extends React.Component<Props, State> {
     }))
   }
 
-  _openInfoURL = e => {
+  _openInfoURL = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     e.stopPropagation()
-    this.props.openInfoURL()
+    this.props.openInfoURL && this.props.openInfoURL()
   }
 
   render() {
