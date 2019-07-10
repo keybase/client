@@ -26,6 +26,8 @@ export const makeChat = I.Record<Types._ChatState>({
 })
 
 export const makeEmail = I.Record<Types._EmailState>({
+  addedEmail: null,
+  addingEmail: null,
   emails: null,
   error: null,
   newEmail: '',
@@ -70,13 +72,13 @@ export const makePassword = I.Record<Types._PasswordState>({
 export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
   error: '',
   pendingVerification: '',
-  pendingVerificationAllowSearch: null,
   phones: null,
   verificationState: null,
 })
 
 export const makeContacts = I.Record<Types._ContactsState>({
   importEnabled: null,
+  importedCount: null,
   permissionStatus: 'unknown',
 })
 
@@ -186,5 +188,8 @@ export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
+export const resendVerificationForPhoneWaitingKey = 'settings:resendVerificationForPhone'
 export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
+export const addEmailWaitingKey = 'settings:addPhoneNumber'
+export const loadSettingsWaitingKey = 'settings:loadSettings'

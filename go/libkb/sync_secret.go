@@ -90,7 +90,7 @@ func (ss *SecretSyncer) Clear() error {
 	return nil
 }
 
-func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err error) {
+func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExpiration bool) (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
 	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey(uid))

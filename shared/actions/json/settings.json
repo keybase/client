@@ -6,15 +6,18 @@
   ],
   "actions": {
     "addPhoneNumber": {
-      "_description": "Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.",
+      "_description": "Add a phone number and kick off a text message with a verification code.",
       "allowSearch": "boolean",
-      "phoneNumber": "string",
-      "resend?": "boolean"
+      "phoneNumber": "string"
     },
     "addedPhoneNumber": {
       "_description": "We just attempted to add a phone number and either got an error or the number is pending verification.",
       "allowSearch": "boolean",
       "error?": "string",
+      "phoneNumber": "string"
+    },
+    "resendVerificationForPhoneNumber": {
+      "_description": "Resend verification code for a phone number that's already added.",
       "phoneNumber": "string"
     },
     "verifyPhoneNumber": {
@@ -27,8 +30,11 @@
       "error?": "string",
       "phoneNumber": "string"
     },
-    "clearPhoneNumberVerification": {
-      "_description": "Cancel a phone number verification-in-progress."
+    "clearPhoneNumberAdd": {
+      "_description": "Cancel adding a phone number."
+    },
+    "clearPhoneNumberErrors": {
+      "_description": "Clear only error from phone number add flow."
     },
     "dbNuke": {},
     "deleteAccountForever": {},
@@ -36,7 +42,7 @@
       "email": "string",
       "delete?": "boolean",
       "makePrimary?": "boolean",
-      "toggleSearchable?": "boolean",
+      "makeSearchable?": "boolean | null",
       "verify?": "boolean"
     },
     "editPhone": {
@@ -44,6 +50,9 @@
       "delete?": "boolean",
       "toggleSearchable?": "boolean",
       "verify?": "boolean"
+    },
+    "sentVerificationEmail": {
+      "email": "string"
     },
     "loadContactImportEnabled": {
       "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
@@ -60,6 +69,19 @@
     "editContactImportEnabled": {
       "enable": "boolean"
     },
+    "setContactImportedCount": {
+      "count": "number | null"
+    },
+    "addEmail": {
+      "email": "string",
+      "searchable": "boolean"
+    },
+    "addedEmail": {
+      "email": "string",
+      "error?": "Error"
+    },
+    "clearAddingEmail": {"_description": "Reset state used for adding an email."},
+    "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
     "invitesClearError": {},
     "invitesReclaim": {
       "inviteId": "string"
@@ -197,6 +219,7 @@
     },
     "certificatePinningToggled": {
       "toggled": "boolean | null"
-    }
+    },
+    "toggleRuntimeStats": {}
   }
 }

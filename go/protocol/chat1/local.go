@@ -422,6 +422,7 @@ type MessageSystemAddedToTeam struct {
 	Admins  []string `codec:"admins" json:"admins"`
 	Writers []string `codec:"writers" json:"writers"`
 	Readers []string `codec:"readers" json:"readers"`
+	Bots    []string `codec:"bots" json:"bots"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -473,6 +474,17 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 			}
 			return ret
 		})(o.Readers),
+		Bots: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Bots),
 	}
 }
 
@@ -5615,6 +5627,10 @@ type LocationUpdateArg struct {
 	Coord Coordinate `codec:"coord" json:"coord"`
 }
 
+type LocationDeniedArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5688,6 +5704,7 @@ type LocalInterface interface {
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
 	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 	LocationUpdate(context.Context, Coordinate) error
+	LocationDenied(context.Context, ConversationID) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6744,6 +6761,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"locationDenied": {
+				MakeArg: func() interface{} {
+					var ret [1]LocationDeniedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LocationDeniedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LocationDeniedArg)(nil), args)
+						return
+					}
+					err = i.LocationDenied(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -7122,5 +7154,11 @@ func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadF
 func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err error) {
 	__arg := LocationUpdateArg{Coord: coord}
 	err = c.Cli.Call(ctx, "chat.1.local.locationUpdate", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) LocationDenied(ctx context.Context, convID ConversationID) (err error) {
+	__arg := LocationDeniedArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.locationDenied", []interface{}{__arg}, nil)
 	return
 }

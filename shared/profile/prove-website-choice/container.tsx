@@ -5,19 +5,15 @@ import {connect} from '../../util/container'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({})
-
-const mapDispatchToProps = dispatch => ({
-  onCancel: () => {
-    dispatch(ProfileGen.createCancelAddProof())
-    dispatch(RouteTreeGen.createClearModals())
-  },
-  onDNS: () => dispatch(ProfileGen.createAddProof({platform: 'dns'})),
-  onFile: () => dispatch(ProfileGen.createAddProof({platform: 'web'})),
-})
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  state => ({}),
+  dispatch => ({
+    onCancel: () => {
+      dispatch(ProfileGen.createCancelAddProof())
+      dispatch(RouteTreeGen.createClearModals())
+    },
+    onDNS: () => dispatch(ProfileGen.createAddProof({platform: 'dns'})),
+    onFile: () => dispatch(ProfileGen.createAddProof({platform: 'web'})),
+  }),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ProveWebsiteChoice)

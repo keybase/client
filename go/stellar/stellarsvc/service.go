@@ -566,7 +566,7 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	}
 	if recipient.AccountID == nil {
 		if recipient.User != nil {
-			return res, fmt.Errorf("Assertion resolved to Keybase user %q, but they do not have a Stellar account", recipient.User.Username)
+			return res, fmt.Errorf("Keybase user %q does not have a Stellar account", recipient.User.Username)
 		} else if recipient.Assertion != nil {
 			return res, fmt.Errorf("Could not resolve assertion %q", *recipient.Assertion)
 		} else {
@@ -647,8 +647,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		MemoType:     validated.MemoType,
 	}
 
-	if validated.Amount != "" && validated.AssetCode == "" {
-		// show how much validate.Amount XLM is in the user's display currency
+	if validated.AssetCode == "" {
 		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {
 			return nil, nil, err
@@ -661,16 +660,21 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		if err != nil {
 			return nil, nil, err
 		}
-		outsideAmount, err := stellarnet.ConvertXLMToOutside(validated.Amount, rate.Rate)
-		if err != nil {
-			return nil, nil, err
-		}
-		fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
-		if err != nil {
-			return nil, nil, err
-		}
-		local.DisplayAmountFiat = fmtWorth
 
+		if validated.Amount != "" {
+			// show how much validate.Amount XLM is in the user's display currency
+			outsideAmount, err := stellarnet.ConvertXLMToOutside(validated.Amount, rate.Rate)
+			if err != nil {
+				return nil, nil, err
+			}
+			fmtWorth, err := stellar.FormatCurrencyWithCodeSuffix(mctx, outsideAmount, rate.Currency, stellarnet.Round)
+			if err != nil {
+				return nil, nil, err
+			}
+			local.DisplayAmountFiat = fmtWorth
+		}
+
+		// include user's XLM available to send
 		details, err := s.remoter.Details(mctx.Ctx(), accountID)
 		if err != nil {
 			return nil, nil, err
@@ -892,17 +896,22 @@ func (s *Server) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []
 	if !ok {
 		return nil, fmt.Errorf("no external URLs to parse")
 	}
+	userIsKeybaseAdmin := s.G().Env.GetFeatureFlags().Admin(s.G().GetMyUID())
 	for _, asInterface := range externalURLGroups[libkb.ExternalURLsStellarPartners] {
 		asData, err := json.Marshal(asInterface)
 		if err != nil {
 			return nil, err
 		}
-		var s stellar1.PartnerUrl
-		err = json.Unmarshal(asData, &s)
+		var partnerURL stellar1.PartnerUrl
+		err = json.Unmarshal(asData, &partnerURL)
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, s)
+		if partnerURL.AdminOnly && !userIsKeybaseAdmin {
+			// this external url is intended only to be seen by admins for now
+			continue
+		}
+		res = append(res, partnerURL)
 	}
 	return res, nil
 }

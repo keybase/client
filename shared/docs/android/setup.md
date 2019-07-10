@@ -151,7 +151,8 @@ instructions](https://facebook.github.io/react-native/docs/running-on-device.htm
 plug in your device via USB and tap 'OK' on the 'Allow USB debugging?'
 prompt if it appears. After that, `adb devices` should list your
 device. If it says 'unauthorized' next to your device, then you likely
-haven't tapped 'OK' on the prompt yet.
+haven't tapped 'OK' on the prompt yet. If you saw no prompt, try
+revoking (https://stackoverflow.com/a/25546300/670659).
 
 **Turn off Instant Run**
 

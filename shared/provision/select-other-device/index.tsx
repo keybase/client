@@ -65,15 +65,17 @@ class SelectOtherDevice extends React.Component<Props> {
         gapEnd={true}
       >
         <Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
-          <Text center={true} type={isMobile ? 'BodyBig' : 'Header'}>
-            For security reasons, you need to authorize with an existing device. Which of your existing
-            devices would you like to use?
-          </Text>
           <List
             style={styles.list}
             items={items}
             renderItem={this._renderItem}
             keyProperty="name"
+            ListHeaderComponent={
+              <Text center={true} type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+                For security reasons, you need to authorize with an existing device. Which of your existing
+                devices would you like to use?
+              </Text>
+            }
             fixedHeight={isMobile ? 48 : 40}
           />
         </Box2>
@@ -115,9 +117,17 @@ const styles = styleSheetCreate({
     },
   }),
   contentBox: platformStyles({
-    common: {alignSelf: 'center', flexGrow: 1, padding: globalMargins.small},
+    common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
+      padding: globalMargins.small,
+    },
+  }),
+  headerText: platformStyles({
+    isMobile: {
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+      paddingTop: globalMargins.small,
     },
   }),
   list: {

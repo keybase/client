@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {ConnectionType} from '@react-native-community/netinfo'
+import {ConnectionType} from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -21,6 +21,7 @@ export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
+export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
@@ -57,8 +58,6 @@ export const updateNow = 'config:updateNow'
 type _BootstrapStatusLoadedPayload = {
   readonly deviceID: string
   readonly deviceName: string
-  readonly followers: Array<string>
-  readonly following: Array<string>
   readonly fullname: string
   readonly loggedIn: boolean
   readonly registered: boolean
@@ -82,6 +81,11 @@ type _DaemonHandshakeWaitPayload = {
 }
 type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
 type _FilePickerErrorPayload = {readonly error: Error}
+type _FollowerInfoUpdatedPayload = {
+  readonly uid: string
+  readonly followers: Array<string>
+  readonly followees: Array<string>
+}
 type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
 type _InstallerRanPayload = void
 type _LinkPayload = {readonly link: string}
@@ -249,6 +253,9 @@ export const createDaemonError = (payload: _DaemonErrorPayload): DaemonErrorPayl
   type: daemonError,
 })
 export const createDumpLogs = (payload: _DumpLogsPayload): DumpLogsPayload => ({payload, type: dumpLogs})
+export const createFollowerInfoUpdated = (
+  payload: _FollowerInfoUpdatedPayload
+): FollowerInfoUpdatedPayload => ({payload, type: followerInfoUpdated})
 export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayload => ({
   payload,
   type: globalError,
@@ -356,6 +363,10 @@ export type FilePickerErrorPayload = {
   readonly payload: _FilePickerErrorPayload
   readonly type: typeof filePickerError
 }
+export type FollowerInfoUpdatedPayload = {
+  readonly payload: _FollowerInfoUpdatedPayload
+  readonly type: typeof followerInfoUpdated
+}
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
 export type LinkPayload = {readonly payload: _LinkPayload; readonly type: typeof link}
@@ -450,6 +461,7 @@ export type Actions =
   | DaemonHandshakeWaitPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
+  | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
   | LinkPayload

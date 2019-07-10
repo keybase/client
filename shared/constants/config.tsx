@@ -116,6 +116,7 @@ export const makeState = I.Record<Types._State>({
   outOfDate: undefined,
   pushLoaded: false,
   registered: false,
+  runtimeStats: null,
   startupConversation: ChatConstants.noConversationIDKey,
   startupDetailsLoaded: false,
   startupFollowUser: '',

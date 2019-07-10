@@ -437,6 +437,9 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 	// Make sure we don't hang when EOF comes early.
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
+
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 }
 
 func TestForcePush(t *testing.T) {

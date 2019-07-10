@@ -65,6 +65,44 @@ func (h *PhoneNumbersHandler) VerifyPhoneNumber(ctx context.Context, arg keybase
 	return phonenumbers.VerifyPhoneNumber(mctx, arg.PhoneNumber, arg.Code)
 }
 
+func (h *PhoneNumbersHandler) ResendVerificationForPhoneNumber(ctx context.Context, arg keybase1.ResendVerificationForPhoneNumberArg) (err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed("PhoneNumbersHandler#ResendVerificationForPhoneNumber", func() error { return err })()
+	if err = libkb.IsPossiblePhoneNumber(arg.PhoneNumber); err != nil {
+		return err
+	}
+
+	numbers, err := phonenumbers.GetPhoneNumbers(mctx)
+	if err != nil {
+		return err
+	}
+
+	// We are going to "re-add" phone number with the same visibility setting.
+	var readdVisibility keybase1.IdentityVisibility
+	var found bool
+	for _, v := range numbers {
+		if v.Superseded {
+			continue
+		}
+
+		if v.PhoneNumber == arg.PhoneNumber {
+			if v.Verified {
+				return fmt.Errorf("Number %s is already verified", v.PhoneNumber)
+			}
+			readdVisibility = v.Visibility
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("Number %s was not found, it has to be added first before resending verification code",
+			arg.PhoneNumber)
+	}
+
+	return phonenumbers.AddPhoneNumber(mctx, arg.PhoneNumber, readdVisibility)
+}
+
 func (h *PhoneNumbersHandler) GetPhoneNumbers(ctx context.Context, sessionID int) (ret []keybase1.UserPhoneNumber, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("PhoneNumbersHandler#GetPhoneNumbers", func() error { return err })()

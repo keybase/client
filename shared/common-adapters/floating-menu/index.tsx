@@ -17,6 +17,7 @@ export type Props = {
   containerStyle?: StylesCrossPlatform
   items: MenuItems
   header?: MenuItem | null
+  listStyle?: Object
   onHidden: () => void
   visible: boolean
   attachTo?: () => React.Component<any> | null
@@ -45,6 +46,7 @@ export default (props: Props) => {
         items={props.items}
         closeOnClick={props.closeOnSelect}
         closeText={props.closeText}
+        listStyle={props.listStyle}
       />
     </Overlay>
   )

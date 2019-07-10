@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
@@ -58,12 +58,7 @@ const mapDispatchToProps = dispatch => ({
     }
   },
   _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
-  onNewChat: () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {}, selected: 'chatNewChat'}],
-      })
-    ),
+  onNewChat: () => dispatch(appendNewChatBuilder()),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({

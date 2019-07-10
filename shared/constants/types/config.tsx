@@ -1,9 +1,10 @@
 import * as I from 'immutable'
+import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {Tab} from '../tabs'
-import * as RPCTypes from './rpc-gen'
 import {RPCError} from '../../util/errors'
 import {LocalPath} from '../../constants/types/fs'
+import * as NetInfo from '@react-native-community/netinfo'
 
 export type _OutOfDate = {
   critical: boolean
@@ -18,6 +19,10 @@ export type _ConfiguredAccount = {
   username: string
 }
 export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
+
+// 'notavailable' is the desktop default
+export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
+
 export type _State = {
   appFocused: boolean
   appFocusedCount: number
@@ -50,6 +55,7 @@ export type _State = {
   outOfDate?: OutOfDate | null
   pushLoaded: boolean
   registered: boolean
+  runtimeStats: RPCTypes.RuntimeStats | null
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
   startupConversation: ConversationIDKey

@@ -24,7 +24,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   sbsContacts: false,
-  stellarExternalPartners: false,
+  stellarExternalPartners: true,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
@@ -37,7 +37,6 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   outOfDateBanner: true,
   proofProviders: true,
   sbsContacts: true,
-  stellarExternalPartners: true,
 }
 
 // load overrides

@@ -10,7 +10,7 @@ import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as ConfigGen from '../actions/config-gen'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
-type URLType = any
+type URLType = string
 
 type DisallowedStyles = {
   borderStyle?: never
@@ -103,7 +103,7 @@ class SharedAskForUserData {
   _username = ''
 
   // call this with the current username
-  _checkLoggedIn = username => {
+  _checkLoggedIn = (username: string) => {
     if (username !== this._username) {
       console.log('clearing cache due to username change')
       this._username = username
@@ -146,15 +146,15 @@ class SharedAskForUserData {
     100,
     {leading: false}
   )
-  getTeam = name => {
+  getTeam = (name: string) => {
     this._teamQueue[name] = true
     this._makeCalls()
   }
-  getUser = name => {
+  getUser = (name: string) => {
     this._userQueue[name] = true
     this._makeCalls()
   }
-  injectDispatch = dispatch => (this._dispatch = dispatch)
+  injectDispatch = (dispatch: Container.TypedDispatch) => (this._dispatch = dispatch)
 }
 const _sharedAskForUserData = new SharedAskForUserData()
 
@@ -200,7 +200,7 @@ const ConnectedAvatar = Container.connect(
         ])
 
     let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
-    let load
+    let load: () => void
     if (!url) {
       url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
       load = isTeam

@@ -355,6 +355,13 @@
             "items": "string"
           },
           "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "bots"
         }
       ]
     },
@@ -4625,6 +4632,15 @@
         {
           "name": "coord",
           "type": "Coordinate"
+        }
+      ],
+      "response": null
+    },
+    "locationDenied": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": null

@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
+import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
@@ -7,6 +8,7 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
+import * as WalletsGen from '../wallets-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -24,7 +26,7 @@ import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
-import * as I from 'immutable'
+import flags from '../../util/feature-flags'
 
 const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -52,6 +54,13 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
+const onTrackingInfo = (state, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
+  ConfigGen.createFollowerInfoUpdated({
+    followees: action.payload.params.followees,
+    followers: action.payload.params.followers,
+    uid: action.payload.params.uid,
+  })
+
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -76,8 +85,6 @@ function* loadDaemonBootstrapStatus(
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
-      followers: s.followers || [],
-      following: s.following || [],
       fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
@@ -87,6 +94,10 @@ function* loadDaemonBootstrapStatus(
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
+    // request follower info in the background
+    yield* Saga.callPromise(RPCTypes.configRequestFollowerInfoRpcPromise, {
+      uid: s.uid,
+    })
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
@@ -254,7 +265,7 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
         RouteTreeGen.createSwitchRouteDef({loggedIn: true}),
-        ...(action.payload.causedBySignup
+        ...(action.payload.causedBySignup && flags.sbsContacts
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
@@ -397,6 +408,7 @@ const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
+    return WalletsGen.createValidateSEP7Link({link: action.payload.link})
   } else {
     const username = Constants.urlToUsername(url)
     if (username) {
@@ -609,6 +621,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
   yield* Saga.chainAction<EngineGen.DisconnectedPayload>(EngineGen.disconnected, onDisconnected)
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingInfoPayload>(
+    EngineGen.keybase1NotifyTrackingTrackingInfo,
+    onTrackingInfo
+  )
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

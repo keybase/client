@@ -2,17 +2,21 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Props as ContactRowProps, OwnProps as ContactRowOwnProps} from './email-phone-row'
 import AccountSettings from '.'
-import ConfirmDelete from './confirm-delete'
+import {ConfirmDeleteAddress} from './confirm-delete'
 import * as I from 'immutable'
 
 const props = {
+  addedEmail: null,
   contactKeys: I.List(),
   hasPassword: false,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
+  onClearAddedEmail: Sb.action('onClearAddedEmail'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
   onManageContacts: Sb.action('onManageContacts'),
+  onReload: Sb.action('onReload'),
   onSetPassword: Sb.action('onSetPassword'),
+  waiting: false,
 }
 
 const cc = {
@@ -51,10 +55,10 @@ const load = () => {
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
     .add('With email/phone', () => <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />)
     .add('Confirm delete email', () => (
-      <ConfirmDelete {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
+      <ConfirmDeleteAddress {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
     ))
     .add('Confirm delete phone', () => (
-      <ConfirmDelete {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
+      <ConfirmDeleteAddress {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
     ))
 }
 

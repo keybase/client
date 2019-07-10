@@ -3023,15 +3023,9 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	node Node, ei data.EntryInfo, handle *tlfhandle.Handle, err error) {
 	startTime, timer := fbo.startOp(ctx, "getRootNode")
 	defer func() {
-		if node != nil {
-			fbo.endOp(
-				ctx, startTime, timer, "getRootNode done: %s %p %+v",
-				getNodeIDStr(node), node.Obfuscator(), err)
-		} else {
-			fbo.endOp(
-				ctx, startTime, timer, "getRootNode done: %s <no node> %+v",
-				getNodeIDStr(node), err)
-		}
+		fbo.endOp(
+			ctx, startTime, timer, "getRootNode done: %s %+v",
+			getNodeIDStr(node), err)
 	}()
 
 	lState := makeFBOLockState()
@@ -7383,7 +7377,7 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		timedOut = true
 	default:
 	}
-	if timedOut || !mdserver.IsConnected() {
+	if lockBeforeGet == nil && (timedOut || !mdserver.IsConnected()) {
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "Not fetching new updates while offline")
 		return nil

@@ -239,7 +239,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	tmp := fmt.Sprintf("%v", arg.Argv)
-	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
+	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {
 		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
 	}
@@ -292,8 +292,13 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
-
 	return eng.Status(), nil
+}
+
+func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
+	// Queue up a load for follower info
+	h.svc.trackerLoader.Queue(ctx, uid)
+	return nil
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
@@ -425,5 +430,20 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 		return err
 	}
 
+	return nil
+}
+
+func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
+	configWriter := h.G().Env.GetConfigWriter()
+	curValue := h.G().Env.GetRuntimeStatsEnabled()
+	configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	if err := h.G().ConfigReload(); err != nil {
+		return err
+	}
+	if curValue {
+		<-h.svc.runtimeStats.Stop(ctx)
+	} else {
+		h.svc.runtimeStats.Start(ctx)
+	}
 	return nil
 }

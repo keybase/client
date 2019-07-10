@@ -20,6 +20,12 @@ export type _Reserve = {
 }
 export type Reserve = I.RecordOf<_Reserve>
 
+export type _SEP7Summary = StellarRPCTypes.TxDisplaySummary
+export type SEP7Summary = I.RecordOf<_SEP7Summary>
+
+export type _SEP7ConfirmInfo = StellarRPCTypes.ValidateStellarURIResultLocal
+export type SEP7ConfirmInfo = I.RecordOf<_SEP7ConfirmInfo>
+
 export type AccountID = string
 export const stringToAccountID = __DEV__
   ? (s: string): AccountID => {
@@ -86,6 +92,39 @@ export type _Building = {
   to: string
 }
 
+export type _BuildingAdvanced = {
+  recipient: string
+  recipientAmount: string
+  recipientAsset: AssetDescriptionOrNative
+  recipientType: CounterpartyType
+  publicMemo: HiddenString
+  senderAccountID: AccountID
+  senderAsset: AssetDescriptionOrNative
+  secretNote: HiddenString
+}
+
+export type _PaymentPath = {
+  sourceAmount: string
+  sourceAmountMax: string
+  sourceAsset: AssetDescriptionOrNative
+  sourceInsufficientBalance: string // empty if sufficient
+  path: I.List<AssetDescriptionOrNative>
+  destinationAmount: string
+  destinationAsset: AssetDescriptionOrNative
+}
+
+export type _BuiltPaymentAdvanced = {
+  amountError: string
+  destinationAccount: AccountID
+  destinationDisplay: string
+  exchangeRate: string
+  fullPath: PaymentPath
+  noPathFoundError: boolean
+  readyToSend: boolean
+  sourceDisplay: string
+  sourceMaxDisplay: string
+}
+
 export type _BuiltPayment = {
   amountAvailable: string
   amountErrMsg: string
@@ -147,6 +186,9 @@ export type _PaymentCommon = {
   sourceAccountID: string
   sourceAmount: string // this and sourceAsset are set if this was a path payment,
   sourceAsset: string // just code for now,
+  sourceConvRate: string
+  sourceIssuer: string
+  sourceIssuerAccountID: AccountID
   sourceType: string
   statusSimplified: StatusSimplified
   statusDescription: string
@@ -179,6 +221,7 @@ export type _PaymentResult = {
 
 export type _PaymentDetail = {
   externalTxURL: string
+  pathIntermediate: I.List<AssetDescription>
   publicMemo: HiddenString
   publicMemoType: string
   txID: string
@@ -189,12 +232,15 @@ export type _Payment = {} & _PaymentResult & _PaymentDetail
 
 export type _AssetDescription = {
   code: string
+  infoUrl: string
+  infoUrlText: string
   issuerAccountID: AccountID
   issuerName: string
   issuerVerifiedDomain: string
 }
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
+export type AssetDescriptionOrNative = AssetDescription | 'native'
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
@@ -208,9 +254,13 @@ export type Banner = {
   bannerText: string
   reviewProofs?: boolean
   sendFailed?: boolean
+  offerAdvancedSendForm?: StellarRPCTypes.AdvancedBanner
 }
 
 export type Building = I.RecordOf<_Building>
+export type BuildingAdvanced = I.RecordOf<_BuildingAdvanced>
+export type PaymentPath = I.RecordOf<_PaymentPath>
+export type BuiltPaymentAdvanced = I.RecordOf<_BuiltPaymentAdvanced>
 
 export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
@@ -225,6 +275,7 @@ export type Currency = I.RecordOf<_LocalCurrency>
 export type _Account = {
   accountID: AccountID
   balanceDescription: string
+  canAddTrustline: boolean
   canSubmitTx: boolean
   deviceReadOnly: boolean
   displayCurrency: Currency
@@ -277,20 +328,28 @@ export type _AirdropDetailsHeader = {
 }
 type AirdropDetailsHeader = I.RecordOf<_AirdropDetailsHeader>
 
-export type _AirdropDetails = {
+export type _AirdropDetailsResponse = {
   header: AirdropDetailsHeader
   sections: I.List<AirdropDetailsSection>
 }
+export type AirdropDetailsResponse = I.RecordOf<_AirdropDetailsResponse>
+
+export type _AirdropDetails = {
+  details: AirdropDetailsResponse
+  isPromoted: boolean
+}
+
 export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
   `${issuerAccountID}-${assetCode}`
-export const assetDescriptionToAssetID = (assetDescription: AssetDescription): AssetID =>
-  makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
+export const assetDescriptionToAssetID = (assetDescription: AssetDescriptionOrNative): AssetID =>
+  assetDescription === 'native' ? 'XLM' : makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
 
 export type _Trustline = {
   acceptedAssets: I.Map<AccountID, I.Map<AssetID, number>>
+  acceptedAssetsByUsername: I.Map<string, I.Map<AssetID, number>>
   assetMap: I.Map<AssetID, AssetDescription>
   expandedAssets: I.Set<AssetID>
   loaded: boolean
@@ -314,7 +373,9 @@ export type _State = {
   assetsMap: I.Map<AccountID, I.List<Assets>>
   buildCounter: number // increments when we call buildPayment / buildRequest,
   building: Building
+  buildingAdvanced: BuildingAdvanced
   builtPayment: BuiltPayment
+  builtPaymentAdvanced: BuiltPaymentAdvanced
   builtRequest: BuiltRequest
   createNewAccountError: string
   currencies: I.List<Currency>
@@ -326,7 +387,6 @@ export type _State = {
   inflationDestinationError: string
   lastSentXLM: boolean
   linkExistingAccountError: string
-  newPayments: I.Map<AccountID, I.Set<PaymentID>>
   paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
   paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: I.Map<AccountID, boolean>
@@ -339,6 +399,9 @@ export type _State = {
   secretKeyValidationState: ValidationState
   selectedAccount: AccountID
   sentPaymentError: string
+  sep7ConfirmError: string
+  sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmURI: string
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
   mobileOnlyMap: I.Map<AccountID, boolean>

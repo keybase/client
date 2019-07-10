@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
-import {Box} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
+import * as Constants from '../../../constants/wallets'
 import {withStateHandlers} from '../../../util/container'
-import AssetInput from '.'
-import {Props as AvailableProps} from '../available'
+import AssetInputBasic from './asset-input-basic'
 
-const provider = Sb.createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   Available: () => ({
     amountErrMsg: '',
   }),
@@ -69,7 +69,7 @@ const warning3 = {
   warningPayee: 'russel',
 }
 
-const StatefulAssetInput: any = withStateHandlers(
+const asStatefulInput: any = withStateHandlers(
   (props: any) => ({
     value: props.value,
   }),
@@ -79,21 +79,93 @@ const StatefulAssetInput: any = withStateHandlers(
       return {value}
     },
   }
-)(AssetInput) as any
+)
+
+const StatefulAssetInputBasic = asStatefulInput(AssetInputBasic)
+/*
+const StatefulAssetInputRecipientAdvanced = asStatefulInput(AssetInputRecipientAdvanced)
+
+export const propsRecipientAdvanced = {
+  asset: Constants.makeAssetDescription({
+    code: 'USD',
+    issuerVerifiedDomain: 'Stronghold.com',
+  }),
+  currencyLoading: false,
+  numDecimalsAllowed: 2,
+  onChangeAmount: Sb.action('onChangeAmount'),
+  recipientType: 'keybaseUser',
+  to: 'songgao',
+  value: '',
+} as const
+
+export const propsSenderAdvancedNotCalculated = {
+  amountLoading: false,
+  asset: Constants.makeAssetDescription({
+    code: 'USD',
+    issuerVerifiedDomain: 'Stronghold.com',
+  }),
+  numDecimals: 2,
+} as const
+
+const propsSenderAdvancedLoading = {
+  amountLoading: true,
+  asset: Constants.makeAssetDescription({
+    code: 'USD',
+    issuerVerifiedDomain: 'Stronghold.com',
+  }),
+  numDecimals: 2,
+} as const
+
+export const propsSenderAdvancedCalculated = {
+  amountLoading: false,
+  approximate: 83.47,
+  atMost: 90.53,
+  numDecimals: 2,
+  recipientAsset: Constants.makeAssetDescription({
+    code: 'USD',
+    issuerVerifiedDomain: 'Stronghold.com',
+  }),
+  senderAsset: Constants.makeAssetDescription({
+    code: 'EUR',
+    issuerVerifiedDomain: 'Stronghold.com',
+  }),
+  xlmToRecipientAsset: 0.8347,
+} as const
+   */
 
 const load = () => {
-  Sb.storiesOf('Wallets/SendForm/Asset input', module)
+  Sb.storiesOf('Wallets/SendForm/Asset input basic', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{maxWidth: 500, padding: 20}}>{story()}</Box>)
-    .add('XLM worth USD', () => <AssetInput {...props1} />)
-    .add('XLM', () => <AssetInput {...props2} />)
-    .add('Asset', () => <AssetInput {...props3} />)
-    .add('Prefilled XLM', () => <AssetInput {...props4} />)
-    .add('USD over warning', () => <AssetInput {...props1} {...warning1} />)
-    .add('XLM over warning', () => <AssetInput {...props2} {...warning2} />)
-    .add('asset type warning', () => <AssetInput {...props3} {...warning3} />)
-    .add('Input validation (XLM)', () => <StatefulAssetInput {...props2} />)
-    .add('Input validation (Currency)', () => <StatefulAssetInput {...props1} />)
+    .addDecorator(story => <Kb.Box style={{maxWidth: 500, padding: 20}}>{story()}</Kb.Box>)
+    .add('XLM worth USD', () => <AssetInputBasic {...props1} />)
+    .add('XLM', () => <AssetInputBasic {...props2} />)
+    .add('Asset', () => <AssetInputBasic {...props3} />)
+    .add('Prefilled XLM', () => <AssetInputBasic {...props4} />)
+    .add('USD over warning', () => <AssetInputBasic {...props1} {...warning1} />)
+    .add('XLM over warning', () => <AssetInputBasic {...props2} {...warning2} />)
+    .add('asset type warning', () => <AssetInputBasic {...props3} {...warning3} />)
+    .add('Input validation (XLM)', () => <StatefulAssetInputBasic {...props2} />)
+    .add('Input validation (Currency)', () => <StatefulAssetInputBasic {...props1} />)
+  /*
+  Sb.storiesOf('Wallets/SendForm/Asset input advanced', module)
+    .addDecorator(provider)
+    .addDecorator(story => <Kb.Box style={{maxWidth: 500, padding: 20}}>{story()}</Kb.Box>)
+    .addDecorator(Sb.scrollViewDecorator)
+    .add('to', () => (
+      <Kb.Box2 direction="vertical" gap="small">
+        <StatefulAssetInputRecipientAdvanced {...propsRecipientAdvanced} />
+        <StatefulAssetInputRecipientAdvanced {...propsRecipientAdvanced} asset={undefined} />
+      </Kb.Box2>
+    ))
+    .add('from', () => (
+      <Kb.Box2 direction="vertical" gap="small">
+        <AssetInputSenderAdvanced {...propsSenderAdvancedNotCalculated} />
+        <AssetInputSenderAdvanced {...propsSenderAdvancedLoading} />
+        <AssetInputSenderAdvanced {...propsSenderAdvancedCalculated} />
+        <AssetInputSenderAdvanced {...propsSenderAdvancedCalculated} error={true} />
+      </Kb.Box2>
+    ))
+     */
 }
 
 export default load

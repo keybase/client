@@ -8,11 +8,16 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
+export const addEmail = 'settings:addEmail'
 export const addPhoneNumber = 'settings:addPhoneNumber'
+export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
-export const clearPhoneNumberVerification = 'settings:clearPhoneNumberVerification'
+export const clearAddedEmail = 'settings:clearAddedEmail'
+export const clearAddingEmail = 'settings:clearAddingEmail'
+export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
+export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
@@ -59,10 +64,14 @@ export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
+export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
+export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export const setContactImportedCount = 'settings:setContactImportedCount'
 export const stop = 'settings:stop'
+export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
@@ -73,11 +82,9 @@ export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
-type _AddPhoneNumberPayload = {
-  readonly allowSearch: boolean
-  readonly phoneNumber: string
-  readonly resend?: boolean
-}
+type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
+type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
+type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
 type _AddedPhoneNumberPayload = {
   readonly allowSearch: boolean
   readonly error?: string
@@ -85,7 +92,10 @@ type _AddedPhoneNumberPayload = {
 }
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
-type _ClearPhoneNumberVerificationPayload = void
+type _ClearAddedEmailPayload = void
+type _ClearAddingEmailPayload = void
+type _ClearPhoneNumberAddPayload = void
+type _ClearPhoneNumberErrorsPayload = void
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _EditContactImportEnabledPayload = {readonly enable: boolean}
@@ -93,7 +103,7 @@ type _EditEmailPayload = {
   readonly email: string
   readonly delete?: boolean
   readonly makePrimary?: boolean
-  readonly toggleSearchable?: boolean
+  readonly makeSearchable?: boolean | null
   readonly verify?: boolean
 }
 type _EditPhonePayload = {
@@ -148,14 +158,18 @@ type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _RequestContactPermissionsPayload = {readonly thenToggleImportOn?: boolean}
+type _ResendVerificationForPhoneNumberPayload = {readonly phoneNumber: string}
 type _SaveProxyDataPayload = {readonly proxyData: RPCTypes.ProxyData}
 type _SendFeedbackPayload = {
   readonly feedback: string
   readonly sendLogs: boolean
   readonly sendMaxBytes: boolean
 }
+type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
+type _SetContactImportedCountPayload = {readonly count: number | null}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
+type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
 type _UnfurlSettingsErrorPayload = {readonly error: string}
 type _UnfurlSettingsRefreshPayload = void
@@ -173,7 +187,7 @@ type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
 /**
- * Add a phone number and kick off a text message with a verification code. If `resend` is passed, ignores the other params and uses stashed params from store.
+ * Add a phone number and kick off a text message with a verification code.
  */
 export const createAddPhoneNumber = (payload: _AddPhoneNumberPayload): AddPhoneNumberPayload => ({
   payload,
@@ -193,11 +207,17 @@ export const createFeedbackSent = (payload: _FeedbackSentPayload): FeedbackSentP
   type: feedbackSent,
 })
 /**
- * Cancel a phone number verification-in-progress.
+ * Cancel adding a phone number.
  */
-export const createClearPhoneNumberVerification = (
-  payload: _ClearPhoneNumberVerificationPayload
-): ClearPhoneNumberVerificationPayload => ({payload, type: clearPhoneNumberVerification})
+export const createClearPhoneNumberAdd = (
+  payload: _ClearPhoneNumberAddPayload
+): ClearPhoneNumberAddPayload => ({payload, type: clearPhoneNumberAdd})
+/**
+ * Clear only error from phone number add flow.
+ */
+export const createClearPhoneNumberErrors = (
+  payload: _ClearPhoneNumberErrorsPayload
+): ClearPhoneNumberErrorsPayload => ({payload, type: clearPhoneNumberErrors})
 /**
  * Load whether config says we've enabled contact importing and check OS contacts permission status.
  */
@@ -216,6 +236,26 @@ export const createUnfurlSettingsRefresh = (
 export const createUnfurlSettingsRefreshed = (
   payload: _UnfurlSettingsRefreshedPayload
 ): UnfurlSettingsRefreshedPayload => ({payload, type: unfurlSettingsRefreshed})
+/**
+ * Resend verification code for a phone number that's already added.
+ */
+export const createResendVerificationForPhoneNumber = (
+  payload: _ResendVerificationForPhoneNumberPayload
+): ResendVerificationForPhoneNumberPayload => ({payload, type: resendVerificationForPhoneNumber})
+/**
+ * Reset state used for adding an email.
+ */
+export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): ClearAddingEmailPayload => ({
+  payload,
+  type: clearAddingEmail,
+})
+/**
+ * Reset state used for showing we just added an email.
+ */
+export const createClearAddedEmail = (payload: _ClearAddedEmailPayload): ClearAddedEmailPayload => ({
+  payload,
+  type: clearAddedEmail,
+})
 /**
  * Submit a verification code for a phone number
  */
@@ -242,6 +282,11 @@ export const createAddedPhoneNumber = (payload: _AddedPhoneNumberPayload): Added
 export const createVerifiedPhoneNumber = (
   payload: _VerifiedPhoneNumberPayload
 ): VerifiedPhoneNumberPayload => ({payload, type: verifiedPhoneNumber})
+export const createAddEmail = (payload: _AddEmailPayload): AddEmailPayload => ({payload, type: addEmail})
+export const createAddedEmail = (payload: _AddedEmailPayload): AddedEmailPayload => ({
+  payload,
+  type: addedEmail,
+})
 export const createCertificatePinningToggled = (
   payload: _CertificatePinningToggledPayload
 ): CertificatePinningToggledPayload => ({payload, type: certificatePinningToggled})
@@ -411,10 +456,20 @@ export const createSendFeedback = (payload: _SendFeedbackPayload): SendFeedbackP
   payload,
   type: sendFeedback,
 })
+export const createSentVerificationEmail = (
+  payload: _SentVerificationEmailPayload
+): SentVerificationEmailPayload => ({payload, type: sentVerificationEmail})
 export const createSetAllowDeleteAccount = (
   payload: _SetAllowDeleteAccountPayload
 ): SetAllowDeleteAccountPayload => ({payload, type: setAllowDeleteAccount})
+export const createSetContactImportedCount = (
+  payload: _SetContactImportedCountPayload
+): SetContactImportedCountPayload => ({payload, type: setContactImportedCount})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
+export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
+  payload,
+  type: toggleRuntimeStats,
+})
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
 export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
   payload,
@@ -422,10 +477,12 @@ export const createWaitingForResponse = (payload: _WaitingForResponsePayload): W
 })
 
 // Action Payloads
+export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
 export type AddPhoneNumberPayload = {
   readonly payload: _AddPhoneNumberPayload
   readonly type: typeof addPhoneNumber
 }
+export type AddedEmailPayload = {readonly payload: _AddedEmailPayload; readonly type: typeof addedEmail}
 export type AddedPhoneNumberPayload = {
   readonly payload: _AddedPhoneNumberPayload
   readonly type: typeof addedPhoneNumber
@@ -438,9 +495,21 @@ export type CheckPasswordPayload = {
   readonly payload: _CheckPasswordPayload
   readonly type: typeof checkPassword
 }
-export type ClearPhoneNumberVerificationPayload = {
-  readonly payload: _ClearPhoneNumberVerificationPayload
-  readonly type: typeof clearPhoneNumberVerification
+export type ClearAddedEmailPayload = {
+  readonly payload: _ClearAddedEmailPayload
+  readonly type: typeof clearAddedEmail
+}
+export type ClearAddingEmailPayload = {
+  readonly payload: _ClearAddingEmailPayload
+  readonly type: typeof clearAddingEmail
+}
+export type ClearPhoneNumberAddPayload = {
+  readonly payload: _ClearPhoneNumberAddPayload
+  readonly type: typeof clearPhoneNumberAdd
+}
+export type ClearPhoneNumberErrorsPayload = {
+  readonly payload: _ClearPhoneNumberErrorsPayload
+  readonly type: typeof clearPhoneNumberErrors
 }
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
@@ -615,16 +684,32 @@ export type RequestContactPermissionsPayload = {
   readonly payload: _RequestContactPermissionsPayload
   readonly type: typeof requestContactPermissions
 }
+export type ResendVerificationForPhoneNumberPayload = {
+  readonly payload: _ResendVerificationForPhoneNumberPayload
+  readonly type: typeof resendVerificationForPhoneNumber
+}
 export type SaveProxyDataPayload = {
   readonly payload: _SaveProxyDataPayload
   readonly type: typeof saveProxyData
 }
 export type SendFeedbackPayload = {readonly payload: _SendFeedbackPayload; readonly type: typeof sendFeedback}
+export type SentVerificationEmailPayload = {
+  readonly payload: _SentVerificationEmailPayload
+  readonly type: typeof sentVerificationEmail
+}
 export type SetAllowDeleteAccountPayload = {
   readonly payload: _SetAllowDeleteAccountPayload
   readonly type: typeof setAllowDeleteAccount
 }
+export type SetContactImportedCountPayload = {
+  readonly payload: _SetContactImportedCountPayload
+  readonly type: typeof setContactImportedCount
+}
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
+export type ToggleRuntimeStatsPayload = {
+  readonly payload: _ToggleRuntimeStatsPayload
+  readonly type: typeof toggleRuntimeStats
+}
 export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
 export type UnfurlSettingsErrorPayload = {
   readonly payload: _UnfurlSettingsErrorPayload
@@ -658,11 +743,16 @@ export type WaitingForResponsePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AddEmailPayload
   | AddPhoneNumberPayload
+  | AddedEmailPayload
   | AddedPhoneNumberPayload
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
-  | ClearPhoneNumberVerificationPayload
+  | ClearAddedEmailPayload
+  | ClearAddingEmailPayload
+  | ClearPhoneNumberAddPayload
+  | ClearPhoneNumberErrorsPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | EditContactImportEnabledPayload
@@ -711,10 +801,14 @@ export type Actions =
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
+  | ResendVerificationForPhoneNumberPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
+  | SentVerificationEmailPayload
   | SetAllowDeleteAccountPayload
+  | SetContactImportedCountPayload
   | StopPayload
+  | ToggleRuntimeStatsPayload
   | TracePayload
   | UnfurlSettingsErrorPayload
   | UnfurlSettingsRefreshPayload

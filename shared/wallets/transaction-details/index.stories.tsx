@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import {stringToAccountID} from '../../constants/types/wallets'
+import * as Types from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
@@ -19,6 +19,7 @@ const props = {
   amountUser: '',
   amountXLM: '',
   approxWorth: '',
+  assetCode: '',
   counterparty: 'yen',
   counterpartyMeta: null,
   counterpartyType: 'keybaseUser',
@@ -36,11 +37,15 @@ const props = {
   onLoadPaymentDetail: Sb.action('onLoadPaymentDetail'),
   onShowProfile: Sb.action('onShowProfile'),
   onViewTransaction: Sb.action('onViewTransaction'),
-  recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
+  pathIntermediate: [],
+  recipientAccountID: Types.stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
   selectableText: true,
-  senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
+  senderAccountID: Types.stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
   sourceAmount: '',
   sourceAsset: '',
+  sourceConvRate: '',
+  sourceIssuer: '',
+  sourceIssuerAccountID: Types.noAccountID,
   status: 'completed' as 'completed',
   statusDetail: '',
   timestamp: yesterday,
@@ -107,7 +112,7 @@ const load = () => {
         amountUser=""
         memo="Make sure to redeem that hug! 🤗"
         issuerDescription="example.com"
-        issuerAccountID={stringToAccountID('GD6TAJEGIL7PZFBPSZLCBTQCW45YT6UZJ6YS274OAFVBLQSMJTETVCNU')}
+        issuerAccountID={Types.stringToAccountID('GD6TAJEGIL7PZFBPSZLCBTQCW45YT6UZJ6YS274OAFVBLQSMJTETVCNU')}
       />
     ))
     .add('Sending to Keybase user (pending)', () => (
@@ -192,7 +197,59 @@ const load = () => {
         yourRole="receiverOnly"
       />
     ))
-    .add('Sent path payment', () => (
+    .add('Sent path payment (XLM -> Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="53.1688643 TOAD"
+        assetCode="TOAD"
+        sourceAmount="0.0222742"
+        issuerDescription="anchortoad.com"
+        sourceConvRate="22.4474953"
+      />
+    ))
+    .add('Sent path payment (Asset -> Asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterpartyMeta="Addie Stokes"
+        counterpartyType="keybaseUser"
+        amountXLM="2.5 FROG"
+        assetCode="FROG"
+        sourceAmount="1.02"
+        sourceAsset="TOAD"
+        sourceIssuer="anchortoad.com"
+        issuerDescription="froggycoin.io"
+        sourceConvRate="2.450000"
+        pathIntermediate={[
+          {
+            code: 'WHAT',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'whatcoin',
+            issuerVerifiedDomain: '',
+          },
+          {
+            code: 'NATE',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'natecoin',
+            issuerVerifiedDomain: 'nathansmith.io',
+          },
+          {
+            code: '',
+            issuerAccountID: '',
+            issuerName: '',
+            issuerVerifiedDomain: '',
+          },
+          {
+            code: 'BLAH',
+            issuerAccountID: 'fakeaccountid',
+            issuerName: 'Blahhold.co',
+            issuerVerifiedDomain: 'blahhold.co',
+          },
+        ]}
+      />
+    ))
+    .add('Sent path payment (Asset -> XLM)', () => (
       <TransactionDetails
         {...props}
         counterpartyMeta="Addie Stokes"
@@ -201,6 +258,8 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         sourceAmount="1.0000000"
         sourceAsset="TOAD"
+        sourceIssuer="anchortoad.com"
+        sourceConvRate="53.168864"
       />
     ))
     .add('Advanced tx', () => (

@@ -1,5 +1,7 @@
 import * as I from 'immutable'
+import {TeamRoleType} from './teams'
 
+export type AllowedNamespace = 'chat2' | 'teams'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
 export type ServiceIdWithContact =
@@ -33,16 +35,23 @@ type Query = string
 export type SearchResults = I.Map<Query, I.Map<ServiceIdWithContact, Array<User>>>
 export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
 
-export type TeamBuildingSubState = {
+// TODO remove teamBuilding prefix
+export type _TeamBuildingSubState = {
   teamBuildingTeamSoFar: I.Set<User>
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount
   teamBuildingFinishedTeam: I.Set<User>
+  teamBuildingFinishedSelectedRole: TeamRoleType
+  teamBuildingFinishedSendNotification: boolean
   teamBuildingSearchQuery: Query
   teamBuildingSelectedService: ServiceIdWithContact
   teamBuildingSearchLimit: number
   teamBuildingUserRecs: Array<User> | null
+  teamBuildingSelectedRole: TeamRoleType
+  teamBuildingSendNotification: boolean
 }
+
+export type TeamBuildingSubState = I.RecordOf<_TeamBuildingSubState>
 
 export type RawSearchResult = {
   score: number

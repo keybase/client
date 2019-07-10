@@ -76,9 +76,9 @@ type GenerateKeyRotationParams struct {
 
 // GenerateKeyRotation generates and signs a new sig3 KeyRotation. The result can be passed to
 // sig/multi.json and stored along with other sig1, sig2 or sig3 signatures in an atomic transaction.
-func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
+func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
-	s3, ratchet, err := generateKeyRotationSig3(mctx, p)
+	s3, ratchets, err := generateKeyRotationSig3(mctx, p)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,10 +100,10 @@ func GenerateKeyRotation(mctx libkb.MetaContext, p GenerateKeyRotationParams) (r
 		Version: 3,
 	}
 
-	return sigMultiItem, ratchet, nil
+	return sigMultiItem, ratchets, nil
 }
 
-func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, ratchet *keybase1.HiddenTeamChainRatchet, err error) {
+func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams) (ret *sig3.ExportJSON, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
 	outer := sig3.OuterLink{}
 	if p.HiddenPrev != nil {
@@ -206,8 +206,9 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 	if err != nil {
 		return nil, nil, err
 	}
-	ratchet = &keybase1.HiddenTeamChainRatchet{
-		Self: &keybase1.LinkTripleAndTime{
+	ratchets = &keybase1.HiddenTeamChainRatchetSet{}
+	ratchets.Add(keybase1.RatchetType_SELF,
+		keybase1.LinkTripleAndTime{
 			Triple: keybase1.LinkTriple{
 				Seqno:   outer.Seqno,
 				SeqType: sig3.ChainTypeTeamPrivateHidden,
@@ -215,14 +216,77 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 			},
 			Time: keybase1.ToTime(now),
 		},
+	)
+	return &bun, ratchets, nil
+}
+
+func CheckFeatureGateForSupportWithRotationType(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool, rt keybase1.RotationType) (ret keybase1.RotationType, err error) {
+	if rt == keybase1.RotationType_VISIBLE {
+		return rt, nil
 	}
-	return &bun, ratchet, nil
+	ok, err := checkFeatureGateForSupport(mctx, teamID, isWrite)
+	if err != nil {
+		return rt, err
+	}
+
+	switch {
+	case rt == keybase1.RotationType_CLKR && !ok:
+		return keybase1.RotationType_VISIBLE, nil
+	case rt == keybase1.RotationType_CLKR && ok:
+		return keybase1.RotationType_HIDDEN, nil
+
+	case rt == keybase1.RotationType_HIDDEN && ok:
+		return keybase1.RotationType_HIDDEN, nil
+	case rt == keybase1.RotationType_HIDDEN && !ok:
+		return keybase1.RotationType_HIDDEN, NewHiddenRotationNotSupportedError(teamID)
+
+	default:
+		return keybase1.RotationType_HIDDEN, fmt.Errorf("unhandled case")
+	}
+}
+
+type rawSupport struct {
+	Status  libkb.AppStatus `json:"status"`
+	Support bool            `json:"support"`
+}
+
+func (r *rawSupport) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func featureGateForTeamFromServer(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (ok bool, err error) {
+	arg := libkb.NewAPIArg("team/supports_hidden_chain")
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.Args = libkb.HTTPArgs{
+		"id": libkb.S{Val: string(teamID)},
+	}
+	var raw rawSupport
+	err = mctx.G().API.GetDecode(mctx, arg, &raw)
+	if err != nil {
+		return false, err
+	}
+	return raw.Support, nil
+}
+
+func checkFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (ok bool, err error) {
+	admin := mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureCheckForHiddenChainSupport)
+	runmode := mctx.G().Env.GetRunMode()
+	if runmode != libkb.ProductionRunMode {
+		return true, nil
+	}
+	if runmode == libkb.ProductionRunMode && !admin {
+		return false, nil
+	}
+	return featureGateForTeamFromServer(mctx, teamID, isWrite)
 }
 
 func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (err error) {
-	runmode := mctx.G().Env.GetRunMode()
-	if runmode == libkb.ProductionRunMode {
-		return fmt.Errorf("posting hidden team chains is not supported yet in production")
+	ok, err := checkFeatureGateForSupport(mctx, teamID, isWrite)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return NewHiddenRotationNotSupportedError(teamID)
 	}
 	return nil
 }

@@ -23,7 +23,7 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
   }
   switch (replyTo.type) {
     case 'attachment':
-    case 'text':
+    case 'text': {
       const attachment: Types.MessageAttachment =
         replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : null
       return replyTo.exploded
@@ -41,6 +41,7 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
                 : replyTo.text.stringValue(),
             username: replyTo.author,
           }
+    }
     case 'deleted':
     case 'placeholder':
       return deletedProps

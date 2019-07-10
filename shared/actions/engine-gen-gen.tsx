@@ -14,6 +14,7 @@ export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiCha
 export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
+export const chat1ChatUiChatCommandStatus = 'engine-gen:chat1ChatUiChatCommandStatus'
 export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
 export const chat1ChatUiChatGiphySearchResults = 'engine-gen:chat1ChatUiChatGiphySearchResults'
 export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiChatGiphyToggleResultWindow'
@@ -121,6 +122,7 @@ export const keybase1NotifyEmailAddressEmailAddressVerified =
   'engine-gen:keybase1NotifyEmailAddressEmailAddressVerified'
 export const keybase1NotifyEmailAddressEmailsChanged = 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
+export const keybase1NotifyEphemeralNewTeambotEk = 'engine-gen:keybase1NotifyEphemeralNewTeambotEk'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
 export const keybase1NotifyFSFSFavoritesChanged = 'engine-gen:keybase1NotifyFSFSFavoritesChanged'
@@ -136,6 +138,8 @@ export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1Noti
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
 export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
+export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
+  'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
 export const keybase1NotifySessionLoggedIn = 'engine-gen:keybase1NotifySessionLoggedIn'
@@ -148,6 +152,7 @@ export const keybase1NotifyTeamTeamChangedByName = 'engine-gen:keybase1NotifyTea
 export const keybase1NotifyTeamTeamDeleted = 'engine-gen:keybase1NotifyTeamTeamDeleted'
 export const keybase1NotifyTeamTeamExit = 'engine-gen:keybase1NotifyTeamTeamExit'
 export const keybase1NotifyTrackingTrackingChanged = 'engine-gen:keybase1NotifyTrackingTrackingChanged'
+export const keybase1NotifyTrackingTrackingInfo = 'engine-gen:keybase1NotifyTrackingTrackingInfo'
 export const keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged =
   'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged'
 export const keybase1NotifyUsersPasswordChanged = 'engine-gen:keybase1NotifyUsersPasswordChanged'
@@ -259,6 +264,13 @@ type _Chat1ChatUiChatCommandMarkdownPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatCommandStatusPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCommandStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatConfirmChannelDeletePayload = {
@@ -1026,6 +1038,15 @@ type _Keybase1NotifyEphemeralNewTeamEkPayload = {
     sessionID: number
   }
 }
+type _Keybase1NotifyEphemeralNewTeambotEkPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void
+  }
+}
 type _Keybase1NotifyFSFSActivityPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {
     sessionID: number
@@ -1141,6 +1162,17 @@ type _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
     ) => void
   }
 }
+type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyServiceShutdownPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {
     sessionID: number
@@ -1239,6 +1271,15 @@ type _Keybase1NotifyTeamTeamExitPayload = {
 type _Keybase1NotifyTrackingTrackingChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingChanged']['inParam'] & {
     sessionID: number
+  }
+}
+type _Keybase1NotifyTrackingTrackingInfoPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingInfo']['outParam']) => void
   }
 }
 type _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
@@ -1672,6 +1713,9 @@ export const createChat1ChatUiChatCoinFlipStatus = (
 export const createChat1ChatUiChatCommandMarkdown = (
   payload: _Chat1ChatUiChatCommandMarkdownPayload
 ): Chat1ChatUiChatCommandMarkdownPayload => ({payload, type: chat1ChatUiChatCommandMarkdown})
+export const createChat1ChatUiChatCommandStatus = (
+  payload: _Chat1ChatUiChatCommandStatusPayload
+): Chat1ChatUiChatCommandStatusPayload => ({payload, type: chat1ChatUiChatCommandStatus})
 export const createChat1ChatUiChatConfirmChannelDelete = (
   payload: _Chat1ChatUiChatConfirmChannelDeletePayload
 ): Chat1ChatUiChatConfirmChannelDeletePayload => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
@@ -2021,6 +2065,9 @@ export const createKeybase1NotifyEmailAddressEmailsChanged = (
 export const createKeybase1NotifyEphemeralNewTeamEk = (
   payload: _Keybase1NotifyEphemeralNewTeamEkPayload
 ): Keybase1NotifyEphemeralNewTeamEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeamEk})
+export const createKeybase1NotifyEphemeralNewTeambotEk = (
+  payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
+): Keybase1NotifyEphemeralNewTeambotEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeambotEk})
 export const createKeybase1NotifyFSFSActivity = (
   payload: _Keybase1NotifyFSFSActivityPayload
 ): Keybase1NotifyFSFSActivityPayload => ({payload, type: keybase1NotifyFSFSActivity})
@@ -2075,6 +2122,12 @@ export const createKeybase1NotifyPhoneNumberPhoneNumbersChanged = (
   payload,
   type: keybase1NotifyPhoneNumberPhoneNumbersChanged,
 })
+export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
+  payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+): Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload => ({
+  payload,
+  type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
+})
 export const createKeybase1NotifyServiceShutdown = (
   payload: _Keybase1NotifyServiceShutdownPayload
 ): Keybase1NotifyServiceShutdownPayload => ({payload, type: keybase1NotifyServiceShutdown})
@@ -2111,6 +2164,9 @@ export const createKeybase1NotifyTeamTeamExit = (
 export const createKeybase1NotifyTrackingTrackingChanged = (
   payload: _Keybase1NotifyTrackingTrackingChangedPayload
 ): Keybase1NotifyTrackingTrackingChangedPayload => ({payload, type: keybase1NotifyTrackingTrackingChanged})
+export const createKeybase1NotifyTrackingTrackingInfo = (
+  payload: _Keybase1NotifyTrackingTrackingInfoPayload
+): Keybase1NotifyTrackingTrackingInfoPayload => ({payload, type: keybase1NotifyTrackingTrackingInfo})
 export const createKeybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged = (
   payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
 ): Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload => ({
@@ -2319,6 +2375,10 @@ export type Chat1ChatUiChatCoinFlipStatusPayload = {
 export type Chat1ChatUiChatCommandMarkdownPayload = {
   readonly payload: _Chat1ChatUiChatCommandMarkdownPayload
   readonly type: typeof chat1ChatUiChatCommandMarkdown
+}
+export type Chat1ChatUiChatCommandStatusPayload = {
+  readonly payload: _Chat1ChatUiChatCommandStatusPayload
+  readonly type: typeof chat1ChatUiChatCommandStatus
 }
 export type Chat1ChatUiChatConfirmChannelDeletePayload = {
   readonly payload: _Chat1ChatUiChatConfirmChannelDeletePayload
@@ -2710,6 +2770,10 @@ export type Keybase1NotifyEphemeralNewTeamEkPayload = {
   readonly payload: _Keybase1NotifyEphemeralNewTeamEkPayload
   readonly type: typeof keybase1NotifyEphemeralNewTeamEk
 }
+export type Keybase1NotifyEphemeralNewTeambotEkPayload = {
+  readonly payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
+  readonly type: typeof keybase1NotifyEphemeralNewTeambotEk
+}
 export type Keybase1NotifyFSFSActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSActivityPayload
   readonly type: typeof keybase1NotifyFSFSActivity
@@ -2762,6 +2826,10 @@ export type Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload = {
   readonly payload: _Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   readonly type: typeof keybase1NotifyPhoneNumberPhoneNumbersChanged
 }
+export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
+  readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
+}
 export type Keybase1NotifyServiceShutdownPayload = {
   readonly payload: _Keybase1NotifyServiceShutdownPayload
   readonly type: typeof keybase1NotifyServiceShutdown
@@ -2809,6 +2877,10 @@ export type Keybase1NotifyTeamTeamExitPayload = {
 export type Keybase1NotifyTrackingTrackingChangedPayload = {
   readonly payload: _Keybase1NotifyTrackingTrackingChangedPayload
   readonly type: typeof keybase1NotifyTrackingTrackingChanged
+}
+export type Keybase1NotifyTrackingTrackingInfoPayload = {
+  readonly payload: _Keybase1NotifyTrackingTrackingInfoPayload
+  readonly type: typeof keybase1NotifyTrackingTrackingInfo
 }
 export type Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {
   readonly payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
@@ -3020,6 +3092,7 @@ export type Actions =
   | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload
+  | Chat1ChatUiChatCommandStatusPayload
   | Chat1ChatUiChatConfirmChannelDeletePayload
   | Chat1ChatUiChatGiphySearchResultsPayload
   | Chat1ChatUiChatGiphyToggleResultWindowPayload
@@ -3119,6 +3192,7 @@ export type Actions =
   | Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
   | Keybase1NotifyEmailAddressEmailsChangedPayload
   | Keybase1NotifyEphemeralNewTeamEkPayload
+  | Keybase1NotifyEphemeralNewTeambotEkPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
   | Keybase1NotifyFSFSFavoritesChangedPayload
@@ -3132,6 +3206,7 @@ export type Actions =
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+  | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload
   | Keybase1NotifySessionLoggedInPayload
@@ -3144,6 +3219,7 @@ export type Actions =
   | Keybase1NotifyTeamTeamDeletedPayload
   | Keybase1NotifyTeamTeamExitPayload
   | Keybase1NotifyTrackingTrackingChangedPayload
+  | Keybase1NotifyTrackingTrackingInfoPayload
   | Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
   | Keybase1NotifyUsersPasswordChangedPayload
   | Keybase1NotifyUsersUserChangedPayload

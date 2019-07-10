@@ -16,7 +16,8 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-  onFinish: (email: string) => dispatch(SignupGen.createCheckEmail({email})),
+  onFinish: (email: string, allowSearch: boolean) =>
+    dispatch(SignupGen.createCheckEmail({allowSearch, email})),
 })
 
 const ConnectedEnterEmail = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({

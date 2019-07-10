@@ -16,6 +16,7 @@ import walletSwitcherRow from './wallet/header/wallet-switcher/wallet-row/index.
 import whatIsStellarModal from './what-is-stellar-modal/index.stories'
 import airdrop from './airdrop/index.stories'
 import trustline from './trustline/index.stories'
+import sep7Confirm from './sep7-confirm/index.stories'
 
 const load = () => {
   airdrop()
@@ -28,6 +29,7 @@ const load = () => {
   onboarding()
   receiveModal()
   sendForm()
+  sep7Confirm()
   confirmForm()
   walletList()
   wallet()

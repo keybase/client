@@ -1,9 +1,10 @@
 import * as React from 'react'
-import {connect, RouteProps, TypedState} from '../util/container'
+import * as Container from '../util/container'
+import Feedback from '../settings/feedback/container'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = Container.RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = (state: Container.TypedState) => {
   const showLoading = state.config.daemonHandshakeState !== 'done'
   const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
   return {showLoading, showRelogin}
@@ -22,11 +23,9 @@ const _RootLogin = ({showLoading, showRelogin, navigateAppend}) => {
   return <JoinOrLogin navigateAppend={navigateAppend} />
 }
 
-const RootLogin = connect(
-  mapStateToProps,
-  () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
-)(_RootLogin)
+const RootLogin = Container.connect(mapStateToProps, () => ({}), (s, d, o: OwnProps) => ({...o, ...s, ...d}))(
+  _RootLogin
+)
 
 // @ts-ignore
 RootLogin.navigationOptions = {
@@ -34,7 +33,7 @@ RootLogin.navigationOptions = {
 }
 
 export const newRoutes = {
-  feedback: {getScreen: () => require('../settings/feedback/container').default},
+  feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},
   login: {getScreen: () => RootLogin},
   ...require('../provision/routes').newRoutes,
   ...require('./signup/routes').newRoutes,

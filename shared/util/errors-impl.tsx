@@ -64,7 +64,9 @@ const paramsToErrorMsg = (
 }
 
 function isRPCErrorLike(err: Object): err is RPCErrorLike {
-  return err.hasOwnProperty('desc') && err.hasOwnProperty('code')
+  return (
+    Object.prototype.hasOwnProperty.call(err, 'desc') && Object.prototype.hasOwnProperty.call(err, 'code')
+  )
 }
 
 // convertToError converts an RPC error object (or any object) into an

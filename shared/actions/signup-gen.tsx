@@ -14,6 +14,7 @@ export const checkUsername = 'signup:checkUsername'
 export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsername = 'signup:checkedUsername'
+export const clearJustSignedUpEmail = 'signup:clearJustSignedUpEmail'
 export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
 export const requestInvite = 'signup:requestInvite'
@@ -24,7 +25,7 @@ export const signedup = 'signup:signedup'
 
 // Payload Types
 type _CheckDevicenamePayload = {readonly devicename: string}
-type _CheckEmailPayload = {readonly email: string}
+type _CheckEmailPayload = {readonly allowSearch: boolean; readonly email: string}
 type _CheckInviteCodePayload = {readonly inviteCode: string}
 type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
 type _CheckUsernamePayload = {readonly username: string}
@@ -37,6 +38,7 @@ type _CheckedUsernamePayload = {
   readonly usernameTaken?: string
   readonly error: string
 }
+type _ClearJustSignedUpEmailPayload = void
 type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
 type _RequestInvitePayload = {readonly email: string; readonly name: string}
@@ -92,6 +94,9 @@ export const createCheckedUsername = (payload: _CheckedUsernamePayload): Checked
   payload,
   type: checkedUsername,
 })
+export const createClearJustSignedUpEmail = (
+  payload: _ClearJustSignedUpEmailPayload
+): ClearJustSignedUpEmailPayload => ({payload, type: clearJustSignedUpEmail})
 export const createGoBackAndClearErrors = (
   payload: _GoBackAndClearErrorsPayload
 ): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
@@ -167,6 +172,10 @@ export type CheckedUsernamePayload = {
   readonly payload: _CheckedUsernamePayload
   readonly type: typeof checkedUsername
 }
+export type ClearJustSignedUpEmailPayload = {
+  readonly payload: _ClearJustSignedUpEmailPayload
+  readonly type: typeof clearJustSignedUpEmail
+}
 export type GoBackAndClearErrorsPayload = {
   readonly payload: _GoBackAndClearErrorsPayload
   readonly type: typeof goBackAndClearErrors
@@ -221,6 +230,7 @@ export type Actions =
   | CheckedInviteCodePayload
   | CheckedInviteCodePayloadError
   | CheckedUsernamePayload
+  | ClearJustSignedUpEmailPayload
   | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload
   | RequestInvitePayload

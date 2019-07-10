@@ -7,10 +7,11 @@ import {Props, PaymentVariants} from './'
 
 function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
   switch (paymentOption.type) {
-    case 'credit-card-no-past':
+    case 'credit-card-no-past': {
       const {onAddCreditCard} = paymentOption
       return <Button style={buttonStyle} onClick={onAddCreditCard} label="Add a credit card" />
-    case 'credit-card-with-past':
+    }
+    case 'credit-card-with-past': {
       const {cardInfo, onPayWithSavedCard, onUpdateCard} = paymentOption
       return (
         <Box style={globalStyles.flexBoxColumn}>
@@ -22,7 +23,8 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
           <Button style={buttonStyle} type="Dim" onClick={onUpdateCard} label="Update credit card" />
         </Box>
       )
-    case 'apple-pay':
+    }
+    case 'apple-pay': {
       const {onPayWithCardInstead} = paymentOption
       const text = `You are currently using Apple Pay. Please use your iPhone/iPad to switch plans.`
       return (
@@ -38,6 +40,7 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
           />
         </Box>
       )
+    }
   }
   return null
 }

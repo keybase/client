@@ -3431,7 +3431,7 @@ func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
 			}
 		}
 		dbc, err = newDiskBlockCacheLocal(
-			cr.config, crDirtyBlockCacheLimitTrackerType, tempDir)
+			cr.config, crDirtyBlockCacheLimitTrackerType, tempDir, cr.config.Mode())
 		if err != nil {
 			dirCleanupFn(ctx)
 			return nil, nil, err
@@ -3768,7 +3768,7 @@ func (cr *ConflictResolver) clearConflictRecords(ctx context.Context) error {
 
 func openCRDBInternal(config Config) (*LevelDb, error) {
 	if config.IsTestMode() {
-		return openLevelDB(storage.NewMemStorage())
+		return openLevelDB(storage.NewMemStorage(), config.Mode())
 	}
 	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
@@ -3785,7 +3785,7 @@ func openCRDBInternal(config Config) (*LevelDb, error) {
 		return nil, err
 	}
 
-	return openLevelDB(stor)
+	return openLevelDB(stor, config.Mode())
 }
 
 func openCRDB(config Config) (db *LevelDb) {

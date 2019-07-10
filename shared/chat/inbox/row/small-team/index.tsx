@@ -120,6 +120,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 hasUnread={props.hasUnread}
                 hasBadge={props.hasBadge}
                 iconHoverColor={props.iconHoverColor}
+                isSelected={props.isSelected}
                 participants={props.teamname ? [props.teamname] : props.participants}
                 showBold={props.showBold}
                 showGear={!props.isInWidget}

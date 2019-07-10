@@ -18,7 +18,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID
   return {
     accountAssets: Constants.getAssets(state, accountID),
-    canAddTrustline: Constants.getCanAddTrustline(state, accountID),
+    canAddTrustline: Constants.getAccount(state, accountID).canAddTrustline,
     trustline: state.wallets.trustline,
     waitingSearch: Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey),
   }

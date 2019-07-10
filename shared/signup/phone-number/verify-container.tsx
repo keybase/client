@@ -18,9 +18,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onContinue: (phoneNumber: string, code: string) =>
     dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberVerification()),
-  onResend: () =>
-    dispatch(SettingsGen.createAddPhoneNumber({allowSearch: false, phoneNumber: '', resend: true})),
+  onCleanup: () => dispatch(SettingsGen.createClearPhoneNumberAdd()),
+  onResend: (phoneNumber: string) =>
+    dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber})),
   onSuccess: () => dispatch(RouteTreeGen.createClearModals()),
 })
 

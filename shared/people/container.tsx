@@ -6,6 +6,7 @@ import * as Kb from '../common-adapters'
 import People, {Header} from './index'
 import * as PeopleGen from '../actions/people-gen'
 import {connect, RouteProps, isMobile} from '../util/container'
+import {createClearJustSignedUpEmail} from '../actions/signup-gen'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
@@ -33,12 +34,14 @@ const ConnectedHeader = connect(
 )(Header)
 
 type Props = {
+  clearJustSignedUpEmail: () => void
   oldItems: I.List<Types.PeopleScreenItem>
   newItems: I.List<Types.PeopleScreenItem>
   followSuggestions: I.List<Types.FollowSuggestion>
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
   onOpenAccountSwitcher: () => void
+  signupEmail: string
   showAirdrop: boolean
   myUsername: string
   waiting: boolean
@@ -64,6 +67,8 @@ class LoadOnMount extends React.PureComponent<Props> {
           getData={this._getData}
           onClickUser={this._onClickUser}
           showAirdrop={this.props.showAirdrop}
+          signupEmail={this.props.signupEmail}
+          clearJustSignedUpEmail={this.props.clearJustSignedUpEmail}
         />
       </Kb.Reloadable>
     )
@@ -76,10 +81,12 @@ const mapStateToProps = state => ({
   newItems: state.people.newItems,
   oldItems: state.people.oldItems,
   showAirdrop: isMobile,
+  signupEmail: state.signup.justSignedUpEmail,
   waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
 })
 
 const mapDispatchToProps = dispatch => ({
+  clearJustSignedUpEmail: () => dispatch(createClearJustSignedUpEmail()),
   getData: (markViewed = true) =>
     dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
@@ -95,6 +102,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     newItems: stateProps.newItems,
     oldItems: stateProps.oldItems,
     showAirdrop: stateProps.showAirdrop,
+    signupEmail: stateProps.signupEmail,
     waiting: stateProps.waiting,
     ...dispatchProps,
   }

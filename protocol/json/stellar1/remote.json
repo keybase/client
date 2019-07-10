@@ -482,6 +482,10 @@
         },
         {
           "type": "boolean",
+          "name": "unread"
+        },
+        {
+          "type": "boolean",
           "name": "fromPrimary"
         },
         {
@@ -662,6 +666,13 @@
         {
           "type": "string",
           "name": "feeCharged"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "pathIntermediate"
         }
       ]
     },

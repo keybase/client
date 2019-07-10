@@ -85,6 +85,7 @@ func TestTeamList(t *testing.T) {
 	require.Equal(t, 0, len(details.Members.Admins))
 	require.Equal(t, 4, len(details.Members.Writers))
 	require.Equal(t, 0, len(details.Members.Readers))
+	require.Equal(t, 0, len(details.Members.Bots))
 
 	annMember := findMember(ann, details.Members.Owners)
 	require.NotNil(t, annMember)

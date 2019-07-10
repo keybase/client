@@ -6,7 +6,6 @@ package service
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
@@ -155,9 +154,10 @@ func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (res ke
 	}
 	phoneNumbers, err := phonenumbers.GetPhoneNumbers(mctx)
 	if err != nil {
-		if errStr := err.Error(); strings.Contains(errStr, "not enabled") {
-			h.G().Log.Debug("PhoneNumbers feature not enabled")
-		} else {
+		switch err.(type) {
+		case libkb.FeatureFlagError:
+			mctx.Debug("PhoneNumbers feature not enabled - phone number list will be empty")
+		default:
 			return res, err
 		}
 	}

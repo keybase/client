@@ -1,18 +1,21 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
+import * as Constants from '../../constants/wallets'
 import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import {capitalize} from 'lodash-es'
-import Transaction, {TimestampError, TimestampPending} from '../transaction'
+import {Transaction, TimestampError, TimestampPending} from '../transaction'
 import {SmallAccountID} from '../common'
 import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../util/timestamp'
+import PaymentPath, {Asset} from './payment-path'
 
 export type NotLoadingProps = {
   amountUser: string
   amountXLM: string
   approxWorth: string
+  assetCode: string
   counterparty: string
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: string | null
@@ -35,12 +38,16 @@ export type NotLoadingProps = {
   onShowProfile: (username: string) => void
   onViewTransaction?: () => void
   operations?: Array<string>
+  pathIntermediate: Asset[]
   publicMemo?: string
   recipientAccountID: Types.AccountID | null
   selectableText: boolean
   senderAccountID: Types.AccountID
   sourceAmount: string
   sourceAsset: string
+  sourceConvRate: string
+  sourceIssuer: string
+  sourceIssuerAccountID: string
   status: Types.StatusSimplified
   statusDetail: string
   // A null timestamp means the transaction is still pending.
@@ -67,6 +74,12 @@ export type Props =
 type PartyAccountProps = {
   accountID: Types.AccountID | null
   accountName: string
+}
+
+interface ConvertedCurrencyLabelProps {
+  amount: string | number
+  assetCode: string
+  issuerDescription: string
 }
 
 const PartyAccount = (props: PartyAccountProps) => {
@@ -179,13 +192,13 @@ const YourAccount = (props: YourAccountProps) => {
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
-      return Styles.globalColors.green
+      return Styles.globalColors.greenDark
     case 'pending':
     case 'claimable':
       return Styles.globalColors.purple
     case 'error':
     case 'canceled':
-      return Styles.globalColors.red
+      return Styles.globalColors.redDark
     default:
       return Styles.globalColors.black
   }
@@ -287,8 +300,36 @@ export const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
+const ConvertedCurrencyLabel = (props: ConvertedCurrencyLabelProps) => (
+  <Kb.Box2 direction="vertical" noShrink={true}>
+    <Kb.Text type="BodyBigExtrabold">
+      {props.amount} {props.assetCode || 'XLM'}
+    </Kb.Text>
+    <Kb.Text type="BodySmall">/{props.issuerDescription}</Kb.Text>
+  </Kb.Box2>
+)
+
 const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
+
+  const isPathPayment = !!props.sourceAmount
+
+  // If we don't have a sourceAsset, the source is native Lumens
+  const sourceIssuer =
+    props.sourceAsset === ''
+      ? 'Stellar Lumens'
+      : props.sourceIssuer ||
+        (props.sourceIssuerAccountID === Types.noAccountID
+          ? 'Unknown issuer'
+          : Constants.shortenAccountID(props.sourceIssuerAccountID))
+  const destinationIssuer =
+    props.assetCode === ''
+      ? 'Stellar Lumens'
+      : props.issuerDescription ||
+        (props.issuerAccountID === Types.noAccountID
+          ? 'Unknown issuer'
+          : Constants.shortenAccountID(props.issuerAccountID))
+
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
       <Kb.Divider />
@@ -322,6 +363,40 @@ const TransactionDetails = (props: NotLoadingProps) => {
       </Kb.Box2>
       <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        {isPathPayment && (
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Payment path:</Kb.Text>
+            <PaymentPath
+              sourceAmount={`${props.sourceAmount} ${props.sourceAsset || 'XLM'}`}
+              sourceIssuer={sourceIssuer}
+              pathIntermediate={props.pathIntermediate}
+              destinationIssuer={destinationIssuer}
+              destinationAmount={props.amountXLM}
+            />
+          </Kb.Box2>
+        )}
+
+        {isPathPayment && (
+          <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Conversion rate:</Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+              <ConvertedCurrencyLabel
+                amount={1}
+                assetCode={props.sourceAsset}
+                issuerDescription={sourceIssuer}
+              />
+              <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={{flex: 1}}>
+                <Kb.Text type="BodyBig">=</Kb.Text>
+              </Kb.Box2>
+              <ConvertedCurrencyLabel
+                amount={props.sourceConvRate}
+                assetCode={props.assetCode}
+                issuerDescription={destinationIssuer}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
+
         {!!sender && (
           <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
             <Kb.Text type="BodySmallSemibold">Sender:</Kb.Text>
@@ -565,7 +640,7 @@ const styles = Styles.styleSheetCreate({
   }),
   tooltipText: Styles.platformStyles({
     isElectron: {
-      wordBreak: 'break-work',
+      wordBreak: 'break-word',
     },
   }),
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),

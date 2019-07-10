@@ -178,6 +178,7 @@ const (
 	StatusCode_SCEphemeralMemberAfterEK                    StatusCode = 2907
 	StatusCode_SCEphemeralDeviceStale                      StatusCode = 2908
 	StatusCode_SCEphemeralUserStale                        StatusCode = 2909
+	StatusCode_SCEphemeralTeambotGenerationExists          StatusCode = 2910
 	StatusCode_SCStellarError                              StatusCode = 3100
 	StatusCode_SCStellarBadInput                           StatusCode = 3101
 	StatusCode_SCStellarWrongRevision                      StatusCode = 3102
@@ -212,6 +213,11 @@ const (
 	StatusCode_SCNISTBadClock                              StatusCode = 3219
 	StatusCode_SCNISTSigBadCtime                           StatusCode = 3220
 	StatusCode_SCBadSignupUsernameDeleted                  StatusCode = 3221
+	StatusCode_SCPhoneNumberUnknown                        StatusCode = 3400
+	StatusCode_SCPhoneNumberAlreadyVerified                StatusCode = 3401
+	StatusCode_SCPhoneNumberVerificationCodeExpired        StatusCode = 3402
+	StatusCode_SCPhoneNumberWrongVerificationCode          StatusCode = 3403
+	StatusCode_SCPhoneNumberLimitExceeded                  StatusCode = 3404
 	StatusCode_SCNoPaperKeys                               StatusCode = 3605
 )
 
@@ -386,6 +392,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCEphemeralMemberAfterEK":                    2907,
 	"SCEphemeralDeviceStale":                      2908,
 	"SCEphemeralUserStale":                        2909,
+	"SCEphemeralTeambotGenerationExists":          2910,
 	"SCStellarError":                              3100,
 	"SCStellarBadInput":                           3101,
 	"SCStellarWrongRevision":                      3102,
@@ -420,6 +427,11 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNISTBadClock":                              3219,
 	"SCNISTSigBadCtime":                           3220,
 	"SCBadSignupUsernameDeleted":                  3221,
+	"SCPhoneNumberUnknown":                        3400,
+	"SCPhoneNumberAlreadyVerified":                3401,
+	"SCPhoneNumberVerificationCodeExpired":        3402,
+	"SCPhoneNumberWrongVerificationCode":          3403,
+	"SCPhoneNumberLimitExceeded":                  3404,
 	"SCNoPaperKeys":                               3605,
 }
 
@@ -592,6 +604,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2907: "SCEphemeralMemberAfterEK",
 	2908: "SCEphemeralDeviceStale",
 	2909: "SCEphemeralUserStale",
+	2910: "SCEphemeralTeambotGenerationExists",
 	3100: "SCStellarError",
 	3101: "SCStellarBadInput",
 	3102: "SCStellarWrongRevision",
@@ -626,6 +639,11 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3219: "SCNISTBadClock",
 	3220: "SCNISTSigBadCtime",
 	3221: "SCBadSignupUsernameDeleted",
+	3400: "SCPhoneNumberUnknown",
+	3401: "SCPhoneNumberAlreadyVerified",
+	3402: "SCPhoneNumberVerificationCodeExpired",
+	3403: "SCPhoneNumberWrongVerificationCode",
+	3404: "SCPhoneNumberLimitExceeded",
 	3605: "SCNoPaperKeys",
 }
 

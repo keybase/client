@@ -1,8 +1,7 @@
 import React from 'react'
-import {globalMargins} from '../../styles'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../util/container'
-import * as Styles from '../../styles/index'
+import * as Styles from '../../styles'
 
 export const getOtherErrorInfo = (err: Error) => {
   const info = {}
@@ -22,6 +21,8 @@ type Props = {
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
   sendError: Error | null
+  showInternalSuccessBanner: boolean // if true, enables the internal success bar
+  onFeedbackDone: (success: boolean) => void
 }
 
 type State = {
@@ -58,8 +59,9 @@ class Feedback extends React.Component<Props, State> {
       const success = !this.props.sending && !this.props.sendError
       this.setState({
         feedback: success ? '' : this.state.feedback,
-        showSuccessBanner: success,
+        showSuccessBanner: this.props.showInternalSuccessBanner && success,
       })
+      this.props.onFeedbackDone(success)
     }
   }
 
@@ -114,7 +116,7 @@ class Feedback extends React.Component<Props, State> {
               <Kb.Box2 direction="vertical" style={styles.textBox}>
                 <Kb.Text type="Body">Include your logs</Kb.Text>
                 <Kb.Text type="BodySmall" onClick={this._onLabelClick} style={styles.text}>
-                  This includes some private metadata info (e.g., filenames, but not contents) but it will
+                  This includes some private metadata info (e.g., file sizes, but not names or contents) but it will
                   help the developers fix bugs more quickly.
                 </Kb.Text>
               </Kb.Box2>
@@ -159,7 +161,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   mainBox: {
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
   },
   outerStyle: {
     backgroundColor: 'white',

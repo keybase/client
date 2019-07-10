@@ -195,7 +195,12 @@ func fetchBundleForAccount(mctx libkb.MetaContext, accountID *stellar1.AccountID
 	}
 
 	finder := &pukFinder{}
-	return bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	b, bv, pukGen, accountGens, err = bundle.DecodeAndUnbox(mctx, finder, apiRes.BundleEncoded)
+	if err != nil {
+		return b, bv, pukGen, accountGens, err
+	}
+	mctx.G().GetStellar().InformBundle(mctx, b.Revision, b.Accounts)
+	return b, bv, pukGen, accountGens, err
 }
 
 // FetchSecretlessBundle gets an account bundle from the server and decrypts it
@@ -676,6 +681,7 @@ func SetAccountDefaultCurrency(ctx context.Context, g *libkb.GlobalContext, acco
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
+	mctx.G().GetStellar().InformDefaultCurrencyChange(mctx)
 	return err
 }
 
@@ -986,10 +992,11 @@ func DetailsPlusPayments(ctx context.Context, g *libkb.GlobalContext, accountID 
 
 type airdropDetails struct {
 	libkb.AppStatusEmbed
-	Details json.RawMessage `json:"details"`
+	Details    json.RawMessage `json:"details"`
+	IsPromoted bool            `json:"is_promoted"`
 }
 
-func AirdropDetails(mctx libkb.MetaContext) (string, error) {
+func AirdropDetails(mctx libkb.MetaContext) (bool, string, error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/airdrop/details",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -997,10 +1004,10 @@ func AirdropDetails(mctx libkb.MetaContext) (string, error) {
 
 	var res airdropDetails
 	if err := mctx.G().API.GetDecode(mctx, apiArg, &res); err != nil {
-		return "", err
+		return false, "", err
 	}
 
-	return string(res.Details), nil
+	return res.IsPromoted, string(res.Details), nil
 }
 
 func AirdropRegister(mctx libkb.MetaContext, register bool) error {

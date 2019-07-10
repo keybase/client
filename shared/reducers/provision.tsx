@@ -48,7 +48,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         devices: I.List(action.payload.devices),
         error: initialState.error,
       })
-    case ProvisionGen.submitDeviceSelect:
+    case ProvisionGen.submitDeviceSelect: {
       const selectedDevice = state.devices.find(d => d.name === action.payload.name)
       if (!selectedDevice) {
         throw new Error('Selected a non existant device?')
@@ -60,7 +60,8 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         codePageOtherDeviceType: selectedDevice.type === 'desktop' ? 'desktop' : 'mobile',
         error: initialState.error,
       })
-    case ProvisionGen.submitTextCode:
+    }
+    case ProvisionGen.submitTextCode: {
       // clean up spaces
       const good = action.payload.phrase
         .stringValue()
@@ -70,6 +71,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         codePageOutgoingTextCode: new HiddenString(good),
         error: initialState.error,
       })
+    }
     case ProvisionGen.submitDeviceName:
       return state.merge({
         deviceName: action.payload.name,

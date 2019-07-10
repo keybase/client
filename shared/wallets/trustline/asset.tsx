@@ -7,15 +7,17 @@ export type Props = {
   cannotAccept: boolean
   expanded: boolean
   firstItem: boolean
+  infoUrlText: string
   issuerAccountID: string
   issuerVerifiedDomain: string
+  thisDeviceIsLockedOut: boolean
   trusted: boolean // TODO add limit when we support it in GUI
 
   onAccept: () => void
   onCollapse: () => void
   onExpand: () => void
   onRemove: () => void
-  onViewDetails: () => void
+  onOpenInfoUrl?: () => void
 
   waitingKeyAdd: string
   waitingKeyDelete: string
@@ -24,7 +26,7 @@ export type Props = {
 
 const stopPropagation = onClick => e => {
   e.stopPropagation()
-  onClick()
+  onClick && onClick()
 }
 
 const getCode = (props: Props) => (
@@ -36,14 +38,9 @@ const getCode = (props: Props) => (
   </Kb.Box2>
 )
 
-const getIssuerVerifiedDomain = (props: Props) =>
-  props.issuerVerifiedDomain ? (
-    <Kb.Text type="BodySmall">{props.issuerVerifiedDomain}</Kb.Text>
-  ) : (
-    <Kb.Text type="BodySmallItalic" style={styles.textUnknown}>
-      Unknown
-    </Kb.Text>
-  )
+const getIssuerVerifiedDomain = (props: Props) => (
+  <Kb.Text type="BodySmall">{props.issuerVerifiedDomain || 'Unknown issuer'}</Kb.Text>
+)
 
 const bodyCollapsed = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.bodyCollapsed} fullHeight={true}>
@@ -67,52 +64,62 @@ const bodyExpanded = (props: Props) => (
       mode="Secondary"
       type="Default"
       small={true}
-      label="View details"
+      disabled={!props.onOpenInfoUrl}
+      label={props.infoUrlText}
       style={Styles.collapseStyles([styles.marginTopXtiny, styles.viewDetails])}
-      onClick={stopPropagation(props.onViewDetails)}
+      onClick={stopPropagation(props.onOpenInfoUrl)}
     />
   </Kb.Box2>
 )
 
-const Asset = (props: Props) => (
-  <Kb.ListItem2
-    firstItem={props.firstItem}
-    type="Small"
-    height={props.expanded ? expandedHeight : undefined}
-    body={
-      // We use this instead of the action prop on ListItem2 so that it
-      // "floats" on top of the content and the account ID can extend below it
-      // rather than being cut off by the action container's left border.
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
-        <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
-          {props.trusted ? (
-            <Kb.WaitingButton
-              mode="Secondary"
-              type="Danger"
-              small={true}
-              label="Remove"
-              onClick={stopPropagation(props.onRemove)}
-              disabled={props.waitingRefresh}
-              waitingKey={props.waitingKeyDelete}
-            />
-          ) : (
-            <Kb.WaitingButton
-              mode="Primary"
-              type="Success"
-              small={true}
-              label="Accept"
-              onClick={stopPropagation(props.onAccept)}
-              disabled={props.cannotAccept || props.waitingRefresh}
-              waitingKey={props.waitingKeyAdd}
-            />
-          )}
+const Asset = (props: Props) => {
+  const button = props.trusted ? (
+    <Kb.WaitingButton
+      mode="Secondary"
+      type="Danger"
+      small={true}
+      label="Remove"
+      onClick={stopPropagation(props.onRemove)}
+      disabled={props.waitingRefresh || props.thisDeviceIsLockedOut}
+      waitingKey={props.waitingKeyDelete}
+    />
+  ) : (
+    <Kb.WaitingButton
+      mode="Primary"
+      type="Success"
+      small={true}
+      label="Accept"
+      onClick={stopPropagation(props.onAccept)}
+      disabled={props.cannotAccept || props.waitingRefresh || props.thisDeviceIsLockedOut}
+      waitingKey={props.waitingKeyAdd}
+    />
+  )
+  return (
+    <Kb.ListItem2
+      firstItem={props.firstItem}
+      type="Small"
+      height={props.expanded ? expandedHeight : undefined}
+      body={
+        // We use this instead of the action prop on ListItem2 so that it
+        // "floats" on top of the content and the account ID can extend below it
+        // rather than being cut off by the action container's left border.
+        <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+          {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
+          <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
+            {props.thisDeviceIsLockedOut ? (
+              <Kb.WithTooltip text="You can only send from a mobile device more than 7 days old.">
+                {button}
+              </Kb.WithTooltip>
+            ) : (
+              button
+            )}
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-    }
-    onClick={props.expanded ? props.onCollapse : props.onExpand}
-  />
-)
+      }
+      onClick={props.expanded ? props.onCollapse : props.onExpand}
+    />
+  )
+}
 
 const nonExpandedHeight = Styles.isMobile ? 56 : 48
 const expandedHeight = Styles.isMobile ? 160 : 140
@@ -133,10 +140,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   bodyCollapsed: {
+    paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
   bodyExpanded: Styles.platformStyles({
     common: {
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {

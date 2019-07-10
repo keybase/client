@@ -273,7 +273,9 @@
       "spaceAvailableNotificationThreshold": "number"
     },
     "setTlfsAsUnloaded": {},
-
-    "placeholderAction": {}
+    "placeholderAction": {},
+    "setDebugLevel": {
+      "level": "string"
+    }
   }
 }

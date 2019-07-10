@@ -85,14 +85,6 @@
       "teamname": "string",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
-    "addPeopleToTeam": {
-      "destSubPath?": "I.List<string>",
-      "role": "string",
-      "rootPath?": "I.List<string>",
-      "sendChatNotification": "boolean",
-      "sourceSubPath?": "I.List<string>",
-      "teamname": "string"
-    },
     "deleteTeam": {
       "teamname": "string"
     },

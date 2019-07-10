@@ -8,10 +8,11 @@ import * as React from 'react'
 // )(MyComponent)
 
 export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<string>) {
-  return (BaseComponent: any) => {
+  return function <T> (BaseComponent: T): T {
+    // @ts-ignore
     const factory: React.CFactory<any, React.Component<any, {}>> = React.createFactory(BaseComponent)
 
-    class SafeSubmit extends React.Component<any> {
+    class SafeSubmit extends React.Component<T> {
       // a map of name to boolean if we can call it safely
       _safeToCallWrappedMap = submitProps.reduce((map, name) => {
         map[name] = true
@@ -44,6 +45,7 @@ export function safeSubmit(submitProps: Array<string>, resetSafeProps: Array<str
         })
       }
     }
+    // @ts-ignore
     return SafeSubmit
   }
 }

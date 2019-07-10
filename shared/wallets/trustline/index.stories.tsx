@@ -7,9 +7,11 @@ import Asset from './asset'
 import Trustline from '.'
 
 const commonAssetProps = {
+  infoUrlText: 'View details',
+
   onAccept: Sb.action('onAccept'),
+  onOpenInfoUrl: Sb.action('onOpenInfoUrl'),
   onRemove: Sb.action('onRemove'),
-  onViewDetails: Sb.action('onViewDetails'),
 
   waitingAdd: false,
   waitingDelete: false,
@@ -131,7 +133,9 @@ const load = () => {
       <Trustline {...commonTrustlineProps} searchingAssets={['issuer1-USD', 'issuer2-USD']} />
     ))
     .add('Trustline - error', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend="0.2" />)
-    .add('Trustline - unable to add', () => <Trustline {...commonTrustlineProps} balanceAvailableToSend="0.2" canAddTrustline={false} />)
+    .add('Trustline - unable to add', () => (
+      <Trustline {...commonTrustlineProps} balanceAvailableToSend="0.2" canAddTrustline={false} />
+    ))
     .add('Trustline - loading', () => <Trustline {...commonTrustlineProps} loaded={false} />)
 }
 

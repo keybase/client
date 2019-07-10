@@ -90,6 +90,11 @@ type VerifyPhoneNumberArg struct {
 	Code        string      `codec:"code" json:"code"`
 }
 
+type ResendVerificationForPhoneNumberArg struct {
+	SessionID   int         `codec:"sessionID" json:"sessionID"`
+	PhoneNumber PhoneNumber `codec:"phoneNumber" json:"phoneNumber"`
+}
+
 type GetPhoneNumbersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -114,6 +119,7 @@ type PhoneNumbersInterface interface {
 	AddPhoneNumber(context.Context, AddPhoneNumberArg) error
 	EditPhoneNumber(context.Context, EditPhoneNumberArg) error
 	VerifyPhoneNumber(context.Context, VerifyPhoneNumberArg) error
+	ResendVerificationForPhoneNumber(context.Context, ResendVerificationForPhoneNumberArg) error
 	GetPhoneNumbers(context.Context, int) ([]UserPhoneNumber, error)
 	DeletePhoneNumber(context.Context, DeletePhoneNumberArg) error
 	SetVisibilityPhoneNumber(context.Context, SetVisibilityPhoneNumberArg) error
@@ -166,6 +172,21 @@ func PhoneNumbersProtocol(i PhoneNumbersInterface) rpc.Protocol {
 						return
 					}
 					err = i.VerifyPhoneNumber(ctx, typedArgs[0])
+					return
+				},
+			},
+			"resendVerificationForPhoneNumber": {
+				MakeArg: func() interface{} {
+					var ret [1]ResendVerificationForPhoneNumberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ResendVerificationForPhoneNumberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ResendVerificationForPhoneNumberArg)(nil), args)
+						return
+					}
+					err = i.ResendVerificationForPhoneNumber(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -249,6 +270,11 @@ func (c PhoneNumbersClient) EditPhoneNumber(ctx context.Context, __arg EditPhone
 
 func (c PhoneNumbersClient) VerifyPhoneNumber(ctx context.Context, __arg VerifyPhoneNumberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.verifyPhoneNumber", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PhoneNumbersClient) ResendVerificationForPhoneNumber(ctx context.Context, __arg ResendVerificationForPhoneNumberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.phoneNumbers.resendVerificationForPhoneNumber", []interface{}{__arg}, nil)
 	return
 }
 

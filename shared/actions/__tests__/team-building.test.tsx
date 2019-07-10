@@ -2,8 +2,10 @@
 import * as I from 'immutable'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import teamBuildingSaga from '../chat2/team-building'
+import {chatTeamBuildingSaga} from '../chat2'
 import * as Testing from '../../util/testing'
+
+const testNamespace = 'chat2'
 
 jest.mock('../../engine/require')
 
@@ -18,44 +20,78 @@ const initialStore = {
   }),
 }
 
-const startReduxSaga = Testing.makeStartReduxSaga(teamBuildingSaga, initialStore, () => {})
+const startReduxSaga = Testing.makeStartReduxSaga(chatTeamBuildingSaga, initialStore, () => {})
+
+const mockResults = [
+  {
+    keybase: {
+      fullName: 'Marco Munizaga',
+      isFollowee: false,
+      pictureUrl:
+        'https://s3.amazonaws.com/keybase_processed_uploads/67a551a80db42fc190462c28e5785a05_200_200_square_200.jpeg',
+      rawScore: 3.0076923076923077,
+      stellar: null,
+      uid: '4c230ae8d2f922dc2ccc1d2f94890700',
+      username: 'marcopolo',
+    },
+    score: 0.5,
+    service: {
+      bio: null,
+      full_name: null,
+      location: null,
+      pictureUrl: null,
+      service_name: 'github',
+      username: 'marcopolo',
+    },
+    servicesSummary: {
+      facebook: {serviceName: 'facebook', username: 'mmunizaga1337'},
+      github: {serviceName: 'github', username: 'marcopolo'},
+      twitter: {serviceName: 'twitter', username: 'open_sourcery'},
+    },
+  },
+  {
+    keybase: {
+      fullName: null,
+      isFollowee: false,
+      pictureUrl:
+        'https://s3.amazonaws.com/keybase_processed_uploads/f5bf95bd2d0388e8d0171de9caab6405_200_200.jpeg',
+      rawScore: 0.005263157894736842,
+      stellar: null,
+      uid: '7da8ce717861fe1d98bbbbe617a49719',
+      username: 'rustybot',
+    },
+    score: 0.3333333333333333,
+    servicesSummary: {},
+  },
+] as Array<RPCTypes.APIUserSearchResult>
 
 // Maps the user search function to a hashmap, query -> num_wanted -> service -> include_services_summary
-// note the keybase service is a special case where the service is empty string
 const userSearchMock = {
   marcopolo: {
     '11': {
-      '': {
-        '1': {
-          body: `{"status":{"code":0,"name":"OK"},"list":[{"score":0.5,"keybase":{"username":"marcopolo","uid":"4c230ae8d2f922dc2ccc1d2f94890700","picture_url":"https://s3.amazonaws.com/keybase_processed_uploads/67a551a80db42fc190462c28e5785a05_200_200_square_200.jpeg","full_name":"Marco Munizaga","raw_score":3.0076923076923077,"stellar":null},"service":{"service_name":"github","username":"marcopolo","picture_url":null,"bio":null,"location":null,"full_name":null},"services_summary":{"twitter":{"username":"open_sourcery","service_name":"twitter"},"facebook":{"username":"mmunizaga1337","service_name":"facebook"},"github":{"username":"marcopolo","service_name":"github"}}},{"score":0.3333333333333333,"keybase":{"username":"rustybot","uid":"7da8ce717861fe1d98bbbbe617a49719","picture_url":"https://s3.amazonaws.com/keybase_processed_uploads/f5bf95bd2d0388e8d0171de9caab6405_200_200.jpeg","full_name":null,"raw_score":0.005263157894736842,"stellar":null},"services_summary":{}}]}`,
-        },
+      keybase: {
+        true: mockResults,
       },
     },
   },
 }
 
-const mockApiserverGetWithSessionRpcPromise = ({args, endpoint}) => {
-  switch (endpoint) {
-    case 'user/user_search':
-      const {q, num_wanted, service, include_services_summary} = args.reduce((acc, a) => {
-        acc[a.key] = a.value
-        return acc
-      }, {})
-      let result
-      try {
-        result = userSearchMock[q][num_wanted][service][include_services_summary]
-      } catch (e) {
-        throw new Error(
-          `userSearchMock not implemented for query: ${q}, num_wanted: ${num_wanted}, service: ${service} and ${include_services_summary}. Try adding those fields to the userSearchMock hashmap.`
-        )
-      }
-      if (result) {
-        return Promise.resolve(result)
-      } else {
-        return Promise.reject(new Error('No mock result found'))
-      }
-    default:
-      return Promise.reject(new Error('Not Implemented'))
+const mockUserSearchRpcPromiseRpcPromise = (
+  params: RPCTypes.MessageTypes['keybase.1.userSearch.userSearch']['inParam']
+) => {
+  const {query, maxResults, service, includeServicesSummary} = params
+  let result
+  try {
+    result = userSearchMock[query][maxResults][service][String(includeServicesSummary)]
+  } catch (e) {
+    throw new Error(
+      `userSearchMock not implemented for query: ${query}, num_wanted: ${maxResults}, service: ${service} and ${includeServicesSummary}. Try adding those fields to the userSearchMock hashmap.`
+    )
+  }
+  if (result) {
+    return Promise.resolve(result)
+  } else {
+    return Promise.reject(new Error('No mock result found'))
   }
 }
 
@@ -86,12 +122,12 @@ const parsedSearchResults = {
 }
 
 describe('Search Actions', () => {
-  let init
+  let init: ReturnType<typeof startReduxSaga> | null
   let rpc
   beforeEach(() => {
     init = startReduxSaga()
-    rpc = jest.spyOn(RPCTypes, 'apiserverGetWithSessionRpcPromise')
-    rpc.mockImplementation(mockApiserverGetWithSessionRpcPromise)
+    rpc = jest.spyOn(RPCTypes, 'userSearchUserSearchRpcPromise')
+    rpc.mockImplementation(mockUserSearchRpcPromiseRpcPromise)
   })
   afterEach(() => {
     rpc && rpc.mockRestore()
@@ -100,7 +136,7 @@ describe('Search Actions', () => {
   it('Calls search', () => {
     const {dispatch} = init
     expect(rpc).not.toHaveBeenCalled()
-    dispatch(TeamBuildingGen.createSearch({query: 'marcopolo', service: 'keybase'}))
+    dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
     expect(rpc).toHaveBeenCalled()
   })
 
@@ -109,52 +145,54 @@ describe('Search Actions', () => {
     const query = 'marcopolo'
     const service = 'keybase'
     expect(rpc).not.toHaveBeenCalled()
-    dispatch(TeamBuildingGen.createSearch({query: 'marcopolo', service: 'keybase'}))
-    expect(getState().chat2.teamBuildingSearchQuery).toEqual('marcopolo')
-    expect(getState().chat2.teamBuildingSelectedService).toEqual('keybase')
+    dispatch(TeamBuildingGen.createSearch({namespace: testNamespace, query: 'marcopolo', service: 'keybase'}))
+    expect(getState().chat2.teamBuilding.teamBuildingSearchQuery).toEqual('marcopolo')
+    expect(getState().chat2.teamBuilding.teamBuildingSelectedService).toEqual('keybase')
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingSearchResults).toEqual(parsedSearchResults[query][service])
+      expect(getState().chat2.teamBuilding.teamBuildingSearchResults).toEqual(
+        parsedSearchResults[query][service]
+      )
     })
   })
 
   it('Adds users to the team so far', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
     })
   })
 
   it('Remove users to the team so far', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
-    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: ['marcopolo']}))
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace: testNamespace, users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
     })
   })
 
   it('Moves finished team over and clears the teamSoFar on finished', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
-    dispatch(TeamBuildingGen.createFinishedTeamBuilding())
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set([userToAdd]))
     })
   })
 
   it('Cancel team building clears the state', () => {
     const {dispatch, getState} = init
     const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
-    dispatch(TeamBuildingGen.createCancelTeamBuilding())
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace: testNamespace, users: [userToAdd]}))
+    dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace: testNamespace}))
     return Testing.flushPromises().then(() => {
-      expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set())
-      expect(getState().chat2.teamBuildingFinishedTeam).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.Set())
+      expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.Set())
     })
   })
 })

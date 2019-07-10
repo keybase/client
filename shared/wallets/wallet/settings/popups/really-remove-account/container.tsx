@@ -30,14 +30,12 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onClose: (accountID: Types.AccountID) => dispatch(RouteTreeGen.createNavigateUp()),
   _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
-  _onFinish: (accountID: Types.AccountID) => {
+  _onFinish: (accountID: Types.AccountID) =>
     dispatch(
       WalletsGen.createDeleteAccount({
         accountID,
       })
-    )
-    dispatch(RouteTreeGen.createClearModals())
-  },
+    ),
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
   _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
 })

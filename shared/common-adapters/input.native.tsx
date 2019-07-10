@@ -296,7 +296,7 @@ class Input extends Component<Props, State> {
 
     const floatingHintText =
       !!value.length &&
-      (this.props.hasOwnProperty('floatingHintTextOverride')
+      (Object.prototype.hasOwnProperty.call(this.props, 'floatingHintTextOverride')
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
@@ -315,9 +315,9 @@ class Input extends Component<Props, State> {
     // https://github.com/facebook/react-native/issues/18316 .
     const commonProps = {
       autoCapitalize: this.props.autoCapitalize || 'none',
-      autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
+      autoCorrect: Object.prototype.hasOwnProperty.call(this.props, 'autoCorrect') && this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
-      editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
+      editable: Object.prototype.hasOwnProperty.call(this.props, 'editable') ? this.props.editable : true,
       keyboardType,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,

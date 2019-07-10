@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 )
 
 // AddMemberTx helps build a transaction that may contain multiple
@@ -367,8 +368,11 @@ func (tx *AddMemberTx) completeAllKeybaseInvitesForUID(uv keybase1.UserVersion) 
 
 func assertValidNewTeamMemberRole(role keybase1.TeamRole) error {
 	switch role {
-	case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER,
-		keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+	case keybase1.TeamRole_BOT,
+		keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER,
+		keybase1.TeamRole_ADMIN,
+		keybase1.TeamRole_OWNER:
 		return nil
 	default:
 		return fmt.Errorf("Unexpected role: %v (%d)", role, int(role))
@@ -705,14 +709,26 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	var sections []SCTeamSection
 	memSet := newMemberSet()
 	var sectionsWithBoxSummaries []int
+	var ratchet *hidden.Ratchet
 
 	// Transform payloads to SCTeamSections.
 	for i, p := range tx.payloads {
+
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
 			Admin:    admin,
 			Implicit: team.IsImplicit(),
 			Public:   team.IsPublic(),
+		}
+
+		// Only add a ratchet to the first link in the sequence, it doesn't make sense
+		// to add more than one, and it may as well be the first.
+		if ratchet == nil {
+			ratchet, err = hidden.MakeRatchet(mctx, team.ID)
+			if err != nil {
+				return err
+			}
+			section.Ratchets = ratchet.ToTeamSection()
 		}
 
 		switch p.Tag {
@@ -861,11 +877,12 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	}
 
 	payloadArgs := sigPayloadArgs{
-		secretBoxes:        secretBoxes,
-		lease:              lease,
-		implicitAdminBoxes: implicitAdminBoxes,
-		teamEKPayload:      teamEKPayload,
-		teamEKBoxes:        teamEKBoxes,
+		secretBoxes:         secretBoxes,
+		lease:               lease,
+		implicitAdminBoxes:  implicitAdminBoxes,
+		teamEKPayload:       teamEKPayload,
+		teamEKBoxes:         teamEKBoxes,
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	}
 	payload := team.sigPayload(readySigs, payloadArgs)
 

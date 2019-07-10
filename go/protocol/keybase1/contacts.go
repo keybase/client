@@ -65,8 +65,10 @@ type ProcessedContact struct {
 	Username     string           `codec:"username" json:"username"`
 	FullName     string           `codec:"fullName" json:"fullName"`
 	Following    bool             `codec:"following" json:"following"`
+	Assertion    string           `codec:"assertion" json:"assertion"`
 	DisplayName  string           `codec:"displayName" json:"displayName"`
 	DisplayLabel string           `codec:"displayLabel" json:"displayLabel"`
+	RawScore     float64          `codec:"rawScore" json:"rawScore"`
 }
 
 func (o ProcessedContact) DeepCopy() ProcessedContact {
@@ -79,8 +81,10 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 		Username:     o.Username,
 		FullName:     o.FullName,
 		Following:    o.Following,
+		Assertion:    o.Assertion,
 		DisplayName:  o.DisplayName,
 		DisplayLabel: o.DisplayLabel,
+		RawScore:     o.RawScore,
 	}
 }
 
@@ -90,8 +94,19 @@ type LookupContactListArg struct {
 	UserRegionCode RegionCode `codec:"userRegionCode" json:"userRegionCode"`
 }
 
+type SaveContactListArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Contacts  []Contact `codec:"contacts" json:"contacts"`
+}
+
+type LookupSavedContactsListArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ContactsInterface interface {
 	LookupContactList(context.Context, LookupContactListArg) ([]ProcessedContact, error)
+	SaveContactList(context.Context, SaveContactListArg) error
+	LookupSavedContactsList(context.Context, int) ([]ProcessedContact, error)
 }
 
 func ContactsProtocol(i ContactsInterface) rpc.Protocol {
@@ -113,6 +128,36 @@ func ContactsProtocol(i ContactsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"saveContactList": {
+				MakeArg: func() interface{} {
+					var ret [1]SaveContactListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaveContactListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaveContactListArg)(nil), args)
+						return
+					}
+					err = i.SaveContactList(ctx, typedArgs[0])
+					return
+				},
+			},
+			"lookupSavedContactsList": {
+				MakeArg: func() interface{} {
+					var ret [1]LookupSavedContactsListArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LookupSavedContactsListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LookupSavedContactsListArg)(nil), args)
+						return
+					}
+					ret, err = i.LookupSavedContactsList(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -123,5 +168,16 @@ type ContactsClient struct {
 
 func (c ContactsClient) LookupContactList(ctx context.Context, __arg LookupContactListArg) (res []ProcessedContact, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupContactList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ContactsClient) SaveContactList(ctx context.Context, __arg SaveContactListArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.contacts.saveContactList", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ContactsClient) LookupSavedContactsList(ctx context.Context, sessionID int) (res []ProcessedContact, err error) {
+	__arg := LookupSavedContactsListArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.contacts.lookupSavedContactsList", []interface{}{__arg}, &res)
 	return
 }
