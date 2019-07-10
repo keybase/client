@@ -4883,13 +4883,13 @@ func (o BuiltinCommandGroup) DeepCopy() BuiltinCommandGroup {
 	}
 }
 
-type ChatStaticConfig struct {
+type StaticConfig struct {
 	DeletableByDeleteHistory []MessageType         `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
 	BuiltinCommands          []BuiltinCommandGroup `codec:"builtinCommands" json:"builtinCommands"`
 }
 
-func (o ChatStaticConfig) DeepCopy() ChatStaticConfig {
-	return ChatStaticConfig{
+func (o StaticConfig) DeepCopy() StaticConfig {
+	return StaticConfig{
 		DeletableByDeleteHistory: (func(x []MessageType) []MessageType {
 			if x == nil {
 				return nil
@@ -4912,32 +4912,6 @@ func (o ChatStaticConfig) DeepCopy() ChatStaticConfig {
 			}
 			return ret
 		})(o.BuiltinCommands),
-	}
-}
-
-type WalletStaticConfig struct {
-	PaymentNoteMaxLength int `codec:"paymentNoteMaxLength" json:"paymentNoteMaxLength"`
-	RequestNoteMaxLength int `codec:"requestNoteMaxLength" json:"requestNoteMaxLength"`
-	PublicMemoMaxLength  int `codec:"publicMemoMaxLength" json:"publicMemoMaxLength"`
-}
-
-func (o WalletStaticConfig) DeepCopy() WalletStaticConfig {
-	return WalletStaticConfig{
-		PaymentNoteMaxLength: o.PaymentNoteMaxLength,
-		RequestNoteMaxLength: o.RequestNoteMaxLength,
-		PublicMemoMaxLength:  o.PublicMemoMaxLength,
-	}
-}
-
-type StaticConfig struct {
-	Chat   ChatStaticConfig   `codec:"chat" json:"chat"`
-	Wallet WalletStaticConfig `codec:"wallet" json:"wallet"`
-}
-
-func (o StaticConfig) DeepCopy() StaticConfig {
-	return StaticConfig{
-		Chat:   o.Chat.DeepCopy(),
-		Wallet: o.Wallet.DeepCopy(),
 	}
 }
 

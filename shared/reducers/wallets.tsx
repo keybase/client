@@ -21,10 +21,7 @@ const reduceAssetMap = (
     )
   )
 
-export default function(
-  state: Types.State = initialState,
-  action: WalletsGen.Actions | Chat2Gen.StaticConfigLoadedPayload
-): Types.State {
+export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
@@ -519,8 +516,8 @@ export default function(
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
       return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
-    case Chat2Gen.staticConfigLoaded:
-      return state.set('staticConfig', action.payload.staticConfig.wallet)
+    // case Chat2Gen.staticConfigLoaded:
+    // return state.set('staticConfig', action.payload.staticConfig.wallet)
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

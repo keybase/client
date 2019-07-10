@@ -777,4 +777,11 @@ protocol local {
     union { null, TransactionID } submitTxID;
   }
   SignXdrResult signTransactionXdrLocal(string envelopeXdr, union { null, AccountID } accountID, boolean submit);
+
+  record StaticConfig {
+    int paymentNoteMaxLength;
+    int requestNoteMaxLength;
+    int publicMemoMaxLength;
+  }
+  StaticConfig getStaticConfig();
 }

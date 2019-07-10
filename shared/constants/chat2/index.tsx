@@ -75,21 +75,14 @@ export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
 })
 
 export const makeStaticConfig = I.Record<Types._StaticConfig>({
-  chat: I.Record<Types._ChatStaticConfig>({
-    builtinCommands: {
-      [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-      [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-      [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-      [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-      [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
-    },
-    deletableByDeleteHistory: I.Set(),
-  })(),
-  wallet: I.Record<Types._WalletStaticConfig>({
-    paymentNoteMaxLength: 0,
-    publicMemoMaxLength: 0,
-    requestNoteMaxLength: 0,
-  })(),
+  builtinCommands: {
+    [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
+    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
+    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
+    [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
+    [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+  },
+  deletableByDeleteHistory: I.Set(),
 })
 
 export const makeThreadSearchInfo = I.Record<Types._ThreadSearchInfo>({

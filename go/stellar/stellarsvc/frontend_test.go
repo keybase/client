@@ -3172,3 +3172,15 @@ func check(t testing.TB) {
 		require.FailNow(t, "test already failed")
 	}
 }
+
+func TestGetStaticConfig(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	staticConfig, err := tcs[0].Srv.GetStaticConfig(context.Background())
+
+	require.NoError(t, err)
+	require.Equal(t, staticConfig.PaymentNoteMaxLength, 500)
+	require.Equal(t, staticConfig.RequestNoteMaxLength, 240)
+	require.Equal(t, staticConfig.PublicMemoMaxLength, 28)
+}

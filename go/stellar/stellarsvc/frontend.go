@@ -9,6 +9,7 @@ import (
 	"sort"
 	"unicode/utf8"
 
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
@@ -1223,4 +1224,12 @@ func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res
 
 	remoteArg := stellar1.ListPopularAssetsArg{}
 	return stellar.ListPopularAssets(mctx, s.remoter, remoteArg)
+}
+
+func (s *Server) GetStaticConfig(ctx context.Context) (res stellar1.StaticConfig, err error) {
+	return stellar1.StaticConfig{
+		PaymentNoteMaxLength: libkb.MaxStellarPaymentNoteLength,
+		RequestNoteMaxLength: msgchecker.RequestPaymentTextMaxLength,
+		PublicMemoMaxLength:  libkb.MaxStellarPaymentPublicNoteLength,
+	}, nil
 }

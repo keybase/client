@@ -22,24 +22,12 @@ export type PaymentConfirmInfo = {
   summary?: RPCChatTypes.UIChatPaymentSummary
 }
 
-export type _ChatStaticConfig = {
+// Static config data we use for various things
+export type _StaticConfig = {
   deletableByDeleteHistory: I.Set<Message.MessageType>
   builtinCommands: {
     [K in RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>
   }
-}
-export type ChatStaticConfig = I.RecordOf<_ChatStaticConfig>
-
-export type _WalletStaticConfig = {
-  paymentNoteMaxLength: number
-  requestNoteMaxLength: number
-  publicMemoMaxLength: number
-}
-export type WalletStaticConfig = I.RecordOf<_WalletStaticConfig>
-// Static config data we use for various things
-export type _StaticConfig = {
-  chat: ChatStaticConfig
-  wallet: WalletStaticConfig
 }
 export type StaticConfig = I.RecordOf<_StaticConfig>
 
@@ -151,7 +139,7 @@ export type _State = {
   explodingModes: I.Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   quote: QuoteInfo | null // last quoted message,
   selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
-  staticConfig: ChatStaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
+  staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>> // who's typing currently,
   unreadMap: ConversationCountMap // how many unread messages there are,
   unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>

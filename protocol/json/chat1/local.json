@@ -3032,7 +3032,7 @@
     },
     {
       "type": "record",
-      "name": "ChatStaticConfig",
+      "name": "StaticConfig",
       "fields": [
         {
           "type": {
@@ -3047,38 +3047,6 @@
             "items": "BuiltinCommandGroup"
           },
           "name": "builtinCommands"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "WalletStaticConfig",
-      "fields": [
-        {
-          "type": "int",
-          "name": "paymentNoteMaxLength"
-        },
-        {
-          "type": "int",
-          "name": "requestNoteMaxLength"
-        },
-        {
-          "type": "int",
-          "name": "publicMemoMaxLength"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "StaticConfig",
-      "fields": [
-        {
-          "type": "ChatStaticConfig",
-          "name": "chat"
-        },
-        {
-          "type": "WalletStaticConfig",
-          "name": "wallet"
         }
       ]
     },

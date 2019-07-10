@@ -15,7 +15,6 @@ import (
 
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -2647,20 +2646,9 @@ func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase
 
 func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, err error) {
 	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
-
-	chatConfig := chat1.ChatStaticConfig{
+	return chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 		BuiltinCommands:          h.G().CommandsSource.GetBuiltins(ctx),
-	}
-	walletConfig := chat1.WalletStaticConfig{
-		PaymentNoteMaxLength: libkb.MaxStellarPaymentNoteLength,
-		RequestNoteMaxLength: msgchecker.RequestPaymentTextMaxLength,
-		PublicMemoMaxLength:  libkb.MaxStellarPaymentPublicNoteLength,
-	}
-
-	return chat1.StaticConfig{
-		Chat:   chatConfig,
-		Wallet: walletConfig,
 	}, nil
 }
 
