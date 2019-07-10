@@ -34,9 +34,10 @@ class LogOut extends React.Component<Props, State> {
     const inputType = this.state.showTyping ? 'passwordVisible' : 'password'
     const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
     return (
-      <Kb.Box2 direction="vertical">
-        {this.props.hasRandomPW == null ? (
+      this.props.hasRandomPW == null ? (
+        <Kb.Box2 direction="vertical">
           <Kb.ProgressIndicator />
+        </Kb.Box2>
         ) : this.props.hasRandomPW ? (
           <UpdatePassword
             hasRandomPW={this.props.hasRandomPW}
@@ -82,32 +83,38 @@ class LogOut extends React.Component<Props, State> {
                   Cancel
                 </Kb.Text>
               ) : null,
-              title: 'Do you know your password?',
+              title: !Styles.isMobile && 'Do you know your password?',
             }}
             onClose={this.props.onCancel}
           >
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+              {Styles.isMobile && (
+                <Kb.Text style={styles.headerText} type="Header">
+                  Do you know your password?
+                </Kb.Text>
+              )}
               <Kb.Text style={styles.bodyText} type="Body">
                 You will need it to sign back in.
               </Kb.Text>
+              <Kb.RoundedBox>
                 <Kb.PlainInput
                   keyboardType={keyboardType}
                   onChangeText={password => this.setState({password})}
                   placeholder="Your password"
-                  style={styles.input}
                   type={inputType}
                   value={this.state.password}
                 />
-                <Kb.Checkbox
-                  boxBackgroundColor={Styles.globalColors.white}
-                  label="Show typing"
-                  onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
-                  checked={this.state.showTyping}
-                />
+              </Kb.RoundedBox>
+              <Kb.Checkbox
+                boxBackgroundColor={Styles.globalColors.white}
+                checked={this.state.showTyping}
+                label="Show typing"
+                onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+                style={styles.checkbox}
+              />
             </Kb.Box2>
           </Kb.Modal>
-        )}
-      </Kb.Box2>
+        )
     )
   }
 }
@@ -117,20 +124,30 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
     textAlign: 'center',
   },
-  buttonBar: {
-    minHeight: undefined,
+  buttonBar: Styles.platformStyles({
+    common: {
+      minHeight: undefined,
+    },
+    isMobile: {
+      flexDirection: 'column-reverse',
+    },
+  }),
+  checkbox: {
+    paddingTop: Styles.globalMargins.tiny,
   },
   container: {
+    ...Styles.padding(
+      Styles.globalMargins.medium,
+      Styles.globalMargins.small,
+      Styles.globalMargins.medium,
+      Styles.globalMargins.small
+    ),
     backgroundColor: Styles.globalColors.blueGrey,
     flexGrow: 1,
-    padding: Styles.globalMargins.small,
   },
-  input: {
-    borderColor: Styles.globalColors.greyDark,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: Styles.globalMargins.tiny,
+  headerText: {
+    marginBottom: Styles.globalMargins.small,
+    textAlign: 'center',
   },
 })
 
