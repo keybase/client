@@ -135,4 +135,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Assertion')(Assertion)
+export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Assertion')(
+  Assertion
+) as any

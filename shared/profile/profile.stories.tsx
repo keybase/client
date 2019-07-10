@@ -51,7 +51,7 @@ const provider = (cfProps =>
     Teams: props => ({
       onEdit: Sb.action('onEditAvatarClick'),
       onJoinTeam: Sb.action('onEditAvatarClick'),
-      teamMeta: [].reduce((map, t) => {
+      teamMeta: ([] as Array<any>).reduce((map, t) => {
         map[t.name] = {
           inTeam: false,
         }

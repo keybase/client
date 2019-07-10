@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/tracker2'
 import FollowButton from './follow-button'
+import {MenuItems} from '../../../common-adapters/floating-menu/menu-layout'
 
 type Props = {
   followThem: boolean
@@ -14,7 +15,7 @@ type Props = {
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
   onChat: () => void
-  onEditProfile: (() => void )| null
+  onEditProfile: (() => void) | null
   onFollow: () => void
   onIgnoreFor24Hours: () => void
   onOpenPrivateFolder: () => void
@@ -40,7 +41,7 @@ type DropdownProps = Pick<
 > & {onUnfollow?: () => void}
 
 const Actions = (p: Props) => {
-  let buttons = []
+  let buttons: Array<React.ReactNode> = []
 
   const dropdown = (
     <DropdownButton
@@ -151,7 +152,10 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     p.blocked
       ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
       : {danger: true, onClick: p.onBlock, title: 'Block'},
-  ].filter(Boolean)
+  ].reduce<MenuItems>((arr, i) => {
+    i && arr.push(i)
+    return arr
+  }, [])
 
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>

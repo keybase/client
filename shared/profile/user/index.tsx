@@ -73,7 +73,7 @@ const BioLayout = p => (
 )
 
 const Proofs = p => {
-  let assertions
+  let assertions: React.ReactNode
   if (p.assertionKeys) {
     assertions = [
       ...p.assertionKeys.map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
@@ -85,7 +85,7 @@ const Proofs = p => {
     assertions = null
   }
 
-  let proveIt = null
+  let proveIt: React.ReactNode = null
 
   if (p.notAUser) {
     const [name, service] = p.username.split('@')

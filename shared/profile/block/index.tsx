@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
 import * as Constants from '../../constants/profile'
 
 type Props = {
@@ -25,7 +24,7 @@ class Block extends React.Component<Props> {
       confirmText: 'Yes, block them',
       description:
         'This will hide them from your followers and suggestions, and prevent them from creating new conversations or teams with you. Note that they may be able to find out that you block them.',
-      error: props.errorMessage,
+      error: props.errorMessage || undefined,
       onCancel: props.onClose,
       onConfirm: props.onSubmit,
       prompt: `Block ${props.username}?`,
@@ -34,8 +33,5 @@ class Block extends React.Component<Props> {
     return <Kb.ConfirmModal {...modalProps} />
   }
 }
-
-const styles = Styles.styleSheetCreate({
-})
 
 export default Block

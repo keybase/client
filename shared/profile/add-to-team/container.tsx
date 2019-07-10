@@ -11,7 +11,7 @@ import {HeaderOnMobile} from '../../common-adapters'
 import {sendNotificationFooter} from '../../teams/role-picker'
 import {TeamRoleType, MaybeTeamRoleType, Teamname} from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps< { username: string } >
+type OwnProps = Container.RouteProps<{username: string}>
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -125,7 +125,7 @@ class AddToTeamStateWrapper extends React.Component<{} & ExtraProps & AddToTeamP
     return (
       <AddToTeam
         {...rest}
-        disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : undefined}
+        disabledReasonsForRolePicker={ownerDisabledReason ? {owner: ownerDisabledReason} : {}}
         onOpenRolePicker={() => this.setState({rolePickerOpen: true})}
         onConfirmRolePicker={() => {
           this.setState({rolePickerOpen: false})
