@@ -76,6 +76,7 @@ const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
       items={
         Styles.isMobile
           ? [
+              'Divider',
               {
                 onClick: p.onLearnMore,
                 title: 'Learn more',

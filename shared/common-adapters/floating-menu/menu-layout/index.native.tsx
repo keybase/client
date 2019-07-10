@@ -99,12 +99,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
               />
             ))}
           </ScrollView>
-          <Divider
-            style={Styles.collapseStyles([
-              styles.divider,
-              this.props.backgroundColor && {backgroundColor: this.props.backgroundColor},
-            ])}
-          />
+          <Divider style={styles.divider} />
           <Box style={Styles.collapseStyles([styles.menuGroup, this.props.listStyle])}>
             <MenuRow
               title={this.props.closeText || 'Close'}
