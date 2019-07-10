@@ -15,6 +15,8 @@ def withKbweb(closure) {
 
     closure()
   } catch (ex) {
+    throw ex
+  } finally {
     def kbwebName = helpers.containerName('docker-compose', 'kbweb')
     println "kbweb is running in ${kbwebName}"
 
@@ -24,8 +26,7 @@ def withKbweb(closure) {
     helpers.logContainer('docker-compose', 'mysql')
     helpers.logContainer('docker-compose', 'gregor')
     logKbwebServices(kbwebName)
-    throw ex
-  } finally {
+
     sh "docker-compose down"
   }
 }
