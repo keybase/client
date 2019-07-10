@@ -24,13 +24,11 @@ type RequestBodyProps = {
 
 const Spinner = () => {
   const isBuilding = Container.useAnyWaiting(Constants.buildPaymentWaitingKey)
-  return (
-    isBuilding && (
-      <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
-        <Kb.ProgressIndicator type="Large" />
-      </Kb.Box2>
-    )
-  )
+  return isBuilding ? (
+    <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
+      <Kb.ProgressIndicator type="Large" />
+    </Kb.Box2>
+  ) : null
 }
 
 export const SendBody = (props: SendBodyProps) => (
