@@ -42,7 +42,7 @@ export function usePrevious<T>(value: T) {
 }
 
 export type Route = {
-  getScreen: () => React.ComponentType<{} | {routeProps: RouteProps<any>}>
+  getScreen: () => React.ComponentType<any>
   screen?: React.ComponentType
   upgraded?: boolean
 }
