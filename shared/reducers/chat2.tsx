@@ -837,8 +837,8 @@ const rootReducer = (
     }
     case EngineGen.chat1NotifyChatChatTypingUpdate: {
       const {typingUpdates} = action.payload.params
-      const typingMap = I.Map<string, I.Set<string>>(
-        (typingUpdates || []).reduce((arr, u) => {
+      const typingMap = I.Map(
+        (typingUpdates || []).reduce<Array<[string, I.Set<string>]>>((arr, u) => {
           arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
           return arr
         }, [])
@@ -922,7 +922,7 @@ const rootReducer = (
         upToMessageID = null,
       } = action.payload
 
-      let upToOrdinals = []
+      let upToOrdinals: Array<Types.Ordinal> = []
       if (upToMessageID) {
         const ordinalToMessage = state.messageMap.get(
           conversationIDKey,
@@ -1272,7 +1272,7 @@ const rootReducer = (
       ) {
         nextState = nextState.set('attachmentFullscreenSelection', {
           autoPlay: state.attachmentFullscreenSelection.autoPlay,
-          message: message.set('downloadPath', action.payload.path),
+          message: message.set('downloadPath', action.payload.path || null),
         })
       }
       nextState = nextState.updateIn(
