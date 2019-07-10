@@ -30,6 +30,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const keyPrefixLen = 2
+
 var blankProgress = func(bytesComplete, bytesTotal int64) {}
 
 type AttachmentHTTPSrv struct {
@@ -38,6 +40,7 @@ type AttachmentHTTPSrv struct {
 	utils.DebugLabeler
 
 	endpoint           string
+	attachmentPrefix   string
 	pendingPrefix      string
 	unfurlPrefix       string
 	giphyPrefix        string
@@ -85,6 +88,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 		Contextified:       globals.NewContextified(g),
 		DebugLabeler:       utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
 		endpoint:           "at",
+		attachmentPrefix:   "at",
 		pendingPrefix:      "pe",
 		unfurlPrefix:       "uf",
 		giphyPrefix:        "gf",
@@ -195,7 +199,7 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 	r.Lock()
 	defer r.Unlock()
 	defer r.Trace(ctx, func() error { return nil }, "GetURL(%s,%d)", convID, msgID)()
-	url := r.getURL(ctx, "at", r.urlMap, chat1.ConversationIDMessageIDPair{
+	url := r.getURL(ctx, r.attachmentPrefix, r.urlMap, chat1.ConversationIDMessageIDPair{
 		ConvID: convID,
 		MsgID:  msgID,
 	})
@@ -246,9 +250,7 @@ func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1
 	return url
 }
 
-func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
-	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) servePendingPreview(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "servePendingPreview")()
 	key := req.URL.Query().Get("key")
 	intOutboxID, ok := r.pendingMap.Get(key)
@@ -272,9 +274,7 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 	}
 }
 
-func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Request) {
-	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
 	key := req.URL.Query().Get("key")
 	val, ok := r.unfurlMap.Get(key)
@@ -327,9 +327,8 @@ func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID
 		url.QueryEscape(targetURL), convID, tlfName, key)
 }
 
-func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(w http.ResponseWriter, req *http.Request) {
-	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.ResponseWriter,
+	req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallerySelect")()
 	url := req.URL.Query().Get("url")
 	strConvID := req.URL.Query().Get("convID")
@@ -357,9 +356,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(w http.ResponseWriter, req *
 	}
 }
 
-func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.Request) {
-	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyGallery")()
 	key := req.URL.Query().Get("key")
 	infoInt, ok := r.giphyGalleryMap.Get(key)
@@ -399,9 +396,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(w http.ResponseWriter, req *http.R
 	}
 }
 
-func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Request) {
-	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
+func (r *AttachmentHTTPSrv) serveGiphyLink(ctx context.Context, w http.ResponseWriter, req *http.Request) {
 	defer r.Trace(ctx, func() error { return nil }, "serveGiphyLink")()
 	key := req.URL.Query().Get("key")
 	val, ok := r.giphyMap.Get(key)
@@ -532,34 +527,9 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 	return false
 }
 
-func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
-	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
-		NewSimpleIdentifyNotifier(r.G()))
-	defer r.Trace(ctx, func() error { return nil }, "serve")()
+func (r *AttachmentHTTPSrv) serveAttachment(ctx context.Context, w http.ResponseWriter, req *http.Request) {
+	defer r.Trace(ctx, func() error { return nil }, "serveAttachment")()
 	key := req.URL.Query().Get("key")
-	if len(key) < 2 {
-		r.makeError(ctx, w, http.StatusNotFound, "invalid key")
-		return
-	}
-	prefix := key[:2]
-	switch prefix {
-	case r.unfurlPrefix:
-		r.serveUnfurlAsset(w, req)
-		return
-	case r.giphyPrefix:
-		r.serveGiphyLink(w, req)
-		return
-	case r.giphyGalleryPrefix:
-		r.serveGiphyGallery(w, req)
-		return
-	case r.giphySelectPrefix:
-		r.serveGiphyGallerySelect(w, req)
-		return
-	case r.pendingPrefix:
-		r.servePendingPreview(w, req)
-		return
-	}
-
 	preview := false
 	if "true" == req.URL.Query().Get("prev") {
 		preview = true
@@ -584,14 +554,15 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	size := asset.Size
-	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
+	r.Debug(ctx, "serveAttachment: setting content-type: %s sz: %d", asset.MimeType, size)
 	w.Header().Set("Content-Type", asset.MimeType)
 	if r.shouldServeContent(ctx, asset, req) {
 		if r.serveVideoHostPage(ctx, w, req) {
 			// if we served the host page, just bail out
 			return
 		}
-		r.Debug(ctx, "serve: streaming: req: method: %s range: %s", req.Method, req.Header.Get("Range"))
+		r.Debug(ctx, "serveAttachment: streaming: req: method: %s range: %s", req.Method,
+			req.Header.Get("Range"))
 		rs, err := r.fetcher.StreamAttachment(ctx, pair.ConvID, asset, r.ri, r)
 		if err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
@@ -604,6 +575,33 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+}
+
+func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
+	ctx := globals.ChatCtx(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "serve")()
+	key := req.URL.Query().Get("key")
+	if len(key) < keyPrefixLen {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key")
+		return
+	}
+	prefix := key[:keyPrefixLen]
+	switch prefix {
+	case r.unfurlPrefix:
+		r.serveUnfurlAsset(ctx, w, req)
+	case r.giphyPrefix:
+		r.serveGiphyLink(ctx, w, req)
+	case r.giphyGalleryPrefix:
+		r.serveGiphyGallery(ctx, w, req)
+	case r.giphySelectPrefix:
+		r.serveGiphyGallerySelect(ctx, w, req)
+	case r.pendingPrefix:
+		r.servePendingPreview(ctx, w, req)
+	case r.attachmentPrefix:
+		r.serveAttachment(ctx, w, req)
+	}
+	r.makeError(ctx, w, http.StatusBadRequest, "invalid key prefix")
 }
 
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
