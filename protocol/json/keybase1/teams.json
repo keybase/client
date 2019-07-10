@@ -2740,7 +2740,8 @@
       "name": "RotationType",
       "symbols": [
         "VISIBLE_0",
-        "HIDDEN_1"
+        "HIDDEN_1",
+        "CLKR_2"
       ]
     },
     {

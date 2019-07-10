@@ -499,11 +499,9 @@ func (t *Team) rotate(ctx context.Context, rt keybase1.RotationType) (err error)
 	mctx := t.MetaContext(ctx).WithLogTag("ROT")
 	defer mctx.Trace(fmt.Sprintf("Team#rotate(%s,%s)", t.ID, rt), func() error { return err })()
 
-	if rt == keybase1.RotationType_HIDDEN {
-		err = hidden.CheckFeatureGateForSupport(mctx, t.ID, true /* isWrite */)
-		if err != nil {
-			return err
-		}
+	rt, err = hidden.CheckFeatureGateForSupportWithRotationType(mctx, t.ID, true /* isWrite */, rt)
+	if err != nil {
+		return err
 	}
 
 	// initialize key manager

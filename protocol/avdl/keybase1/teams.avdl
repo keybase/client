@@ -1270,7 +1270,8 @@ protocol teams {
 
   enum RotationType {
     VISIBLE_0,
-    HIDDEN_1
+    HIDDEN_1,
+    CLKR_2
   }
 
   void teamRotateKey(TeamID teamID, RotationType rt);
