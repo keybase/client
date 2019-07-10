@@ -115,7 +115,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@kudo-ci/jsc-android": "245459-fix-clear-cache-no-dfg",
     "@react-native-community/netinfo": "1.2.3",
     "@react-navigation/core": "3.4.0",
     "@react-navigation/native": "3.4.1",
