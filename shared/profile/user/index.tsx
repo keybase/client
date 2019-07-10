@@ -177,10 +177,10 @@ class FriendRow extends React.Component<FriendRowProps> {
 }
 
 export type BioTeamProofsProps = {
-  onAddIdentity: (() => void )| null
+  onAddIdentity: (() => void) | null
   assertionKeys: Array<string> | null
   backgroundColorType: BackgroundColorType
-  onEditAvatar: (() => void )| null
+  onEditAvatar: (() => void) | null
   notAUser: boolean
   suggestionKeys: Array<string> | null
   username: string
@@ -272,10 +272,10 @@ class User extends React.Component<Props, State> {
     }
   }
 
-  _changeFollowing = following => {
+  _changeFollowing = (following: boolean) => {
     this.setState(p => {
       if (p.selectedFollowing === following) {
-        return
+        return null
       }
       const selectedFollowing = !p.selectedFollowing
       usernameSelectedFollowing[this.props.username] = selectedFollowing
