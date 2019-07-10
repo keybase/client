@@ -17,7 +17,6 @@ class HoverEmoji extends React.Component<
   {
     name: string
     onClick: () => void
-    isReacjiIcon?: boolean
   },
   {
     hovering: boolean
@@ -36,20 +35,11 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        {this.props.isReacjiIcon ? (
-          <Kb.Icon
-            color={Styles.globalColors.black_50}
-            fontSize={this.state.hovering ? 22 : 18}
-            style={Kb.iconCastPlatformStyles(styles.reacjiIcon)}
-            type="iconfont-reacji"
-          />
-        ) : (
-          <Kb.Emoji
-            disableSelecting={true}
-            size={this.state.hovering ? 22 : 18}
-            emojiName={this.props.name}
-          />
-        )}
+        <Kb.Emoji
+          disableSelecting={true}
+          size={this.state.hovering ? 22 : 18}
+          emojiName={this.props.name}
+        />
       </Kb.ClickableBox>
     )
   }
@@ -90,12 +80,22 @@ class EmojiRow extends React.Component<
         </Kb.Box2>
         {!!this.props.onReply && (
           <Kb.Box2 direction="horizontal" gap="tiny">
-            <Kb.Divider vertical={true} />
+            <Kb.Divider style={styles.divider} vertical={true} />
             <Kb.WithTooltip text="React">
-              <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} />
+              <Kb.Icon
+                hoverColor={Styles.globalColors.blue}
+                onClick={this._showPicker}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                type="iconfont-reacji"
+                />
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Reply">
-              <Kb.Icon type="iconfont-reply" onClick={this.props.onReply} />
+              <Kb.Icon
+                hoverColor={Styles.globalColors.blue}
+                onClick={this.props.onReply}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                type="iconfont-reply"
+              />
             </Kb.WithTooltip>
           </Kb.Box2>
         )}
@@ -124,6 +124,10 @@ const styles = Styles.styleSheetCreate({
       height: Styles.globalMargins.medium,
     },
   }),
+  divider: {
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xtiny,
+  },
   emojiBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -138,8 +142,10 @@ const styles = Styles.styleSheetCreate({
       margin: Styles.globalMargins.tiny,
     },
   }),
-  reacjiIcon: {position: 'relative', top: 1},
-  reply: {alignSelf: 'center'},
+  icon: {
+    position: 'relative',
+    top: 1,
+  },
 })
 
 export default EmojiRow
