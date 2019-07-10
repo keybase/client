@@ -322,10 +322,9 @@ func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID
 		r.Debug(ctx, "getGiphySelectURL: failed to generate URL key: %s", err)
 		return ""
 	}
-	url := url.QueryEscape(targetURL)
-	r.giphySelectMap.Add(key, url)
+	r.giphySelectMap.Add(key, targetURL)
 	return fmt.Sprintf("http://%s/%s?url=%s&convID=%s&tlfName=%s&key=%s", addr, r.endpoint,
-		url, convID, tlfName, key)
+		url.QueryEscape(targetURL), convID, tlfName, key)
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(w http.ResponseWriter, req *http.Request) {
