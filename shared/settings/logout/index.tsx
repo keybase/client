@@ -39,10 +39,10 @@ class LogOut extends React.Component<Props, State> {
   render() {
     const inputType = this.state.showTyping ? 'text' : 'password'
     const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
-    return this.props.hasRandomPW == null ? (
-      <Kb.Box2 direction="vertical">
-        <Kb.ProgressIndicator />
-      </Kb.Box2>
+    return this.props.hasRandomPW === null ? (
+      <Kb.Modal>
+        <Kb.ProgressIndicator style={styles.progress} type="Huge" />
+      </Kb.Modal>
     ) : this.props.hasRandomPW ? (
       <UpdatePassword
         hasRandomPW={this.props.hasRandomPW}
@@ -67,7 +67,7 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={!!this.props.checkPasswordIsCorrect || this.state.password === ''}
+                disabled={!!this.props.checkPasswordIsCorrect || !this.state.password}
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)
@@ -175,6 +175,11 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.clickable,
     },
   }),
+  progress: {
+    alignSelf: 'center',
+    marginBottom: Styles.globalMargins.xlarge,
+    marginTop: Styles.globalMargins.xlarge,
+  },
 })
 
 export default LogOut
