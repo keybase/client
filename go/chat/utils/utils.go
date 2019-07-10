@@ -190,10 +190,24 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) withContacts []chat1.ConversationLocalParticipant {
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant, err error) {
+	var contacts []keybase1.ProcessedContact
+	contactsFetched := false
 	for _, participant := range participants {
-
+		if isPhoneOrEmail(participant.Username) {
+			if !contactsFetched {
+				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
+				if err != nil {
+					return nil, err
+				}
+			}
+			// todo separate phone / email from assertion
+		}
 	}
+}
+
+func isPhoneOrEmail(username string) bool {
+	return strings.HasSuffix(username, "@phone") || strings.HasSuffix(username, "@email")
 }
 
 const (
