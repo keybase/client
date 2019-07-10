@@ -204,22 +204,46 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 	}
 }
 
+type UIParticipantType int
+
+const (
+	UIParticipantType_NONE    UIParticipantType = 0
+	UIParticipantType_USER    UIParticipantType = 1
+	UIParticipantType_IMPTOFU UIParticipantType = 2
+)
+
+func (o UIParticipantType) DeepCopy() UIParticipantType { return o }
+
+var UIParticipantTypeMap = map[string]UIParticipantType{
+	"NONE":    0,
+	"USER":    1,
+	"IMPTOFU": 2,
+}
+
+var UIParticipantTypeRevMap = map[UIParticipantType]string{
+	0: "NONE",
+	1: "USER",
+	2: "IMPTOFU",
+}
+
+func (e UIParticipantType) String() string {
+	if v, ok := UIParticipantTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UIParticipant struct {
-	Assertion   string  `codec:"assertion" json:"assertion"`
-	ContactName *string `codec:"contactName,omitempty" json:"contactName,omitempty"`
-	FullName    *string `codec:"fullName,omitempty" json:"fullName,omitempty"`
+	Type        UIParticipantType `codec:"type" json:"type"`
+	Assertion   string            `codec:"assertion" json:"assertion"`
+	FullName    *string           `codec:"fullName,omitempty" json:"fullName,omitempty"`
+	ContactName *string           `codec:"contactName,omitempty" json:"contactName,omitempty"`
 }
 
 func (o UIParticipant) DeepCopy() UIParticipant {
 	return UIParticipant{
+		Type:      o.Type.DeepCopy(),
 		Assertion: o.Assertion,
-		ContactName: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.ContactName),
 		FullName: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -227,6 +251,13 @@ func (o UIParticipant) DeepCopy() UIParticipant {
 			tmp := (*x)
 			return &tmp
 		})(o.FullName),
+		ContactName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ContactName),
 	}
 }
 

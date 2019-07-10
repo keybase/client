@@ -60,10 +60,17 @@ protocol chatUi {
     boolean offline;
   }
 
+    enum UIParticipantType {
+    NONE_0,
+    USER_1,
+    IMPTOFU_2
+  }
+
   record UIParticipant {
+    UIParticipantType type;
     string assertion;
-    union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
     union { null, string } fullName;
+    union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
   }
 
   record InboxUIItem {

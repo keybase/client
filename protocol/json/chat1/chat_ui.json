@@ -236,9 +236,22 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UIParticipantType",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "IMPTOFU_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "UIParticipant",
       "fields": [
+        {
+          "type": "UIParticipantType",
+          "name": "type"
+        },
         {
           "type": "string",
           "name": "assertion"
@@ -248,14 +261,14 @@
             null,
             "string"
           ],
-          "name": "contactName"
+          "name": "fullName"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "fullName"
+          "name": "contactName"
         }
       ]
     },
