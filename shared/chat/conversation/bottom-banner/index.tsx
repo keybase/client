@@ -26,6 +26,7 @@ const commonBannerStyle = {
   paddingLeft: 24,
   paddingRight: 24,
   paddingTop: 8,
+  marginBottom: globalMargins.tiny,
 }
 
 const BannerBox = (props: {children: React.ReactNode; color: string}) => (
@@ -102,22 +103,44 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
     )
   }
 
-  // Any number of recipients, behaviour depends on the platform
+  // Any number of recipients, on iOS / Android show the share screen
+  if (isMobile) {
+    return (
+      <BannerBox color={globalColors.blue}>
+        <BannerText>
+          {users.length === 1
+            ? 'Last step: summon Firstname Lastman!'
+            : `Last step: summon these ${users.length} people!`}
+        </BannerText>
+        <Button
+          label="Send install link"
+          onClick={openShareSheet}
+          mode="Secondary"
+          style={{
+            marginTop: globalMargins.xxtiny,
+          }}
+        />
+      </BannerBox>
+    )
+  }
+
+  // Android fallback
   return (
     <BannerBox color={globalColors.blue}>
       <BannerText>
-        {users.length === 1
-          ? 'Last step: summon Firstname Lastman!'
-          : `Last step: summon these ${users.length} people!`}
+        Your messages will unlock once they join Keybase and verify their phone number.
       </BannerText>
-      <Button
-        label="Send install link"
-        onClick={() => (isMobile ? openShareSheet() : console.log('oh'))}
-        mode="Secondary"
-        style={{
-          marginTop: globalMargins.xxtiny,
-        }}
-      />
+      <BannerText style={{marginTop: globalMargins.xxtiny}}>
+        Send them this link:
+        <BannerText
+          onClickURL="https://keybase.io/app"
+          underline={true}
+          type="BodySmallPrimaryLink"
+          style={{marginLeft: globalMargins.xtiny}}
+        >
+          https://keybase.io/app
+        </BannerText>
+      </BannerText>
     </BannerBox>
   )
 }
