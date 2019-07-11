@@ -110,12 +110,12 @@ export const makeTlfSyncPartial: I.Record.Factory<Types._TlfSyncPartial> = I.Rec
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeConflictStateNormalView: I.Record.Factory<Types._ConflictStateNormalView> = I.Record({
+export const makeConflictStateNormalView = I.Record<Types._ConflictStateNormalView>({
   localViewTlfPaths: I.List(),
   resolvingConflict: false,
   stuckInConflict: false,
   type: Types.ConflictStateType.NormalView,
-} as Types._ConflictStateNormalView)
+})
 
 export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
 
@@ -126,14 +126,14 @@ export const makeConflictStateManualResolvingLocalView: I.Record.Factory<
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
 
-export const makeTlf: I.Record.Factory<Types._Tlf> = I.Record({
+export const makeTlf = I.Record<Types._Tlf>({
   conflictState: tlfNormalViewWithNoConflict,
   isFavorite: false,
   isIgnored: false,
   isNew: false,
   name: '',
   resetParticipants: I.List(),
-  syncConfig: null,
+  syncConfig: tlfSyncDisabled,
   teamId: '',
   tlfMtime: 0,
   /* See comment in constants/types/fs.js
@@ -141,7 +141,7 @@ export const makeTlf: I.Record.Factory<Types._Tlf> = I.Record({
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
   */
-} as Types._Tlf)
+})
 
 export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersProgress> = I.Record({
   bytesFetched: 0,
@@ -430,7 +430,7 @@ const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEdi
 export const userTlfHistoryRPCToState = (
   history: Array<RPCTypes.FSFolderEditHistory>
 ): Types.UserTlfUpdates => {
-  let updates = []
+  let updates: Array<Types.TlfUpdate> = []
   history.forEach(folder => {
     const updateServerTime = folder.serverTime
     const path = pathFromFolderRPC(folder.folder)
@@ -1102,7 +1102,7 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
     return null
   }
   const tlfPath = getTlfPath(path)
-  return tlfPath ? softErrors.tlfErrors.get(tlfPath) : null
+  return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || null
 }
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
