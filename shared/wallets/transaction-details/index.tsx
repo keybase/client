@@ -385,7 +385,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
                 assetCode={props.sourceAsset}
                 issuerDescription={sourceIssuer}
               />
-              <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={{flex: 1}}>
+              <Kb.Box2 direction="horizontal" alignSelf="flex-start" centerChildren={true} style={styles.equals}>
                 <Kb.Text type="BodyBig">=</Kb.Text>
               </Kb.Box2>
               <ConvertedCurrencyLabel
@@ -599,6 +599,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     padding: Styles.globalMargins.small,
   },
+  equals: Styles.platformStyles({isMobile: {flex: 1}}),
   flexOne: {flex: 1},
   icon32: {height: 32, width: 32},
   operation: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
