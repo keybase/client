@@ -54,17 +54,23 @@ const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Icon type="icon-stellar-logo-grey-32" style={styles.partnerIcon} />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
-      <Kb.Text onClickURL={props.url} style={styles.partnerLink} type="BodyPrimaryLink">
-        {props.title}
-      </Kb.Text>
+      <Kb.ClickableBox
+        className="hover-underline-container"
+        onClick={() => openUrl(props.url)}
+        style={styles.partnerLinkContainer}
+      >
+        <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
+          {props.title}
+        </Kb.Text>
+        <Kb.Icon
+          fontSize={Styles.isMobile ? 16 : 12}
+          style={styles.openIcon}
+          type="iconfont-open-browser"
+        />
+      </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.noShrink}>
-      <Kb.Icon
-        onClick={() => openUrl(props.url)}
-        fontSize={Styles.isMobile ? 16 : 12}
-        type="iconfont-open-browser"
-      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -333,6 +339,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white_90,
   },
   noShrink: {flexShrink: 0},
+  openIcon: Styles.platformStyles({
+    common: {
+      left: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    isElectron: {
+      top: Styles.globalMargins.xtiny,
+    },
+  }),
   partnerDivider: {
     marginBottom: Styles.globalMargins.tiny,
     marginLeft: 40,
@@ -340,6 +355,10 @@ const styles = Styles.styleSheetCreate({
   },
   partnerIcon: {flexShrink: 0, height: 32, width: 32},
   partnerLink: {color: Styles.globalColors.black},
+  partnerLinkContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
+  },
   red: {color: Styles.globalColors.redDark},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
