@@ -13,24 +13,15 @@ type SendProps = {
 
 const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
   const menuItems = [
-    {
-      onClick: props.onSendToKeybaseUser,
-      title: 'To a Keybase user',
-    },
-    {
-      onClick: props.onSendToStellarAddress,
-      title: 'To a Stellar address',
-    },
-    {
-      onClick: props.onSendToAnotherAccount,
-      title: 'To one of your other Stellar accounts',
-    },
+    {onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
+    {onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
+    {onClick: props.onSendToAnotherAccount, title: 'To one of your other Stellar accounts'},
   ]
   const button = (
     <>
       <Kb.Button
         small={props.small}
-        onClick={props.disabled ? null : props.toggleShowingMenu}
+        onClick={props.disabled ? undefined : props.toggleShowingMenu}
         ref={props.setAttachmentRef}
         type="Wallet"
         label="Send"

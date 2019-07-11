@@ -62,16 +62,11 @@ const PartnerRow = (props: PartnerRowProps) => (
         <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
           {props.title}
         </Kb.Text>
-        <Kb.Icon
-          fontSize={Styles.isMobile ? 16 : 12}
-          style={styles.openIcon}
-          type="iconfont-open-browser"
-        />
+        <Kb.Icon fontSize={Styles.isMobile ? 16 : 12} style={styles.openIcon} type="iconfont-open-browser" />
       </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.noShrink}>
-    </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.noShrink} />
   </Kb.Box2>
 )
 
@@ -294,7 +289,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                   label="Remove account"
                   fullWidth={true}
                   type="Danger"
-                  onClick={props.isDefault ? null : props.onDelete}
+                  onClick={props.isDefault ? undefined : props.onDelete}
                 />
                 {props.isDefault && (
                   <Kb.Text center={true} type="BodySmall">
