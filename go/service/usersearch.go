@@ -186,12 +186,9 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 	res, err = doSearchRequest(mctx, arg)
 	if arg.IncludeContacts {
 		contactsRes, err := contactSearch(mctx, h.savedContacts, arg)
-		switch err.(type) {
-		case nil, contacts.NoSavedContactsErr:
-		default:
-			return res, err
+		if err != nil {
+			return nil, err
 		}
-
 		if len(contactsRes) > 0 {
 			var res2 []keybase1.APIUserSearchResult
 			res2 = append(res2, contactsRes...)

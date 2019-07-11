@@ -66,8 +66,9 @@ func NewCmdHomeRunner(g *libkb.GlobalContext) *CmdHome {
 
 func NewCmdHome(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "home",
-		Usage: "Get and set the 'home' screen",
+		Name: "home",
+		// hide
+		// Usage: "Get and set the 'home' screen",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdHomeRunner(g), "home", c)
 		},

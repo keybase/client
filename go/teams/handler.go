@@ -78,7 +78,15 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, msg keybas
 		}
 
 		g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name(), teamID)
-		if err := team.Rotate(ctx, keybase1.RotationType_VISIBLE); err != nil {
+
+		// Setting rotationType to CLKR in dev still breaks TestMemberAddRace, which we will fix in a subsequent PR
+		brokenTestMemberAddRace := true
+		rotationType := keybase1.RotationType_CLKR
+		if teamID.IsPublic() || brokenTestMemberAddRace {
+			rotationType = keybase1.RotationType_VISIBLE
+		}
+
+		if err := team.Rotate(ctx, rotationType); err != nil {
 			g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name(), teamID, err)
 			return err
 		}
