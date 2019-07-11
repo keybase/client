@@ -128,6 +128,12 @@ const youSendXLMProps = {
   txVerb: 'sent',
 } as Props
 
+const pendingPaymentProps = {
+  ...youSendXLMProps,
+  topLine: 'pending',
+  status: 'pending',
+}
+
 const loadingProps = {
   ...commonProps,
   amountNominal: '',
@@ -160,6 +166,7 @@ const load = () => {
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
     .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
+    .add('Pending', () => <PaymentPopupMoved {...pendingPaymentProps} />)
     .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
     .add('Canceled request', () => <PaymentPopupMoved {...canceledProps} />)
     .add('Loading', () => <PaymentPopupMoved {...loadingProps} />)
