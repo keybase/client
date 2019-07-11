@@ -236,6 +236,14 @@ body {
   display: inline-block;
 }
 
+.underline-hover-no-underline {
+  text-decoration: underline;
+}
+
+.underline-hover-no-underline:hover {
+  text-decoration: none;
+}
+
 .hover-underline {
   text-decoration: none;
 }

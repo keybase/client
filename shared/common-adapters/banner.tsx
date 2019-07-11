@@ -6,20 +6,62 @@ import * as Styles from '../styles'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey'
 
-type Props = {
-  actions?: Array<{
-    title: string
-    onClick: () => void
-  }>
+type _Segment = {
+  newline?: boolean
+  onClick?: () => void
+  text: string
+}
+type Segment = _Segment | string | null | false
+
+type BannerParagraphProps = {
+  bannerColor: Color
+  content: string | Array<Segment>
+}
+
+export const BannerParagraph = (props: BannerParagraphProps) => (
+  <Text type="BodySmallSemibold" style={styles.text}>
+    {(Array.isArray(props.content) ? props.content : [props.content])
+      .filter(Boolean)
+      .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
+      .map((segment: _Segment, index) =>
+        segment.text === ' ' ? (
+          <>&nbsp;</>
+        ) : (
+          <React.Fragment key={index.toString()}>
+            {segment.text.startsWith(' ') && <>&nbsp;</>}
+            <Text
+              type="BodySmallSemibold"
+              style={Styles.collapseStyles([
+                colorToTextColorStyles[props.bannerColor],
+                !!segment.onClick && styles.underline,
+              ])}
+              className={Styles.classNames({
+                'underline-hover-no-underline': !!segment.onClick,
+              })}
+              onClick={segment.onClick}
+            >
+              {segment.text}
+            </Text>
+            {segment.text.endsWith(' ') && <>&nbsp;</>}
+          </React.Fragment>
+        )
+      )}
+  </Text>
+)
+
+type BannerProps = {
   color: Color
+  children:
+    | string
+    | React.ReactElement<typeof BannerParagraph>
+    | Array<React.ReactElement<typeof BannerParagraph>>
   inline?: boolean
   narrow?: boolean
   onClose?: () => void
-  text: string
   style?: Styles.StylesCrossPlatform | null
 }
 
-const Banner = (props: Props) => (
+export const Banner = (props: BannerProps) => (
   <Box2
     direction="horizontal"
     fullWidth={true}
@@ -32,34 +74,15 @@ const Banner = (props: Props) => (
   >
     <Box2
       key="textBox"
-      direction="horizontal"
+      direction="vertical"
       style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
       centerChildren={true}
     >
-      <Text
-        type="BodySmallSemibold"
-        style={Styles.collapseStyles([styles.text, colorToTextColorStyles[props.color]])}
-      >
-        {props.text}
-        {!!props.actions &&
-          props.actions.reduce(
-            (parts, {title, onClick}, index) => [
-              ...parts,
-              <Text key={`space-${index}`} type="BodySmallSemibold">
-                &nbsp;
-              </Text>,
-              <Text
-                key={`action-${index}`}
-                type="BodySmallSemibold"
-                onClick={onClick}
-                style={Styles.collapseStyles([colorToTextColorStyles[props.color], styles.underline])}
-              >
-                {title}
-              </Text>,
-            ],
-            []
-          )}
-      </Text>
+      {typeof props.children === 'string' ? (
+        <BannerParagraph bannerColor={props.color} content={props.children} />
+      ) : (
+        props.children
+      )}
     </Box2>
     {!!props.onClose && (
       <Box key="iconBox" style={styles.iconContainer}>
@@ -137,9 +160,11 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
-  underline: {
-    textDecorationLine: 'underline',
-  },
+  underline: Styles.platformStyles({
+    isMobile: {
+      textDecorationLine: 'underline',
+    },
+  }),
 })
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate({
@@ -173,5 +198,3 @@ const colorToIconHoverColor = {
   red: Styles.globalColors.white,
   yellow: Styles.globalColors.brown,
 }
-
-export default Banner

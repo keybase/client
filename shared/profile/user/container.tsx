@@ -136,7 +136,7 @@ const connected = Container.namedConnect(mapStateToProps, mapDispatchToProps, me
 )
 
 const Header = ({onSearch, backgroundColorType}) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
+  <Kb.Box2 direction="horizontal" fullWidth={true}>
     <ProfileSearch whiteText={true} onSearch={onSearch} />
   </Kb.Box2>
 )

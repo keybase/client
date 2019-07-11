@@ -59,11 +59,9 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 
 const EmailVerificationBanner = ({email, clearJustSignedUpEmail}) => {
   return (
-    <Kb.Banner
-      color="green"
-      text={`Welcome to Keybase! A verification link was sent to ${email}.`}
-      onClose={clearJustSignedUpEmail}
-    />
+    <Kb.Banner color="green" onClose={clearJustSignedUpEmail}>
+      {`Welcome to Keybase! A verification link was sent to ${email}.`}
+    </Kb.Banner>
   )
 }
 

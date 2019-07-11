@@ -68,14 +68,6 @@ func (s *SavedContactsStore) SaveProcessedContacts(mctx libkb.MetaContext, conta
 	return err
 }
 
-type NoSavedContactsErr struct {
-	Msg string
-}
-
-func (e NoSavedContactsErr) Error() string {
-	return e.Msg
-}
-
 func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []keybase1.ProcessedContact, err error) {
 	cacheKey := savedContactsDbKey(mctx.CurrentUID())
 	var cache savedContactsCache
@@ -84,13 +76,12 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 		return nil, err
 	}
 	if !found {
-		return nil, NoSavedContactsErr{Msg: "contact list not found in encrypted DB"}
+		return ret, nil
 	}
 	if cache.Version != savedContactsCurrentVer {
-		return nil, NoSavedContactsErr{
-			Msg: fmt.Sprintf("contact list found but old version (found: %d, need: %d)",
-				cache.Version, savedContactsCurrentVer),
-		}
+		mctx.Warning("synced contact list found but had an old version (found: %d, need: %d), returning empty list",
+			cache.Version, savedContactsCurrentVer)
+		return ret, nil
 	}
 	return cache.Contacts, nil
 }
