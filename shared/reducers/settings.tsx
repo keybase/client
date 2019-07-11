@@ -167,19 +167,11 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.merge({useNativeFrame: action.payload.enabled})
     case SettingsGen.addedPhoneNumber:
       return state.update('phoneNumbers', pn =>
-        pn.merge(
-          action.payload.error
-            ? {
-                error: action.payload.error,
-                pendingVerification: '',
-                verificationState: null,
-              }
-            : {
-                error: '',
-                pendingVerification: action.payload.phoneNumber,
-                verificationState: null,
-              }
-        )
+        pn.merge({
+          error: action.payload.error || '',
+          pendingVerification: action.payload.phoneNumber,
+          verificationState: null,
+        })
       )
     case SettingsGen.resendVerificationForPhoneNumber:
       return state.update('phoneNumbers', pn =>

@@ -114,7 +114,11 @@ export const Phone = () => {
     }
   }, [dispatch, error, pendingVerification])
 
-  const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onClose = React.useCallback(() => {
+    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [dispatch])
+
   const onContinue = React.useCallback(
     () =>
       disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
@@ -214,7 +218,11 @@ export const VerifyPhone = () => {
       header={{
         hideBorder: true,
         style: styles.blueBackground,
-        title: <Kb.Text type="BodySmall">{pendingVerification || 'wut'}</Kb.Text>,
+        title: (
+          <Kb.Text type="BodySmall" negative={true}>
+            {pendingVerification || 'wut'}
+          </Kb.Text>
+        ),
       }}
       footer={{
         content: (
