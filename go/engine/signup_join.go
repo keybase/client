@@ -40,14 +40,15 @@ func (s *SignupJoinEngine) CheckRegistered() (err error) {
 }
 
 type SignupJoinEngineRunArg struct {
-	Username   string
-	Email      string
-	InviteCode string
-	PWHash     []byte
-	PWSalt     []byte
-	RandomPW   bool
-	PDPKA5KID  keybase1.KID
-	SkipMail   bool
+	Username    string
+	Email       string
+	InviteCode  string
+	PWHash      []byte
+	PWSalt      []byte
+	RandomPW    bool
+	PDPKA5KID   keybase1.KID
+	SkipMail    bool
+	VerifyEmail bool
 }
 
 func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg) (err error) {
@@ -63,6 +64,7 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 		"skip_mail":     libkb.B{Val: arg.SkipMail},
 		"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
 		"platform":      libkb.S{Val: libkb.GetPlatformString()},
+		"verify_email":  libkb.B{Val: arg.VerifyEmail},
 	}
 	if len(arg.Email) > 0 {
 		postArgs["email"] = libkb.S{Val: arg.Email}

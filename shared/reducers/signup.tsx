@@ -1,6 +1,7 @@
 import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 import {actionHasError} from '../util/container'
@@ -9,7 +10,9 @@ import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validat
 
 const initialState: Types.State = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: SignupGen.Actions): Types.State {
+type Actions = SignupGen.Actions | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
+
+export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
     case SignupGen.resetStore: // fallthrough
     case SignupGen.restartSignup:
@@ -102,6 +105,7 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     case SignupGen.signedup:
       return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
     case SignupGen.clearJustSignedUpEmail:
+    case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
       return state.merge({
         justSignedUpEmail: '',
       })
