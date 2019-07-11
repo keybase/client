@@ -10,22 +10,27 @@ const commonProps = {
 }
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Note and Memo', module)
-    .add('Normal input', () => <SecretNote {...commonProps} />)
+    .add('Normal input', () => <SecretNote maxLength={500} {...commonProps} />)
     .add('Input with a note error', () => (
-      <SecretNote {...commonProps} secretNoteError="There's something wrong with your note." />
+      <SecretNote
+        {...commonProps}
+        maxLength={500}
+        secretNoteError="There's something wrong with your note."
+      />
     ))
     .add('Input with a memo error', () => (
-      <PublicMemo {...commonProps} publicMemoError="There's something wrong with your memo." />
+      <PublicMemo {...commonProps} maxLength={28} publicMemoError="There's something wrong with your memo." />
     ))
     .add('Prefilled SecretNote', () => (
-      <SecretNote {...commonProps} secretNote="This is a prefilled secret note" />
+      <SecretNote {...commonProps} maxLength={500} secretNote="This is a prefilled secret note" />
     ))
     .add('Prefilled PublicMemo', () => (
-      <PublicMemo {...commonProps} publicMemo="This is a prefilld pblc memo" />
+      <PublicMemo {...commonProps} maxLength={28} publicMemo="This is a prefilld pblc memo" />
     ))
     .add('Prefilled SecretNote w/ errors', () => (
       <SecretNote
         {...commonProps}
+        maxLength={500}
         secretNote="This is a prefilled secret note"
         secretNoteError="Note is too long"
       />
@@ -33,6 +38,7 @@ const load = () => {
     .add('Prefilled PublicMemo w/ errors', () => (
       <PublicMemo
         {...commonProps}
+        maxLength={28}
         publicMemo="This is a prefilled public memo"
         publicMemoError="Memo is too long"
       />

@@ -77,6 +77,7 @@ class _EditChannel extends React.Component<Props, State> {
         )}
         <Kb.Box style={{position: 'relative'}}>
           <Kb.Input
+            autoFocus={true}
             onChangeText={this._onChangeChannelName}
             hintText={this.props.waitingForGetInfo ? 'Loading channel name...' : 'Channel name'}
             editable={!this.props.waitingForGetInfo && !this.props.deleteRenameDisabled}
@@ -107,6 +108,11 @@ class _EditChannel extends React.Component<Props, State> {
                 : 'Description or topic (optional)'
             }
             value={this.state.newTopic}
+            multiline={true}
+            rowsMin={1}
+            rowsMax={isMobile ? 4 : 10}
+            autoCorrect={true}
+            autoCapitalize="sentences"
           />
         </Kb.Box>
         <Kb.Box style={_bottomRowStyle}>

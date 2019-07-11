@@ -1220,6 +1220,20 @@ func (o SignXdrResult) DeepCopy() SignXdrResult {
 	}
 }
 
+type StaticConfig struct {
+	PaymentNoteMaxLength int `codec:"paymentNoteMaxLength" json:"paymentNoteMaxLength"`
+	RequestNoteMaxLength int `codec:"requestNoteMaxLength" json:"requestNoteMaxLength"`
+	PublicMemoMaxLength  int `codec:"publicMemoMaxLength" json:"publicMemoMaxLength"`
+}
+
+func (o StaticConfig) DeepCopy() StaticConfig {
+	return StaticConfig{
+		PaymentNoteMaxLength: o.PaymentNoteMaxLength,
+		RequestNoteMaxLength: o.RequestNoteMaxLength,
+		PublicMemoMaxLength:  o.PublicMemoMaxLength,
+	}
+}
+
 type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1651,6 +1665,9 @@ type SignTransactionXdrLocalArg struct {
 	Submit      bool       `codec:"submit" json:"submit"`
 }
 
+type GetStaticConfigLocalArg struct {
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1729,6 +1746,7 @@ type LocalInterface interface {
 	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) (TransactionID, error)
 	GetPartnerUrlsLocal(context.Context, int) ([]PartnerUrl, error)
 	SignTransactionXdrLocal(context.Context, SignTransactionXdrLocalArg) (SignXdrResult, error)
+	GetStaticConfigLocal(context.Context) (StaticConfig, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2870,6 +2888,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getStaticConfigLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetStaticConfigLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetStaticConfigLocal(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3277,5 +3305,10 @@ func (c LocalClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (re
 
 func (c LocalClient) SignTransactionXdrLocal(ctx context.Context, __arg SignTransactionXdrLocalArg) (res SignXdrResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.signTransactionXdrLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetStaticConfigLocal(ctx context.Context) (res StaticConfig, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfigLocal", []interface{}{GetStaticConfigLocalArg{}}, &res)
 	return
 }
