@@ -17,6 +17,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
 	hidden "github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -628,6 +629,26 @@ func (t *Team) rotatePostHidden(ctx context.Context, section SCTeamSection, mr *
 	return err
 }
 
+func teamAdminToSig3ChainLocation(admin *SCTeamAdmin) (*sig3.ChainLocation, error) {
+	if admin == nil {
+		return nil, nil
+	}
+	id, err := admin.TeamID.ToTeamID()
+	if err != nil {
+		return nil, err
+	}
+	s3id, err := sig3.ImportTeamID(id)
+	if err != nil {
+		return nil, err
+	}
+	return &sig3.ChainLocation{
+		TeamID:    *s3id,
+		Seqno:     admin.Seqno,
+		ChainType: sig3.ChainType(admin.SeqType),
+	}, nil
+
+}
+
 func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section SCTeamSection, mr *libkb.MerkleRoot) (ret *libkb.SigMultiItem, ratchets *keybase1.HiddenTeamChainRatchetSet, err error) {
 
 	currentSeqno := t.CurrentSeqno()
@@ -662,6 +683,11 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		return nil, nil, err
 	}
 
+	admin, err := teamAdminToSig3ChainLocation(section.Admin)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	ret, ratchets, err = hidden.GenerateKeyRotation(mctx, hidden.GenerateKeyRotationParams{
 		TeamID:           t.ID,
 		IsPublic:         t.IsPublic(),
@@ -675,6 +701,7 @@ func (t *Team) rotateHiddenGenerateSigMultiItem(mctx libkb.MetaContext, section 
 		NewSigningKey:    sk,
 		NewEncryptionKey: ek,
 		Check:            t.keyManager.Check(),
+		Admin:            admin,
 	})
 
 	return ret, ratchets, err

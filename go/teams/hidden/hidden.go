@@ -72,6 +72,7 @@ type GenerateKeyRotationParams struct {
 	NewSigningKey    libkb.NaclSigningKeyPair
 	NewEncryptionKey libkb.NaclDHKeyPair
 	Check            keybase1.PerTeamSeedCheck
+	Admin            *sig3.ChainLocation
 }
 
 // GenerateKeyRotation generates and signs a new sig3 KeyRotation. The result can be passed to
@@ -150,6 +151,7 @@ func generateKeyRotationSig3(mctx libkb.MetaContext, p GenerateKeyRotationParams
 			EldestSeqno: p.Me.GetEldestSeqno(),
 		},
 		Team: &sig3.Team{
+			Admin:      p.Admin,
 			TeamID:     *teamIDimport,
 			IsPublic:   p.IsPublic,
 			IsImplicit: p.IsImplicit,
