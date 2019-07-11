@@ -167,17 +167,17 @@ const styleContentsZoom = {
 const styleImageFit = {
   cursor: 'zoom-in',
   display: 'block',
+  height: '100%',
   objectFit: 'scale-down',
   width: '100%',
-  height: '100%',
 }
 
 const styleVideoFit = {
   cursor: 'normal',
   display: 'block',
+  height: '100%',
   objectFit: 'scale-down' as const,
   width: '100%',
-  height: '100%',
 }
 
 const styleImageZoom = {
