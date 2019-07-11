@@ -190,8 +190,10 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant, err error) {
+// AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
 	var contacts []keybase1.ProcessedContact
+	var err error
 	contactsFetched := false
 	for _, participant := range participants {
 		if isPhoneOrEmail(participant.Username) {
@@ -199,7 +201,7 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
 				if err != nil {
 					mctx.Debug("Error fetching contacts: %s", err)
-					return nil, err
+					return participants
 				}
 			}
 			// todo separate phone / email from assertion
@@ -208,22 +210,24 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 				phoneOrEmail := assertion.GetValue()
 				isEmail := assertion.GetKey() == "email"
 				contactName := findContactName(contacts, phoneOrEmail, isEmail)
+				participant.ContactName = contactName
 			} else {
 				mctx.Debug("Error parsing assertion: %s", err)
 			}
 			withContacts = append(withContacts, participant)
 		}
 	}
-	return withContacts, nil
+	return withContacts
 }
 
-func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isEmail bool) string {
+func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isEmail bool) *string {
 	for _, contact := range contacts {
-		for _, comp := range contact.Components {
-			cPhoneOrEmail := comp.ValueString()
+		cPhoneOrEmail := contact.Component.ValueString()
+		if cPhoneOrEmail == phoneOrEmail {
+			return &contact.ContactName
 		}
 	}
-	return ""
+	return nil
 }
 
 func isPhoneOrEmail(username string) bool {
