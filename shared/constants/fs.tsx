@@ -28,32 +28,32 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const makeNewFolder: I.Record.Factory<Types._NewFolder> = I.Record({
+export const makeNewFolder = I.Record<Types._NewFolder>({
   hint: 'New Folder',
   name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
   status: Types.EditStatusType.Editing,
   type: Types.EditType.NewFolder,
-} as Types._NewFolder)
+})
 export const emptyFolder = makeNewFolder()
 
-const makePrefetchNotStarted: I.Record.Factory<Types._PrefetchNotStarted> = I.Record({
+const makePrefetchNotStarted = I.Record<Types._PrefetchNotStarted>({
   state: Types.PrefetchState.NotStarted,
-} as Types._PrefetchNotStarted)
+})
 export const prefetchNotStarted: Types.PrefetchNotStarted = makePrefetchNotStarted()
 
-const makePrefetchComplete: I.Record.Factory<Types._PrefetchComplete> = I.Record({
-  state: Types.PrefetchState.Complete as Types.PrefetchState,
-} as Types._PrefetchComplete)
+const makePrefetchComplete = I.Record<Types._PrefetchComplete>({
+  state: Types.PrefetchState.Complete,
+})
 export const prefetchComplete: Types.PrefetchComplete = makePrefetchComplete()
 
-export const makePrefetchInProgress: I.Record.Factory<Types._PrefetchInProgress> = I.Record({
+export const makePrefetchInProgress = I.Record<Types._PrefetchInProgress>({
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
   state: Types.PrefetchState.InProgress as Types.PrefetchState,
-} as Types._PrefetchInProgress)
+})
 
 const pathItemMetadataDefault = {
   lastModifiedTimestamp: 0,
@@ -64,48 +64,48 @@ const pathItemMetadataDefault = {
   writable: false,
 }
 
-export const makeFolder: I.Record.Factory<Types._FolderPathItem> = I.Record({
+export const makeFolder = I.Record<Types._FolderPathItem>({
   ...pathItemMetadataDefault,
   children: I.Set(),
   progress: Types.ProgressType.Pending as Types.ProgressType,
   type: Types.PathType.Folder as Types.PathType,
-} as Types._FolderPathItem)
+})
 
-export const makeMime: I.Record.Factory<Types._Mime> = I.Record({
+export const makeMime = I.Record<Types._Mime>({
   displayPreview: false,
   mimeType: '',
-} as Types._Mime)
+})
 
-export const makeFile: I.Record.Factory<Types._FilePathItem> = I.Record({
+export const makeFile = I.Record<Types._FilePathItem>({
   ...pathItemMetadataDefault,
   mimeType: null,
   type: Types.PathType.File,
-} as Types._FilePathItem)
+})
 
-export const makeSymlink: I.Record.Factory<Types._SymlinkPathItem> = I.Record({
+export const makeSymlink = I.Record<Types._SymlinkPathItem>({
   ...pathItemMetadataDefault,
   linkTarget: '',
   type: Types.PathType.Symlink,
-} as Types._SymlinkPathItem)
+})
 
-export const makeUnknownPathItem: I.Record.Factory<Types._UnknownPathItem> = I.Record({
+export const makeUnknownPathItem = I.Record<Types._UnknownPathItem>({
   ...pathItemMetadataDefault,
   type: Types.PathType.Unknown,
-} as Types._UnknownPathItem)
+})
 
 export const unknownPathItem = makeUnknownPathItem()
 
-const makeTlfSyncEnabled: I.Record.Factory<Types._TlfSyncEnabled> = I.Record({
+const makeTlfSyncEnabled = I.Record<Types._TlfSyncEnabled>({
   mode: Types.TlfSyncMode.Enabled,
 })
 export const tlfSyncEnabled: Types.TlfSyncEnabled = makeTlfSyncEnabled()
 
-const makeTlfSyncDisabled: I.Record.Factory<Types._TlfSyncDisabled> = I.Record({
+const makeTlfSyncDisabled = I.Record<Types._TlfSyncDisabled>({
   mode: Types.TlfSyncMode.Disabled,
 })
 export const tlfSyncDisabled: Types.TlfSyncDisabled = makeTlfSyncDisabled()
 
-export const makeTlfSyncPartial: I.Record.Factory<Types._TlfSyncPartial> = I.Record({
+export const makeTlfSyncPartial = I.Record<Types._TlfSyncPartial>({
   enabledPaths: I.List(),
   mode: Types.TlfSyncMode.Partial,
 })
@@ -119,9 +119,9 @@ export const makeConflictStateNormalView = I.Record<Types._ConflictStateNormalVi
 
 export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
 
-export const makeConflictStateManualResolvingLocalView: I.Record.Factory<
+export const makeConflictStateManualResolvingLocalView = I.Record<
   Types._ConflictStateManualResolvingLocalView
-> = I.Record({
+>({
   normalViewTlfPath: defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
@@ -143,22 +143,22 @@ export const makeTlf = I.Record<Types._Tlf>({
   */
 })
 
-export const makeSyncingFoldersProgress: I.Record.Factory<Types._SyncingFoldersProgress> = I.Record({
+export const makeSyncingFoldersProgress = I.Record<Types._SyncingFoldersProgress>({
   bytesFetched: 0,
   bytesTotal: 0,
   endEstimate: 0,
   start: 0,
-} as Types._SyncingFoldersProgress)
+})
 
-export const makeOverallSyncStatus: I.Record.Factory<Types._OverallSyncStatus> = I.Record({
+export const makeOverallSyncStatus = I.Record<Types._OverallSyncStatus>({
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   showingBanner: false,
   syncingFoldersProgress: makeSyncingFoldersProgress(),
-} as Types._OverallSyncStatus)
+})
 
-export const makePathUserSetting: I.Record.Factory<Types._PathUserSetting> = I.Record({
+export const makePathUserSetting = I.Record<Types._PathUserSetting>({
   sort: Types.SortSetting.NameAsc,
-} as Types._PathUserSetting)
+})
 
 export const defaultPathUserSetting = makePathUserSetting({
   sort: Types.SortSetting.NameAsc,
@@ -168,57 +168,57 @@ export const defaultTlfListPathUserSetting = makePathUserSetting({
   sort: Types.SortSetting.TimeAsc,
 })
 
-export const makeDownloadMeta: I.Record.Factory<Types._DownloadMeta> = I.Record({
+export const makeDownloadMeta = I.Record<Types._DownloadMeta>({
   entryType: Types.PathType.Unknown,
   intent: Types.DownloadIntent.None,
   localPath: '',
   opID: null,
   path: Types.stringToPath(''),
-} as Types._DownloadMeta)
+})
 
-export const makeDownloadState: I.Record.Factory<Types._DownloadState> = I.Record({
+export const makeDownloadState = I.Record<Types._DownloadState>({
   canceled: false,
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
   isDone: false,
   startedAt: 0,
-} as Types._DownloadState)
+})
 
-export const makeDownload: I.Record.Factory<Types._Download> = I.Record({
+export const makeDownload = I.Record<Types._Download>({
   meta: makeDownloadMeta(),
   state: makeDownloadState(),
-} as Types._Download)
+})
 
-export const makeLocalHTTPServer: I.Record.Factory<Types._LocalHTTPServer> = I.Record({
+export const makeLocalHTTPServer = I.Record<Types._LocalHTTPServer>({
   address: '',
   token: '',
-} as Types._LocalHTTPServer)
+})
 
-export const makeUploads: I.Record.Factory<Types._Uploads> = I.Record({
+export const makeUploads = I.Record<Types._Uploads>({
   endEstimate: undefined,
   errors: I.Map(),
 
   syncingPaths: I.Set(),
   totalSyncingBytes: 0,
   writingToJournal: I.Set(),
-} as Types._Uploads)
+})
 
-export const makeTlfs: I.Record.Factory<Types._Tlfs> = I.Record({
+export const makeTlfs = I.Record<Types._Tlfs>({
   loaded: false,
   private: I.Map(),
   public: I.Map(),
   team: I.Map(),
-} as Types._Tlfs)
+})
 
 const placeholderAction = FsGen.createPlaceholderAction()
 
-const _makeError: I.Record.Factory<Types._FsError> = I.Record({
+const _makeError = I.Record<Types._FsError>({
   errorMessage: 'unknown error',
   erroredAction: placeholderAction,
   retriableAction: undefined,
   time: 0,
-} as Types._FsError)
+})
 
 type _MakeErrorArgs = {
   time?: number
@@ -237,90 +237,88 @@ export const makeError = (args?: _MakeErrorArgs): I.RecordOf<Types._FsError> => 
   })
 }
 
-export const makeMoveOrCopySource: I.Record.Factory<Types._MoveOrCopySource> = I.Record({
+export const makeMoveOrCopySource = I.Record<Types._MoveOrCopySource>({
   path: Types.stringToPath(''),
   type: Types.DestinationPickerSource.MoveOrCopy,
-} as Types._MoveOrCopySource)
+})
 
-export const makeIncomingShareSource: I.Record.Factory<Types._IncomingShareSource> = I.Record({
+export const makeIncomingShareSource = I.Record<Types._IncomingShareSource>({
   localPath: Types.stringToLocalPath(''),
   type: Types.DestinationPickerSource.IncomingShare,
-} as Types._IncomingShareSource)
+})
 
-export const makeNoSource: I.Record.Factory<Types._NoSource> = I.Record({
+export const makeNoSource = I.Record<Types._NoSource>({
   type: Types.DestinationPickerSource.None,
-} as Types._NoSource)
+})
 
-export const makeDestinationPicker: I.Record.Factory<Types._DestinationPicker> = I.Record({
+export const makeDestinationPicker = I.Record<Types._DestinationPicker>({
   destinationParentPath: I.List(),
   source: makeNoSource(),
-} as Types._DestinationPicker)
+})
 
-export const makeSendAttachmentToChat: I.Record.Factory<Types._SendAttachmentToChat> = I.Record({
+export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
   convID: ChatConstants.noConversationIDKey,
   filter: '',
   path: Types.stringToPath('/keybase'),
   state: Types.SendAttachmentToChatState.None,
   title: '',
-} as Types._SendAttachmentToChat)
+})
 
-export const makeSendLinkToChat: I.Record.Factory<Types._SendLinkToChat> = I.Record({
+export const makeSendLinkToChat = I.Record<Types._SendLinkToChat>({
   channels: I.Map(),
   convID: ChatConstants.noConversationIDKey,
   path: Types.stringToPath('/keybase'),
   state: Types.SendLinkToChatState.None,
-} as Types._SendLinkToChat)
+})
 
-export const makePathItemActionMenu: I.Record.Factory<Types._PathItemActionMenu> = I.Record({
+export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
   downloadKey: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
-} as Types._PathItemActionMenu)
+})
 
-export const makeDriverStatusUnknown: I.Record.Factory<Types._DriverStatusUnknown> = I.Record({
+export const makeDriverStatusUnknown = I.Record<Types._DriverStatusUnknown>({
   type: Types.DriverStatusType.Unknown,
-} as Types._DriverStatusUnknown)
+})
 
-export const makeDriverStatusEnabled: I.Record.Factory<Types._DriverStatusEnabled> = I.Record({
+export const makeDriverStatusEnabled = I.Record<Types._DriverStatusEnabled>({
   dokanOutdated: false,
   dokanUninstallExecPath: null,
   isDisabling: false,
   isNew: false,
   type: Types.DriverStatusType.Enabled,
-} as Types._DriverStatusEnabled)
+})
 
-export const makeDriverStatusDisabled: I.Record.Factory<Types._DriverStatusDisabled> = I.Record({
+export const makeDriverStatusDisabled = I.Record<Types._DriverStatusDisabled>({
   isDismissed: false,
   isEnabling: false,
   kextPermissionError: false,
   type: Types.DriverStatusType.Disabled,
-} as Types._DriverStatusDisabled)
+})
 
 export const defaultDriverStatus = isLinux ? makeDriverStatusEnabled() : makeDriverStatusUnknown()
 
-export const makeSystemFileManagerIntegration: I.Record.Factory<
-  Types._SystemFileManagerIntegration
-> = I.Record({
+export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManagerIntegration>({
   driverStatus: defaultDriverStatus,
   showingBanner: false,
-} as Types._SystemFileManagerIntegration)
+})
 
-export const makeKbfsDaemonStatus: I.Record.Factory<Types._KbfsDaemonStatus> = I.Record({
+export const makeKbfsDaemonStatus = I.Record<Types._KbfsDaemonStatus>({
   online: false,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
-} as Types._KbfsDaemonStatus)
+})
 
-export const makeSoftErrors: I.Record.Factory<Types._SoftErrors> = I.Record({
+export const makeSoftErrors = I.Record<Types._SoftErrors>({
   pathErrors: I.Map(),
   tlfErrors: I.Map(),
-} as Types._SoftErrors)
+})
 
-export const makeSettings: I.Record.Factory<Types._Settings> = I.Record({
+export const makeSettings = I.Record<Types._Settings>({
   isLoading: false,
   spaceAvailableNotificationThreshold: 0,
-} as Types._Settings)
+})
 
-export const makeState: I.Record.Factory<Types._State> = I.Record({
+export const makeState = I.Record<Types._State>({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
   edits: I.Map(),
@@ -341,7 +339,7 @@ export const makeState: I.Record.Factory<Types._State> = I.Record({
   tlfUpdates: I.List(),
   tlfs: makeTlfs(),
   uploads: makeUploads(),
-} as Types._State)
+})
 
 // RPC expects a string that's interpreted as [16]byte on Go side.
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
@@ -399,18 +397,18 @@ export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath
 export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
   downloadFilePathNoSearch(Types.getPathName(p))
 
-export const makeTlfUpdate: I.Record.Factory<Types._TlfUpdate> = I.Record({
+export const makeTlfUpdate = I.Record<Types._TlfUpdate>({
   history: I.List(),
   path: Types.stringToPath(''),
   serverTime: 0,
   writer: '',
 })
 
-export const makeTlfEdit: I.Record.Factory<Types._TlfEdit> = I.Record({
+export const makeTlfEdit = I.Record<Types._TlfEdit>({
   editType: Types.FileEditType.Unknown,
   filename: '',
   serverTime: 0,
-} as Types._TlfEdit)
+})
 
 const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
   switch (fsNotificationType) {
@@ -690,13 +688,13 @@ export const escapePath = (path: Types.Path): string =>
 export const unescapePath = (escaped: string): Types.Path =>
   Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (match, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
 
-const makeParsedPathRoot: I.Record.Factory<Types._ParsedPathRoot> = I.Record({kind: Types.PathKind.Root})
+const makeParsedPathRoot = I.Record<Types._ParsedPathRoot>({kind: Types.PathKind.Root})
 export const parsedPathRoot: Types.ParsedPathRoot = makeParsedPathRoot()
 
-const makeParsedPathTlfList: I.Record.Factory<Types._ParsedPathTlfList> = I.Record({
+const makeParsedPathTlfList = I.Record<Types._ParsedPathTlfList>({
   kind: Types.PathKind.TlfList,
   tlfType: Types.TlfType.Private,
-} as Types._ParsedPathTlfList)
+})
 export const parsedPathPrivateList: Types.ParsedPathTlfList = makeParsedPathTlfList()
 export const parsedPathPublicList: Types.ParsedPathTlfList = makeParsedPathTlfList({
   tlfType: Types.TlfType.Public,
@@ -705,37 +703,37 @@ export const parsedPathTeamList: Types.ParsedPathTlfList = makeParsedPathTlfList
   tlfType: Types.TlfType.Team,
 })
 
-const makeParsedPathGroupTlf: I.Record.Factory<Types._ParsedPathGroupTlf> = I.Record({
+const makeParsedPathGroupTlf = I.Record<Types._ParsedPathGroupTlf>({
   kind: Types.PathKind.GroupTlf,
   readers: null,
   tlfName: '',
   tlfType: Types.TlfType.Private,
   writers: I.List(),
-} as Types._ParsedPathGroupTlf)
+})
 
-const makeParsedPathTeamTlf: I.Record.Factory<Types._ParsedPathTeamTlf> = I.Record({
+const makeParsedPathTeamTlf = I.Record<Types._ParsedPathTeamTlf>({
   kind: Types.PathKind.TeamTlf,
   team: '',
   tlfName: '',
   tlfType: Types.TlfType.Team,
-} as Types._ParsedPathTeamTlf)
+})
 
-const makeParsedPathInGroupTlf: I.Record.Factory<Types._ParsedPathInGroupTlf> = I.Record({
+const makeParsedPathInGroupTlf = I.Record<Types._ParsedPathInGroupTlf>({
   kind: Types.PathKind.InGroupTlf,
   readers: null,
   rest: I.List(),
   tlfName: '',
   tlfType: Types.TlfType.Private,
   writers: I.List(),
-} as Types._ParsedPathInGroupTlf)
+})
 
-const makeParsedPathInTeamTlf: I.Record.Factory<Types._ParsedPathInTeamTlf> = I.Record({
+const makeParsedPathInTeamTlf = I.Record<Types._ParsedPathInTeamTlf>({
   kind: Types.PathKind.InTeamTlf,
   rest: I.List(),
   team: '',
   tlfName: '',
   tlfType: Types.TlfType.Team,
-} as Types._ParsedPathInTeamTlf)
+})
 
 const splitTlfIntoReadersAndWriters = (
   tlf: string
