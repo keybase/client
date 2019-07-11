@@ -105,6 +105,7 @@ const InputContainer = (props: Props) => {
       Sb.action('onAttach').apply(null, paths)
     },
     onCancelEditing: Sb.action('onCancelEditing'),
+    onCancelReply: Sb.action('onCancelReply'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onRequestScrollDown: Sb.action('onRequestScrollDown'),
