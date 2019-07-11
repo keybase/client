@@ -32,7 +32,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
   location: stateProps.location,
   onCancel: dispatchProps.onCancel,
   onSubmit: dispatchProps.onSubmit,
-  title: 'Edit Profile',
 })
 
 export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'EditProfile')(

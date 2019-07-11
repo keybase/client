@@ -9,7 +9,6 @@ type Props = {
   bio: string
   fullname: string
   location: string
-  title: string
   onCancel: () => void
   onSubmit: (bio: string, fullname: string, location: string) => void
 }
