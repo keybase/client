@@ -20,7 +20,7 @@ type SmallTeam = {
   name: string
 }
 
-type Channel = {
+export type Channel = {
   convID: ChatTypes.ConversationIDKey
   channelname: string
 }

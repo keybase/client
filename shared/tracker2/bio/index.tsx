@@ -23,8 +23,8 @@ type Props = {
 // Zeplin, so there's a hack -- desktop renders everything as a custom header,
 // whereas mobile uses `items` prop as normal.
 type AirdropPopupProps = {
-  onBack: () => void
-  onLearnMore: () => void
+  onBack?: () => void
+  onLearnMore?: () => void
 }
 
 const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
