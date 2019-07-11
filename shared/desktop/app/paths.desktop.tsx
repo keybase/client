@@ -40,8 +40,10 @@ export function keybaseBinPath() {
     var kbPath = SafeElectron.getApp()
       .getPath('appData')
       .replace('Roaming', 'Local')
-    if (kbPath === null) kbPath = process.env.LOCALAPPDATA
-    if (kbPath === null) {
+    if (!kbPath) {
+      kbPath = process.env.LOCALAPPDATA || ''
+    }
+    if (!kbPath) {
       console.log('No keybase bin path')
       return null
     }

@@ -13,9 +13,9 @@ import {sendToMainWindow} from '../remote/util.desktop'
 import * as ConfigGen from '../../actions/config-gen'
 import logger from '../../logger'
 
-let mainWindow = null
+let mainWindow: (ReturnType<typeof MainWindow>) | null = null
 let reduxLaunched = false
-let startupURL = null
+let startupURL: string | null = null
 
 const installCrashReporter = () => {
   if (process.env.KEYBASE_CRASH_REPORT) {
