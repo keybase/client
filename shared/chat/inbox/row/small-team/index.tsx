@@ -9,7 +9,7 @@ import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type Props = {
-  backgroundColor: string | null
+  backgroundColor?: string
   channelname?: string
   hasBadge: boolean
   hasBottomLine: boolean

@@ -138,8 +138,8 @@ class SharedAskForUserData {
       this._userQueue = {}
       if (usernames.length || teamnames.length) {
         requestAnimationFrame(() => {
-          usernames.length && this._dispatch(ConfigGen.createLoadAvatars({usernames}))
-          teamnames.length && this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
+          usernames.length && this._dispatch && this._dispatch(ConfigGen.createLoadAvatars({usernames}))
+          teamnames.length && this._dispatch && this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
         })
       }
     },
