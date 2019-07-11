@@ -208,8 +208,8 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
 			if err == nil {
 				phoneOrEmail := assertion.GetValue()
-				isEmail := assertion.GetKey() == "email"
-				contactName := findContactName(contacts, phoneOrEmail, isEmail)
+				isPhone := assertion.GetKey() == "phone"
+				contactName := findContactName(contacts, phoneOrEmail, isPhone)
 				participant.ContactName = contactName
 			} else {
 				mctx.Debug("Error parsing assertion: %s", err)
@@ -220,9 +220,14 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 	return withContacts
 }
 
-func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isEmail bool) *string {
+var nonDigits = regexp.MustCompile("[^\\d]")
+
+func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
 	for _, contact := range contacts {
 		cPhoneOrEmail := contact.Component.ValueString()
+		if isPhone {
+			cPhoneOrEmail = nonDigits.ReplaceAllString(cPhoneOrEmail, "")
+		}
 		if cPhoneOrEmail == phoneOrEmail {
 			return &contact.ContactName
 		}
@@ -1189,13 +1194,6 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	res.Typ = rawConv.Typ
 	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
 	return res
-}
-
-func getContactName(ctx context.Context, p chat1.ConversationLocalParticipant) *string {
-	if strings.HasSuffix(p.Username, "@phone") || strings.HasSuffix(p.Username, "@email") {
-
-	}
-	return nil
 }
 
 func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
