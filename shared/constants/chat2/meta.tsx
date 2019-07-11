@@ -298,6 +298,12 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
+    participantToContactName: I.Map(
+      i.participants.reduce(
+        (map, part) => (part.contactName ? {...map, [part.assertion]: part.contactName} : map),
+        {}
+      )
+    ),
     participants: I.List((i.participants || []).map(part => part.assertion)),
     readMsgID: i.readMsgID,
     resetParticipants,
@@ -335,6 +341,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never' as Types.NotificationsType,
   offline: false,
+  participantToContactName: I.Map(),
   participants: I.List(),
   readMsgID: -1,
   rekeyers: I.Set(),

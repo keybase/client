@@ -105,19 +105,31 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const PhoneHeader = (props: Props) => {
-  const phoneUser = props.participants.find(s => s.endsWith('@phone')) || '@phone'
-  const withoutSuffix = phoneUser.substr(0, phoneUser.length - 6)
-  const formattedPhoneNumber = formatPhoneNumber(withoutSuffix)
-  const name = 'Max Goodman' // TODO: actually get this data
+const getFormattedPhoneOrEmail = (assertion: string) => {
+  const withoutSuffix = assertion.substring(0, assertion.length - 6)
+  const suffix = assertion.substring(assertion.length - 6)
+  if (suffix === '@email') {
+    return withoutSuffix.substring(1, withoutSuffix.length - 1)
+  }
+  try {
+    return formatPhoneNumber(withoutSuffix)
+  } catch (e) {
+    return assertion
+  }
+}
+
+const PhoneOrEmailHeader = (props: Props) => {
+  const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
+  let formattedPhoneOrEmail = phoneOrEmail && getFormattedPhoneOrEmail(phoneOrEmail)
+  const name = props.contactNames[phoneOrEmail]
   return (
     <Wrapper {...props}>
       <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
         <Box2 direction="horizontal" style={styles.lessMargins}>
-          <Text type="BodyBig">{formattedPhoneNumber}</Text>
+          <Text type="BodyBig">{formattedPhoneOrEmail}</Text>
           {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
         </Box2>
-        <Text type="BodyTiny">{name}</Text>
+        {!!name && <Text type="BodyTiny">{name}</Text>}
       </Box2>
     </Wrapper>
   )
@@ -142,4 +154,4 @@ const styles = Styles.styleSheetCreate({
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
 })
 
-export {ChannelHeader, PhoneHeader, UsernameHeader}
+export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

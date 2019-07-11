@@ -29,6 +29,7 @@ export type _ConversationMeta = {
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
+  participantToContactName: I.Map<string, string>
   participants: I.List<string> // was OrderedSet but is quite slow,
   readMsgID: number
   rekeyers: I.Set<string>

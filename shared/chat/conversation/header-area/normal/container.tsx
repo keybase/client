@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {ChannelHeader, UsernameHeader, PhoneHeader, Props} from '.'
+import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, Props} from '.'
 import * as Container from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 
@@ -16,9 +16,11 @@ type OwnProps = Container.PropsWithSafeNavigation<{
 const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const _participants = meta.teamname ? I.Set() : meta.participants
+  const _contactNames = meta.participantToContactName
 
   return {
     _badgeMap: state.chat2.badgeMap,
+    _contactNames,
     _conversationIDKey: conversationIDKey,
     _participants,
     channelName: meta.channelname,
@@ -42,15 +44,16 @@ const mapDispatchToProps = (
   onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
-const usePhoneHeader = (props: Props): boolean =>
-  props.participants.length === 2 && props.participants.some(participant => participant.endsWith('@phone'))
+const usePhoneOrEmailHeader = (props: Props): boolean =>
+  props.participants.length === 1 &&
+  props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
 
 const HeaderBranch = (props: Props) => {
   if (!!props.teamName) {
     return <ChannelHeader {...props} />
   }
-  if (usePhoneHeader(props)) {
-    return <PhoneHeader {...props} />
+  if (usePhoneOrEmailHeader(props)) {
+    return <PhoneOrEmailHeader {...props} />
   }
   return <UsernameHeader {...props} />
 }
@@ -64,6 +67,7 @@ export default Container.withSafeNavigation(
       0
     ),
     channelName: stateProps.channelName,
+    contactNames: stateProps._contactNames.toObject(),
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: stateProps.muted,
     onBack: dispatchProps.onBack,

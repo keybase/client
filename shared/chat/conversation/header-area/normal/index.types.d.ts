@@ -1,6 +1,7 @@
 export type Props = {
   badgeNumber?: number
   channelName: string | null
+  contactNames: {[participant: string]: string}
   muted: boolean
   onBack: () => void
   onOpenFolder: null | (() => void)
