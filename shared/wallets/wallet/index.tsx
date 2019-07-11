@@ -82,7 +82,7 @@ class Wallet extends React.Component<Props> {
       )
     } else if (item === 'noPayments') {
       children.push(<HistoryPlaceholder key="placeholder" />)
-    }  else if (section.title === 'History' || section.title === 'Pending') {
+    } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
         <Transaction
           accountID={this.props.accountID}
