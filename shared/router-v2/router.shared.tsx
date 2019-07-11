@@ -42,7 +42,6 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       if (!navigation) {
         return
       }
-      console.log('hi nathan', action.payload)
       const p = action.payload.path.last
         ? action.payload.path.last()
         : action.payload.path[action.payload.path.length - 1]
@@ -82,7 +81,6 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       }
 
       if (action.payload.replace) {
-        console.log('replacing with', routeName)
         return [StackActions.replace({params, routeName})]
       }
 
