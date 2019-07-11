@@ -231,7 +231,13 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const selected = tabs.find(tab => this._isSelected(tab.key)) || null
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Tabs tabs={tabs} selected={selected} onSelect={this._onSelectTab} style={styles.tabStyle} />
+        <Kb.Tabs
+          tabs={tabs}
+          selected={selected}
+          onSelect={this._onSelectTab}
+          style={styles.tabContainerStyle}
+          tabStyle={styles.tabStyle}
+        />
       </Kb.Box2>
     )
   }
@@ -366,8 +372,12 @@ const styles = Styles.styleSheetCreate({
       borderLeft: border,
     },
   }),
-  tabStyle: {
+  tabContainerStyle: {
     backgroundColor: Styles.globalColors.white,
+  },
+  tabStyle: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
   tabTextContainer: {
     justifyContent: 'center',
