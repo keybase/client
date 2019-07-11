@@ -9,7 +9,7 @@ export type DownloadsProps = {
 }
 
 const Mobile = (props: DownloadsProps) =>
-  !!props.downloadKeys.length && (
+  props.downloadKeys.length ? (
     <>
       <Kb.Divider />
       <Kb.ScrollView horizontal={true} snapToInterval={160 + Styles.globalMargins.xtiny}>
@@ -27,10 +27,10 @@ const Mobile = (props: DownloadsProps) =>
         </Kb.Box2>
       </Kb.ScrollView>
     </>
-  )
+  ) : null
 
 const Desktop = (props: DownloadsProps) =>
-  !!props.downloadKeys.length && (
+  props.downloadKeys.length ? (
     <>
       <Kb.Divider />
       <Kb.Box2
@@ -69,7 +69,7 @@ const Desktop = (props: DownloadsProps) =>
         </Kb.WithTooltip>
       </Kb.Box2>
     </>
-  )
+  ) : null
 
 const styles = Styles.styleSheetCreate({
   box: Styles.platformStyles({
@@ -77,21 +77,15 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.blueLighter3,
       overflow: 'hidden',
     },
-    isElectron: {
-      height: 40,
-    },
-    isMobile: {
-      height: 48,
-    },
+    isElectron: {height: 40},
+    isMobile: {height: 48},
   }),
   iconBoxEllipsis: {
     backgroundColor: Styles.globalColors.black_10,
     borderRadius: 4,
     marginLeft: Styles.globalMargins.xtiny,
   },
-  space: {
-    flex: 1,
-  },
+  space: {flex: 1},
 })
 
 export default (Styles.isMobile ? Mobile : Desktop)

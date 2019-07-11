@@ -16,7 +16,7 @@ type Props = OwnProps & {
 }
 
 const FsNavHeaderRightActions = (props: Props) =>
-  !props.hasSoftError && (
+  !props.hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>
       <Kbfs.UploadButton path={props.path} style={styles.uploadButton} />
       {Styles.isMobile ? (
@@ -32,12 +32,12 @@ const FsNavHeaderRightActions = (props: Props) =>
         mode="screen"
       />
     </Kb.Box2>
-  )
+  ) : null
 
 export default namedConnect(
-  (state, _: OwnProps) => ({_softErrors: state.fs.softErrors}),
+  state => ({_softErrors: state.fs.softErrors}),
   () => ({}),
-  (s, d, o: OwnProps) => ({
+  (s, _, o: OwnProps) => ({
     ...o,
     hasSoftError: !!Constants.getSoftError(s._softErrors, o.path),
   }),

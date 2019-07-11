@@ -17,7 +17,7 @@ type State = {
 }
 
 const MaybePublicTag = ({path}) =>
-  Constants.hasPublicTag(path) && <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
+  Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
 
 class NavMobileHeader extends React.PureComponent<Props, State> {
   state = {filterExpanded: false}

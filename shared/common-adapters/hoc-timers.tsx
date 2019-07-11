@@ -1,9 +1,9 @@
 import * as React from 'react'
 
 type TimerProps = {
-  setTimeout: (func: () => void, timing: number) => number | null
+  setTimeout: (func: () => void, timing: number) => number
   clearTimeout: (id: number) => void
-  setInterval: (func: () => void, timing: number) => number | null
+  setInterval: (func: () => void, timing: number) => number
   clearInterval: (id: number) => void
 }
 

@@ -17,7 +17,7 @@ const getResetText = (names: Array<string>): string => {
 }
 
 const TlfInfo = (props: Props) =>
-  !!props.reset && (
+  props.reset ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode === 'default'}>
       {props.reset === true ? (
         <Kb.Text
@@ -42,7 +42,7 @@ const TlfInfo = (props: Props) =>
         </>
       )}
     </Kb.Box2>
-  )
+  ) : null
 
 const styles = Styles.styleSheetCreate({
   meta: {
