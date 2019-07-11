@@ -426,7 +426,7 @@ export const styles = Styles.styleSheetCreate({
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
-    height: avatarSize / 2,
+    height: (avatarSize / 2) + Styles.globalMargins.tiny,
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
@@ -439,6 +439,7 @@ export const styles = Styles.styleSheetCreate({
       paddingBottom: Styles.globalMargins.medium,
       position: 'relative',
     },
+    isElectron: {paddingTop: Styles.globalMargins.tiny},
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
   container: {
