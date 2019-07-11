@@ -191,7 +191,7 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 }
 
 // AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
-func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) {
 	var contacts []keybase1.ProcessedContact
 	var err error
 	contactsFetched := false
@@ -201,23 +201,20 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
 				if err != nil {
 					mctx.Debug("Error fetching contacts: %s", err)
-					return participants
+					return
 				}
 			}
 			// todo separate phone / email from assertion
 			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
-			if err == nil {
-				phoneOrEmail := assertion.GetValue()
-				isPhone := assertion.GetKey() == "phone"
-				contactName := findContactName(contacts, phoneOrEmail, isPhone)
-				participant.ContactName = contactName
-			} else {
+			if err != nil {
 				mctx.Debug("Error parsing assertion: %s", err)
 			}
-			withContacts = append(withContacts, participant)
+			phoneOrEmail := assertion.GetValue()
+			isPhone := assertion.GetKey() == "phone"
+			contactName := findContactName(contacts, phoneOrEmail, isPhone)
+			participant.ContactName = contactName
 		}
 	}
-	return withContacts
 }
 
 var nonDigits = regexp.MustCompile("[^\\d]")
