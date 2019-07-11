@@ -7,8 +7,17 @@
 //
 
 #import "Utils.h"
+#import <CoreTelephony/CTCarrier.h>
+#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 
 @implementation Utils
+
++ (NSString*)getDefaultCountryCode {
+  CTTelephonyNetworkInfo *network_Info = [CTTelephonyNetworkInfo new];
+  CTCarrier *carrier = network_Info.subscriberCellularProvider;
+  
+  return carrier.isoCountryCode;
+}
 
 // Returns YES if we are currently in a unit test context
 + (BOOL)areWeBeingUnitTested {

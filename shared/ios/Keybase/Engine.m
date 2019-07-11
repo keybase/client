@@ -157,7 +157,6 @@ RCT_EXPORT_METHOD(start) {
 
 - (NSDictionary *)constantsToExport {
   [self setupServerConfig];
-  NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
 #if TARGET_IPHONE_SIMULATOR
   NSString * simulatorVal = @"1";
 #else
@@ -170,7 +169,6 @@ RCT_EXPORT_METHOD(start) {
   return @{ @"eventName": eventName,
             @"metaEventName": metaEventName,
             @"metaEventEngineReset": metaEventEngineReset,
-            @"test": testVal,
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
             @"usingSimulator": simulatorVal,

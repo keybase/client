@@ -9,6 +9,5 @@
 #import <Foundation/Foundation.h>
 
 @interface Utils : NSObject
-+ (BOOL)areWeBeingUnitTested; // in a test context
-+ (BOOL)areWeBeingUnitTestedRightNow; // currently in a test
++ (NSString*)getDefaultCountryCode;
 @end
