@@ -198,12 +198,32 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 			if !contactsFetched {
 				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
 				if err != nil {
+					mctx.Debug("Error fetching contacts: %s", err)
 					return nil, err
 				}
 			}
 			// todo separate phone / email from assertion
+			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
+			if err == nil {
+				phoneOrEmail := assertion.GetValue()
+				isEmail := assertion.GetKey() == "email"
+				contactName := findContactName(contacts, phoneOrEmail, isEmail)
+			} else {
+				mctx.Debug("Error parsing assertion: %s", err)
+			}
+			withContacts = append(withContacts, participant)
 		}
 	}
+	return withContacts, nil
+}
+
+func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isEmail bool) string {
+	for _, contact := range contacts {
+		for _, comp := range contact.Components {
+			cPhoneOrEmail := comp.ValueString()
+		}
+	}
+	return ""
 }
 
 func isPhoneOrEmail(username string) bool {
