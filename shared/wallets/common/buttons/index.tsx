@@ -77,7 +77,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
           <Kb.Button
-            onClick={null}
+            onClick={undefined}
             type="Wallet"
             mode="Secondary"
             small={this.props.small}

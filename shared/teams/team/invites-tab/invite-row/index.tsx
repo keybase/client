@@ -6,7 +6,7 @@ import {TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   label: string
-  onCancelInvite: (() => void) | null
+  onCancelInvite?: () => void
   role: TeamRoleType
 }
 

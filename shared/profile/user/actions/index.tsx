@@ -159,7 +159,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} mode="Secondary" style={styles.dropdownButton}>
+        <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
           <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
         </Kb.Button>
       </Kb.Box2>

@@ -345,7 +345,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           fromAirdrop={props.fromAirdrop}
           detailView={true}
           memo={props.memo}
-          onCancelPayment={null}
+          onCancelPayment={undefined}
           onCancelPaymentWaitingKey=""
           onShowProfile={props.onShowProfile} // Don't render unread state in detail view.
           readState="read"

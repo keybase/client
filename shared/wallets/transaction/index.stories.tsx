@@ -117,7 +117,7 @@ const load = () => {
         isAdvanced={false}
         issuerDescription=""
         memo=""
-        onCancelPayment={null}
+        onCancelPayment={undefined}
         onCancelPaymentWaitingKey=""
         onSelectTransaction={Sb.action('onSelectTransaction')}
         onShowProfile={Sb.action('onShowProfile')}
