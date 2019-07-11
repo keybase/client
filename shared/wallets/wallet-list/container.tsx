@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     )
   },
   onJoinAirdrop: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop'], replace: !Container.isMobile}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop'], replace: true}))
   },
   onLinkExisting: () => {
     dispatch(
