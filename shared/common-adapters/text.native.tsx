@@ -6,13 +6,11 @@ import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
 import {Props, TextType} from './text'
 
-const StyledText = Styles.styled(NativeText)({}, (props: any) => props.style)
-
 const modes = ['positive', 'negative']
 
-const styleMap = Object.keys(metaData).reduce(
-  (map, type: TextType) => {
-    const meta = metaData[type]
+const styleMap = Object.keys(metaData).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
+  (map, type) => {
+    const meta = metaData[type as TextType]
     modes.forEach(mode => {
       map[`${type}:${mode}`] = {
         ...fontSizeToSizeStyle(meta.fontSize),
@@ -48,7 +46,7 @@ class Text extends Component<Props> {
   }
 
   _urlClick = () => {
-    openURL(this.props.onClickURL)
+    this.props.onClickURL && openURL(this.props.onClickURL)
   }
 
   _urlCopy = (url: string | null) => {
@@ -111,20 +109,20 @@ class Text extends Component<Props> {
       this.props.onLongPress || (this.props.onLongPressURL ? this._urlChooseOption : undefined)
 
     return (
-      <StyledText
+      <NativeText
         ref={ref => {
           this._nativeText = ref
         }}
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy}
         style={style}
-        {...lineClamp(this.props.lineClamp, this.props.ellipsizeMode)}
+        {...lineClamp(this.props.lineClamp || null, this.props.ellipsizeMode || null)}
         onPress={onPress}
         onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}
-      </StyledText>
+      </NativeText>
     )
   }
 }

@@ -89,7 +89,7 @@ const groups: Array<Array<{label: string; action?: boolean; type: TextType; norm
 ]
 
 const mapText = (secondary: boolean) => {
-  const items = []
+  const items: Array<React.ReactNode> = []
 
   groups.forEach((group, gidx) => {
     group.forEach(types => {
@@ -134,7 +134,7 @@ const load = () => {
     ))
     .add('Text all', () => (
       <>
-        {Object.keys(allTextTypes).map((t: TextType) => (
+        {Object.keys(allTextTypes).map((t: any) => (
           <Box key={t}>
             <Text type={t}>{t}</Text>
           </Box>

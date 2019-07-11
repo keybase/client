@@ -12,12 +12,17 @@ class Text extends React.Component<Props> {
 
   highlightText() {
     const el = this._spanRef.current
+    if (!el) {
+      return
+    }
     const range = document.createRange()
     range.selectNodeContents(el)
 
     const sel = window.getSelection()
-    sel.removeAllRanges()
-    sel.addRange(range)
+    if (sel) {
+      sel.removeAllRanges()
+      sel.addRange(range)
+    }
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
@@ -58,7 +63,7 @@ class Text extends React.Component<Props> {
     const style = Styles.collapseStyles([
       fastGetStyle(
         this.props.type,
-        this.props.selectable,
+        this.props.selectable || null,
         this.props.negative,
         this.props.lineClamp,
         !!this.props.onClick
@@ -68,10 +73,10 @@ class Text extends React.Component<Props> {
 
     return (
       <span
-        title={this.props.title}
+        title={this.props.title || undefined}
         ref={this.props.allowHighlightText ? this._spanRef : null}
         className={this._className(this.props)}
-        onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
+        onClick={this.props.onClick || (this.props.onClickURL && this._urlClick) || undefined}
         style={style}
       >
         {this.props.children}
