@@ -54,11 +54,16 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
         return
       }
       const secretNote =
-        this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
+        this.state.secretNote.slice(0, selection.start || 0) +
+        emoji +
+        this.state.secretNote.slice(selection.end || 0)
       if (Buffer.byteLength(secretNote) > secretNoteMaxLength) {
         return
       }
-      const newSelection = {end: selection.start + emoji.length, start: selection.start + emoji.length}
+      const newSelection = {
+        end: (selection.start || 0) + emoji.length,
+        start: (selection.start || 0) + emoji.length,
+      }
       this.props.onChangeSecretNote(secretNote)
       this.setState({secretNote}, () => {
         const noteInput = this._note.current

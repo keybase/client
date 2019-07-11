@@ -67,7 +67,7 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   // Mobile only
-  onEndEditing?: (() => void )| null
+  onEndEditing?: (() => void) | null
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   // If keyboardType is set, it overrides type.
@@ -78,8 +78,8 @@ export type Props = {
 }
 
 export type Selection = {
-  start: number
-  end: number
+  start: number | null
+  end: number | null
 }
 
 export type TextInfo = {

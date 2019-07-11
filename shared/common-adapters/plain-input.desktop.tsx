@@ -13,7 +13,7 @@ const maybeParseInt = (input: string | number, radix: number): number =>
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
 class PlainInput extends React.PureComponent<InternalProps> {
-  _input: HTMLTextAreaElement | HTMLInputElement | null
+  _input: HTMLTextAreaElement | HTMLInputElement | null = null
   _isComposingIME: boolean = false
 
   static defaultProps = {
@@ -175,8 +175,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _getMultilineProps = () => {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
-    const textStyle = getTextStyle(this.props.textType)
-    const heightStyles: _StylesDesktop = {
+    const textStyle: any = getTextStyle(this.props.textType)
+    const heightStyles: any = {
       minHeight: rows * (textStyle.fontSize || 20),
     }
     if (this.props.rowsMax) {

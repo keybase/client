@@ -51,8 +51,8 @@ export type TextContentType =
   | 'oneTimeCode'
 
 export type Selection = {
-  start: number
-  end: number
+  start: number | null
+  end: number | null
 }
 
 export type Props = {

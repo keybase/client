@@ -35,14 +35,14 @@ class PlainInput extends Component<InternalProps, State> {
     focused: false,
     height: null,
   }
-  _input: typeof NativeTextInput | null
-  _lastNativeText: string | null
-  _lastNativeSelection: Selection | null
+  _input: typeof NativeTextInput | null = null
+  _lastNativeText: string | null = null
+  _lastNativeSelection: Selection | null = null
 
   // TODO remove this when we can use forwardRef with react-redux. That'd let us
   // use HOCTimers with this component.
   // https://github.com/reduxjs/react-redux/pull/1000
-  _timeoutIDs = []
+  _timeoutIDs: Array<NodeJS.Timeout> = []
 
   _setInputRef = (ref: typeof NativeTextInput | null) => {
     this._input = ref
@@ -103,8 +103,8 @@ class PlainInput extends Component<InternalProps, State> {
       // Validate that this selection makes sense with current value
       let {start, end} = selection
       const text = this._lastNativeText || '' // TODO write a good internal getValue fcn for this
-      end = Math.max(0, Math.min(end, text.length))
-      start = Math.min(start, end)
+      end = Math.max(0, Math.min(end || 0, text.length))
+      start = Math.min(start || 0, end)
       const newSelection = {end, start}
       this.setNativeProps({selection: newSelection})
       this._lastNativeSelection = selection
@@ -130,8 +130,8 @@ class PlainInput extends Component<InternalProps, State> {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
-    const start = Math.min(_start, _end)
-    const end = Math.max(_start, _end)
+    const start = Math.min(_start || 0, _end || 0)
+    const end = Math.max(_start || 0, _end || 0)
     this._lastNativeSelection = {end, start}
     this.props.onSelectionChange && this.props.onSelectionChange(this._lastNativeSelection)
   }

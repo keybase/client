@@ -270,7 +270,7 @@ function ModalPositionRelative<PP>(
       style: {}
     }
   > {
-    popupNode: HTMLElement | null
+    popupNode: HTMLElement | null = null
     state: {
       style: {}
     }

@@ -24,7 +24,7 @@ export function PopupDialog({
   allowClipBubbling,
 }: Props) {
   return (
-    <EscapeHandler onESC={!immuneToEscape ? onClose : null}>
+    <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
       <Box
         style={Styles.collapseStyles([styles.cover, styleCover])}
         onClick={onClose}
