@@ -327,10 +327,6 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
-  partnerLinkContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignSelf: 'flex-start',
-  },
   icon: {marginLeft: Styles.globalMargins.xtiny},
   identity: {
     paddingBottom: Styles.globalMargins.tiny,
@@ -359,6 +355,10 @@ const styles = Styles.styleSheetCreate({
   },
   partnerIcon: {flexShrink: 0, height: 32, width: 32},
   partnerLink: {color: Styles.globalColors.black},
+  partnerLinkContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
+  },
   red: {color: Styles.globalColors.redDark},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
