@@ -252,7 +252,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 		RandomPW:    randomPW,
 		SkipMail:    skipMail,
 		PDPKA5KID:   pdpkda5kid,
-		VerifyEmail: s.arg.VerifyEmail,
+		VerifyEmail: s.arg != nil && s.arg.VerifyEmail,
 	}
 	res := joinEngine.Run(m, arg)
 	if res.Err != nil {
