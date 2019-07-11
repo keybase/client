@@ -84,10 +84,10 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
   // @ts-ignore can't infer this string is a valid icon, but its ok. we'll
   // catch it in snapshots if this is wrong
-  const iconType: IconType | null = rel ? `icon-${rel}-${iconSize}` : null
+  const iconType: IconType | undefined = rel ? `icon-${rel}-${iconSize}` : undefined
   return {
     iconSize,
-    iconStyle: followSizeToStyle[size],
+    iconStyle: followSizeToStyle[size] as IconStyle,
     iconType,
   }
 }
@@ -95,7 +95,7 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
 // We keep one timer for all instances to reduce timer overhead
 class SharedAskForUserData {
   _cacheTime = 1000 * 60 * 30 // cache for 30 mins
-  _dispatch: (arg0: any) => void
+  _dispatch?: (arg0: any) => void
   _teamQueue = {}
   _teamLastReq = {}
   _userQueue = {}
@@ -192,7 +192,7 @@ const ConnectedAvatar = Container.connect(
       onClick = () => dispatchProps._goToProfile(u, desktopDest)
     }
 
-    const style = Styles.isMobile
+    const style: Styles.StylesCrossPlatform = Styles.isMobile
       ? ownProps.style
       : Styles.collapseStyles([
           ownProps.style,
@@ -200,7 +200,7 @@ const ConnectedAvatar = Container.connect(
         ])
 
     let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
-    let load: () => void
+    let load: (() => void) | undefined
     if (!url) {
       url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
       load = isTeam
@@ -227,6 +227,7 @@ const ConnectedAvatar = Container.connect(
       loadingColor: ownProps.loadingColor,
       name: name || '',
       onClick,
+      onEditAvatarClick: ownProps.onEditAvatarClick,
       opacity: ownProps.opacity,
       size: ownProps.size,
       skipBackground: ownProps.skipBackground,
@@ -243,8 +244,8 @@ const mockOwnToViewProps = (
   followers: string[],
   action: (arg0: string) => (...args: any[]) => void
 ): Props => {
-  const following = follows.includes(ownProps.username)
-  const followsYou = followers.includes(ownProps.username)
+  const following = ownProps.username && follows.includes(ownProps.username)
+  const followsYou = ownProps.username && followers.includes(ownProps.username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let onClick = ownProps.onClick
@@ -270,7 +271,7 @@ const mockOwnToViewProps = (
     children: ownProps.children,
     followIconSize: iconInfo.iconSize,
     followIconStyle: iconInfo.iconStyle,
-    followIconType: iconInfo.iconType,
+    followIconType: iconInfo.iconType || undefined,
     isTeam,
     load: () => {},
     loadingColor: ownProps.loadingColor,

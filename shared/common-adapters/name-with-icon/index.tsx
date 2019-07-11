@@ -30,7 +30,7 @@ export type NameWithIconProps = {
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: () => void
   clickType?: 'tracker' | 'profile'
-  onEditIcon?: ((e?: React.SyntheticEvent) => void) | null
+  onEditIcon?: (e?: React.SyntheticEvent) => void
   selectable?: boolean
   size?: Size
   teamname?: string

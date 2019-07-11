@@ -10,7 +10,7 @@ import * as WaitingConstants from '../../constants/waiting'
 
 type OwnProps = {
   prompt: string
-  username: string | null
+  username?: string
   waitingForResponse: boolean
 } & RouteProps
 
@@ -26,7 +26,7 @@ type Props = {
   onForgotPassword: () => void
   waitingForResponse: boolean
   error?: string | null
-  username: string | null
+  username?: string
 }
 
 // TODO remove this class
