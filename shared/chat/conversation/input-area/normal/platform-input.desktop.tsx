@@ -75,6 +75,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
       return true
+    } else if (e.key === 'Escape' && this.props.showReplyPreview) {
+      this.props.onCancelReply()
+      return true
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
       this._filePickerOpen()
       return true
@@ -119,6 +122,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'ArrowUp',
       'ArrowDown',
       'Enter',
+      'Escape',
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
