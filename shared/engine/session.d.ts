@@ -39,7 +39,7 @@ declare class Session {
     customResponseIncomingCallMap?: CustomResponseIncomingCallMap | null
     waitingKey?: string | Array<string>
     invoke: (method: string, param: [Object] | null, cb: (err?: any, data?: any) => void) => void
-    endHandler: (session: Object) => void
+    endHandler: (session: Session) => void
     cancelHandler?: (session: Session) => void
     dangling?: boolean
   })

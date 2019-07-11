@@ -141,7 +141,7 @@ function* call(p: {
           clearInterval(outstandingIntervalID)
         }
 
-        const toEmit: EmittedFinished = {error, method: null, params}
+        const toEmit: EmittedFinished = {error: error || null, method: null, params}
         // Send results deferred
         setTimeout(() => {
           emitter(toEmit)

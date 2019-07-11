@@ -38,7 +38,7 @@ const DeviceRow = (props: Props) => {
       icon={<Kb.Icon type={icon} style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)} />}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={{justifyContent: 'center'}}>
-          <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemibold">
+          <Kb.Text style={props.isRevoked ? styles.text : undefined} type="BodySemibold">
             {props.name}
           </Kb.Text>
           {props.isCurrentDevice && <Kb.Text type="BodySmall">Current device</Kb.Text>}
@@ -55,8 +55,8 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.black_20,
     flex: 0,
-    textDecorationLine: 'line-through',
-    textDecorationStyle: 'solid',
+    textDecorationLine: 'line-through' as const,
+    textDecorationStyle: 'solid' as const,
   },
 })
 

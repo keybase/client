@@ -1,4 +1,33 @@
 // A utility to convert our log sends to something consumable by chrome://tracing
+import fs from 'fs'
+import moment from 'moment'
+
+type Args = {
+  counter?: string
+  file?: string
+  line?: string
+}
+
+type Info = {
+  app: string
+  args: Args
+  id: string
+  line: string
+  name: string
+  time: string
+  type: string
+}
+
+type Event = {
+  args: Args
+  id: string
+  name: string
+  ph: string
+  pid: number
+  tid: string
+  ts: number
+}
+
 const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?
 if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
@@ -8,8 +37,6 @@ if (['gui', 'core'].indexOf(guiOrCore) === -1 || !logfile || !outfile) {
 
 const swimlanesReg = (_swimlanes || []).map(swim => new RegExp(swim))
 const isGUI = guiOrCore === 'gui'
-const fs = require('fs')
-const moment = require('moment')
 
 // core regs
 const reg = /([^ ]+) ▶ \[DEBU (keybase|kbfs) ([^:]+):(\d+)] ([0-9a-f]+) ([^[]+)(.*)?/
@@ -22,13 +49,13 @@ const guiCountTypeTimeReg = /\["(Info|Warn|Action)","([^"]+)","(.*)"]/
 const actionReg = /type: ([^ ]+) (.*)/
 const actionPayloadReg = /\\"/g
 
-const getSwimlane = line => {
+const getSwimlane = (line: string) => {
   const matched = swimlanesReg.find(s => s.exec(line) && !!s.toString())
   return matched && matched.toString()
 }
 
 // Handle a single line from a gui log
-const convertGuiLine = line => {
+const convertGuiLine = (line: string): Info | undefined => {
   const e = guiCountTypeTimeReg.exec(line)
   if (!e) {
     console.log('🛑 Skipping unparsed line:', line)
@@ -65,7 +92,7 @@ const convertGuiLine = line => {
       console.log('🛑 Unknown inner type', type)
       return
   }
-  const app = getSwimlane(line)
+  const app = getSwimlane(line) || ''
 
   return {
     app,
@@ -79,7 +106,7 @@ const convertGuiLine = line => {
 }
 
 // Handle a single line from a core log
-const convertCoreLine = line => {
+const convertCoreLine = (line: string): Info | undefined => {
   const e = reg.exec(line)
   if (!e) {
     console.log('🛑 Skipping unparsed line:', line)
@@ -116,7 +143,7 @@ const convertCoreLine = line => {
   }
   const id = `${tags}:${method}`
   const name = method
-  const app = getSwimlane(line) || _app
+  const app = getSwimlane(line) || _app || ''
 
   return {
     app,
@@ -129,7 +156,12 @@ const convertCoreLine = line => {
   }
 }
 
-const output = {
+const output: {
+  collision: Array<Info>
+  good: Array<Event>
+  single: Array<Event>
+  unmatched: Array<Info>
+} = {
   // injecting a start and overwriting an unmatched one
   collision: [],
   // valid start-end
@@ -140,7 +172,7 @@ const output = {
   unmatched: [],
 }
 
-const buildEvent = (info, ph) => ({
+const buildEvent = (info: Info, ph: 'B' | 'E' | 'i'): Event => ({
   args: info.args,
   id: info.id,
   name: info.name,
@@ -150,7 +182,7 @@ const buildEvent = (info, ph) => ({
   ts: moment(info.time).valueOf() * (isGUI ? 1 : 1000),
 })
 
-const buildGood = (old, info) => {
+const buildGood = (old: Info, info: Info) => {
   const s = buildEvent(old, 'B')
   const e = buildEvent(info, 'E')
   if (s.ts > e.ts) {
@@ -166,7 +198,7 @@ let lines = fs.readFileSync(logfile, 'utf8').split('\n')
 // lines = [
 // 'Line to debug',
 // ]
-let lastGuiLine = null
+let lastGuiLine: Info | null = null
 const knownIDs = {}
 lines.forEach(line => {
   const info = convertLine(line)
