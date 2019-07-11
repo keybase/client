@@ -23,11 +23,11 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {accountID, navigateAppend, navigateUp}) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
-  onSetupTrustline: (accountID) =>
+  onSetupTrustline: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
