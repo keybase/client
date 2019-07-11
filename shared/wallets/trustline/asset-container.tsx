@@ -21,6 +21,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   ),
   asset: state.wallets.trustline.assetMap.get(ownProps.assetID, Constants.emptyAssetDescription),
   expandedAssets: state.wallets.trustline.expandedAssets,
+  thisDeviceIsLockedOut: Constants.getAccount(state, ownProps.accountID).deviceReadOnly,
   waitingRefresh: Waiting.anyWaiting(
     state,
     Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID)
@@ -62,6 +63,7 @@ const mergeProps = (s, d, o: OwnProps) => ({
   onExpand: d.onExpand,
   onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
   onRemove: d.onRemove,
+  thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
   trusted: !!s.acceptedAssets.get(o.assetID, 0),
   waitingAdd: s.waitingAdd,
   waitingDelete: s.waitingDelete,

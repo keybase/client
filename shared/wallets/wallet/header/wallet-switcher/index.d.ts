@@ -6,6 +6,7 @@ export type Props = {
   airdropIsLive: boolean
   getAttachmentRef: (() => React.Component<any>) | null
   hideMenu: () => void
+  inAirdrop: boolean
   onAddNew: () => void
   onJoinAirdrop: () => void
   onLinkExisting: () => void

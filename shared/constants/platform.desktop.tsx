@@ -11,6 +11,7 @@ export const isDarwin = platform === 'darwin'
 export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
 export const isAndroidNewerThanN = false
+export const isMac = isDarwin && !isIOS
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 
 export const defaultUseNativeFrame = isDarwin || isLinux

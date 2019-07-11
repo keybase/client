@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {Box2, Banner} from '.'
+import {Box2} from './box'
+import {Banner, BannerParagraph} from './banner'
 import * as Sb from '../stories/storybook'
 
 const load = () => {
@@ -7,52 +8,76 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('Banner', () => (
       <Box2 direction="vertical" fullWidth={true} gap="small">
-        <Banner key="1" color="red" text="this is a red banner with no action" />
-        <Banner key="2" color="blue" text="this is a blue banner with no action" />
-        <Banner key="3" color="yellow" text="this is a yellow banner with no action" />
-        <Banner key="4" color="green" text="this is a green banner with no action" />
-        <Banner key="5" color="grey" text="this is a grey banner with no action" />
-        <Banner
-          key="6"
-          color="red"
-          text="this is a red banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
-        />
-        <Banner
-          key="7"
-          color="red"
-          text="this is a red closable banner with super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
-          onClose={Sb.action('onClose')}
-        />
-        <Banner key="8" color="red" text="this is a closable red banner" onClose={Sb.action('onClose')} />
-        <Banner
-          key="9"
-          color="red"
-          text="this is a red banner with actions and is closable"
-          onClose={Sb.action('onClose')}
-          actions={[
-            {onClick: Sb.action('onClick-action1'), title: 'action1'},
-            {onClick: Sb.action('onClick-action2'), title: 'action2'},
-          ]}
-        />
-        <Banner
-          key="10"
-          color="red"
-          text="this is a red banner with actions and super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
-          actions={[
-            {onClick: Sb.action('onClick-action1'), title: 'action1'},
-            {onClick: Sb.action('onClick-action2'), title: 'action2'},
-          ]}
-        />
-        <Banner
-          key="10"
-          color="red"
-          text="this is a narrow red banner with actions and super long text blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long"
-          actions={[
-            {onClick: Sb.action('onClick-action1'), title: 'action1'},
-            {onClick: Sb.action('onClick-action2'), title: 'action2'},
-          ]}
-          narrow={true}
-        />
+        <Banner key="1" color="red">
+          This is a red banner with no action.
+        </Banner>
+        <Banner key="2" color="blue">
+          This is a blue banner with no action.
+        </Banner>
+        <Banner key="3" color="yellow">
+          This is a yellow banner with no action.
+        </Banner>
+        <Banner key="4" color="green">
+          This is a green banner with no action.
+        </Banner>
+        <Banner key="5" color="grey">
+          This is a grey banner with no action.
+        </Banner>
+        <Banner key="6" color="red">
+          This is a red banner with super long text blah blah blah blah blah blah blah blah blah blah blah
+          blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long.
+        </Banner>
+        <Banner key="7" color="red" onClose={Sb.action('onClose')}>
+          This is a red closable banner with super long text blah blah blah blah blah blah blah blah blah blah
+          blah blah blah blah blah blah blah blah blah blah blah blah blah blah yes very long.
+        </Banner>
+        <Banner key="8" color="red" onClose={Sb.action('onClose')}>
+          This is a closable red banner.
+        </Banner>
+        <Banner key="9" color="red" onClose={Sb.action('onClose')}>
+          <BannerParagraph
+            bannerColor="red"
+            content={[
+              'A banner with array content',
+              null && 'not shown',
+              ' and ',
+              false && 'also not shown',
+              'that has null and false inside.',
+            ]}
+          />
+        </Banner>
+        <Banner key="10" color="red" onClose={Sb.action('onClose')}>
+          <BannerParagraph
+            bannerColor="red"
+            content={[
+              'A banner with inline actions ',
+              {onClick: Sb.action('action1'), text: 'action1'},
+              ' and ',
+              {onClick: Sb.action('action2'), text: 'action2'},
+              ' and new line actions.',
+            ]}
+          />
+          <BannerParagraph
+            bannerColor="red"
+            content={[
+              {onClick: Sb.action('action3'), text: 'action3'},
+              ', ',
+              {onClick: Sb.action('action4'), text: 'action4'},
+            ]}
+          />
+        </Banner>
+        <Banner key="11" color="red" onClose={Sb.action('onClose')}>
+          <BannerParagraph
+            bannerColor="red"
+            content={[
+              'Here is a super long banner message with ',
+              {onClick: Sb.action('action1'), text: 'action1'},
+              ' and ',
+              {onClick: Sb.action('action2'), text: 'action2'},
+              '. Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah.',
+            ]}
+          />
+        </Banner>
       </Box2>
     ))
 }

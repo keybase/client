@@ -18,12 +18,9 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
-	teamStorage "github.com/keybase/client/go/teams/storage"
 	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
-
-const favoritesEncryptionReason = "kbfs.favorites"
 
 type KBFSHandler struct {
 	*BaseHandler
@@ -163,7 +160,8 @@ func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg
 // favorites.
 func (h *KBFSHandler) getKeyFn() func(context.Context) ([32]byte, error) {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return teamStorage.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(), favoritesEncryptionReason)
+		return encrypteddb.GetSecretBoxKey(ctx, h.G(), encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonKBFSFavorites, "encrypting kbfs favorites")
 	}
 	return keyFn
 }

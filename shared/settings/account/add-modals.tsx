@@ -85,7 +85,11 @@ export const Email = () => {
           }
         />
       </Kb.Box2>
-      {!!emailError && <Kb.Banner color="red" text={emailError.message} style={styles.banner} />}
+      {!!emailError && (
+        <Kb.Banner color="red" style={styles.banner}>
+          <Kb.BannerParagraph bannerColor="red" content={emailError.message} />
+        </Kb.Banner>
+      )}
     </Kb.Modal>
   )
 }
@@ -163,7 +167,11 @@ export const Phone = () => {
           }
         />
       </Kb.Box2>
-      {!!error && <Kb.Banner color="red" text={error} style={styles.banner} />}
+      {!!error && (
+        <Kb.Banner color="red" style={styles.banner}>
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      )}
     </Kb.Modal>
   )
 }
@@ -244,7 +252,11 @@ export const VerifyPhone = () => {
           onChangeCode={onChangeCode}
         />
       </Kb.Box2>
-      {!!error && <Kb.Banner color="red" text={error} style={styles.banner} />}
+      {!!error && (
+        <Kb.Banner color="red" style={styles.banner}>
+          <Kb.BannerParagraph bannerColor="red" content={error} />
+        </Kb.Banner>
+      )}
     </Kb.Modal>
   )
 }

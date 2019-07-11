@@ -13,6 +13,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => ({
   accounts: getAccountIDs(state),
   airdropIsLive: state.wallets.airdropDetails.isPromoted,
+  inAirdrop: state.wallets.airdropState === 'accepted',
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -40,6 +41,7 @@ export default Container.connect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     accountIDs: stateProps.accounts.toArray(),
     airdropIsLive: stateProps.airdropIsLive,
+    inAirdrop: stateProps.inAirdrop,
     onAddNew: dispatchProps.onAddNew,
     onJoinAirdrop: dispatchProps.onJoinAirdrop,
     onLinkExisting: dispatchProps.onLinkExisting,

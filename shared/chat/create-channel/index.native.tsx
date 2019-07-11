@@ -6,7 +6,11 @@ import {Props} from './index.types'
 
 const CreateChannel = (props: Props) => (
   <Kb.Box>
-    {!!props.errorText && <Kb.Banner color="red" text={props.errorText} />}
+    {!!props.errorText && (
+      <Kb.Banner color="red">
+        <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
+      </Kb.Banner>
+    )}
     <Kb.Box style={_boxStyle}>
       <Kb.Box style={_inputStyle}>
         <Kb.Input

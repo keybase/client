@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/encrypteddb"
 
 	"github.com/keybase/client/go/libkb"
@@ -22,9 +21,12 @@ type SavedContactsStore struct {
 	encryptedDB *encrypteddb.EncryptedDB
 }
 
+// NewSavedContactsStore creates a new SavedContactsStore for global context.
+// The store is used to securely store list of resolved contacts.
 func NewSavedContactsStore(g *libkb.GlobalContext) *SavedContactsStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return storage.GetSecretBoxKey(ctx, g, storage.DefaultSecretUI)
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			libkb.EncryptionReasonContactsLocalStorage, "encrypting local contact list")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb

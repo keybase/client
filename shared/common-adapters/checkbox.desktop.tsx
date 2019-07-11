@@ -21,7 +21,7 @@ class Checkbox extends Component<Props> {
         ? globalColors.blue
         : this.props.boxBackgroundColor
         ? this.props.boxBackgroundColor
-        : 'inherit',
+        : globalColors.white,
       border: `solid 1px ${borderColor}`,
       borderRadius: 2,
       height: CHECKBOX_SIZE,

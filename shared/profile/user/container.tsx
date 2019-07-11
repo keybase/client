@@ -122,6 +122,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,
     ...followToArray(stateProps.followers, stateProps.following),
+    youAreInAirdrop: stateProps.youAreInAirdrop,
   }
 }
 

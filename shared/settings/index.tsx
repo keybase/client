@@ -25,13 +25,16 @@ const mapStateToProps = (state: Container.TypedState) => ({
   logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
   _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
   onLogout: () => dispatch(ConfigGen.createLogout()),
   onTabChange: (tab: Types.Tab, walletsAcceptedDisclaimer: boolean) => {
     if (tab === Constants.walletsTab && !walletsAcceptedDisclaimer) {
       dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
       return
+    }
+    if (ownProps.routeSelected === Constants.accountTab && tab !== Constants.accountTab) {
+      dispatch(SettingsGen.createClearAddedEmail())
     }
     dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
   },

@@ -71,11 +71,25 @@ class UpdatePassword extends Component<Props, State> {
     return (
       <Kb.Modal
         banners={[
-          notification && <Kb.Banner color="yellow" text={notification} />,
-          !!this.props.newPasswordError && <Kb.Banner color="red" text={this.props.newPasswordError} />,
-          !!this.state.errorSaving && <Kb.Banner color="red" text={this.state.errorSaving} />,
+          notification && (
+            <Kb.Banner color="yellow">
+              <Kb.BannerParagraph bannerColor="yellow" content={notification} />
+            </Kb.Banner>
+          ),
+          !!this.props.newPasswordError && (
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph bannerColor="red" content={this.props.newPasswordError} />
+            </Kb.Banner>
+          ),
+          !!this.state.errorSaving && (
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph bannerColor="red" content={this.state.errorSaving} />
+            </Kb.Banner>
+          ),
           !!this.props.newPasswordConfirmError && (
-            <Kb.Banner color="red" text={this.props.newPasswordConfirmError} />
+            <Kb.Banner color="red">
+              <Kb.BannerParagraph bannerColor="red" content={this.props.newPasswordConfirmError} />
+            </Kb.Banner>
           ),
         ]}
         footer={{
@@ -107,7 +121,7 @@ class UpdatePassword extends Component<Props, State> {
       >
         <Kb.Box2 centerChildren={true} direction="vertical" fullHeight={true} style={styles.container}>
           <Kb.Text type="Body" style={styles.bodyText} center={true}>
-            A password allows you to sign out and sign back in, and use the keybase.io website.
+            A password is required for you to sign out and sign back in, and use the keybase.io website.
           </Kb.Text>
           <Kb.RoundedBox side="top">
             <Kb.PlainInput

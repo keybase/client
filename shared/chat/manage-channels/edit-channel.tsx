@@ -70,7 +70,11 @@ class _EditChannel extends React.Component<Props, State> {
             </Kb.Text>
           )
         )}
-        {!!this.props.errorText && <Kb.Banner color="red" text={this.props.errorText} />}
+        {!!this.props.errorText && (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={this.props.errorText} />
+          </Kb.Banner>
+        )}
         <Kb.Box style={{position: 'relative'}}>
           <Kb.Input
             onChangeText={this._onChangeChannelName}

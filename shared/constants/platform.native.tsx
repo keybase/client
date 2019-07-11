@@ -24,6 +24,7 @@ export const isDarwin = false
 export const isElectron = false
 export const isLinux = false
 export const isWindows = false
+export const isMac = false
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
 export const mobileOsVersion = Platform.Version

@@ -20,24 +20,24 @@ type Props = {
   writable: boolean
 }
 const PublicBanner = (props: Props) => {
+  const {lastPublicBannerClosedTlf, tlfName, clearLastPublicBannerClosedTlf} = props
   React.useEffect(() => {
-    if (props.lastPublicBannerClosedTlf !== '' && props.lastPublicBannerClosedTlf !== props.tlfName) {
-      props.clearLastPublicBannerClosedTlf()
+    if (lastPublicBannerClosedTlf !== '' && lastPublicBannerClosedTlf !== tlfName) {
+      clearLastPublicBannerClosedTlf()
     }
-  }, [props.tlfName, props.lastPublicBannerClosedTlf])
+  }, [clearLastPublicBannerClosedTlf, tlfName, lastPublicBannerClosedTlf])
   return (
     (props.writable && props.public && props.lastPublicBannerClosedTlf !== props.tlfName && (
-      <Kb.Banner
-        color="yellow"
-        text="Everything you upload in here can be viewed by everyone at "
-        actions={[
-          {
-            onClick: () => openUrl(props.url),
-            title: props.url + '.',
-          },
-        ]}
-        onClose={props.onClose}
-      />
+      <Kb.Banner color="yellow" onClose={props.onClose}>
+        <Kb.BannerParagraph
+          bannerColor="yellow"
+          content={[
+            'Everything you upload in here can be viewed by everyone at ',
+            {onClick: () => openUrl(props.url), text: props.url},
+            '.',
+          ]}
+        />
+      </Kb.Banner>
     )) ||
     null
   )

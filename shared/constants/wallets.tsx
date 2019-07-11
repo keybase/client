@@ -10,6 +10,7 @@ import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
+import flags from '../util/feature-flags'
 
 export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
@@ -803,3 +804,9 @@ export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTa
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 export const trustlineHoldingBalance = 0.5
+
+export const getShowAirdropBanner = (state: TypedState) =>
+  flags.airdrop &&
+  state.wallets.airdropDetails.isPromoted &&
+  state.wallets.airdropShowBanner &&
+  (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified')

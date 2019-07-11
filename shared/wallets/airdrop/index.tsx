@@ -58,6 +58,36 @@ class Loading extends React.Component<
 
 const validIcon = (s: any) => !!s && !!iconMeta[s]
 
+const Friends = () => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={styles.friendContainer}
+    gap={Styles.isMobile ? 'small' : 'large'}
+    noShrink={true}
+  >
+    <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
+        <Kb.Text type="Body" style={styles.friendText}>
+          Tell them to visit{' '}
+        </Kb.Text>
+        <Kb.Text type="Body">
+          <Kb.Text
+            type="BodyPrimaryLink"
+            style={styles.link}
+            onClick={() => openURL('https://keybase.io/airdrop')}
+          >
+            https://keybase.io/airdrop
+          </Kb.Text>
+          .
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+    <Kb.Icon type="icon-fancy-airdrop-friends-120" />
+  </Kb.Box2>
+)
+
 class Airdrop extends React.Component<Props> {
   _ref = React.createRef<Kb.ScrollView>()
 
@@ -118,6 +148,7 @@ class Airdrop extends React.Component<Props> {
               </Kb.Box2>
             </Kb.Box2>
           )}
+          {p.signedUp && <Friends />}
           <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} style={styles.body} gap="small">
             {p.sections.map(b => (
               <Kb.Box2
@@ -160,33 +191,9 @@ class Airdrop extends React.Component<Props> {
             </Kb.Box2>
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            style={styles.friendContainer}
-            gap={Styles.isMobile ? 'small' : 'large'}
-            noShrink={true}
-          >
-            <Kb.Box2 direction="vertical" gap="tiny">
-              <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
-              <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
-                <Kb.Text type="Body" style={styles.friendText}>
-                  Tell them to visit{' '}
-                </Kb.Text>
-                <Kb.Text type="Body">
-                  <Kb.Text
-                    type="BodyPrimaryLink"
-                    style={styles.link}
-                    onClick={() => openURL('https://keybase.io/airdrop')}
-                  >
-                    https://keybase.io/airdrop
-                  </Kb.Text>
-                  .
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-            <Kb.Icon type="icon-fancy-airdrop-friends-120" />
-          </Kb.Box2>
+
+          {!p.signedUp && <Friends />}
+
           {p.signedUp && (
             <Kb.ButtonBar style={styles.leaveButtonBar}>
               <Kb.WaitingButton

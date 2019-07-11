@@ -10,7 +10,6 @@ import (
 	context "golang.org/x/net/context"
 
 	"github.com/keybase/client/go/encrypteddb"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -103,7 +102,8 @@ type diskStorageGeneric struct {
 
 func newDiskStorageGeneric(g *libkb.GlobalContext, version int, dbObjTyp libkb.ObjType, reason libkb.EncryptionReason, gdi func() diskItemGeneric) *diskStorageGeneric {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
-		return GetLocalStorageSecretBoxKeyGeneric(ctx, g, reason)
+		return encrypteddb.GetSecretBoxKey(ctx, g, encrypteddb.DefaultSecretUI,
+			reason, "encrypt teams storage")
 	}
 	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
 		return g.LocalDb
@@ -243,42 +243,6 @@ func (s *memoryStorageGeneric) key(teamID keybase1.TeamID, public bool) (key str
 	}
 	return key
 }
-
-// --------------------------------------------------
-
-// GetLocalStorageSecretBoxKeyGeneric gets a key for encrypting data on disk
-// for the specified purpose
-func GetLocalStorageSecretBoxKeyGeneric(ctx context.Context, g *libkb.GlobalContext, reason libkb.EncryptionReason) (fkey [32]byte, err error) {
-	// Get secret device key
-	encKey, err := engine.GetMySecretKey(ctx, g, getLameSecretUI, libkb.DeviceEncryptionKeyType,
-		"encrypt teams storage")
-	if err != nil {
-		return fkey, err
-	}
-	kp, ok := encKey.(libkb.NaclDHKeyPair)
-	if !ok || kp.Private == nil {
-		return fkey, libkb.KeyCannotDecryptError{}
-	}
-
-	// Derive symmetric key from device key
-	skey, err := encKey.SecretSymmetricKey(reason)
-	if err != nil {
-		return fkey, err
-	}
-
-	copy(fkey[:], skey[:])
-	return fkey, nil
-}
-
-// --------------------------------------------------
-
-type LameSecretUI struct{}
-
-func (d LameSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
-}
-
-var getLameSecretUI = func() libkb.SecretUI { return LameSecretUI{} }
 
 // --------------------------------------------------
 

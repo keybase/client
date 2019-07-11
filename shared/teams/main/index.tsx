@@ -136,11 +136,12 @@ class Teams extends React.PureComponent<Props, State> {
       case 'deletedTeam': {
         const {deletedBy, teamName} = item.team
         return (
-          <Kb.Banner
-            color="blue"
-            key={'deletedTeamBannerFor' + teamName}
-            text={`The ${teamName} team was deleted by ${deletedBy}.`}
-          />
+          <Kb.Banner color="blue" key={'deletedTeamBannerFor' + teamName}>
+            <Kb.BannerParagraph
+              bannerColor="blue"
+              content={`The ${teamName} team was deleted by ${deletedBy}.`}
+            />
+          </Kb.Banner>
         )
       }
       case 'team': {

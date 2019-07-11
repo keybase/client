@@ -37,7 +37,7 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
 const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   let subtitle = ''
   if (props.type === 'email' && props.primary) {
-    subtitle = addSpacer(subtitle, 'Primary email')
+    subtitle = addSpacer(subtitle, 'Primary')
     // TODO 'Check your inbox' if verification email was just sent
   }
   if (!props.searchable && flags.sbsContacts) {
@@ -91,7 +91,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     view: (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
         <Kb.Text type="BodySmallSemibold">{props.address}</Kb.Text>
-        {props.primary && <Kb.Text type="BodySmall">Primary email</Kb.Text>}
+        {props.primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
       </Kb.Box2>
     ),
   }
