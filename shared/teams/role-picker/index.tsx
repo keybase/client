@@ -28,7 +28,7 @@ type RoleRowProps = {
   icon: React.ReactNode | null
   selected: boolean
   title: React.ReactNode
-  onSelect: (() => void) | null
+  onSelect?: () => void
 }
 
 const RoleRow = (p: RoleRowProps) => (
@@ -224,7 +224,7 @@ const RolePicker = (props: Props) => {
           // Using as to avoid lots of ts-ignore.
           const disabledRole = role as Role
           const disabled = props.disabledRoles && props.disabledRoles[disabledRole]
-          const onSelect = disabled ? null : () => props.onSelectRole(disabledRole)
+          const onSelect = disabled ? undefined : () => props.onSelectRole(disabledRole)
           return (
             <Kb.ClickableBox key={role as string} onClick={onSelect}>
               <RoleRow

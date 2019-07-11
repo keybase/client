@@ -113,7 +113,7 @@ const defaultStyle = {
 }
 
 class SaveIndicator extends React.Component<Props, State> {
-  _timeoutID: number | undefined
+  _timeoutID?: NodeJS.Timeout
 
   constructor(props: Props) {
     super(props)

@@ -18,7 +18,7 @@ export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black'
 // Either type or backgroundColor must be set
 export type Props = {
   children?: React.ReactNode
-  onClick?: null | ((event: React.SyntheticEvent) => void)
+  onClick?: (event: React.SyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
   onMouseLeave?: (e: React.MouseEvent) => void
   label?: string

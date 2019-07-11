@@ -287,7 +287,10 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           alignItems="flex-end"
           style={styles.pickAssetButton}
         >
-          <Kb.ClickableBox onClick={goToPickAsset} style={!goToPickAsset ? styles.disabled : undefined}>
+          <Kb.ClickableBox
+            onClick={goToPickAsset || undefined}
+            style={!goToPickAsset ? styles.disabled : undefined}
+          >
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
               <Kb.Text
                 type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}

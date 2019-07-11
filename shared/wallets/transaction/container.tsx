@@ -57,10 +57,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isAdvanced: tx.isAdvanced,
     issuerDescription: tx.issuerDescription,
     memo,
-    onCancelPayment: tx.showCancel && !isRelayRecipient ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment:
+      tx.showCancel && !isRelayRecipient ? () => dispatchProps._onCancelPayment(tx.id) : undefined,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
     onSelectTransaction: isRelayRecipient
-      ? null
+      ? undefined
       : () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
     onShowProfile: dispatchProps.onShowProfile,
     readState,

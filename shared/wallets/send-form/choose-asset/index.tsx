@@ -238,7 +238,7 @@ type OtherChoiceProps = {
 const OtherChoice = (props: OtherChoiceProps) => (
   <Kb.ClickableBox
     hoverColor={!props.disabledExplanation ? Styles.globalColors.blueLighter2 : null}
-    onClick={!props.disabledExplanation ? props.onClick : null}
+    onClick={!props.disabledExplanation ? props.onClick : undefined}
   >
     <Kb.Box2
       direction="horizontal"

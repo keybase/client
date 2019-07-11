@@ -1,7 +1,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  size?: number
+  size: number
   emojiName: string
   disableSelecting?: boolean // desktop only - helps with chrome copy/paste bug workarounds
   allowFontScaling?: boolean
