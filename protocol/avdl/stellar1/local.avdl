@@ -777,4 +777,13 @@ protocol local {
     union { null, TransactionID } submitTxID;
   }
   SignXdrResult signTransactionXdrLocal(string envelopeXdr, union { null, AccountID } accountID, boolean submit);
+
+  record StaticConfig {
+    // All lengths are measured in bytes
+    int paymentNoteMaxLength;
+    int requestNoteMaxLength;
+    int publicMemoMaxLength;
+  }
+  // TODO: consolidate this RPC with the chat `getStaticConfig` in the future
+  StaticConfig getStaticConfigLocal();
 }

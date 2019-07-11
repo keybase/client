@@ -418,13 +418,13 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 	// -------------------- note + memo --------------------
 
 	tracer.Stage("note + memo")
-	if len(arg.SecretNote) <= 500 {
+	if len(arg.SecretNote) <= libkb.MaxStellarPaymentNoteLength {
 		readyChecklist.secretNote = true
 	} else {
 		res.SecretNoteErrMsg = "Note is too long."
 	}
 
-	if len(arg.PublicMemo) <= 28 {
+	if len(arg.PublicMemo) <= libkb.MaxStellarPaymentPublicNoteLength {
 		readyChecklist.publicMemo = true
 	} else {
 		res.PublicMemoErrMsg = "Memo is too long."
@@ -812,7 +812,7 @@ func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg
 	// -------------------- note --------------------
 
 	tracer.Stage("note")
-	if len(arg.SecretNote) <= 500 {
+	if len(arg.SecretNote) <= libkb.MaxStellarPaymentNoteLength {
 		readyChecklist.secretNote = true
 	} else {
 		res.SecretNoteErrMsg = "Note is too long."
