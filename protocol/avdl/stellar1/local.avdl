@@ -785,5 +785,5 @@ protocol local {
     int publicMemoMaxLength;
   }
   // TODO: consolidate this RPC with the chat `getStaticConfig` in the future
-  StaticConfig getStaticConfig();
+  StaticConfig getStaticConfigLocal();
 }

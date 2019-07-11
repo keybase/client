@@ -1665,7 +1665,7 @@ type SignTransactionXdrLocalArg struct {
 	Submit      bool       `codec:"submit" json:"submit"`
 }
 
-type GetStaticConfigArg struct {
+type GetStaticConfigLocalArg struct {
 }
 
 type LocalInterface interface {
@@ -1746,7 +1746,7 @@ type LocalInterface interface {
 	ApprovePathURILocal(context.Context, ApprovePathURILocalArg) (TransactionID, error)
 	GetPartnerUrlsLocal(context.Context, int) ([]PartnerUrl, error)
 	SignTransactionXdrLocal(context.Context, SignTransactionXdrLocalArg) (SignXdrResult, error)
-	GetStaticConfig(context.Context) (StaticConfig, error)
+	GetStaticConfigLocal(context.Context) (StaticConfig, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -2888,13 +2888,13 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getStaticConfig": {
+			"getStaticConfigLocal": {
 				MakeArg: func() interface{} {
-					var ret [1]GetStaticConfigArg
+					var ret [1]GetStaticConfigLocalArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetStaticConfig(ctx)
+					ret, err = i.GetStaticConfigLocal(ctx)
 					return
 				},
 			},
@@ -3308,7 +3308,7 @@ func (c LocalClient) SignTransactionXdrLocal(ctx context.Context, __arg SignTran
 	return
 }
 
-func (c LocalClient) GetStaticConfig(ctx context.Context) (res StaticConfig, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfig", []interface{}{GetStaticConfigArg{}}, &res)
+func (c LocalClient) GetStaticConfigLocal(ctx context.Context) (res StaticConfig, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfigLocal", []interface{}{GetStaticConfigLocalArg{}}, &res)
 	return
 }

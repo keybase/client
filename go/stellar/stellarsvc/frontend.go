@@ -1226,7 +1226,7 @@ func (s *Server) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res
 	return stellar.ListPopularAssets(mctx, s.remoter, remoteArg)
 }
 
-func (s *Server) GetStaticConfig(ctx context.Context) (res stellar1.StaticConfig, err error) {
+func (s *Server) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticConfig, err error) {
 	return stellar1.StaticConfig{
 		PaymentNoteMaxLength: libkb.MaxStellarPaymentNoteLength,
 		RequestNoteMaxLength: msgchecker.RequestPaymentTextMaxLength,

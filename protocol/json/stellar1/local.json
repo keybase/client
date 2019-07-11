@@ -2702,7 +2702,7 @@
       ],
       "response": "SignXdrResult"
     },
-    "getStaticConfig": {
+    "getStaticConfigLocal": {
       "request": [],
       "response": "StaticConfig"
     }

@@ -3173,11 +3173,11 @@ func check(t testing.TB) {
 	}
 }
 
-func TestGetStaticConfig(t *testing.T) {
+func TestGetStaticConfigLocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
-	staticConfig, err := tcs[0].Srv.GetStaticConfig(context.Background())
+	staticConfig, err := tcs[0].Srv.GetStaticConfigLocal(context.Background())
 
 	require.NoError(t, err)
 	require.Equal(t, staticConfig.PaymentNoteMaxLength, 500)

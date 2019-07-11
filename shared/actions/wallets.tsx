@@ -1334,7 +1334,7 @@ function* loadStaticConfig(state, action: ConfigGen.DaemonHandshakePayload, logg
       version: action.payload.version,
     })
   )
-  const loadAction = yield RPCStellarTypes.localGetStaticConfigRpcPromise().then(res =>
+  const loadAction = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise().then(res =>
     WalletsGen.createStaticConfigLoaded({
       staticConfig: I.Record(res)(),
     })
