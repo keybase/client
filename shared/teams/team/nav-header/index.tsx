@@ -61,9 +61,9 @@ type HeaderTitleProps = {
   teamname: string
   description: string
   members: number
-  onEditAvatar: (() => void) | null
-  onEditDescription: (() => void) | null
-  onRename: (() => void) | null
+  onEditAvatar?: () => void
+  onEditDescription?: () => void
+  onRename?: () => void
   role: string
 }
 

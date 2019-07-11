@@ -4,9 +4,9 @@ import {Avatar, Icon, IconType} from '../common-adapters'
 import {AvatarSize} from '../common-adapters/avatar'
 
 type Props = {
-  service: Types.Service | null
-  username: string | null
-  icon: IconType | null
+  service?: Types.Service
+  username?: string
+  icon?: IconType
   opacity?: number
   avatarSize: AvatarSize
   style?: any
