@@ -79,7 +79,8 @@ func (s *SavedContactsStore) RetrieveContacts(mctx libkb.MetaContext) (ret []key
 		return ret, nil
 	}
 	if cache.Version != savedContactsCurrentVer {
-		mctx.Warning("synced contact list found but had an old version (found: %d, need: %d), returning empty list")
+		mctx.Warning("synced contact list found but had an old version (found: %d, need: %d), returning empty list",
+			cache.Version, savedContactsCurrentVer)
 		return ret, nil
 	}
 	return cache.Contacts, nil
