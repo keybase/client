@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Button, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {Box2, Button, Text} from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
 import flags from '../../../util/feature-flags'
 import {isMobile} from '../../../constants/platform'
@@ -12,25 +12,26 @@ export type BrokenTrackerProps = {
 
 export type InviteProps = {
   openShareSheet: () => void
-  openSMS: (email: string) => void
+  openSMS: (phoneNumber: string) => void
   users: Array<string>
 }
 
-const commonBannerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: globalColors.red,
-  flexWrap: 'wrap',
-  justifyContent: 'center',
-  paddingBottom: 8,
-  paddingLeft: 24,
-  paddingRight: 24,
-  paddingTop: 8,
-  marginBottom: globalMargins.tiny,
-}
-
-const BannerBox = (props: {children: React.ReactNode; color: string}) => (
-  <Box style={{...commonBannerStyle, backgroundColor: props.color}}>{props.children}</Box>
+const BannerBox = (props: {
+  children: React.ReactNode
+  color: string
+  gap?: keyof typeof Styles.globalMargins
+}) => (
+  <Box2
+    direction="vertical"
+    fullWidth={true}
+    style={{
+      ...styles.bannerStyle,
+      backgroundColor: props.color,
+    }}
+    gap={props.gap}
+  >
+    {props.children}
+  </Box2>
 )
 
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
@@ -52,7 +53,7 @@ function brokenSeparator(idx, item, arr) {
 
 const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
   users.length === 1 ? (
-    <BannerBox color={globalColors.red}>
+    <BannerBox color={Styles.globalColors.red}>
       <BannerText>
         <BannerText>Some of&nbsp;</BannerText>
         <BannerText type="BodySmallSemiboldPrimaryLink" onClick={() => onClick(users[0])}>
@@ -62,7 +63,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
       </BannerText>
     </BannerBox>
   ) : (
-    <BannerBox color={globalColors.red}>
+    <BannerBox color={Styles.globalColors.red}>
       <BannerText>
         {intersperseFn(
           brokenSeparator,
@@ -80,7 +81,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
 const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
   if (!flags.sbsContacts) {
     return (
-      <BannerBox color={globalColors.blue}>
+      <BannerBox color={Styles.globalColors.blue}>
         <BannerText>Your messages to {users.join(' & ')} will unlock when they join Keybase.</BannerText>
       </BannerBox>
     )
@@ -89,54 +90,38 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
   // On mobile, single recipient, a phone number
   if (isMobile && users.length === 1 && users[0].endsWith('@phone')) {
     return (
-      <BannerBox color={globalColors.blue}>
+      <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>Last step: summon Firstname Lastman!</BannerText>
-        <Button
-          label="Send install link"
-          onClick={() => openSMS(users[0].slice(0, -6))}
-          mode="Secondary"
-          style={{
-            marginTop: globalMargins.xxtiny,
-          }}
-        />
+        <Button label="Send install link" onClick={() => openSMS(users[0].slice(0, -6))} mode="Secondary" />
       </BannerBox>
     )
   }
 
   // Any number of recipients, on iOS / Android show the share screen
-  if (isMobile) {
+  if (!isMobile) {
     return (
-      <BannerBox color={globalColors.blue}>
+      <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>
           {users.length === 1
             ? 'Last step: summon Firstname Lastman!'
             : `Last step: summon these ${users.length} people!`}
         </BannerText>
-        <Button
-          label="Send install link"
-          onClick={openShareSheet}
-          mode="Secondary"
-          style={{
-            marginTop: globalMargins.xxtiny,
-          }}
-        />
+        <Button label="Send install link" onClick={openShareSheet} mode="Secondary" />
       </BannerBox>
     )
   }
 
   // Android fallback
   return (
-    <BannerBox color={globalColors.blue}>
+    <BannerBox color={Styles.globalColors.blue}>
+      <BannerText>Your messages will unlock once they join Keybase and verify their phone number.</BannerText>
       <BannerText>
-        Your messages will unlock once they join Keybase and verify their phone number.
-      </BannerText>
-      <BannerText style={{marginTop: globalMargins.xxtiny}}>
         Send them this link:
         <BannerText
           onClickURL="https://keybase.io/app"
           underline={true}
           type="BodySmallPrimaryLink"
-          style={{marginLeft: globalMargins.xtiny}}
+          style={{marginLeft: Styles.globalMargins.xtiny}}
         >
           https://keybase.io/app
         </BannerText>
@@ -144,5 +129,24 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
     </BannerBox>
   )
 }
+
+const styles = Styles.styleSheetCreate({
+  bannerStyle: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.red,
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      paddingBottom: 8,
+      paddingLeft: 24,
+      paddingRight: 24,
+      paddingTop: 8,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.tiny,
+    },
+  }),
+})
 
 export {BrokenTrackerBanner, InviteBanner}
