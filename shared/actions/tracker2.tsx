@@ -5,6 +5,7 @@ import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
+import {formatPhoneNumber} from '../util/phone-numbers'
 
 const identify3Result = (_, action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) => {
   const {guiID, result} = action.payload.params
@@ -221,6 +222,44 @@ const refreshSelf = (state, action: EngineGen.Keybase1NotifyUsersUserChangedPayl
     Tracker2Gen.createGetProofSuggestions(),
   ]
 
+const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload) => {
+  const {assertion} = action.payload
+  return RPCTypes.userSearchGetNonUserDetailsRpcPromise({assertion}, Constants.nonUserProfileLoadWaitingKey)
+    .then(res => {
+      if (res.isNonUser) {
+        console.log('zzz dispatching ', name, res)
+        const common = {
+          assertion,
+          assertionKey: res.assertionKey,
+          assertionValue: res.assertionValue,
+          description: res.description,
+          siteIcon: res.siteIcon,
+          siteIconFull: res.siteIconFull,
+          siteUrl: res.siteURL,
+        }
+        if (res.service) {
+          return Tracker2Gen.createLoadedNonUserProfile({
+            ...common,
+            ...res.service,
+          })
+        } else {
+          let formattedName
+          if (res.assertionKey === 'phone') {
+            formattedName = formatPhoneNumber('+' + res.assertionValue)
+            console.log('zzz Formatting', res, formattedName)
+          }
+          return Tracker2Gen.createLoadedNonUserProfile({
+            ...common,
+            formattedName,
+          })
+        }
+      }
+    })
+    .catch(e => {
+      logger.warn(`Error loading non user profile: ${e.message}`)
+    })
+}
+
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
     EngineGen.keybase1Identify3UiIdentify3UpdateUserCard,
@@ -261,6 +300,10 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
     EngineGen.keybase1NotifyUsersUserChanged,
     refreshSelf
+  )
+  yield* Saga.chainAction<Tracker2Gen.LoadNonUserProfilePayload>(
+    Tracker2Gen.loadNonUserProfile,
+    loadNonUserProfile
   )
 }
 

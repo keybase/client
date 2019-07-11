@@ -133,3 +133,8 @@ export const e164ToDisplay = (e164: string): string => {
 }
 
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter
+
+export const formatPhoneNumber = (rawNumber: string) => {
+  const number = phoneUtil.parse(rawNumber)
+  return phoneUtil.format(number, PNF.INTERNATIONAL)
+}

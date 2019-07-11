@@ -158,11 +158,70 @@
           "jsonkey": "services_summary"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "NonUserDetails",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isNonUser"
+        },
+        {
+          "type": "string",
+          "name": "assertionValue"
+        },
+        {
+          "type": "string",
+          "name": "assertionKey"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "ProcessedContact"
+          ],
+          "name": "contact"
+        },
+        {
+          "type": [
+            null,
+            "APIUserServiceResult"
+          ],
+          "name": "service"
+        },
+        {
+          "type": "string",
+          "name": "siteURL",
+          "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconFull"
+        }
+      ]
     }
   ],
   "messages": {
     "userSearch": {
       "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
         {
           "name": "query",
           "type": "string"
@@ -188,6 +247,19 @@
         "type": "array",
         "items": "APIUserSearchResult"
       }
+    },
+    "getNonUserDetails": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
+      "response": "NonUserDetails"
     }
   },
   "namespace": "keybase.1"

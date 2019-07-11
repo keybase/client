@@ -71,6 +71,6 @@
     },
     "updateProofText": {"proof": "string"},
     "updateSigID": {"sigID": "RPCTypes.SigID | null"},
-    "updateUsername": {"username": "string"}
+    "updateUsername": {"username": "string"},
   }
 }

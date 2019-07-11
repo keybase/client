@@ -11,17 +11,28 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const d = Constants.getDetails(state, ownProps.username)
-  return {
-    airdropIsLive: state.wallets.airdropDetails.isPromoted,
-    bio: d.bio,
-    followThem: Constants.followThem(state, ownProps.username),
-    followersCount: d.followersCount,
-    followingCount: d.followingCount,
-    followsYou: Constants.followsYou(state, ownProps.username),
-    fullname: d.fullname,
-    location: d.location,
-    registeredForAirdrop: d.registeredForAirdrop,
-    youAreInAirdrop: state.wallets.airdropState === 'accepted',
+  if (d.state === 'notAUserYet') {
+    const nonUser = Constants.getNonUserDetails(state, ownProps.username)
+    return {
+      bio: nonUser.bio,
+      followersCount: null,
+      followingCount: null,
+      fullname: nonUser.fullName,
+      sbsDescription: nonUser.description,
+    }
+  } else {
+    return {
+      airdropIsLive: state.wallets.airdropDetails.isPromoted,
+      bio: d.bio,
+      followThem: Constants.followThem(state, ownProps.username),
+      followersCount: d.followersCount,
+      followingCount: d.followingCount,
+      followsYou: Constants.followsYou(state, ownProps.username),
+      fullname: d.fullname,
+      location: d.location,
+      registeredForAirdrop: d.registeredForAirdrop,
+      youAreInAirdrop: state.wallets.airdropState === 'accepted',
+    }
   }
 }
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -48,6 +59,7 @@ export default Container.namedConnect(
     onBack: dispatchProps.onBack,
     onLearnMore: dispatchProps.onLearnMore,
     registeredForAirdrop: stateProps.registeredForAirdrop,
+    sbsDescription: stateProps.sbsDescription,
     youAreInAirdrop: stateProps.youAreInAirdrop,
   }),
   'Bio'

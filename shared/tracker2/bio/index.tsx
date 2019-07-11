@@ -17,6 +17,7 @@ type Props = {
   onLearnMore?: () => void
   registeredForAirdrop: boolean | null
   youAreInAirdrop: boolean | null
+  sbsDescription: string | null
 }
 
 // Here we're using FloatingMenu, but we want to customize the button to match
@@ -159,6 +160,17 @@ const Bio = (p: Props) => (
         selectable={true}
       >
         {p.location}
+      </Kb.Text>
+    )}
+    {!!p.sbsDescription && (
+      <Kb.Text
+        type="BodySmall"
+        center={true}
+        lineClamp={p.inTracker ? 1 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
+        {p.sbsDescription}
       </Kb.Text>
     )}
   </Kb.Box2>

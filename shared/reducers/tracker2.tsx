@@ -124,11 +124,33 @@ export default function(
     }
     case Tracker2Gen.proofSuggestionsUpdated:
       return state.merge({proofSuggestions: I.List(action.payload.suggestions)})
+    case Tracker2Gen.loadedNonUserProfile:
+      console.log('zzz merging', action.payload)
+      return state.merge({
+        usernameToNonUserDetails: state.usernameToNonUserDetails.updateIn(
+          [action.payload.assertion],
+          (old = Constants.makeNonUserDetails()) =>
+            old.merge({
+              assertionKey: action.payload.assertionKey,
+              assertionValue: action.payload.assertionValue,
+              bio: action.payload.bio,
+              description: action.payload.description,
+              formattedName: action.payload.formattedName,
+              fullName: action.payload.fullName,
+              location: action.payload.location,
+              pictureUrl: action.payload.pictureUrl,
+              siteIcon: action.payload.siteIcon,
+              siteIconFull: action.payload.siteIconFull,
+              siteURL: action.payload.siteUrl,
+            })
+        ),
+      })
     // Saga only actions
     case Tracker2Gen.getProofSuggestions:
     case Tracker2Gen.changeFollow:
     case Tracker2Gen.showUser:
     case Tracker2Gen.ignore:
+    case Tracker2Gen.loadNonUserProfile:
       return state
     default:
       return state

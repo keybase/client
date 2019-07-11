@@ -6,6 +6,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {DetailsState} from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import Profile2 from '.'
@@ -32,7 +33,6 @@ const mapStateToProps = (state, ownProps) => {
     : ownProps.navigation.getParam('username')
   const d = Constants.getDetails(state, username)
   const notAUser = d.state === 'notAUserYet'
-  const followThem = notAUser ? false : Constants.followThem(state, username)
   const userIsYou = username === state.config.username
   const followersCount =
     (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followersCount'])) || 0
@@ -40,15 +40,7 @@ const mapStateToProps = (state, ownProps) => {
     (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followingCount'])) || 0
   const showAirdropBanner = getShowAirdropBanner(state)
 
-  return {
-    _assertions: d.assertions,
-    _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
-    backgroundColorType: headerBackgroundColorType(d.state, followThem),
-    followThem,
-    followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
-    followersCount,
-    following: state.tracker2.usernameToDetails.getIn([username, 'following']),
-    followingCount,
+  const commonProps = {
     guiID: d.guiID,
     reason: d.reason,
     showAirdropBanner,
@@ -56,14 +48,61 @@ const mapStateToProps = (state, ownProps) => {
     userIsYou,
     username,
   }
+
+  if (!notAUser) {
+    // Keybase user
+    const followThem = Constants.followThem(state, username)
+    const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
+    const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
+
+    return {
+      ...commonProps,
+      _assertions: d.assertions,
+      _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
+      backgroundColorType: headerBackgroundColorType(d.state, followThem),
+      followThem,
+      followers: state.tracker2.usernameToDetails.getIn([username, 'followers']),
+      followersCount,
+      following: state.tracker2.usernameToDetails.getIn([username, 'following']),
+      followingCount,
+      reason: d.reason,
+      title: username,
+    }
+  } else {
+    // SBS profile
+    const nonUserDetails = Constants.getNonUserDetails(state, username)
+    const name = nonUserDetails.assertionValue
+    const service = nonUserDetails.assertionKey
+    // For SBS profiles, display service username as the "big username".
+    let title = name
+    if (service === 'phone') {
+      // If it's 'phone', display formatted phone number.
+      title = nonUserDetails.formattedName || name
+    }
+
+    return {
+      ...commonProps,
+      backgroundColorType: headerBackgroundColorType(d.state, false),
+      fullName: nonUserDetails.fullName,
+      name,
+      service,
+      title,
+    }
+  }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
-  _onReload: (username: string, isYou: boolean) => {
-    dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
+  _onReload: (username: string, isYou: boolean, state: DetailsState) => {
+    if (state !== 'valid') {
+      // Might be a Keybase user or not, launch non-user profile fetch.
+      dispatch(Tracker2Gen.createLoadNonUserProfile({assertion: username}))
+    }
+    if (state !== 'notAUserYet') {
+      dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
 
-    if (isYou) {
-      dispatch(Tracker2Gen.createGetProofSuggestions())
+      if (isYou) {
+        dispatch(Tracker2Gen.createGetProofSuggestions())
+      }
     }
   },
   onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
@@ -90,7 +129,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   }
 
   const notAUser = stateProps.state === 'notAUserYet'
-  const assertionKeys = notAUser
+  let assertionKeys = notAUser
     ? [stateProps.username]
     : stateProps._assertions
     ? stateProps._assertions
@@ -99,22 +138,30 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
         .toArray()
     : null
 
-  const onReload = notAUser
-    ? () => {}
-    : () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou)
+  // For 'phone' or 'email' profiles do not display placeholder assertions.
+  const service = stateProps.service
+  const impTofu = notAUser && (service === 'phone' || service === 'email')
+  if (impTofu) {
+    assertionKeys = []
+  }
+
   return {
     assertionKeys,
     backgroundColorType: stateProps.backgroundColorType,
     followThem: stateProps.followThem,
     followersCount: stateProps.followersCount,
     followingCount: stateProps.followingCount,
+    fullName: stateProps.fullName,
+    impTofu,
+    name: stateProps.name,
     notAUser,
     onAddIdentity,
     onBack: dispatchProps.onBack,
     onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
-    onReload,
+    onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
     onSearch: dispatchProps.onSearch,
     reason: stateProps.reason,
+    service: stateProps.service,
     showAirdropBanner: stateProps.showAirdropBanner,
     state: stateProps.state,
     suggestionKeys: stateProps._suggestionKeys
@@ -123,10 +170,11 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
           .map(s => s.assertionKey)
           .toArray()
       : null,
+    title: stateProps.title,
     userIsYou: stateProps.userIsYou,
     username: stateProps.username,
-    ...followToArray(stateProps.followers, stateProps.following),
     youAreInAirdrop: stateProps.youAreInAirdrop,
+    ...followToArray(stateProps.followers, stateProps.following),
   }
 }
 
