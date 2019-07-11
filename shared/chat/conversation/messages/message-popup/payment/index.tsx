@@ -34,6 +34,7 @@ const receiveIcon = Styles.isMobile
   : 'icon-fancy-stellar-receiving-desktop-98-86'
 
 const headerIconHeight = Styles.isMobile ? 129 : 86
+const pendingIconSize = 40
 
 type HeaderProps = {
   amountNominal: string
@@ -64,6 +65,21 @@ export type Props = {
   visible: boolean
 } & HeaderProps
 
+const headerIcon = (props: HeaderProps) =>
+  props.status === 'pending' ? (
+    <Kb.Icon
+      type="iconfont-time"
+      color={Styles.globalColors.black_50}
+      fontSize={pendingIconSize}
+      style={Kb.iconCastPlatformStyles(styles.pendingHeaderIcon)}
+    />
+  ) : (
+    <Kb.Icon
+      type={props.icon === 'sending' ? sendIcon : receiveIcon}
+      style={Kb.iconCastPlatformStyles(styles.headerIcon)}
+    />
+  )
+
 const Header = (props: HeaderProps) =>
   props.loading ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
@@ -74,10 +90,7 @@ const Header = (props: HeaderProps) =>
   ) : (
     <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical" style={styles.popupContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={headerTop(props)}>
-        <Kb.Icon
-          type={props.icon === 'sending' ? sendIcon : receiveIcon}
-          style={Kb.iconCastPlatformStyles(styles.headerIcon)}
-        />
+        {headerIcon(props)}
         <Kb.Text type="BodyTiny" style={headerTextStyle(props)}>
           {toUpper(props.topLine)}
         </Kb.Text>
@@ -209,6 +222,20 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.tiny,
     },
     isElectron: {marginBottom: Styles.globalMargins.small},
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
+  pendingHeaderIcon: Styles.platformStyles({
+    common: {height: pendingIconSize},
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.small,
+      display: 'inline-block',
+    },
     isMobile: {
       marginBottom: Styles.globalMargins.small,
       marginTop: Styles.globalMargins.small,
