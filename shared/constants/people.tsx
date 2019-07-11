@@ -128,11 +128,11 @@ export function extractMetaFromTodoItem(todo: RPCTypes.HomeScreenTodo) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
-      return makeTodoMetaEmail({email: todo.legacyEmailVisibility})
+      return makeTodoMetaEmail({email: todo.legacyEmailVisibility || ''})
     case T.verifyAllEmail:
-      return makeTodoMetaEmail({email: todo.verifyAllEmail})
+      return makeTodoMetaEmail({email: todo.verifyAllEmail || ''})
     case T.verifyAllPhoneNumber:
-      return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})
+      return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber || ''})
     default:
       return null
   }
@@ -145,7 +145,10 @@ export const reduceRPCItemToPeopleItem = (
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     const todo = item.data.todo
-    const todoType = todoTypeEnumToType[(todo && todo.t) || 0]
+    if (!todo) {
+      return list
+    }
+    const todoType = todoTypeEnumToType[todo.t || 0]
     const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo)
     return list.push(
       makeTodo({

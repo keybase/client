@@ -63,7 +63,7 @@ export const parseRepos = (
   repos: {[K in string]: Types.GitInfo}
   errors: Array<Error>
 } => {
-  let errors = []
+  let errors: Array<Error> = []
   let repos = {}
   results.forEach(result => {
     if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
@@ -84,7 +84,7 @@ export const parseRepos = (
 export const repoIDTeamnameToId = (state: TypedState, repoID: string, teamname: string): string | null => {
   const repo = state.git.idToInfo.find(val => val.repoID === repoID && val.teamname === teamname)
   if (!repo) {
-    return
+    return null
   }
   return repo.id
 }

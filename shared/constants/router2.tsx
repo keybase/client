@@ -1,4 +1,4 @@
-let _navigator = null
+let _navigator: any = null
 // Private API only used by config sagas
 export const _setNavigator = (navigator: any) => {
   _navigator = navigator
