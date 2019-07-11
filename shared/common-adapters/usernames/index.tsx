@@ -218,7 +218,7 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
     return (
       <Text
         type={this.props.type}
-        negative={backgroundModeIsNegative(this.props.backgroundMode)}
+        negative={backgroundModeIsNegative(this.props.backgroundMode || null)}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle, styles.kerning])}
         title={this.props.title}
         {...inlineProps}

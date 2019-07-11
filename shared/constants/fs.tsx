@@ -52,7 +52,7 @@ export const makePrefetchInProgress = I.Record<Types._PrefetchInProgress>({
   bytesTotal: 0,
   endEstimate: 0,
   startTime: 0,
-  state: Types.PrefetchState.InProgress as Types.PrefetchState,
+  state: Types.PrefetchState.InProgress,
 })
 
 const pathItemMetadataDefault = {
@@ -67,8 +67,8 @@ const pathItemMetadataDefault = {
 export const makeFolder = I.Record<Types._FolderPathItem>({
   ...pathItemMetadataDefault,
   children: I.Set(),
-  progress: Types.ProgressType.Pending as Types.ProgressType,
-  type: Types.PathType.Folder as Types.PathType,
+  progress: Types.ProgressType.Pending,
+  type: Types.PathType.Folder,
 })
 
 export const makeMime = I.Record<Types._Mime>({
