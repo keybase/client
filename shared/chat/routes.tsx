@@ -41,6 +41,7 @@ export const newModalRoutes = {
   },
   chatAttachmentFullscreen: {
     getScreen: (): typeof ChatAttachmentFullscreen =>
+      // @ts-ignore TODO fix
       require('./conversation/attachment-fullscreen/container').default,
     upgraded: true,
   },

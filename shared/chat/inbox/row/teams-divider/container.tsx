@@ -56,23 +56,26 @@ const getRowCounts = memoize((badges, rows) => {
   }
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  // we remove the badge count of the stuff we're showing
-  let {badgeCount, hiddenCount} = getRowCounts(stateProps._badges, ownProps.rows)
+export default namedConnect(
+  mapStateToProps,
+  () => ({}),
+  (stateProps, _, ownProps: OwnProps) => {
+    // we remove the badge count of the stuff we're showing
+    let {badgeCount, hiddenCount} = getRowCounts(stateProps._badges, ownProps.rows)
 
-  if (ownProps.showButton) {
-    const fromMeta = getMetaCounts(stateProps._badges, stateProps._metaMap)
-    badgeCount += fromMeta.badgeCount
-    hiddenCount += fromMeta.hiddenCount
-  }
+    if (ownProps.showButton) {
+      const fromMeta = getMetaCounts(stateProps._badges, stateProps._metaMap)
+      badgeCount += fromMeta.badgeCount
+      hiddenCount += fromMeta.hiddenCount
+    }
 
-  return {
-    badgeCount,
-    hiddenCount,
-    showButton: ownProps.showButton,
-    style: ownProps.style,
-    toggle: ownProps.toggle,
-  }
-}
-
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'TeamsDivider')(TeamsDivider)
+    return {
+      badgeCount,
+      hiddenCount,
+      showButton: ownProps.showButton,
+      style: ownProps.style,
+      toggle: ownProps.toggle,
+    }
+  },
+  'TeamsDivider'
+)(TeamsDivider) as any

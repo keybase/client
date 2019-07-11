@@ -22,7 +22,7 @@ type AvatarProps = {
   isLocked: boolean
   isMuted: boolean
   isSelected: boolean
-  backgroundColor: string | null
+  backgroundColor?: string
 }
 
 const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {

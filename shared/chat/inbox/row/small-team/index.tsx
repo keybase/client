@@ -82,12 +82,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     return (
       <SmallTeamBox
         {...clickProps}
-        style={Styles.collapseStyles([
-          {
-            backgroundColor: this._backgroundColor(),
-          },
-          styles.container,
-        ])}
+        style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
       >
         <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
           {props.teamname ? (

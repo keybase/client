@@ -17,10 +17,10 @@ type Props = {
   participants: Array<string>
   showBold: boolean
   showGear: boolean
-  backgroundColor: string | null
+  backgroundColor?: string
   subColor: string
-  timestamp: string | null
-  usernameColor: string | null
+  timestamp?: string
+  usernameColor?: string
   hasBadge: boolean
 } & Kb.OverlayParentProps
 
