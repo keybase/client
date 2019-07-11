@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <React/RCTBridgeModule.h>
 
-@interface Utils : NSObject
-+ (NSString*)getDefaultCountryCode;
+@interface Utils : NSObject<RCTBridgeModule>
 @end
