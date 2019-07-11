@@ -30,7 +30,7 @@ const ServiceDecoration = (props: Props) => {
     return null
   }
   if (parsed.typ === RPCChatTypes.UITextDecorationTyp.payment && parsed.payment && props.message) {
-    let paymentID: WalletTypes.PaymentID
+    let paymentID: WalletTypes.PaymentID | undefined
     let error
     if (
       parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent &&
