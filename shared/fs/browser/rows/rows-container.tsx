@@ -41,7 +41,7 @@ const getStillRows = memoize(
     names: I.Set<string>
   ): I.List<RowTypes.StillRowItem> =>
     I.List(
-      names.toArray().reduce((items, name) => {
+      names.toArray().reduce<Array<RowTypes.StillRowItem>>((items, name) => {
         const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.unknownPathItem)
         const path = Types.pathConcat(parentPath, item.name)
         return [

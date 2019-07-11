@@ -27,7 +27,7 @@ const WithContent = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
     <PublicReminder path={props.path} />
     {/* this extra box is necessary to avoid Kb.DragAndDrop (which is fullHeight) pushes other stuff over */}
-    <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach}>
+    <Kb.DragAndDrop allowFolders={true} onAttach={props.onAttach || null}>
       {flags.conflictResolution && <ConflictBanner path={props.path} />}
       <Rows
         path={props.path}

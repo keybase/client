@@ -125,7 +125,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           onClick: () => {
             props.floatingMenuProps.hideOnce()
-            props.sendLinkToChat()
+            props.sendLinkToChat && props.sendLinkToChat()
           },
           subTitle: `The ${
             props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
@@ -139,7 +139,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           onClick: () => {
             props.floatingMenuProps.hideOnce()
-            props.sendAttachmentToChat()
+            props.sendAttachmentToChat && props.sendAttachmentToChat()
           },
           subTitle: `The ${
             props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'

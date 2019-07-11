@@ -16,9 +16,11 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, navigateAppend}: OwnProps) => ({
   _destinationPickerGoTo: () =>
-    Constants.makeActionsForDestinationPickerOpen(destinationPickerIndex + 1, path, navigateAppend).forEach(
-      action => dispatch(action)
-    ),
+    Constants.makeActionsForDestinationPickerOpen(
+      (destinationPickerIndex || 0) + 1,
+      path,
+      navigateAppend
+    ).forEach(action => dispatch(action)),
   _open: () => dispatch(navigateAppend({path: [{props: {path}, selected: 'main'}]})),
 })
 
@@ -33,7 +35,7 @@ const canOpenInDestinationPicker = (stateProps, ownProps) =>
       stateProps._destinationPicker.source.path !== ownProps.path))
 
 type MergedProps = OwnProps & {
-  onOpen: (() => void )| null
+  onOpen: (() => void) | null
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): MergedProps => ({
