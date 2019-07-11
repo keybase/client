@@ -7,7 +7,7 @@ import {throttle, once} from 'lodash-es'
 import {Props} from './list'
 
 class List extends PureComponent<Props<any>> {
-  _list: ReactList | null
+  _list: ReactList | null = null
   _itemRender = index => {
     // ReactList has an issue where it caches the list length into its own state so can ask
     // for indices outside of the items...
@@ -60,7 +60,9 @@ class List extends PureComponent<Props<any>> {
 
   componentDidUpdate(prevProps: Props<any>) {
     if (this.props.selectedIndex !== -1 && this.props.selectedIndex !== prevProps.selectedIndex) {
-      this._list && this._list.scrollAround(this.props.selectedIndex)
+      this.props.selectedIndex !== undefined &&
+        this._list &&
+        this._list.scrollAround(this.props.selectedIndex)
     }
 
     if (this.props.items !== prevProps.items) {

@@ -96,7 +96,10 @@ class MenuLayout extends Component<MenuLayoutProps> {
           {this.props.items.length > 0 && (
             <Box style={Styles.collapseStyles([styles.menuItemList, this.props.listStyle])}>
               {this.props.items
-                .filter(Boolean)
+                .reduce<Array<'Divider' | MenuItem>>((arr, item) => {
+                  item && arr.push(item)
+                  return arr
+                }, [])
                 .map((item, index) =>
                   item === 'Divider' ? this._renderDivider(index) : this._renderMenuItem(item, index)
                 )}
@@ -117,12 +120,8 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 8,
     marginTop: 8,
   },
-  horizBox: {
-    ...Styles.globalStyles.flexBoxRow,
-  },
-  itemBodyText: {
-    color: undefined,
-  },
+  horizBox: {...Styles.globalStyles.flexBoxRow},
+  itemBodyText: {color: undefined},
   itemContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     paddingBottom: Styles.globalMargins.xtiny,

@@ -82,7 +82,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
           leftActionText={this.props.leftActionText}
-          onLeftAction={onLeftAction}
+          onLeftAction={onLeftAction || null}
           theme={this.props.theme}
         />
         {this.props.titleComponent && (
@@ -178,14 +178,8 @@ const RightActions = ({
   </Box>
 )
 
-const RightActionsOverflow = ({
-  floatingMenuVisible,
-  hideFloatingMenu,
-  rightActions,
-  showFloatingMenu,
-}): React.ReactElement =>
-  rightActions &&
-  rightActions.length > MAX_RIGHT_ACTIONS && (
+const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu}) =>
+  rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
     <>
       <Icon fontSize={22} onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
       <FloatingMenu
@@ -199,7 +193,7 @@ const RightActionsOverflow = ({
         closeOnSelect={true}
       />
     </>
-  )
+  ) : null
 
 const renderAction = (action: Action, index: number): React.ReactNode =>
   action.custom ? (

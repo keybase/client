@@ -56,7 +56,7 @@ const MenuRow = (props: MenuRowProps) => (
 class MenuLayout extends React.Component<MenuLayoutProps> {
   render() {
     const menuItemsNoDividers: MenuItem[] = this.props.items.filter(
-      (x): x is MenuItem => x && x !== 'Divider'
+      (x): x is MenuItem => (x ? x !== 'Divider' : false)
     )
     const beginningDivider = this.props.items[0] === 'Divider'
 
