@@ -5,7 +5,7 @@ import {Props} from './switch-toggle'
 
 class SwitchToggle extends React.PureComponent<Props, {}> {
   _offset = new NativeAnimated.Value(this._getOffset())
-  _animation = null
+  _animation: any = null
 
   _getOffset() {
     return this.props.on ? enabledOffset : disabledOffset

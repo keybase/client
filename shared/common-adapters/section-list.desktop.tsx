@@ -19,12 +19,12 @@ type State = {
 }
 
 class SectionList extends React.Component<Props, State> {
-  _flat = []
+  _flat: Array<any> = []
   state = {currentSectionFlatIndex: 0}
   _listRef: React.RefObject<any> = React.createRef()
   _mounted = true
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props, _: State) {
     if (this.props.sections !== prevProps.sections) {
       // sections changed so let's also reset the onEndReached call
       this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())

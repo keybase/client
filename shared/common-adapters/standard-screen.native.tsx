@@ -16,7 +16,7 @@ const Kb = {
 }
 
 const StandardScreen = (props: Props) => {
-  const color = props.notification.type === 'error' ? 'red' : 'blue'
+  const color = props.notification && props.notification.type === 'error' ? 'red' : 'blue'
   return (
     // @ts-ignore for now
     <Kb.NativeScrollView scrollEnabled={props.scrollEnabled}>

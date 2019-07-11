@@ -27,16 +27,16 @@ const customRowRender = ({item}) => (
   </Text>
 )
 
-const small = []
+const small: Array<unknown> = []
 for (let i = 0; i < 5; i++) {
   small.push({
     data: [`• item${i * 2 + 1}`, `• item${i * 2 + 2}`],
     title: `title${i + 1}`,
   })
 }
-const large = []
+const large: Array<unknown> = []
 for (let i = 0; i < 500; i++) {
-  const data = []
+  const data: Array<unknown> = []
   const maxData = 5 + (i % 20)
   for (let j = 0; j < maxData; ++j) {
     data.push(`• item${j}`)
@@ -47,7 +47,7 @@ for (let i = 0; i < 500; i++) {
   })
 }
 
-const customRow = [...small]
+const customRow: Array<unknown> = [...small]
 customRow[2] = {...customRow[2], renderItem: customRowRender}
 
 const load = () => {
