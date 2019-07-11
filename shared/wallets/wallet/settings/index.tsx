@@ -35,12 +35,6 @@ export type SettingsProps = {
   thisDeviceIsLockedOut: boolean
 }
 
-const HoverBox = Styles.isMobile
-  ? Kb.ClickableBox
-  : Styles.styled(Kb.ClickableBox)({
-      ':hover .text': {textDecoration: 'underline'},
-    })
-
 const HoverText = Styles.isMobile
   ? Kb.Text
   : Styles.styled(Kb.Text)({
@@ -60,8 +54,12 @@ const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Icon type="icon-stellar-logo-grey-32" style={styles.partnerIcon} />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
-      <HoverBox onClick={() => openUrl(props.url)} style={styles.hoverBox}>
-        <Kb.Text className="text" style={styles.partnerLink} type="BodyPrimaryLink">
+      <Kb.ClickableBox
+        className="hover-underline-container"
+        onClick={() => openUrl(props.url)}
+        style={styles.partnerLinkContainer}
+      >
+        <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
           {props.title}
         </Kb.Text>
         <Kb.Icon
@@ -69,7 +67,7 @@ const PartnerRow = (props: PartnerRowProps) => (
           style={styles.openIcon}
           type="iconfont-open-browser"
         />
-      </HoverBox>
+      </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.noShrink}>
@@ -329,7 +327,7 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
-  hoverBox: {
+  partnerLinkContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignSelf: 'flex-start',
   },
