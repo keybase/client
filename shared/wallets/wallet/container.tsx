@@ -7,7 +7,7 @@ import * as Types from '../../constants/types/wallets'
 import Onboarding from '../onboarding/container'
 import {partition} from 'lodash-es'
 
-import Wallet, {Props} from '.'
+import Wallet, {Props, AssetSectionTitle} from '.'
 
 type OwnProps = {}
 
@@ -19,14 +19,17 @@ const mapStateToProps = state => {
     assets: Constants.getAssets(state, accountID),
     loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID, false),
     payments: Constants.getPayments(state, accountID),
+    thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {accountID, navigateAppend, navigateUp}) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onSetupTrustline: () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -37,7 +40,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   // Formatted in a SectionList
   const assets =
     stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
-  sections.push({data: assets, title: 'Your assets'})
+  sections.push({data: assets, title: <AssetSectionTitle onSetupTrustline={dispatchProps.onSetupTrustline} thisDeviceIsLockedOut={stateProps.thisDeviceIsLockedOut} />})
 
   // split into pending & history
   let mostRecentID
