@@ -159,7 +159,7 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
 })
 
 export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
-  fee: null,
+  fee: -1,
   memo: '',
   memoType: '',
   operations: null,
@@ -167,7 +167,7 @@ export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
 })
 
 export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
-  amount: null,
+  amount: '',
   assetCode: '',
   assetIssuer: '',
   availableToSendFiat: '',
