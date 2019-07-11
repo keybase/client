@@ -169,6 +169,7 @@ const styleImageFit = {
   display: 'block',
   objectFit: 'scale-down',
   width: '100%',
+  height: '100%',
 }
 
 const styleVideoFit = {
@@ -176,6 +177,7 @@ const styleVideoFit = {
   display: 'block',
   objectFit: 'scale-down' as const,
   width: '100%',
+  height: '100%',
 }
 
 const styleImageZoom = {
