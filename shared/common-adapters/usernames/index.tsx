@@ -86,20 +86,17 @@ function UsernameText(props: Props) {
         // as to not override any existing onClick handler from containers
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
+        const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
         return (
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
-              <Text
-                type={props.type}
-                negative={backgroundModeIsNegative(props.backgroundMode)}
-                style={derivedJoinerStyle}
-              >
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 {'and '}
               </Text>
             )}
             <Text
               type={props.type}
-              negative={backgroundModeIsNegative(props.backgroundMode)}
+              negative={isNegative}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
               onClick={
@@ -116,11 +113,7 @@ function UsernameText(props: Props) {
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
             {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
-              <Text
-                type={props.type}
-                negative={backgroundModeIsNegative(props.backgroundMode)}
-                style={derivedJoinerStyle}
-              >
+              <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 ,
               </Text>
             )}
@@ -155,22 +148,20 @@ class Usernames extends React.Component<Props> {
     const containerStyle = this.props.inline ? styles.inlineStyle : styles.nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
+    const bgMode = this.props.backgroundMode || null
+    const isNegative = backgroundModeIsNegative(bgMode)
 
     return (
       <Text
         type={this.props.type}
-        negative={backgroundModeIsNegative(this.props.backgroundMode)}
+        negative={isNegative}
         style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         ellipsizeMode="tail"
         {...(this.props.inline ? inlineProps : {})}
       >
         {!!this.props.prefix && (
-          <Text
-            type={this.props.type}
-            negative={backgroundModeIsNegative(this.props.backgroundMode)}
-            style={this.props.style}
-          >
+          <Text type={this.props.type} negative={isNegative} style={this.props.style}>
             {this.props.prefix}
           </Text>
         )}
@@ -178,7 +169,7 @@ class Usernames extends React.Component<Props> {
         {!!readers.length && (
           <Text
             type={this.props.type}
-            negative={backgroundModeIsNegative(this.props.backgroundMode)}
+            negative={isNegative}
             style={Styles.collapseStyles([this.props.style, {marginRight: 1}])}
           >
             #
@@ -186,11 +177,7 @@ class Usernames extends React.Component<Props> {
         )}
         <UsernameText {...this.props} users={readers} />
         {!!this.props.suffix && (
-          <Text
-            type={this.props.type}
-            negative={backgroundModeIsNegative(this.props.backgroundMode)}
-            style={this.props.style}
-          >
+          <Text type={this.props.type} negative={isNegative} style={this.props.style}>
             {this.props.suffix}
           </Text>
         )}

@@ -36,13 +36,13 @@ export function connectedPropsToProps<T>(
   const userData = userDataFromState(stateProps, connectedProps.usernames).filter(
     u => !connectedProps.skipSelf || !u.you
   )
-  let onUsernameClickedNew: ((username: string) => void )| null
+  let onUsernameClickedNew: ((username: string) => void) | null = null
   if (connectedProps.onUsernameClicked === 'tracker') {
-    onUsernameClickedNew = dispatchProps.onOpenTracker
+    onUsernameClickedNew = dispatchProps.onOpenTracker || null
   } else if (connectedProps.onUsernameClicked === 'profile') {
-    onUsernameClickedNew = dispatchProps.onOpenProfile
+    onUsernameClickedNew = dispatchProps.onOpenProfile || null
   } else if (typeof connectedProps.onUsernameClicked === 'function') {
-    onUsernameClickedNew = connectedProps.onUsernameClicked as (username: string) => void
+    onUsernameClickedNew = connectedProps.onUsernameClicked || null
   }
 
   // Remove onUsernameClicked
