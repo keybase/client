@@ -407,7 +407,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   )
 }
 
-type ReadState = 'read' | 'unread' | 'oldestUnread'
+export type ReadState = 'read' | 'unread' | 'oldestUnread'
 
 export type Props = {
   amountUser: string // empty if sent with no display currency
@@ -422,7 +422,7 @@ export type Props = {
   // Ignored if counterpartyType is stellarPublicKey and yourRole is
   // receiverOnly.
   memo: string
-  onCancelPayment: (() => void) | null
+  onCancelPayment?: () => void
   onCancelPaymentWaitingKey: string
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
   onSelectTransaction?: () => void

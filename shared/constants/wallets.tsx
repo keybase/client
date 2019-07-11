@@ -709,8 +709,8 @@ export const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =
   state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
 
 export const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  // @ts-ignore codemod issue
-  state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
+  state.wallets.paymentsMap.get(accountID, I.Map<Types.PaymentID, Types.Payment>()).get(paymentID) ||
+  makePayment()
 
 export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
   state.accountMap.get(accountID, unknownAccount)
