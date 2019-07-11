@@ -1201,11 +1201,15 @@ func getContactName(ctx context.Context, p chat1.ConversationLocalParticipant) *
 func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	var writerNames []chat1.UIParticipant
 	for _, p := range rawConv.Info.Participants {
-		contactName := getContactName(ctx, p)
+		participantType := chat1.UIParticipantType_USER
+		if isPhoneOrEmail(p.Username) {
+			participantType = chat1.UIParticipantType_IMPTOFU
+		}
 		writerNames = append(writerNames, chat1.UIParticipant{
 			Assertion:   p.Username,
-			ContactName: contactName,
+			ContactName: p.ContactName,
 			FullName:    p.Fullname,
+			Type:        participantType,
 		})
 	}
 	res.ConvID = rawConv.GetConvID().String()
