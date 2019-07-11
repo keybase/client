@@ -30,6 +30,27 @@ const HistoryPlaceholder = () => (
   </Kb.Box2>
 )
 
+export const AssetSectionTitle = (props: {
+  onSetupTrustline: () => void,
+  thisDeviceIsLockedOut: boolean,
+}) => (
+  <Kb.Text type="BodySmallSemibold">
+    Your assets
+    {!props.thisDeviceIsLockedOut && (
+      <Kb.Text type="BodySmallSemibold">&nbsp;
+        (<Kb.Text
+          className="hover-underline"
+          onClick={props.onSetupTrustline}
+          style={styles.clickable}
+          type="BodySmallSemibold"
+        >
+          manage
+        </Kb.Text>)
+      </Kb.Text>
+    )}
+  </Kb.Text>
+)
+
 class Wallet extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     if (prevProps.accountID !== this.props.accountID) {
@@ -61,17 +82,17 @@ class Wallet extends React.Component<Props> {
       )
     } else if (item === 'noPayments') {
       children.push(<HistoryPlaceholder key="placeholder" />)
-    } else if (section.title === 'Your assets') {
-      children.push(
-        <Asset accountID={this.props.accountID} index={item} key={`${this.props.accountID}:${item}`} />
-      )
-    } else if (section.title === 'History' || section.title === 'Pending') {
+    }  else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
         <Transaction
           accountID={this.props.accountID}
           paymentID={item.paymentID}
           key={`${this.props.accountID}:${item.paymentID}`}
         />
+      )
+    } else {
+      children.push(
+        <Asset accountID={this.props.accountID} index={item} key={`${this.props.accountID}:${item}`} />
       )
     }
     if (index !== section.data.length - 1) {
@@ -130,6 +151,9 @@ class Wallet extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  clickable: Styles.platformStyles({
+    isElectron: {...Styles.desktopStyles.clickable},
+  }),
   historyPlaceholder: {
     marginTop: 36,
   },

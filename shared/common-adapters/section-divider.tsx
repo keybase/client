@@ -16,7 +16,7 @@ const Kb = {
 
 type Props = {
   collapsed?: boolean // if set, render the appropriate caret,
-  label: string
+  label: string | React.ReactNode
   onToggleCollapsed?: () => void
   showSpinner?: boolean
 }
@@ -25,7 +25,9 @@ const SectionDivider = (props: Props) => {
   const collapsible = Object.prototype.hasOwnProperty.call(props, 'collapsed')
   const children = (
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
-      <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
+      {typeof props.label === 'string' ? (
+        <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
+      ) : (props.label)}
       {collapsible && (
         <Kb.Icon sizeType="Tiny" type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'} />
       )}
