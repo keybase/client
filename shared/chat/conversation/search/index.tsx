@@ -33,7 +33,7 @@ type State = {
 const ThreadSearch = ThreadSearcher => {
   return class extends React.Component<Props, State> {
     state = {selectedIndex: 0, text: ''}
-    _lastSearch: string
+    _lastSearch: string = ''
 
     _submitSearch = () => {
       this._lastSearch = this.state.text

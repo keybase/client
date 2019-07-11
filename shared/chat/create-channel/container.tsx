@@ -17,8 +17,8 @@ type Props = {
 }
 
 const Wrapped = (p: Props) => {
-  const [channelname, onChannelnameChange] = React.useState<string>(null)
-  const [description, onDescriptionChange] = React.useState<string>(null)
+  const [channelname, onChannelnameChange] = React.useState<string>('')
+  const [description, onDescriptionChange] = React.useState<string>('')
 
   const {_onCreateChannel, _onSetChannelCreationError, teamname, ...rest} = p
   const onSubmit = React.useCallback(() => {
