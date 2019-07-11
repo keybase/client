@@ -168,7 +168,7 @@ function* call(p: {
   }, buffer) // allow the buffer to grow always
 
   let finalParams: any
-  let finalError: RPCError | null | Error | null
+  let finalError: RPCError | null | Error = null
   try {
     while (true) {
       // Take things that we put into the eventChannel above
