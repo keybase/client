@@ -35,6 +35,12 @@ export type SettingsProps = {
   thisDeviceIsLockedOut: boolean
 }
 
+const HoverBox = Styles.isMobile
+  ? Kb.ClickableBox
+  : Styles.styled(Kb.ClickableBox)({
+      ':hover .text': {textDecoration: 'underline'},
+    })
+
 const HoverText = Styles.isMobile
   ? Kb.Text
   : Styles.styled(Kb.Text)({
@@ -54,17 +60,19 @@ const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Icon type="icon-stellar-logo-grey-32" style={styles.partnerIcon} />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
-      <Kb.Text onClickURL={props.url} style={styles.partnerLink} type="BodyPrimaryLink">
-        {props.title}
-      </Kb.Text>
+      <HoverBox onClick={() => openUrl(props.url)} style={styles.hoverBox}>
+        <Kb.Text className="text" style={styles.partnerLink} type="BodyPrimaryLink">
+          {props.title}
+        </Kb.Text>
+        <Kb.Icon
+          fontSize={Styles.isMobile ? 16 : 12}
+          style={styles.openIcon}
+          type="iconfont-open-browser"
+        />
+      </HoverBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.noShrink}>
-      <Kb.Icon
-        onClick={() => openUrl(props.url)}
-        fontSize={Styles.isMobile ? 16 : 12}
-        type="iconfont-open-browser"
-      />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -321,6 +329,10 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
+  hoverBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignSelf: 'flex-start',
+  },
   icon: {marginLeft: Styles.globalMargins.xtiny},
   identity: {
     paddingBottom: Styles.globalMargins.tiny,
@@ -333,6 +345,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white_90,
   },
   noShrink: {flexShrink: 0},
+  openIcon: Styles.platformStyles({
+    common: {
+      left: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    isElectron: {
+      top: Styles.globalMargins.xtiny,
+    },
+  }),
   partnerDivider: {
     marginBottom: Styles.globalMargins.tiny,
     marginLeft: 40,
