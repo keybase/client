@@ -50,7 +50,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
   }
 
   render() {
-    const textStyle = getTextStyle(this.props.textType)
+    const textStyle = getTextStyle(this.props.textType || 'BodySemibold')
     const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, ...plainInputProps} = this.props
     return (
       <Box2
