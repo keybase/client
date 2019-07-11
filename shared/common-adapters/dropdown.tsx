@@ -19,7 +19,7 @@ type DropdownButtonProps = {
   inline?: boolean
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
-  <ClickableBox onClick={!props.disabled ? props.toggleOpen : null} style={props.style}>
+  <ClickableBox onClick={!props.disabled ? props.toggleOpen : undefined} style={props.style}>
     <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon

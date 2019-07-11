@@ -17,46 +17,46 @@ type DisallowedStyles = {
 }
 
 export type OwnProps = {
-  borderColor?: string | null
+  borderColor?: string
   children?: React.ReactNode
   clickToProfile?: 'tracker' | 'profile' // If set, go to profile on mobile and tracker/profile on desktop,,,
   editable?: boolean
   isTeam?: boolean
   loadingColor?: string
   onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: ((e?: React.SyntheticEvent) => void) | null
+  onEditAvatarClick?: (e?: React.SyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
   skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
-  teamname?: string | null
-  username?: string | null
+  teamname?: string
+  username?: string
   showFollowingStatus?: boolean // show the green dots or not
 }
 
 type Props = {
   askForUserData?: () => void
-  borderColor?: string | null
+  borderColor?: string
   children?: React.ReactNode
   editable?: boolean
   followIconSize: number
-  followIconType: IconType | null
+  followIconType?: IconType
   followIconStyle: IconStyle
   isTeam: boolean
   load: () => void
   loadingColor?: string
   name: string
   onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: ((e?: React.SyntheticEvent) => void) | null
+  onEditAvatarClick?: (e?: React.SyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
   skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
-  teamname?: string | null
+  teamname?: string
   url: URLType
-  username?: string | null
+  username?: string
 }
 
 const avatarPlaceHolders: {[key: string]: IconType} = {

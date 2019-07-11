@@ -5,7 +5,7 @@ import {NativeImage} from '../native-wrappers.native'
 import {Props} from './index.types'
 
 const BackgroundRepeatBox = (props: Props) => {
-  let backgroundImage = null
+  let backgroundImage: React.ReactNode = null
   if (!props.skipBackground) {
     backgroundImage = (
       <NativeImage source={props.imageName} resizeMode="repeat" style={styles.backgroundImage} />

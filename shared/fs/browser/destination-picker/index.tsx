@@ -15,11 +15,11 @@ type Props = {
   parentPath: Types.Path
   routePath: I.List<string>
   targetName: string
-  onCancel: (() => void) | null
-  onCopyHere?: (() => void) | null
-  onMoveHere?: (() => void) | null
-  onNewFolder?: (() => void) | null
-  onBackUp?: (() => void) | null
+  onCancel?: () => void
+  onCopyHere?: () => void
+  onMoveHere?: () => void
+  onNewFolder?: () => void
+  onBackUp?: () => void
 }
 
 const NewFolder = ({onNewFolder}) => (
