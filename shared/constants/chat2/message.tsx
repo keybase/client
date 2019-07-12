@@ -1211,7 +1211,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 export const enoughTimeBetweenMessages = (
   message: MessageTypes.Message,
-  previous: MessageTypes.Message | null
+  previous?: MessageTypes.Message
 ): boolean =>
   Boolean(
     previous &&
