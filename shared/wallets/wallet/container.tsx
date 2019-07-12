@@ -22,15 +22,12 @@ const mapStateToProps = (state: Container.TypedState) => {
   }
 }
 
-const mapDispatchToProps = (
-  dispatch: Container.TypedDispatch,
-  {accountID, navigateAppend, navigateUp}: OwnProps
-) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateAppend, navigateUp}: OwnProps) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSetupTrustline: () =>
+  onSetupTrustline: accountID =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
 })
 
@@ -61,7 +58,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
     data: assets,
     title: (
       <AssetSectionTitle
-        onSetupTrustline={dispatchProps.onSetupTrustline}
+        onSetupTrustline={() => dispatchProps.onSetupTrustline(stateProps.accountID)}
         thisDeviceIsLockedOut={stateProps.thisDeviceIsLockedOut}
       />
     ),

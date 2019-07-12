@@ -19,7 +19,7 @@ export type Props = {
   onBack: () => void
   onLoadMore: () => void
   onMarkAsRead: () => void
-  sections: Array<{data: any; title: string; stripeHeader?: boolean}>
+  sections: Array<{data: any; title: string | React.ReactNode; stripeHeader?: boolean}>
 }
 
 const HistoryPlaceholder = () => (
@@ -30,22 +30,21 @@ const HistoryPlaceholder = () => (
   </Kb.Box2>
 )
 
-export const AssetSectionTitle = (props: {
-  onSetupTrustline: () => void,
-  thisDeviceIsLockedOut: boolean,
-}) => (
+export const AssetSectionTitle = (props: {onSetupTrustline: () => void; thisDeviceIsLockedOut: boolean}) => (
   <Kb.Text type="BodySmallSemibold">
     Your assets
     {!props.thisDeviceIsLockedOut && (
-      <Kb.Text type="BodySmallSemibold">&nbsp;
-        (<Kb.Text
+      <Kb.Text type="BodySmallSemibold">
+        &nbsp; (
+        <Kb.Text
           className="hover-underline"
           onClick={props.onSetupTrustline}
           style={styles.clickable}
           type="BodySmallSemibold"
         >
           manage
-        </Kb.Text>)
+        </Kb.Text>
+        )
       </Kb.Text>
     )}
   </Kb.Text>
