@@ -23,12 +23,12 @@ const provider = banner =>
       amountErrMsg: '',
     }),
     Banner: props => ({}),
-    ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo')}),
+    ConnectedPublicMemo: props => ({onChangePublicMemo: Sb.action('onChangePublicMemo'), maxLength: 28}),
     ConnectedRequestBody: props => ({
       banners: [],
       isProcessing: props.isProcessing,
     }),
-    ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote')}),
+    ConnectedSecretNote: props => ({onChangeSecretNote: Sb.action('onChangeSecretNote'), maxLength: 500}),
     ConnectedSendBody: props => ({
       banners: JSON.stringify(banner) === '{}' ? [] : [banner],
       isProcessing: props.isProcessing,
