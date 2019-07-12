@@ -2079,6 +2079,9 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			g.Log.CDebugf(ctx, "| retrying since update would violate total ordering for team %d", i)
 			continue
 		}
+		if isSigMissingRatchet(err) {
+			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
+		}
 		return err
 	}
 	g.Log.CDebugf(ctx, "| RetryIfPossible exhausted attempts")
@@ -2096,6 +2099,10 @@ func isSigOldSeqnoError(err error) bool {
 
 func isSigBadTotalOrder(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigBadTotalOrder)
+}
+
+func isSigMissingRatchet(err error) bool {
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigMissingRatchet)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {

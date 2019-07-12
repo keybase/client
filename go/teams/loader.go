@@ -710,9 +710,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
-	err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
-	if err != nil {
-		return nil, err
+	if teamUpdate != nil {
+		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	preloadCancel()

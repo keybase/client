@@ -1915,6 +1915,7 @@ export enum StatusCode {
   scsigwrongkey = 1008,
   scsigoldseqno = 1010,
   scsigcreationdisallowed = 1016,
+  scsigmissingratchet = 1021,
   scsigbadtotalorder = 1022,
   scbadtracksession = 1301,
   scdevicebadname = 1404,

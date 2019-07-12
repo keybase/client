@@ -60,6 +60,7 @@ protocol constants {
     SCSigWrongKey_1008,
     SCSigOldSeqno_1010,
     SCSigCreationDisallowed_1016,
+    SCSigMissingRatchet_1021,
     SCSigBadTotalOrder_1022,
     SCBadTrackSession_1301,
     SCDeviceBadName_1404,
