@@ -69,7 +69,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K i
   TeamDropdownMenu: (ownProps: TeamDropdownMenuOwnProps): TeamDropdownMenuProps => ({
     attachTo: ownProps.attachTo,
     badgeSubscribe: false,
-    canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,
+    canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname || 'noteam')) || true,
 
     convProps: {
       fullname: '',
@@ -84,7 +84,7 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K i
     loadOperations: action('_loadOperations'),
     manageChannelsSubtitle: ownProps.isSmallTeam ? 'Turns this into a big team' : '',
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
-    memberCount: (teamMemberCounts && teamMemberCounts[ownProps.teamname]) || 100,
+    memberCount: (teamMemberCounts && teamMemberCounts[ownProps.teamname || '']) || 100,
     onAddPeople: action('onAddPeople'),
     onHidden: ownProps.onHidden,
     onHideConv: action('onHideConv'),

@@ -21,7 +21,7 @@ export type Props = {
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   memberCount: number
-  teamname: string
+  teamname?: string
   visible: boolean
   hasCanPerform: boolean
   loadOperations: () => void
@@ -149,7 +149,7 @@ class InfoPanelMenu extends React.Component<Props> {
             fullname={props.convProps.fullname}
             participants={props.convProps.participants}
           />
-        ) : (
+        ) : props.teamname ? (
           <TeamHeader
             isMuted={
               props.convProps === null || props.convProps === undefined ? false : props.convProps.muted
@@ -157,7 +157,7 @@ class InfoPanelMenu extends React.Component<Props> {
             teamname={props.teamname}
             memberCount={props.memberCount}
           />
-        ),
+        ) : null,
     }
 
     return (
