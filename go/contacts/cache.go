@@ -89,7 +89,6 @@ const contactCacheFreshness = 30 * 24 * time.Hour      // approx a month
 const unresolvedContactCacheFreshness = 24 * time.Hour // approx a day
 
 func (c cachedLookupResult) getFreshness() time.Duration {
-
 	if c.Resolved {
 		return contactCacheFreshness
 	}
