@@ -24,7 +24,7 @@ const BannerBox = (props: {
   <Box2
     direction="vertical"
     fullWidth={true}
-    style={Styles.collapseStyles([...styles.bannerStyle, {backgroundColor: props.color}])}
+    style={Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
     gap={props.gap}
   >
     {props.children}
