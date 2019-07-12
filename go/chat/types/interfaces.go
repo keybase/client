@@ -365,6 +365,7 @@ type AttachmentFetcher interface {
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
 	OnDbNuke(mctx libkb.MetaContext) error
+	OnStart(mctx libkb.MetaContext)
 }
 
 type AttachmentURLSrv interface {

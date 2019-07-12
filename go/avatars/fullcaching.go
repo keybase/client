@@ -83,11 +83,11 @@ func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSo
 
 func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	go c.monitorAppState(m)
-	go c.cleanLRU(m)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
+	go lru.CleanAfterDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
@@ -107,23 +107,6 @@ func (c *FullCachingSource) avatarKey(name string, format keybase1.AvatarFormat)
 
 func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
 	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
-}
-
-func (c *FullCachingSource) cleanLRU(m libkb.MetaContext) {
-	// If the service crashes it's possible that temporarily files get stranded
-	// on disk before they can get recorded in the LRU. Purge any stranded
-	// files to prevent leaking space. We delay to keep off the critical path
-	// to start up.
-	time.Sleep(10 * time.Second)
-	c.debug(m, "cleanLRU: cleaning")
-	if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
-		c.debug(m, "unable to run clean: %v", err)
-	}
-	size, err := c.diskLRU.Size(m.Ctx(), m.G())
-	if err != nil {
-		c.debug(m, "unable to get diskLRU size: %v", err)
-	}
-	c.debug(m, "lru current size: %d, max size: %d", size, c.diskLRU.MaxSize())
 }
 
 func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
@@ -395,17 +378,17 @@ func (c *FullCachingSource) clearName(m libkb.MetaContext, name string, formats 
 }
 
 func (c *FullCachingSource) LoadUsers(m libkb.MetaContext, usernames []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("FullCachingSource.LoadUsers", func() error { return err })()
+	defer m.TraceTimed("FullCachingSource.LoadUsers", func() error { return err })()
 	return c.loadNames(m, usernames, formats, c.simpleSource.LoadUsers)
 }
 
 func (c *FullCachingSource) LoadTeams(m libkb.MetaContext, teams []string, formats []keybase1.AvatarFormat) (res keybase1.LoadAvatarsRes, err error) {
-	defer m.Trace("FullCachingSource.LoadTeams", func() error { return err })()
+	defer m.TraceTimed("FullCachingSource.LoadTeams", func() error { return err })()
 	return c.loadNames(m, teams, formats, c.simpleSource.LoadTeams)
 }
 
 func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, formats []keybase1.AvatarFormat) (err error) {
-	defer m.Trace(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("FullCachingSource.ClearCacheForUser(%q,%v)", name, formats), func() error { return err })()
 	return c.clearName(m, name, formats)
 }
 

@@ -453,3 +453,24 @@ func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir str
 	}
 	return nil
 }
+
+// CleanAfterDelay runs the LRU clean function after the `delay` duration. If
+// the service crashes it's possible that temporarily files get stranded on
+// disk before they can get recorded in the LRU. Callers can run this in the
+// background to prevent leaking space.  We delay to keep off the critical path
+// to start up.
+func CleanAfterDelay(mctx libkb.MetaContext, d *DiskLRU,
+	cacheDir string, delay time.Duration) {
+	defer mctx.TraceTimed(fmt.Sprintf("CleanAfterDelay: cleaning %s in %v", cacheDir, delay),
+		func() error { return nil })()
+
+	time.Sleep(delay)
+	if err := d.Clean(mctx.Ctx(), mctx.G(), cacheDir); err != nil {
+		mctx.Debug("unable to run clean: %v", err)
+	}
+	size, err := d.Size(mctx.Ctx(), mctx.G())
+	if err != nil {
+		mctx.Debug("unable to get diskLRU size: %v", err)
+	}
+	mctx.Debug("lru current size: %d, max size: %d", size, d.MaxSize())
+}
