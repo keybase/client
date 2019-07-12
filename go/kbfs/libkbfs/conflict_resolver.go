@@ -2469,6 +2469,13 @@ func (cr *ConflictResolver) doOneAction(
 		// Execute each action and save the modified ops back into
 		// each chain.
 		for _, action := range actions {
+			// Make sure we don't get stuck inside a large action list
+			// for a long time, if the actions are slow to complete.
+			err := cr.checkDone(ctx)
+			if err != nil {
+				return err
+			}
+
 			swap, newPtr, err := action.swapUnmergedBlock(
 				ctx, unmergedChains, mergedChains, unmergedDir)
 			if err != nil {
@@ -2514,6 +2521,13 @@ func (cr *ConflictResolver) doOneAction(
 	// Now update the ops related to this exact path (not the ops
 	// for its parent!).
 	for _, action := range actions {
+		// Make sure we don't get stuck inside a large action list
+		// for a long time, if the actions are slow to complete.
+		err := cr.checkDone(ctx)
+		if err != nil {
+			return err
+		}
+
 		// unmergedMostRecent is for the correct pointer, but
 		// mergedPath may be for the parent in the case of files
 		// so we need to find the real mergedMostRecent pointer.
@@ -2523,7 +2537,7 @@ func (cr *ConflictResolver) doOneAction(
 			mergedMostRecent = mergedChain.mostRecent
 		}
 
-		err := action.updateOps(
+		err = action.updateOps(
 			ctx, unmergedMostRecent, mergedMostRecent,
 			unmergedDir, mergedDir, unmergedChains, mergedChains)
 		if err != nil {
@@ -2559,7 +2573,14 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	// in standard Merkle-tree-fashion.
 	doneActions := make(map[data.BlockPointer]bool)
 	for _, unmergedPath := range unmergedPaths {
-		err := cr.doOneAction(
+		// Make sure we don't get stuck inside a large unmerged list for
+		// a long time, if the actions are slow to complete.
+		err := cr.checkDone(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = cr.doOneAction(
 			ctx, lState, unmergedChains, mergedChains, unmergedPath,
 			mergedPaths, chargedTo, actionMap, dbm, doneActions, newFileBlocks,
 			dirtyBcache)
