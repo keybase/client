@@ -1,24 +1,33 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import ReplyPreview from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, {conversationIDKey}) => {
+const mapStateToProps = (state: Container.TypedState, {conversationIDKey}) => {
   const ordinal = Constants.getReplyToOrdinal(state, conversationIDKey)
   const message = ordinal ? Constants.getMessage(state, conversationIDKey, ordinal) : null
-  const text =
-    message && message.type === 'text'
-      ? message.text.stringValue()
-      : message.type === 'attachment'
-      ? message.title || (message.attachmentType === 'image' ? '' : message.fileName)
-      : ''
-  const attachment: Types.MessageAttachment =
-    message.type === 'attachment' && message.attachmentType === 'image' ? message : null
+  let text = ''
+  if (message) {
+    switch (message.type) {
+      case 'text':
+        text = message.text.stringValue()
+        break
+      case 'attachment':
+        text = message.title || (message.attachmentType === 'image' ? '' : message.fileName)
+        break
+    }
+  }
+  let attachment: Types.MessageAttachment | undefined
+  if (message && message.type === 'attachment') {
+    if (message.attachmentType === 'image') {
+      attachment = message
+    }
+  }
   return {
     imageHeight: attachment ? attachment.previewHeight : undefined,
     imageURL: attachment ? attachment.previewURL : undefined,
@@ -28,10 +37,11 @@ const mapStateToProps = (state, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
-  onCancel: () => dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d) => ({...s, ...d}), 'ReplyPreview')(
-  ReplyPreview
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  (dispatch, {conversationIDKey}: OwnProps) => ({
+    onCancel: () => dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey})),
+  }),
+  (s, d, _: OwnProps) => ({...s, ...d}),
+  'ReplyPreview'
+)(ReplyPreview)

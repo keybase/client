@@ -13,7 +13,10 @@ export type Props = {
 }
 
 const ReplyPreview = (props: Props) => {
-  const sizing = props.imageHeight ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80) : null
+  const sizing =
+    props.imageWidth && props.imageHeight
+      ? Constants.zoomImage(props.imageWidth, props.imageHeight, 80)
+      : null
   return (
     <Kb.Box style={styles.outerContainer}>
       <Kb.Box2 direction="vertical" style={styles.container} gap="xtiny" fullWidth={true}>
@@ -31,8 +34,8 @@ const ReplyPreview = (props: Props) => {
             <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
               {!!props.imageURL && (
                 <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
-                  <Kb.Box style={{...sizing.margins}}>
-                    <Kb.Image src={props.imageURL} style={{...sizing.dims}} />
+                  <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
+                    <Kb.Image src={props.imageURL} style={{...(sizing ? sizing.dims : {})}} />
                   </Kb.Box>
                 </Kb.Box2>
               )}

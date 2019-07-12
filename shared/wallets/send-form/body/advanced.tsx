@@ -34,8 +34,12 @@ const SecretNoteAndPublicMemo = () => {
   const publicMemo = buildingAdvanced.publicMemo.stringValue()
 
   // We currently don't support path payment requests, so no need to check if this is a request
-  const secretNoteMaxLength = Container.useSelector(state => state.wallets.staticConfig.paymentNoteMaxLength)
-  const publicMemoMaxLength = Container.useSelector(state => state.wallets.staticConfig.publicMemoMaxLength)
+  const secretNoteMaxLength = Container.useSelector(state =>
+    state.wallets.staticConfig ? state.wallets.staticConfig.paymentNoteMaxLength : 0
+  )
+  const publicMemoMaxLength = Container.useSelector(state =>
+    state.wallets.staticConfig ? state.wallets.staticConfig.publicMemoMaxLength : 0
+  )
   return (
     <>
       <SecretNote
