@@ -37,7 +37,7 @@ Send $10 USD worth of XLM to a Keybase user:
 Send 10 AnchorUSD to a Keybase user as a path payment by converting XLM:
     {"method": "send-path-payment", "params": {"options": {"recipient": "patrick", "amount": "10", "source-asset": "native", "destination-asset": "USD/GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX"}}}
 
-If you send XLM to a keybase user who has not established a wallet yet, you can
+If you send XLM to a Keybase user who has not established a wallet yet, you can
 cancel the payment before the recipient claims it and the XLM will be returned
 to your account:
     {"method": "cancel", "params": {"options": {"txid": "e5334601b9dc2a24e031ffeec2fce37bb6a8b4b51fc711d16dec04d3e64976c4"}}}
