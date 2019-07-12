@@ -236,7 +236,7 @@ export class MediaView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (thumbs.length === 0)
+    if (thumbs.length === 0 && status !== 'loading')
       return [
         {
           data: ['media attachments'],
@@ -323,7 +323,7 @@ export class DocView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (docs.length === 0)
+    if (docs.length === 0 && status !== 'loading')
       return [
         {
           data: ['documents'],
@@ -396,7 +396,7 @@ export class LinkView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (links.length === 0)
+    if (links.length === 0 && status !== 'loading')
       return [
         {
           data: ['links'],
