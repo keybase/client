@@ -2942,7 +2942,7 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 		}
 
 		failedBps := newBlockPutStateMemory(oldMD.bps.numBlocks())
-		for _, ptr := range oldMD.bps.ptrs() {
+		for _, ptr := range oldMD.bps.Ptrs() {
 			if ptr == data.ZeroPtr {
 				panic("Unexpected zero block ptr in an old sync MD revision")
 			}

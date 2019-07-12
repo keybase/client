@@ -632,13 +632,13 @@ func (be blockEntriesToFlush) revIsLocalSquash(rev kbfsmd.Revision) bool {
 }
 
 func (be blockEntriesToFlush) markFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
-	for _, ptr := range be.puts.ptrs() {
+	for _, ptr := range be.puts.Ptrs() {
 		ids[ptr.ID] = true
 	}
 }
 
 func (be blockEntriesToFlush) clearFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
-	for _, ptr := range be.puts.ptrs() {
+	for _, ptr := range be.puts.Ptrs() {
 		delete(ids, ptr.ID)
 	}
 }

@@ -291,7 +291,7 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 		bdType:  bdType,
 		backoff: expBackoff,
 	}
-	toDelete.blocks = append(toDelete.blocks, bps.ptrs()...)
+	toDelete.blocks = append(toDelete.blocks, bps.Ptrs()...)
 	fbm.enqueueBlocksToDelete(toDelete)
 }
 
