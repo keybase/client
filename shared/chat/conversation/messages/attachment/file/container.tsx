@@ -61,4 +61,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 }
 
-export default Container.connectDEBUG(mapStateToProps, mapDispatchToProps, mergeProps)(File)
+export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(File)
