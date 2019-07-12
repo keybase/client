@@ -84,7 +84,7 @@ func watchProgram(program Program, restartDelay time.Duration, log Log) {
 				break
 			} else if program.ExitOn == ExitAllOnSuccess {
 				log.Infof("Program configured to exit on success, exiting")
-				// presumably the other wathches are sleeping anyway
+				// presumably the other watches are sleeping anyway
 				os.Exit(0)
 			}
 		}

@@ -15,8 +15,6 @@ var ErrLenTooBig = errors.New("Lenghts bigger than 0x8000000 are too big")
 var ErrIntTooBig = errors.New("Cannot handle ints largers than int64 max")
 var ErrExtTooBig = errors.New("extenal data type too big")
 
-type count uint64
-
 type intType int
 
 const (
@@ -84,7 +82,7 @@ func (i msgpackInt) toUint32() (uint32, error) {
 func msgpackIntFromUint(u uint) msgpackInt {
 	var typ intType
 	switch {
-	case u >= 0 && u <= 0x7f:
+	case u <= 0x7f:
 		typ = intTypeFixedUint
 	case u <= 0xff:
 		typ = intTypeUint8
@@ -434,7 +432,7 @@ func (m *msgpackDecoder) produceExt(s decodeStack, b []byte) (err error) {
 }
 
 func (m *msgpackDecoder) decodeExt(s decodeStack, n uint32) (err error) {
-	if n > bigBinary {
+	if n > bigExt {
 		return ErrExtTooBig
 	}
 	buf := make([]byte, n)
