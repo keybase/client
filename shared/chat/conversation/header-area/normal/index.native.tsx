@@ -26,16 +26,8 @@ const Wrapper = (
       props.pendingWaiting
         ? undefined
         : [
-            {
-              icon: 'iconfont-search',
-              label: 'search',
-              onPress: props.onToggleThreadSearch,
-            },
-            {
-              icon: 'iconfont-info',
-              label: 'Info',
-              onPress: props.onToggleInfoPanel,
-            },
+            {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
+            {icon: 'iconfont-info', label: 'Info', onPress: props.onToggleInfoPanel},
           ]
     }
     titleComponent={props.children}
@@ -55,7 +47,7 @@ const ShhIcon = props => (
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : (12 as any)} />
+      <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
       <Text
         type={
           isMobile

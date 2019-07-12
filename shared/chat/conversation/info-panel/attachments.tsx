@@ -83,9 +83,9 @@ const formMonths = (items: Array<AttachmentItem>): Array<Month> => {
   }
   let curMonth = {
     ...getDateInfo(items[0]),
-    data: [],
+    data: [] as Array<AttachmentItem>,
   }
-  const months = items.reduce((l, t, index) => {
+  const months = items.reduce<Array<typeof curMonth>>((l, t, index) => {
     const dateInfo = getDateInfo(t)
     if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
       if (curMonth.data.length > 0) {
@@ -392,7 +392,7 @@ export class LinkView {
   }
   getSections = (
     links: Array<Link>,
-    onLoadMore?: () => void,
+    onLoadMore: undefined | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
@@ -408,7 +408,7 @@ export class LinkView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
   }
 }
 

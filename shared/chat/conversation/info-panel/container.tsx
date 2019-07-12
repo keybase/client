@@ -262,12 +262,20 @@ const ConnectedInfoPanel = Container.connect(
       .map(p => ({
         fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
         isAdmin: stateProps.teamname
-          ? // @ts-ignore
-            TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'admin')
+          ? TeamConstants.userIsRoleInTeamWithInfo(
+              // @ts-ignore
+              stateProps._teamMembers,
+              p,
+              'admin'
+            )
           : false,
         isOwner: stateProps.teamname
-          ? // @ts-ignore
-            TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'owner')
+          ? TeamConstants.userIsRoleInTeamWithInfo(
+              // @ts-ignore
+              stateProps._teamMembers,
+              p,
+              'owner'
+            )
           : false,
         username: p,
       }))
