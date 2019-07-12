@@ -320,8 +320,8 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		if boxed.IsEphemeral() {
 			ephemeralKey, err = globals.CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 				b.G().MetaContext(ctx), tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-				boxed.ClientHeader.TlfPublic, boxed.EphemeralMetadata().BotUID, boxed.EphemeralMetadata().Generation,
-				&boxed.ServerHeader.Ctime)
+				boxed.ClientHeader.TlfPublic, boxed.ClientHeader.BotUID,
+				boxed.EphemeralMetadata().Generation, &boxed.ServerHeader.Ctime)
 			if err != nil {
 				b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
 				uberr = b.detectPermanentError(err, tlfName)
@@ -944,6 +944,7 @@ func (b *Boxer) unversionHeaderMBV2(ctx context.Context, serverHeader *chat1.Mes
 			OutboxInfo:        hp.OutboxInfo,
 			KbfsCryptKeysUsed: hp.KbfsCryptKeysUsed,
 			EphemeralMetadata: hp.EphemeralMetadata,
+			BotUID:            hp.BotUID,
 			Rtime:             rtime,
 		}, hp.BodyHash, nil
 	// NOTE: When adding new versions here, you must also update
@@ -1066,6 +1067,11 @@ func (b *Boxer) compareHeadersMBV2orV3(ctx context.Context, hServer chat1.Messag
 	// EphemeralMetadata (only present in V3 and greater)
 	if version > chat1.MessageBoxedVersion_V2 && !hServer.EphemeralMetadata.Eq(hSigned.EphemeralMetadata) {
 		return NewPermanentUnboxingError(NewHeaderMismatchError("EphemeralMetadata"))
+	}
+
+	// BotUID (only present in V3 and greater)
+	if version > chat1.MessageBoxedVersion_V2 && !gregor1.UIDPtrEq(hServer.BotUID, hSigned.BotUID) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("BotUID"))
 	}
 
 	return nil
@@ -1327,7 +1333,7 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 	if msg.IsEphemeral() {
 		ephemeralKey, err = globals.CtxKeyFinder(ctx, b.G()).EphemeralKeyForEncryption(
 			b.G().MetaContext(ctx), tlfName, msg.ClientHeader.Conv.Tlfid,
-			membersType, msg.ClientHeader.TlfPublic, msg.EphemeralMetadata().BotUID)
+			membersType, msg.ClientHeader.TlfPublic, msg.ClientHeader.BotUID)
 		if err != nil {
 			return res, NewBoxingCryptKeysError(err)
 		}
@@ -1657,6 +1663,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 		OutboxID:          messagePlaintext.ClientHeader.OutboxID,
 		KbfsCryptKeysUsed: messagePlaintext.ClientHeader.KbfsCryptKeysUsed,
 		EphemeralMetadata: messagePlaintext.ClientHeader.EphemeralMetadata,
+		BotUID:            messagePlaintext.ClientHeader.BotUID,
 		// In MessageBoxed.V2 HeaderSignature is nil.
 		HeaderSignature: nil,
 	})

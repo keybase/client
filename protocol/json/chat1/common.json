@@ -956,15 +956,6 @@
           "name": "explodedBy",
           "mpackkey": "u",
           "jsonkey": "u"
-        },
-        {
-          "type": [
-            null,
-            "gregor1.UID"
-          ],
-          "name": "botUID",
-          "mpackkey": "b",
-          "jsonkey": "b"
         }
       ]
     },
@@ -1097,6 +1088,15 @@
           "name": "pairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1183,6 +1183,15 @@
           "name": "hasPairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },

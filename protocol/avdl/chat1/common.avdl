@@ -359,10 +359,6 @@
     keybase1.EkGeneration generation;
     @mpackkey("u") @jsonkey("u")
     union { null, string } explodedBy;
-    // Non-null for TopicType BOT, specifies which member is the bot recipient
-    // to select appropriate keys
-    @mpackkey("b") @jsonkey("b")
-    union { null, gregor1.UID } botUID;
   }
 
   record EphemeralPurgeInfo {
@@ -416,6 +412,12 @@
     //           small teams. In V4, if MACs are present, the verifyKey is a dummy.
     @mpackkey("pm") @jsonkey("pm")
     map<keybase1.KID, bytes> pairwiseMacs;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Specifies which member is the bot recipient, if any, to select
+    //           appropriate crypt keys.
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   record MessageClientHeaderVerified {
@@ -450,6 +452,9 @@
 
     @mpackkey("pm") @jsonkey("pm")
     boolean hasPairwiseMacs;
+
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
