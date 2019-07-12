@@ -5,11 +5,11 @@ import * as Tracker2Types from '../../../constants/types/tracker2'
 import {SiteIcon} from '../shared'
 
 type Props = {
-  serviceIcon: Tracker2Types.SiteIconSet
-  proofUsername: string
-  onClose: () => void
   error: boolean
   errorText: string
+  onClose: () => void
+  proofUsername: string
+  serviceIcon: Tracker2Types.SiteIconSet
 }
 
 const _Result = (props: Props) => {

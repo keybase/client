@@ -4,6 +4,8 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import Success from '.'
 
 const mapStateToProps = state => ({
+  error: state.profile.errorCode !== null,
+  errorText: state.profile.errorText,
   proofUsername:
     state.profile.username + // Auto generated from flowToTs. Please clean me!
     ((state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
@@ -14,8 +16,6 @@ const mapStateToProps = state => ({
     (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
       ? undefined
       : state.profile.platformGenericParams.logoFull) || [],
-  error: state.profile.errorCode !== null,
-  errorText: state.profile.errorText,
 })
 
 const mapDispatchToProps = dispatch => ({
