@@ -17,6 +17,7 @@ type CommonProps = {
   onAttach: (paths: Array<string>) => void
   onEditLastMessage: () => void
   onCancelEditing: () => void
+  onCancelReply: () => void
   onFilePickerError: (error: Error) => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void

@@ -24,6 +24,12 @@ const CreateChannel = (props: Props) => (
         <Kb.Input
           autoCorrect={true}
           autoFocus={false}
+          autoCapitalize="sentences"
+          multiline={true}
+          rowsMin={1}
+          rowsMax={4}
+          // From go/chat/msgchecker/constants.go#HeadlineMaxLength
+          maxLength={280}
           hintText="Description or topic (optional)"
           value={props.description}
           onChangeText={description => props.onDescriptionChange(description)}

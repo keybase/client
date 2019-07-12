@@ -5,11 +5,10 @@ import supportedCodes from './sms-support/data.json'
 import {emojiIndexByChar} from '../../common-adapters/markdown/emoji-gen'
 
 const PNF = libphonenumber.PhoneNumberFormat
-export enum PhoneNumberFormat {
-  E164 = PNF.E164,
-}
+export const PhoneNumberFormat = PNF
 
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
+export const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
 const supported = phoneUtil.getSupportedRegions()
 
 export type CountryData = {

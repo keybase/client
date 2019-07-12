@@ -82,14 +82,6 @@ func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSo
 }
 
 func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
-	// If the service crashes it's possible that temporarily files get stranded
-	// on disk before they can get recorded in the LRU. Purge any stranded
-	// files on startup to prevent leaking space.
-	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
-			c.debug(m, "unable to run clean: %v", err)
-		}
-	}
 	go c.monitorAppState(m)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
@@ -99,9 +91,7 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 	close(c.populateCacheCh)
-	if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-		c.debug(m, "StopBackgroundTasks: unable to flush diskLRU %v", err)
-	}
+	c.diskLRU.Flush(m.Ctx(), m.G())
 }
 
 func (c *FullCachingSource) debug(m libkb.MetaContext, msg string, args ...interface{}) {
@@ -121,7 +111,7 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	if err != nil {
 		c.debug(m, "unable to get diskLRU size: %v", err)
 	}
-	c.debug(m, "monitorAppState: starting up, lru current size: %d, max size: %d",
+	c.debug(m, "monitorAppState: starting up, lru current size: %d,  max size: %d",
 		size, c.diskLRU.MaxSize())
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
@@ -129,9 +119,7 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 		switch state {
 		case keybase1.MobileAppState_BACKGROUND:
 			c.debug(m, "monitorAppState: backgrounded")
-			if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
-				c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
-			}
+			c.diskLRU.Flush(m.Ctx(), m.G())
 		}
 	}
 }
@@ -155,9 +143,7 @@ func (c *FullCachingSource) specLoad(m libkb.MetaContext, names []string, format
 				var file *os.File
 				if file, err = os.Open(lp.path); err != nil {
 					c.debug(m, "specLoad: error loading hit: file: %s err: %s", lp.path, err)
-					if err := c.diskLRU.Remove(m.Ctx(), m.G(), key); err != nil {
-						c.debug(m, "specLoad: unable to remove from LRU %v", err)
-					}
+					c.diskLRU.Remove(m.Ctx(), m.G(), key)
 					// Not a true hit if we don't have it on the disk as well
 					found = false
 				} else {

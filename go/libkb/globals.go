@@ -718,6 +718,12 @@ func (g *GlobalContext) Shutdown() error {
 		if g.UI != nil {
 			epick.Push(g.UI.Shutdown())
 		}
+		if g.LocalDb != nil {
+			epick.Push(g.LocalDb.Close())
+		}
+		if g.LocalChatDb != nil {
+			epick.Push(g.LocalChatDb.Close())
+		}
 
 		// Shutdown can still race with Logout, so make sure that we hold onto
 		// the cacheMu before shutting down the caches. See comments in
@@ -734,14 +740,6 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(hook())
 		}
 
-		// shutdown the databases after the shutdown hooks run, we may want to
-		// flush memory caches to disk during shutdown.
-		if g.LocalDb != nil {
-			epick.Push(g.LocalDb.Close())
-		}
-		if g.LocalChatDb != nil {
-			epick.Push(g.LocalChatDb.Close())
-		}
 		<-g.Identify3State.Shutdown()
 
 		err = epick.Error()

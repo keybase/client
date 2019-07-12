@@ -117,6 +117,7 @@ export const setTrustlinePopularAssets = 'wallets:setTrustlinePopularAssets'
 export const setTrustlineSearchResults = 'wallets:setTrustlineSearchResults'
 export const setTrustlineSearchText = 'wallets:setTrustlineSearchText'
 export const showTransaction = 'wallets:showTransaction'
+export const staticConfigLoaded = 'wallets:staticConfigLoaded'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropDetails = 'wallets:updateAirdropDetails'
 export const updateAirdropState = 'wallets:updateAirdropState'
@@ -337,6 +338,7 @@ type _SetTrustlinePopularAssetsPayload = {
 type _SetTrustlineSearchResultsPayload = {readonly assets: Array<Types.AssetDescription>}
 type _SetTrustlineSearchTextPayload = {readonly text: string}
 type _ShowTransactionPayload = {readonly accountID: Types.AccountID; readonly paymentID: Types.PaymentID}
+type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
 type _UpdateAirdropStatePayload = void
@@ -798,6 +800,13 @@ export const createSetReadyToReview = (payload: _SetReadyToReviewPayload): SetRe
 export const createAbandonPayment = (payload: _AbandonPaymentPayload): AbandonPaymentPayload => ({
   payload,
   type: abandonPayment,
+})
+/**
+ * Static configuration info was loaded from the service.
+ */
+export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload): StaticConfigLoadedPayload => ({
+  payload,
+  type: staticConfigLoaded,
 })
 /**
  * Successfully request payment
@@ -1490,6 +1499,10 @@ export type ShowTransactionPayload = {
   readonly payload: _ShowTransactionPayload
   readonly type: typeof showTransaction
 }
+export type StaticConfigLoadedPayload = {
+  readonly payload: _StaticConfigLoadedPayload
+  readonly type: typeof staticConfigLoaded
+}
 export type UpdateAirdropBannerStatePayload = {
   readonly payload: _UpdateAirdropBannerStatePayload
   readonly type: typeof updateAirdropBannerState
@@ -1664,6 +1677,7 @@ export type Actions =
   | SetTrustlineSearchResultsPayload
   | SetTrustlineSearchTextPayload
   | ShowTransactionPayload
+  | StaticConfigLoadedPayload
   | UpdateAirdropBannerStatePayload
   | UpdateAirdropDetailsPayload
   | UpdateAirdropStatePayload

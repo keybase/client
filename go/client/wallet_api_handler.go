@@ -465,7 +465,7 @@ func (c *sendOptions) Check() error {
 	if len(c.Message) > libkb.MaxStellarPaymentNoteLength {
 		return ErrMessageTooLong
 	}
-	if len(c.MemoText) > 28 {
+	if len(c.MemoText) > libkb.MaxStellarPaymentPublicNoteLength {
 		return ErrMemoTextTooLong
 	}
 

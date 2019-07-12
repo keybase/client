@@ -135,6 +135,10 @@ export type MessageTypes = {
     inParam: {readonly from: AccountID; readonly to: String}
     outParam: Array<SendAssetChoiceLocal> | null
   }
+  'stellar.1.local.getStaticConfigLocal': {
+    inParam: void
+    outParam: StaticConfig
+  }
   'stellar.1.local.getTrustlinesForRecipientLocal': {
     inParam: {readonly recipient: String}
     outParam: RecipientTrustlinesLocal
@@ -454,6 +458,7 @@ export type SendBannerLocal = {readonly level: String; readonly message: String;
 export type SendPaymentResLocal = {readonly kbTxID: KeybaseTransactionID; readonly pending: Boolean}
 export type SendResultCLILocal = {readonly kbTxID: KeybaseTransactionID; readonly txID: TransactionID}
 export type SignXdrResult = {readonly singedTx: String; readonly accountID: AccountID; readonly submitErr?: String | null; readonly submitTxID?: TransactionID | null}
+export type StaticConfig = {readonly paymentNoteMaxLength: Int; readonly requestNoteMaxLength: Int; readonly publicMemoMaxLength: Int}
 export type StellarServerDefinitions = {readonly revision: Int; readonly currencies: {[key: string]: OutsideCurrencyDefinition}}
 export type SubmitMultiRes = {readonly txID: TransactionID}
 export type TimeMs = Long
@@ -507,6 +512,7 @@ export const localGetPaymentsLocalRpcPromise = (params: MessageTypes['stellar.1.
 export const localGetPendingPaymentsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPendingPaymentsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPendingPaymentsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPendingPaymentsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPredefinedInflationDestinationsLocalRpcPromise = (params: MessageTypes['stellar.1.local.getPredefinedInflationDestinationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getPredefinedInflationDestinationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPredefinedInflationDestinationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetSendAssetChoicesLocalRpcPromise = (params: MessageTypes['stellar.1.local.getSendAssetChoicesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getSendAssetChoicesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getSendAssetChoicesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetStaticConfigLocalRpcPromise = (params: MessageTypes['stellar.1.local.getStaticConfigLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getStaticConfigLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getStaticConfigLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTrustlinesForRecipientLocalRpcPromise = (params: MessageTypes['stellar.1.local.getTrustlinesForRecipientLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getTrustlinesForRecipientLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getTrustlinesForRecipientLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTrustlinesLocalRpcPromise = (params: MessageTypes['stellar.1.local.getTrustlinesLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getTrustlinesLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getTrustlinesLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetWalletAccountLocalRpcPromise = (params: MessageTypes['stellar.1.local.getWalletAccountLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['stellar.1.local.getWalletAccountLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getWalletAccountLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -1024,6 +1024,7 @@ protocol local {
   map<string, ProfileSearchConvStats> profileChatSearch(keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
+  // TODO: consolidate this RPC with the wallet `getStaticConfig` in the future
   StaticConfig getStaticConfig();
   record BuiltinCommandGroup {
     ConversationBuiltinCommandTyp typ;

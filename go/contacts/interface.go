@@ -13,6 +13,7 @@ import (
 type ContactLookupResult struct {
 	UID     keybase1.UID `json:"uid,omitempty"`
 	Coerced string       `json:"coerced,omitempty"`
+	Error   string       `json:"err,omitempty"`
 }
 
 type ContactLookupMap map[string]ContactLookupResult

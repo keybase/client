@@ -60,6 +60,15 @@ func doSearchRequest(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []
 	if err != nil {
 		return nil, err
 	}
+	// Downcase usernames
+	for i, row := range response.List {
+		if row.Keybase != nil {
+			response.List[i].Keybase.Username = strings.ToLower(row.Keybase.Username)
+		}
+		if row.Service != nil {
+			response.List[i].Service.Username = strings.ToLower(row.Service.Username)
+		}
+	}
 	return response.List, nil
 }
 

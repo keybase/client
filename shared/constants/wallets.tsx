@@ -255,6 +255,7 @@ export const makeState = I.Record<Types._State>({
   sep7ConfirmError: '',
   sep7ConfirmInfo: null,
   sep7ConfirmURI: '',
+  staticConfig: null,
   trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })

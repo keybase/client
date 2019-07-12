@@ -10,7 +10,6 @@ export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateTo = 'route-tree:navigateTo'
 export const navigateUp = 'route-tree:navigateUp'
-export const putActionIfOnPath = 'route-tree:putActionIfOnPath'
 export const resetStack = 'route-tree:resetStack'
 export const switchRouteDef = 'route-tree:switchRouteDef'
 export const switchTab = 'route-tree:switchTab'
@@ -27,11 +26,6 @@ type _NavigateAppendPayload = {
 }
 type _NavigateToPayload = {readonly path: any; readonly parentPath?: any; readonly replace?: boolean}
 type _NavigateUpPayload = {readonly fromKey?: string}
-type _PutActionIfOnPathPayload = {
-  readonly expectedPath: any
-  readonly otherAction: any
-  readonly parentPath?: any
-}
 type _ResetStackPayload = {readonly tab: Tabs.AppTab; readonly actions: Array<any>; readonly index: number}
 type _SwitchRouteDefPayload = {readonly loggedIn: boolean; readonly path?: any}
 type _SwitchTabPayload = {readonly tab: Tabs.AppTab}
@@ -82,10 +76,6 @@ export const createNavigateUp = (payload: _NavigateUpPayload = Object.freeze({})
   payload,
   type: navigateUp,
 })
-export const createPutActionIfOnPath = (payload: _PutActionIfOnPathPayload): PutActionIfOnPathPayload => ({
-  payload,
-  type: putActionIfOnPath,
-})
 export const createSwitchTo = (payload: _SwitchToPayload): SwitchToPayload => ({payload, type: switchTo})
 
 // Action Payloads
@@ -100,10 +90,6 @@ export type NavigateAppendPayload = {
 }
 export type NavigateToPayload = {readonly payload: _NavigateToPayload; readonly type: typeof navigateTo}
 export type NavigateUpPayload = {readonly payload: _NavigateUpPayload; readonly type: typeof navigateUp}
-export type PutActionIfOnPathPayload = {
-  readonly payload: _PutActionIfOnPathPayload
-  readonly type: typeof putActionIfOnPath
-}
 export type ResetStackPayload = {readonly payload: _ResetStackPayload; readonly type: typeof resetStack}
 export type SwitchRouteDefPayload = {
   readonly payload: _SwitchRouteDefPayload
@@ -120,7 +106,6 @@ export type Actions =
   | NavigateAppendPayload
   | NavigateToPayload
   | NavigateUpPayload
-  | PutActionIfOnPathPayload
   | ResetStackPayload
   | SwitchRouteDefPayload
   | SwitchTabPayload

@@ -219,7 +219,10 @@ func (d *DiskLRU) readEntry(ctx context.Context, lctx libkb.LRUContext, key stri
 	if err != nil {
 		return false, res, err
 	}
-	return found, res, nil
+	if !found {
+		return false, res, nil
+	}
+	return true, res, nil
 }
 
 func (d *DiskLRU) accessEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex,

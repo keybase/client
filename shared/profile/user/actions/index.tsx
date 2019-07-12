@@ -75,6 +75,7 @@ const Actions = (p: Props) => {
   } else if (p.onEditProfile) {
     buttons = [
       <Kb.Button key="Edit profile" mode="Secondary" label="Edit profile" onClick={p.onEditProfile} />,
+      chatButton,
     ]
   } else if (p.followThem) {
     if (p.state === 'valid') {
