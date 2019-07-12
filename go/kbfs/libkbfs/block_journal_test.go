@@ -875,7 +875,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.Equal(t, 2, entries.puts.numBlocks())
 	require.Equal(t, 0, entries.adds.numBlocks())
 	require.Len(t, entries.other, 5)
-	ptrs := entries.puts.ptrs()
+	ptrs := entries.puts.Ptrs()
 	ids := make([]kbfsblock.ID, len(ptrs))
 	for i, ptr := range ptrs {
 		ids[i] = ptr.ID

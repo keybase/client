@@ -857,8 +857,8 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	_, err = config.MDOps().Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = config.MDOps().Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	rmds := mdServer.getLastRmds()
@@ -880,8 +880,8 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	putMDForPrivate(config, rmd)
 
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
-	if _, err := config.MDOps().Put(ctx, rmd, key,
-		nil, keybase1.MDPriorityNormal); err != nil {
+	if _, err := config.MDOps().Put(
+		ctx, rmd, key, nil, keybase1.MDPriorityNormal, nil); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -916,8 +916,9 @@ func testMDOpsPutFailEncode(t *testing.T, ver kbfsmd.MetadataVer) {
 	err = errors.New("Fake fail")
 	config.SetCodec(failEncodeCodec{config.Codec(), err})
 
-	if _, err2 := config.MDOps().Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal); err2 != err {
+	if _, err2 := config.MDOps().Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal,
+		nil); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
