@@ -232,7 +232,7 @@ export class MediaView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (thumbs.length === 0) return [{
+    if (thumbs.length === 0 && status !== 'loading') return [{
       data: ['media attachments'],
       renderItem: ({item}) => _renderEmptyItem(item),
       renderSectionHeader: () => null,
@@ -316,7 +316,7 @@ export class DocView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (docs.length === 0) return [{
+    if (docs.length === 0 && status !== 'loading') return [{
       data: ['documents'],
       renderItem: ({item}) => _renderEmptyItem(item),
       renderSectionHeader: () => null,
@@ -386,7 +386,7 @@ export class LinkView {
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (links.length === 0) return [{
+    if (links.length === 0 && status !== 'loading') return [{
       data: ['links'],
       renderItem: ({item}) => _renderEmptyItem(item),
       renderSectionHeader: () => null,
