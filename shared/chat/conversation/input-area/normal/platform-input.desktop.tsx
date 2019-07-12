@@ -18,16 +18,12 @@ type State = {
 }
 
 class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
-  _input: Kb.PlainInput | null
-  _lastText: string | null
-  _fileInput: HTMLInputElement | null
-
-  constructor(props: PlatformInputPropsInternal) {
-    super(props)
-    this.state = {
-      emojiPickerOpen: false,
-      hasText: false,
-    }
+  _input: Kb.PlainInput | null = null
+  _lastText?: string
+  _fileInput: HTMLInputElement | null = null
+  state = {
+    emojiPickerOpen: false,
+    hasText: false,
   }
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
@@ -132,13 +128,10 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   _insertEmoji = (emojiColons: string) => {
     if (this._input) {
       this._input.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start) + emojiColons + text.slice(selection.end)
-        const pos = selection.start + emojiColons.length
+        const newText = text.slice(0, selection.start || 0) + emojiColons + text.slice(selection.end || 0)
+        const pos = (selection.start || 0) + emojiColons.length
         return {
-          selection: {
-            end: pos,
-            start: pos,
-          },
+          selection: {end: pos, start: pos},
           text: newText,
         }
       }, true)
@@ -153,15 +146,17 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   _pickFile = () => {
     const fileList = this._filePickerFiles()
-    const paths = fileList.length
+    const paths: Array<string> = fileList.length
       ? Array.prototype.map
           .call(fileList, (f: File) => {
             // We rely on path being here, even though it's
             // not part of the File spec.
-            const path: string = f.path
-            return path
+            return f.path as string
           })
-          .filter(Boolean)
+          .reduce<Array<string>>((arr, p: any) => {
+            p && arr.push(p)
+            return arr
+          }, [])
       : []
     if (paths) {
       this.props.onAttach(paths)
