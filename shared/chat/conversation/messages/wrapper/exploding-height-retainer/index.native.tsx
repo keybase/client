@@ -11,7 +11,8 @@ const explodedIllustrationURL = require('../../../../../images/icons/pattern-ash
 
 export const animationDuration = 1500
 
-const copyChildren = children =>
+const copyChildren = (children: React.ReactNode): React.ReactNode =>
+  // @ts-ignore
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
 type State = {
@@ -26,9 +27,9 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     height: 20,
     numImages: 1,
   }
-  timeoutID: NodeJS.Timer
+  timeoutID?: NodeJS.Timer
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+  static getDerivedStateFromProps(nextProps: Props, _: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
   }
 
@@ -38,7 +39,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       this._clearTimeout()
       this.timeoutID = setTimeout(() => {
         this.setState({children: null})
-        this.timeoutID = null
+        this.timeoutID = undefined
       }, animationDuration)
     }
   }
@@ -60,7 +61,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     // `if` is for clarity but isn't really necessary, `clearTimeout` fails silently
     if (this.timeoutID) {
       clearTimeout(this.timeoutID)
-      this.timeoutID = null
+      this.timeoutID = undefined
     }
   }
 
@@ -89,7 +90,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 
 type AshTowerProps = {
   exploded: boolean
-  explodedBy: string | null
+  explodedBy?: string
   messageKey: string
   numImages: number
 }
@@ -104,7 +105,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
     showExploded: this.props.exploded,
     width: this.props.exploded ? new Kb.NativeAnimated.Value(100) : new Kb.NativeAnimated.Value(0),
   }
-  timerID: SharedTimerID
+  timerID?: SharedTimerID
 
   componentDidUpdate(prevProps: AshTowerProps) {
     if (!prevProps.exploded && this.props.exploded) {
@@ -115,7 +116,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
         toValue: 100,
       }).start()
       // insert 'EXPLODED' in sync with 'boom!' disappearing
-      SharedTimer.removeObserver(this.props.messageKey, this.timerID)
+      this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
       this.timerID = SharedTimer.addObserver(() => this.setState({showExploded: true}), {
         key: this.props.messageKey,
         ms: animationDuration,
@@ -124,7 +125,7 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
   }
 
   componentWillUnmount() {
-    SharedTimer.removeObserver(this.props.messageKey, this.timerID)
+    this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
   }
 
   render() {
@@ -145,13 +146,8 @@ class AnimatedAshTower extends React.Component<AshTowerProps, AshTowerState> {
 }
 
 class EmojiTower extends React.Component<
-  {
-    numImages: number
-    animatedValue: Kb.NativeAnimated.Value
-  },
-  {
-    running: boolean
-  }
+  {numImages: number; animatedValue: Kb.NativeAnimated.Value},
+  {running: boolean}
 > {
   state = {running: false}
   componentDidMount() {
@@ -181,7 +177,7 @@ class EmojiTower extends React.Component<
     if (!this.state.running) {
       return null
     }
-    const children = []
+    const children: Array<React.ReactNode> = []
     for (let i = 0; i < this.props.numImages * 4; i++) {
       const r = Math.random()
       let emoji
@@ -201,12 +197,12 @@ class EmojiTower extends React.Component<
     return <Kb.Box style={styles.emojiTower}>{children}</Kb.Box>
   }
 }
-const AshTower = (props: {explodedBy: string | null; numImages: number; showExploded: boolean}) => {
-  const children = []
+const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: boolean}) => {
+  const children: Array<React.ReactNode> = []
   for (let i = 0; i < props.numImages; i++) {
     children.push(<Kb.NativeImage key={i} source={explodedIllustrationURL} style={styles.ashes} />)
   }
-  let exploded = null
+  let exploded: React.ReactNode = null
   if (props.showExploded) {
     exploded = !props.explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded}>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
+import {MenuItems, Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
 import {platformStyles, globalColors} from '../../../../styles'
 import {Props} from './index.types'
 
@@ -10,9 +10,7 @@ const quantityTextStyle = platformStyles({
     // NOTE if times are added that have three digits, this will need to be increased.
     width: 15,
   },
-  isElectron: {
-    display: 'inline-block',
-  },
+  isElectron: {display: 'inline-block'},
 })
 
 type ItemProps = {
@@ -21,7 +19,7 @@ type ItemProps = {
 }
 
 const Item = (props: ItemProps) => {
-  let content
+  let content: React.ReactNode
   const words = props.desc.text.split(' ')
   if (props.desc.seconds === 0) {
     // never item
@@ -48,7 +46,7 @@ const Item = (props: ItemProps) => {
 
 const SetExplodePopup = (props: Props) => {
   const selected = props.selected || {seconds: 0, text: 'Never'}
-  const listItems = props.items.map(it => ({
+  const listItems: MenuItems = props.items.map(it => ({
     disabled: false,
     onClick: () => props.onSelect(it.seconds),
     title: it.text,

@@ -38,8 +38,8 @@ import {formatTimeForChat} from '../../../../util/timestamp'
  */
 
 export type Props = {
-  authorIsAdmin: boolean | null
-  authorIsOwner: boolean | null
+  authorIsAdmin?: boolean
+  authorIsOwner?: boolean
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
   decorate: boolean
@@ -52,14 +52,14 @@ export type Props = {
   isRevoked: boolean
   showCoinsIcon: boolean
   showUsername: string
-  measure: (() => void) | null
+  measure?: () => void
   message: Types.Message
   onAuthorClick: () => void
-  onCancel: (() => void) | null
-  onEdit: (() => void) | null
-  onRetry: (() => void) | null
+  onCancel?: () => void
+  onEdit?: () => void
+  onRetry?: () => void
   orangeLineAbove: boolean
-  previous: Types.Message | null
+  previous?: Types.Message
   shouldShowPopup: boolean
   showCrowns: boolean
   showSendIndicator: boolean
@@ -389,9 +389,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _messageAndButtons = () => {
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
     const message = this.props.message
-    let child
+    let child: React.ReactNode = null
     let exploded = false
-    let explodedBy = null
+    let explodedBy = ''
     switch (message.type) {
       case 'text':
         exploded = message.exploded
