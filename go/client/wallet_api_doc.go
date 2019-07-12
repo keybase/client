@@ -34,8 +34,11 @@ Send XLM to a Keybase user (there is no confirmation so be careful):
 Send $10 USD worth of XLM to a Keybase user:
     {"method": "send", "params": {"options": {"recipient": "patrick", "amount": "10", "currency": "USD", "message": "here's the money I owe you"}}}
 
-Send 10 AnchorUSD to a Keybase user as a path payment by converting XLM:
-    {"method": "send-path-payment", "params": {"options": {"recipient": "patrick", "amount": "10", "source-asset": "native", "destination-asset": "USD/GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX"}}}
+Find a payment path to a Keybase user between two assets:
+    {"method": "find-payment-path", "params": {"options": {"recipient": "patrick", "amount": "10", "source-asset": "native", "destination-asset": "USD/GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX"}}}
+
+Send 10 AnchorUSD to a Keybase user as a path payment by converting at most 120 XLM (there is no confirmation so be careful):
+    {"method": "send-path-payment", "params": {"options": {"recipient": "patrick", "amount": "10", "source-max-amount": "120", "source-asset": "native", "destination-asset": "USD/GDUKMGUGDZQK6YHYA5Z6AY2G4XDSZPSZ3SW5UN3ARVMO6QSRDWP5YLEX"}}}
 
 If you send XLM to a Keybase user who has not established a wallet yet, you can
 cancel the payment before the recipient claims it and the XLM will be returned
