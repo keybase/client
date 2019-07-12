@@ -34,8 +34,8 @@ class GetTitles extends React.Component<Props, State> {
     }
   }
 
-  _onNext = (e: React.SyntheticEvent) => {
-    e.preventDefault()
+  _onNext = (e?: React.SyntheticEvent) => {
+    e && e.preventDefault()
 
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
