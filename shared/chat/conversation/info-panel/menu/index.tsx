@@ -152,7 +152,7 @@ class InfoPanelMenu extends React.Component<Props> {
         ) : (
           <TeamHeader
             isMuted={
-              props.convProps === null || props.convProps === undefined ? undefined : props.convProps.muted
+              props.convProps === null || props.convProps === undefined ? false : props.convProps.muted
             }
             teamname={props.teamname}
             memberCount={props.memberCount}

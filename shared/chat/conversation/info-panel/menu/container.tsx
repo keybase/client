@@ -7,7 +7,7 @@ import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import {namedConnect} from '../../../../util/container'
-import {InfoPanelMenu} from '.'
+import {InfoPanelMenu, ConvProps} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
@@ -35,7 +35,7 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
 }
 
 const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
-  let convProps = null
+  let convProps: ConvProps | null = null
   if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
     const participants = ChatConstants.getRowParticipants(meta, state.config.username || '').toArray()

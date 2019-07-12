@@ -73,8 +73,8 @@ export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
   isPreview: boolean
-  teamname: string | null
-  channelname: string | null
+  teamname?: string
+  channelname?: string
   smallTeam: boolean
   admin: boolean
   ignored: boolean
@@ -109,7 +109,7 @@ export type InfoPanelProps = {
   // Used for big teams.
   canEditChannel: boolean
   canDeleteHistory: boolean
-  description: string | null
+  description?: string
   onEditChannel: () => void
   onLeaveConversation: () => void
   onJoinChannel: () => void
@@ -142,7 +142,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   _getTabs = (entityType: EntityType) => {
-    const res = []
+    const res: Array<React.ReactNode> = []
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
@@ -228,7 +228,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
   _renderTabs = () => {
     const tabs = this._getTabs(this._getEntityType())
-    const selected = tabs.find(tab => this._isSelected(tab.key)) || null
+    const selected = tabs.find((tab: any) => tab && this._isSelected(tab.key)) || null
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.Tabs
@@ -255,7 +255,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 
   render() {
     const entityType = this._getEntityType()
-    let sections = []
+    let sections: Array<unknown> = []
     let tabsSection = this._tabsSection()
     sections.push(this._headerSection())
     let itemSizeEstimator

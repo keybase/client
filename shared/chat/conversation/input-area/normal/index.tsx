@@ -155,8 +155,8 @@ type InputState = {
 
 class Input extends React.Component<InputProps, InputState> {
   _lastQuote: number
-  _input: Kb.PlainInput | null
-  _lastText: string | null
+  _input: Kb.PlainInput | null = null
+  _lastText?: string
   _suggestorDatasource = {}
   _suggestorRenderer = {}
   _suggestorTransformer = {}
@@ -339,7 +339,7 @@ class Input extends React.Component<InputProps, InputState> {
       // a little messy. Check if the message starts with '/' and that the cursor is
       // within maxCmdLength chars away from it. This happens before `onChangeText`, so
       // we can't do a more robust check on `this._lastText` because it's out of date.
-      if (!this._lastText.startsWith('/') || sel.start > this._maxCmdLength) {
+      if (!this._lastText.startsWith('/') || (sel.start || 0) > this._maxCmdLength) {
         // not at beginning of message
         return []
       }
