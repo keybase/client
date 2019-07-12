@@ -130,8 +130,8 @@ const youSendXLMProps = {
 
 const pendingPaymentProps = {
   ...youSendXLMProps,
-  topLine: 'pending',
   status: 'pending',
+  topLine: 'pending',
 }
 
 const loadingProps = {

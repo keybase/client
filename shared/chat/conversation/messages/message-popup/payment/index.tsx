@@ -227,20 +227,6 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.small,
     },
   }),
-  pendingHeaderIcon: Styles.platformStyles({
-    common: {height: pendingIconSize},
-    isAndroid: {
-      marginTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      marginBottom: Styles.globalMargins.small,
-      display: 'inline-block',
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
-    },
-  }),
   headerTextNotPending: {color: Styles.globalColors.white},
   headerTextPending: {color: Styles.globalColors.black_50},
   headerTop: Styles.platformStyles({
@@ -272,6 +258,20 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
+  pendingHeaderIcon: Styles.platformStyles({
+    common: {height: pendingIconSize},
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      display: 'inline-block',
+      marginBottom: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
   pendingHeaderTop: Styles.platformStyles({
     common: {
       alignItems: 'center',
