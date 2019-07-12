@@ -286,9 +286,10 @@
   record ConversationBotCommandConv {
     gregor1.UID uid;
     ConversationID convID;
+    gregro1.Time ctime;
   }
 
-  record ConversationBotCommands {
+  record ConversationBotInfo {
     array<ConversationBotCommandConv> commands;
   }
 
@@ -307,8 +308,8 @@
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
 
-    // conversation bot commands
-    union { null, ConversationBotCommands } botCommands;
+    // conversation bot info
+    union { null, ConversationBotInfo } botInfo;
 
     // The latest history deletion. Defaults to zeroes.
     // The client keeps this synced for retention but not for delete-history messages.
