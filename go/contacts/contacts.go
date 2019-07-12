@@ -58,6 +58,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	// contactIndex -> true for all contacts that have at least one component resolved.
 	contactsFound := make(map[int]struct{})
 	usersFound := make(map[keybase1.UID]struct{})
+	errorComponents := make(map[string]string)
 
 	if len(emailSet) > 0 || len(phoneSet) > 0 {
 		phones := make([]keybase1.RawPhoneNumber, 0, len(phoneSet))
@@ -94,6 +95,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 						if _, userFound := usersFound[lookupRes.UID]; userFound {
 							// This user was already resolved by looking up another
 							// component or another contact.
+							continue
+						}
+
+						if lookupRes.Error != "" {
+							errorComponents[component.ValueString()] = lookupRes.Error
+							mctx.Debug("Could not look up component: %+v, %q, error: %s", component, component.ValueString(), lookupRes.Error)
 							continue
 						}
 
@@ -153,6 +160,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 		// components in a contact.
 		var addLabel = len(c.Components) > 1
 		for _, component := range c.Components {
+			if _, foundErr := errorComponents[component.ValueString()]; foundErr {
+				// Do not return error components. If server said they are
+				// invalid, they can't be used for SBS either.
+				continue
+			}
+
 			res = append(res, keybase1.ProcessedContact{
 				ContactIndex: i,
 				ContactName:  c.Name,

@@ -20,18 +20,20 @@ type mockLookupUser struct {
 }
 
 type MockContactsProvider struct {
-	t            *testing.T
-	phoneNumbers map[keybase1.RawPhoneNumber]mockLookupUser
-	emails       map[keybase1.EmailAddress]mockLookupUser
-	following    map[keybase1.UID]bool
+	t                 *testing.T
+	phoneNumbers      map[keybase1.RawPhoneNumber]mockLookupUser
+	phoneNumberErrors map[keybase1.RawPhoneNumber]string
+	emails            map[keybase1.EmailAddress]mockLookupUser
+	following         map[keybase1.UID]bool
 }
 
 func makeProvider(t *testing.T) *MockContactsProvider {
 	return &MockContactsProvider{
-		t:            t,
-		phoneNumbers: make(map[keybase1.RawPhoneNumber]mockLookupUser),
-		emails:       make(map[keybase1.EmailAddress]mockLookupUser),
-		following:    make(map[keybase1.UID]bool),
+		t:                 t,
+		phoneNumbers:      make(map[keybase1.RawPhoneNumber]mockLookupUser),
+		phoneNumberErrors: make(map[keybase1.RawPhoneNumber]string),
+		emails:            make(map[keybase1.EmailAddress]mockLookupUser),
+		following:         make(map[keybase1.UID]bool),
 	}
 }
 
@@ -47,6 +49,9 @@ func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybas
 	for _, number := range numbers {
 		if user, found := c.phoneNumbers[number]; found {
 			ret[fmt.Sprintf("p:%s", string(number))] = ContactLookupResult{UID: user.UID}
+		}
+		if errStr, found := c.phoneNumberErrors[number]; found {
+			ret[fmt.Sprintf("p:%s", string(number))] = ContactLookupResult{Error: errStr}
 		}
 	}
 	return ret, nil
@@ -396,6 +401,55 @@ func TestFollowing(t *testing.T) {
 		`"charlie" "Charlie"`,         // followed but no full name, take contact name
 		`"doug" "doug+test@keyba.se"`, // not followed, no full name, no contact name, take component
 		`"alice" "CryptoAlice"`,       // followed and have full name, take full name
+	}
+	require.Equal(t, expected, displayResults(res))
+}
+
+func TestErrorsInResolution(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
+	defer tc.Cleanup()
+
+	contactList := []keybase1.Contact{
+		keybase1.Contact{
+			Name: "Alice",
+			Components: []keybase1.ContactComponent{
+				makePhoneComponent("home", "+1111222"),
+				makePhoneComponent("work", "444"),
+			},
+		},
+		keybase1.Contact{
+			Name: "Bob",
+			Components: []keybase1.ContactComponent{
+				makeEmailComponent("", "bob+test@keyba.se"),
+			},
+		},
+	}
+
+	provider := makeProvider(t)
+	provider.phoneNumbers["+1111222"] = mockLookupUser{UID: keybase1.UID("1111"), Username: "alice", Fullname: "CryptoAlice"}
+	provider.phoneNumberErrors["444"] = "Mock error for number 444"
+
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+	require.True(t, res[0].Resolved)
+	require.False(t, res[1].Resolved)
+	expected := []string{
+		`"alice" "Alice"`,
+		`"Bob" "bob+test@keyba.se"`,
+	}
+	require.Equal(t, expected, displayResults(res))
+
+	delete(provider.phoneNumbers, "+1111222")
+
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+	require.False(t, res[0].Resolved)
+	require.False(t, res[1].Resolved)
+	expected = []string{
+		`"Alice" "+1111222 (home)"`,
+		`"Bob" "bob+test@keyba.se"`,
 	}
 	require.Equal(t, expected, displayResults(res))
 }
