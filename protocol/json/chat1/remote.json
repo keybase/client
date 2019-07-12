@@ -665,8 +665,7 @@
       "symbols": [
         "PUBLIC_0",
         "TLFID_MEMBERS_1",
-        "TLFID_CONVS_2",
-        "USER_3"
+        "TLFID_CONVS_2"
       ]
     },
     {
@@ -690,20 +689,6 @@
         {
           "type": "TLFID",
           "name": "tlfID"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "BotCommandsUser",
-      "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
-        },
-        {
-          "type": "gregor1.UID",
-          "name": "uid"
         }
       ]
     },
@@ -735,13 +720,6 @@
             "def": false
           },
           "body": "BotCommandsTLFID"
-        },
-        {
-          "label": {
-            "name": "USER",
-            "def": false
-          },
-          "body": "BotCommandsUser"
         }
       ]
     }

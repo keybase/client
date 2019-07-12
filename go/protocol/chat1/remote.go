@@ -934,7 +934,6 @@ const (
 	BotCommandsTyp_PUBLIC        BotCommandsTyp = 0
 	BotCommandsTyp_TLFID_MEMBERS BotCommandsTyp = 1
 	BotCommandsTyp_TLFID_CONVS   BotCommandsTyp = 2
-	BotCommandsTyp_USER          BotCommandsTyp = 3
 )
 
 func (o BotCommandsTyp) DeepCopy() BotCommandsTyp { return o }
@@ -943,14 +942,12 @@ var BotCommandsTypMap = map[string]BotCommandsTyp{
 	"PUBLIC":        0,
 	"TLFID_MEMBERS": 1,
 	"TLFID_CONVS":   2,
-	"USER":          3,
 }
 
 var BotCommandsTypRevMap = map[BotCommandsTyp]string{
 	0: "PUBLIC",
 	1: "TLFID_MEMBERS",
 	2: "TLFID_CONVS",
-	3: "USER",
 }
 
 func (e BotCommandsTyp) String() string {
@@ -982,24 +979,11 @@ func (o BotCommandsTLFID) DeepCopy() BotCommandsTLFID {
 	}
 }
 
-type BotCommandsUser struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	Uid    gregor1.UID    `codec:"uid" json:"uid"`
-}
-
-func (o BotCommandsUser) DeepCopy() BotCommandsUser {
-	return BotCommandsUser{
-		ConvID: o.ConvID.DeepCopy(),
-		Uid:    o.Uid.DeepCopy(),
-	}
-}
-
 type BotCommands struct {
 	Typ__          BotCommandsTyp     `codec:"typ" json:"typ"`
 	Public__       *BotCommandsPublic `codec:"public,omitempty" json:"public,omitempty"`
 	TlfidMembers__ *BotCommandsTLFID  `codec:"tlfidMembers,omitempty" json:"tlfidMembers,omitempty"`
 	TlfidConvs__   *BotCommandsTLFID  `codec:"tlfidConvs,omitempty" json:"tlfidConvs,omitempty"`
-	User__         *BotCommandsUser   `codec:"user,omitempty" json:"user,omitempty"`
 }
 
 func (o *BotCommands) Typ() (ret BotCommandsTyp, err error) {
@@ -1017,11 +1001,6 @@ func (o *BotCommands) Typ() (ret BotCommandsTyp, err error) {
 	case BotCommandsTyp_TLFID_CONVS:
 		if o.TlfidConvs__ == nil {
 			err = errors.New("unexpected nil value for TlfidConvs__")
-			return ret, err
-		}
-	case BotCommandsTyp_USER:
-		if o.User__ == nil {
-			err = errors.New("unexpected nil value for User__")
 			return ret, err
 		}
 	}
@@ -1058,16 +1037,6 @@ func (o BotCommands) TlfidConvs() (res BotCommandsTLFID) {
 	return *o.TlfidConvs__
 }
 
-func (o BotCommands) User() (res BotCommandsUser) {
-	if o.Typ__ != BotCommandsTyp_USER {
-		panic("wrong case accessed")
-	}
-	if o.User__ == nil {
-		return
-	}
-	return *o.User__
-}
-
 func NewBotCommandsWithPublic(v BotCommandsPublic) BotCommands {
 	return BotCommands{
 		Typ__:    BotCommandsTyp_PUBLIC,
@@ -1086,13 +1055,6 @@ func NewBotCommandsWithTlfidConvs(v BotCommandsTLFID) BotCommands {
 	return BotCommands{
 		Typ__:        BotCommandsTyp_TLFID_CONVS,
 		TlfidConvs__: &v,
-	}
-}
-
-func NewBotCommandsWithUser(v BotCommandsUser) BotCommands {
-	return BotCommands{
-		Typ__:  BotCommandsTyp_USER,
-		User__: &v,
 	}
 }
 
@@ -1120,13 +1082,6 @@ func (o BotCommands) DeepCopy() BotCommands {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TlfidConvs__),
-		User__: (func(x *BotCommandsUser) *BotCommandsUser {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.User__),
 	}
 }
 

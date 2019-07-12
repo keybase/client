@@ -489,7 +489,6 @@ export enum BotCommandsTyp {
   public = 0,
   tlfidMembers = 1,
   tlfidConvs = 2,
-  user = 3,
 }
 
 export enum ChannelMention {
@@ -861,10 +860,9 @@ export type BodyPlaintext = {version: BodyPlaintextVersion.v1; v1: BodyPlaintext
 export type BodyPlaintextMetaInfo = {readonly crit: Boolean}
 export type BodyPlaintextUnsupported = {readonly mi: BodyPlaintextMetaInfo}
 export type BodyPlaintextV1 = {readonly messageBody: MessageBody}
-export type BotCommands = {typ: BotCommandsTyp.public; public: BotCommandsPublic | null} | {typ: BotCommandsTyp.tlfidMembers; tlfidMembers: BotCommandsTLFID | null} | {typ: BotCommandsTyp.tlfidConvs; tlfidConvs: BotCommandsTLFID | null} | {typ: BotCommandsTyp.user; user: BotCommandsUser | null}
+export type BotCommands = {typ: BotCommandsTyp.public; public: BotCommandsPublic | null} | {typ: BotCommandsTyp.tlfidMembers; tlfidMembers: BotCommandsTLFID | null} | {typ: BotCommandsTyp.tlfidConvs; tlfidConvs: BotCommandsTLFID | null}
 export type BotCommandsPublic = {readonly convID: ConversationID}
 export type BotCommandsTLFID = {readonly convID: ConversationID; readonly tlfID: TLFID}
-export type BotCommandsUser = {readonly convID: ConversationID; readonly uid: Gregor1.UID}
 export type BuiltinCommandGroup = {readonly typ: ConversationBuiltinCommandTyp; readonly commands?: Array<ConversationCommand> | null}
 export type ChannelNameMention = {readonly convID: ConversationID; readonly topicName: String}
 export type ChatActivity = {activityType: ChatActivityType.incomingMessage; incomingMessage: IncomingMessage | null} | {activityType: ChatActivityType.readMessage; readMessage: ReadMessageInfo | null} | {activityType: ChatActivityType.newConversation; newConversation: NewConversationInfo | null} | {activityType: ChatActivityType.setStatus; setStatus: SetStatusInfo | null} | {activityType: ChatActivityType.failedMessage; failedMessage: FailedMessageInfo | null} | {activityType: ChatActivityType.membersUpdate; membersUpdate: MembersUpdateInfo | null} | {activityType: ChatActivityType.setAppNotificationSettings; setAppNotificationSettings: SetAppNotificationSettingsInfo | null} | {activityType: ChatActivityType.teamtype; teamtype: TeamTypeInfo | null} | {activityType: ChatActivityType.expunge; expunge: ExpungeInfo | null} | {activityType: ChatActivityType.ephemeralPurge; ephemeralPurge: EphemeralPurgeNotifInfo | null} | {activityType: ChatActivityType.reactionUpdate; reactionUpdate: ReactionUpdateNotif | null} | {activityType: ChatActivityType.messagesUpdated; messagesUpdated: MessagesUpdated | null}
