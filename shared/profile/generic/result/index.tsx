@@ -5,7 +5,6 @@ import * as Tracker2Types from '../../../constants/types/tracker2'
 import {SiteIcon} from '../shared'
 
 type Props = {
-  error: boolean
   errorText: string
   onClose: () => void
   proofUsername: string
@@ -13,17 +12,18 @@ type Props = {
 }
 
 const _Result = (props: Props) => {
-  const iconType = props.error ? 'icon-proof-broken' : 'icon-proof-success'
+  const success = !props.errorText
+  const iconType = success ? 'icon-proof-success' : 'icon-proof-broken'
   let frag = (
     <>
       <Kb.Text type="Body">You are provably</Kb.Text>
       <Kb.Text type="BodySemibold">{props.proofUsername}</Kb.Text>
     </>
   )
-  if (props.error) {
+  if (!success) {
     frag = (
       <>
-        <Kb.Text type="Body">{props.errorText || 'Failed to verify proof'}</Kb.Text>
+        <Kb.Text type="Body">{props.errorText}</Kb.Text>
       </>
     )
   }

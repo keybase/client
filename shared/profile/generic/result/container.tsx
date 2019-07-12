@@ -4,8 +4,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import Success from '.'
 
 const mapStateToProps = state => ({
-  error: state.profile.errorCode !== null,
-  errorText: state.profile.errorText,
+  errorText: state.profile.errorCode !== null ? state.profile.errorText || 'Failed to verify proof' : '',
   proofUsername:
     state.profile.username + // Auto generated from flowToTs. Please clean me!
     ((state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined

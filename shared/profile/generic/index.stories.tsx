@@ -17,7 +17,6 @@ const load = () => {
             serviceIcon={[]}
             proofUsername={'cecileboucheron@boardgames.social'}
             onClose={Sb.action('onClose')}
-            error={false}
             errorText={''}
           />
         </Kb.Box>
@@ -30,7 +29,6 @@ const load = () => {
             serviceIcon={[]}
             proofUsername={'cecileboucheron@boardgames.social'}
             onClose={Sb.action('onClose')}
-            error={true}
             errorText={'Timed out after looking for proof for 1h'}
           />
         </Kb.Box>
