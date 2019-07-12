@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
-import {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
 // * Use ListItem2
@@ -12,13 +12,13 @@ import {ServiceIdWithContact, FollowingState} from '../constants/types/team-buil
 export type Props = {
   // They are already a member in the actual team, not this temporary set.
   isPreExistingTeamMember: boolean
-  resultForService: ServiceIdWithContact
+  resultForService: Types.ServiceIdWithContact
   username: string
   prettyName: string
-  services: {[K in ServiceIdWithContact]?: string}
+  services: {[K in Types.ServiceIdWithContact]?: string}
   fixedHeight?: number
   inTeam: boolean
-  followingState: FollowingState
+  followingState: Types.FollowingState
   highlight: boolean
   onAdd: () => void
   onRemove: () => void
@@ -74,15 +74,11 @@ class Row extends React.Component<Props, LocalState> {
           <Username
             isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
+            keybaseUsername={keybaseUsername || ''}
             username={serviceUsername || ''}
             prettyName={this.props.prettyName}
             followingState={this.props.followingState}
-          />
-          <Services
-            keybaseResult={keybaseResult}
             services={this.props.services}
-            keybaseUsername={keybaseUsername}
-            followingState={this.props.followingState}
           />
           {!this.props.isPreExistingTeamMember && (
             <ActionButton
@@ -105,7 +101,7 @@ const Avatar = ({
   keybaseUsername,
 }: {
   keybaseUsername: string | null
-  resultForService: ServiceIdWithContact
+  resultForService: Types.ServiceIdWithContact
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
@@ -121,14 +117,42 @@ const Avatar = ({
 }
 
 const isPreExistingTeamMemberText = (prettyName: string) =>
-  `${prettyName || ''}${prettyName ? ' • ' : ''} Already in team`
+  `${prettyName ? prettyName + ' • ' : ''} Already in team`
+
+const FormatPrettyName = (props: {
+  followingState: Types.FollowingState
+  keybaseResult: boolean
+  keybaseUsername: string | null
+  prettyName: string
+  services: [Types.ServiceIdWithContact]
+}) =>
+  props.keybaseResult ? (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
+      {!!props.prettyName && (
+        <Kb.Text type="BodySmall">
+          {props.prettyName + (Object.keys(props.services).length ? ' •' : '')}
+        </Kb.Text>
+      )}
+      {props.services.map(service => (
+        <Kb.WithTooltip key={service} text={props.services[service]} position="top center">
+          <Kb.Icon
+            fontSize={14}
+            type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
+            style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
+          />
+        </Kb.WithTooltip>
+      ))}
+    </Kb.Box2>
+  ) : null
 
 const Username = (props: {
   username: string
   prettyName: string
   isPreExistingTeamMember?: boolean
-  followingState: FollowingState
+  followingState: Types.FollowingState
   keybaseResult: boolean
+  keybaseUsername: string | null
+  services: {[K in Types.ServiceIdWithContact]?: string}
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
     <Kb.Text
@@ -140,50 +164,16 @@ const Username = (props: {
     {props.isPreExistingTeamMember ? (
       <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
     ) : (
-      !!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>
+      <FormatPrettyName
+        followingState={props.followingState}
+        keybaseResult={props.keybaseResult}
+        keybaseUsername={props.keybaseUsername}
+        prettyName={props.prettyName}
+        services={Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]}
+      />
     )}
   </Kb.Box2>
 )
-
-const Services = ({
-  services,
-  keybaseResult,
-  keybaseUsername,
-  followingState,
-}: {
-  services: {[K in ServiceIdWithContact]?: string}
-  keybaseResult: boolean
-  keybaseUsername: string | null
-  followingState: FollowingState
-}) => {
-  if (keybaseResult) {
-    return (
-      <Kb.Box2 direction="horizontal" style={styles.services}>
-        {Object.keys(services)
-          .filter(s => s !== 'keybase')
-          .map(service => (
-            <Kb.WithTooltip key={service} text={services[service]} position="top center">
-              <Kb.Icon
-                type={serviceIdToIconFont(service as ServiceIdWithContact)}
-                style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
-              />
-            </Kb.WithTooltip>
-          ))}
-      </Kb.Box2>
-    )
-  } else if (keybaseUsername) {
-    return (
-      <Kb.Box2 direction="horizontal" style={styles.services}>
-        <Kb.Icon type={'icon-keybase-logo-16'} style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
-        <Kb.Text type="BodySemibold" style={followingStateToStyle(followingState)}>
-          {keybaseUsername}
-        </Kb.Text>
-      </Kb.Box2>
-    )
-  }
-
-  return null
-}
 
 const ActionButton = (props: {
   highlight: boolean
@@ -301,15 +291,16 @@ const styles = Styles.styleSheetCreate({
   }),
   serviceIcon: Styles.platformStyles({
     common: {
-      marginLeft: Styles.globalMargins.tiny,
+      marginLeft: Styles.globalMargins.xtiny,
+      marginTop: 1,
     },
     isElectron: {
-      height: 18,
-      width: 18,
+      height: 14,
+      width: 14,
     },
   }),
   services: {
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   username: {
     flex: 1,
