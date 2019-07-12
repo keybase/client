@@ -13,7 +13,7 @@ type OwnProps = {
   visible: boolean
 }
 
-export default Container.connectDEBUG(
+export default Container.connect(
   () => ({}),
   (dispatch, {teamname}: OwnProps) => {
     return {
