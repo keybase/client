@@ -530,11 +530,11 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		reconnectBackoff:              reconnectBackoff,
 		doCommandBackoff:              commandBackoff,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
-		wef:                           opts.WrapErrorFunc,
-		tagsFunc:                      opts.TagsFunc,
-		log:                           log,
-		protocols:                     opts.Protocols,
-		reconnectedBefore:             opts.ForceInitialBackoff,
+		wef:               opts.WrapErrorFunc,
+		tagsFunc:          opts.TagsFunc,
+		log:               log,
+		protocols:         opts.Protocols,
+		reconnectedBefore: opts.ForceInitialBackoff,
 	}
 	if !opts.DontConnectNow {
 		// start connecting now

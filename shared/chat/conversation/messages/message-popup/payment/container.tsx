@@ -77,7 +77,9 @@ const sendMapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 })
 
 const getTopLineUser = (paymentInfo, sender, you: string) => {
-  if (paymentInfo.fromUsername === you) {
+  if (paymentInfo.status === 'pending') {
+    return 'pending'
+  } else if (paymentInfo.fromUsername === you) {
     return 'you sent'
   } else if (paymentInfo.toUsername === you) {
     return 'you received'
@@ -130,6 +132,7 @@ const sendMergeProps = (
     onSeeDetails:
       (paymentInfo.status === 'completed' ||
         paymentInfo.status === 'error' ||
+        paymentInfo.status === 'pending' ||
         paymentInfo.status === 'claimable' ||
         paymentInfo.status === 'canceled') &&
       (youAreSender || youAreReceiver)
@@ -138,7 +141,7 @@ const sendMergeProps = (
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
-    status: '',
+    status: paymentInfo.status,
     style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${getTopLineUser(paymentInfo, ownProps.message.author, you)}${

@@ -44,6 +44,7 @@ type SignupEngineRunArg struct {
 	SkipMail                 bool
 	SkipPaper                bool
 	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
+	VerifyEmail              bool
 
 	// Used in tests for reproducible key generation
 	naclSigningKeyPair    libkb.NaclKeyPair
@@ -243,14 +244,15 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 	}
 
 	arg := SignupJoinEngineRunArg{
-		Username:   username,
-		Email:      email,
-		InviteCode: inviteCode,
-		PWHash:     s.ppStream.PWHash(),
-		PWSalt:     s.pwsalt,
-		RandomPW:   randomPW,
-		SkipMail:   skipMail,
-		PDPKA5KID:  pdpkda5kid,
+		Username:    username,
+		Email:       email,
+		InviteCode:  inviteCode,
+		PWHash:      s.ppStream.PWHash(),
+		PWSalt:      s.pwsalt,
+		RandomPW:    randomPW,
+		SkipMail:    skipMail,
+		PDPKA5KID:   pdpkda5kid,
+		VerifyEmail: s.arg != nil && s.arg.VerifyEmail,
 	}
 	res := joinEngine.Run(m, arg)
 	if res.Err != nil {
