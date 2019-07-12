@@ -14,7 +14,7 @@ export type Props = {
   onHidden?: () => void
   // Desktop only - the node that we should aim for
   // optional because desktop only, return val nullable because refs always are
-  attachTo?: (() => React.ReactInstance | null) | null
+  attachTo?: () => React.ReactInstance | null
   // Desktop only - allow clicks outside the floating box to propagate. On
   // mobile you can control this by setting a margin in `containerStyle`.
   propagateOutsideClicks?: boolean

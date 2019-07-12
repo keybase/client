@@ -8,7 +8,7 @@ import * as Styles from '../../../styles'
 const Kb = {Box2, Button, FloatingMenu, Text}
 
 type PopupProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   onHidden: () => void
   onResolve: () => void
   text: string

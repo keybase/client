@@ -13,7 +13,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   message: Types.MessageAttachment | Types.MessageText
   onHidden: () => void
   position: Position

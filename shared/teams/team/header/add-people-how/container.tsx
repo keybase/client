@@ -7,7 +7,7 @@ import {teamsTab} from '../../../../constants/tabs'
 import openURL from '../../../../util/open-url'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   onHidden: () => void
   teamname: string
   visible: boolean

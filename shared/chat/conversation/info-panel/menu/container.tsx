@@ -11,7 +11,7 @@ import {InfoPanelMenu} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   onHidden: () => void
   isSmallTeam: boolean
   teamname: string

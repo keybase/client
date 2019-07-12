@@ -14,7 +14,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   onHidden: () => void
   error: string
   visible: boolean

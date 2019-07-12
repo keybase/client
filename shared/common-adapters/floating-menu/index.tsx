@@ -12,15 +12,15 @@ import {Color, StylesCrossPlatform} from '../../styles'
 
 export type Props = {
   closeOnSelect: boolean
-  closeText?: string | null // mobile only; default to "Close",
+  closeText?: string // mobile only; default to "Close",
   containerStyle?: StylesCrossPlatform
   items: MenuItems
-  header?: MenuItem | null
+  header?: MenuItem
   backgroundColor?: Color
   listStyle?: Object
   onHidden: () => void
   visible: boolean
-  attachTo?: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   position?: Position
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean

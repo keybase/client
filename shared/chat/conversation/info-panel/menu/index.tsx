@@ -13,7 +13,7 @@ export type ConvProps = {
 }
 
 export type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   badgeSubscribe: boolean
   canAddPeople: boolean
   convProps: ConvProps | null

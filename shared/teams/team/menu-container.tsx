@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
 
 type OwnProps = {
-  attachTo: (() => React.Component<any>) | null
+  attachTo?: (() => React.Component<any>)
   onHidden: () => void
   teamname: string
   visible: boolean
@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
 })
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>
   items: Kb.MenuItems
   onHidden: () => void
   visible: boolean

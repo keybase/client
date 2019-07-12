@@ -159,7 +159,7 @@ const provider = Sb.createPropProviderWithCommon({
     measure: p.measure,
   }),
   MessagePopupText: p => ({
-    attachTo: null,
+    attachTo: undefined,
     author: 'a',
     deviceName: 'a',
     deviceRevokedAt: 0,
