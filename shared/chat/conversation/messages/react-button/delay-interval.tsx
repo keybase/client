@@ -5,8 +5,8 @@ class DelayInterval {
   _intervalMS: number
   _delayMS: number
 
-  _intervalID: NodeJS.Timer
-  _delayID: NodeJS.Timer
+  _intervalID?: NodeJS.Timer
+  _delayID?: NodeJS.Timer
 
   constructor(intervalMS: number, delayMS: number) {
     this._intervalMS = intervalMS
@@ -23,9 +23,9 @@ class DelayInterval {
   }
   stop() {
     this._delayID && clearTimeout(this._delayID)
-    this._delayID = null
+    this._delayID = undefined
     this._intervalID && clearInterval(this._intervalID)
-    this._intervalID = null
+    this._intervalID = undefined
   }
   running() {
     return !!(this._delayID || this._intervalID)

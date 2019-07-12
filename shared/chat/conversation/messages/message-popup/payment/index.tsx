@@ -39,7 +39,7 @@ type HeaderProps = {
   amountNominal: string
   approxWorth: string
   balanceChange: string
-  balanceChangeColor: AllowedColors | null
+  balanceChangeColor?: AllowedColors
   bottomLine: string
   errorDetails: string
   icon: 'sending' | 'receiving'
