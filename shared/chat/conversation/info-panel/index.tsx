@@ -20,7 +20,7 @@ export type EntityType = 'adhoc' | 'small team' | 'channel'
 export type Section = {
   data: Array<any>
   renderItem: ({item: any, index: number}) => void
-  renderSectionHeader: (any) => void
+  renderSectionHeader: (i: any) => void
 }
 
 type Thumb = {
@@ -33,7 +33,7 @@ type Thumb = {
 }
 
 type MediaProps = {
-  onLoadMore: null | (() => void)
+  onLoadMore?: () => void
   thumbs: Array<Thumb>
   status: Types.AttachmentViewStatus
 }
@@ -45,13 +45,13 @@ type Doc = {
   fileName: string
   name: string
   progress: number
-  onDownload: null | (() => void)
-  onShowInFinder: null | (() => void)
+  onDownload?: () => void
+  onShowInFinder?: () => void
 }
 
 type DocProps = {
   docs: Array<Doc>
-  onLoadMore: null | (() => void)
+  onLoadMore?: () => void
   status: Types.AttachmentViewStatus
 }
 
@@ -65,7 +65,7 @@ type Link = {
 
 type LinkProps = {
   links: Array<Link>
-  onLoadMore: null | (() => void)
+  onLoadMore?: () => void
   status: Types.AttachmentViewStatus
 }
 

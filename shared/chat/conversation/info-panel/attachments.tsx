@@ -43,8 +43,8 @@ type Doc = {
   message?: Types.Message
   name: string
   progress: number
-  onDownload: null | (() => void)
-  onShowInFinder: null | (() => void)
+  onDownload?: () => void
+  onShowInFinder?: () => void
 }
 
 type Link = {
