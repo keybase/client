@@ -220,7 +220,7 @@ export const VerifyPhone = () => {
         style: styles.blueBackground,
         title: (
           <Kb.Text type="BodySmall" negative={true}>
-            {pendingVerification || 'wut'}
+            {pendingVerification || 'Unknown number'}
           </Kb.Text>
         ),
       }}
