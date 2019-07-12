@@ -507,6 +507,7 @@ async function manageContactsCache(
 
   // feature enabled and permission granted
   const contacts = await Contacts.getContactsAsync()
+  const defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
   const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
     const {name, phoneNumbers = [], emails = []} = contact
 
@@ -514,7 +515,7 @@ async function manageContactsCache(
       // TODO this fails on many phone numbers, contact data from native may
       // not include countryCode. Make better guesses at properly formatting
       // this.
-      const formatted = getE164(pn.countryCode || '', pn.number || '')
+      const formatted = getE164(pn.countryCode || defaultCountryCode, pn.number || '')
       if (formatted) {
         res.push({
           label: pn.label,
