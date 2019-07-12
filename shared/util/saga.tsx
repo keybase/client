@@ -129,13 +129,13 @@ function* chainGenerator<
 /***
  * Until TS 3.6 this can't be property typed: https://github.com/Microsoft/TypeScript/issues/2983
  */
-// function* callPromise<Args, T>(
-// fn: (...args: Array<Args>) => Promise<T>,
-// ...args: Array<Args>
-// ): Iterable<any> {
-// // @ts-ignore
-// return yield Effects.call(fn, ...args)
-// }
+function* callPromise<Args, T>(
+  fn: (...args: Array<Args>) => Promise<T>,
+  ...args: Array<Args>
+): Iterable<any> {
+  // @ts-ignore
+  return yield Effects.call(fn, ...args)
+}
 
 // Used to delegate in a typed way (NOT WITH TS anymore) to what engine saga returns. short term use this but longer term
 // generate generators instead and yield * directly
@@ -175,4 +175,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {selectState, put, sequentially, chainAction, chainGenerator, callRPCs}
+export {selectState, put, sequentially, chainAction, chainGenerator, callPromise, callRPCs}

@@ -193,8 +193,7 @@ const setLastSentXLM = (
 function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload, logger: Saga.SagaLogger) {
   let buildRes: Saga.RPCPromiseType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>
   try {
-    buildRes = yield Saga.callUntyped(
-      RPCStellarTypes.localBuildRequestLocalRpcPromise,
+    buildRes = yield RPCStellarTypes.localBuildRequestLocalRpcPromise(
       stateToBuildRequestParams(state),
       Constants.requestPaymentWaitingKey
     )
@@ -219,8 +218,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
 
   const kbRqID: Saga.RPCPromiseType<
     typeof RPCStellarTypes.localMakeRequestLocalRpcPromise
-  > = yield Saga.callUntyped(
-    RPCStellarTypes.localMakeRequestLocalRpcPromise,
+  > = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.

@@ -20,18 +20,17 @@ import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as Tracker2Gen from './tracker2-gen'
 import * as Router2Constants from '../constants/router2'
-import {TypedState} from '../constants/reducer'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
-import {isMobile} from '../constants/platform'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
+import {TypedState, TypedActions, isMobile} from '../util/container'
 
 function* createNewTeam(_, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
   try {
-    yield* Saga.callPromise(
+    yield Saga.callUntyped(
       RPCTypes.teamsTeamCreateRpcPromise,
       {
         joinSubteam,
@@ -65,7 +64,9 @@ function* joinTeam(_, action: TeamsGen.JoinTeamPayload) {
     Saga.put(TeamsGen.createSetTeamJoinSuccess({success: false, teamname: ''})),
   ])
   try {
-    const result = yield* Saga.callPromise(
+    const result: Saga.RPCPromiseType<
+      typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise
+    > = yield Saga.callUntyped(
       RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
       {tokenOrName: teamname},
       Constants.teamWaitingKey(teamname)
@@ -1166,13 +1167,9 @@ function* addTeamWithChosenChannels(state, action: TeamsGen.AddTeamWithChosenCha
     return
   }
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
-  let pushState
+  let pushState: Saga.RPCPromiseType<typeof RPCTypes.gregorGetStateRpcPromise>
   try {
-    pushState = yield* Saga.callPromise(
-      RPCTypes.gregorGetStateRpcPromise,
-      undefined,
-      Constants.teamWaitingKey(teamname)
-    )
+    pushState = yield RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamname))
   } catch (err) {
     // failure getting the push state, don't bother the user with an error
     // and don't try to move forward updating the state
@@ -1182,7 +1179,7 @@ function* addTeamWithChosenChannels(state, action: TeamsGen.AddTeamWithChosenCha
   const item =
     pushState.items &&
     pushState.items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
-  let teams = []
+  let teams: Array<string> = []
   let msgID
   if (item && item.item && item.item.body) {
     const body = item.item.body
@@ -1218,8 +1215,7 @@ function* addTeamWithChosenChannels(state, action: TeamsGen.AddTeamWithChosenCha
   } else {
     logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
   }
-  yield* Saga.callPromise(
-    RPCTypes.gregorUpdateCategoryRpcPromise as (args: any) => any,
+  yield RPCTypes.gregorUpdateCategoryRpcPromise(
     {
       body: JSON.stringify(teams),
       category: Constants.chosenChannelsGregorKey,
@@ -1279,7 +1275,7 @@ const badgeAppForTeams = (state, action: TeamsGen.BadgeAppForTeamsPayload) => {
     return
   }
 
-  let actions = []
+  let actions: Array<TypedActions> = []
   const deletedTeams = I.List(action.payload.deletedTeams || [])
   // TODO ts-migration remove any
   const newTeams: I.Set<any> = I.Set(action.payload.newTeamNames || [])
@@ -1350,7 +1346,7 @@ const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePa
   })
 
 const gregorPushState = (_, action: GregorGen.PushStatePayload) => {
-  const actions = []
+  const actions: Array<TypedActions> = []
   const items = action.payload.state
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   if (sawChatBanner) {
