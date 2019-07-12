@@ -63,7 +63,7 @@ protocol chatUi {
     enum UIParticipantType {
     NONE_0,
     USER_1,
-    IMPTOFU_2
+    CONTACT_2 // phone number or email address
   }
 
   record UIParticipant {

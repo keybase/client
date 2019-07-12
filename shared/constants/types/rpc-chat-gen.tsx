@@ -818,7 +818,7 @@ export enum UIMaybeMentionStatus {
 export enum UIParticipantType {
   none = 0,
   user = 1,
-  imptofu = 2,
+  contact = 2,
 }
 
 export enum UITextDecorationTyp {

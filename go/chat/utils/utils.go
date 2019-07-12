@@ -1201,7 +1201,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	for _, p := range rawConv.Info.Participants {
 		participantType := chat1.UIParticipantType_USER
 		if isPhoneOrEmail(p.Username) {
-			participantType = chat1.UIParticipantType_IMPTOFU
+			participantType = chat1.UIParticipantType_CONTACT
 		}
 		writerNames = append(writerNames, chat1.UIParticipant{
 			Assertion:   p.Username,
