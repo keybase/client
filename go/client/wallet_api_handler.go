@@ -39,6 +39,10 @@ var ErrMessageTooLong = errors.New("message is too long")
 // ErrInvalidAmount is for invalid payment amounts.
 var ErrInvalidAmount = errors.New("invalid amount")
 
+// ErrInvalidSourceMax is for invalid source asset maximum amounts
+var ErrInvalidSourceMax = errors.New("invalid source asset maximum amount")
+
+// ErrInvalidSourceMax is for when a payment path would exceed the source asset maximum
 var ErrPathMaxExceeded = errors.New("payment path could exceed source asset limit")
 
 // ErrMemoTextTooLong is for lengthy memos.
@@ -679,10 +683,10 @@ func (c *sendPathPaymentOptions) Check() error {
 
 	sourceMax, err := stellarnet.ParseStellarAmount(c.SourceMaxAmount)
 	if err != nil {
-		return ErrInvalidAmount
+		return ErrInvalidSourceMax
 	}
 	if sourceMax < 0 {
-		return ErrInvalidAmount
+		return ErrInvalidSourceMax
 	}
 
 	if c.FromAccountID != "" {
