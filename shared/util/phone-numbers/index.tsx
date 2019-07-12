@@ -8,6 +8,7 @@ const PNF = libphonenumber.PhoneNumberFormat
 export const PhoneNumberFormat = PNF
 
 export const phoneUtil = libphonenumber.PhoneNumberUtil.getInstance()
+export const ValidationResult = libphonenumber.PhoneNumberUtil.ValidationResult
 const supported = phoneUtil.getSupportedRegions()
 
 export type CountryData = {

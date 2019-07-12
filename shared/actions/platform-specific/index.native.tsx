@@ -29,7 +29,7 @@ import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import ImagePicker from 'react-native-image-picker'
 import {TypedActions, TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
-import {phoneUtil, PhoneNumberFormat} from '../../util/phone-numbers'
+import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 
 type NextURI = string
 
@@ -547,6 +547,10 @@ async function manageContactsCache(
 const getE164 = (countryCode: string, phoneNumber: string) => {
   try {
     const parsed = phoneUtil.parse(phoneNumber, countryCode)
+    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
+    if (reason !== ValidationResult.IS_POSSIBLE) {
+      return null
+    }
     return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
   } catch (e) {
     return null
