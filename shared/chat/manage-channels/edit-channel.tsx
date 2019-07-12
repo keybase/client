@@ -113,6 +113,8 @@ class _EditChannel extends React.Component<Props, State> {
             rowsMax={isMobile ? 4 : 10}
             autoCorrect={true}
             autoCapitalize="sentences"
+            // From go/chat/msgchecker/constants.go#HeadlineMaxLength
+            maxLength={280}
           />
         </Kb.Box>
         <Kb.Box style={_bottomRowStyle}>
