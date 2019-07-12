@@ -633,14 +633,14 @@
 		{
 			"checksumSHA1": "g0PJMcZdWKAs1cwRwracYXf2omQ=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "88e1d3ba5fd863b3839128b56ec0a94761059ec9",
-			"revisionTime": "2019-07-10T21:58:57Z"
+			"revision": "48d3d31d256d9922a90b14c518c4b685f321fab2",
+			"revisionTime": "2019-07-12T20:53:09Z"
 		},
 		{
-			"checksumSHA1": "U/MVaUmN88p7XzeVia6QNUkSW64=",
+			"checksumSHA1": "ILa8RyF3Ec4O6e7LyjslLcNhWNk=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "88e1d3ba5fd863b3839128b56ec0a94761059ec9",
-			"revisionTime": "2019-07-10T21:58:57Z"
+			"revision": "48d3d31d256d9922a90b14c518c4b685f321fab2",
+			"revisionTime": "2019-07-12T20:53:09Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
