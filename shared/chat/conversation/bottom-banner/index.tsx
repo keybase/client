@@ -24,10 +24,7 @@ const BannerBox = (props: {
   <Box2
     direction="vertical"
     fullWidth={true}
-    style={{
-      ...styles.bannerStyle,
-      backgroundColor: props.color,
-    }}
+    style={Styles.collapseStyles([...styles.bannerStyle, {backgroundColor: props.color}])}
     gap={props.gap}
   >
     {props.children}
@@ -98,7 +95,7 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
   }
 
   // Any number of recipients, on iOS / Android show the share screen
-  if (!isMobile) {
+  if (isMobile) {
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>
