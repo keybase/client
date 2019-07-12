@@ -18,7 +18,7 @@ const targetHitArea = 1
 
 class ConversationList extends React.PureComponent<Props> {
   _listRef = React.createRef<NativeVirtualizedList>()
-  _scrollCenterTarget = null
+  _scrollCenterTarget?: number
 
   _renderItem = ({index, item}) => {
     if (item === 'specialTop') {
@@ -28,14 +28,13 @@ class ConversationList extends React.PureComponent<Props> {
     } else {
       const ordinalIndex = item
       const ordinal = this.props.messageOrdinals.get(ordinalIndex)
-      const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
+      const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : undefined
 
       return (
         <Message
           key={ordinal}
           ordinal={ordinal}
           previous={prevOrdinal}
-          measure={null}
           conversationIDKey={this.props.conversationIDKey}
         />
       )
@@ -120,7 +119,7 @@ class ConversationList extends React.PureComponent<Props> {
       this._scrollToCentered()
     } else {
       _debug(`_onViewableItemsChanged: cleared`)
-      this._scrollCenterTarget = null
+      this._scrollCenterTarget = undefined
     }
   }
 

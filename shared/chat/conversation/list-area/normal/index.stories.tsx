@@ -25,7 +25,7 @@ const makeMoreOrdinals = (
     const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
     const start = Math.max(0, oldStart - num)
     const end = oldStart
-    const newOrdinals = []
+    const newOrdinals: Array<Types.Ordinal> = []
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
@@ -34,7 +34,7 @@ const makeMoreOrdinals = (
     const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) + 1 : firstOrdinal
     const start = oldEnd
     const end = oldEnd + num
-    const newOrdinals = []
+    const newOrdinals: Array<Types.Ordinal> = []
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
@@ -141,7 +141,7 @@ const provider = Sb.createPropProviderWithCommon({
 
     explodesAt: 0,
     messageKey: '',
-    onClick: null,
+    onClick: undefined,
     pending: false,
   }),
   Mention: p => ({username: p.username}),
@@ -227,9 +227,9 @@ type State = {
 }
 
 class ThreadWrapper extends React.Component<Props, State> {
-  _injectMessagesIntervalID: NodeJS.Timer
-  _loadMoreTimeoutID: NodeJS.Timer
-  _loadConvoTimeoutID: NodeJS.Timer
+  _injectMessagesIntervalID?: NodeJS.Timer
+  _loadMoreTimeoutID?: NodeJS.Timer
+  _loadConvoTimeoutID?: NodeJS.Timer
   constructor(props) {
     super(props)
     this.state = {
@@ -259,7 +259,7 @@ class ThreadWrapper extends React.Component<Props, State> {
   _toggleInjectMessages = () => {
     if (this._injectMessagesIntervalID) {
       clearInterval(this._injectMessagesIntervalID)
-      this._injectMessagesIntervalID = null
+      this._injectMessagesIntervalID = undefined
     } else {
       this._injectMessagesIntervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
@@ -268,7 +268,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         }))
       }, 5000)
     }
-    this.setState({messageInjectionEnabled: this._injectMessagesIntervalID !== null})
+    this.setState({messageInjectionEnabled: !!this._injectMessagesIntervalID})
   }
 
   _toggleLoadMore = () => {
