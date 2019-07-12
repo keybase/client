@@ -33,6 +33,7 @@ class SmallAccountID extends React.Component<
         className={Styles.classNames({'hover-underline': !this.state.expanded})}
         selectable={this.state.expanded}
         style={Styles.collapseStyles([styles.text, this.props.style])}
+        lineClamp={3}
         onClick={this._expand}
       >
         {this.state.expanded ? this.props.accountID : Constants.shortenAccountID(this.props.accountID)}
@@ -42,12 +43,9 @@ class SmallAccountID extends React.Component<
 }
 
 const styles = Styles.styleSheetCreate({
-  text: Styles.platformStyles({
-    common: {
-      maxWidth: '100%',
-    },
-    isElectron: {wordBreak: 'break-all'},
-  }),
+  text: {
+    maxWidth: '100%',
+  },
 })
 
 export default SmallAccountID
