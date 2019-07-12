@@ -119,7 +119,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
             containerStyle={styles.menuNoGrow}
             visible={props.showingMenu}
             position="bottom right"
-            header={Styles.isMobile ? header : null}
+            header={Styles.isMobile ? header : undefined}
             items={menuItems}
             closeOnSelect={true}
             onHidden={props.toggleShowingMenu}

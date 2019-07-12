@@ -12,7 +12,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageAttachment
   onHidden: () => void
   position: Position

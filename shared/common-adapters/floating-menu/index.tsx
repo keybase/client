@@ -20,7 +20,7 @@ export type Props = {
   listStyle?: Object
   onHidden: () => void
   visible: boolean
-  attachTo?: () => React.Component<any>
+  attachTo?: () => React.Component<any> | null
   position?: Position
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean

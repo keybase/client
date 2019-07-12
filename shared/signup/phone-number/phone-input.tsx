@@ -124,7 +124,7 @@ const MenuItem = props => (
 )
 
 type CountrySelectorProps = {
-  attachTo?: () => React.Component<any>
+  attachTo?: () => React.Component<any> | null
   onSelect: (arg0: string) => void
   onHidden: () => void
   selected: string

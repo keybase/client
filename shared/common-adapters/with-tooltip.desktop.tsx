@@ -54,7 +54,7 @@ class WithTooltip extends React.Component<Props, State> {
               this.props.multiline && styles.containerMultiline,
             ])}
             visible={!!this.props.text && this.state.visible}
-            attachTo={this.state.attachmentRef && this._getAttachmentRef}
+            attachTo={this._getAttachmentRef}
             position={this.props.position || 'top center'}
             className={this.props.toastClassName}
           >

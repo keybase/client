@@ -22,7 +22,7 @@ const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon
 const headerIconHeight = Styles.isMobile ? 96 : 72
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   author: string
   deviceName: string
   deviceRevokedAt: number | null
@@ -43,7 +43,7 @@ type State = {
 }
 
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
-  timer: TickerID
+  timer?: TickerID
   state = {
     secondsLeft: this.secondsLeft(),
   }

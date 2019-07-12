@@ -72,7 +72,7 @@ const explodingSoonAttachment = makeMessageAttachment({
 const commonExplodingProps = {
   attachTo: () => null,
   onHidden: Sb.action('onHidden'),
-  position: 'top center',
+  position: 'top center' as const,
   visible: true,
 }
 

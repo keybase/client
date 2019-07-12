@@ -6,7 +6,7 @@ import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 
 type Props = {
-  attachTo?: () => React.Component<any>
+  attachTo?: () => React.Component<any> | null
   author: string
   deviceName: string
   deviceRevokedAt?: number

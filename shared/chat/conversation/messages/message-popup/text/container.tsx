@@ -12,7 +12,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 import Text from '.'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any>
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageWithReactionPopup
   onHidden: () => void
   position: Position

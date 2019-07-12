@@ -19,7 +19,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo?: () => React.Component<any>
+  attachTo?: () => React.Component<any> | null
   description: string
   inTeam: boolean
   isOpen: boolean
