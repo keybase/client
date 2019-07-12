@@ -9,6 +9,7 @@ import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
@@ -72,7 +73,7 @@ function* login(state, action: LoginGen.LoginPayload) {
           clientType: RPCTypes.ClientType.guiMain,
           deviceName: '',
           deviceType: isMobile ? 'mobile' : 'desktop',
-          doUserSwitch: true,
+          doUserSwitch: flags.fastAccountSwitch,
           paperKey: '',
           username: action.payload.username,
         },
@@ -82,7 +83,7 @@ function* login(state, action: LoginGen.LoginPayload) {
     logger.info('login call succeeded')
     yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
   } catch (e) {
-    if (e.name === 'ALREADY_LOGGED_IN') {
+    if (e.code === RPCTypes.StatusCode.scalreadyloggedin) {
       yield Saga.put(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
     } else if (e.desc !== cancelDesc) {
       // If we're canceling then ignore the error

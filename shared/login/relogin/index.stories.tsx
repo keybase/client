@@ -4,7 +4,7 @@ import Login, {Props} from '.'
 import * as Constants from '../../constants/config'
 
 const makeAccount = (username: string) =>
-  Constants.makeConfiguredAccount({hasStoredSecret: !username.startsWith('a'), username})
+  Constants.makeConfiguredAccount({hasStoredSecret: username !== 'no_secret', username})
 const commonProps: Props = {
   bannerError: false,
   error: '',
@@ -31,12 +31,12 @@ const load = () => {
     .add('Input Error', () => <Login {...commonProps} inputError={true} error="Oh, no! What a mess!" />)
     .add('Banner Error', () => <Login {...commonProps} bannerError={true} error="Oh, no! What a mess!" />)
     .add('3 previous users', () => (
-      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo'].map(makeAccount)} />
+      <Login {...commonProps} users={['awendland', 'mgood', 'no_secret'].map(makeAccount)} />
     ))
     .add('5 previous users', () => (
       <Login
         {...commonProps}
-        users={['awendland', 'mgood', 'marcopolo', 'trex', 'chrisnojima'].map(makeAccount)}
+        users={['awendland', 'no_secret', 'marcopolo', 'trex', 'chrisnojima'].map(makeAccount)}
       />
     ))
 }

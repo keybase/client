@@ -15,12 +15,10 @@ type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _users: state.config.configuredAccounts,
-  main: {
-    error: state.signup.usernameError,
-    initialUsername: state.signup.username,
-    usernameTaken: state.signup.usernameTaken,
-    waiting: anyWaiting(state, Constants.waitingKey),
-  },
+  error: state.signup.usernameError,
+  initialUsername: state.signup.username,
+  usernameTaken: state.signup.usernameTaken,
+  waiting: anyWaiting(state, Constants.waitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
@@ -31,18 +29,16 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onReturnToMain: () => {
     dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: ''}))
   },
-  main: {
-    onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
-    onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
-  },
+  onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
+  onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
 })
 
 const ConnectedEnterUsername = Container.connect(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o: OwnProps) => ({
-    ...s.main,
-    ...d.main,
+    ...s,
+    ...d,
     ...o,
     onBack: s._users.some(account => account.hasStoredSecret) ? d._onReturnToMain : d._onBack,
   })

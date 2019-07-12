@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import HeaderHOC from '../../common-adapters/header-hoc'
 import * as ConfigTypes from '../../constants/types/config'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
@@ -9,7 +8,6 @@ export type AccountRowItem = {
   account: ConfigTypes.ConfiguredAccount
   fullName: string
 }
-export type RowsProps = {}
 
 export type Props = {
   accountRows: Array<AccountRowItem>
@@ -36,7 +34,12 @@ const MobileHeader = (props: Props) => (
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.buttonBox} fullWidth={true} gap="tiny">
-      <Kb.Button onClick={props.onAddAccount} label="Log in as another user" mode="Primary" fullWidth={true} />
+      <Kb.Button
+        onClick={props.onAddAccount}
+        label="Log in as another user"
+        mode="Primary"
+        fullWidth={true}
+      />
       <Kb.Button
         onClick={props.onCreateAccount}
         label="Create a new account"
@@ -55,7 +58,7 @@ const AccountsRows = (props: Props) => (
           <Kb.Avatar
             size={32}
             username={entry.account.username}
-            style={!entry.account.hasStoredSecret && styles.avatarSignedOut}
+            style={entry.account.hasStoredSecret ? styles.avatarSignedOut : {}}
           />
         }
         firstItem={true}
@@ -90,7 +93,7 @@ const AccountSwitcher = (props: Props) => (
   </Kb.ScrollView>
 )
 
-export default HeaderHOC(AccountSwitcher)
+export default Kb.HeaderHoc(AccountSwitcher)
 
 const styles = Styles.styleSheetCreate({
   avatarSignedOut: {opacity: 0.4},

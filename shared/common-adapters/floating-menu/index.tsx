@@ -8,7 +8,6 @@ import * as React from 'react'
 import Overlay from '../overlay'
 import {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {MenuItem, MenuItems} from './menu-layout'
-import ScrollView from '../scroll-view'
 import {Color, StylesCrossPlatform} from '../../styles'
 
 export type Props = {

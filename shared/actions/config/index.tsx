@@ -26,6 +26,7 @@ import avatarSaga from './avatar'
 import {isMobile} from '../../constants/platform'
 import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import * as Container from '../../util/container'
 import flags from '../../util/feature-flags'
 
 const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -188,7 +189,7 @@ const maybeDoneWithDaemonHandshake = (state, action: ConfigGen.DaemonHandshakeWa
 const getAccountsWaitKey = 'config.getAccounts'
 
 function* loadDaemonAccounts(
-  state,
+  state: Container.TypedState,
   action:
     | DevicesGen.RevokedPayload
     | ConfigGen.DaemonHandshakePayload
@@ -217,12 +218,16 @@ function* loadDaemonAccounts(
       )
     }
 
-    const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield* Saga.callPromise(
-      RPCTypes.loginGetConfiguredAccountsRpcPromise
-    )
+    // only reload in the user-switching case
+    const loadConfiguredAccountsAgain = state.config.loggedIn && flags.fastAccountSwitch
+    if (loadConfiguredAccountsAgain) {
+      const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield* Saga.callPromise(
+        RPCTypes.loginGetConfiguredAccountsRpcPromise
+      )
 
-    const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
-    yield Saga.put(loadedAction)
+      const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
+      yield Saga.put(loadedAction)
+    }
     if (handshakeWait) {
       // someone dismissed this already?
       const newState = yield* Saga.selectState()
