@@ -14,6 +14,8 @@ const mapStateToProps = state => ({
     (state.profile.platformGenericParams === null || state.profile.platformGenericParams === undefined
       ? undefined
       : state.profile.platformGenericParams.logoFull) || [],
+  error: state.profile.errorCode !== null,
+  errorText: state.profile.errorText,
 })
 
 const mapDispatchToProps = dispatch => ({

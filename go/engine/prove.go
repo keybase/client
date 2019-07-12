@@ -356,7 +356,7 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		err = libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)
 		if err != nil {
 			if err == context.DeadlineExceeded {
-				return fmt.Errorf("Timed out looking a proof after %v", timeout)
+				return fmt.Errorf("Timed out after looking for proof for %v", timeout)
 			}
 			return err
 		}

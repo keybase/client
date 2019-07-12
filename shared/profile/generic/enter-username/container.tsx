@@ -50,7 +50,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(RouteTreeGen.createClearModals())
   },
   onChangeUsername: username => dispatch(ProfileGen.createUpdateUsername({username})),
-  onContinue: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericProofSuccess']})),
+  onContinue: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericProofResult']})),
   onSubmit: () => dispatch(ProfileGen.createSubmitUsername()),
 })
 
