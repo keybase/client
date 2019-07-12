@@ -54,7 +54,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
-  ] as const
+  ]
 
   const header = {
     title: 'header',
