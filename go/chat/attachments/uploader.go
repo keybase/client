@@ -374,7 +374,7 @@ func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dir
 	}
 
 	// Add an entry to the disk LRU mapping with the tmpfilename to limit the
-	// number of resources on disk. If we evict something we remove the
+	// number of resources on disk.  If we evict something we remove the
 	// remnants.
 	evicted, err := diskLRU.Put(ctx, u.G(), f.Name(), f.Name())
 	if err != nil {
