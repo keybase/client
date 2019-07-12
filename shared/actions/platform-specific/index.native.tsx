@@ -507,15 +507,17 @@ async function manageContactsCache(
 
   // feature enabled and permission granted
   const contacts = await Contacts.getContactsAsync()
-  const defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+  let defaultCountryCode: string
+  try {
+    defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+  } catch (e) {
+    logger.warn(`Error loading default country code: ${e.message}`)
+  }
   const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
     const {name, phoneNumbers = [], emails = []} = contact
 
     const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
-      // TODO this fails on many phone numbers, contact data from native may
-      // not include countryCode. Make better guesses at properly formatting
-      // this.
-      const formatted = getE164(pn.countryCode || defaultCountryCode, pn.number || '')
+      const formatted = getE164(pn.number || '', pn.countryCode || defaultCountryCode)
       if (formatted) {
         res.push({
           label: pn.label,
@@ -544,9 +546,9 @@ async function manageContactsCache(
 }
 
 // Get phone number in e.164, or null if we can't parse it.
-const getE164 = (countryCode: string, phoneNumber: string) => {
+const getE164 = (phoneNumber: string, countryCode?: string) => {
   try {
-    const parsed = phoneUtil.parse(phoneNumber, countryCode)
+    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
     const reason = phoneUtil.isPossibleNumberWithReason(parsed)
     if (reason !== ValidationResult.IS_POSSIBLE) {
       return null
