@@ -82,15 +82,8 @@ func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSo
 }
 
 func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
-	// If the service crashes it's possible that temporarily files get stranded
-	// on disk before they can get recorded in the LRU. Purge any stranded
-	// files on startup to prevent leaking space.
-	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
-			c.debug(m, "unable to run clean: %v", err)
-		}
-	}
 	go c.monitorAppState(m)
+	go c.cleanLRU(m)
 	c.populateCacheCh = make(chan populateArg, 100)
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
@@ -116,13 +109,25 @@ func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) 
 	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
 }
 
-func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
+func (c *FullCachingSource) cleanLRU(m libkb.MetaContext) {
+	// If the service crashes it's possible that temporarily files get stranded
+	// on disk before they can get recorded in the LRU. Purge any stranded
+	// files to prevent leaking space. We delay to keep off the critical path
+	// to start up.
+	time.Sleep(10 * time.Second)
+	c.debug(m, "cleanLRU: cleaning")
+	if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
+		c.debug(m, "unable to run clean: %v", err)
+	}
 	size, err := c.diskLRU.Size(m.Ctx(), m.G())
 	if err != nil {
 		c.debug(m, "unable to get diskLRU size: %v", err)
 	}
-	c.debug(m, "monitorAppState: starting up, lru current size: %d, max size: %d",
-		size, c.diskLRU.MaxSize())
+	c.debug(m, "lru current size: %d, max size: %d", size, c.diskLRU.MaxSize())
+}
+
+func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
+	c.debug(m, "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		state = <-m.G().MobileAppState.NextUpdate(&state)
