@@ -37,27 +37,34 @@ const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
 
 const rpcConflictStateToConflictState = (
   rpcConflictState: RPCTypes.ConflictState | null
-): Types.ConflictState =>
-  rpcConflictState
-    ? rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview
-      ? Constants.makeConflictStateNormalView({
-          localViewTlfPaths: I.List(
-            (rpcConflictState.normalview.localViews || [])
-              .map(p =>
-                p.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(p.kbfs) : Constants.defaultPath
-              )
-              .filter(p => p !== Constants.defaultPath)
-          ),
-          resolvingConflict: rpcConflictState.normalview.resolvingConflict,
-          stuckInConflict: rpcConflictState.normalview.stuckInConflict,
-        })
-      : Constants.makeConflictStateManualResolvingLocalView({
-          normalViewTlfPath:
-            rpcConflictState.manualresolvinglocalview.normalView.PathType === RPCTypes.PathType.kbfs
-              ? Types.stringToPath(rpcConflictState.manualresolvinglocalview.normalView.kbfs)
-              : Constants.defaultPath,
-        })
-    : Constants.tlfNormalViewWithNoConflict
+): Types.ConflictState => {
+  if (rpcConflictState) {
+    if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
+      const nv = rpcConflictState.normalview
+      return Constants.makeConflictStateNormalView({
+        localViewTlfPaths: I.List(
+          ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
+            // @ts-ignore TODO fix p.kbfs is a path already
+            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs))
+            return arr
+          }, [])
+        ),
+        resolvingConflict: !!nv && nv.resolvingConflict,
+        stuckInConflict: !!nv && nv.stuckInConflict,
+      })
+    } else {
+      const nv =
+        rpcConflictState.manualresolvinglocalview && rpcConflictState.manualresolvinglocalview.normalView
+      return Constants.makeConflictStateManualResolvingLocalView({
+        normalViewTlfPath:
+          // @ts-ignore TODO fix p.kbfs is a path already
+          nv && nv.PathType === RPCTypes.PathType.kbfs ? Types.stringToPath(nv.kbfs) : Constants.defaultPath,
+      })
+    }
+  } else {
+    return Constants.tlfNormalViewWithNoConflict
+  }
+}
 
 const loadFavorites = (
   state,
@@ -240,7 +247,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
     case RPCTypes.DirentType.dir:
       return Constants.makeFolder({
         ...direntToMetadata(d),
-        children: I.Set(children) || I.Set(),
+        children: I.Set(children || []) || I.Set(),
         progress: children ? Types.ProgressType.Loaded : undefined,
       })
     case RPCTypes.DirentType.sym:
@@ -420,7 +427,8 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       f.set('children', I.Set(childMap.get(rootPath))).set('progress', Types.ProgressType.Loaded)
     )
 
-    const pathItems = [
+    // @ts-ignore TODO fix this
+    const pathItems: Array<[Types.Path, Types.FolderPathItem]> = [
       ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
       ...entries.map(direntToPathAndPathItem),
     ]
