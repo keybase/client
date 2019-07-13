@@ -158,6 +158,7 @@ export type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>
   : RF
 
 export type Effect = RS.Effect
+export type PutEffect = Effects.PutEffect<TypedActions>
 export type Channel<T> = RS.Channel<T>
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {

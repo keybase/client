@@ -155,7 +155,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     }
 
     _promptUsernameResponse = response
-    const actions: Array<Saga.Effect> = []
+    const actions: Array<Saga.PutEffect> = []
     if (prevError) {
       actions.push(
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
@@ -182,7 +182,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       return
     }
 
-    const actions: Array<Saga.Effect> = []
+    const actions: Array<Saga.PutEffect> = []
     _outputInstructionsResponse = response
     // @ts-ignore propbably a real thing
     if (service === 'dnsOrGenericWebSite') {

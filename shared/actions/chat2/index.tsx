@@ -92,7 +92,11 @@ function* inboxRefresh(
     const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
     const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
     // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items.map(item => Constants.unverifiedInboxUIItemToConversationMeta(item)).filter(Boolean)
+    const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
+      const m = Constants.unverifiedInboxUIItemToConversationMeta(item)
+      m && arr.push(m)
+      return arr
+    }, [])
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
       Chat2Gen.createMetasReceived({
@@ -221,7 +225,7 @@ function* unboxRows(
     // We allow empty conversations now since we create them and they're empty now
     const allowEmpty = action.type === Chat2Gen.selectConversation
     const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, allowEmpty)
-    const actions: Array<TypedActions> = []
+    const actions: Array<Saga.PutEffect> = []
     if (meta) {
       actions.push(
         Saga.put(
@@ -285,6 +289,7 @@ function* unboxRows(
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
     incomingCallMap: {
+      // @ts-ignore TODO fix
       'chat.1.chatUi.chatInboxConversation': onUnboxed,
       'chat.1.chatUi.chatInboxFailed': onFailed,
       'chat.1.chatUi.chatInboxUnverified': () => {},
@@ -1097,7 +1102,7 @@ function* loadMoreMessages(
 
     const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
 
-    const actions: Array<Saga.Effect> = []
+    const actions: Array<Saga.PutEffect> = []
 
     let shouldClearOthers = false
     if ((forceClear || sd === 'none') && !calledClear) {
