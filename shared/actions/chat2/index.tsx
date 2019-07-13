@@ -2840,7 +2840,7 @@ const onChatCommandMarkdown = (status, action: EngineGen.Chat1ChatUiChatCommandM
   const {convID, md} = action.payload.params
   return Chat2Gen.createSetCommandMarkdown({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    md,
+    md: md || null,
   })
 }
 
@@ -2849,7 +2849,7 @@ const onChatCommandStatus = (status, action: EngineGen.Chat1ChatUiChatCommandSta
   return Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey: Types.stringToConversationIDKey(convID),
     info: {
-      actions,
+      actions: actions || [],
       displayText,
       displayType: typ,
     },
@@ -2921,7 +2921,7 @@ const openChatFromWidget = (state, {payload: {conversationIDKey}}: Chat2Gen.Open
 ]
 
 const gregorPushState = (state, action: GregorGen.PushStatePayload, logger) => {
-  const actions = []
+  const actions: Array<TypedActions> = []
   const items = action.payload.state
 
   const explodingItems = items.filter(i => i.item.category.startsWith(Constants.explodingModeGregorKeyPrefix))
@@ -2930,19 +2930,22 @@ const gregorPushState = (state, action: GregorGen.PushStatePayload, logger) => {
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
   } else {
     logger.info('Got push state with some exploding modes')
-    const modes = explodingItems.reduce((current, i) => {
-      const {category, body} = i.item
-      const secondsString = body.toString()
-      const seconds = parseInt(secondsString, 10)
-      if (isNaN(seconds)) {
-        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+    const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
+      (current, i) => {
+        const {category, body} = i.item
+        const secondsString = body.toString()
+        const seconds = parseInt(secondsString, 10)
+        if (isNaN(seconds)) {
+          logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+          return current
+        }
+        const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
+        const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+        current.push({conversationIDKey, seconds})
         return current
-      }
-      const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
-      const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-      current.push({conversationIDKey, seconds})
-      return current
-    }, [])
+      },
+      []
+    )
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
 
