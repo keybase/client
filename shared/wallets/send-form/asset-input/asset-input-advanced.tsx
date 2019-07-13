@@ -72,10 +72,7 @@ const LeftBlock = (_: EmptyProps) => {
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   return builtPaymentAdvanced.sourceDisplay ? (
     <Kb.Box2 direction="vertical" alignItems="flex-start">
-      <Kb.Text
-        type="HeaderBigExtrabold"
-        style={!!builtPaymentAdvanced.amountError ? styles.error : undefined}
-      >
+      <Kb.Text type="HeaderBigExtrabold" style={builtPaymentAdvanced.amountError ? styles.error : undefined}>
         ~{builtPaymentAdvanced.sourceDisplay}
       </Kb.Text>
       <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>

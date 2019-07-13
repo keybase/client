@@ -297,7 +297,7 @@ const ConnectedInfoPanel = Container.connect(
     spinnerForHide: stateProps.spinnerForHide,
     teamname: stateProps.teamname,
   })
-  //TODO fix this type
+  // TODO fix this type
 )(InfoPanel) as any
 
 type SelectorOwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>

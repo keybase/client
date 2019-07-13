@@ -100,7 +100,7 @@ function* loadDaemonBootstrapStatus(
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState = yield* Saga.selectState()
+        const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -222,7 +222,7 @@ function* loadDaemonAccounts(
     yield Saga.put(loadedAction)
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState = yield* Saga.selectState()
+      const newState : TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -236,7 +236,7 @@ function* loadDaemonAccounts(
   } catch (error) {
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState = yield* Saga.selectState()
+      const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({

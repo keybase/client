@@ -138,7 +138,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
             errorText: '',
           })
         )
-        const state = yield* Saga.selectState()
+        const state : TypedState = yield* Saga.selectState()
         _promptUsernameResponse.result(state.profile.username)
         // eslint is confused i think
         // eslint-disable-next-line require-atomic-updates

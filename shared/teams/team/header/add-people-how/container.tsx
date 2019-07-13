@@ -32,5 +32,5 @@ export default Container.connect(
       onSlackImport: () => openURL(`https://keybase.io/slack-importer/${teamname}`),
     }
   },
-  (s, d, o: OwnProps) => ({...s, ...d, attachTo: o.attachTo, visible: o.visible, onHidden: o.onHidden})
+  (s, d, o: OwnProps) => ({...s, ...d, attachTo: o.attachTo, onHidden: o.onHidden, visible: o.visible})
 )(AddPeopleHow)

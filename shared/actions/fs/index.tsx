@@ -418,7 +418,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
 
     // Get metadata fields of the directory that we just loaded from state to
     // avoid overriding them.
-    const state = yield* Saga.selectState()
+    const state: TypedState = yield* Saga.selectState()
     const rootPathItem = state.fs.pathItems.get(rootPath, Constants.unknownPathItem)
     const rootFolder: Types.FolderPathItem = (rootPathItem.type === Types.PathType.Folder
       ? rootPathItem

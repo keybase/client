@@ -59,7 +59,7 @@ const Confirm = props => (
 )
 
 const SyncToggle = (props: Props) =>
-  !!props.syncConfig ? (
+  props.syncConfig ? (
     <>
       <Kb.Switch
         align="right"

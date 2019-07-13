@@ -292,7 +292,7 @@ function* addResultsToUserInput(state, {payload: {searchKey, searchResults}}) {
       keyPath: ['search', 'searchKeyToUserInputItemIds'],
     })
   )
-  const newState = yield* Saga.selectState()
+  const newState: TypedState = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(newState, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
@@ -307,7 +307,7 @@ function* removeResultsToUserInput(state, {payload: {searchKey, searchResults}})
       keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
     })
   )
-  const newState = yield* Saga.selectState()
+    const newState: TypedState = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(newState, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))

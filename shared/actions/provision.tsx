@@ -110,7 +110,7 @@ class ProvisioningManager {
       return
     }
     return Saga.callUntyped(function*() {
-      const state = yield* Saga.selectState()
+      const state: TypedState = yield* Saga.selectState()
       let type
       switch (state.provision.codePageOtherDeviceType) {
         case 'mobile':

@@ -329,7 +329,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
   const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
   if (permissions.alert || permissions.badge) {
-    const state = yield* Saga.selectState()
+    const state: TypedState = yield* Saga.selectState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
