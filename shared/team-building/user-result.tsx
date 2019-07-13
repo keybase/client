@@ -157,7 +157,7 @@ const Username = (props: {
   <Kb.Box2 direction="vertical" style={styles.username}>
     <Kb.Text
       type="BodySemibold"
-      style={followingStateToStyle(props.keybaseResult ? props.followingState : 'NoState')}
+      style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
     >
       {props.username}
     </Kb.Text>

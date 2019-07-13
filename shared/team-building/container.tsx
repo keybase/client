@@ -60,7 +60,10 @@ const deriveSearchResults = memoize(
   ) =>
     searchResults &&
     searchResults.map(info => ({
-      followingState: followStateHelperWithId(myUsername, followingState, info.id),
+      // TODO: this was info.id in the followStateHelperWithId, but I switched
+      // it to the keybase username. Refactor this once the
+      // TeamBuildingTypes.User is refactored.
+      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: teamSoFar.some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
       prettyName: info.prettyName,

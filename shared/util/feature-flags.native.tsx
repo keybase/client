@@ -18,7 +18,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: false,
+  sbsContacts: true,
   stellarExternalPartners: true,
 }
 

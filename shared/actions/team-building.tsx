@@ -140,6 +140,8 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       const contactUsernames = new Set(contactRes.map(x => x.username).filter(Boolean))
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
+          // TODO: this doesn't work properly, since it doesn't highlight.
+          // Refactor this to work more sanely.
           id: x.assertion,
           prettyName: x.displayLabel,
           serviceMap: {keybase: x.username},
