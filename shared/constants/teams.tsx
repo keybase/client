@@ -521,7 +521,7 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 const serviceRetentionPolicyToRetentionPolicy = (
-  policy: RPCChatTypes.RetentionPolicy | null
+  policy?: RPCChatTypes.RetentionPolicy | null
 ): RetentionPolicy => {
   // !policy implies a default policy of retainment
   let retentionPolicy: RetentionPolicy = makeRetentionPolicy({type: 'retain'})
