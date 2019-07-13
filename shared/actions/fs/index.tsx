@@ -12,7 +12,7 @@ import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
-import {TypedActions} from '../typed-actions-gen'
+import {TypedState, TypedActions} from '../../util/container'
 import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
@@ -92,13 +92,13 @@ const loadFavorites = (
                   [tlfType]: mutablePayload[tlfType].set(
                     tlfName,
                     Constants.makeTlf({
-                      conflictState: rpcConflictStateToConflictState(folder.conflictState),
+                      conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
                       isFavorite,
                       isIgnored,
                       isNew,
                       name: tlfName,
                       resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
-                      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig),
+                      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
                       teamId: folder.team_id || '',
                       tlfMtime: folder.mtime || 0,
                     })
@@ -150,7 +150,7 @@ const getSyncConfigFromRPC = (
   }
 }
 
-const loadTlfSyncConfig = (state, action: FsGen.LoadTlfSyncConfigPayload) => {
+const loadTlfSyncConfig = (state: TypedState, action: FsGen.LoadTlfSyncConfigPayload) => {
   // @ts-ignore probably a real issue
   const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
@@ -170,7 +170,7 @@ const loadTlfSyncConfig = (state, action: FsGen.LoadTlfSyncConfigPayload) => {
     .catch(makeUnretriableErrorHandler(action, tlfPath))
 }
 
-const setTlfSyncConfig = (state, action: FsGen.SetTlfSyncConfigPayload) =>
+const setTlfSyncConfig = (state: TypedState, action: FsGen.SetTlfSyncConfigPayload) =>
   RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
     {
       config: {
@@ -185,7 +185,7 @@ const setTlfSyncConfig = (state, action: FsGen.SetTlfSyncConfigPayload) =>
     })
   )
 
-const loadSettings = (state, action: FsGen.LoadSettingsPayload) =>
+const loadSettings = (state: TypedState, action: FsGen.LoadSettingsPayload) =>
   RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
     .then(settings =>
       FsGen.createSettingsLoaded({
@@ -196,7 +196,10 @@ const loadSettings = (state, action: FsGen.LoadSettingsPayload) =>
     )
     .catch(() => FsGen.createSettingsLoaded({}))
 
-const setSpaceNotificationThreshold = (state, action: FsGen.SetSpaceAvailableNotificationThresholdPayload) =>
+const setSpaceNotificationThreshold = (
+  state: TypedState,
+  action: FsGen.SetSpaceAvailableNotificationThresholdPayload
+) =>
   RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
     threshold: action.payload.spaceAvailableNotificationThreshold,
   }).then(() => FsGen.createLoadSettings())
@@ -237,7 +240,7 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
     case RPCTypes.DirentType.dir:
       return Constants.makeFolder({
         ...direntToMetadata(d),
-        children: I.Set(children),
+        children: I.Set(children) || I.Set(),
         progress: children ? Types.ProgressType.Loaded : undefined,
       })
     case RPCTypes.DirentType.sym:
@@ -267,7 +270,7 @@ const clearRefreshTags = () => {
   pathMetadataRefreshTags.clear()
 }
 
-const clearRefreshTag = (state, action: FsGen.ClearRefreshTagPayload) => {
+const clearRefreshTag = (state: TypedState, action: FsGen.ClearRefreshTagPayload) => {
   folderListRefreshTags.delete(action.payload.refreshTag)
   pathMetadataRefreshTags.delete(action.payload.refreshTag)
 }
@@ -314,6 +317,7 @@ const refreshTagRpc = (
   if (tlfPath !== lastSubscribedTlf[opType]) {
     // We were subscribed to a different TLF. Don't skip, and tell KBFS that we
     // want to refresh subscription to this TLF.
+    // @ts-ignore TODO fix
     lastSubscribedTlf[opType] = tlfPath
     return {
       refreshSubscription: true,
@@ -340,7 +344,7 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       ? {refreshTag: undefined, rootPath: action.payload.parentPath}
       : {refreshTag: action.payload.refreshTag, rootPath: action.payload.path}
 
-  const {skipRpc, refreshSubscription} = refreshTagRpc(rootPath, refreshTag, 'folderList')
+  const {skipRpc, refreshSubscription} = refreshTagRpc(rootPath, refreshTag || null, 'folderList')
 
   if (skipRpc) {
     return
@@ -350,14 +354,14 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
     const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
-      yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
+      yield RPCTypes.SimpleFSSimpleFSListRpcPromise({
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
         path: Constants.pathToRPCPath(rootPath),
         refreshSubscription,
       })
     } else {
-      yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
+      yield RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
         depth: 1,
         filter: RPCTypes.ListFilter.filterSystemHidden,
         opID,
@@ -366,9 +370,11 @@ function* folderList(_, action: FsGen.FolderListLoadPayload | FsGen.EditSuccessP
       })
     }
 
-    yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
+    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
 
-    const result = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSReadListRpcPromise, {opID})
+    const result: Saga.RPCPromiseType<
+      typeof RPCTypes.SimpleFSSimpleFSReadListRpcPromise
+    > = yield RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
     const entries = result.entries || []
     const childMap = entries.reduce((m, d) => {
       const [parent, child] = d.name.split('/')
@@ -437,7 +443,9 @@ function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
   // `SimpleFSWait`, so it's "canceled" when the other finishes.
   while (true) {
     yield Saga.delay(500)
-    const progress = yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCheckRpcPromise, {opID})
+    const progress: Saga.RPCPromiseType<
+      typeof RPCTypes.SimpleFSSimpleFSCheckRpcPromise
+    > = yield RPCTypes.SimpleFSSimpleFSCheckRpcPromise({opID})
     if (progress.bytesTotal === 0) {
       continue
     }
@@ -451,7 +459,10 @@ function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
   }
 }
 
-function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload) {
+function* download(
+  _: TypedState,
+  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
+) {
   const {path, key} = action.payload
   const intent = Constants.getDownloadIntentFromAction(action)
   const opID = Constants.makeUUID()
@@ -488,11 +499,8 @@ function* download(state, action: FsGen.DownloadPayload | FsGen.ShareNativePaylo
     })
   )
 
-  yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
-    dest: {
-      PathType: RPCTypes.PathType.local,
-      local: localPath,
-    },
+  yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
+    dest: {PathType: RPCTypes.PathType.local, local: localPath},
     opID,
     src: Constants.pathToRPCPath(path),
   })
@@ -538,24 +546,21 @@ function* upload(_, action: FsGen.UploadPayload) {
 
   // TODO: confirm overwrites?
   // TODO: what about directory merges?
-  yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise, {
+  yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
     dest: Constants.pathToRPCPath(path),
     opID,
-    src: {
-      PathType: RPCTypes.PathType.local,
-      local: Types.getNormalizedLocalPath(localPath),
-    },
+    src: {PathType: RPCTypes.PathType.local, local: Types.getNormalizedLocalPath(localPath)},
   })
 
   try {
-    yield* Saga.callPromise(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID})
+    yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
   } catch (error) {
     yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   }
 }
 
-const cancelDownload = (state, action: FsGen.CancelDownloadPayload) => {
+const cancelDownload = (state: TypedState, action: FsGen.CancelDownloadPayload) => {
   const download = state.fs.downloads.get(action.payload.key)
   if (!download) {
     return
@@ -583,12 +588,15 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
   polling = true
   try {
     while (1) {
-      let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield* Saga.callPromise(
-        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
-        {
-          filter: RPCTypes.ListFilter.filterSystemHidden,
-        }
-      )
+      let {
+        syncingPaths,
+        totalSyncingBytes,
+        endEstimate,
+      }: Saga.RPCPromiseType<
+        typeof RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
+      > = yield RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
+        filter: RPCTypes.ListFilter.filterSystemHidden,
+      })
       yield Saga.sequentially([
         Saga.put(
           FsGen.createJournalUpdate({
@@ -607,7 +615,7 @@ function* pollJournalFlushStatusUntilDone(_, action: EngineGen.Keybase1NotifyFSF
 
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
-        Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
+        Saga.delay(getWaitDuration(endEstimate || null, 100, 4000)), // 0.1s to 4s
       ])
     }
   } finally {
@@ -629,7 +637,7 @@ const onTlfUpdate = (
   // It's important to not set the refreshTag in the actions generated here, to
   // make sure the related sagas won't skip the RPC (see `function*
   // folderList`).
-  const actions = []
+  const actions: Array<TypedActions> = []
   folderListRefreshTags.forEach(path => actions.push(FsGen.createFolderListLoad({path})))
   pathMetadataRefreshTags.forEach(path => actions.push(FsGen.createLoadPathMetadata({path})))
   return actions
@@ -654,9 +662,7 @@ function* ignoreFavoriteSaga(_, action: FsGen.FavoriteIgnorePayload) {
     )
   } else {
     try {
-      yield* Saga.callPromise(RPCTypes.favoriteFavoriteIgnoreRpcPromise, {
-        folder,
-      })
+      yield RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
     } catch (error) {
       yield makeRetriableErrorHandler(action, action.payload.path)(error).map(action => Saga.put(action))
     }
@@ -707,7 +713,7 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
     )
   )
 
-const refreshLocalHTTPServerInfo = (state, action: FsGen.RefreshLocalHTTPServerInfoPayload) =>
+const refreshLocalHTTPServerInfo = (state: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) =>
   RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
     .then(({address, token}) => FsGen.createLocalHTTPServerInfo({address, token}))
     .catch(makeUnretriableErrorHandler(action, null))
@@ -724,9 +730,10 @@ function* _loadMimeType(path: Types.Path) {
   // it at 3.
   for (let i = 0; i < 3; ++i) {
     if (!localHTTPServerInfo.address || !localHTTPServerInfo.token) {
-      const {address, token} = yield* Saga.callPromise(
-        RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise
-      )
+      const r: Saga.RPCPromiseType<
+        typeof RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise
+      > = yield RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
+      const {address, token} = r
       yield Saga.put(
         FsGen.createLocalHTTPServerInfo({
           address,
@@ -753,7 +760,7 @@ function* _loadMimeType(path: Types.Path) {
   throw new Error('exceeded max retries')
 }
 
-const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeAction> => {
+const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   const {editID} = action.payload
   const edit = state.fs.edits.get(editID)
   if (!edit) {
@@ -771,14 +778,14 @@ const commitEdit = (state, action: FsGen.CommitEditPayload): Promise<Saga.MaybeA
         .catch(makeRetriableErrorHandler(action, parentPath))
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return new Promise(resolve => resolve([]))
+      return undefined
   }
 }
 
-function* loadPathMetadata(state, action: FsGen.LoadPathMetadataPayload) {
+function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload) {
   const {path, refreshTag} = action.payload
 
-  const {skipRpc, refreshSubscription} = refreshTagRpc(path, refreshTag, 'pathMetadata')
+  const {skipRpc, refreshSubscription} = refreshTagRpc(path, refreshTag || null, 'pathMetadata')
   if (skipRpc) {
     return
   }
@@ -807,14 +814,14 @@ function* loadPathMetadata(state, action: FsGen.LoadPathMetadataPayload) {
 const letResetUserBackIn = (_, {payload: {id, username}}) =>
   RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username}).then(() => {})
 
-const updateFsBadge = (state, action: FsGen.FavoritesLoadedPayload) =>
+const updateFsBadge = (state: TypedState, action: FsGen.FavoritesLoadedPayload) =>
   NotificationsGen.createSetBadgeCounts({
     counts: I.Map({
       [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
     }) as I.Map<Tabs.Tab, number>,
   })
 
-const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
+const deleteFile = (state: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
   return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
     opID,
@@ -825,7 +832,7 @@ const deleteFile = (state, action: FsGen.DeleteFilePayload) => {
     .catch(makeRetriableErrorHandler(action, action.payload.path))
 }
 
-const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
+const moveOrCopy = (state: TypedState, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   if (state.fs.destinationPicker.source.type === Types.DestinationPickerSource.None) {
     return
   }
@@ -861,14 +868,16 @@ const moveOrCopy = (state, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   )
 }
 
-const showMoveOrCopy = (state, action: FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload) =>
-  RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
+const showMoveOrCopy = (
+  state: TypedState,
+  action: FsGen.ShowMoveOrCopyPayload | FsGen.ShowIncomingSharePayload
+) => RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
-const closeDestinationPicker = (state, action: FsGen.CloseDestinationPickerPayload) => {
+const closeDestinationPicker = (state: TypedState, action: FsGen.CloseDestinationPickerPayload) => {
   const currentRoutes = I.List()
   // const currentRoutes = getPathProps(state.routeTree.routeState)
   const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
-  const newRoute = currentRoutes.reduce(
+  const newRoute = currentRoutes.reduce<Array<any>>(
     (routes, {node, props}, i) =>
       // node is never null
       i < firstDestinationPickerIndex ? [...routes, {props, selected: node || ''}] : routes,
@@ -881,7 +890,7 @@ const closeDestinationPicker = (state, action: FsGen.CloseDestinationPickerPaylo
   ]
 }
 
-const initSendLinkToChat = (state, action: FsGen.InitSendLinkToChatPayload) => {
+const initSendLinkToChat = (state: TypedState, action: FsGen.InitSendLinkToChatPayload) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
   if (elems.length < 3 || elems[1] === 'public') {
     // Not a TLF, or a public TLF; just let user copy the path.
@@ -946,7 +955,7 @@ const initSendLinkToChat = (state, action: FsGen.InitSendLinkToChatPayload) => {
   )
 }
 
-const triggerSendLinkToChat = (state, action: FsGen.TriggerSendLinkToChatPayload) => {
+const triggerSendLinkToChat = (state: TypedState, action: FsGen.TriggerSendLinkToChatPayload) => {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
   if (elems.length < 3 || elems[1] === 'public') {
     // Not a TLF, or a public TLF; no-op
@@ -1017,12 +1026,12 @@ const waitForKbfsDaemon = (
     })
 }
 
-const startManualCR = (state, action) =>
+const startManualCR = (state: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   }).then(() => FsGen.createFavoritesLoad())
 
-const finishManualCR = (state, action) =>
+const finishManualCR = (state: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   }).then(() => FsGen.createFavoritesLoad())
@@ -1060,7 +1069,10 @@ const updateKbfsDaemonOnlineStatus = (
 // timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
-const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkStatusChangedPayload) => {
+const checkKbfsServerReachabilityIfNeeded = (
+  state: TypedState,
+  action: ConfigGen.OsNetworkStatusChangedPayload
+) => {
   if (!action.payload.isInit) {
     return RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise().catch(err =>
       logger.warn(`failed to check KBFS reachability: ${err.message}`)
@@ -1068,8 +1080,10 @@ const checkKbfsServerReachabilityIfNeeded = (state, action: ConfigGen.OsNetworkS
   }
 }
 
-const onFSOnlineStatusChanged = (state, action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload) =>
-  FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
+const onFSOnlineStatusChanged = (
+  state: TypedState,
+  action: EngineGen.Keybase1NotifyFSFSOnlineStatusChangedPayload
+) => FsGen.createKbfsDaemonOnlineStatusChanged({online: action.payload.params.online})
 
 const onNotifyFSOverallSyncSyncStatusChanged = (
   state,
