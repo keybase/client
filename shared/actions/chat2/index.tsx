@@ -221,7 +221,7 @@ function* unboxRows(
     // We allow empty conversations now since we create them and they're empty now
     const allowEmpty = action.type === Chat2Gen.selectConversation
     const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem, allowEmpty)
-    const actions = []
+    const actions: Array<TypedActions> = []
     if (meta) {
       actions.push(
         Saga.put(
@@ -307,7 +307,7 @@ const onIncomingMessage = (state, incoming, logger) => {
     displayDesktopNotification,
     desktopNotificationSnippet,
   } = incoming
-  const actions = []
+  const actions: Array<TypedActions> = []
 
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
