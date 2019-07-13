@@ -159,6 +159,9 @@ type ConfigLocal struct {
 
 	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
 	rekeyFSMLimiter *OngoingWorkLimiter
+
+	subscriptionManager          SubscriptionManager
+	subscriptionManagerPublisher SubscriptionManagerPublisher
 }
 
 // DiskCacheMode represents the mode of initialization for the disk cache.
@@ -294,6 +297,9 @@ func NewConfigLocal(mode InitMode,
 
 	config.conflictResolutionDB = openCRDB(config)
 	config.settingsDB = openSettingsDB(config)
+
+	config.subscriptionManager, config.subscriptionManagerPublisher =
+		newSubscriptionManager(config)
 
 	return config
 }
@@ -1142,6 +1148,8 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		cancel()
 	}
 
+	c.subscriptionManager.Shutdown(ctx)
+
 	return nil
 }
 
@@ -1740,4 +1748,18 @@ func (c *ConfigLocal) SetDiskCacheMode(m DiskCacheMode) {
 	if c.diskCacheMode == DiskCacheModeLocal {
 		c.loadSyncedTlfsLocked()
 	}
+}
+
+// SubscriptionManager implements the Config interface.
+func (c *ConfigLocal) SubscriptionManager() SubscriptionManager {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	return c.subscriptionManager
+}
+
+// SubscriptionManagerPublisher implements the Config interface.
+func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	return c.subscriptionManagerPublisher
 }

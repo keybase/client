@@ -590,3 +590,33 @@ func (s *SimpleFSHandler) SimpleFSGetStats(ctx context.Context) (
 	}
 	return cli.SimpleFSGetStats(ctx)
 }
+
+func (s *SimpleFSHandler) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) (string, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return "", err
+	}
+	return cli.SimpleFSSubscribeNonPath(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) (string, error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return "", err
+	}
+	return cli.SimpleFSSubscribePath(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, sid string) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSUnsubscribe(ctx, sid)
+}

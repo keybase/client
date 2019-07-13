@@ -54,6 +54,7 @@ type tlfJournalConfig interface {
 	teamMembershipChecker() kbfsmd.TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 	syncedTlfGetterSetter
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // tlfJournalConfigWrapper is an adapter for Config objects to the
@@ -2177,6 +2178,7 @@ func (j *tlfJournal) putBlockData(
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
+	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,

@@ -1279,6 +1279,58 @@ func (o SimpleFSStats) DeepCopy() SimpleFSStats {
 	}
 }
 
+type SubscriptionTopic int
+
+const (
+	SubscriptionTopic_FAVORITES      SubscriptionTopic = 0
+	SubscriptionTopic_JOURNAL_STATUS SubscriptionTopic = 1
+)
+
+func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
+
+var SubscriptionTopicMap = map[string]SubscriptionTopic{
+	"FAVORITES":      0,
+	"JOURNAL_STATUS": 1,
+}
+
+var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
+	0: "FAVORITES",
+	1: "JOURNAL_STATUS",
+}
+
+func (e SubscriptionTopic) String() string {
+	if v, ok := SubscriptionTopicRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PathSubscriptionTopic int
+
+const (
+	PathSubscriptionTopic_CHILDREN PathSubscriptionTopic = 0
+	PathSubscriptionTopic_STAT     PathSubscriptionTopic = 1
+)
+
+func (o PathSubscriptionTopic) DeepCopy() PathSubscriptionTopic { return o }
+
+var PathSubscriptionTopicMap = map[string]PathSubscriptionTopic{
+	"CHILDREN": 0,
+	"STAT":     1,
+}
+
+var PathSubscriptionTopicRevMap = map[PathSubscriptionTopic]string{
+	0: "CHILDREN",
+	1: "STAT",
+}
+
+func (e PathSubscriptionTopic) String() string {
+	if v, ok := PathSubscriptionTopicRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1483,6 +1535,21 @@ type SimpleFSDeobfuscatePathArg struct {
 type SimpleFSGetStatsArg struct {
 }
 
+type SimpleFSSubscribePathArg struct {
+	KbfsPath                  string                `codec:"kbfsPath" json:"kbfsPath"`
+	Topic                     PathSubscriptionTopic `codec:"topic" json:"topic"`
+	DeduplicateIntervalSecond int                   `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
+}
+
+type SimpleFSSubscribeNonPathArg struct {
+	Topic                     SubscriptionTopic `codec:"topic" json:"topic"`
+	DeduplicateIntervalSecond int               `codec:"deduplicateIntervalSecond" json:"deduplicateIntervalSecond"`
+}
+
+type SimpleFSUnsubscribeArg struct {
+	SubscriptionID string `codec:"subscriptionID" json:"subscriptionID"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1602,6 +1669,9 @@ type SimpleFSInterface interface {
 	SimpleFSObfuscatePath(context.Context, Path) (string, error)
 	SimpleFSDeobfuscatePath(context.Context, Path) ([]string, error)
 	SimpleFSGetStats(context.Context) (SimpleFSStats, error)
+	SimpleFSSubscribePath(context.Context, SimpleFSSubscribePathArg) (string, error)
+	SimpleFSSubscribeNonPath(context.Context, SimpleFSSubscribeNonPathArg) (string, error)
+	SimpleFSUnsubscribe(context.Context, string) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2238,6 +2308,51 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSubscribePath": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSubscribePathArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSubscribePathArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSubscribePathArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSubscribePath(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSSubscribeNonPath": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSubscribeNonPathArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSubscribeNonPathArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSubscribeNonPathArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSubscribeNonPath(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSUnsubscribe": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSUnsubscribeArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSUnsubscribeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSUnsubscribeArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSUnsubscribe(ctx, typedArgs[0].SubscriptionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2563,5 +2678,21 @@ func (c SimpleFSClient) SimpleFSDeobfuscatePath(ctx context.Context, path Path) 
 
 func (c SimpleFSClient) SimpleFSGetStats(ctx context.Context) (res SimpleFSStats, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetStats", []interface{}{SimpleFSGetStatsArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSubscribePath(ctx context.Context, __arg SimpleFSSubscribePathArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribePath", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSubscribeNonPath(ctx context.Context, __arg SimpleFSSubscribeNonPathArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSubscribeNonPath", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSUnsubscribe(ctx context.Context, subscriptionID string) (err error) {
+	__arg := SimpleFSUnsubscribeArg{SubscriptionID: subscriptionID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUnsubscribe", []interface{}{__arg}, nil)
 	return
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ioutil"
@@ -78,21 +79,26 @@ type testTLFJournalConfig struct {
 	codecGetter
 	logMaker
 	*testSyncedTlfGetterSetter
-	t            *testing.T
-	tlfID        tlf.ID
-	splitter     data.BlockSplitter
-	crypto       *CryptoLocal
-	bcache       data.BlockCache
-	bops         BlockOps
-	mdcache      MDCache
-	ver          kbfsmd.MetadataVer
-	reporter     Reporter
-	uid          keybase1.UID
-	verifyingKey kbfscrypto.VerifyingKey
-	ekg          singleEncryptionKeyGetter
-	nug          idutil.NormalizedUsernameGetter
-	mdserver     MDServer
-	dlTimeout    time.Duration
+	t                           *testing.T
+	tlfID                       tlf.ID
+	splitter                    data.BlockSplitter
+	crypto                      *CryptoLocal
+	bcache                      data.BlockCache
+	bops                        BlockOps
+	mdcache                     MDCache
+	ver                         kbfsmd.MetadataVer
+	reporter                    Reporter
+	uid                         keybase1.UID
+	verifyingKey                kbfscrypto.VerifyingKey
+	ekg                         singleEncryptionKeyGetter
+	nug                         idutil.NormalizedUsernameGetter
+	mdserver                    MDServer
+	dlTimeout                   time.Duration
+	subsciptionManagerPublisher SubscriptionManagerPublisher
+}
+
+func (c testTLFJournalConfig) SubscriptionManagerPublisher() SubscriptionManagerPublisher {
+	return c.subsciptionManagerPublisher
 }
 
 func (c testTLFJournalConfig) BlockSplitter() data.BlockSplitter {
@@ -248,6 +254,7 @@ func setupTLFJournalTest(
 		nil, nil, NewMDCacheStandard(10), ver,
 		NewReporterSimple(clocktest.NewTestClockNow(), 10), uid, verifyingKey, ekg, nil,
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
+		NewMockSubscriptionManagerPublisher(gomock.NewController(t)),
 	}
 
 	ctx, cancel = context.WithTimeout(

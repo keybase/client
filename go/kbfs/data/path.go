@@ -104,6 +104,21 @@ func (p Path) Plaintext() string {
 	return strings.Join(names, "/")
 }
 
+// Plaintext returns an unobfuscated string for this path, rooted at the TLF.
+// Examples: /keybase/private/alice -> "/", true
+//           /keybase/private/alice/folder -> "/folder", true
+//           /keybase/private -> "", false
+func (p Path) PlaintextSansTlf() (string, bool) {
+	if len(p.Path) == 0 {
+		return "", false
+	}
+	names := make([]string, 0, len(p.Path)-1)
+	for _, node := range p.Path[1:] {
+		names = append(names, node.Name.Plaintext())
+	}
+	return "/" + strings.Join(names, "/"), true
+}
+
 // CanonicalPathString returns an obfuscated canonical
 // representation of the full path, always prefaced by /keybase. This
 // may require conversion to a platform specific path, for example, by

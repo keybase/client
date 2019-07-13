@@ -548,4 +548,19 @@ protocol SimpleFS {
   }
 
   SimpleFSStats simpleFSGetStats();
+
+  enum SubscriptionTopic {
+    FAVORITES_0,
+    JOURNAL_STATUS_1
+  }
+  enum PathSubscriptionTopic {
+    CHILDREN_0,
+    STAT_1
+  }
+
+  // returns subscription ID. notificates are delivered through notify_fs
+  string simpleFSSubscribePath(string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  string simpleFSSubscribeNonPath(SubscriptionTopic topic, int deduplicateIntervalSecond);
+
+  void simpleFSUnsubscribe(string subscriptionID);
 }

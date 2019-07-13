@@ -1,4 +1,4 @@
-// Copyright 2016 Keybase Inc. All rights reserved.
+// Copyright 2016 Keybase Inc. All rights reserved
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -165,6 +165,9 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() data.PathPartString
+	// GetPathPlaintextSansTlf returns the canonical path of the node in
+	// plaintext.
+	GetPathPlaintextSansTlf() (string, bool)
 	// Readonly returns true if KBFS should outright reject any write
 	// attempts on data or directory structures of this node.  Though
 	// note that even if it returns false, KBFS can reject writes to
@@ -592,6 +595,7 @@ type gitMetadataPutter interface {
 type KeybaseService interface {
 	idutil.KeybaseService
 	gitMetadataPutter
+	SubscriptionNotifier
 
 	// FavoriteAdd adds the given folder to the list of favorites.
 	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
@@ -2148,6 +2152,13 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
+
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+	// SubscriptionManagerPublisher retursn a publisher that can be used to
+	// publish events to the subscription manager.
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

@@ -228,3 +228,10 @@ func (d *notificationDisplay) RuntimeStatsUpdate(
 	}
 	return d.printf("\n")
 }
+
+func (d *notificationDisplay) FSSubscriptionNotify(_ context.Context, arg keybase1.FSSubscriptionNotifyArg) error {
+	return d.printf("FS subscription notify: %s %s\n", arg.SubscriptionID, arg.Topic.String())
+}
+func (d *notificationDisplay) FSSubscriptionNotifyPath(_ context.Context, arg keybase1.FSSubscriptionNotifyPathArg) error {
+	return d.printf("FS subscription notify path: %s %q %s\n", arg.SubscriptionID, arg.Path, arg.Topic.String())
+}

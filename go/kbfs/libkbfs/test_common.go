@@ -220,6 +220,9 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	configs := []Config{config}
 	config.allKnownConfigsForTesting = &configs
 
+	config.subscriptionManager, config.subscriptionManagerPublisher =
+		newSubscriptionManager(config)
+
 	return config
 }
 
