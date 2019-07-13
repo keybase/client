@@ -17,6 +17,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
+import {TypedState} from '../../util/container'
 
 let lastCount = -1
 const updateAppBadge = (_, action: NotificationsGen.ReceivedBadgeStatePayload) => {

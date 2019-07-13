@@ -10,6 +10,7 @@ import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {ServiceId, serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
+import {TypedState} from '../util/container'
 
 function _serviceToApiServiceName(service: Types.Service): string {
   return (
@@ -307,7 +308,7 @@ function* removeResultsToUserInput(state, {payload: {searchKey, searchResults}})
       keyPath: ['search', 'searchKeyToUserInputItemIds', searchKey],
     })
   )
-    const newState: TypedState = yield* Saga.selectState()
+  const newState: TypedState = yield* Saga.selectState()
   const ids = Constants.getUserInputItemIds(newState, searchKey)
   if (!oldIds.equals(ids)) {
     yield Saga.put(SearchGen.createUserInputItemsUpdated({searchKey, userInputItemIds: ids.toArray()}))
