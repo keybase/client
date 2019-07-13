@@ -29,7 +29,7 @@ import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import ImagePicker from 'react-native-image-picker'
 import {TypedActions, TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
-import {phoneUtil, PhoneNumberFormat} from '../../util/phone-numbers'
+import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 
 type NextURI = string
 
@@ -517,14 +517,17 @@ async function manageContactsCache(
 
   // feature enabled and permission granted
   const contacts = await Contacts.getContactsAsync()
+  let defaultCountryCode: string
+  try {
+    defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
+  } catch (e) {
+    logger.warn(`Error loading default country code: ${e.message}`)
+  }
   const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
     const {name, phoneNumbers = [], emails = []} = contact
 
     const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
-      // TODO this fails on many phone numbers, contact data from native may
-      // not include countryCode. Make better guesses at properly formatting
-      // this.
-      const formatted = getE164(pn.countryCode || '', pn.number || '')
+      const formatted = getE164(pn.number || '', pn.countryCode || defaultCountryCode)
       if (formatted) {
         res.push({
           label: pn.label,
@@ -553,9 +556,13 @@ async function manageContactsCache(
 }
 
 // Get phone number in e.164, or null if we can't parse it.
-const getE164 = (countryCode: string, phoneNumber: string) => {
+const getE164 = (phoneNumber: string, countryCode?: string) => {
   try {
-    const parsed = phoneUtil.parse(phoneNumber, countryCode)
+    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
+    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
+    if (reason !== ValidationResult.IS_POSSIBLE) {
+      return null
+    }
     return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
   } catch (e) {
     return null
