@@ -40,7 +40,7 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
     const {keybase, service} = result
     return {
       id: _rawResultToId('Keybase', keybase.username),
-      leftFullname: keybase.fullName,
+      leftFullname: keybase.fullName || null,
       leftIcon: null,
       leftService: 'Keybase',
 
@@ -55,7 +55,7 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
     const {keybase} = result
     return {
       id: _rawResultToId('Keybase', keybase.username),
-      leftFullname: keybase.fullName,
+      leftFullname: keybase.fullName || null,
       leftIcon: null,
       leftService: 'Keybase',
 
@@ -74,7 +74,7 @@ function _parseThirdPartyRawResult(result: RPCTypes.APIUserSearchResult): Types.
     const {service, keybase} = result
     return {
       id: _rawResultToId(service.serviceName, service.username),
-      leftFullname: keybase.fullName,
+      leftFullname: keybase.fullName || null,
       leftIcon: serviceIdToLogo24(serviceIdFromString(service.serviceName)),
       leftService: Constants.serviceIdToService(service.serviceName),
 
@@ -129,7 +129,7 @@ function callSearch(
   searchTerm: string,
   service: string = '',
   limit: number = 20
-): Promise<Array<RPCTypes.APIUserSearchResult>> {
+): Promise<Array<RPCTypes.APIUserSearchResult> | null> {
   return RPCTypes.userSearchUserSearchRpcPromise({
     includeContacts: false,
     includeServicesSummary: false,
@@ -169,8 +169,11 @@ function* search(state, {payload: {term, service, searchKey}}) {
 
   try {
     yield Saga.callUntyped(onIdlePromise, 1e3)
-    const searchResults = yield* Saga.callPromise(callSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.map((result: RPCTypes.APIUserSearchResult) =>
+    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(
+      term,
+      _serviceToApiServiceName(service)
+    )
+    const rows = (searchResults || []).map((result: RPCTypes.APIUserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
 
