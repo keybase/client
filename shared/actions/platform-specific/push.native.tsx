@@ -136,7 +136,7 @@ function* handleLoudMessage(notification) {
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
-      yield* Saga.callPromise(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+      yield RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
         convID: conversationIDKey,
         membersType,
         payload: unboxPayload,
@@ -224,7 +224,7 @@ function* deletePushToken(state, action: ConfigGen.LogoutHandshakePayload) {
       return
     }
 
-    yield* Saga.callPromise(RPCTypes.apiserverDeleteRpcPromise, {
+    yield RPCTypes.apiserverDeleteRpcPromise({
       args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: Constants.tokenType}],
       endpoint: 'device/push_token',
     })
