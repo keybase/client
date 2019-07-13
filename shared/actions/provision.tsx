@@ -40,7 +40,7 @@ class ProvisioningManager {
     }
     return ProvisioningManager.singleton
   }
-  _stashedResponse = null
+  _stashedResponse: any = null
   _stashedResponseKey: ValidCallback | null = null
   _addingANewDevice: boolean
   _done: boolean = false

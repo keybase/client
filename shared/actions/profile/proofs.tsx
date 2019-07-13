@@ -10,8 +10,9 @@ import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
+import {TypedState, TypedActions} from '../../util/container'
 
-const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
+const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
@@ -53,14 +54,14 @@ const checkProof = (state, action: ProfileGen.CheckProofPayload) => {
     })
 }
 
-const recheckProof = (state, action: ProfileGen.RecheckProofPayload) =>
+const recheckProof = (state: TypedState, action: ProfileGen.RecheckProofPayload) =>
   RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey).then(() =>
     Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
   )
 
 // only let one of these happen at a time
 let addProofInProgress = false
-function* addProof(state, action: ProfileGen.AddProofPayload) {
+function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   const service = More.asPlatformsExpandedType(action.payload.platform)
   const genericService = service ? null : action.payload.platform
   // Special cases
@@ -154,7 +155,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
     }
 
     _promptUsernameResponse = response
-    const actions = []
+    const actions: Array<Saga.Effect> = []
     if (prevError) {
       actions.push(
         Saga.put(ProfileGen.createUpdateErrorText({errorCode: prevError.code, errorText: prevError.desc}))
@@ -181,7 +182,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
       return
     }
 
-    const actions = []
+    const actions: Array<Saga.Effect> = []
     _outputInstructionsResponse = response
     // @ts-ignore propbably a real thing
     if (service === 'dnsOrGenericWebSite') {
@@ -232,6 +233,7 @@ function* addProof(state, action: ProfileGen.AddProofPayload) {
   })
   try {
     const {sigID} = yield RPCTypes.proveStartProofRpcSaga({
+      // @ts-ignore TODO fix
       customResponseIncomingCallMap: {
         'keybase.1.proveUi.checking': checking,
         'keybase.1.proveUi.continueChecking': continueChecking,
