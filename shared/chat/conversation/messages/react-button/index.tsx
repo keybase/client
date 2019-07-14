@@ -9,6 +9,7 @@ import {
   Text,
   EmojiIfExists,
 } from '../../../../common-adapters'
+import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import {Picker} from './picker'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
@@ -41,27 +42,28 @@ if (!Styles.isMobile) {
   })
 }
 
-const ButtonBox = Styles.styled(ClickableBox)(
-  (props: React.ComponentProps<typeof ClickableBox> & {border?: 1 | 0}) =>
-    Styles.isMobile
-      ? {borderColor: Styles.globalColors.black_10}
-      : {
-          ...(props.border
-            ? {
-                ':hover': {
-                  backgroundColor: Styles.globalColors.blueLighter2,
-                  borderColor: Styles.globalColors.blue,
-                },
-              }
-            : {}),
-          '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-          '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-          borderColor: Styles.globalColors.black_10,
-        }
+// @ts-ignore
+const ButtonBox = Styles.styled(ClickableBox)((props: ClickableBoxProps & {border: 1 | 0}) =>
+  Styles.isMobile
+    ? {borderColor: Styles.globalColors.black_10}
+    : {
+        ...(props.border
+          ? {
+              ':hover': {
+                backgroundColor: Styles.globalColors.blueLighter2,
+                borderColor: Styles.globalColors.blue,
+              },
+            }
+          : {}),
+        '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+        '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+        borderColor: Styles.globalColors.black_10,
+      }
 )
 
 const ReactButton = (props: Props) => (
   <ButtonBox
+    border={0}
     className={Styles.classNames(props.className, {noShadow: props.active})}
     onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
@@ -114,22 +116,15 @@ type NewReactionButtonState = {
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
   state = {applyClasses: false, hovering: false, iconIndex: 0, showingPicker: false}
   _delayInterval = new DelayInterval(1000, 400)
-  _intervalID: number | null
-  _attachmentRef: React.Component<any> | null
+  _intervalID?: number
+  _attachmentRef?: React.Component<any>
 
   _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
     this.props.onShowPicker && this.props.onShowPicker(showingPicker)
   }
 
-  _onAddReaction = (
-    {
-      colons,
-    }: {
-      colons: string
-    },
-    evt: Event
-  ) => {
+  _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
     evt.stopPropagation()
     this.props.onAddReaction(colons)
     this._setShowingPicker(false)
@@ -179,7 +174,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     return (
       <ButtonBox
         onLongPress={this.props.onLongPress}
-        border={this.props.showBorder ? 1 : 0}
+        border={this.props.showBorder}
         onClick={this._onShowPicker}
         onMouseLeave={this._stopCycle}
         onMouseEnter={this._startCycle}

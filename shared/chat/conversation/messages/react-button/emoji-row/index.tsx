@@ -13,15 +13,7 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-class HoverEmoji extends React.Component<
-  {
-    name: string
-    onClick: () => void
-  },
-  {
-    hovering: boolean
-  }
-> {
+class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
@@ -35,22 +27,13 @@ class HoverEmoji extends React.Component<
         hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        <Kb.Emoji
-          disableSelecting={true}
-          size={this.state.hovering ? 22 : 18}
-          emojiName={this.props.name}
-        />
+        <Kb.Emoji disableSelecting={true} size={this.state.hovering ? 22 : 18} emojiName={this.props.name} />
       </Kb.ClickableBox>
     )
   }
 }
 
-class EmojiRow extends React.Component<
-  Props,
-  {
-    showingPicker: boolean
-  }
-> {
+class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = showingPicker => {
@@ -87,7 +70,7 @@ class EmojiRow extends React.Component<
                 onClick={this._showPicker}
                 style={Kb.iconCastPlatformStyles(styles.icon)}
                 type="iconfont-reacji"
-                />
+              />
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Reply">
               <Kb.Icon

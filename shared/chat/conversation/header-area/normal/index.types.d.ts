@@ -1,14 +1,14 @@
 export type Props = {
   badgeNumber?: number
-  channelName: string | null
+  channelName?: string
   muted: boolean
   onBack: () => void
-  onOpenFolder: null | (() => void)
+  onOpenFolder?: (() => void)
   onShowProfile: (user: string) => void
   onToggleInfoPanel: () => void
   onToggleThreadSearch: () => void
   infoPanelOpen: boolean
-  teamName: string | null
+  teamName?: string
   participants: Array<string>
   pendingWaiting: boolean
   smallTeam: boolean

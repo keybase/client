@@ -7,10 +7,10 @@ import AddPeople from './add-people'
 
 type SmallProps = {
   admin: boolean
-  teamname: string
+  teamname?: string
   channelname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
-  description: string | null
+  description?: string
   participantCount: number
   isPreview: boolean
   isSmallTeam: boolean
@@ -125,16 +125,10 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
   },
-  adhocPartContainer: {
-    padding: Styles.globalMargins.tiny,
-  },
+  adhocPartContainer: {padding: Styles.globalMargins.tiny},
   adhocScrollContainer: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 230,
-    },
-    isMobile: {
-      maxHeight: 220,
-    },
+    isElectron: {maxHeight: 230},
+    isMobile: {maxHeight: 220},
   }),
   channelnameContainer: {
     alignSelf: 'center',
@@ -161,9 +155,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: 16,
       width: gearIconSize,
     },
-    isMobile: {
-      width: gearIconSize + 32,
-    },
+    isMobile: {width: gearIconSize + 32},
   }),
   smallContainer: {
     alignItems: 'center',

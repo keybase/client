@@ -44,8 +44,8 @@ const CaptionedDangerIcon = ({
   onClick: () => void
   spinner?: boolean
 }) => {
-  const color = noDanger ? null : Styles.globalColors.redDark
-  let slot = null
+  const color = noDanger ? undefined : Styles.globalColors.redDark
+  let slot: React.ReactNode = null
   if (spinner) {
     slot = <Kb.ProgressIndicator style={{marginRight: 10, width: Styles.globalMargins.medium}} />
   } else if (icon) {

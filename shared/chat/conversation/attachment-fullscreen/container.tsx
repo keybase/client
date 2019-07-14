@@ -10,7 +10,7 @@ import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selection = state.chat2.attachmentFullscreenSelection

@@ -335,7 +335,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never' as Types.NotificationsType,
   offline: false,
-  participants: I.List(),
+  participants: I.List<string>(),
   readMsgID: -1,
   rekeyers: I.Set(),
   resetParticipants: I.Set(),

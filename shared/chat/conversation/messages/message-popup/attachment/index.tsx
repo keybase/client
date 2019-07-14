@@ -1,24 +1,24 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu} from '../../../../../common-adapters/'
+import {FloatingMenu, MenuItems} from '../../../../../common-adapters/'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   author: string
   deviceName: string
   deviceType: DeviceType
-  deviceRevokedAt: number | null
-  onAddReaction: null | (() => void)
-  onDelete: null | (() => void)
-  onDownload: null | (() => void)
+  deviceRevokedAt?: number
+  onAddReaction?: () => void
+  onDelete?: () => void
+  onDownload?: () => void
   onHidden: () => void
   onReply: () => void
-  onSaveAttachment: null | (() => void)
-  onShareAttachment: null | (() => void)
-  onShowInFinder: null | (() => void)
+  onSaveAttachment?: () => void
+  onShareAttachment?: () => void
+  onShowInFinder?: () => void
   pending: boolean
   position: Position
   style?: StylesCrossPlatform
@@ -29,10 +29,10 @@ type Props = {
 }
 
 const AttachmentPopupMenu = (props: Props) => {
-  const items = [
+  const items: MenuItems = [
     ...(props.isDeleteable
       ? ([
-          'Divider',
+          'Divider' as const,
           {
             danger: true,
             disabled: !props.onDelete,
@@ -43,7 +43,7 @@ const AttachmentPopupMenu = (props: Props) => {
         ] as const)
       : []),
 
-    'Divider',
+    'Divider' as const,
     ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
     ...(props.onSaveAttachment
       ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
@@ -54,7 +54,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
-  ] as const
+  ]
 
   const header = {
     title: 'header',
