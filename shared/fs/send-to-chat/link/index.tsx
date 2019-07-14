@@ -20,7 +20,7 @@ type SmallTeam = {
   name: string
 }
 
-type Channel = {
+export type Channel = {
   convID: ChatTypes.ConversationIDKey
   channelname: string
 }
@@ -42,7 +42,7 @@ type Props = {
   onSent: () => void
   conversation: Person | Group | SmallTeam | BigTeam | None
   pathTextToCopy: string
-  send?: () => void | null
+  send?: () => void
   sendLinkToChatState: Types.SendLinkToChatState
 }
 
@@ -256,9 +256,7 @@ const MobileSendLinkToChat = (props: Props) => (
 const MobileWithHeader = Kb.HeaderHoc(MobileSendLinkToChat)
 
 export default (Styles.isMobile
-  ? (props: Props) => (
-      <MobileWithHeader customComponent={<MobileHeader {...props} />} {...props} />
-    )
+  ? (props: Props) => <MobileWithHeader customComponent={<MobileHeader {...props} />} {...props} />
   : Kb.HeaderOrPopup(DesktopSendLinkToChat))
 
 const styles = Styles.styleSheetCreate({
