@@ -13604,6 +13604,11 @@ react-native@0.59.10:
     xmldoc "^0.4.0"
     yargs "^9.0.0"
 
+react-navigation-hooks@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-navigation-hooks/-/react-navigation-hooks-1.0.0.tgz#e605172f4e4c3c44374a7efdda41f6306f7b8419"
+  integrity sha512-rX0nFnx+EiqyRw1R5FfLXKRpjcmhElZ5j7N96pSsh4jL0bi8Xinu/jZD4Ve6AyPevFpF0P76idmkSu3Lh1PPzg==
+
 react-navigation-stack@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/react-navigation-stack/-/react-navigation-stack-1.3.0.tgz#34bbddb068c094c9ab843e36059b9fd92b728250"

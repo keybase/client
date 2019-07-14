@@ -65,4 +65,13 @@ function withSafeNavigationStorybook<P extends {}>(
   )
 }
 
+export const useSafeNavigation: () => Omit<NavProps, 'getParam'> = () => {
+  const state = useNavigationState()
+  const fromKey = getActiveKey(state)
+  return {
+    navigateAppend: ({path, replace}) => RouteTreeGen.createNavigateAppend({fromKey, path, replace}),
+    navigateUp: () => RouteTreeGen.createNavigateUp({fromKey}),
+  }
+}
+
 export default (__STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation)
