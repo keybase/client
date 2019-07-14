@@ -43,7 +43,7 @@ if (!Styles.isMobile) {
 }
 
 // @ts-ignore
-const ButtonBox = Styles.styled(ClickableBox)((props: ClickableBoxProps & {border: boolean}) =>
+const ButtonBox = Styles.styled(ClickableBox)((props: ClickableBoxProps & {border: 1 | 0}) =>
   Styles.isMobile
     ? {borderColor: Styles.globalColors.black_10}
     : {
@@ -63,7 +63,7 @@ const ButtonBox = Styles.styled(ClickableBox)((props: ClickableBoxProps & {borde
 
 const ReactButton = (props: Props) => (
   <ButtonBox
-    border={false}
+    border={0}
     className={Styles.classNames(props.className, {noShadow: props.active})}
     onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
