@@ -4,6 +4,7 @@ import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
 import {IconType} from './icon.constants'
 import {WebViewProps, WebViewInjections} from './web-view'
+export {MenuItems } from './floating-menu/menu-layout'
 export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
@@ -36,7 +37,6 @@ export {EmojiIfExists} from './markdown/react'
 export {default as ErrorBoundary} from './error-boundary'
 export {default as FloatingBox} from './floating-box'
 export {default as FloatingMenu} from './floating-menu'
-export {MenuItems as FloatingMenuItems} from './floating-menu/menu-layout'
 export {default as FloatingPicker} from './floating-picker'
 export {default as OverlayParentHOC} from './overlay/parent-hoc'
 export type OverlayParentProps = OverlayParentProps
@@ -109,4 +109,5 @@ export {default as Video} from './video'
 export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections
+export type FloatingMenuItems = MenuItems
 export {default as WithTooltip} from './with-tooltip'
