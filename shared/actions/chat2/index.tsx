@@ -412,10 +412,12 @@ const chatActivityToMetasAction = (
   const conversationIDKey = meta
     ? meta.conversationIDKey
     : conv && Types.stringToConversationIDKey(conv.convID)
-  const usernameToFullname = ((conv && conv.participants) || []).reduce(
-    (map, part) => (part.fullName ? {...map, [part.assertion]: part.fullName} : map),
-    {}
-  )
+  const usernameToFullname = ((conv && conv.participants) || []).reduce((map, part) => {
+    if (part.fullName) {
+      map[part.assertion] = part.fullName
+    }
+    return map
+  }, {})
   // We ignore inbox rows that are blocked/reported or have no content
   const isADelete =
     !ignoreDelete &&

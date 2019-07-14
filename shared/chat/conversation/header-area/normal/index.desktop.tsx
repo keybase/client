@@ -82,7 +82,7 @@ const UsernameHeader = (props: Props) => (
 )
 
 // TODO: is there a desktop design for this
-export const PhoneHeader = UsernameHeader
+export const PhoneOrEmailHeader = UsernameHeader
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,
