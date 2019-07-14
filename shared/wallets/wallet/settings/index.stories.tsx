@@ -76,14 +76,14 @@ const sharedSettingsProps = {
 
 const defaultSettingsProps = {
   ...sharedSettingsProps,
-  currency: testCurrencies.get(1),
+  currency: testCurrencies.get(1) as Types.Currency,
   isDefault: true,
   name: 'awesome account',
 }
 
 const secondarySettingsProps = {
   ...sharedSettingsProps,
-  currency: testCurrencies.get(0),
+  currency: testCurrencies.get(0) as Types.Currency,
   isDefault: false,
   mobileOnlyMode: true,
   name: 'some other account',
