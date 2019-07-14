@@ -5,12 +5,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { teamname: string } >
 
 const mapStateToProps = (state, ownProps) => ({
   error: Container.anyErrors(state, Constants.teamRenameWaitingKey),

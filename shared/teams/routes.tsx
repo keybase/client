@@ -26,6 +26,7 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   retentionWarning: {
+    // TODO connect broken
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
     upgraded: true,

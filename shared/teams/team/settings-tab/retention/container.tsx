@@ -28,7 +28,7 @@ export type OwnProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   let policy: RetentionPolicy = retentionPolicies.policyRetain
-  let teamPolicy: RetentionPolicy | null
+  let teamPolicy: RetentionPolicy | null = null
   let showInheritOption = false
   let showOverrideNotice = false
   let loading = false
@@ -161,5 +161,5 @@ export default compose(
   withHandlers({
     onShowWarning: ({_onShowWarning}) => (policy, onConfirm, onCancel) =>
       _onShowWarning(policy, onConfirm, onCancel),
-  })
+  } as any)
 )(RetentionPicker as any) as any

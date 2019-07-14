@@ -5,12 +5,7 @@ import ReallyDeleteTeam from '.'
 import {deleteTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<
-  {
-    teamname: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { teamname: string } >
 
 const mapStateToProps = (state, ownProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')
