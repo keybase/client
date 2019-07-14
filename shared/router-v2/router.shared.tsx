@@ -48,8 +48,8 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       if (!p) {
         return
       }
-      let routeName = null
-      let params
+      let routeName: string | null = null
+      let params: unknown
 
       if (typeof p === 'string') {
         routeName = p
@@ -129,7 +129,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return [NavigationActions.back({key: action.payload.fromKey})]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
-      const popActions = []
+      const popActions: Array<unknown> = []
       const isInStack = fullPath.reverse().some(r => {
         if (r.routeName === action.payload.routeName) {
           return true

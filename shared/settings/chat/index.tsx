@@ -29,10 +29,12 @@ class Chat extends React.Component<Props, State> {
     )
   }
   _getUnfurlMode() {
-    return this.state.unfurlSelected !== undefined
-      ? this.state.unfurlSelected
-      : this.props.unfurlMode !== undefined
-      ? this.props.unfurlMode
+    const unfurlSelected = this.state.unfurlSelected
+    const unfurlMode = this.props.unfurlMode
+    return unfurlSelected !== undefined
+      ? unfurlSelected
+      : unfurlMode !== undefined
+      ? unfurlMode
       : RPCChatTypes.UnfurlMode.whitelisted
   }
   _getUnfurlWhitelist(filtered: boolean) {
@@ -105,7 +107,7 @@ class Chat extends React.Component<Props, State> {
                     <Kb.Text type="BodySemibold">{w}</Kb.Text>
                     <Kb.Text
                       type="BodyPrimaryLink"
-                      style={wlremoved ? {color: Styles.globalColors.white} : null}
+                      style={wlremoved ? {color: Styles.globalColors.white} : undefined}
                       onClick={() => this._toggleUnfurlWhitelist(w)}
                     >
                       {wlremoved ? 'Restore' : 'Remove'}

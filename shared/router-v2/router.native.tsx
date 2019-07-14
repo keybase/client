@@ -18,6 +18,7 @@ import {debounce} from 'lodash-es'
 import logger from '../logger'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
+import {Props} from './router'
 
 // turn on screens
 useScreens()
@@ -189,8 +190,8 @@ const RootStackNavigator = createSwitchNavigator(
 
 const AppContainer = createAppContainer(RootStackNavigator)
 
-class RNApp extends React.PureComponent<any, any> {
-  _nav = null
+class RNApp extends React.PureComponent<Props> {
+  _nav: any = null
   // TODO remove this eventually, just so we can handle the old style actions
   dispatchOldAction = (old: any) => {
     const nav = this._nav
@@ -254,12 +255,15 @@ class RNApp extends React.PureComponent<any, any> {
     }
   }
 
-  getNavState = () =>
-    // Auto generated from flowToTs. Please clean me!
-    (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === null ||
-    (this._nav === null || this._nav === undefined ? undefined : this._nav.state) === undefined
-      ? undefined
-      : (this._nav === null || this._nav === undefined ? undefined : this._nav.state).nav
+  getNavState = () => {
+    const n = this._nav
+    if (n) {
+      if (n.state) {
+        return n.state.nav
+      }
+    }
+    return null
+  }
 
   render() {
     return (

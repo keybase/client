@@ -1,8 +1,3 @@
-export function NotifyPopup(
-  title: string,
-  opts: Object,
-  rateLimitSeconds: number = -1,
-  rateLimitKey?: string
-): void {
+export function NotifyPopup(title: string, opts: Object, _: number = -1, __?: string): void {
   console.log('NotifyPopup: ', title, opts)
 }
