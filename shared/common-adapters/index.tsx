@@ -4,7 +4,6 @@ import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
 import {IconType} from './icon.constants'
 import {WebViewProps, WebViewInjections} from './web-view'
-export {MenuItems } from './floating-menu/menu-layout'
 export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
@@ -109,5 +108,4 @@ export {default as Video} from './video'
 export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections
-export type FloatingMenuItems = MenuItems
 export {default as WithTooltip} from './with-tooltip'
