@@ -265,7 +265,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	}
 	// Send teamID and teamName in two separate notifications. It is
 	// server-trust that they are the same team.
-	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
+	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change, row.LatestHiddenSeqno)
 
 	if change.Renamed || change.MembershipChanged || change.Misc {
 		// this notification is specifically for the UI

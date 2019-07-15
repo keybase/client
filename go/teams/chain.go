@@ -81,6 +81,13 @@ func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.inner.LastSeqno
 }
 
+func (t TeamSigChainState) GetLatestHiddenSeqno() keybase1.Seqno {
+	if t.hidden == nil {
+		return keybase1.Seqno(0)
+	}
+	return t.hidden.Last
+}
+
 func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }

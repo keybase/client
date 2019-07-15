@@ -45,7 +45,7 @@ func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
 	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 
 	bob.revokePaperKey()
-	alice.waitForRotateByID(team, keybase1.Seqno(2))
+	alice.waitForAnyRotateByID(team, keybase1.Seqno(1), keybase1.Seqno(1))
 
 	// check that key was rotated for team
 	after, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
