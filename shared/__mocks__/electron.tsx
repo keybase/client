@@ -14,6 +14,12 @@ export const remote = {
     on: () => {},
     removeListener: () => {},
   }),
+  net: {
+    request: () => ({
+      end: () => {},
+      on: () => {},
+    }),
+  },
 }
 
 const openExternal = action('openExternal')
