@@ -2,7 +2,10 @@ package bots
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/keybase/client/go/encrypteddb"
@@ -16,9 +19,43 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type commandsStorage struct {
-	Commands []chat1.ConversationCommand
+type commandUpdaterJob struct {
+	ConvID chat1.ConversationID
+	Info   *chat1.BotInfo
 }
+
+type userCommandDesc struct {
+	Description         string  `json:"description"`
+	Name                string  `json:"name"`
+	Usage               string  `json:"usage"`
+	ExtendedDescription *string `json:"extended_description"`
+}
+
+func (c userCommandDesc) Export(username string) chat1.ConversationCommand {
+	return chat1.ConversationCommand{
+		Description: c.Description,
+		Name:        c.Name,
+		Usage:       c.Usage,
+		HasHelpText: c.ExtendedDescription != nil,
+		Username:    &username,
+	}
+}
+
+type userCommandAdvertisement struct {
+	Alias    string            `json:"alias"`
+	Commands []userCommandDesc `json:"commands"`
+}
+
+type storageCommandAdvertisement struct {
+	Advertisement userCommandAdvertisement
+	Username      string
+}
+
+type commandsStorage struct {
+	Advertisements []storageCommandAdvertisement `codec:"A"`
+}
+
+const commandsStorageVersion = 1
 
 type CachingBotCommandManager struct {
 	globals.Contextified
@@ -32,7 +69,7 @@ type CachingBotCommandManager struct {
 
 	ri              func() chat1.RemoteInterface
 	edb             *encrypteddb.EncryptedDB
-	commandUpdateCh chan chat1.BotInfo
+	commandUpdateCh chan commandUpdaterJob
 }
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
@@ -47,7 +84,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "CachingBotCommandManager", false),
 		ri:              ri,
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
-		commandUpdateCh: make(chan chat1.BotInfo, 100),
+		commandUpdateCh: make(chan commandUpdaterJob, 100),
 	}
 }
 
@@ -114,23 +151,60 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 
 func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.ConversationCommand, err error) {
 	defer b.Trace(ctx, func() error { return err }, "ListCommands")()
-	var commands commandsStorage
-	found, err := b.edb.Get(ctx, b.dbCommandsKey(convID), &commands)
+	var s commandsStorage
+	found, err := b.edb.Get(ctx, b.dbCommandsKey(convID), &s)
 	if err != nil {
 		return res, err
 	}
 	if !found {
 		return nil, nil
 	}
-	return commands.Commands, nil
+	for _, ad := range s.Advertisements {
+		for _, desc := range ad.Advertisement.Commands {
+			res = append(res, desc.Export(ad.Username))
+		}
+	}
+	sort.Slice(res, func(i, j int) bool {
+		l := res[i]
+		r := res[j]
+		if *l.Username < *r.Username {
+			return true
+		} else if *l.Username > *r.Username {
+			return false
+		} else {
+			return l.Name < r.Name
+		}
+	})
+	return res, nil
 }
 
-func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID) (err error) {
+func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
+	info *chat1.BotInfo) (err error) {
 	defer b.Trace(ctx, func() error { return err }, "UpdateCommands")()
-	var botInfo chat1.BotInfo
+	return b.queueCommandUpdate(ctx, convID, info)
+}
+
+func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, convID chat1.ConversationID,
+	botInfo *chat1.BotInfo) error {
+	select {
+	case b.commandUpdateCh <- commandUpdaterJob{
+		ConvID: convID,
+		Info:   botInfo,
+	}:
+	default:
+		return errors.New("queue full")
+	}
+	return nil
+}
+
+func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUpdaterJob) (botInfo chat1.BotInfo, doUpdate bool, err error) {
+	if job.Info != nil {
+		return *job.Info, true, nil
+	}
+	convID := job.ConvID
 	found, err := b.edb.Get(ctx, b.dbInfoKey(convID), &botInfo)
 	if err != nil {
-		return err
+		return botInfo, false, err
 	}
 	var infoHash chat1.BotInfoHash
 	if found {
@@ -141,35 +215,93 @@ func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID ch
 		InfoHash: infoHash,
 	})
 	if err != nil {
-		return err
+		return botInfo, false, err
 	}
 	rtyp, err := res.Response.Typ()
 	switch rtyp {
 	case chat1.BotInfoResponseTyp_UPTODATE:
+		return botInfo, false, nil
 	case chat1.BotInfoResponseTyp_INFO:
-		b.queueCommandUpdate(ctx, res.Response.Info())
+		return res.Response.Info(), true, nil
 	}
+	return botInfo, false, errors.New("unknown response type")
+}
+
+func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, convID chat1.ConversationID,
+	botUID gregor1.UID) (res *storageCommandAdvertisement) {
+	tv, err := b.G().ConvSource.Pull(ctx, convID, b.uid, chat1.GetThreadReason_BOTCOMMANDS,
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, &chat1.Pagination{Num: 1})
+	if err != nil {
+		b.Debug(ctx, "getConvAdvertisement: failed to read thread: %s", err)
+		return nil
+	}
+	if len(tv.Messages) == 0 {
+		b.Debug(ctx, "getConvAdvertisement: no messages")
+		return nil
+	}
+	msg := tv.Messages[0]
+	if !msg.IsValid() {
+		b.Debug(ctx, "getConvAdvertisement: latest message is not valid")
+		return nil
+	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_TEXT) {
+		b.Debug(ctx, "getConvAdvertisement: latest message is not text")
+		return nil
+	}
+	// make sure the sender is who the server said it is
+	if !msg.Valid().ClientHeader.Sender.Eq(botUID) {
+		b.Debug(ctx, "getConvAdvertisement: wrong sender: %s != %s", botUID, msg.Valid().ClientHeader.Sender)
+		return nil
+	}
+	res = new(storageCommandAdvertisement)
+	if err = json.Unmarshal([]byte(body.Text().Body), &res.Advertisement); err != nil {
+		b.Debug(ctx, "getConvAdvertisement: failed to JSON decode: %s", err)
+		return nil
+	}
+	res.Username = msg.Valid().SenderUsername
+	return res
+}
+
+func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job commandUpdaterJob) (err error) {
+	defer b.Trace(ctx, func() error { return err }, "commandUpdate")()
+	botInfo, doUpdate, err := b.getBotInfo(ctx, job)
+	if err != nil {
+		return err
+	}
+	if !doUpdate {
+		b.Debug(ctx, "commandUpdate: bot info uptodate, not updating")
+		return nil
+	}
+	var s commandsStorage
+	for _, cconv := range botInfo.CommandConvs {
+		ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid)
+		if ad != nil {
+			s.Advertisements = append(s.Advertisements, *ad)
+		}
+	}
+	if err := b.edb.Put(ctx, b.dbCommandsKey(job.ConvID), s); err != nil {
+		return err
+	}
+	// alert that the conv is now updated
+	b.G().Syncer.SendChatStaleNotifications(ctx, b.uid, []chat1.ConversationStaleUpdate{
+		chat1.ConversationStaleUpdate{
+			ConvID:     job.ConvID,
+			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+		}}, true)
 	return nil
-}
-
-func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, info chat1.BotInfo) {
-	select {
-	case b.commandUpdateCh <- info:
-	default:
-		b.Debug(ctx, "queueCommandUpdate: queue full failing")
-	}
-}
-
-func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, info chat1.BotInfo) {
-
 }
 
 func (b *CachingBotCommandManager) commandUpdateLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	for {
 		select {
-		case info := <-b.commandUpdateCh:
-			b.commandUpdate(ctx, info)
+		case job := <-b.commandUpdateCh:
+			if err := b.commandUpdate(ctx, job); err != nil {
+				b.Debug(ctx, "commandUpdateLoop: failed to update: %s", err)
+			}
 		case <-stopCh:
 			return nil
 		}

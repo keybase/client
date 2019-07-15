@@ -523,7 +523,7 @@ type BotCommandManager interface {
 	Advertise(ctx context.Context, commands []chat1.BotCommands) error
 	Clear(ctx context.Context) error
 	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.ConversationCommand, error)
-	UpdateCommands(ctx context.Context, convID chat1.ConversationID) error
+	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) error
 }
 
 type InternalError interface {

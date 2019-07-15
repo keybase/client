@@ -610,6 +610,7 @@ export enum GetThreadReason {
   indexedSearch = 7,
   kbfsfileactivity = 8,
   coinflip = 9,
+  botcommands = 10,
 }
 
 export enum GlobalAppNotificationSetting {
