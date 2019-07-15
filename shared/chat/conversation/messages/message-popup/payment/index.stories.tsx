@@ -73,19 +73,6 @@ const youSendProps = {
   txVerb: 'sent',
 } as Props
 
-const youRequestBTCProps = {
-  ...commonProps,
-  amountNominal: '3 BTC',
-  balanceChange: '',
-  bottomLine: 'stronghold.com',
-  cancelButtonLabel: 'Cancel request',
-  icon: receiveIcon,
-  onCancel,
-  sender: 'cecileb',
-  topLine: 'you requested',
-  txVerb: 'requested',
-} as Props
-
 const youReceiveBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
@@ -171,7 +158,6 @@ const load = () => {
     .add('You receive Lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
     .add('You request Lumens', () => <PaymentPopupMoved {...youRequestProps} />)
     .add('You send Lumens', () => <PaymentPopupMoved {...youSendProps} />)
-    .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
     .add('You send BTC from XLM', () => <PaymentPopupMoved {...youSendBTCFromXLMProps} />)
