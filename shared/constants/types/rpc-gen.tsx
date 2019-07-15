@@ -2025,7 +2025,6 @@ export enum StatusCode {
   scephemeralmemberafterek = 2907,
   scephemeraldevicestale = 2908,
   scephemeraluserstale = 2909,
-  scephemeralteambotgenerationexists = 2910,
   scstellarerror = 3100,
   scstellarbadinput = 3101,
   scstellarwrongrevision = 3102,
@@ -2066,6 +2065,7 @@ export enum StatusCode {
   scphonenumberwrongverificationcode = 3403,
   scphonenumberlimitexceeded = 3404,
   scnopaperkeys = 3605,
+  scteambotkeygenerationexists = 3800,
 }
 
 export enum TLFIdentifyBehavior {

@@ -34,7 +34,7 @@ func (r *ekHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, c
 	switch category {
 	case "ephemeral.new_team_ek":
 		return true, r.newTeamEK(ctx, cli, item)
-	case "ephemeral.new_teambot_ek":
+	case "ephemeral.new_teambot_key":
 		return true, r.newTeambotEK(ctx, cli, item)
 	default:
 		if strings.HasPrefix(category, "ephemeral.") {
