@@ -108,11 +108,7 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
     )
   }
 
-  console.log('bruh', users)
-  const hasPhoneNumber = users.some(user => {
-    console.log('bruh', user)
-    return user.endsWith('@phone')
-  })
+  const hasPhoneNumber = users.some(user => user.endsWith('@phone'))
   return (
     <BannerBox color={Styles.globalColors.blue}>
       <BannerText>
