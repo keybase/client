@@ -157,8 +157,9 @@ protocol chatUi {
     string fromUsername;
     string toUsername;
     // for path payments
-    string sourceAmount;  
+    string sourceAmount;
     stellar1.Asset sourceAsset;
+    string issuerDescription;
   }
 
   record UIRequestInfo {
