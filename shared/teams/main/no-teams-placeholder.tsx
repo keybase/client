@@ -7,12 +7,7 @@ import {globalMargins, desktopStyles, platformStyles, styleSheetCreate} from '..
 
 const NoTeamsPlaceholder = () => {
   const dispatch = Container.useDispatch()
-  const onCreateTeam = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {}, selected: 'teamNewTeamDialog'}],
-      })
-    )
+  const onCreateTeam = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['teamNewTeamDialog']}))
   const onJoinTeam = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['teamJoinTeamDialog']}))
 
   const isLoadingTeams = Container.useAnyWaiting(teamsLoadedWaitingKey)
