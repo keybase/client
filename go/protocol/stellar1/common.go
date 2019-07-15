@@ -114,16 +114,18 @@ func (o AssetListResult) DeepCopy() AssetListResult {
 }
 
 type Balance struct {
-	Asset  Asset  `codec:"asset" json:"asset"`
-	Amount string `codec:"amount" json:"amount"`
-	Limit  string `codec:"limit" json:"limit"`
+	Asset        Asset  `codec:"asset" json:"asset"`
+	Amount       string `codec:"amount" json:"amount"`
+	Limit        string `codec:"limit" json:"limit"`
+	IsAuthorized bool   `codec:"isAuthorized" json:"isAuthorized"`
 }
 
 func (o Balance) DeepCopy() Balance {
 	return Balance{
-		Asset:  o.Asset.DeepCopy(),
-		Amount: o.Amount,
-		Limit:  o.Limit,
+		Asset:        o.Asset.DeepCopy(),
+		Amount:       o.Amount,
+		Limit:        o.Limit,
+		IsAuthorized: o.IsAuthorized,
 	}
 }
 
