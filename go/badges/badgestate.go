@@ -111,6 +111,10 @@ type memberOutBody struct {
 	} `json:"reset_user"`
 }
 
+type unverifiedCountBody struct {
+	UnverifiedCount int `json:"unverified_count"`
+}
+
 type homeTodoMap map[keybase1.HomeScreenTodoType]int
 type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
 
@@ -189,6 +193,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.HomeTodoItems = 0
 	b.state.TeamsWithResetUsers = nil
 	b.state.ResetState = keybase1.ResetState{}
+	b.state.UnverifiedEmails = 0
+	b.state.UnverifiedPhones = 0
 
 	var hsb *homeStateBody
 
@@ -362,6 +368,21 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			b.state.ResetState = body
+		case "email.unverified_count":
+			var body unverifiedCountBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'email.unverified_count' item: %v", err)
+				continue
+			}
+			b.state.UnverifiedEmails = body.UnverifiedCount
+		case "phone.unverified_count":
+			var body unverifiedCountBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'phone.unverified_count' item: %v", err)
+				continue
+			}
+			b.G().Log.CDebugf(ctx, "Dannydebug phone E2E success! %+v", body)
+			b.state.UnverifiedPhones = body.UnverifiedCount
 		}
 	}
 

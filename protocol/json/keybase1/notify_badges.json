@@ -113,6 +113,14 @@
           "name": "homeTodoItems"
         },
         {
+          "type": "int",
+          "name": "unverifiedEmails"
+        },
+        {
+          "type": "int",
+          "name": "unverifiedPhones"
+        },
+        {
           "type": {
             "type": "array",
             "items": "DeviceID"

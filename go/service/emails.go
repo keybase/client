@@ -102,6 +102,9 @@ func (r *emailsGregorHandler) Create(ctx context.Context, cli gregor1.IncomingIn
 		return true, r.handleEmailChangedMsg(ctx, cli, category, item)
 	case "email.verified":
 		return true, r.handleVerifiedMsg(ctx, cli, item)
+	case "email.unverified_count":
+		// handled in badgestate
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "email.") {
 			return false, fmt.Errorf("unknown emailsGregorHandler category: %q", category)
