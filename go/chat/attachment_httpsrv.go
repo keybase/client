@@ -886,7 +886,7 @@ func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
 
 func (c *CachingAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(mctx.Ctx(), mctx.G(), c.getCacheDir()); err != nil {
+		if err := c.diskLRU.Clean(mctx, c.getCacheDir()); err != nil {
 			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
 		}
 	}

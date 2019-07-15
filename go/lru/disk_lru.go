@@ -416,7 +416,7 @@ func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (e
 	return entries, nil
 }
 
-func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir string) (err error) {
+func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) (err error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -425,7 +425,7 @@ func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir str
 
 	// reverse map of filepaths to lru keys
 	cacheRevMap := map[string]string{}
-	allVals, err := d.allValuesLocked(ctx, lctx)
+	allVals, err := d.allValuesLocked(mctx.Ctx(), mctx.G())
 	if err != nil {
 		return err
 	}
@@ -442,12 +442,18 @@ func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir str
 		return err
 	}
 
-	d.debug(ctx, lctx, "Clean: found %d files to delete in %s, %d in cache",
+	d.debug(mctx.Ctx(), mctx.G(), "Clean: found %d files to delete in %s, %d in cache",
 		len(files), cacheDir, len(cacheRevMap))
+	removed := 0
 	for _, v := range files {
 		if _, ok := cacheRevMap[v]; !ok {
 			if err := os.Remove(v); err != nil {
-				d.debug(ctx, lctx, "Clean: failed to delete file %q: %s", v, err)
+				d.debug(mctx.Ctx(), mctx.G(), "Clean: failed to delete file %q: %s", v, err)
+			}
+			removed++
+			// Keep mobile out of a tight loop with a short sleep.
+			if removed%1000 == 0 && mctx.G().IsMobileAppType() {
+				time.Sleep(25 * time.Millisecond)
 			}
 		}
 	}
@@ -465,7 +471,7 @@ func CleanAfterDelay(mctx libkb.MetaContext, d *DiskLRU,
 		func() error { return nil })()
 
 	time.Sleep(delay)
-	if err := d.Clean(mctx.Ctx(), mctx.G(), cacheDir); err != nil {
+	if err := d.Clean(mctx, cacheDir); err != nil {
 		mctx.Debug("unable to run clean: %v", err)
 	}
 	size, err := d.Size(mctx.Ctx(), mctx.G())

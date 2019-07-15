@@ -394,7 +394,7 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 
 func (c *FullCachingSource) OnDbNuke(m libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
+		if err := c.diskLRU.Clean(m, c.getCacheDir(m)); err != nil {
 			c.debug(m, "unable to run clean: %v", err)
 		}
 	}
