@@ -154,6 +154,9 @@ func (r *phoneNumbersGregorHandler) Create(ctx context.Context, cli gregor1.Inco
 	case "phone.added", "phone.verified", "phone.superseded",
 		"phone.visibility_changed", "phone.deleted":
 		return true, r.handlePhoneMsg(ctx, cli, category, item)
+	case "phone.unverified_count":
+		// handled in badgestate
+		return true, nil
 	default:
 		if strings.HasPrefix(category, "phone.") {
 			return false, fmt.Errorf("unknown phoneNumbersGregorHandler category: %q", category)
