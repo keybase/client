@@ -168,7 +168,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 inTeam={result.inTeam}
                 isPreExistingTeamMember={result.isPreExistingTeamMember}
                 followingState={result.followingState}
-                highlight={index === props.highlightedIndex}
+                highlight={!Styles.isMobile && index === props.highlightedIndex}
                 onAdd={() => props.onAdd(result.userId)}
                 onRemove={() => props.onRemove(result.userId)}
               />
