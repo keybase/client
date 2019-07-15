@@ -1,11 +1,10 @@
-import {noop} from 'lodash-es'
-import RNFetchBlob from 'rn-fetch-blob'
+import * as FileSystem from 'expo-file-system'
 import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {writeStream, exists} from './file'
 import {serialPromises} from './promise'
 import {logFileName, logFileDir} from '../constants/platform.native'
 
-const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
+const localLog = __DEV__ ? window.console.log.bind(window.console) : () => {}
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
@@ -17,24 +16,15 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
       resolve()
       return
     }
-    const dir = logFileDir
-    const logPath = logFileName
+    const dir = `file://${logFileDir}`
+    const logPath = `file://${logFileName}`
 
-    RNFetchBlob.fs
-      .isDir(dir)
-      .then(isDir => (isDir ? Promise.resolve() : RNFetchBlob.fs.mkdir(dir)))
-      .then(() => exists(logPath))
-      .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(logPath, '', 'utf8')))
-      .then(() => writeStream(logPath, 'utf8', true))
-      .then(stream => {
-        const writeLogsPromises = lines.map((log, idx) => {
-          return () => {
-            return stream.write(JSON.stringify(log) + '\n')
-          }
-        })
-        return serialPromises(writeLogsPromises).then(() => stream.close())
-      })
-      .then(success => {
+    FileSystem.getInfoAsync(dir)
+      .then(({isDirectory}) =>
+        isDirectory ? Promise.resolve() : FileSystem.makeDirectoryAsync(dir, {intermediates: true})
+      )
+      .then(() => FileSystem.writeAsStringAsync(logPath, lines.map(log => JSON.stringify(log)).join('\n')))
+      .then(() => {
         console.log('Log write done')
         resolve()
       })
