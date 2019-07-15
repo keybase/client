@@ -2,51 +2,61 @@ import logger from '../../logger'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
+import * as FileSystem from 'expo-file-system'
 import RNFetchBlob from 'rn-fetch-blob'
-import {copy, unlink} from '../../util/file'
-import {PermissionsAndroid} from 'react-native'
+import {PermissionsAndroid, NativeModules} from 'react-native'
 import nativeSaga from './common.native'
 import {types} from '@babel/core'
 
-function copyToDownloadDir(path: string, mimeType: string) {
+async function copyToDownloadDir(_path: string, mimeType: string) {
+  const path = `file://${_path}`
   const fileName = path.substring(path.lastIndexOf('/') + 1)
-  const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
+
+  let downloadDir: string
+  let downloadPath: string
+  try {
+    downloadDir = await NativeModules.Utils.getDownloadPath()
+    downloadPath = `file://${downloadDir}/${fileName}`
+  } catch (e) {
+    logger.warn(`Error loading download path ${e}`)
+  }
+
   let stage = 'permission' // additional debug message for KBFS-4080
-  return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-    message: 'Keybase needs access to your storage so we can download a file to it',
-    title: 'Keybase Storage Permission',
-  })
-    .then(permissionStatus => {
-      if (permissionStatus !== 'granted') {
-        throw new Error('Unable to acquire storage permissions')
+  try {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        message: 'Keybase needs access to your storage so we can download a file to it',
+        title: 'Keybase Storage Permission',
       }
-      stage = 'copy'
-      return copy(path, downloadPath)
+    )
+
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire storage permissions')
+    }
+
+    stage = 'copy'
+    await FileSystem.copyAsync({from: path, to: downloadPath})
+
+    stage = 'unlink'
+    await FileSystem.deleteAsync(path)
+
+    stage = 'addCompleteDownload'
+    await NativeModules.Utils.addCompleteDownload({
+      description: `Keybase downloaded ${fileName}`,
+      mime: mimeType,
+      path: downloadPath,
+      showNotification: true,
+      title: fileName,
     })
-    .then(() => {
-      stage = 'unlink'
-      return unlink(path)
+  } catch (err) {
+    logger.error('Error completing download', {
+      downloadDir,
+      hasNumberSuffix: !!path.match(/\(\d\)/),
+      stage,
     })
-    .then(() => {
-      stage = 'addCompleteDownload'
-      // @ts-ignore codemod-issue
-      return RNFetchBlob.android.addCompleteDownload({
-        description: `Keybase downloaded ${fileName}`,
-        mime: mimeType,
-        path: downloadPath,
-        showNotification: true,
-        title: fileName,
-      })
-    })
-    .catch(err => {
-      logger.error('Error completing download', {
-        cacheDir: RNFetchBlob.fs.dirs.CacheDir,
-        downloadDir: RNFetchBlob.fs.dirs.DownloadDir,
-        hasNumberSuffix: !!path.match(/\(\d\)/),
-        stage,
-      })
-      throw err
-    })
+    throw err
+  }
 }
 
 const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => {
