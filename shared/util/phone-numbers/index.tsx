@@ -102,10 +102,15 @@ export const areaCodeIsCanadian = (input: string): boolean => {
   return !!canadianAreaCodes[input]
 }
 
-export const validateNumber = (rawNumber: string, region?: string) => {
+export const validateNumber = (rawNumber: string, region: string | null) => {
   try {
-    const number = phoneUtil.parse(rawNumber, region)
-    const valid = phoneUtil.isValidNumberForRegion(number, region)
+    const number = phoneUtil.parse(rawNumber, region || '')
+    let valid: boolean
+    if (region) {
+      valid = phoneUtil.isValidNumberForRegion(number, region)
+    } else {
+      valid = phoneUtil.isPossibleNumberWithReason(number) === ValidationResult.IS_POSSIBLE
+    }
     return {
       e164: phoneUtil.format(number, PNF.E164),
       valid,

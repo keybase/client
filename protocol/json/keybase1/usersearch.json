@@ -121,6 +121,40 @@
     },
     {
       "type": "record",
+      "name": "ImpTofuSearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "coercedQuery"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "boolean",
+          "name": "resolved"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "boolean",
+          "name": "following"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "APIUserSearchResult",
       "fields": [
         {
@@ -147,6 +181,13 @@
             "ProcessedContact"
           ],
           "name": "contact"
+        },
+        {
+          "type": [
+            null,
+            "ImpTofuSearchResult"
+          ],
+          "name": "imptofu"
         },
         {
           "type": {
@@ -212,15 +253,56 @@
           "name": "siteIconFull"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "ImpTofuSearchType",
+      "symbols": [
+        "PHONE_0",
+        "EMAIL_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ImpTofuQuery",
+      "switch": {
+        "type": "ImpTofuSearchType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PHONE",
+            "def": false
+          },
+          "body": "PhoneNumber"
+        },
+        {
+          "label": {
+            "name": "EMAIL",
+            "def": false
+          },
+          "body": "EmailAddress"
+        }
+      ]
     }
   ],
   "messages": {
-    "userSearch": {
+    "getNonUserDetails": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
+      "response": "NonUserDetails"
+    },
+    "userSearch": {
+      "request": [
         {
           "name": "query",
           "type": "string"
@@ -240,25 +322,19 @@
         {
           "name": "includeContacts",
           "type": "boolean"
+        },
+        {
+          "name": "impTofuQuery",
+          "type": [
+            null,
+            "ImpTofuQuery"
+          ]
         }
       ],
       "response": {
         "type": "array",
         "items": "APIUserSearchResult"
       }
-    },
-    "getNonUserDetails": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "assertion",
-          "type": "string"
-        }
-      ],
-      "response": "NonUserDetails"
     }
   },
   "namespace": "keybase.1"

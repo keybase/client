@@ -120,6 +120,7 @@ export type _ContactsState = {
   importedCount: number | null
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
   permissionStatus: 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
+  userCountryCode: string | null
 }
 export type ContactsState = I.RecordOf<_ContactsState>
 

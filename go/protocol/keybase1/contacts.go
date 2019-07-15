@@ -60,6 +60,7 @@ type ProcessedContact struct {
 	ContactIndex int              `codec:"contactIndex" json:"contactIndex"`
 	ContactName  string           `codec:"contactName" json:"contactName"`
 	Component    ContactComponent `codec:"component" json:"component"`
+	InputCoerced string           `codec:"inputCoerced" json:"inputCoerced"`
 	Resolved     bool             `codec:"resolved" json:"resolved"`
 	Uid          UID              `codec:"uid" json:"uid"`
 	Username     string           `codec:"username" json:"username"`
@@ -75,6 +76,7 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 		ContactIndex: o.ContactIndex,
 		ContactName:  o.ContactName,
 		Component:    o.Component.DeepCopy(),
+		InputCoerced: o.InputCoerced,
 		Resolved:     o.Resolved,
 		Uid:          o.Uid.DeepCopy(),
 		Username:     o.Username,

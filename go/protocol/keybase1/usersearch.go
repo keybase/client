@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -94,11 +95,34 @@ func (o APIUserServiceSummary) DeepCopy() APIUserServiceSummary {
 	}
 }
 
+type ImpTofuSearchResult struct {
+	CoercedQuery string `codec:"coercedQuery" json:"coercedQuery"`
+	Assertion    string `codec:"assertion" json:"assertion"`
+	Resolved     bool   `codec:"resolved" json:"resolved"`
+	Uid          UID    `codec:"uid" json:"uid"`
+	Username     string `codec:"username" json:"username"`
+	FullName     string `codec:"fullName" json:"fullName"`
+	Following    bool   `codec:"following" json:"following"`
+}
+
+func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
+	return ImpTofuSearchResult{
+		CoercedQuery: o.CoercedQuery,
+		Assertion:    o.Assertion,
+		Resolved:     o.Resolved,
+		Uid:          o.Uid.DeepCopy(),
+		Username:     o.Username,
+		FullName:     o.FullName,
+		Following:    o.Following,
+	}
+}
+
 type APIUserSearchResult struct {
 	Score           float64                                               `codec:"score" json:"score"`
 	Keybase         *APIUserKeybaseResult                                 `codec:"keybase,omitempty" json:"keybase,omitempty"`
 	Service         *APIUserServiceResult                                 `codec:"service,omitempty" json:"service,omitempty"`
 	Contact         *ProcessedContact                                     `codec:"contact,omitempty" json:"contact,omitempty"`
+	Imptofu         *ImpTofuSearchResult                                  `codec:"imptofu,omitempty" json:"imptofu,omitempty"`
 	ServicesSummary map[APIUserServiceIDWithContact]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
 	RawScore        float64                                               `codec:"rawScore" json:"rawScore"`
 }
@@ -127,6 +151,13 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Contact),
+		Imptofu: (func(x *ImpTofuSearchResult) *ImpTofuSearchResult {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Imptofu),
 		ServicesSummary: (func(x map[APIUserServiceIDWithContact]APIUserServiceSummary) map[APIUserServiceIDWithContact]APIUserServiceSummary {
 			if x == nil {
 				return nil
@@ -199,13 +230,106 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 	}
 }
 
-type UserSearchArg struct {
-	SessionID              int    `codec:"sessionID" json:"sessionID"`
-	Query                  string `codec:"query" json:"query"`
-	Service                string `codec:"service" json:"service"`
-	MaxResults             int    `codec:"maxResults" json:"maxResults"`
-	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
-	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
+type ImpTofuSearchType int
+
+const (
+	ImpTofuSearchType_PHONE ImpTofuSearchType = 0
+	ImpTofuSearchType_EMAIL ImpTofuSearchType = 1
+)
+
+func (o ImpTofuSearchType) DeepCopy() ImpTofuSearchType { return o }
+
+var ImpTofuSearchTypeMap = map[string]ImpTofuSearchType{
+	"PHONE": 0,
+	"EMAIL": 1,
+}
+
+var ImpTofuSearchTypeRevMap = map[ImpTofuSearchType]string{
+	0: "PHONE",
+	1: "EMAIL",
+}
+
+func (e ImpTofuSearchType) String() string {
+	if v, ok := ImpTofuSearchTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type ImpTofuQuery struct {
+	T__     ImpTofuSearchType `codec:"t" json:"t"`
+	Phone__ *PhoneNumber      `codec:"phone,omitempty" json:"phone,omitempty"`
+	Email__ *EmailAddress     `codec:"email,omitempty" json:"email,omitempty"`
+}
+
+func (o *ImpTofuQuery) T() (ret ImpTofuSearchType, err error) {
+	switch o.T__ {
+	case ImpTofuSearchType_PHONE:
+		if o.Phone__ == nil {
+			err = errors.New("unexpected nil value for Phone__")
+			return ret, err
+		}
+	case ImpTofuSearchType_EMAIL:
+		if o.Email__ == nil {
+			err = errors.New("unexpected nil value for Email__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o ImpTofuQuery) Phone() (res PhoneNumber) {
+	if o.T__ != ImpTofuSearchType_PHONE {
+		panic("wrong case accessed")
+	}
+	if o.Phone__ == nil {
+		return
+	}
+	return *o.Phone__
+}
+
+func (o ImpTofuQuery) Email() (res EmailAddress) {
+	if o.T__ != ImpTofuSearchType_EMAIL {
+		panic("wrong case accessed")
+	}
+	if o.Email__ == nil {
+		return
+	}
+	return *o.Email__
+}
+
+func NewImpTofuQueryWithPhone(v PhoneNumber) ImpTofuQuery {
+	return ImpTofuQuery{
+		T__:     ImpTofuSearchType_PHONE,
+		Phone__: &v,
+	}
+}
+
+func NewImpTofuQueryWithEmail(v EmailAddress) ImpTofuQuery {
+	return ImpTofuQuery{
+		T__:     ImpTofuSearchType_EMAIL,
+		Email__: &v,
+	}
+}
+
+func (o ImpTofuQuery) DeepCopy() ImpTofuQuery {
+	return ImpTofuQuery{
+		T__: o.T__.DeepCopy(),
+		Phone__: (func(x *PhoneNumber) *PhoneNumber {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Phone__),
+		Email__: (func(x *EmailAddress) *EmailAddress {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Email__),
+	}
 }
 
 type GetNonUserDetailsArg struct {
@@ -213,30 +337,24 @@ type GetNonUserDetailsArg struct {
 	Assertion string `codec:"assertion" json:"assertion"`
 }
 
+type UserSearchArg struct {
+	Query                  string        `codec:"query" json:"query"`
+	Service                string        `codec:"service" json:"service"`
+	MaxResults             int           `codec:"maxResults" json:"maxResults"`
+	IncludeServicesSummary bool          `codec:"includeServicesSummary" json:"includeServicesSummary"`
+	IncludeContacts        bool          `codec:"includeContacts" json:"includeContacts"`
+	ImpTofuQuery           *ImpTofuQuery `codec:"impTofuQuery,omitempty" json:"impTofuQuery,omitempty"`
+}
+
 type UserSearchInterface interface {
-	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
 	GetNonUserDetails(context.Context, GetNonUserDetailsArg) (NonUserDetails, error)
+	UserSearch(context.Context, UserSearchArg) ([]APIUserSearchResult, error)
 }
 
 func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.userSearch",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"userSearch": {
-				MakeArg: func() interface{} {
-					var ret [1]UserSearchArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]UserSearchArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]UserSearchArg)(nil), args)
-						return
-					}
-					ret, err = i.UserSearch(ctx, typedArgs[0])
-					return
-				},
-			},
 			"getNonUserDetails": {
 				MakeArg: func() interface{} {
 					var ret [1]GetNonUserDetailsArg
@@ -252,6 +370,21 @@ func UserSearchProtocol(i UserSearchInterface) rpc.Protocol {
 					return
 				},
 			},
+			"userSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]UserSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UserSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UserSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.UserSearch(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -260,12 +393,12 @@ type UserSearchClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
+func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUserDetailsArg) (res NonUserDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []interface{}{__arg}, &res)
 	return
 }
 
-func (c UserSearchClient) GetNonUserDetails(ctx context.Context, __arg GetNonUserDetailsArg) (res NonUserDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.userSearch.getNonUserDetails", []interface{}{__arg}, &res)
+func (c UserSearchClient) UserSearch(ctx context.Context, __arg UserSearchArg) (res []APIUserSearchResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.userSearch.userSearch", []interface{}{__arg}, &res)
 	return
 }

@@ -460,6 +460,15 @@ const rootReducer = (
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
         s.set('selectedConversation', conversationIDKey)
+        if (Constants.isValidConversationIDKey(conversationIDKey)) {
+          // If navigating away from error conversation to a valid conv - clear
+          // error msg.
+          s.set('createConversationError', null)
+        }
+      })
+    case Chat2Gen.createConversationError:
+      return state.withMutations(s => {
+        s.set('createConversationError', action.payload.message)
       })
     case Chat2Gen.updateUnreadline:
       if (action.payload.messageID > 0) {

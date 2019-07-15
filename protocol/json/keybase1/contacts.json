@@ -65,6 +65,10 @@
           "name": "component"
         },
         {
+          "type": "string",
+          "name": "inputCoerced"
+        },
+        {
           "type": "boolean",
           "name": "resolved"
         },

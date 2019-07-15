@@ -43,6 +43,10 @@
         "'teamMention'" // from team mention
       ]
     },
+    // Where conversation could not have been created for some reason.
+    "createConversationError": {
+      "message": "string"
+    },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
     // Chatting from external places in the app should usually call this

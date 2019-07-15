@@ -32,6 +32,7 @@ export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
+export const createConversationError = 'chat2:createConversationError'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
@@ -202,6 +203,7 @@ type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.Conversati
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
+type _CreateConversationErrorPayload = {readonly message: string}
 type _CreateConversationPayload = {readonly participants: Array<string>}
 type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
@@ -1095,6 +1097,9 @@ export const createBlockConversation = (payload: _BlockConversationPayload): Blo
   payload,
   type: blockConversation,
 })
+export const createCreateConversationError = (
+  payload: _CreateConversationErrorPayload
+): CreateConversationErrorPayload => ({payload, type: createConversationError})
 export const createDeselectConversation = (
   payload: _DeselectConversationPayload
 ): DeselectConversationPayload => ({payload, type: deselectConversation})
@@ -1368,6 +1373,10 @@ export type ClearPaymentConfirmInfoPayload = {
 export type ConfirmScreenResponsePayload = {
   readonly payload: _ConfirmScreenResponsePayload
   readonly type: typeof confirmScreenResponse
+}
+export type CreateConversationErrorPayload = {
+  readonly payload: _CreateConversationErrorPayload
+  readonly type: typeof createConversationError
 }
 export type CreateConversationPayload = {
   readonly payload: _CreateConversationPayload
@@ -1799,6 +1808,7 @@ export type Actions =
   | ClearCommandStatusInfoPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
+  | CreateConversationErrorPayload
   | CreateConversationPayload
   | DeselectConversationPayload
   | DesktopNotificationPayload

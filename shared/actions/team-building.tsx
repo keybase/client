@@ -7,6 +7,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import flags from '../util/feature-flags'
+import {validateNumber} from '../util/phone-numbers'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -15,9 +16,12 @@ const apiSearch = (
   query: string,
   service: TeamBuildingTypes.ServiceIdWithContact,
   maxResults: number,
-  includeServicesSummary: boolean
-) => {
+  includeServicesSummary: boolean,
+  impTofuQuery: RPCTypes.ImpTofuQuery | null
+): Promise<Array<TeamBuildingTypes.User>> => {
+  console.log('zzz api search', query, service, impTofuQuery)
   return RPCTypes.userSearchUserSearchRpcPromise({
+    impTofuQuery,
     includeContacts: flags.sbsContacts && service === 'keybase',
     includeServicesSummary,
     maxResults,
@@ -86,19 +90,46 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
         if (!isStillInSameQuery(yield* Saga.selectState())) {
           break
         }
-        const action = yield apiSearch(teamBuildingSearchQuery, service, teamBuildingSearchLimit, true).then(
-          users =>
-            TeamBuildingGen.createSearchResultsLoaded({
-              namespace,
-              query: teamBuildingSearchQuery,
-              service,
-              users,
-            })
+        const action = yield apiSearch(
+          teamBuildingSearchQuery,
+          service,
+          teamBuildingSearchLimit,
+          true,
+          null
+        ).then(users =>
+          TeamBuildingGen.createSearchResultsLoaded({
+            namespace,
+            query: teamBuildingSearchQuery,
+            service,
+            users,
+          })
         )
         yield Saga.put(action)
       }
     })
   }
+}
+
+const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTofuQuery | null => {
+  const phoneNumber = validateNumber(query, region)
+  if (phoneNumber.valid) {
+    return {
+      phone: phoneNumber.e164,
+      t: RPCTypes.ImpTofuSearchType.phone,
+    }
+  } else {
+    // Consider the query a valid email if it contains at sign and a period
+    // after the at sign.
+    const atIndex = query.indexOf('@')
+    const periodIndex = query.lastIndexOf('.')
+    if (atIndex !== -1 && periodIndex > atIndex && periodIndex !== query.length - 1) {
+      return {
+        email: query,
+        t: RPCTypes.ImpTofuSearchType.email,
+      }
+    }
+  }
+  return null
 }
 
 const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
@@ -111,16 +142,18 @@ const search = (state: TypedState, {payload: {namespace}}: NSAction) => {
     return
   }
 
-  // TODO add a way to search for contacts
-  if (teamBuildingSearchQuery === '' || teamBuildingSelectedService === 'contact') {
-    return
+  const query = teamBuildingSearchQuery
+  let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
+  if (flags.sbsContacts && teamBuildingSelectedService === 'keybase') {
+    const userRegion = state.settings.contacts.userCountryCode
+    impTofuQuery = makeImpTofuQuery(query, userRegion)
   }
 
-  return apiSearch(teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit, true).then(
+  return apiSearch(query, teamBuildingSelectedService, teamBuildingSearchLimit, true, impTofuQuery).then(
     users =>
       TeamBuildingGen.createSearchResultsLoaded({
         namespace,
-        query: teamBuildingSearchQuery,
+        query,
         service: teamBuildingSelectedService,
         users,
       })

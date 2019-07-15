@@ -30,6 +30,7 @@ protocol contacts {
         int contactIndex; // to associate the resolution to input contact entry
         string contactName; // redundant, taken from contact to avoid lookups on consumer side.
         ContactComponent component; // component from contact that was used to create this entry.
+        string inputCoerced; // server-normalized email or phone number from component
 
         boolean resolved;
         // If resolved:

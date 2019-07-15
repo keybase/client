@@ -14,6 +14,8 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 import JumpToRecent from './jump-to-recent'
+import SpecialTopMessage from '../../messages/special-top-message'
+import * as Constants from '../../../../constants/chat2'
 
 const firstOrdinal = 10000
 const makeMoreOrdinals = (
@@ -333,6 +335,19 @@ class ThreadWrapper extends React.Component<Props, State> {
   }
 }
 
+const providerTopMessage = Sb.createPropProviderWithCommon({
+  TopMessage: p => ({
+    conversationIDKey: Constants.pendingErrorConversationIDKey,
+    createConversationError: 'I AM ERROR',
+    hasOlderResetConversation: false,
+    loadMoreType: 'noMoreToLoad',
+    measure: null,
+    pendingState: 'error',
+    showRetentionNotice: false,
+    showTeamOffer: false,
+  }),
+})
+
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(provider)
@@ -348,6 +363,10 @@ const load = () => {
       </Text>
     ))
     .add('Jump to Recent', () => <JumpToRecent onClick={Sb.action('onClick')} />)
+
+  Sb.storiesOf('Chat/Conversation/Thread', module)
+    .addDecorator(providerTopMessage)
+    .add('Error top bar', () => <SpecialTopMessage />)
 }
 
 export default load

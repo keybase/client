@@ -220,13 +220,11 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 	return withContacts
 }
 
-var nonDigits = regexp.MustCompile("[^\\d]")
-
 func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
 	for _, contact := range contacts {
 		cPhoneOrEmail := contact.Component.ValueString()
 		if isPhone {
-			cPhoneOrEmail = nonDigits.ReplaceAllString(cPhoneOrEmail, "")
+			cPhoneOrEmail = keybase1.PhoneNumberToAssertion(cPhoneOrEmail)
 		}
 		if cPhoneOrEmail == phoneOrEmail {
 			return &contact.ContactName

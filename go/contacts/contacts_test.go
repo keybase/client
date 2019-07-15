@@ -4,10 +4,12 @@
 package contacts
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -58,40 +60,43 @@ func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybas
 	return ret, nil
 }
 
-func (c *MockContactsProvider) FillUsernames(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-	for i, v := range res {
-		require.False(c.t, v.Uid.IsNil())
-		if v.Resolved {
-			var found bool
-			for _, y := range c.phoneNumbers {
-				if y.UID.Equal(v.Uid) {
-					res[i].Username = y.Username
-					res[i].FullName = y.Fullname
-					found = true
-					break
-				}
-			}
-			if found {
-				continue
-			}
-			for _, y := range c.emails {
-				if y.UID.Equal(v.Uid) {
-					res[i].Username = y.Username
-					res[i].FullName = y.Fullname
-					break
-				}
-			}
-		}
+func makeUIDSet(uids []keybase1.UID) (res map[keybase1.UID]struct{}) {
+	res = make(map[keybase1.UID]struct{}, len(uids))
+	for _, v := range uids {
+		res[v] = struct{}{}
 	}
+	return res
 }
 
-func (c *MockContactsProvider) FillFollowing(mctx libkb.MetaContext, res []keybase1.ProcessedContact) {
-	for i, v := range res {
-		require.False(c.t, v.Uid.IsNil())
-		if _, found := c.following[v.Uid]; found {
-			res[i].Following = true
+func (c *MockContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {
+	res := make(map[keybase1.UID]ContactUsernameAndFullName)
+	uidSet := makeUIDSet(uids)
+
+	for _, v := range c.phoneNumbers {
+		if _, found := uidSet[v.UID]; found {
+			res[v.UID] = ContactUsernameAndFullName{
+				Username: v.Username,
+				Fullname: v.Fullname,
+			}
 		}
 	}
+	for _, v := range c.emails {
+		if _, found := uidSet[v.UID]; found {
+			res[v.UID] = ContactUsernameAndFullName{
+				Username: v.Username,
+				Fullname: v.Fullname,
+			}
+		}
+	}
+	return res, nil
+}
+
+func (c *MockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
+	res := make(map[keybase1.UID]bool)
+	for _, uid := range uids {
+		res[uid] = c.following[uid]
+	}
+	return res, nil
 }
 
 type ErrorContactsProvider struct {
@@ -105,12 +110,14 @@ func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyba
 	return
 }
 
-func (c *ErrorContactsProvider) FillUsernames(libkb.MetaContext, []keybase1.ProcessedContact) {
-	c.t.Errorf("Call to ErrorContactsProvider.FillUsernames")
+func (c *ErrorContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error) {
+	c.t.Errorf("Call to ErrorContactsProvider.FindUsernames")
+	return nil, errors.New("mock error")
 }
 
-func (c *ErrorContactsProvider) FillFollowing(libkb.MetaContext, []keybase1.ProcessedContact) {
-	c.t.Errorf("Call to ErrorContactsProvider.FillFollowing")
+func (c *ErrorContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
+	c.t.Errorf("Call to ErrorContactsProvider.FindFollowing")
+	return nil, errors.New("mock error")
 }
 
 func makePhoneComponent(label string, phone string) keybase1.ContactComponent {
@@ -184,6 +191,8 @@ func TestLookupContacts(t *testing.T) {
 
 	provider := makeProvider(t)
 
+	actx := externals.MakeStaticAssertionContext(context.Background())
+
 	// None of the contact components resolved (empty mock provider). Return all
 	// 3 unresolved components to the caller.
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
@@ -193,7 +202,9 @@ func TestLookupContacts(t *testing.T) {
 		require.Equal(t, "Joe", r.DisplayName)
 		require.False(t, r.Resolved)
 		require.True(t, r.Uid.IsNil())
-		require.Equal(t, formatSBSAssertion(contactList[0].Components[i]), r.Assertion)
+		component := contactList[0].Components[i]
+		assertion, _ := AssertionFromComponent(actx, component, "")
+		require.Equal(t, assertion, r.Assertion)
 	}
 
 	// At least one of the components resolves the user, return just that one
