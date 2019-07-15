@@ -36,14 +36,19 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	}
 
 	arg := libkb.APIArg{
-		Endpoint:    "contacts/lookup",
-		JSONPayload: payload,
-		SessionType: libkb.APISessionTypeREQUIRED,
+		Endpoint:       "contacts/lookup",
+		JSONPayload:    payload,
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		AppStatusCodes: []int{libkb.SCOk, libkb.SCRateLimit},
 	}
 	var resp lookupRes
 	err := mctx.G().API.PostDecode(mctx, arg, &resp)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Resolutions, err
+	if resp.Status.Code == libkb.SCRateLimit && !libkb.IsKeybaseAdmin(mctx.CurrentUID()) {
+		mctx.Warning("Hit rate limit during contact lookup; returning no results")
+		return nil, nil
+	}
+	return resp.Resolutions, nil
 }
