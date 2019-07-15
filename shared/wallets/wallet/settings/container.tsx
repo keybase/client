@@ -47,6 +47,7 @@ const mapStateToProps = state => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+  const secretKey = Constants.getSecretKey(state, accountID).stringValue()
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
@@ -70,6 +71,7 @@ const mapStateToProps = state => {
     mobileOnlyWaiting,
     name,
     saveCurrencyWaiting,
+    secretKey,
     showExternalPartners: flags.stellarExternalPartners,
     thisDeviceIsLockedOut,
     user,
@@ -87,6 +89,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]})),
   _onEditName: (accountID: Types.AccountID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})),
+  _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
+  _onSecretKeySeen: (accountID: Types.AccountID) => dispatch(WalletsGen.createSecretKeySeen({accountID})),
   _onSetDefault: (accountID: Types.AccountID) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'setDefaultAccount'}]})
@@ -116,8 +120,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onEditName: () => dispatchProps._onEditName(stateProps.accountID),
+  onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
   onMobileOnlyModeChange: (enabled: boolean) =>
     dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
+  onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
   refresh: () => dispatchProps._refresh(stateProps.accountID),
