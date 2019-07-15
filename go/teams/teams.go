@@ -2081,6 +2081,7 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 		}
 		if isSigMissingRatchet(err) {
 			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
+			continue
 		}
 		return err
 	}
