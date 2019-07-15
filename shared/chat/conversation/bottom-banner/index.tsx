@@ -108,10 +108,17 @@ const InviteBanner = ({users, openSMS, openShareSheet}: InviteProps) => {
     )
   }
 
-  // Android fallback
+  console.log('bruh', users)
+  const hasPhoneNumber = users.some(user => {
+    console.log('bruh', user)
+    return user.endsWith('@phone')
+  })
   return (
     <BannerBox color={Styles.globalColors.blue}>
-      <BannerText>Your messages will unlock once they join Keybase and verify their phone number.</BannerText>
+      <BannerText>
+        Your messages will unlock once they join Keybase
+        {hasPhoneNumber && ' and verify their phone number'}.
+      </BannerText>
       <BannerText>
         Send them this link:
         <BannerText
