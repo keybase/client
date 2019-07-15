@@ -64,11 +64,14 @@ const sharedSettingsProps = {
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onDelete: Sb.action('onDelete'),
   onEditName: Sb.action('onEditName'),
+  onLoadSecretKey: Sb.action('onLoadSecretKey'),
   onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
+  onSecretKeySeen: Sb.action('onSecretKeySeen'),
   onSetDefault: Sb.action('setDefault'),
   onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
+  secretKey: 'NOTASECRETKEY',
   showExternalPartners: true,
   thisDeviceIsLockedOut: false,
   user: 'testuser',
@@ -110,6 +113,7 @@ const load = () => {
     .add("Not funded account (can't make tx)", () => (
       <Settings {...defaultSettingsProps} canSubmitTx={false} />
     ))
+    .add('Default with loading secret key', () => <Settings {...defaultSettingsProps} secretKey="" />)
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
     .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)
     .add('Device is locked out', () => <Settings {...secondarySettingsProps} thisDeviceIsLockedOut={true} />)
