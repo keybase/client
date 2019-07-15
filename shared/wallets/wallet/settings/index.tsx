@@ -79,7 +79,7 @@ class AccountSettings extends React.Component<SettingsProps> {
 
   componentDidUpdate(prevProps: SettingsProps) {
     if (!this.props.leaveOnFallingEdge && prevProps.leaveOnFallingEdge) {
-      this.props.onLeaveSettings()
+      this.props.onBack() // xxx onBack and onLeaveSettings each have their own bugs
     }
   }
 

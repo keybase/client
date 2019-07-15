@@ -698,7 +698,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		KbTxID:     rres.KeybaseID,
 		TxID:       rres.StellarID,
 		Pending:    rres.Pending,
-		JumpToChat: chatRecipient,
+		JumpToChat: chatRecipient, // xxx todo don't jump to self.
 	}, nil
 }
 
@@ -836,7 +836,7 @@ func sendPathPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg S
 		KbTxID:     rres.KeybaseID,
 		TxID:       rres.StellarID,
 		Pending:    rres.Pending,
-		JumpToChat: chatRecipient,
+		JumpToChat: chatRecipient, // xxx todo don't jump to self.
 	}, nil
 }
 

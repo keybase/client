@@ -79,6 +79,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   _onBack: (accountID: Types.AccountID) => {
+    console.log('xxx onBack')
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
@@ -89,6 +90,7 @@ const mapDispatchToProps = dispatch => ({
   _onEditName: (accountID: Types.AccountID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'renameAccount'}]})),
   _onLeaveSettings: (accountID: Types.AccountID) => {
+    console.log('xxx onLeaveSettings')
     dispatch(RouteTreeGen.createNavigateTo({path: ['walletsRoot']}))
     dispatch(WalletsGen.createLoadPayments({accountID}))
   },
