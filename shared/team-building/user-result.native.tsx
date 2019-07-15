@@ -3,60 +3,23 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
+import {Props} from './user-result'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 
 // TODO
 // * Use ListItem2
-// * maybe move realCSS up?
 
-export type Props = {
-  // They are already a member in the actual team, not this temporary set.
-  isPreExistingTeamMember: boolean
-  resultForService: Types.ServiceIdWithContact
-  username: string
-  prettyName: string
-  services: {[K in Types.ServiceIdWithContact]?: string}
-  fixedHeight?: number
-  inTeam: boolean
-  followingState: Types.FollowingState
-  highlight: boolean
-  onAdd: () => void
-  onRemove: () => void
-}
-
-const realCSS = (inTeam: boolean) => `
-    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
-    .hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton * { color: ${
-  Styles.globalColors.white
-} !important;}
-    .hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton { background-color: ${
-  inTeam ? Styles.globalColors.red : Styles.globalColors.blue
-} !important;}
-`
-
-type LocalState = {
-  hovering: boolean
-}
-
-class Row extends React.Component<Props, LocalState> {
-  state = {hovering: false}
-
+class Row extends React.Component<Props> {
   render = () => {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
-    const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : undefined
-    const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : undefined
+    const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : null
+    const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : null
 
     return (
       <Kb.ClickableBox onClick={this.props.inTeam ? onRemove : onAdd}>
         <Kb.Box2
-          onMouseOver={() => {
-            this.setState({hovering: true})
-          }}
-          onMouseLeave={() => {
-            this.setState({hovering: false})
-          }}
           className={Styles.classNames({
             hoverRow: !this.props.inTeam,
             hoverRowinTeam: this.props.inTeam,
@@ -64,18 +27,14 @@ class Row extends React.Component<Props, LocalState> {
           direction="horizontal"
           fullWidth={true}
           centerChildren={true}
-          style={Styles.collapseStyles([
-            styles.rowContainer,
-            this.props.highlight ? styles.highlighted : null,
-          ])}
+          style={styles.rowContainer}
         >
-          <Kb.DesktopStyle style={realCSS(this.props.inTeam)} />
           <Avatar resultForService={this.props.resultForService} keybaseUsername={keybaseUsername} />
           <Username
             isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
-            keybaseUsername={keybaseUsername || ''}
-            username={serviceUsername || ''}
+            keybaseUsername={keybaseUsername}
+            username={serviceUsername}
             prettyName={this.props.prettyName}
             followingState={this.props.followingState}
             services={this.props.services}
@@ -86,7 +45,6 @@ class Row extends React.Component<Props, LocalState> {
               onAdd={this.props.onAdd}
               onRemove={this.props.onRemove}
               highlight={this.props.highlight}
-              hover={this.state.hovering}
             />
           )}
         </Kb.Box2>
@@ -95,7 +53,7 @@ class Row extends React.Component<Props, LocalState> {
   }
 }
 
-const AvatarSize = Styles.isMobile ? 48 : 32
+const AvatarSize = 48
 const Avatar = ({
   resultForService,
   keybaseUsername,
@@ -177,18 +135,11 @@ const Username = (props: {
 
 const ActionButton = (props: {
   highlight: boolean
-  hover: boolean
   inTeam: boolean
   onAdd: () => void
   onRemove: () => void
 }) => {
-  let Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
-
-  if (props.highlight) {
-    Icon = props.inTeam ? RemoveButton : AddButtonHover
-  } else if (props.hover) {
-    Icon = props.inTeam ? RemoveButton : AddButton
-  }
+  const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (
     <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
@@ -196,13 +147,7 @@ const ActionButton = (props: {
         className="actionButton"
         direction="vertical"
         centerChildren={true}
-        style={Styles.collapseStyles([
-          styles.actionButton,
-          props.inTeam && {backgroundColor: null},
-          props.highlight && {
-            backgroundColor: props.inTeam ? Styles.globalColors.red : Styles.globalColors.blue,
-          },
-        ])}
+        style={Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: null}])}
       >
         <Icon />
       </Kb.Box2>
@@ -210,95 +155,43 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={16} color={Styles.globalColors.black} />
-
-const AddButtonHover = () => (
-  <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
-    <Kb.Icon type="iconfont-return" fontSize={16} color={Styles.globalColors.white} />
-  </Kb.Box2>
-)
-
-const RemoveButton = () => (
-  <Kb.Box2 direction="vertical" centerChildren={true} style={styles.removeButton}>
-    <Kb.Icon type="iconfont-close" fontSize={16} color={Styles.globalColors.white} />
-  </Kb.Box2>
-)
+const AddButton = () => <Kb.Icon type="iconfont-circle" fontSize={22} color={Styles.globalColors.black_10} />
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.blue} />
+  <Kb.Icon type="iconfont-success" fontSize={22} color={Styles.globalColors.blue} />
 )
 
-const ActionButtonSize = Styles.isMobile ? 40 : 32
+const ActionButtonSize = 40
 const styles = Styles.styleSheetCreate({
-  actionButton: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.grey,
-      height: ActionButtonSize,
-      marginLeft: Styles.globalMargins.tiny,
-      width: ActionButtonSize,
-    },
-  }),
-  actionButtonHighlight: {
-    backgroundColor: Styles.globalColors.blue,
+  actionButton: {
+    height: ActionButtonSize,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.small,
+    width: ActionButtonSize,
   },
-  actionButtonHoverContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      height: ActionButtonSize,
-      justifyContent: 'center',
-      width: ActionButtonSize,
-    },
-  }),
   addToTeamIcon: {
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
     width: ActionButtonSize,
   },
-  highlighted: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter2,
-      borderRadius: Styles.borderRadius,
-    },
-  }),
-  keybaseServiceIcon: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.xtiny,
-    },
-  }),
+  keybaseServiceIcon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
   removeButton: {
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
     width: ActionButtonSize,
   },
-  removeButtonHighlight: {
-    backgroundColor: Styles.globalColors.red,
+  rowContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
   },
-  rowContainer: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: 50,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-  }),
-  serviceIcon: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.xtiny,
-      marginTop: 1,
-    },
-    isElectron: {
-      height: 14,
-      width: 14,
-    },
-  }),
+  serviceIcon: {
+    marginLeft: Styles.globalMargins.xtiny,
+    marginTop: 1,
+  },
   services: {
     justifyContent: 'flex-start',
   },
