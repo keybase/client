@@ -4,6 +4,7 @@ import NoTeamsPlaceholder from './no-teams-placeholder'
 import Header from './header'
 import TeamList from '.'
 import {Box} from '../../common-adapters'
+import {teamsLoadedWaitingKey} from '../../constants/teams'
 
 const teamnames = ['stripe', 'stripe.usa', 'techtonica']
 const teammembercounts = {
