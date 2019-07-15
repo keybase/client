@@ -381,7 +381,6 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'phone.unverified_count' item: %v", err)
 				continue
 			}
-			b.G().Log.CDebugf(ctx, "Dannydebug phone E2E success! %+v", body)
 			b.state.UnverifiedPhones = body.UnverifiedCount
 		}
 	}
