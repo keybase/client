@@ -807,6 +807,10 @@ func (s *Server) ApprovePayURILocal(ctx context.Context, arg stellar1.ApprovePay
 		return "", err
 	}
 
+	if vp.AssetCode != "" || vp.AssetIssuer != "" {
+		return "", errors.New("URI is requesting a path payment, not an XLM pay operation")
+	}
+
 	if vp.Amount == "" {
 		vp.Amount = arg.Amount
 	}
