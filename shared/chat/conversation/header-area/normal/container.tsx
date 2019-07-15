@@ -44,15 +44,15 @@ const mapDispatchToProps = (
   onToggleThreadSearch: () => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
 })
 
-const usePhoneOrEmailHeader = (props: Props): boolean =>
+const isPhoneOrEmail = (props: Props): boolean =>
   props.participants.length === 1 &&
   props.participants.some(participant => participant.endsWith('@phone') || participant.endsWith('@email'))
 
 const HeaderBranch = (props: Props) => {
-  if (!!props.teamName) {
+  if (props.teamName) {
     return <ChannelHeader {...props} />
   }
-  if (usePhoneOrEmailHeader(props)) {
+  if (isPhoneOrEmail(props)) {
     return <PhoneOrEmailHeader {...props} />
   }
   return <UsernameHeader {...props} />
