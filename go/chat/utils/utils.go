@@ -214,8 +214,8 @@ func AttachContactNames(mctx libkb.MetaContext, participants []chat1.Conversatio
 			} else {
 				mctx.Debug("Error parsing assertion: %s", err)
 			}
-			withContacts = append(withContacts, participant)
 		}
+		withContacts = append(withContacts, participant)
 	}
 	return withContacts
 }
