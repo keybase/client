@@ -660,6 +660,13 @@
       ]
     },
     {
+      "type": "record",
+      "name": "CommandConvVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
       "type": "enum",
       "name": "BotCommandsTyp",
       "symbols": [
@@ -722,6 +729,122 @@
           "body": "BotCommandsTLFID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BotCommandConv",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "CommandConvVers",
+          "name": "vers"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BotInfo",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "BotCommandConv"
+          },
+          "name": "commandConvs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseBotCommandsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClearBotCommandsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "BotInfoResponseTyp",
+      "symbols": [
+        "UPTODATE_0",
+        "INFO_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "BotInfoResponse",
+      "switch": {
+        "type": "BotInfoResponseTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UPTODATE",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "INFO",
+            "def": false
+          },
+          "body": "BotInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetBotInfoRes",
+      "fields": [
+        {
+          "type": "BotInfoResponse",
+          "name": "response"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BotInfoHash",
+      "fields": [],
+      "typedef": "bytes"
     }
   ],
   "messages": {
@@ -1369,7 +1492,24 @@
           }
         }
       ],
-      "response": null
+      "response": "AdvertiseBotCommandsRes"
+    },
+    "clearBotCommands": {
+      "request": [],
+      "response": "ClearBotCommandsRes"
+    },
+    "getBotInfo": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "infoHash",
+          "type": "BotInfoHash"
+        }
+      ],
+      "response": "GetBotInfoRes"
     }
   },
   "namespace": "chat.1",

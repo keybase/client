@@ -169,11 +169,4 @@ protocol gregor {
         array<ConversationID> convIDs;
         InboxVers inboxVers;
     }
-
-    record BotCommandsUpdate {
-       InboxVers inboxVers;
-       array<ConversationID> convID;
-       array<ConversationBotCommandConv> added;
-       array<ConversationBotCommandConv> removed;
-    }
 }

@@ -491,6 +491,11 @@ export enum BotCommandsTyp {
   tlfidConvs = 2,
 }
 
+export enum BotInfoResponseTyp {
+  uptodate = 0,
+  info = 1,
+}
+
 export enum ChannelMention {
   none = 0,
   all = 1,
@@ -850,6 +855,7 @@ export enum UnfurlType {
   giphy = 2,
   maps = 3,
 }
+export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
 export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage | null} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo | null} | {assetType: AssetMetadataType.audio; audio: AssetMetadataAudio | null}
@@ -860,9 +866,13 @@ export type BodyPlaintext = {version: BodyPlaintextVersion.v1; v1: BodyPlaintext
 export type BodyPlaintextMetaInfo = {readonly crit: Boolean}
 export type BodyPlaintextUnsupported = {readonly mi: BodyPlaintextMetaInfo}
 export type BodyPlaintextV1 = {readonly messageBody: MessageBody}
+export type BotCommandConv = {readonly uid: Gregor1.UID; readonly convID: ConversationID; readonly vers: CommandConvVers; readonly mtime: Gregor1.Time}
 export type BotCommands = {typ: BotCommandsTyp.public; public: BotCommandsPublic | null} | {typ: BotCommandsTyp.tlfidMembers; tlfidMembers: BotCommandsTLFID | null} | {typ: BotCommandsTyp.tlfidConvs; tlfidConvs: BotCommandsTLFID | null}
 export type BotCommandsPublic = {readonly convID: ConversationID}
 export type BotCommandsTLFID = {readonly convID: ConversationID; readonly tlfID: TLFID}
+export type BotInfo = {readonly commandConvs?: Array<BotCommandConv> | null}
+export type BotInfoHash = Bytes
+export type BotInfoResponse = {typ: BotInfoResponseTyp.uptodate} | {typ: BotInfoResponseTyp.info; info: BotInfo | null}
 export type BuiltinCommandGroup = {readonly typ: ConversationBuiltinCommandTyp; readonly commands?: Array<ConversationCommand> | null}
 export type ChannelNameMention = {readonly convID: ConversationID; readonly topicName: String}
 export type ChatActivity = {activityType: ChatActivityType.incomingMessage; incomingMessage: IncomingMessage | null} | {activityType: ChatActivityType.readMessage; readMessage: ReadMessageInfo | null} | {activityType: ChatActivityType.newConversation; newConversation: NewConversationInfo | null} | {activityType: ChatActivityType.setStatus; setStatus: SetStatusInfo | null} | {activityType: ChatActivityType.failedMessage; failedMessage: FailedMessageInfo | null} | {activityType: ChatActivityType.membersUpdate; membersUpdate: MembersUpdateInfo | null} | {activityType: ChatActivityType.setAppNotificationSettings; setAppNotificationSettings: SetAppNotificationSettingsInfo | null} | {activityType: ChatActivityType.teamtype; teamtype: TeamTypeInfo | null} | {activityType: ChatActivityType.expunge; expunge: ExpungeInfo | null} | {activityType: ChatActivityType.ephemeralPurge; ephemeralPurge: EphemeralPurgeNotifInfo | null} | {activityType: ChatActivityType.reactionUpdate; reactionUpdate: ReactionUpdateNotif | null} | {activityType: ChatActivityType.messagesUpdated; messagesUpdated: MessagesUpdated | null}
@@ -875,10 +885,10 @@ export type ChatSearchMatch = {readonly startIndex: Int; readonly endIndex: Int;
 export type ChatSyncIncrementalConv = {readonly conv: UnverifiedInboxUIItem; readonly shouldUnbox: Boolean}
 export type ChatSyncIncrementalInfo = {readonly items?: Array<ChatSyncIncrementalConv> | null; readonly removals?: Array<String> | null}
 export type ChatSyncResult = {syncType: SyncInboxResType.current} | {syncType: SyncInboxResType.clear} | {syncType: SyncInboxResType.incremental; incremental: ChatSyncIncrementalInfo | null}
+export type ClearBotCommandsRes = {readonly rateLimit?: RateLimit | null}
+export type CommandConvVers = Uint64
 export type ConvTypingUpdate = {readonly convID: ConversationID; readonly typers?: Array<TyperInfo> | null}
-export type Conversation = {readonly metadata: ConversationMetadata; readonly readerInfo?: ConversationReaderInfo | null; readonly notifications?: ConversationNotificationInfo | null; readonly maxMsgs?: Array<MessageBoxed> | null; readonly maxMsgSummaries?: Array<MessageSummary> | null; readonly creatorInfo?: ConversationCreatorInfo | null; readonly botCommands?: ConversationBotCommands | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly cs /* convSettings */?: ConversationSettings | null}
-export type ConversationBotCommandConv = {readonly uid: Gregor1.UID; readonly convID: ConversationID}
-export type ConversationBotCommands = {readonly commands?: Array<ConversationBotCommandConv> | null}
+export type Conversation = {readonly metadata: ConversationMetadata; readonly readerInfo?: ConversationReaderInfo | null; readonly notifications?: ConversationNotificationInfo | null; readonly maxMsgs?: Array<MessageBoxed> | null; readonly maxMsgSummaries?: Array<MessageSummary> | null; readonly creatorInfo?: ConversationCreatorInfo | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly cs /* convSettings */?: ConversationSettings | null}
 export type ConversationCommand = {readonly description: String; readonly name: String; readonly usage: String; readonly hasHelpText: Boolean; readonly username?: String | null}
 export type ConversationCommandGroups = {typ: ConversationCommandGroupsTyp.builtin; builtin: ConversationBuiltinCommandTyp | null} | {typ: ConversationCommandGroupsTyp.custom; custom: ConversationCommandGroupsCustom | null}
 export type ConversationCommandGroupsCustom = {readonly commands?: Array<ConversationCommand> | null}
@@ -924,6 +934,7 @@ export type FailedMessageInfo = {readonly outboxRecords?: Array<OutboxRecord> | 
 export type FindConversationsLocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly uiConversations?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type FlipGameID = Bytes
 export type GenericPayload = {readonly Action: String; readonly inboxVers: InboxVers; readonly convID: ConversationID; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
+export type GetBotInfoRes = {readonly response: BotInfoResponse; readonly rateLimit?: RateLimit | null}
 export type GetConversationForCLILocalQuery = {readonly markAsRead: Boolean; readonly MessageTypes?: Array<MessageType> | null; readonly Since?: String | null; readonly limit: UnreadFirstNumLimit; readonly conv: ConversationLocal}
 export type GetConversationForCLILocalRes = {readonly conversation: ConversationLocal; readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetConversationMetadataRemoteRes = {readonly conv: Conversation; readonly rateLimit?: RateLimit | null}
@@ -1409,3 +1420,5 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.serverNow'
 // 'chat.1.remote.getExternalAPIKeys'
 // 'chat.1.remote.advertiseBotCommands'
+// 'chat.1.remote.clearBotCommands'
+// 'chat.1.remote.getBotInfo'

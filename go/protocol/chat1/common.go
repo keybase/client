@@ -997,38 +997,6 @@ func (o ConversationSettings) DeepCopy() ConversationSettings {
 	}
 }
 
-type ConversationBotCommandConv struct {
-	Uid    gregor1.UID    `codec:"uid" json:"uid"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
-}
-
-func (o ConversationBotCommandConv) DeepCopy() ConversationBotCommandConv {
-	return ConversationBotCommandConv{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
-	}
-}
-
-type ConversationBotCommands struct {
-	Commands []ConversationBotCommandConv `codec:"commands" json:"commands"`
-}
-
-func (o ConversationBotCommands) DeepCopy() ConversationBotCommands {
-	return ConversationBotCommands{
-		Commands: (func(x []ConversationBotCommandConv) []ConversationBotCommandConv {
-			if x == nil {
-				return nil
-			}
-			ret := make([]ConversationBotCommandConv, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Commands),
-	}
-}
-
 type Conversation struct {
 	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
 	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
@@ -1036,7 +1004,6 @@ type Conversation struct {
 	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
 	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
 	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
-	BotCommands     *ConversationBotCommands      `codec:"botCommands,omitempty" json:"botCommands,omitempty"`
 	Expunge         Expunge                       `codec:"expunge" json:"expunge"`
 	ConvRetention   *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention   *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
@@ -1089,13 +1056,6 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
-		BotCommands: (func(x *ConversationBotCommands) *ConversationBotCommands {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.BotCommands),
 		Expunge: o.Expunge.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
 			if x == nil {
