@@ -112,6 +112,19 @@ const youSendBTCProps = {
   txVerb: 'sent',
 } as Props
 
+const youSendBTCFromXLMProps = {
+  ...commonProps,
+  amountNominal: '1 BTC',
+  balanceChange: '-10.2178468 XLM',
+  balanceChangeColor: S.globalColors.black,
+  bottomLine: 'stronghold.com',
+  icon: sendIcon,
+  onSeeDetails,
+  sender: 'cecileb',
+  topLine: 'you sent',
+  txVerb: 'sent',
+} as Props
+
 const youSendXLMProps = {
   ...commonProps,
   amountNominal: '1 XLM',
@@ -161,6 +174,7 @@ const load = () => {
     .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+    .add('You send BTC from XLM', () => <PaymentPopupMoved {...youSendBTCFromXLMProps} />)
     .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
     .add('Pending', () => <PaymentPopupMoved {...pendingPaymentProps} />)
     .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
