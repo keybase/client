@@ -15,11 +15,14 @@ import (
 // SubscriptionID identifies a subscription.
 type SubscriptionID string
 
+// SubscriptionNotifier defines a group of methods for notifying about changes
+// on subscribed topics.
 type SubscriptionNotifier interface {
 	OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic)
 	OnChange(subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic)
 }
 
+// Subscriber defines a type that can be used to subscribe to different topic.
 type Subscriber interface {
 	SubscribePath(
 		ctx context.Context, path string, topic keybase1.PathSubscriptionTopic,
@@ -28,11 +31,17 @@ type Subscriber interface {
 		deduplicateInterval *time.Duration) (SubscriptionID, error)
 	Unsubscribe(context.Context, SubscriptionID)
 }
+
+// SubscriptionManager manages subscriptions. Use the Subscriber interface to
+// subscribe and unsubscribe. Multiple subscribers can be used with the same
+// SubscriptionManager.
 type SubscriptionManager interface {
 	Subscriber(SubscriptionNotifier) Subscriber
 	Shutdown(ctx context.Context)
 }
 
+// SubscriptionManagerPublisher associates with one SubscriptionManager, and is
+// used to publish changes to subscribers mangaged by it.
 type SubscriptionManagerPublisher interface {
 	FavoritesChanged()
 	JournalStatusChanged()

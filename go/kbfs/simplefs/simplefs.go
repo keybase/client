@@ -2790,7 +2790,7 @@ func (k *SimpleFS) SimpleFSSubscribePath(
 	return string(sid), err
 }
 
-// SimpleFSSubscribe implements the SimpleFSInterface.
+// SimpleFSSubscribeNonPath implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSubscribeNonPath(
 	ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) (string, error) {
 	interval := time.Second * time.Duration(arg.DeduplicateIntervalSecond)
@@ -2798,7 +2798,7 @@ func (k *SimpleFS) SimpleFSSubscribeNonPath(
 	return string(sid), err
 }
 
-// SimpleFSSubscribe implements the SimpleFSInterface.
+// SimpleFSUnsubscribe implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSUnsubscribe(
 	ctx context.Context, sid string) error {
 	k.subscriber.Unsubscribe(ctx, libkbfs.SubscriptionID(sid))

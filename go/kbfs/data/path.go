@@ -104,7 +104,9 @@ func (p Path) Plaintext() string {
 	return strings.Join(names, "/")
 }
 
-// Plaintext returns an unobfuscated string for this path, rooted at the TLF.
+// PlaintextSansTlf returns an unobfuscated string for this path, rooted at the
+// TLF.
+//
 // Examples: /keybase/private/alice -> "/", true
 //           /keybase/private/alice/folder -> "/folder", true
 //           /keybase/private -> "", false
