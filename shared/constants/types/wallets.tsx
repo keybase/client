@@ -379,20 +379,22 @@ export type _State = {
   builtPayment: BuiltPayment
   builtPaymentAdvanced: BuiltPaymentAdvanced
   builtRequest: BuiltRequest
+  changeTrustlineError: string
   createNewAccountError: string
   currencies: I.List<Currency>
-  externalPartners: I.List<PartnerUrl>
   exportedSecretKey: HiddenString
   exportedSecretKeyAccountID: AccountID
-  inflationDestinations: I.List<InflationDestination>
-  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>
+  externalPartners: I.List<PartnerUrl>
   inflationDestinationError: string
+  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>
+  inflationDestinations: I.List<InflationDestination>
   lastSentXLM: boolean
   linkExistingAccountError: string
-  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
+  mobileOnlyMap: I.Map<AccountID, boolean>
   paymentCursorMap: I.Map<AccountID, StellarRPCTypes.PageCursor | null>
   paymentLoadingMoreMap: I.Map<AccountID, boolean>
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>
+  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>
   reviewCounter: number // increments when we call reviewPayment,
   reviewLastSeqno: number | null // last UIPaymentReviewed.seqno received from the active review,
   secretKey: HiddenString
@@ -407,7 +409,6 @@ export type _State = {
   staticConfig: StaticConfig | null
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
-  mobileOnlyMap: I.Map<AccountID, boolean>
 }
 
 export type State = I.RecordOf<_State>

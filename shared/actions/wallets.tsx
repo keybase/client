@@ -1194,6 +1194,7 @@ const refreshTrustlinePopularAssets = () =>
 
 const addTrustline = (state, {payload: {accountID, assetID}}) => {
   const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyTrustline)
+  const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   return (
     asset !== Constants.emptyTrustline &&
     RPCStellarTypes.localAddTrustlineLocalRpcPromise(
@@ -1204,11 +1205,17 @@ const addTrustline = (state, {payload: {accountID, assetID}}) => {
       },
       Constants.addTrustlineWaitingKey(accountID, assetID)
     )
-  ).then(() => WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+  )
+    .then(() => [WalletsGen.createChangedTrustline(), refresh])
+    .catch(err => {
+      logger.warn(`Error: ${err.desc}`)
+      return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+    })
 }
 
 const deleteTrustline = (state, {payload: {accountID, assetID}}) => {
   const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyTrustline)
+  const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   return (
     asset !== Constants.emptyTrustline &&
     RPCStellarTypes.localDeleteTrustlineLocalRpcPromise(
@@ -1218,7 +1225,12 @@ const deleteTrustline = (state, {payload: {accountID, assetID}}) => {
       },
       Constants.deleteTrustlineWaitingKey(accountID, assetID)
     )
-  ).then(() => WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+  )
+    .then(() => [WalletsGen.createChangedTrustline(), refresh])
+    .catch(err => {
+      logger.warn(`Error: ${err.desc}`)
+      return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+    })
 }
 
 let lastSearchText = ''
