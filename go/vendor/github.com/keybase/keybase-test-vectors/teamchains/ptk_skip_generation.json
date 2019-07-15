@@ -277,7 +277,7 @@
             "loads": [
                 {
                     "error": true,
-                    "error_substr": "per-team-key generation expected 3 but got 4"
+                    "error_substr": "per-team-key not found for generation 3"
                 }
             ]
         }
