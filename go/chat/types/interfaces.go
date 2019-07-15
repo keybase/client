@@ -518,6 +518,14 @@ type LiveLocationTracker interface {
 	StopAllTracking(ctx context.Context)
 }
 
+type BotCommandManager interface {
+	Resumable
+	Advertise(ctx context.Context, commands []chat1.BotCommands) error
+	Clear(ctx context.Context) error
+	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.ConversationCommand, error)
+	UpdateCommands(ctx context.Context, convID chat1.ConversationID) error
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string
