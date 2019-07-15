@@ -550,18 +550,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		}
 	}
 	baseFee := getGlobal(mctx.G()).BaseFee(mctx)
-	canSubmitTx := availableInt > int64(baseFee)
 	// TODO: this is something that stellard can just tell us.
 	isFunded, err := hasPositiveLumenBalance(details.Balances)
 	if err != nil {
 		return empty, err
 	}
-
-	// 0.5 is the minimum balance necessary to create a trustline and 1.0 is the minimum reserve balance
-	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "1.5")
-	if err != nil {
-		return empty, err
-	}
+	const trustlineReserveStroops int64 = stellarnet.StroopsPerLumen / 2
 
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
@@ -573,8 +567,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		AccountModeEditable: editable,
 		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
-		CanSubmitTx:         canSubmitTx,
-		CanAddTrustline:     balanceComparedToTrustlineMin == 1,
+		CanSubmitTx:         availableInt > int64(baseFee),
+		CanAddTrustline:     availableInt > int64(baseFee)+trustlineReserveStroops,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
@@ -616,19 +610,6 @@ func (a balanceList) balanceDescription(mctx libkb.MetaContext) (res string, err
 		res += " + more"
 	}
 	return res, nil
-}
-
-// Example: "56.0227002"
-func (a balanceList) nativeBalanceDescription(mctx libkb.MetaContext) (res string) {
-	for _, b := range a {
-		if b.Asset.IsNativeXLM() {
-			res = b.Amount
-		}
-	}
-	if res == "" {
-		res = "0"
-	}
-	return res
 }
 
 // TransformToAirdropStatus takes the result from api server status_check
