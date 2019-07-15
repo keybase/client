@@ -130,7 +130,7 @@ const sentAssetFromAssetProps = {
   action: 'sent',
   amount: '1 USD/www.anchor.com',
   balanceChange: '- 32.48 DRA',
-  balanceChangeColor: globalColors.greenDark,
+  balanceChangeColor: globalColors.black,
   icon: null,
   loading: false,
   memo: "dolla dolla bill ya'll",
