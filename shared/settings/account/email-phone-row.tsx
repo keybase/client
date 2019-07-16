@@ -206,16 +206,17 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
   mapDispatchToProps,
   (stateProps, dispatchProps, _: OwnProps) => {
     if (stateProps._phoneRow) {
+      const pr = stateProps._phoneRow
       return {
-        address: stateProps._phoneRow.displayNumber,
+        address: pr.displayNumber,
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
-        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.e164),
+        onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
-        searchable: stateProps._phoneRow.searchable,
+        searchable: pr.searchable,
         type: 'phone' as const,
-        verified: stateProps._phoneRow.verified,
+        verified: pr.verified,
       }
     } else if (stateProps._emailRow) {
       const searchable = stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public
