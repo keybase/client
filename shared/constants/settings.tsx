@@ -5,6 +5,8 @@ import * as I from 'immutable'
 import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
+import {e164ToDisplay} from '../util/phone-numbers'
+
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
   unsubscribedFromAll: false,
@@ -41,12 +43,21 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
 })
 
 export const makePhoneRow = I.Record<Types._PhoneRow>({
-  ctime: 0,
-  phoneNumber: '',
+  displayNumber: '',
+  e164: '',
+  searchable: false,
   superseded: false,
   verified: false,
-  visibility: RPCTypes.IdentityVisibility.private,
 })
+
+export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) =>
+  makePhoneRow({
+    displayNumber: e164ToDisplay(p.phoneNumber),
+    e164: p.phoneNumber,
+    searchable: p.visibility === RPCTypes.IdentityVisibility.public,
+    superseded: p.superseded,
+    verified: p.verified,
+  })
 
 export const makeFeedback = I.Record<Types._FeedbackState>({
   error: null,

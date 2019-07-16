@@ -1,8 +1,8 @@
-import {isMobile} from '../../constants/platform'
+import { isMobile } from '../../constants/platform'
 import libphonenumber from 'google-libphonenumber'
 import countries from './country-data/countries.json'
 import supportedCodes from './sms-support/data.json'
-import {emojiIndexByChar} from '../../common-adapters/markdown/emoji-gen'
+import { emojiIndexByChar } from '../../common-adapters/markdown/emoji-gen'
 
 const PNF = libphonenumber.PhoneNumberFormat
 export const PhoneNumberFormat = PNF
@@ -21,8 +21,8 @@ export type CountryData = {
   pickerText: string
 }
 
-let countryDataRaw: {[key: string]: CountryData} = {}
-let codeToCountryRaw: {[key: string]: string} = {}
+let countryDataRaw: { [key: string]: CountryData } = {}
+let codeToCountryRaw: { [key: string]: string } = {}
 
 countries.forEach(curr => {
   if (
@@ -52,8 +52,8 @@ countries.forEach(curr => {
   }
 })
 
-export const countryData: {[key: string]: CountryData} = countryDataRaw
-export const codeToCountry: {[key: string]: string} = codeToCountryRaw
+export const countryData: { [key: string]: CountryData } = countryDataRaw
+export const codeToCountry: { [key: string]: string } = codeToCountryRaw
 
 const canadianAreaCodes = {
   '204': true,
@@ -111,7 +111,7 @@ export const validateNumber = (rawNumber: string, region?: string) => {
       valid,
     }
   } catch (e) {
-    return {e164: '', valid: false}
+    return { e164: '', valid: false }
   }
 }
 
@@ -119,6 +119,17 @@ export const formatPhoneNumber = (rawNumber: string) => {
   // TODO: support non-US numbers
   const number = phoneUtil.parse(rawNumber, 'US')
   return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
+}
+
+// Return phone number in international format, e.g. +1 (800) 555 0123
+// or e.164 if parsing fails
+export const e164ToDisplay = (e164: string) => {
+  try {
+    const number = phoneUtil.parse(e164)
+    return phoneUtil.format(number, PNF.INTERNATIONAL)
+  } catch (e) {
+    return e164
+  }
 }
 
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter
