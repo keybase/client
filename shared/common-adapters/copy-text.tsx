@@ -198,7 +198,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   toastText: Styles.platformStyles({
-    common: {color: Styles.globalColors.white},
+    common: {
+      color: Styles.globalColors.white,
+      textAlign: 'center',
+    },
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,
