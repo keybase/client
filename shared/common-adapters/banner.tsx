@@ -16,10 +16,11 @@ type Segment = _Segment | string | null | false
 type BannerParagraphProps = {
   bannerColor: Color
   content: string | Array<Segment>
+  inline?: boolean
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
-  <Text type="BodySmallSemibold" style={styles.text}>
+  <Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}>
     {(Array.isArray(props.content) ? props.content : [props.content])
       .reduce<Array<_Segment | string>>((arr, s) => {
         s && arr.push(s)
@@ -78,11 +79,15 @@ export const Banner = (props: BannerProps) => (
     <Box2
       key="textBox"
       direction="vertical"
-      style={props.narrow ? styles.narrowTextContainer : styles.textContainer}
+      style={props.narrow
+        ? styles.narrowTextContainer
+        : props.inline
+          ? styles.inlineTextContainer
+          : styles.textContainer}
       centerChildren={true}
     >
       {typeof props.children === 'string' ? (
-        <BannerParagraph bannerColor={props.color} content={props.children} />
+        <BannerParagraph bannerColor={props.color} content={props.children} inline={props.inline} />
       ) : (
         props.children
       )}
@@ -106,9 +111,15 @@ const styles = Styles.styleSheetCreate({
   container: {
     minHeight: Styles.globalMargins.large,
   },
-  containerInline: {
-    borderRadius: Styles.borderRadius,
-  },
+  containerInline: Styles.platformStyles({
+    common: {
+      borderRadius: Styles.borderRadius,
+    },
+    isElectron: {
+      maxWidth: '75%',
+      minWidth: 352,
+    },
+  }),
   iconContainer: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.xtiny,
@@ -122,6 +133,15 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  inlineText: {
+    textAlign: 'left',
+  },
+  inlineTextContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+  },
   narrowTextContainer: Styles.platformStyles({
     common: {
       flex: 1,

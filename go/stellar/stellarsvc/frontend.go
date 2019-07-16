@@ -1102,7 +1102,12 @@ func (s *Server) GetTrustlinesForRecipientLocal(ctx context.Context, arg stellar
 	if err != nil {
 		return ret, err
 	}
-	ret.Trustlines = trustlines
+	for _, t := range trustlines {
+		if !t.IsAuthorized {
+			continue
+		}
+		ret.Trustlines = append(ret.Trustlines, t)
+	}
 
 	if recipient.User != nil {
 		ret.RecipientType = stellar1.ParticipantType_KEYBASE

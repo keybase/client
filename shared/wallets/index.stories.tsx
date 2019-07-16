@@ -7,7 +7,6 @@ import onboarding from './onboarding/index.stories'
 import sendForm from './send-form/index.stories'
 import confirmForm from './confirm-form/index.stories'
 import receiveModal from './receive-modal/index.stories'
-import exportSecretKey from './export-secret-key/index.stories'
 import transaction from './transaction/index.stories'
 import transactionDetails from './transaction-details/index.stories'
 import walletList from './wallet-list/index.stories'
@@ -24,7 +23,6 @@ const load = () => {
   banner()
   common()
   createAccount()
-  exportSecretKey()
   linkExisting()
   onboarding()
   receiveModal()

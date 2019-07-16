@@ -399,22 +399,7 @@ const loadSettings = (
         emails: emailMap,
         phones: phoneMap,
       })
-
-      const emailCount = (settings.emails || []).reduce(
-        (count, row) => (row.isVerified ? count : count + 1),
-        0
-      )
-      const phoneCount = (settings.phoneNumbers || []).reduce(
-        (count, row) => (row.verified ? count : count + 1),
-        0
-      )
-
-      const badgeAction = NotificationsGen.createSetBadgeCounts({
-        counts: I.Map({
-          [Tabs.settingsTab as Tabs.Tab]: emailCount + phoneCount,
-        }) as I.Map<Tabs.Tab, number>,
-      })
-      return [loadedAction, badgeAction]
+      return [loadedAction]
     })
     .catch(e => {
       logger.warn(`Error loading settings: ${e.message}`)
@@ -756,10 +741,7 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
     SettingsGen.deleteAccountForever,
     deleteAccountForever
   )
-  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload>(
-    [SettingsGen.loadSettings, ConfigGen.bootstrapStatusLoaded],
-    loadSettings
-  )
+  yield* Saga.chainAction<SettingsGen.LoadSettingsPayload>([SettingsGen.loadSettings], loadSettings)
   yield* Saga.chainGenerator<SettingsGen.OnSubmitNewPasswordPayload>(
     SettingsGen.onSubmitNewPassword,
     onSubmitNewPassword

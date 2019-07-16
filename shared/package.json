@@ -212,6 +212,7 @@
     "@types/base64-js": "1.2.5",
     "@types/classnames": "2.2.8",
     "@types/emoji-mart": "2.8.4",
+    "@types/google-libphonenumber": "7.4.17",
     "@types/hoist-non-react-statics": "3.3.1",
     "@types/lodash-es": "4.17.3",
     "@types/memoize-one": "4.1.1",

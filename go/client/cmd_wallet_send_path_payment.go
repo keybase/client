@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -65,11 +64,11 @@ func (c *CmdWalletSendPathPayment) ParseArgv(ctx *cli.Context) error {
 	c.Note = ctx.String("message")
 	c.FromAccountID = stellar1.AccountID(ctx.String("from"))
 	var err error
-	c.SourceAsset, err = c.parseAssetFlag(ctx.String("source-asset"))
+	c.SourceAsset, err = parseAssetString(ctx.String("source-asset"))
 	if err != nil {
 		return err
 	}
-	c.DestinationAsset, err = c.parseAssetFlag(ctx.String("destination-asset"))
+	c.DestinationAsset, err = parseAssetString(ctx.String("destination-asset"))
 	if err != nil {
 		return err
 	}
@@ -137,23 +136,4 @@ func (c *CmdWalletSendPathPayment) GetUsage() libkb.Usage {
 		API:       true,
 		KbKeyring: true,
 	}
-}
-
-func (c *CmdWalletSendPathPayment) parseAssetFlag(f string) (stellar1.Asset, error) {
-	if f == "native" {
-		return stellar1.AssetNative(), nil
-	}
-	pieces := strings.Split(f, "/")
-	if len(pieces) != 2 {
-		return stellar1.Asset{}, errors.New("invalid asset string")
-	}
-	t, err := stellar1.CreateNonNativeAssetType(pieces[0])
-	if err != nil {
-		return stellar1.Asset{}, err
-	}
-	return stellar1.Asset{
-		Type:   t,
-		Code:   pieces[0],
-		Issuer: pieces[1],
-	}, nil
 }

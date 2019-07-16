@@ -5,7 +5,6 @@ import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import AirdropQualify from './airdrop/qualify/container'
 import CreateNewAccount from './create-account/container'
-import ExportSecretKey from './export-secret-key/container'
 import LinkExisting from './link-existing/container'
 import {
   RenameAccountPopup,
@@ -107,10 +106,6 @@ export const newModalRoutes = {
   },
   createNewAccount: {
     getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
-    upgraded: true,
-  },
-  exportSecretKey: {
-    getScreen: (): typeof ExportSecretKey => require('./export-secret-key/container').default,
     upgraded: true,
   },
   linkExisting: {

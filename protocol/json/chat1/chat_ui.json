@@ -236,6 +236,43 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UIParticipantType",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "CONTACT_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIParticipant",
+      "fields": [
+        {
+          "type": "UIParticipantType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fullName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "contactName"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "InboxUIItem",
       "fields": [
@@ -286,17 +323,9 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UIParticipant"
           },
           "name": "participants"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "string",
-            "keys": "string"
-          },
-          "name": "fullNames"
         },
         {
           "type": {

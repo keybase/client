@@ -8,10 +8,11 @@ import {
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {Props} from './index.types'
+import {formatPhoneNumber} from '../../../../util/phone-numbers'
 
-const shhIconColor = globalColors.black_20
+const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
 const Wrapper = (
@@ -50,7 +51,7 @@ const ChannelHeader = (props: Props) => (
       <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
       <Text
         type={
-          isMobile
+          Styles.isMobile
             ? props.smallTeam
               ? 'BodyBig'
               : 'BodyTinySemibold'
@@ -60,7 +61,7 @@ const ChannelHeader = (props: Props) => (
         }
         lineClamp={1}
         ellipsizeMode="middle"
-        style={collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
+        style={Styles.collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
       >
         &nbsp;
         {props.teamName}
@@ -84,7 +85,7 @@ const UsernameHeader = (props: Props) => (
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
-        commaColor={globalColors.black_50}
+        commaColor={Styles.globalColors.black_50}
         type="BodyBig"
         usernames={props.participants}
         containerStyle={styles.center}
@@ -96,20 +97,53 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const styles = styleSheetCreate({
+const getFormattedPhoneOrEmail = (assertion: string) => {
+  const withoutSuffix = assertion.substring(0, assertion.length - 6)
+  const suffix = assertion.substring(assertion.length - 6)
+  if (suffix === '@email') {
+    return withoutSuffix.substring(1, withoutSuffix.length - 1)
+  }
+  try {
+    return formatPhoneNumber(withoutSuffix)
+  } catch (e) {
+    return assertion
+  }
+}
+
+const PhoneOrEmailHeader = (props: Props) => {
+  const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
+  let formattedPhoneOrEmail = phoneOrEmail && getFormattedPhoneOrEmail(phoneOrEmail)
+  const name = props.contactNames[phoneOrEmail]
+  return (
+    <Wrapper {...props}>
+      <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
+        <Box2 direction="horizontal" style={styles.lessMargins}>
+          <Text type="BodyBig">{formattedPhoneOrEmail}</Text>
+          {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
+        </Box2>
+        {!!name && <Text type="BodyTiny">{name}</Text>}
+      </Box2>
+    </Wrapper>
+  )
+}
+
+const styles = Styles.styleSheetCreate({
   center: {
     justifyContent: 'center',
     textAlign: 'center',
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
   channelName: {
-    color: globalColors.black,
+    color: Styles.globalColors.black,
   },
   channelNameLight: {
-    color: globalColors.black_50,
+    color: Styles.globalColors.black_50,
   },
-  shhIcon: {marginLeft: globalMargins.xtiny},
+  lessMargins: {
+    marginBottom: -5,
+  },
+  shhIcon: {marginLeft: Styles.globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
 })
 
-export {ChannelHeader, UsernameHeader}
+export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

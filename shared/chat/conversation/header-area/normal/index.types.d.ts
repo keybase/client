@@ -1,9 +1,10 @@
 export type Props = {
   badgeNumber?: number
   channelName?: string
+  contactNames: {[participant: string]: string}
   muted: boolean
   onBack: () => void
-  onOpenFolder?: (() => void)
+  onOpenFolder?: () => void
   onShowProfile: (user: string) => void
   onToggleInfoPanel: () => void
   onToggleThreadSearch: () => void

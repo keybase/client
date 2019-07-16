@@ -5,13 +5,10 @@ export const sharedStyles = Styles.styleSheetCreate({
     flexGrow: 1,
     flexShrink: 1,
   },
-  scrollView: Styles.platformStyles({
-    common: {
-      flexGrow: 1,
-      flexShrink: 1,
-      width: '100%',
-    },
-    isElectron: {minHeight: '100%'},
-  }),
+  scrollView: {
+    flexGrow: 1,
+    flexShrink: 1,
+    width: '100%',
+  },
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 })

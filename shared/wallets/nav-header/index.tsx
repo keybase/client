@@ -54,6 +54,7 @@ type HeaderRightActionsProps = {
   airdropSelected: boolean
   noDisclaimer: boolean
   onReceive: () => void
+  onSettings: () => void
 }
 
 export const HeaderRightActions = (props: HeaderRightActionsProps) =>
@@ -61,7 +62,14 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
     <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="tiny" style={styles.rightActions}>
       <SendButton small={true} />
       <Kb.Button type="Wallet" mode="Secondary" label="Receive" small={true} onClick={props.onReceive} />
-      <DropdownButton small={true} />
+      <Kb.Button
+        onClick={props.onSettings}
+        mode="Secondary"
+        small={true}
+        type="Wallet"
+      >
+        <Kb.Icon type="iconfont-gear" style={styles.gear} />
+      </Kb.Button>
     </Kb.Box2>
   )
 
@@ -82,6 +90,10 @@ const styles = Styles.styleSheetCreate({
       marginTop: -Styles.globalMargins.xtiny,
     },
   }),
+  gear: {
+    position: 'relative',
+    top: 1,
+  },
   left: Styles.platformStyles({
     common: {
       minWidth: 240,

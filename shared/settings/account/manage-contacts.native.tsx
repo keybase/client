@@ -14,8 +14,7 @@ type Props = {
 }
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
-const disabledDescription =
-  'Import your phone contacts and start encrypted chats with your friends. Your contacts never leave this device.'
+const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
 const ManageContacts = (props: Props) => {
   const dispatch = Container.useDispatch()

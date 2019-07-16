@@ -51,7 +51,6 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
     return (
       <Kb.Box2
         direction="horizontal"
-        gap="tiny"
         ref={this._attachmentRef}
         style={Styles.collapseStyles([styles.container, this.props.style])}
         className={this.props.className}
@@ -108,7 +107,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   divider: {
-    marginLeft: Styles.globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.xsmall,
     marginRight: Styles.globalMargins.xtiny,
   },
   emojiBox: {
@@ -116,6 +115,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     height: Styles.globalMargins.small,
     justifyContent: 'center',
+    marginRight: Styles.globalMargins.xxtiny,
     width: Styles.globalMargins.small,
   },
   icon: {
