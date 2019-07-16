@@ -257,12 +257,7 @@ class RNApp extends React.PureComponent<Props> {
 
   getNavState = () => {
     const n = this._nav
-    if (n) {
-      if (n.state) {
-        return n.state.nav
-      }
-    }
-    return null
+    return (n && n.state && n.state.nav) || null
   }
 
   render() {

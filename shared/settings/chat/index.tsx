@@ -30,12 +30,15 @@ class Chat extends React.Component<Props, State> {
   }
   _getUnfurlMode() {
     const unfurlSelected = this.state.unfurlSelected
+    if (unfurlSelected !== undefined) {
+      return unfurlSelected
+    }
+
     const unfurlMode = this.props.unfurlMode
-    return unfurlSelected !== undefined
-      ? unfurlSelected
-      : unfurlMode !== undefined
-      ? unfurlMode
-      : RPCChatTypes.UnfurlMode.whitelisted
+    if (unfurlMode !== undefined) {
+      return unfurlMode
+    }
+    return RPCChatTypes.UnfurlMode.whitelisted
   }
   _getUnfurlWhitelist(filtered: boolean) {
     return filtered
