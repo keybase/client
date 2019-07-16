@@ -336,17 +336,17 @@ protocol remote {
 
   // Bot commands
   @typedef("uint64") @lint("ignore") record CommandConvVers {} 
-  record BotCommandsPublic {
+  record RemoteBotCommandsAdvertisementPublic {
     ConversationID convID;
   }
-  record BotCommandsTLFID {
+  record RemoteBotCommandsAdvertisementTLFID {
     ConversationID convID;
     TLFID tlfID;
   }
-  variant BotCommands switch(BotCommandsTyp typ) {
-    case PUBLIC: BotCommandsPublic;
-    case TLFID_MEMBERS: BotCommandsTLFID;
-    case TLFID_CONVS: BotCommandsTLFID;
+  variant RemoteBotCommandsAdvertisement switch(BotCommandsAdvertisementTyp typ) {
+    case PUBLIC: RemoteBotCommandsAdvertisementPublic;
+    case TLFID_MEMBERS: RemoteBotCommandsAdvertisementTLFID;
+    case TLFID_CONVS: RemoteBotCommandsAdvertisementTLFID;
   }
   record BotCommandConv {
     gregor1.UID uid;
@@ -363,7 +363,7 @@ protocol remote {
   record ClearBotCommandsRes {
     union { null, RateLimit } rateLimit;
   } 
-  AdvertiseBotCommandsRes advertiseBotCommands(array<BotCommands> commands);
+  AdvertiseBotCommandsRes advertiseBotCommands(array<RemoteBotCommandsAdvertisement> ads);
   ClearBotCommandsRes clearBotCommands();
   
   enum BotInfoResponseTyp {

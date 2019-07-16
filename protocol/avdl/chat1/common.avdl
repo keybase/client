@@ -670,7 +670,7 @@
   }
 
   // Bot Commands
-  enum BotCommandsTyp {
+  enum BotCommandsAdvertisementTyp {
     PUBLIC_0,
     TLFID_MEMBERS_1,
     TLFID_CONVS_2

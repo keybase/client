@@ -961,6 +961,18 @@ func (m *ChatRemoteMock) GetExternalAPIKeys(ctx context.Context, typs []chat1.Ex
 	return res, errors.New("GetExternalAPIKeys not mocked")
 }
 
+func (m *ChatRemoteMock) AdvertiseBotCommands(ctx context.Context, ads []chat1.RemoteBotCommandsAdvertisement) (res chat1.AdvertiseBotCommandsRes, err error) {
+	return res, errors.New("AdvertiseBotCommands not mocked")
+}
+
+func (m *ChatRemoteMock) ClearBotCommands(ctx context.Context) (res chat1.ClearBotCommandsRes, err error) {
+	return res, errors.New("ClearBotCommands not mocked")
+}
+
+func (m *ChatRemoteMock) GetBotInfo(ctx context.Context, arg chat1.GetBotInfoArg) (res chat1.GetBotInfoRes, err error) {
+	return res, errors.New("GetBotInfo not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error

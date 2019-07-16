@@ -667,17 +667,8 @@
       "lint": "ignore"
     },
     {
-      "type": "enum",
-      "name": "BotCommandsTyp",
-      "symbols": [
-        "PUBLIC_0",
-        "TLFID_MEMBERS_1",
-        "TLFID_CONVS_2"
-      ]
-    },
-    {
       "type": "record",
-      "name": "BotCommandsPublic",
+      "name": "RemoteBotCommandsAdvertisementPublic",
       "fields": [
         {
           "type": "ConversationID",
@@ -687,7 +678,7 @@
     },
     {
       "type": "record",
-      "name": "BotCommandsTLFID",
+      "name": "RemoteBotCommandsAdvertisementTLFID",
       "fields": [
         {
           "type": "ConversationID",
@@ -701,9 +692,9 @@
     },
     {
       "type": "variant",
-      "name": "BotCommands",
+      "name": "RemoteBotCommandsAdvertisement",
       "switch": {
-        "type": "BotCommandsTyp",
+        "type": "BotCommandsAdvertisementTyp",
         "name": "typ"
       },
       "cases": [
@@ -712,21 +703,21 @@
             "name": "PUBLIC",
             "def": false
           },
-          "body": "BotCommandsPublic"
+          "body": "RemoteBotCommandsAdvertisementPublic"
         },
         {
           "label": {
             "name": "TLFID_MEMBERS",
             "def": false
           },
-          "body": "BotCommandsTLFID"
+          "body": "RemoteBotCommandsAdvertisementTLFID"
         },
         {
           "label": {
             "name": "TLFID_CONVS",
             "def": false
           },
-          "body": "BotCommandsTLFID"
+          "body": "RemoteBotCommandsAdvertisementTLFID"
         }
       ]
     },
@@ -1485,10 +1476,10 @@
     "advertiseBotCommands": {
       "request": [
         {
-          "name": "commands",
+          "name": "ads",
           "type": {
             "type": "array",
-            "items": "BotCommands"
+            "items": "RemoteBotCommandsAdvertisement"
           }
         }
       ],

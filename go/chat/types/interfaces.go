@@ -520,10 +520,10 @@ type LiveLocationTracker interface {
 
 type BotCommandManager interface {
 	Resumable
-	Advertise(ctx context.Context, commands []chat1.BotCommands) error
+	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
 	Clear(ctx context.Context) error
-	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]BotCommand, error)
-	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) error
+	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
+	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
 
 type InternalError interface {

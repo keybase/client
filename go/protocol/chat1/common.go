@@ -2390,6 +2390,35 @@ func (o Asset) DeepCopy() Asset {
 	}
 }
 
+type BotCommandsAdvertisementTyp int
+
+const (
+	BotCommandsAdvertisementTyp_PUBLIC        BotCommandsAdvertisementTyp = 0
+	BotCommandsAdvertisementTyp_TLFID_MEMBERS BotCommandsAdvertisementTyp = 1
+	BotCommandsAdvertisementTyp_TLFID_CONVS   BotCommandsAdvertisementTyp = 2
+)
+
+func (o BotCommandsAdvertisementTyp) DeepCopy() BotCommandsAdvertisementTyp { return o }
+
+var BotCommandsAdvertisementTypMap = map[string]BotCommandsAdvertisementTyp{
+	"PUBLIC":        0,
+	"TLFID_MEMBERS": 1,
+	"TLFID_CONVS":   2,
+}
+
+var BotCommandsAdvertisementTypRevMap = map[BotCommandsAdvertisementTyp]string{
+	0: "PUBLIC",
+	1: "TLFID_MEMBERS",
+	2: "TLFID_CONVS",
+}
+
+func (e BotCommandsAdvertisementTyp) String() string {
+	if v, ok := BotCommandsAdvertisementTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type CommonInterface interface {
 }
 

@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"hash"
@@ -2063,6 +2064,30 @@ func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *ListBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ListBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ClearBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
@@ -2410,4 +2435,62 @@ func (b BotInfo) Hash() BotInfoHash {
 
 func (b BotInfoHash) Eq(h BotInfoHash) bool {
 	return bytes.Equal(b, h)
+}
+
+func (p AdvertiseCommandsParam) Commands() []UserBotCommandInput {
+	typ, err := p.Typ()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		return p.Public()
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		return p.TlfidConvs().Commands
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		return p.TlfidMembers().Commands
+	default:
+		return nil
+	}
+}
+
+func (p AdvertiseCommandsParam) ToRemote(convID ConversationID, tlfID *TLFID) (res RemoteBotCommandsAdvertisement, err error) {
+	typ, err := p.Typ()
+	if err != nil {
+		return res, err
+	}
+	switch typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		return NewRemoteBotCommandsAdvertisementWithPublic(RemoteBotCommandsAdvertisementPublic{
+			ConvID: convID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidConvs(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidMembers(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
+	return UserBotCommandOutput{
+		Name:                c.Name,
+		Description:         c.Description,
+		Usage:               c.Usage,
+		ExtendedDescription: c.ExtendedDescription,
+		Username:            username,
+	}
 }
