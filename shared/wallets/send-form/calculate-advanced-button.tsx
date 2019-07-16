@@ -35,7 +35,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
             type="iconfont-calculate"
             sizeType="Big"
             color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
-            onClick={isDisabled ? null : onClick}
+            onClick={isDisabled ? undefined : onClick}
           />
         </Kb.WithTooltip>
       )

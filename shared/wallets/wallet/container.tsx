@@ -1,17 +1,16 @@
 import * as React from 'react'
-import {connect, isMobile} from '../../util/container'
+import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import Onboarding from '../onboarding/container'
 import {partition} from 'lodash-es'
-
 import Wallet, {Props, AssetSectionTitle} from '.'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: Container.TypedState) => {
   const accountID = Constants.getSelectedAccount(state)
   return {
     acceptedDisclaimer: state.wallets.acceptedDisclaimer,
@@ -23,24 +22,47 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {accountID, navigateAppend, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateAppend, navigateUp}: OwnProps) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSetupTrustline: () =>
+  onSetupTrustline: accountID =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const sections = []
+const sortAndStripTimestamps = (
+  p: Array<{
+    paymentID: Types.PaymentID
+    timestamp: number | null
+  }>
+) =>
+  p
+    .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
+    .map(({paymentID}) => ({paymentID}))
+
+// On desktop it's impossible to get here without accepting the
+// disclaimer (from the wallet list).
+const WalletOrOnboarding = (props: Props) =>
+  !Container.isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
+
+export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  const sections: Props['sections'] = []
   // layout is
   // 1. assets header and list of assets
   // 2. transactions header and transactions
   // Formatted in a SectionList
   const assets =
     stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
-  sections.push({data: assets, title: <AssetSectionTitle onSetupTrustline={dispatchProps.onSetupTrustline} thisDeviceIsLockedOut={stateProps.thisDeviceIsLockedOut} />})
+  sections.push({
+    data: assets,
+    title: (
+      <AssetSectionTitle
+        onSetupTrustline={() => dispatchProps.onSetupTrustline(stateProps.accountID)}
+        thisDeviceIsLockedOut={stateProps.thisDeviceIsLockedOut}
+      />
+    ),
+  })
 
   // split into pending & history
   let mostRecentID
@@ -83,25 +105,4 @@ const mergeProps = (stateProps, dispatchProps) => {
     },
     sections,
   }
-}
-
-const sortAndStripTimestamps = (
-  p: Array<{
-    paymentID: Types.PaymentID
-    timestamp: number | null
-  }>
-) =>
-  p
-    .sort((p1, p2) => (p1.timestamp && p2.timestamp && p2.timestamp - p1.timestamp) || 0)
-    .map(({paymentID}) => ({paymentID}))
-
-// On desktop it's impossible to get here without accepting the
-// disclaimer (from the wallet list).
-const WalletOrOnboarding = (props: Props) =>
-  !isMobile || props.acceptedDisclaimer ? <Wallet {...props} /> : <Onboarding />
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(WalletOrOnboarding)
+})(WalletOrOnboarding)

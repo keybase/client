@@ -5,12 +5,7 @@ import {isMobile} from '../../constants/platform'
 import {getRouteProps, namedConnect, RouteProps} from '../../util/container'
 import BarePreview from './bare-preview'
 
-type OwnProps = RouteProps<
-  {
-    path: Types.Path
-  },
-  {}
->
+type OwnProps = RouteProps< { path: Types.Path } >
 
 const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   onBack: () => dispatch(navigateUp()),

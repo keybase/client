@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/net/context"
@@ -32,7 +34,8 @@ func newWalletNotification(source string) *walletNotification {
 
 type walletNotificationDisplay struct {
 	*baseNotificationDisplay
-	cli stellar1.LocalClient
+	cli     stellar1.LocalClient
+	deduper map[string]bool
 }
 
 func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDisplay {
@@ -43,21 +46,33 @@ func newWalletNotificationDisplay(g *libkb.GlobalContext) *walletNotificationDis
 	return &walletNotificationDisplay{
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
 		cli:                     cli,
+		deduper:                 make(map[string]bool),
 	}
+}
+
+func deduperKey(details stellar1.PaymentDetailsLocal) string {
+	return fmt.Sprintf("%s:%s", details.Summary.TxID, details.Summary.StatusSimplified)
 }
 
 func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, source string,
 	accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
 	notif := newWalletNotification(source)
-	if details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
+	details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
 		AccountID: accountID,
 		Id:        paymentID,
-	}); err != nil {
+	})
+	if err != nil {
 		errStr := err.Error()
 		notif.Error = &errStr
-	} else {
-		notif.Notification = details
+		d.printJSON(notif)
+		return nil
 	}
+	if _, dupeMsg := d.deduper[deduperKey(details)]; dupeMsg {
+		return nil
+	}
+
+	d.deduper[deduperKey(details)] = true
+	notif.Notification = details
 	d.printJSON(notif)
 	return nil
 }

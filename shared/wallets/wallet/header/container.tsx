@@ -39,6 +39,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
         ],
       })
     ),
+  _onSettings: (accountID: Types.AccountID) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
 
 export default Container.connect(
@@ -48,5 +50,6 @@ export default Container.connect(
     ...stateProps,
     onBack: Container.isMobile ? ownProps.onBack : null,
     onReceive: () => dispatchProps._onReceive(stateProps.accountID),
+    onSettings: () => dispatchProps._onSettings(stateProps.accountID),
   })
 )(Header)

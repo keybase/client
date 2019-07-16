@@ -13,8 +13,7 @@ type OwnProps = RouteProps<
     platform: PlatformsExpandedType
     platformHandle: string
     proofId: string
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state, ownProps) => ({

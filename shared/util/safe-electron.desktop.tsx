@@ -3,9 +3,14 @@ import * as Electron from 'electron'
 
 // Screen is a special case. There's lots of rules about what you can / can't do and when you can load it. see https://electronjs.org/docs/api/screen
 export const getScreen = () => {
-  let screen
+  let screen: Electron.Screen | null = null
   try {
-    screen = Electron.screen
+    const isRenderer = process && process.type === 'renderer'
+    if (isRenderer) {
+      screen = getRemote().screen
+    } else {
+      screen = Electron.screen
+    }
   } catch (_) {}
   if (!screen) {
     throw new Error('Incorrect screen load, MUST be after app is loaded')

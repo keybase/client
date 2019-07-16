@@ -32,6 +32,7 @@ protocol common {
     Asset asset;
     string amount;
     string limit;
+    boolean isAuthorized;
   }
 
   record AccountReserve {

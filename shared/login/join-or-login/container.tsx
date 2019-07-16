@@ -10,7 +10,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => {
-  let bannerMessage = null
+  let bannerMessage: string | null = null
 
   if (state.config.justDeletedSelf) {
     bannerMessage = `Your Keybase account ${state.config.justDeletedSelf}" has been deleted. Au revoir!`
@@ -32,7 +32,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}: OwnProps) => ({
   showProxySettings: () => dispatch(navigateAppend(['proxySettingsModal'])),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   bannerMessage: stateProps.bannerMessage,
   checkIsOnline: dispatchProps._checkIsOnline,
   isOnline: stateProps.isOnline,
@@ -42,15 +42,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   showProxySettings: dispatchProps.showProxySettings,
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props.checkIsOnline()
-    },
-  } as any)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
 )(Intro)

@@ -7,13 +7,7 @@ import {connect, getRouteProps, RouteProps} from '../../util/container'
 import {upperFirst} from 'lodash-es'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-    teamname: string
-  },
-  {}
->
+type OwnProps = RouteProps< { conversationIDKey: Types.ConversationIDKey; teamname: string } >
 
 const mapStateToProps = (state, ownProps) => {
   const conversationIDKey = getRouteProps(ownProps, 'conversationIDKey')

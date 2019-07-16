@@ -34,7 +34,7 @@ export class SagaLogger {
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
 function* sequentially(effects: Array<any>): Iterable<Array<any>> {
-  const results = []
+  const results: Array<unknown> = []
   for (let i = 0; i < effects.length; i++) {
     results.push(yield effects[i])
   }
@@ -56,11 +56,13 @@ function* chainAction<
   // tag for logger
   fcnTag?: string
 ): Iterable<any> {
-    // @ts-ignore TODO fix
-    return yield Effects.takeEvery<Actions>(pattern as RS.Pattern, function* chainActionHelper(action: Actions) {
+  // @ts-ignore TODO fix
+  return yield Effects.takeEvery<Actions>(pattern as RS.Pattern, function* chainActionHelper(
+    action: Actions
+  ) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {
-      const state = yield* selectState()
+      const state: TypedState = yield* selectState()
       let toPut = yield Effects.call(f, state, action, sl)
       if (toPut) {
         const outActions: Array<TypedActions> = isArray(toPut) ? toPut : [toPut]
@@ -99,11 +101,11 @@ function* chainGenerator<
   // tag for logger
   fcnTag?: string
 ): Iterable<any> {
-    // @ts-ignore TODO fix
+  // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
     const sl = new SagaLogger(action.type, fcnTag || 'unknown')
     try {
-      const state = yield* selectState()
+      const state: TypedState = yield* selectState()
       yield* f(state, action, sl)
       if (sl.isTagged) {
         sl.info('-> ok')
@@ -125,19 +127,7 @@ function* chainGenerator<
 }
 
 /***
- * Note: Due to how flow handles generators (https://github.com/facebook/flow/issues/2613), when you
- * const values = yield Saga.call(myFunction, param1, param2)
- * values will be of type any. In order to work around this, you can instead do
- * const values = yield * Saga.callPromise(myFunction, param1, param2) and values will be typed
- *
- * Here is a rule of thumb when to use callUntyped vs callPromise
- * If you are yielding inside your own generator, you should yield * callPromise
- * Otherwise you can use callUntyped, for example if you have a side effect that returns a call to redux-saga (aka you
- * don't consume it) then you can use callUntyped (we don't care what we return to redux saga basically)
- *
- * I don't love this but I think most of the calls we make likely don't need to exist outside of rpcs call. Those can
- * all be of the form yield * Saga.callPromise
- *
+ * Until TS 3.6 this can't be property typed: https://github.com/Microsoft/TypeScript/issues/2983
  */
 function* callPromise<Args, T>(
   fn: (...args: Array<Args>) => Promise<T>,
@@ -146,19 +136,29 @@ function* callPromise<Args, T>(
   // @ts-ignore
   return yield Effects.call(fn, ...args)
 }
-// Used to delegate in a typed way to what engine saga returns. short term use this but longer term
+
+// Used to delegate in a typed way (NOT WITH TS anymore) to what engine saga returns. short term use this but longer term
 // generate generators instead and yield * directly
 function* callRPCs(e: Effects.CallEffect): Iterable<any> {
   return yield e
 }
-
 function* selectState(): Iterable<TypedState> {
   // @ts-ignore codemod issue
   const state: TypedState = yield Effects.select()
   return state
 }
 
+/**
+ * The return type of an rpc to help typing yields
+ */
+export type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF extends Promise<
+  infer U
+>
+  ? U
+  : RF
+
 export type Effect = RS.Effect
+export type PutEffect = Effects.PutEffect<TypedActions>
 export type Channel<T> = RS.Channel<T>
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
@@ -176,4 +176,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {selectState, put, sequentially, callPromise, chainAction, chainGenerator, callRPCs}
+export {selectState, put, sequentially, chainAction, chainGenerator, callPromise, callRPCs}

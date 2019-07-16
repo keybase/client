@@ -24,7 +24,7 @@ export type Props = {
   approxWorth: string
   amount: string
   balanceChange: string
-  balanceChangeColor: AllowedColors
+  balanceChangeColor?: AllowedColors
   cancelButtonInfo: string
   cancelButtonLabel: string
   canceled: boolean

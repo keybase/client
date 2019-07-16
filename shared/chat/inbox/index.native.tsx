@@ -13,6 +13,7 @@ import UnreadShortcut from './unread-shortcut'
 import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
 import * as T from './index.types.d'
+import * as Types from '../../constants/types/chat2'
 
 const NoChats = () => (
   <Kb.Box
@@ -102,7 +103,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _askForUnboxing = (rows: Array<T.RowItem>) => {
-    const toUnbox = rows.reduce((arr, r) => {
+    const toUnbox = rows.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
       }

@@ -11,6 +11,8 @@ import (
 
 var destination string
 var amount string
+var assetCode string
+var assetIssuer string
 var key string
 var domain string
 var message string
@@ -38,6 +40,8 @@ func parseFlags() {
 	flag.StringVar(&xdr, "xdr", "", "base64-encoded xdr transaction envelope")
 	flag.StringVar(&memo, "memo", "", "public memo")
 	flag.StringVar(&memoType, "memo-type", "", "MEMO_TEXT, MEMO_ID, MEMO_HASH, MEMO_RETURN")
+	flag.StringVar(&assetCode, "asset-code", "", "destination asset code")
+	flag.StringVar(&assetIssuer, "asset-issuer", "", "destination asset issuer")
 
 	flag.Parse()
 
@@ -97,6 +101,10 @@ func run() string {
 		if memo != "" {
 			q.Set("memo", memo)
 			q.Set("memo_type", memoType)
+		}
+		if assetCode != "" && assetIssuer != "" {
+			q.Set("asset_code", assetCode)
+			q.Set("asset_issuer", assetIssuer)
 		}
 	case "tx":
 		q.Set("xdr", xdr)

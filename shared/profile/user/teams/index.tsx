@@ -16,7 +16,7 @@ type Props = {
   }
   onJoinTeam: (arg0: string) => void
   onViewTeam: (arg0: string) => void
-  onEdit: () => void | null
+  onEdit: (() => void) | null
 }
 
 const _TeamShowcase = p => (

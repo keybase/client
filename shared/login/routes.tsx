@@ -3,7 +3,7 @@ import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
 import ProxySettingsContainer from '../settings/proxy/container'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => {
   const showLoading = state.config.daemonHandshakeState !== 'done'

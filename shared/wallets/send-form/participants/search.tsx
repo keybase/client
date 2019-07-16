@@ -25,7 +25,7 @@ const placeholder = 'Search Keybase'
 // TODO: Once UserInput is cleaned up, we may be able to stretch it
 // properly horizontally without wrapping a vertical Box2 around it.
 class Search extends React.Component<SearchProps, SearchState> {
-  _row: ParticipantsRow | null
+  _row: ParticipantsRow | null = null
   state = {
     displayResultsList: false,
     hideClearSearch: true,

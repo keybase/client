@@ -44,5 +44,5 @@ export const allTextTypes = {
   TerminalInline: 'TerminalInline',
 }
 
-export const backgroundModeIsNegative = (bm: Background | null) =>
+export const backgroundModeIsNegative = (bm: Background | null): boolean =>
   !!bm && !['Normal', 'Information'].includes(bm)

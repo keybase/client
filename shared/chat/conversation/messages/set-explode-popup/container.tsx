@@ -17,7 +17,7 @@ const makeItems = (meta: Types.ConversationMeta) => {
 }
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   conversationIDKey: Types.ConversationIDKey
   onAfterSelect?: (s: number) => void
   onHidden: () => void

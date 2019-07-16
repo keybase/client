@@ -13,21 +13,23 @@ type State = {
 }
 
 class GiphySearch extends React.Component<Props, State> {
-  container = null
+  container: HTMLDivElement | null = null
   state = {width: null}
 
   componentDidMount() {
-    if (this.container) {
-      this.setState({width: this.container.clientWidth})
+    const c = this.container
+    if (c) {
+      this.setState({width: c.clientWidth})
     }
   }
 
   render() {
-    let margins = []
-    if (this.state.width) {
+    let margins: Array<number> = []
+    const w = this.state.width
+    if (w) {
       margins = getMargins(
-        this.state.width - 2 * Styles.globalMargins.tiny,
-        (this.props.previews || []).reduce((arr, p) => {
+        w - 2 * Styles.globalMargins.tiny,
+        (this.props.previews || []).reduce<Array<number>>((arr, p) => {
           return arr.concat(p.previewWidth)
         }, [])
       )

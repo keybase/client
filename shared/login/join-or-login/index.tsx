@@ -1,11 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {lifecycle} from 'recompose'
 
 type Props = {
   bannerMessage: string | null
   checkIsOnline: () => void
-  onFeedback: () => void | null
+  onFeedback: (() => void) | null
   onLogin: () => void
   onSignup: () => void
   isOnline: boolean | null
@@ -28,14 +29,23 @@ const Feedback = ({onFeedback}) =>
   )
 
 class Intro extends React.Component<Props, {}> {
-  intervalId: NodeJS.Timeout
+  intervalId: NodeJS.Timeout | null
+
+  constructor(props: Props) {
+    super(props)
+
+    this.intervalId = null
+  }
 
   componentDidMount() {
+    this.props.checkIsOnline()
     this.intervalId = setInterval(this.props.checkIsOnline, 2000)
   }
 
   componentWillUnmount() {
-    clearInterval(this.intervalId)
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId)
+    }
   }
 
   render() {

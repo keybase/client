@@ -29,9 +29,9 @@ class Session {
   // If true this session exists forever
   _dangling: boolean
   // Name of the start method, just to help debug
-  _startMethod: MethodKey | null
+  _startMethod: MethodKey | undefined
   // Start callback so we can cancel our own callback
-  _startCallback: (err?: RPCError, ...args: Array<any>) => void | null
+  _startCallback: ((err?: RPCError, ...args: Array<any>) => void) | undefined
 
   // Allow us to make calls
   _invoke: invokeType
@@ -56,11 +56,11 @@ class Session {
     this._waitingKey = p.waitingKey || ''
     this._invoke = p.invoke
     this._endHandler = p.endHandler
-    this._cancelHandler = p.cancelHandler
+    this._cancelHandler = p.cancelHandler || null
     this._dangling = p.dangling || false
   }
 
-  setId(sessionID: SessionID) {
+  setId(_: SessionID) {
     throw new Error("Can't set sessionID")
   }
   getId(): SessionID {
@@ -123,14 +123,14 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: Object, callback: () => void | null) {
+  start(method: MethodKey, param: Object, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
       this._startCallback && this._startCallback(...args)
-      this._startCallback = null
+      this._startCallback = undefined
       this.end()
     }
 

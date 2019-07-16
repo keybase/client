@@ -11,20 +11,10 @@ type Props = {
   onUnfollow?: () => void
 }
 
-type State = {
-  mouseOver: boolean
-}
+type State = {mouseOver: boolean}
 
 class FollowButton extends React.Component<Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      mouseOver: false,
-    }
-  }
+  state = {mouseOver: false}
 
   render() {
     const {following, followsYou, onFollow, onUnfollow, style, waitingKey, ...otherProps} = this.props
@@ -36,8 +26,8 @@ class FollowButton extends React.Component<Props, State> {
           mode="Secondary"
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
-          onMouseEnter={Styles.isMobile ? null : () => this.setState({mouseOver: true})}
-          onMouseLeave={Styles.isMobile ? null : () => this.setState({mouseOver: false})}
+          onMouseEnter={Styles.isMobile ? undefined : () => this.setState({mouseOver: true})}
+          onMouseLeave={Styles.isMobile ? undefined : () => this.setState({mouseOver: false})}
           waitingKey={waitingKey}
           style={{...styleButton, ...style}}
           {...otherProps}
@@ -59,9 +49,7 @@ class FollowButton extends React.Component<Props, State> {
 }
 
 const styleButton = Styles.platformStyles({
-  isElectron: {
-    width: 125,
-  },
+  isElectron: {width: 125},
 })
 
 export default FollowButton

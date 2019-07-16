@@ -6,7 +6,7 @@ import {namedConnect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendAttachmentToChat from '.'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   _sendAttachmentToChat: state.fs.sendAttachmentToChat,

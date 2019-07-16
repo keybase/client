@@ -17,7 +17,7 @@ export const makeNotifications = I.Record<Types._NotificationsState>({
 
 export const makeUnfurl = I.Record<Types._ChatUnfurlState>({
   unfurlError: undefined,
-  unfurlMode: null,
+  unfurlMode: undefined,
   unfurlWhitelist: I.List(),
 })
 
@@ -87,7 +87,7 @@ export const makeState = I.Record<Types._State>({
   chat: makeChat(),
   checkPasswordIsCorrect: null,
   contacts: makeContacts(),
-  didToggleCertificatePinning: null,
+  didToggleCertificatePinning: false,
   email: makeEmail(),
   feedback: makeFeedback(),
   invites: makeInvites(),

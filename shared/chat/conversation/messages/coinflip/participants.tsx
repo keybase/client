@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   onHidden: () => void
   participants: Array<RPCChatTypes.UICoinFlipParticipant>
   visible: boolean

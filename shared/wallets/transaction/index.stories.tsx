@@ -53,7 +53,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   // NOTE: Do not add another layer of `forEach` to this; storyshots may hang
   roles.forEach(r => {
     stories.add(`${namePrefix} (${r.yourRole})`, () => {
-      const components = []
+      const components: Array<any> = []
       statuses.forEach(st => {
         memosAndTimes.forEach(mt => {
           readStates.forEach(rs => {
@@ -117,7 +117,7 @@ const load = () => {
         isAdvanced={false}
         issuerDescription=""
         memo=""
-        onCancelPayment={null}
+        onCancelPayment={undefined}
         onCancelPaymentWaitingKey=""
         onSelectTransaction={Sb.action('onSelectTransaction')}
         onShowProfile={Sb.action('onShowProfile')}

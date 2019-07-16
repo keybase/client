@@ -4,7 +4,7 @@ import {Picker as EmojiPicker} from 'emoji-mart'
 import {Props} from './picker'
 
 class Picker extends React.Component<Props> {
-  _picker: EmojiPicker
+  _picker?: EmojiPicker
 
   _setPicker = picker => {
     this._picker = picker
