@@ -75,7 +75,7 @@ const makeSortOptionItem = (sortSetting, onClick) => ({
 })
 
 const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
-  !!props.sortSetting && (
+  props.sortSetting ? (
     <>
       <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
         <SortOption mode="bar" sortSetting={props.sortSetting} />
@@ -102,7 +102,7 @@ const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
         ]}
       />
     </>
-  )
+  ) : null
 
 const styles = Styles.styleSheetCreate({
   blueMobile: Styles.platformStyles({

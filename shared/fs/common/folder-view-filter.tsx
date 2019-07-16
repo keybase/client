@@ -8,7 +8,7 @@ import * as React from 'react'
 import {debounce} from 'lodash-es'
 
 type Props = {
-  onCancel?: () => void | null
+  onCancel?: (() => void)| null
   onUpdate: (arg0: string) => void
   path: Types.Path
   pathItem: Types.PathItem

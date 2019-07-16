@@ -62,7 +62,7 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
           </Kb.ClickableBox>
         )}
         <Kb.SectionList
-          keyExtractor={item => item}
+          keyExtractor={item => (typeof item === 'string' ? item : item.title)}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
           sections={[

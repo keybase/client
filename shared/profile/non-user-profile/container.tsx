@@ -1,31 +1,28 @@
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import {connect, RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import {Service} from '../../constants/types/search'
 import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
 
-type OwnProps = RouteProps<
-  {
-    username: string
-    avatar: string | null
-    fullname: string
-    fullUsername: string
-    profileUrl: string
-    serviceName: Service
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{
+  username: string
+  avatar: string | null
+  fullname: string
+  fullUsername: string
+  profileUrl: string
+  serviceName: Service
+}>
 
-const mapStateToProps = (state, {routeProps}) => {
+const mapStateToProps = (state: Container.TypedState, {routeProps}: OwnProps) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
   const myUsername = state.config.username
   const title = routeProps.get('username')
   return {avatar, fullUsername, fullname, myUsername, profileUrl, serviceName, title, username}
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateUp}: OwnProps) => ({
   _onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
       dispatch(
@@ -43,16 +40,15 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  onOpenPrivateFolder: () =>
-    dispatchProps._onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
-  onStartChat: () => dispatchProps._onStartChat(stateProps.fullUsername),
-})
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    ...stateProps,
+    ...dispatchProps,
+    onOpenPrivateFolder: () =>
+      dispatchProps._onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
+    onStartChat: () => dispatchProps._onStartChat(stateProps.fullUsername),
+  })
 )(NonUserProfile)

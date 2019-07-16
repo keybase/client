@@ -99,8 +99,8 @@ class OrientedImage extends React.Component<Props, State> {
    * Instance Variables
    */
   _hasComponentMounted = false
-  _canvasRef = null
-  _context = null
+  _canvasRef: HTMLCanvasElement | null = null
+  _context: CanvasRenderingContext2D | null = null
 
   /*
    * Apply Styles
