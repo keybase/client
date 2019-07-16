@@ -15,8 +15,10 @@ const TextView = (props: Props) => {
         }
       } catch (e) {}
     }
-    req.open('GET', url)
-    req.send()
+    try {
+      req.open('GET', url)
+      req.send()
+    } catch (e) {}
   }, [url])
   return (
     <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
