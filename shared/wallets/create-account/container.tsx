@@ -6,13 +6,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    fromSendForm?: boolean
-    showOnCreation?: boolean
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{fromSendForm?: boolean; showOnCreation?: boolean}>
 
 const mapStateToProps = state => ({
   createNewAccountError: state.wallets.createNewAccountError,

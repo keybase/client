@@ -65,6 +65,7 @@ class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
       new Promise(
         resolve => this._tooltipRef.current && this._tooltipRef.current.measure(measureCb(resolve))
       ),
+      // @ts-ignore this stucture makes this very hard to type
     ]).then(([c, t]: [Dims, Dims]) => {
       if (!this._mounted) {
         return

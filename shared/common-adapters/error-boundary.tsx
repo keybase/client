@@ -122,15 +122,16 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
       componentStack: info.componentStack,
       message: error.message,
       name: error.name,
-      stack: error.stack,
+      stack: error.stack || '',
     }
     logger.error('Got boundary error:', allInfo)
     this.setState({info: allInfo})
   }
 
   render() {
-    if (this.state.info) {
-      return <Fallback info={this.state.info} closeOnClick={this.props.closeOnClick} />
+    const info = this.state.info
+    if (info) {
+      return <Fallback info={info} closeOnClick={this.props.closeOnClick} />
     }
     return this.props.children
   }

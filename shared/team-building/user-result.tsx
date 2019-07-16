@@ -45,8 +45,8 @@ class Row extends React.Component<Props, LocalState> {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
-    const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : null
-    const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : null
+    const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : undefined
+    const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : undefined
 
     return (
       <Kb.ClickableBox onClick={this.props.inTeam ? onRemove : onAdd}>
@@ -74,7 +74,7 @@ class Row extends React.Component<Props, LocalState> {
           <Username
             isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
-            username={serviceUsername}
+            username={serviceUsername || ''}
             prettyName={this.props.prettyName}
             followingState={this.props.followingState}
           />

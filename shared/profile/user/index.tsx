@@ -26,11 +26,11 @@ export type Props = {
   following: Array<string> | null
   followingCount: number
   notAUser: boolean
-  onAddIdentity: () => void | null
+  onAddIdentity: (() => void) | null
   onBack: () => void
   onReload: () => void
   onSearch: () => void
-  onEditAvatar: () => void | null
+  onEditAvatar: (() => void) | null
   reason: string
   state: Types.DetailsState
   suggestionKeys: Array<string> | null
@@ -73,7 +73,7 @@ const BioLayout = p => (
 )
 
 const Proofs = p => {
-  let assertions
+  let assertions: React.ReactNode
   if (p.assertionKeys) {
     assertions = [
       ...p.assertionKeys.map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
@@ -85,7 +85,7 @@ const Proofs = p => {
     assertions = null
   }
 
-  let proveIt = null
+  let proveIt: React.ReactNode = null
 
   if (p.notAUser) {
     const [name, service] = p.username.split('@')
@@ -177,10 +177,10 @@ class FriendRow extends React.Component<FriendRowProps> {
 }
 
 export type BioTeamProofsProps = {
-  onAddIdentity: () => void | null
+  onAddIdentity: (() => void) | null
   assertionKeys: Array<string> | null
   backgroundColorType: BackgroundColorType
-  onEditAvatar: () => void | null
+  onEditAvatar: (() => void) | null
   notAUser: boolean
   suggestionKeys: Array<string> | null
   username: string
@@ -272,10 +272,10 @@ class User extends React.Component<Props, State> {
     }
   }
 
-  _changeFollowing = following => {
+  _changeFollowing = (following: boolean) => {
     this.setState(p => {
       if (p.selectedFollowing === following) {
-        return
+        return null
       }
       const selectedFollowing = !p.selectedFollowing
       usernameSelectedFollowing[this.props.username] = selectedFollowing

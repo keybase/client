@@ -13,15 +13,14 @@ type Props = {
 }
 
 export const FolderViewFilterIcon = (props: Props) =>
-  Constants.isFolder(props.path, props.pathItem) &&
-  Types.getPathLevel(props.path) > 1 && (
+  Constants.isFolder(props.path, props.pathItem) && Types.getPathLevel(props.path) > 1 ? (
     <Kb.Icon
       type="iconfont-filter"
       onClick={props.onClick}
       padding="tiny"
       style={props.style && Kb.iconCastPlatformStyles(props.style)}
     />
-  )
+  ) : null
 
 type OwnProps = Omit<Props, 'pathItem'>
 

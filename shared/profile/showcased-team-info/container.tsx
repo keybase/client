@@ -9,7 +9,7 @@ import {UserTeamShowcase} from '../../constants/types/rpc-gen'
 import {connect, compose, lifecycle} from '../../util/container'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any>| null
   onHidden: () => void
   team: UserTeamShowcase
   visible: boolean

@@ -7,12 +7,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {teamsTab} from '../../constants/tabs'
 import {getSortedTeamnames} from '../../constants/teams'
 
-type OwnProps = RouteProps<
-  {
-    isTeam: boolean
-  },
-  {}
->
+type OwnProps = RouteProps< { isTeam: boolean } >
 
 const mapStateToProps = (state, {routeProps, navigation}) => ({
   error: Constants.getError(state),

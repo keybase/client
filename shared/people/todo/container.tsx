@@ -277,8 +277,10 @@ const VerifyAllEmailConnector = connect(
         ? [
             {
               label: 'Verify',
-              onClick: () =>
-                ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
+              onClick: () => {
+                const meta = ownProps.metadata
+                meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)
+              },
               type: 'Success',
             },
           ]
@@ -311,8 +313,10 @@ const VerifyAllPhoneNumberConnector = connect(
         ? [
             {
               label: 'Verify',
-              onClick: () =>
-                ownProps.metadata.type === 'phone' && dispatchProps._onConfirm(ownProps.metadata.phone),
+              onClick: () => {
+                const meta = ownProps.metadata
+                meta && meta.type === 'phone' && dispatchProps._onConfirm(meta.phone)
+              },
               type: 'Success',
             },
           ]
@@ -343,8 +347,10 @@ const LegacyEmailVisibilityConnector = connect(
         ? [
             {
               label: 'Make searchable',
-              onClick: () =>
-                ownProps.metadata.type === 'email' && dispatchProps._onConfirm(ownProps.metadata.email),
+              onClick: () => {
+                const meta = ownProps.metadata
+                meta && meta.type === 'email' && dispatchProps._onConfirm(meta.email)
+              },
               type: 'Success',
             },
           ]

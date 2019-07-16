@@ -40,7 +40,7 @@ class ProvisioningManager {
     }
     return ProvisioningManager.singleton
   }
-  _stashedResponse = null
+  _stashedResponse: any = null
   _stashedResponseKey: ValidCallback | null = null
   _addingANewDevice: boolean
   _done: boolean = false
@@ -110,7 +110,7 @@ class ProvisioningManager {
       return
     }
     return Saga.callUntyped(function*() {
-      const state = yield* Saga.selectState()
+      const state: TypedState = yield* Saga.selectState()
       let type
       switch (state.provision.codePageOtherDeviceType) {
         case 'mobile':
