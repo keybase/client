@@ -37,6 +37,7 @@ type ConversationCommandGroupsTyp int
 const (
 	ConversationCommandGroupsTyp_BUILTIN ConversationCommandGroupsTyp = 0
 	ConversationCommandGroupsTyp_CUSTOM  ConversationCommandGroupsTyp = 1
+	ConversationCommandGroupsTyp_NONE    ConversationCommandGroupsTyp = 2
 )
 
 func (o ConversationCommandGroupsTyp) DeepCopy() ConversationCommandGroupsTyp { return o }
@@ -44,11 +45,13 @@ func (o ConversationCommandGroupsTyp) DeepCopy() ConversationCommandGroupsTyp { 
 var ConversationCommandGroupsTypMap = map[string]ConversationCommandGroupsTyp{
 	"BUILTIN": 0,
 	"CUSTOM":  1,
+	"NONE":    2,
 }
 
 var ConversationCommandGroupsTypRevMap = map[ConversationCommandGroupsTyp]string{
 	0: "BUILTIN",
 	1: "CUSTOM",
+	2: "NONE",
 }
 
 func (e ConversationCommandGroupsTyp) String() string {
@@ -166,6 +169,12 @@ func NewConversationCommandGroupsWithCustom(v ConversationCommandGroupsCustom) C
 	return ConversationCommandGroups{
 		Typ__:    ConversationCommandGroupsTyp_CUSTOM,
 		Custom__: &v,
+	}
+}
+
+func NewConversationCommandGroupsWithNone() ConversationCommandGroups {
+	return ConversationCommandGroups{
+		Typ__: ConversationCommandGroupsTyp_NONE,
 	}
 }
 

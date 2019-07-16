@@ -551,3 +551,30 @@ func (d DummyExternalAPIKeySource) GetKey(ctx context.Context, typ chat1.Externa
 func (d DummyExternalAPIKeySource) GetAllKeys(ctx context.Context) (res []chat1.ExternalAPIKey, err error) {
 	return res, nil
 }
+
+type DummyBotCommandManager struct{}
+
+func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
+	ads []chat1.AdvertiseCommandsParam) error {
+	return nil
+}
+
+func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
+
+func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
+	return nil, nil
+}
+
+func (d DummyBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
+	info *chat1.BotInfo) (chan error, error) {
+	ch := make(chan error, 1)
+	ch <- nil
+	return ch, nil
+}
+
+func (d DummyBotCommandManager) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyBotCommandManager) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}

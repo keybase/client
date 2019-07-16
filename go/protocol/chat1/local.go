@@ -3250,6 +3250,7 @@ type ConversationLocal struct {
 	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
 	Commands         ConversationCommandGroups     `codec:"commands" json:"commands"`
+	BotCommands      ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -3344,7 +3345,8 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConvSettings),
-		Commands: o.Commands.DeepCopy(),
+		Commands:    o.Commands.DeepCopy(),
+		BotCommands: o.BotCommands.DeepCopy(),
 	}
 }
 

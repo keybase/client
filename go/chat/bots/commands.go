@@ -128,7 +128,7 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 		if param.TeamName == nil {
 			return res, errors.New("missing team name")
 		}
-		topicName := fmt.Sprintf("___keybase_botcommands_team_%s", username)
+		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
 		return b.G().ChatHelper.NewConversation(ctx, b.uid, *param.TeamName, &topicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 	default:
@@ -310,17 +310,16 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 		return nil
 	}
 	res = new(storageCommandAdvertisement)
-	b.Debug(ctx, "getConvAdvertisement: body: %s", body.Text().Body)
 	if err = json.Unmarshal([]byte(body.Text().Body), &res.Advertisement); err != nil {
 		b.Debug(ctx, "getConvAdvertisement: failed to JSON decode: %s", err)
 		return nil
 	}
-	b.Debug(ctx, "getConvAdvertisement: ad: %+v", res)
 	res.Username = msg.Valid().SenderUsername
 	return res
 }
 
 func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job commandUpdaterJob) (err error) {
+	ctx = globals.ChatCtx(ctx, b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer b.Trace(ctx, func() error { return err }, "commandUpdate")()
 	defer func() {
 		job.completeCh <- err

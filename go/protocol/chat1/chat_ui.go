@@ -238,6 +238,7 @@ type InboxUIItem struct {
 	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
+	BotCommands       ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
@@ -361,7 +362,8 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			}
 			return ret
 		})(o.SupersededBy),
-		Commands: o.Commands.DeepCopy(),
+		Commands:    o.Commands.DeepCopy(),
+		BotCommands: o.BotCommands.DeepCopy(),
 	}
 }
 

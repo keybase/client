@@ -606,7 +606,9 @@ protocol local {
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;
 
+    // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
   }
 
   record NonblockFetchRes {
