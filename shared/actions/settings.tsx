@@ -393,7 +393,7 @@ const loadSettings = (
         (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
       )
       const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
       )
       const loadedAction = SettingsGen.createLoadedSettings({
         emails: emailMap,
