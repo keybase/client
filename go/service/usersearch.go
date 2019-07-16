@@ -127,20 +127,27 @@ func (q *compiledQuery) scoreString(str string) (bool, float64) {
 	return true, score
 }
 
-func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
-	var fieldsAndScores = []struct {
-		str  string
-		mult float64
-	}{
-		{contact.ContactName, 1.0},
-		{contact.DisplayName, 1.0},
-		{contact.DisplayLabel, 0.8},
-	}
+var fieldsAndScores = []struct {
+	multiplier float64
+	getter     func(*keybase1.ProcessedContact) string
+}{
+	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.ContactName }},
+	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.Component.ValueString() }},
+	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.DisplayName }},
+	{0.8, func(contact *keybase1.ProcessedContact) string { return contact.DisplayLabel }},
+	{0.7, func(contact *keybase1.ProcessedContact) string { return contact.FullName }},
+	{0.7, func(contact *keybase1.ProcessedContact) string { return contact.Username }},
+}
 
+func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
 	for _, v := range fieldsAndScores {
-		found, score := query.scoreString(v.str)
+		str := v.getter(&contact)
+		if str == "" {
+			continue
+		}
+		found, score := query.scoreString(str)
 		if found {
-			return true, score * v.mult
+			return true, score * v.multiplier
 		}
 
 	}
