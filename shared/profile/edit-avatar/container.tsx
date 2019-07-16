@@ -12,7 +12,7 @@ import {RouteProps} from '../../route-tree/render-route'
 type OwnProps = RouteProps<
   {
     createdTeam: boolean
-    image: any
+    image: string
     sendChatNotification: boolean
     teamname: string
   },

@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
-  onEditIcon: (image?) =>
+  onEditIcon: (image?: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],

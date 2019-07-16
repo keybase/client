@@ -1,20 +1,16 @@
 import * as React from 'react'
 import {NameWithIcon} from '../../../../common-adapters'
-import ImagePicker from 'react-native-image-picker'
+import * as ImagePicker from 'expo-image-picker'
 import {Props} from '.'
+import {parseUri} from '../../../../util/expo-image-picker'
 
 const NameWithIconWrapper = (props: Props) => {
   const _onEditIcon = () =>
     props.canEditDescription
-      ? ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
-          if (response.didCancel) {
-            return
+      ? ImagePicker.launchImageLibraryAsync({mediaTypes: ImagePicker.MediaTypeOptions.All}).then(result => {
+          if (result.cancelled === false) {
+            props.onEditIcon(parseUri(result))
           }
-          if (response.error) {
-            props.onFilePickerError(new Error(response.error))
-            return
-          }
-          props.onEditIcon(response)
         })
       : undefined
 

@@ -18,13 +18,12 @@ class AvatarUpload extends React.Component<Props> {
     if (!this.props.image) {
       throw new Error('Missing image when saving avatar')
     }
-    const filename = isIOS ? this.props.image.uri.replace('file://', '') : this.props.image.path
     let crop
     // Only set the cropping coordinates if they’ve zoomed the image.
     if (this._z) {
       crop = this._getCropCoordinates()
     }
-    this.props.onSave(filename, crop)
+    this.props.onSave(this.props.image, crop)
   }
 
   _getCropCoordinates = () => {

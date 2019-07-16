@@ -1,5 +1,5 @@
 /* eslint-env browser */
-import ImagePicker from 'react-native-image-picker'
+import * as ImagePicker from 'expo-image-picker'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
@@ -15,6 +15,7 @@ import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
+import {parseUri} from '../../../../util/expo-image-picker'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -49,10 +50,13 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
+    let mediaTypeParam: ImagePicker.MediaTypeOptions
     switch (mediaType) {
       case 'photo':
+        mediaTypeParam = ImagePicker.MediaTypeOptions.Images
         break
       case 'mixed':
+        mediaTypeParam = ImagePicker.MediaTypeOptions.All
         title = 'Select a Photo or Video'
         takePhotoButtonTitle = 'Take Photo or Video...'
         // 'mixed' never happens on Android, which is when the
@@ -61,6 +65,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         permDeniedText = 'Allow Keybase to take photos/video and choose images/videos from your library?'
         break
       case 'video':
+        mediaTypeParam = ImagePicker.MediaTypeOptions.Videos
         title = 'Select a Video'
         takePhotoButtonTitle = 'Take Video...'
         permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
@@ -72,15 +77,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       text: permDeniedText,
       title: 'Permissions needed',
     }
-    const handleSelection = response => {
-      if (response.didCancel || !this.props.conversationIDKey) {
+    const handleSelection = (result: ImagePicker.ImagePickerResult) => {
+      if (result.cancelled === true || !this.props.conversationIDKey) {
         return
       }
-      if (response.error) {
-        this.props.onFilePickerError(new Error(response.error))
-        return
-      }
-      const filename = isIOS ? response.uri.replace('file://', '') : response.path
+      const filename = parseUri(result)
       if (filename) {
         this.props.onAttach([filename])
       }
@@ -88,13 +89,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     switch (location) {
       case 'camera':
-        ImagePicker.launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
+        ImagePicker.launchCameraAsync({mediaTypes: mediaTypeParam}).then(handleSelection)
         break
       case 'library':
-        ImagePicker.launchImageLibrary(
-          {mediaType, permissionDenied, takePhotoButtonTitle, title},
-          handleSelection
-        )
+        ImagePicker.launchImageLibraryAsync({mediaTypes: mediaTypeParam}).then(handleSelection)
         break
     }
   }

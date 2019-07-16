@@ -4,7 +4,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 export type Props = {
   createdTeam?: boolean
   error: string
-  image?: any
+  image?: string
   onClose: () => void
   onSave: (filename: string, crop?: RPCTypes.ImageCropRect) => void
   sendChatNotification?: boolean
