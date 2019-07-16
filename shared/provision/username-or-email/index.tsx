@@ -18,7 +18,7 @@ type Props = {
   submittedUsername: string
 }
 
-const InlineError = (props: {onGoToSignup: () => void | null; error: string}) => (
+const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) => (
   <Kb.Box2 direction="vertical" centerChildren={true}>
     <Kb.Text type="BodySmallError" style={styles.error}>
       {props.error}

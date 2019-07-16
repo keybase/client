@@ -2,6 +2,12 @@
 import {TextInfo} from './input'
 
 const checkTextInfo = ({text, selection}: TextInfo) => {
+  if (selection.end === null) {
+    throw new Error('selection.end null')
+  }
+  if (selection.start === null) {
+    throw new Error('selection.start null')
+  }
   if (selection.end > text.length) {
     throw new Error(`selection end=${selection.end} must be <= text length=${text.length}`)
   }

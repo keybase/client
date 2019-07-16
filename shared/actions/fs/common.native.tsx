@@ -15,14 +15,14 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
     let title = 'Select a photo'
     let takePhotoButtonTitle = 'Take photo...'
     switch (action.payload.type) {
-    case Types.MobilePickType.Video:
-      title = 'Select a video'
-      takePhotoButtonTitle = 'Take video...'
-      break
-    case Types.MobilePickType.Mixed:
-      title = 'Select a photo or video'
-      takePhotoButtonTitle = 'Take photo or video...'
-      break
+      case Types.MobilePickType.Video:
+        title = 'Select a video'
+        takePhotoButtonTitle = 'Take video...'
+        break
+      case Types.MobilePickType.Mixed:
+        title = 'Select a photo or video'
+        takePhotoButtonTitle = 'Take photo or video...'
+        break
     }
     return ImagePicker.showImagePicker(
       {
@@ -47,10 +47,10 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
     )
   })
     .then(
-      (localPath: string | null) =>
+      (localPath: any) =>
         localPath &&
         FsGen.createUpload({
-          localPath,
+          localPath: localPath as string,
           parentPath: action.payload.parentPath,
         })
     )

@@ -112,10 +112,9 @@ type ContactsHandler struct {
 	*BaseHandler
 
 	contactsProvider *contacts.CachedContactsProvider
-	savedContacts    *contacts.SavedContactsStore
 }
 
-func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext, pbs *contacts.SavedContactsStore) *ContactsHandler {
+func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ContactsHandler {
 	contactsProvider := &contacts.CachedContactsProvider{
 		Provider: &bulkLookupContactsProvider{},
 		Store:    contacts.NewContactCacheStore(g),
@@ -125,7 +124,6 @@ func NewContactsHandler(xp rpc.Transporter, g *libkb.GlobalContext, pbs *contact
 		Contextified:     libkb.NewContextified(g),
 		BaseHandler:      NewBaseHandler(g, xp),
 		contactsProvider: contactsProvider,
-		savedContacts:    pbs,
 	}
 	return handler
 }
@@ -143,14 +141,15 @@ func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.Save
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
-	return h.savedContacts.SaveContacts(mctx, h.contactsProvider, arg.Contacts)
+	return contacts.ResolveAndSaveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
 func (h *ContactsHandler) LookupSavedContactsList(ctx context.Context, sessionID int) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOADCON")
 	defer mctx.TraceTimed("ContactsHandler#LookupSavedContactsList", func() error { return err })()
 
-	savedContacts, err := h.savedContacts.RetrieveContacts(mctx)
+	store := h.G().SyncedContactList
+	savedContacts, err := store.RetrieveContacts(mctx)
 	if err != nil {
 		return nil, err
 	}

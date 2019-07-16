@@ -1,8 +1,5 @@
 import * as React from 'react'
-import * as I from 'immutable'
+import * as C from '../../util/container'
 
-export type OwnProps = {
-  routeProps: I.Map<'teamname', string>
-}
-
+export type OwnProps = C.RouteProps<{teamname: string}>
 export default class Container extends React.Component<OwnProps> {}

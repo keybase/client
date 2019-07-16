@@ -34,8 +34,8 @@ class GetTitles extends React.Component<Props, State> {
     }
   }
 
-  _onNext = (e: React.SyntheticEvent) => {
-    e.preventDefault()
+  _onNext = (e?: React.SyntheticEvent) => {
+    e && e.preventDefault()
 
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
@@ -150,13 +150,9 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small, 0),
   }),
-  cancelButton: {
-    marginRight: Styles.globalMargins.tiny,
-  },
+  cancelButton: {marginRight: Styles.globalMargins.tiny},
   container: Styles.platformStyles({
-    isElectron: {
-      justifyContent: 'space-between',
-    },
+    isElectron: {justifyContent: 'space-between'},
     isMobile: {
       justifyContent: 'space-around',
       paddingLeft: Styles.globalMargins.small,
@@ -188,9 +184,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   imageContainer: Styles.platformStyles({
-    common: {
-      justifyContent: 'center',
-    },
+    common: {justifyContent: 'center'},
     isElectron: {
       flex: 1,
       height: 325,
@@ -216,9 +210,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
       width: '100%',
     },
-    isElectron: {
-      maxHeight: 100,
-    },
+    isElectron: {maxHeight: 100},
   }),
   inputContainer: Styles.platformStyles({
     isElectron: {
@@ -232,9 +224,7 @@ const styles = Styles.styleSheetCreate({
       height: '100%',
       width: '100%',
     },
-    isElectron: {
-      borderRadius: Styles.borderRadius,
-    },
+    isElectron: {borderRadius: Styles.borderRadius},
   }),
 })
 

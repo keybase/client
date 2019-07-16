@@ -5,7 +5,7 @@ import {IconType} from '../../common-adapters'
 export type UserDetails = {
   id: string
   followingState: Types.FollowingState
-  icon: IconType | null
+  icon?: IconType
   service: Types.Service
   username: string
 }

@@ -125,4 +125,4 @@ export type Actions =
   | SetUserInputItemsPayload
   | UpdateSelectedSearchResultPayload
   | UserInputItemsUpdatedPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

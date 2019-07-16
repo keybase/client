@@ -10,7 +10,7 @@ import ChooseConversation from '../../../chat/conversation-list/choose-conversat
 type Props = {
   onCancel: () => void
   onSetTitle: (title: string) => void
-  send?: () => void | null
+  send?: () => void
   path: Types.Path
   sendAttachmentToChatState: Types.SendAttachmentToChatState
   title: string

@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
-import {RowItem} from '../index.types'
+import {RowItem, RowItemBig, RowItemSmall} from '../index.types'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher?: RegExp): number => {
   // special case, looking for yourself
@@ -48,7 +48,7 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   )
 
   const searchStr = namesMinusYou.join('')
-  const insertionMatch = searchStr.match(insertMatcher)
+  const insertionMatch = insertMatcher && searchStr.match(insertMatcher)
   // insertionDistance = searchStr.length - filter.length
   // 1 / (insertionDistance + 1) * 20
   // 20 <= insertionScore < 0
@@ -81,7 +81,7 @@ const makeSmallItem = (meta, filter, you, insertMatcher) => {
   const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants.toArray(), insertMatcher)
   return s > 0
     ? {
-        data: {conversationIDKey: meta.conversationIDKey, type: 'small'},
+        data: {conversationIDKey: meta.conversationIDKey, type: 'small'} as RowItemSmall,
         score: s,
         timestamp: meta.timestamp,
       }
@@ -97,7 +97,7 @@ const makeBigItem = (meta, filter, insertMatcher) => {
           conversationIDKey: meta.conversationIDKey,
           teamname: meta.teamname,
           type: 'big',
-        },
+        } as RowItemBig,
         score: s,
         timestamp: 0,
       }
@@ -119,7 +119,10 @@ const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: stri
         ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
         : makeBigItem(meta, lcFilter, insertMatcher)
     })
-    .filter(Boolean)
+    .reduce<Array<{score: number; timestamp: number; data: RowItemSmall | RowItemBig}>>((arr, r) => {
+      r && arr.push(r)
+      return arr
+    }, [])
     .sort((a, b) => {
       return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
     })

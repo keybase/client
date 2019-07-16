@@ -65,7 +65,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: null}
+${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: {}}
   `
 }
 
@@ -183,7 +183,7 @@ function makeTypedActions(created) {
 function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
-  const created = []
+  const created: Array<string> = []
   files
     .filter(file => path.extname(file) === '.json')
     .forEach(file => {

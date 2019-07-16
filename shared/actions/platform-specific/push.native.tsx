@@ -17,6 +17,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
+import {TypedState} from '../../util/container'
 
 let lastCount = -1
 const updateAppBadge = (_, action: NotificationsGen.ReceivedBadgeStatePayload) => {
@@ -136,7 +137,7 @@ function* handleLoudMessage(notification) {
   if (unboxPayload && membersType && !isIOS) {
     logger.info('[Push] unboxing message')
     try {
-      yield* Saga.callPromise(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+      yield RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
         convID: conversationIDKey,
         membersType,
         payload: unboxPayload,
@@ -224,7 +225,7 @@ function* deletePushToken(state, action: ConfigGen.LogoutHandshakePayload) {
       return
     }
 
-    yield* Saga.callPromise(RPCTypes.apiserverDeleteRpcPromise, {
+    yield RPCTypes.apiserverDeleteRpcPromise({
       args: [{key: 'device_id', value: deviceID}, {key: 'token_type', value: Constants.tokenType}],
       endpoint: 'device/push_token',
     })
@@ -329,7 +330,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
   const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
   if (permissions.alert || permissions.badge) {
-    const state = yield* Saga.selectState()
+    const state: TypedState = yield* Saga.selectState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))

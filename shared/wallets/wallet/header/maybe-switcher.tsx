@@ -21,6 +21,7 @@ const _Switcher: React.FunctionComponent<Props & Kb.OverlayParentProps> = props 
 
 const Switcher = Kb.OverlayParentHOC(_Switcher)
 
+// TODO these types don't make sense
 const MaybeSwitcher = isMobile ? Switcher : NoSwitcher
 
-export default MaybeSwitcher
+export default MaybeSwitcher as any

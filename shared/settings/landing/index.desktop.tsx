@@ -210,7 +210,9 @@ function Plan({
 }: PlanProps & {
   plans: Array<AvailablePlan>
 }) {
-  const from: AvailablePlan | null = plans.find((plan: AvailablePlan) => plan.planLevel === selectedLevel)
+  const from: AvailablePlan | undefined = plans.find(
+    (plan: AvailablePlan) => plan.planLevel === selectedLevel
+  )
   if (!from) {
     throw new Error("Can't find existing plan")
   }
