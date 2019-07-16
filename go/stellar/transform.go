@@ -313,6 +313,7 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		}
 	}
 	if p.Claim != nil {
+		loc.ShowCancel = false // if there's a claim in either direction, it's too late to cancel
 		loc.StatusSimplified = p.Claim.ToPaymentStatus()
 		loc.ToAccountID = &p.Claim.ToStellar
 		loc.ToType = stellar1.ParticipantType_STELLAR
@@ -334,7 +335,6 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		}
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
-			loc.ShowCancel = false
 			loc.StatusDetail = ""
 		} else {
 			claimantUsername, err := lookupUsername(mctx, p.Claim.To.Uid)
