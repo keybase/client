@@ -209,7 +209,8 @@ type UIParticipantType int
 const (
 	UIParticipantType_NONE    UIParticipantType = 0
 	UIParticipantType_USER    UIParticipantType = 1
-	UIParticipantType_CONTACT UIParticipantType = 2
+	UIParticipantType_PHONENO UIParticipantType = 2
+	UIParticipantType_EMAIL   UIParticipantType = 3
 )
 
 func (o UIParticipantType) DeepCopy() UIParticipantType { return o }
@@ -217,13 +218,15 @@ func (o UIParticipantType) DeepCopy() UIParticipantType { return o }
 var UIParticipantTypeMap = map[string]UIParticipantType{
 	"NONE":    0,
 	"USER":    1,
-	"CONTACT": 2,
+	"PHONENO": 2,
+	"EMAIL":   3,
 }
 
 var UIParticipantTypeRevMap = map[UIParticipantType]string{
 	0: "NONE",
 	1: "USER",
-	2: "CONTACT",
+	2: "PHONENO",
+	3: "EMAIL",
 }
 
 func (e UIParticipantType) String() string {

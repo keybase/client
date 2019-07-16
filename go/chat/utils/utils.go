@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/externals"
+
 	"github.com/keybase/xurls"
 
 	"github.com/keybase/client/go/chat/pager"
@@ -1196,20 +1198,36 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	return res
 }
 
-func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
-	var writerNames []chat1.UIParticipant
-	for _, p := range rawConv.Info.Participants {
-		participantType := chat1.UIParticipantType_USER
-		if isPhoneOrEmail(p.Username) {
-			participantType = chat1.UIParticipantType_CONTACT
+func getParticipantType(username string) chat1.UIParticipantType {
+	if strings.HasSuffix(username, "@phone") {
+		return chat1.UIParticipantType_PHONENO
+	}
+	if strings.HasSuffix(username, "@email") {
+		return chat1.UIParticipantType_EMAIL
+	}
+	return chat1.UIParticipantType_USER
+}
+
+func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+	for _, p := range rawParticipants {
+		participantType := getParticipantType(p.Username)
+		assertion := p.Username
+		if participantType == chat1.UIParticipantType_PHONENO || participantType == chat1.UIParticipantType_EMAIL {
+			if parsedAssertion, ok := externals.NormalizeSocialAssertionStatic(ctx, p.Username); ok {
+				assertion = parsedAssertion.User
+			}
 		}
-		writerNames = append(writerNames, chat1.UIParticipant{
-			Assertion:   p.Username,
+		participants = append(participants, chat1.UIParticipant{
+			Assertion:   assertion,
 			ContactName: p.ContactName,
 			FullName:    p.Fullname,
 			Type:        participantType,
 		})
 	}
+	return participants
+}
+
+func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
@@ -1218,7 +1236,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
-	res.Participants = writerNames
+	res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
