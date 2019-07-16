@@ -9,9 +9,7 @@ type OwnProps = RouteProps<{}, {}>
 const mapStateToProps = (state: Container.TypedState) => ({
   error: state.provision.error.stringValue(),
   hint: `${state.provision.codePageOtherDeviceName || ''}...`,
-  loggedInAccounts: state.config.configuredAccounts
-    .filter(account => account.hasStoredSecret)
-    .map(account => account.username),
+  configuredAccounts: state.config.configuredAccounts,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -20,9 +18,13 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey: new HiddenString(paperKey)})),
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({
-  ...o,
-  ...s,
-  onBack: s.loggedInAccounts.size > 0 ? () => d.onLogIn(s.loggedInAccounts.get(0)) : undefined,
-  onSubmit: d.onSubmit,
-}))(PaperKey)
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => {
+  const loggedInAccounts = s.configuredAccounts.filter(account => account.hasStoredSecret)
+
+  return {
+    ...o,
+    ...s,
+    onBack: loggedInAccounts.size > 0 ? () => d.onLogIn(loggedInAccounts.get(0).username) : undefined,
+    onSubmit: d.onSubmit,
+  }
+})(PaperKey)

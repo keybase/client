@@ -15,7 +15,9 @@ export const Header = (props: Props) => (
         custom: (
           <Kb.Avatar
             username={props.myUsername}
-            onClick={ff.fastAccountSwitch ? props.onOpenAccountSwitcher : props.onClickUser(props.myUsername)}
+            onClick={
+              ff.fastAccountSwitch ? props.onOpenAccountSwitcher : () => props.onClickUser(props.myUsername)
+            }
             size={32}
           />
         ),

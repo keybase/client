@@ -13,10 +13,8 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _existingDevices: state.provision.existingDevices,
+  configuredAccounts: state.config.configuredAccounts,
   error: state.provision.error.stringValue(),
-  loggedInAccounts: state.config.configuredAccounts
-    .filter(account => account.hasStoredSecret)
-    .map(account => account.username),
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -34,13 +32,12 @@ export default Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
     const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)
     const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
+    const loggedInAccounts = stateProps.configuredAccounts.filter(account => account.hasStoredSecret)
     return {
       deviceName: ownProps.deviceName,
       error: stateProps.error,
       onBack:
-        stateProps.loggedInAccounts.size > 0
-          ? () => dispatchProps.onLogIn(stateProps.loggedInAccounts.get(0))
-          : null,
+        loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0).username) : null,
       onChange: ownProps.onChange,
       onSubmit,
     }
