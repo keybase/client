@@ -59,7 +59,7 @@ const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.ScrollView style={sharedStyles.scrollView}>
       <AssetInputRecipientAdvanced />
-      <AssetPathIntermediate />
+      <AssetPathIntermediate forSEP7={false} />
       <AssetInputSenderAdvanced />
       <Kb.Divider />
       <SecretNoteAndPublicMemo />

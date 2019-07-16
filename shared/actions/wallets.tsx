@@ -20,7 +20,7 @@ import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
-import {actionHasError, TypedActions} from '../util/container'
+import {actionHasError, TypedActions, TypedState} from '../util/container'
 import {Action} from 'redux'
 
 const stateToBuildRequestParams = state => ({
@@ -1267,14 +1267,33 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
     sourceInsufficientBalance: rpcPaymentPath.sourceInsufficientBalance,
   })
 
-const calculateBuildingAdvanced = state =>
-  RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
+const calculateBuildingAdvanced = (
+  state: TypedState,
+  action: WalletsGen.CalculateBuildingAdvancedPayload
+) => {
+  const {forSEP7} = action.payload
+  let amount = state.wallets.buildingAdvanced.recipientAmount
+  let destinationAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset)
+  let from = state.wallets.buildingAdvanced.senderAccountID
+  let sourceAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset)
+  let to = state.wallets.buildingAdvanced.recipient
+  if (forSEP7) {
+    amount = state.wallets.sep7ConfirmInfo.amount
+    destinationAsset = assetDescriptionOrNativeToRpcAsset(Constants.makeAssetDescription({
+      code: state.wallets.sep7ConfirmInfo.assetCode,
+      issuerAccountID: state.wallets.sep7ConfirmInfo.assetIssuer,
+    }))
+    from = Constants.getDefaultAccountID(state)
+    sourceAsset = assetDescriptionOrNativeToRpcAsset('native')
+    to = state.wallets.sep7ConfirmInfo.recipient
+  }
+  return RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
     {
-      amount: state.wallets.buildingAdvanced.recipientAmount,
-      destinationAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset),
-      from: state.wallets.buildingAdvanced.senderAccountID,
-      sourceAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset),
-      to: state.wallets.buildingAdvanced.recipient,
+      amount,
+      destinationAsset,
+      from,
+      sourceAsset,
+      to,
     },
     Constants.calculateBuildingAdvancedWaitingKey
   )
@@ -1300,6 +1319,7 @@ const calculateBuildingAdvanced = state =>
           sourceDisplay,
           sourceMaxDisplay,
         }),
+        forSEP7: action.payload.forSEP7,
       })
     })
     .catch(error => {
@@ -1309,10 +1329,12 @@ const calculateBuildingAdvanced = state =>
             noPathFoundError: true,
             readyToSend: false,
           }),
+          forSEP7: action.payload.forSEP7,
         })
       }
       throw error
     })
+}
 
 const sendPaymentAdvanced = state =>
   RPCStellarTypes.localSendPathLocalRpcPromise(

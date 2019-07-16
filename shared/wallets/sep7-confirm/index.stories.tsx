@@ -6,6 +6,7 @@ import SEP7Confirm from '.'
 import SEP7Error from './error'
 
 const commonProps = {
+  assetCode: '',
   availableToSendFiat: '$12.34 USD',
   availableToSendNative: '20 XLM',
   callbackURL: null,

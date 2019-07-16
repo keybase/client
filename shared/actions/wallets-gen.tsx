@@ -145,7 +145,7 @@ type _BuildPaymentPayload = void
 type _BuildingPaymentIDReceivedPayload = {readonly bid: string}
 type _BuiltPaymentReceivedPayload = {readonly build: Types.BuiltPayment; readonly forBuildCounter: number}
 type _BuiltRequestReceivedPayload = {readonly build: Types.BuiltRequest; readonly forBuildCounter: number}
-type _CalculateBuildingAdvancedPayload = void
+type _CalculateBuildingAdvancedPayload = {readonly forSEP7: boolean}
 type _CancelPaymentPayload = {readonly showAccount?: boolean; readonly paymentID: Types.PaymentID}
 type _CancelRequestPayload = {
   readonly conversationIDKey?: ChatTypes.ConversationIDKey
@@ -311,7 +311,10 @@ type _SetBuildingPublicMemoPayload = {readonly publicMemo: HiddenString}
 type _SetBuildingRecipientTypePayload = {readonly recipientType: Types.CounterpartyType}
 type _SetBuildingSecretNotePayload = {readonly secretNote: HiddenString}
 type _SetBuildingToPayload = {readonly to: string}
-type _SetBuiltPaymentAdvancedPayload = {readonly builtPaymentAdvanced: Types.BuiltPaymentAdvanced}
+type _SetBuiltPaymentAdvancedPayload = {
+  readonly builtPaymentAdvanced: Types.BuiltPaymentAdvanced
+  readonly forSEP7: boolean
+}
 type _SetInflationDestinationPayload = {
   readonly accountID: Types.AccountID
   readonly destination: Types.AccountID

@@ -349,8 +349,11 @@
     "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
     "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
     "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
-    "calculateBuildingAdvanced": {},
-    "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
+    "calculateBuildingAdvanced": {"forSEP7": "boolean"},
+    "setBuiltPaymentAdvanced": {
+      "builtPaymentAdvanced": "Types.BuiltPaymentAdvanced",
+      "forSEP7": "boolean"
+    },
     "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",

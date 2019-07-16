@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletBackButton} from '../common'
+import {AssetPathIntermediate} from '../send-form/asset-input/asset-input-advanced'
 import AssetInput from './asset-input-container'
 
 type Summary = {
@@ -14,6 +15,7 @@ type Summary = {
 
 type Props = {
   amount: string | null
+  assetCode: string
   availableToSendNative: string
   callbackURL: string | null
   displayAmountFiat: string
@@ -127,6 +129,7 @@ const Header = (props: HeaderProps) => (
 
 type PaymentInfoProps = {
   amount: string
+  assetCode: string
   availableToSendNative: string
   displayAmountFiat: string
   memo: string | null
@@ -158,6 +161,7 @@ const PaymentInfo = (props: PaymentInfoProps) => (
         </>
       )}
     </Kb.Box2>
+    {!!props.assetCode && <AssetPathIntermediate forSEP7={true} />}
     {!props.amount && <AssetInput amount={props.userAmount} onChangeAmount={props.onChangeAmount} />}
     {!!props.memo && <InfoRow headerText="Memo" bodyText={props.memo} />}
     {!!props.message && <InfoRow headerText="Message" bodyText={props.message} />}
@@ -202,6 +206,7 @@ const SEP7Confirm = (props: Props) => (
         {props.operation === 'pay' ? (
           <PaymentInfo
             amount={props.amount}
+            assetCode={props.assetCode}
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
             memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}

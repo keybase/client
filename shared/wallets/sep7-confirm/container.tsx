@@ -22,6 +22,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
   if (stateProps.loading) {
     return {
       amount: null,
+      assetCode: '',
       availableToSendNative: '',
       callbackURL: null,
       displayAmountFiat: '',
@@ -47,6 +48,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
   }
   const {
     amount,
+    assetCode,
     availableToSendNative,
     callbackURL,
     displayAmountFiat,
@@ -67,6 +69,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
 
   return {
     amount,
+    assetCode,
     availableToSendNative,
     callbackURL,
     displayAmountFiat,

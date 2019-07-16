@@ -528,7 +528,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
-      return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+      return action.payload.forSEP7 
+        ? state.set('sep7ConfirmPath', action.payload.builtPaymentAdvanced)
+        : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case WalletsGen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     // Saga only actions

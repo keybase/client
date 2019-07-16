@@ -127,9 +127,16 @@ export const AssetInputSenderAdvanced = (props: EmptyProps) => {
   )
 }
 
-export const AssetPathIntermediate = () => {
+type AssetPathIntermediateProps = {
+  forSEP7: boolean
+}
+export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
   const [expanded, setExpanded] = React.useState(false)
-  const path = Container.useSelector(state => state.wallets.builtPaymentAdvanced.fullPath.path)
+  const path = Container.useSelector(state =>
+    props.forSEP7
+      ? state.wallets.sep7ConfirmPath.fullPath.path
+      : state.wallets.builtPaymentAdvanced.fullPath.path
+  )
   if (!path.size) {
     return <Kb.Divider />
   }
