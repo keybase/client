@@ -26,10 +26,9 @@ target 'Keybase' do
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
-  
+
   pod 'lottie-ios', :path => '../node_modules/lottie-ios'
   pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
-  pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
   pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
   pod 'rn-fetch-blob', :path => '../node_modules/rn-fetch-blob'
   pod 'react-native-contacts', :path => '../node_modules/react-native-contacts'
