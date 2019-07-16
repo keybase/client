@@ -23,6 +23,11 @@ func formatSBSAssertion(c keybase1.ContactComponent) string {
 	}
 }
 
+type contactAssertionPair struct {
+	contactName    string
+	componentValue string
+}
+
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
 //
@@ -112,14 +117,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 							continue
 						}
 
-						assertion := formatSBSAssertion(component)
 						res = append(res, keybase1.ProcessedContact{
 							ContactIndex: contactI,
 							ContactName:  contact.Name,
 							Component:    component,
 							Resolved:     true,
 							Uid:          lookupRes.UID,
-							Assertion:    assertion,
+							Assertion:    formatSBSAssertion(component),
 						})
 						contactsFound[contactI] = struct{}{}
 						usersFound[lookupRes.UID] = struct{}{}
@@ -160,13 +164,17 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	// Add all components from all contacts that were not resolved by any
 	// component.
+
+	// Discard duplicate components that come from contacts with the same
+	// contact name and hold the same assertion. Will also skip same assertions
+	// within one contact (duplicated components with same value and same or
+	// different name)
+	contactAssertionsSeen := make(map[contactAssertionPair]struct{})
+
 	for i, c := range contacts {
 		if _, found := contactsFound[i]; found {
 			continue
 		}
-
-		// Skip same assertions within a contact.
-		assertionsSeen := make(map[string]struct{})
 
 		// Add e.g. "(Work)" labels to display labels if there are multiple
 		// components in a contact.
@@ -179,8 +187,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			}
 
 			assertion := formatSBSAssertion(component)
-			if _, seen := assertionsSeen[assertion]; seen {
-				// Already seen *within this contact*.
+			cvp := contactAssertionPair{c.Name, assertion}
+			if _, seen := contactAssertionsSeen[cvp]; seen {
+				// Already seen the exact contact name and assertion.
 				continue
 			}
 
@@ -195,7 +204,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 				Assertion: assertion,
 			})
-			assertionsSeen[assertion] = struct{}{}
+			contactAssertionsSeen[cvp] = struct{}{}
 		}
 	}
 

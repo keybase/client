@@ -459,6 +459,7 @@ func TestDuplicateEntries(t *testing.T) {
 	defer tc.Cleanup()
 
 	contactList := []keybase1.Contact{
+		// Contact with multiple components that will yield the same assertion.
 		keybase1.Contact{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
@@ -467,6 +468,15 @@ func TestDuplicateEntries(t *testing.T) {
 				makePhoneComponent("car", "+1111222"),
 			},
 		},
+		// "Duplicated" contacts with the same name and same component.
+		keybase1.Contact{
+			Name: "Alice",
+			Components: []keybase1.ContactComponent{
+				makePhoneComponent("home", "+1111222"),
+			},
+		},
+		// Two contacts with same component that's going to get resolved -
+		// resolution should appear only once in results.
 		keybase1.Contact{
 			Name: "Bob",
 			Components: []keybase1.ContactComponent{
@@ -486,7 +496,8 @@ func TestDuplicateEntries(t *testing.T) {
 
 	// We expect to see one resolution for "bob+test@keyba.se" from "Bob"
 	// contact (comes first), and one unresolved entry for Alice for "+1111222"
-	// (one even though there are 3 components with the same phone number).
+	// (one even though there are 3 components with the same phone number, and
+	// a duplicate "Alice" contact).
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
 	require.NoError(t, err)
 	require.Len(t, res, 2)
