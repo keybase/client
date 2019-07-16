@@ -227,6 +227,24 @@ const (
 	FlipSendStatusError
 )
 
+type BotCommand struct {
+	Name                string
+	Description         string
+	Usage               string
+	ExtendedDescription *string
+	Username            string
+}
+
+func (c BotCommand) Export() chat1.ConversationCommand {
+	return chat1.ConversationCommand{
+		Name:        c.Name,
+		Description: c.Description,
+		Usage:       c.Usage,
+		HasHelpText: c.ExtendedDescription != nil,
+		Username:    &c.Username,
+	}
+}
+
 type AttachmentUploadResult struct {
 	Error    *string
 	Object   chat1.Asset

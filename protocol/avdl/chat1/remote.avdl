@@ -335,12 +335,7 @@ protocol remote {
   array<ExternalAPIKey> getExternalAPIKeys(array<ExternalAPIKeyTyp> typs);
 
   // Bot commands
-  @typedef("uint64") @lint("ignore") record CommandConvVers {}
-  enum BotCommandsTyp {
-    PUBLIC_0,
-    TLFID_MEMBERS_1,
-    TLFID_CONVS_2
-  }
+  @typedef("uint64") @lint("ignore") record CommandConvVers {} 
   record BotCommandsPublic {
     ConversationID convID;
   }

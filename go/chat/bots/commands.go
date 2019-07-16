@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -31,13 +32,13 @@ type userCommandDesc struct {
 	ExtendedDescription *string `json:"extended_description"`
 }
 
-func (c userCommandDesc) Export(username string) chat1.ConversationCommand {
-	return chat1.ConversationCommand{
-		Description: c.Description,
-		Name:        c.Name,
-		Usage:       c.Usage,
-		HasHelpText: c.ExtendedDescription != nil,
-		Username:    &username,
+func (c userCommandDesc) ToBotCommand(username string) types.BotCommand {
+	return types.BotCommand{
+		Description:         c.Description,
+		Name:                c.Name,
+		Usage:               c.Usage,
+		ExtendedDescription: c.ExtendedDescription,
+		Username:            username,
 	}
 }
 
@@ -149,7 +150,7 @@ func (b *CachingBotCommandManager) dbCommandsKey(convID chat1.ConversationID) li
 	}
 }
 
-func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []chat1.ConversationCommand, err error) {
+func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) (res []types.BotCommand, err error) {
 	defer b.Trace(ctx, func() error { return err }, "ListCommands")()
 	var s commandsStorage
 	found, err := b.edb.Get(ctx, b.dbCommandsKey(convID), &s)
@@ -161,15 +162,15 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 	}
 	for _, ad := range s.Advertisements {
 		for _, desc := range ad.Advertisement.Commands {
-			res = append(res, desc.Export(ad.Username))
+			res = append(res, desc.ToBotCommand(ad.Username))
 		}
 	}
 	sort.Slice(res, func(i, j int) bool {
 		l := res[i]
 		r := res[j]
-		if *l.Username < *r.Username {
+		if l.Username < r.Username {
 			return true
-		} else if *l.Username > *r.Username {
+		} else if l.Username > r.Username {
 			return false
 		} else {
 			return l.Name < r.Name

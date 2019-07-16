@@ -668,4 +668,11 @@
     AssetMetadata metadata;    // type-specific metadata
     AssetTag tag;              // for multiple previews, a tag to differentiate
   }
+
+  // Bot Commands
+  enum BotCommandsTyp {
+    PUBLIC_0,
+    TLFID_MEMBERS_1,
+    TLFID_CONVS_2
+  }
 }
