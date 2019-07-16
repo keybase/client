@@ -36,10 +36,10 @@ const NoTeamsPlaceholder = () => {
 
 const styles = styleSheetCreate({
   container: {
-    marginBottom: globalMargins.large,
-    marginLeft: globalMargins.medium,
-    marginRight: globalMargins.medium,
-    marginTop: globalMargins.large,
+    paddingBottom: globalMargins.large,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+    paddingTop: globalMargins.large,
   },
 })
 
