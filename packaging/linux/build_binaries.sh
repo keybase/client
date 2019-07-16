@@ -93,7 +93,6 @@ build_one_architecture() {
     return
   fi
 
-
   cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
