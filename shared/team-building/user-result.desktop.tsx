@@ -85,7 +85,7 @@ class Row extends React.Component<Props, LocalState> {
   }
 }
 
-const AvatarSize = 32
+const AvatarSize = Styles.isMobile ? 48 : 32
 const Avatar = ({
   resultForService,
   keybaseUsername,
@@ -224,36 +224,44 @@ const AlreadyAddedIconButton = () => (
   <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.blue} />
 )
 
-const ActionButtonSize = 32
+const ActionButtonSize = Styles.isMobile ? 40 : 32
 const styles = Styles.styleSheetCreate({
-  actionButton: {
-    ...Styles.globalStyles.rounded,
-    backgroundColor: Styles.globalColors.grey,
-    height: ActionButtonSize,
-    marginLeft: Styles.globalMargins.tiny,
-    width: ActionButtonSize,
-  },
+  actionButton: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.rounded,
+      backgroundColor: Styles.globalColors.grey,
+      height: ActionButtonSize,
+      marginLeft: Styles.globalMargins.tiny,
+      width: ActionButtonSize,
+    },
+  }),
   actionButtonHighlight: {
     backgroundColor: Styles.globalColors.blue,
   },
-  actionButtonHoverContainer: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    justifyContent: 'center',
-    width: ActionButtonSize,
-  },
+  actionButtonHoverContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.rounded,
+      height: ActionButtonSize,
+      justifyContent: 'center',
+      width: ActionButtonSize,
+    },
+  }),
   addToTeamIcon: {
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
     width: ActionButtonSize,
   },
-  highlighted: {
-    backgroundColor: Styles.globalColors.blueLighter2,
-    borderRadius: Styles.borderRadius,
-  },
-  keybaseServiceIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
+  highlighted: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.blueLighter2,
+      borderRadius: Styles.borderRadius,
+    },
+  }),
+  keybaseServiceIcon: Styles.platformStyles({
+    common: {
+      marginRight: Styles.globalMargins.xtiny,
+    },
+  }),
   removeButton: {
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
@@ -262,18 +270,30 @@ const styles = Styles.styleSheetCreate({
   removeButtonHighlight: {
     backgroundColor: Styles.globalColors.red,
   },
-  rowContainer: {
-    height: 50,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  serviceIcon: {
-    height: 18,
-    marginLeft: Styles.globalMargins.tiny,
-    width: 18,
-  },
+  rowContainer: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      height: 50,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+  }),
+  serviceIcon: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      height: 18,
+      width: 18,
+    },
+  }),
   services: {
     justifyContent: 'flex-end',
   },

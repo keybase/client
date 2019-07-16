@@ -2,14 +2,16 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
+import Flags from '../util/feature-flags'
 import {followingStateToStyle} from '../search/shared'
 import {Props} from './user-result'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
+import LegacyUserResult from './user-result.desktop'
 
 // TODO
 // * Use ListItem2
 
-class Row extends React.Component<Props> {
+class UserResult extends React.Component<Props> {
   render = () => {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
@@ -201,4 +203,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Row
+export default (Flags.sbsContacts ? UserResult : LegacyUserResult)
