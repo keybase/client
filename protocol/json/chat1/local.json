@@ -3233,8 +3233,12 @@
     },
     {
       "type": "record",
-      "name": "AdvertiseCommandsParamsTeam",
+      "name": "AdvertiseCommandsParam",
       "fields": [
+        {
+          "type": "BotCommandsAdvertisementTyp",
+          "name": "typ"
+        },
         {
           "type": {
             "type": "array",
@@ -3243,42 +3247,11 @@
           "name": "commands"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "teamName"
-        }
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "AdvertiseCommandsParam",
-      "switch": {
-        "type": "BotCommandsAdvertisementTyp",
-        "name": "typ"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "PUBLIC",
-            "def": false
-          },
-          "body": {
-            "type": "array",
-            "items": "UserBotCommandInput"
-          }
-        },
-        {
-          "label": {
-            "name": "TLFID_MEMBERS",
-            "def": false
-          },
-          "body": "AdvertiseCommandsParamsTeam"
-        },
-        {
-          "label": {
-            "name": "TLFID_CONVS",
-            "def": false
-          },
-          "body": "AdvertiseCommandsParamsTeam"
         }
       ]
     },

@@ -5211,13 +5211,15 @@ func (o UserBotCommandInput) DeepCopy() UserBotCommandInput {
 	}
 }
 
-type AdvertiseCommandsParamsTeam struct {
-	Commands []UserBotCommandInput `codec:"commands" json:"commands"`
-	TeamName string                `codec:"teamName" json:"teamName"`
+type AdvertiseCommandsParam struct {
+	Typ      BotCommandsAdvertisementTyp `codec:"typ" json:"typ"`
+	Commands []UserBotCommandInput       `codec:"commands" json:"commands"`
+	TeamName *string                     `codec:"teamName,omitempty" json:"teamName,omitempty"`
 }
 
-func (o AdvertiseCommandsParamsTeam) DeepCopy() AdvertiseCommandsParamsTeam {
-	return AdvertiseCommandsParamsTeam{
+func (o AdvertiseCommandsParam) DeepCopy() AdvertiseCommandsParam {
+	return AdvertiseCommandsParam{
+		Typ: o.Typ.DeepCopy(),
 		Commands: (func(x []UserBotCommandInput) []UserBotCommandInput {
 			if x == nil {
 				return nil
@@ -5229,123 +5231,13 @@ func (o AdvertiseCommandsParamsTeam) DeepCopy() AdvertiseCommandsParamsTeam {
 			}
 			return ret
 		})(o.Commands),
-		TeamName: o.TeamName,
-	}
-}
-
-type AdvertiseCommandsParam struct {
-	Typ__          BotCommandsAdvertisementTyp  `codec:"typ" json:"typ"`
-	Public__       *[]UserBotCommandInput       `codec:"public,omitempty" json:"public,omitempty"`
-	TlfidMembers__ *AdvertiseCommandsParamsTeam `codec:"tlfidMembers,omitempty" json:"tlfidMembers,omitempty"`
-	TlfidConvs__   *AdvertiseCommandsParamsTeam `codec:"tlfidConvs,omitempty" json:"tlfidConvs,omitempty"`
-}
-
-func (o *AdvertiseCommandsParam) Typ() (ret BotCommandsAdvertisementTyp, err error) {
-	switch o.Typ__ {
-	case BotCommandsAdvertisementTyp_PUBLIC:
-		if o.Public__ == nil {
-			err = errors.New("unexpected nil value for Public__")
-			return ret, err
-		}
-	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
-		if o.TlfidMembers__ == nil {
-			err = errors.New("unexpected nil value for TlfidMembers__")
-			return ret, err
-		}
-	case BotCommandsAdvertisementTyp_TLFID_CONVS:
-		if o.TlfidConvs__ == nil {
-			err = errors.New("unexpected nil value for TlfidConvs__")
-			return ret, err
-		}
-	}
-	return o.Typ__, nil
-}
-
-func (o AdvertiseCommandsParam) Public() (res []UserBotCommandInput) {
-	if o.Typ__ != BotCommandsAdvertisementTyp_PUBLIC {
-		panic("wrong case accessed")
-	}
-	if o.Public__ == nil {
-		return
-	}
-	return *o.Public__
-}
-
-func (o AdvertiseCommandsParam) TlfidMembers() (res AdvertiseCommandsParamsTeam) {
-	if o.Typ__ != BotCommandsAdvertisementTyp_TLFID_MEMBERS {
-		panic("wrong case accessed")
-	}
-	if o.TlfidMembers__ == nil {
-		return
-	}
-	return *o.TlfidMembers__
-}
-
-func (o AdvertiseCommandsParam) TlfidConvs() (res AdvertiseCommandsParamsTeam) {
-	if o.Typ__ != BotCommandsAdvertisementTyp_TLFID_CONVS {
-		panic("wrong case accessed")
-	}
-	if o.TlfidConvs__ == nil {
-		return
-	}
-	return *o.TlfidConvs__
-}
-
-func NewAdvertiseCommandsParamWithPublic(v []UserBotCommandInput) AdvertiseCommandsParam {
-	return AdvertiseCommandsParam{
-		Typ__:    BotCommandsAdvertisementTyp_PUBLIC,
-		Public__: &v,
-	}
-}
-
-func NewAdvertiseCommandsParamWithTlfidMembers(v AdvertiseCommandsParamsTeam) AdvertiseCommandsParam {
-	return AdvertiseCommandsParam{
-		Typ__:          BotCommandsAdvertisementTyp_TLFID_MEMBERS,
-		TlfidMembers__: &v,
-	}
-}
-
-func NewAdvertiseCommandsParamWithTlfidConvs(v AdvertiseCommandsParamsTeam) AdvertiseCommandsParam {
-	return AdvertiseCommandsParam{
-		Typ__:        BotCommandsAdvertisementTyp_TLFID_CONVS,
-		TlfidConvs__: &v,
-	}
-}
-
-func (o AdvertiseCommandsParam) DeepCopy() AdvertiseCommandsParam {
-	return AdvertiseCommandsParam{
-		Typ__: o.Typ__.DeepCopy(),
-		Public__: (func(x *[]UserBotCommandInput) *[]UserBotCommandInput {
+		TeamName: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (func(x []UserBotCommandInput) []UserBotCommandInput {
-				if x == nil {
-					return nil
-				}
-				ret := make([]UserBotCommandInput, len(x))
-				for i, v := range x {
-					vCopy := v.DeepCopy()
-					ret[i] = vCopy
-				}
-				return ret
-			})((*x))
+			tmp := (*x)
 			return &tmp
-		})(o.Public__),
-		TlfidMembers__: (func(x *AdvertiseCommandsParamsTeam) *AdvertiseCommandsParamsTeam {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.TlfidMembers__),
-		TlfidConvs__: (func(x *AdvertiseCommandsParamsTeam) *AdvertiseCommandsParamsTeam {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.TlfidConvs__),
+		})(o.TeamName),
 	}
 }
 

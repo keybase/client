@@ -858,8 +858,7 @@ export enum UnfurlType {
 }
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
-export type AdvertiseCommandsParam = {typ: BotCommandsAdvertisementTyp.public; public: Array<UserBotCommandInput> | null} | {typ: BotCommandsAdvertisementTyp.tlfidMembers; tlfidMembers: AdvertiseCommandsParamsTeam | null} | {typ: BotCommandsAdvertisementTyp.tlfidConvs; tlfidConvs: AdvertiseCommandsParamsTeam | null}
-export type AdvertiseCommandsParamsTeam = {readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
+export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName?: String | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
 export type AssetMetadata = {assetType: AssetMetadataType.image; image: AssetMetadataImage | null} | {assetType: AssetMetadataType.video; video: AssetMetadataVideo | null} | {assetType: AssetMetadataType.audio; audio: AssetMetadataAudio | null}

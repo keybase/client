@@ -2437,29 +2437,8 @@ func (b BotInfoHash) Eq(h BotInfoHash) bool {
 	return bytes.Equal(b, h)
 }
 
-func (p AdvertiseCommandsParam) Commands() []UserBotCommandInput {
-	typ, err := p.Typ()
-	if err != nil {
-		return nil
-	}
-	switch typ {
-	case BotCommandsAdvertisementTyp_PUBLIC:
-		return p.Public()
-	case BotCommandsAdvertisementTyp_TLFID_CONVS:
-		return p.TlfidConvs().Commands
-	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
-		return p.TlfidMembers().Commands
-	default:
-		return nil
-	}
-}
-
 func (p AdvertiseCommandsParam) ToRemote(convID ConversationID, tlfID *TLFID) (res RemoteBotCommandsAdvertisement, err error) {
-	typ, err := p.Typ()
-	if err != nil {
-		return res, err
-	}
-	switch typ {
+	switch p.Typ {
 	case BotCommandsAdvertisementTyp_PUBLIC:
 		return NewRemoteBotCommandsAdvertisementWithPublic(RemoteBotCommandsAdvertisementPublic{
 			ConvID: convID,

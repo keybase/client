@@ -1102,14 +1102,10 @@ protocol local {
     string usage;
     union { null, string } extendedDescription;
   }
-  record AdvertiseCommandsParamsTeam {
+  record AdvertiseCommandsParam {
+    BotCommandsAdvertisementTyp typ;
     array<UserBotCommandInput> commands;
-    string teamName;
-  }
-  variant AdvertiseCommandsParam switch (BotCommandsAdvertisementTyp typ) {
-    case PUBLIC: array<UserBotCommandInput>; 
-    case TLFID_MEMBERS: AdvertiseCommandsParamsTeam; 
-    case TLFID_CONVS: AdvertiseCommandsParamsTeam; 
+    union { null, string } teamName;
   }  
   record AdvertiseBotCommandsLocalRes {
     array<RateLimit> rateLimits;

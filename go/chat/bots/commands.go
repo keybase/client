@@ -120,24 +120,16 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 	if err != nil {
 		return res, err
 	}
-	typ, err := param.Typ()
-	if err != nil {
-		return res, err
-	}
-	var teamName string
-	switch typ {
+	switch param.Typ {
 	case chat1.BotCommandsAdvertisementTyp_PUBLIC:
 		return b.G().ChatHelper.NewConversation(ctx, b.uid, username, &commandsPublicTopicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PUBLIC)
-	case chat1.BotCommandsAdvertisementTyp_TLFID_CONVS:
-		teamName = param.TlfidConvs().TeamName
-		fallthrough
-	case chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS:
-		if teamName == "" {
-			teamName = param.TlfidMembers().TeamName
+	case chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, chat1.BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if param.TeamName == nil {
+			return res, errors.New("missing team name")
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s", username)
-		return b.G().ChatHelper.NewConversation(ctx, b.uid, teamName, &topicName,
+		return b.G().ChatHelper.NewConversation(ctx, b.uid, *param.TeamName, &topicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 	default:
 		return res, errors.New("unknown bot advertisement typ")
@@ -157,7 +149,7 @@ func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 		// marshal contents
 		payload := userCommandAdvertisement{
 			Alias:    alias,
-			Commands: ad.Commands(),
+			Commands: ad.Commands,
 		}
 		dat, err := json.Marshal(payload)
 		if err != nil {
