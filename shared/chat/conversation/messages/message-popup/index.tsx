@@ -8,7 +8,7 @@ import {Position} from '../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../styles/css'
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.DecoratedMessage
   onHidden: () => void
   position: Position

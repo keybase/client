@@ -1,3 +1,4 @@
+import * as I from 'immutable'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
@@ -7,12 +8,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {anyErrors} from '../../../../constants/waiting'
 import AddToChannel from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 const mapStateToProps = (state, ownProps) => {
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')
@@ -22,7 +18,7 @@ const mapStateToProps = (state, ownProps) => {
   const _fullnames = state.users.infoMap
   const title = `Add to #${meta.channelname}`
   return {
-    _allMembers: generalChannel.participants,
+    _allMembers: generalChannel ? generalChannel.participants : I.List<string>(),
     _alreadyAdded: meta.participants,
     _conversationIDKey: conversationIDKey,
     _fullnames,

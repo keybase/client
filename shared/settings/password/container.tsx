@@ -4,7 +4,7 @@ import UpdatePassword from '.'
 import {compose, lifecycle, connect, RouteProps} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   error: state.settings.password.error,

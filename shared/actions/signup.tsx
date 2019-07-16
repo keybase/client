@@ -113,7 +113,7 @@ const checkUsername = (state: TypedState, _, logger) => {
           error: err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : error,
           username: state.signup.username,
           usernameTaken:
-            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : null,
+            err.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
         })
       })
   )

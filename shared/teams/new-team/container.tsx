@@ -6,13 +6,7 @@ import {upperFirst} from 'lodash-es'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps<
-  {
-    makeSubteam: boolean
-    name: string
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { makeSubteam: boolean; name: string } >
 
 const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
@@ -44,11 +38,11 @@ export default Container.compose(
   Container.withStateHandlers(({joinSubteam}: any) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
-  }),
+  } as any),
   Container.withHandlers({
     onSubmit: ({joinSubteam, _onCreateNewTeam}) => (fullName: string) =>
       _onCreateNewTeam(joinSubteam, fullName),
-  }),
+  } as any),
   Container.lifecycle({
     componentDidMount() {
       this.props.onSetTeamCreationError('')

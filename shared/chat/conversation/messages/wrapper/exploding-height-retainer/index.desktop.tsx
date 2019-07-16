@@ -9,7 +9,8 @@ import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
 const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
 
-const copyChildren = children =>
+const copyChildren = (children: React.ReactNode): React.ReactNode =>
+  // @ts-ignore
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
 
 export const animationDuration = 1500
@@ -18,16 +19,16 @@ const retainedHeights = {}
 
 type State = {
   animating: boolean
-  children: React.ReactNode | null
+  children?: React.ReactNode
   height: number
 }
 
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   _boxRef = React.createRef<HTMLDivElement>()
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
-  timerID: SharedTimerID
+  timerID?: SharedTimerID
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
+  static getDerivedStateFromProps(nextProps: Props, _: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
   }
 
@@ -44,7 +45,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
       if (!prevProps.retainHeight) {
         // destroy local copy of children when animation finishes
         this.setState({animating: true}, () => {
-          SharedTimer.removeObserver(this.props.messageKey, this.timerID)
+          this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
           this.timerID = SharedTimer.addObserver(() => this.setState({animating: false, children: null}), {
             key: this.props.messageKey,
             ms: animationDuration,
@@ -69,7 +70,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 
   componentWillUnmount() {
-    SharedTimer.removeObserver(this.props.messageKey, this.timerID)
+    this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
   }
 
   render() {
@@ -120,13 +121,8 @@ const AshBox = Styles.styled.div({
   transition: `width 0s`,
   width: 0,
 })
-const Ashes = (props: {
-  doneExploding: boolean
-  exploded: boolean
-  explodedBy: string | null
-  height: number
-}) => {
-  let explodedTag = null
+const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
+  let explodedTag: React.ReactNode = null
   if (props.doneExploding) {
     explodedTag = props.explodedBy ? (
       <Kb.Text type="BodyTiny" style={styles.exploded}>
@@ -162,7 +158,7 @@ const FlameFront = (props: {height: number; stop: boolean}) => {
     return null
   }
   const numBoxes = Math.ceil(props.height / 15)
-  const children = []
+  const children: Array<React.ReactNode> = []
   for (let i = 0; i < numBoxes; i++) {
     children.push(<Flame key={i} />)
   }
@@ -177,16 +173,9 @@ const colors = ['yellow', 'red', Styles.globalColors.greyDark, Styles.globalColo
 const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
 const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
-class Flame extends React.Component<
-  {},
-  {
-    color: string
-    timer: number
-    width: number
-  }
-> {
+class Flame extends React.Component<{}, {color: string; timer: number; width: number}> {
   state = {color: randColor(), timer: 0, width: randWidth()}
-  intervalID: NodeJS.Timer
+  intervalID?: NodeJS.Timer
 
   componentDidMount() {
     this.intervalID = setInterval(this._randomize, 100)
@@ -195,7 +184,7 @@ class Flame extends React.Component<
   componentWillUnmount() {
     if (this.intervalID) {
       clearInterval(this.intervalID)
-      this.intervalID = null
+      this.intervalID = undefined
     }
   }
 
@@ -210,10 +199,7 @@ class Flame extends React.Component<
     return (
       <Kb.Box
         style={Styles.collapseStyles([
-          {
-            backgroundColor: this.state.color,
-            width: this.state.width * (1 + this.state.timer / 1000),
-          },
+          {backgroundColor: this.state.color, width: this.state.width * (1 + this.state.timer / 1000)},
           styles.flame,
         ])}
       />

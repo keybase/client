@@ -43,8 +43,8 @@ type Doc = {
   message?: Types.Message
   name: string
   progress: number
-  onDownload: null | (() => void)
-  onShowInFinder: null | (() => void)
+  onDownload?: () => void
+  onShowInFinder?: () => void
 }
 
 type Link = {
@@ -57,7 +57,11 @@ type Link = {
 
 type AttachmentItem = Thumb | Doc | Link
 
-const _renderEmptyItem = (item) => <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}><Kb.Text type="BodySmall">{`No ${item}`}</Kb.Text></Kb.Box2>
+const _renderEmptyItem = item => (
+  <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
+    <Kb.Text type="BodySmall">{`No ${item}`}</Kb.Text>
+  </Kb.Box2>
+)
 
 const getDateInfo = (thumb: AttachmentItem) => {
   const date = new Date(thumb.ctime)
@@ -79,9 +83,9 @@ const formMonths = (items: Array<AttachmentItem>): Array<Month> => {
   }
   let curMonth = {
     ...getDateInfo(items[0]),
-    data: [],
+    data: [] as Array<AttachmentItem>,
   }
-  const months = items.reduce((l, t, index) => {
+  const months = items.reduce<Array<typeof curMonth>>((l, t, index) => {
     const dateInfo = getDateInfo(t)
     if (dateInfo.month !== curMonth.month || dateInfo.year !== curMonth.year) {
       if (curMonth.data.length > 0) {
@@ -228,20 +232,23 @@ export class MediaView {
 
   getSections = (
     thumbs: Array<Thumb>,
-    onLoadMore: null | (() => void),
+    onLoadMore: undefined | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (thumbs.length === 0 && status !== 'loading') return [{
-      data: ['media attachments'],
-      renderItem: ({item}) => _renderEmptyItem(item),
-      renderSectionHeader: () => null,
-    }]
-    const sections = formMonths(thumbs).reduce((l, m) => {
+    if (thumbs.length === 0 && status !== 'loading')
+      return [
+        {
+          data: ['media attachments'],
+          renderItem: ({item}) => _renderEmptyItem(item),
+          renderSectionHeader: () => null,
+        },
+      ]
+    const sections = formMonths(thumbs).reduce<Array<Section>>((l, m) => {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
   }
 }
 
@@ -312,20 +319,23 @@ export class DocView {
   }
   getSections = (
     docs: Array<Doc>,
-    onLoadMore: null | (() => void),
+    onLoadMore: undefined | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (docs.length === 0 && status !== 'loading') return [{
-      data: ['documents'],
-      renderItem: ({item}) => _renderEmptyItem(item),
-      renderSectionHeader: () => null,
-    }]
-    const sections = formMonths(docs).reduce((l, m) => {
+    if (docs.length === 0 && status !== 'loading')
+      return [
+        {
+          data: ['documents'],
+          renderItem: ({item}) => _renderEmptyItem(item),
+          renderSectionHeader: () => null,
+        },
+      ]
+    const sections = formMonths(docs).reduce<Array<Section>>((l, m) => {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
   }
 }
 
@@ -382,20 +392,23 @@ export class LinkView {
   }
   getSections = (
     links: Array<Link>,
-    onLoadMore: null | (() => void),
+    onLoadMore: undefined | (() => void),
     onRetry: () => void,
     status: Types.AttachmentViewStatus
   ): Array<Section> => {
-    if (links.length === 0 && status !== 'loading') return [{
-      data: ['links'],
-      renderItem: ({item}) => _renderEmptyItem(item),
-      renderSectionHeader: () => null,
-    }]
-    const sections = formMonths(links).reduce((l, m) => {
+    if (links.length === 0 && status !== 'loading')
+      return [
+        {
+          data: ['links'],
+          renderItem: ({item}) => _renderEmptyItem(item),
+          renderSectionHeader: () => null,
+        },
+      ]
+    const sections = formMonths(links).reduce<Array<Section>>((l, m) => {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
+    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
   }
 }
 

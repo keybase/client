@@ -129,7 +129,7 @@ const SearchResultRow = (props: Props) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected && props.leftIconOpaque).toString()]}
     underlayColor={globalColors.blueLighter2}
-    onClick={props.userIsSelectable ? props.onClick : null}
+    onClick={props.userIsSelectable ? props.onClick : undefined}
     onMouseOver={props.onMouseOver}
   >
     <Box style={_rowStyle}>

@@ -17,10 +17,13 @@ const pushState = (_, action: EngineGen.Keybase1GregorUIPushStatePayload) => {
   const {reason, state} = action.payload.params
   const items = state.items || []
 
-  const goodState = items.reduce((arr, {md, item}) => {
-    md && item && arr.push({item, md})
-    return arr
-  }, [])
+  const goodState = items.reduce<Array<{item: RPCTypes.Gregor1.Item; md: RPCTypes.Gregor1.Metadata}>>(
+    (arr, {md, item}) => {
+      md && item && arr.push({item, md})
+      return arr
+    },
+    []
+  )
 
   if (goodState.length !== items.length) {
     logger.warn('Lost some messages in filtering out nonNull gregor items')

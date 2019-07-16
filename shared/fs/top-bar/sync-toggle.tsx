@@ -59,7 +59,7 @@ const Confirm = props => (
 )
 
 const SyncToggle = (props: Props) =>
-  !!props.syncConfig && (
+  props.syncConfig ? (
     <>
       <Kb.Switch
         align="right"
@@ -86,7 +86,7 @@ const SyncToggle = (props: Props) =>
           }}
           items={
             Styles.isMobile
-              ? [
+              ? ([
                   {
                     danger: true,
                     disabled: props.waiting,
@@ -94,13 +94,13 @@ const SyncToggle = (props: Props) =>
                     style: props.waiting ? {opacity: 0.3} : null,
                     title: props.waiting ? 'Unsyncing' : 'Yes, unsync',
                   },
-                ]
-              : []
+                ] as Kb.MenuItems)
+              : ([] as Kb.MenuItems)
           }
         />
       )}
     </>
-  )
+  ) : null
 
 const styles = Styles.styleSheetCreate({
   explainText: Styles.platformStyles({

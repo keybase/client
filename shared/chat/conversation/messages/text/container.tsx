@@ -10,7 +10,7 @@ type OwnProps = {
 
 const replyNoop = () => {}
 
-const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID) => void) => {
+const getReplyProps = (replyTo: Types.Message | undefined, onReplyClick: (m: Types.MessageID) => void) => {
   if (!replyTo) {
     return undefined
   }
@@ -24,8 +24,8 @@ const getReplyProps = (replyTo: Types.Message, onReplyClick: (m: Types.MessageID
   switch (replyTo.type) {
     case 'attachment':
     case 'text': {
-      const attachment: Types.MessageAttachment =
-        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : null
+      const attachment: Types.MessageAttachment | undefined =
+        replyTo.type === 'attachment' && replyTo.attachmentType === 'image' ? replyTo : undefined
       return replyTo.exploded
         ? deletedProps
         : {
@@ -72,7 +72,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     isEditing: stateProps.isEditing,
     message: ownProps.message,
-    reply: getReplyProps(ownProps.message.replyTo, dispatchProps._onReplyClick),
+    reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
       : ownProps.message.text.stringValue(),

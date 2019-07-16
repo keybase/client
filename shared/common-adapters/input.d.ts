@@ -58,7 +58,7 @@ export type Props = {
   clearTextCounter?: number
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
   // TODO: Have a separate onSubmitEditing prop.
-  onEnterKeyDown?: (event: React.KeyboardEvent) => void | null
+  onEnterKeyDown?: ((event: React.KeyboardEvent) => void) | null
   // TODO this is a short term hack to have this be uncontrolled. I think likely by default we would want this to be uncontrolled but
   // i'm afraid of touching this now while I'm fixing a crash.
   // If true it won't use its internal value to drive its rendering
@@ -67,7 +67,7 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   onKeyUp?: (event: React.KeyboardEvent, isComposingIME: boolean) => void
   // Mobile only
-  onEndEditing?: () => void | null
+  onEndEditing?: (() => void) | null
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   // If keyboardType is set, it overrides type.
@@ -78,8 +78,8 @@ export type Props = {
 }
 
 export type Selection = {
-  start: number
-  end: number
+  start: number | null
+  end: number | null
 }
 
 export type TextInfo = {

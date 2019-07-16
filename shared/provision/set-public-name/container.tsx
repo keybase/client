@@ -7,7 +7,7 @@ import {RouteProps} from '../../route-tree/render-route'
 type OwnProps = {
   deviceName: string
   onChange: (text: string) => void
-} & RouteProps<{}, {}>
+} & RouteProps
 
 const mapStateToProps = state => ({
   _existingDevices: state.provision.existingDevices,

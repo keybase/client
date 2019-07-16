@@ -11,25 +11,27 @@ import {resolveRootAsURL} from './resolve-root.desktop'
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
 export default function() {
+  const ds = SafeElectron.getSession().defaultSession
+  if (!ds) {
+    throw new Error('No default Session? Should be impossible')
+  }
   // We are not using partitions on webviews, so this essentially disables
   // download for webviews. If we decide to start using partitions for
   // webviews, we should make sure to attach this to those partitions too.
-  SafeElectron.getSession().defaultSession.on('will-download', event => event.preventDefault())
+  ds.on('will-download', event => event.preventDefault())
   // Disallow any permissions requests except for notifications
-  SafeElectron.getSession().defaultSession.setPermissionRequestHandler(
-    (webContents, permission, callback) => {
-      const ourURL = new URL(htmlFile)
-      const requestURL = new URL(webContents.getURL())
-      if (
-        permission === 'notifications' &&
-        requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
-      ) {
-        // Allow notifications
-        return callback(true)
-      }
-      return callback(false)
+  ds.setPermissionRequestHandler((webContents, permission, callback) => {
+    const ourURL = new URL(htmlFile)
+    const requestURL = new URL(webContents.getURL())
+    if (
+      permission === 'notifications' &&
+      requestURL.pathname.toLowerCase() === ourURL.pathname.toLowerCase()
+    ) {
+      // Allow notifications
+      return callback(true)
     }
-  )
+    return callback(false)
+  })
 
   let appState = new AppState()
   appState.checkOpenAtLogin()

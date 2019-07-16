@@ -90,7 +90,7 @@ export const TeamMemberRow = (props: Props) => {
             alignItems: 'center',
             flexGrow: 1,
           }}
-          onClick={active ? props.onClick : props.status === 'deleted' ? null : props.onShowTracker}
+          onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
         >
           <Avatar username={props.username} size={isMobile ? 48 : 32} />
           <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>

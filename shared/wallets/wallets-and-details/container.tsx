@@ -3,9 +3,7 @@ import WalletsAndDetails from '.'
 import Onboarding from '../onboarding/container'
 import {connect, RouteProps} from '../../util/container'
 
-type OwnProps = RouteProps<{}, {}> & {
-  children: React.ReactNode
-}
+type OwnProps = RouteProps & { children: React.ReactNode }
 
 const mapStateToProps = state => ({
   acceptedDisclaimer: state.wallets.acceptedDisclaimer,

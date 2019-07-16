@@ -9,7 +9,7 @@ export type Props = {
   onForgotPassword: () => void
   waitingForResponse: boolean
   error?: string | null
-  username: string | null
+  username?: string
   showTyping: boolean
   toggleShowTyping: (on: boolean) => void
 }

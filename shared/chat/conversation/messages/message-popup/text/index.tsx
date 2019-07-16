@@ -1,25 +1,25 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu} from '../../../../../common-adapters/'
+import {FloatingMenu, MenuItems} from '../../../../../common-adapters/'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   author: string
   deviceName: string
-  deviceRevokedAt: number | null
+  deviceRevokedAt?: number
   deviceType: DeviceType
-  onAddReaction: null | (() => void)
-  onCopy: null | (() => void)
-  onDelete: null | (() => void)
-  onDeleteMessageHistory: null | (() => void)
-  onEdit: null | (() => void)
+  onAddReaction?: () => void
+  onCopy?: () => void
+  onDelete?: () => void
+  onDeleteMessageHistory?: () => void
+  onEdit?: () => void
   onHidden: () => void
-  onReply: null | (() => void)
-  onReplyPrivately: null | (() => void)
-  onViewProfile: null | (() => void)
+  onReply?: () => void
+  onReplyPrivately?: () => void
+  onViewProfile?: () => void
   position: Position
   showDivider: boolean
   style?: StylesCrossPlatform
@@ -31,7 +31,7 @@ type Props = {
 }
 
 const TextPopupMenu = (props: Props) => {
-  const items = [
+  const items: MenuItems = [
     ...(props.showDivider ? (['Divider'] as const) : []),
     ...(props.isDeleteable
       ? [
@@ -60,7 +60,7 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
     ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
-  ] as const
+  ]
 
   const header = {
     title: 'header',
