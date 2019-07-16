@@ -1356,24 +1356,31 @@ const calculateBuildingAdvanced = (state: TypedState) =>
           destinationAccount,
           destinationDisplay,
           exchangeRate,
+          findPathError: '',
           fullPath: rpcPaymentPathToPaymentPath(fullPath),
-          noPathFoundError: false,
           readyToSend: !amountError,
           sourceDisplay,
           sourceMaxDisplay,
         }),
       })
     })
-    .catch(error => {
-      if (error && error.desc === 'no payment path found') {
-        return WalletsGen.createSetBuiltPaymentAdvanced({
-          builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
-            noPathFoundError: true,
-            readyToSend: false,
-          }),
-        })
+    .catch(err => {
+      let errorMessage = 'Error finding a path to convert these 2 assets.'
+      if (err && err.desc) {
+        errorMessage = err.desc
       }
-      throw error
+      if (err && err.code === RPCTypes.StatusCode.scapinetworkerror) {
+        errorMessage = 'Network error.'
+      }
+      if (err && err.desc === 'no payment path found') {
+        errorMessage = 'No path was found to convert these 2 assets. Please pick other assets.'
+      }
+      return WalletsGen.createSetBuiltPaymentAdvanced({
+        builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
+          findPathError: errorMessage,
+          readyToSend: false,
+        }),
+      })
     })
 
 const sendPaymentAdvanced = (state: TypedState) =>
