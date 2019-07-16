@@ -270,6 +270,13 @@
             "string"
           ],
           "name": "contactName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayName"
         }
       ]
     },
