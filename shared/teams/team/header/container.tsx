@@ -8,6 +8,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 import {TeamHeader} from '.'
+import * as ImagePicker from 'expo-image-picker'
 
 export type OwnProps = {
   teamname: Types.Teamname
@@ -44,7 +45,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
     ),
-  onEditIcon: (image?: string) =>
+  onEditIcon: (image?: ImagePicker.ImagePickerResult) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],

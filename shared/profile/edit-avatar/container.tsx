@@ -8,15 +8,14 @@ import {connect, getRouteProps, isNetworkErr} from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {RouteProps} from '../../route-tree/render-route'
+import * as ImagePicker from 'expo-image-picker'
 
-type OwnProps = RouteProps<
-  {
-    createdTeam: boolean
-    image: string
-    sendChatNotification: boolean
-    teamname: string
-  }
->
+type OwnProps = RouteProps<{
+  createdTeam: boolean
+  image: ImagePicker.ImagePickerResult
+  sendChatNotification: boolean
+  teamname: string
+}>
 
 const mapStateToProps = (state, ownProps) => ({
   createdTeam: getRouteProps(ownProps, 'createdTeam'),

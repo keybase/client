@@ -16,7 +16,6 @@ import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
-import * as Permissions from 'expo-permissions'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -57,12 +56,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         takePhotoButtonTitle = 'Take Video...'
         permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
         break
-    }
-    const permissionDenied = {
-      okTitle: 'deny',
-      reTryTitle: 'allow in settings',
-      text: permDeniedText,
-      title: 'Permissions needed',
     }
     const handleSelection = (result: ImagePicker.ImagePickerResult) => {
       if (result.cancelled === true || !this.props.conversationIDKey) {

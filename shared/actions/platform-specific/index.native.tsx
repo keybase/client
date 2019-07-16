@@ -29,7 +29,7 @@ import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import {TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
-import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 
 type NextURI = string
 
@@ -387,7 +387,7 @@ const editAvatar = (): Promise<Saga.MaybeAction> =>
       result.cancelled === true
         ? null
         : RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: parseUri(result)}, selected: 'profileEditAvatar'}],
+            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
           })
     })
     .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
