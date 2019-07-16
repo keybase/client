@@ -97,7 +97,7 @@ export default function(options: {
       <RemoteComponentLoader
         name={options.name}
         params={options.params || ''}
-        style={options.style}
+        style={options.style || null}
         showOnProps={
           // Auto generated from flowToTs. Please clean me!
           options.showOnProps !== null && options.showOnProps !== undefined ? options.showOnProps : true

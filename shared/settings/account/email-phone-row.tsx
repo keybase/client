@@ -44,7 +44,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     subtitle = addSpacer(subtitle, 'Not searchable')
   }
 
-  const menuItems = []
+  const menuItems: Kb.MenuItems = []
   if (!props.verified) {
     menuItems.push({
       decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),
@@ -79,7 +79,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     })
   }
 
-  let gearIconBadge = null
+  let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
   } else if (!props.searchable && flags.sbsContacts) {
@@ -119,7 +119,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
             containerStyle={styles.menuNoGrow}
             visible={props.showingMenu}
             position="bottom right"
-            header={Styles.isMobile ? header : null}
+            header={Styles.isMobile ? header : undefined}
             items={menuItems}
             closeOnSelect={true}
             onHidden={props.toggleShowingMenu}
@@ -204,7 +204,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 const ConnectedEmailPhoneRow = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     if (stateProps._phoneRow) {
       const searchable = stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public
       return {
@@ -212,7 +212,8 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
-        onVerify: () => dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber),
+        onVerify: () =>
+          stateProps._phoneRow && dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber),
         primary: false,
         searchable,
         type: 'phone' as const,

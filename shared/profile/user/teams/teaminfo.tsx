@@ -19,7 +19,7 @@ const Kb = {
 }
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   description: string
   inTeam: boolean
   isOpen: boolean
@@ -33,12 +33,7 @@ type Props = {
   visible: boolean
 }
 
-class TeamInfo extends React.Component<
-  Props,
-  {
-    requested: boolean
-  }
-> {
+class TeamInfo extends React.Component<Props, {requested: boolean}> {
   state = {requested: false}
   _isPrivate = () => {
     return this.props.membersCount === 0 && this.props.description.length === 0
@@ -110,7 +105,7 @@ class TeamInfo extends React.Component<
                   label={
                     this.state.requested ? 'Requested!' : this.props.isOpen ? 'Join team' : 'Request to join'
                   }
-                  onClick={this.state.requested ? null : this._onJoinTeam}
+                  onClick={this.state.requested ? undefined : this._onJoinTeam}
                   type={this.props.isOpen ? 'Success' : 'Default'}
                   mode={this.state.requested ? 'Secondary' : 'Primary'}
                 />

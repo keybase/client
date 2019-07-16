@@ -144,7 +144,8 @@ class UserInput extends Component<Props, State> {
       // Backspace key detected when the zero width space is removed (we use
       // this hack because detecting soft backspace is really tricky on
       // Android).
-      this.props.onRemoveUser(last(this.props.userItems).id)
+      const item = last(this.props.userItems)
+      item && this.props.onRemoveUser(item.id)
       return
     }
     this.props.onChangeText(text.replace(ZERO_WIDTH_SPACE, ''))

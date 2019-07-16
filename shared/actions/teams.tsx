@@ -548,10 +548,8 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
         }
         arr.push(
           Constants.makeInviteInfo({
-            // @ts-ignore TODO this may be a real problem
             email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
             id: invite.id,
-            // @ts-ignore TODO this may be a real problem
             name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
             role,
             username,

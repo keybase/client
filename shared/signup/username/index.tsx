@@ -29,7 +29,7 @@ const EnterUsername = (props: Props) => {
                   content={[
                     'Sorry, this username is already taken. Did you mean to ',
                     {
-                      onClick: () => props.onLogin(props.usernameTaken),
+                      onClick: () => props.usernameTaken && props.onLogin(props.usernameTaken),
                       text: `log in as ${props.usernameTaken}`,
                     },
                     '?',

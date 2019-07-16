@@ -3,7 +3,7 @@ import About from './about'
 import {HeaderHoc} from '../common-adapters'
 import {version} from '../constants/platform'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = () => ({version})
 const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({

@@ -7,7 +7,7 @@ import {connect, getRouteProps, RouteProps} from '../../util/container'
 import {PlatformsExpandedType} from '../../constants/types/more'
 import {SiteIconSet} from '../../constants/types/tracker2'
 
-type OwnProps = RouteProps< {username: string}, {} >
+type OwnProps = RouteProps< {username: string}>
 
 const mapStateToProps = (state, ownProps) => {
   return {

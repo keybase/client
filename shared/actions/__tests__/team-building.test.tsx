@@ -122,7 +122,7 @@ const parsedSearchResults = {
 }
 
 describe('Search Actions', () => {
-  let init: ReturnType<typeof startReduxSaga> | null
+  let init: ReturnType<typeof startReduxSaga>
   let rpc
   beforeEach(() => {
     init = startReduxSaga()

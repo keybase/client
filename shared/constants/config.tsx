@@ -111,7 +111,7 @@ export const makeState = I.Record<Types._State>({
   startupDetailsLoaded: false,
   startupFollowUser: '',
   startupLink: '',
-  startupSharePath: undefined,
+  startupSharePath: '',
   startupTab: null,
   startupWasFromPush: false,
   uid: '',

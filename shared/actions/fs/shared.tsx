@@ -66,7 +66,7 @@ const makeErrorHandler = (
 }
 
 export const makeRetriableErrorHandler = (action: FsGen.Actions | EngineGen.Actions, path?: Types.Path) =>
-  makeErrorHandler(action, path, true)
+  makeErrorHandler(action, path || null, true)
 
 export const makeUnretriableErrorHandler = (action: FsGen.Actions | EngineGen.Actions, path?: Types.Path) =>
-  makeErrorHandler(action, path, false)
+  makeErrorHandler(action, path || null, false)

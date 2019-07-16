@@ -59,7 +59,7 @@ type State = {
 }
 
 class UserInput extends Component<Props, State> {
-  _textInput: AutosizeInput | null
+  _textInput: AutosizeInput | null = null
 
   state = {
     isFocused: false,
@@ -79,7 +79,6 @@ class UserInput extends Component<Props, State> {
   }
 
   _onInputKeyDown = ev => {
-    // $ForceType
     const target: HTMLInputElement = ev.target
     if (
       this.props.userItems.length &&
@@ -87,7 +86,8 @@ class UserInput extends Component<Props, State> {
       target.selectionStart === 0 &&
       target.selectionEnd === 0
     ) {
-      this.props.onRemoveUser(last(this.props.userItems).id)
+      const item = last(this.props.userItems)
+      item && this.props.onRemoveUser(item.id)
     } else if (ev.key === 'ArrowUp') {
       this.props.onMoveSelectUp()
       ev.preventDefault()
