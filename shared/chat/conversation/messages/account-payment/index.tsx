@@ -37,7 +37,7 @@ const ButtonText = (props: {text: string; amount: string}) => (
 
 const AccountPayment = (props: Props) => {
   const balanceChange = (
-    <Kb.Box2 direction="horizontal" style={styles.amountContainer} gap={Styles.isMobile ? 'tiny' : 'small'}>
+    <Kb.Box2 direction="horizontal" fullWidth={Styles.isMobile} style={styles.amountContainer} gap={Styles.isMobile ? 'tiny' : 'small'}>
       {!!props.balanceChange && (
         <Kb.Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
           {props.balanceChange}
@@ -46,7 +46,6 @@ const AccountPayment = (props: Props) => {
       {props.showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
     </Kb.Box2>
   )
-  const balanceChangeSeparateRow = Styles.isMobile && !!props.memo
   const contents = props.loading ? (
     <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
       <Kb.ProgressIndicator style={styles.progressIndicator} />
@@ -87,10 +86,10 @@ const AccountPayment = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         {props.canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
-        {!balanceChangeSeparateRow && balanceChange}
+        {!Styles.isMobile && balanceChange}
       </Kb.Box2>
       <MarkdownMemo memo={props.memo} />
-      {balanceChangeSeparateRow && balanceChange}
+      {Styles.isMobile && balanceChange}
       {!!props.sendButtonLabel && (
         <Kb.Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
           <ButtonText text={props.sendButtonLabel} amount={props.amount} />
@@ -127,10 +126,15 @@ const styles = Styles.styleSheetCreate({
   alignItemsCenter: {
     alignItems: 'center',
   },
-  amountContainer: {
-    alignItems: 'center',
-    marginLeft: 'auto',
-  },
+  amountContainer: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      marginLeft: 'auto',
+    },
+    isMobile: {
+      justifyContent: 'space-between',
+    },
+  }),
   button: {
     alignSelf: 'flex-start',
     marginTop: Styles.globalMargins.xtiny,
