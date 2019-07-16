@@ -299,7 +299,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
     participantToContactName: I.Map(
-      i.participants.reduce(
+      (i.participants || []).reduce<{[key: string]: string}>(
         (map, part) => (part.contactName ? {...map, [part.assertion]: part.contactName} : map),
         {}
       )

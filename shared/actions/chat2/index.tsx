@@ -249,13 +249,16 @@ function* unboxRows(
     const infoMap = state.users.infoMap
     let added = false
     // We get some info about users also so update that too
-    const usernameToFullname = inboxUIItem.participants.reduce((map, part) => {
-      if (!infoMap.get(part.assertion) && part.fullName) {
-        added = true
-        map[part.assertion] = part.fullName
-      }
-      return map
-    }, {})
+    const usernameToFullname = (inboxUIItem.participants || []).reduce<{[key: string]: string}>(
+      (map, part) => {
+        if (!infoMap.get(part.assertion) && part.fullName) {
+          added = true
+          map[part.assertion] = part.fullName
+        }
+        return map
+      },
+      {}
+    )
     if (added) {
       actions.push(Saga.put(UsersGen.createUpdateFullnames({usernameToFullname})))
     }
