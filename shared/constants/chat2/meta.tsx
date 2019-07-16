@@ -282,12 +282,20 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   let cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
 
-  const participants = I.List((i.participants || [])).map(part => {
-    if (part.type === RPCChatTypes.UIParticipantType.phoneno) {
-      return e164ToDisplay('+' + part.assertion)
-    }
-    return part.assertion
-  })
+  const participantToContactName = {}
+  const participantToDisplayName = {}
+  i.participants &&
+    i.participants.forEach(part => {
+      if (part.contactName) {
+        participantToContactName[part.assertion] = part.contactName
+      }
+      if (part.displayName) {
+        participantToDisplayName[part.assertion] =
+          part.type === RPCChatTypes.UIParticipantType.phoneno
+            ? e164ToDisplay('+' + part.displayName)
+            : part.displayName
+      }
+    })
 
   return makeConversationMeta({
     botCommands: i.botCommands,
@@ -307,15 +315,9 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participantToContactName: I.Map(
-      (i.participants || []).reduce<{[key: string]: string}>((map, part) => {
-        if (part.contactName) {
-          map[part.assertion] = part.contactName
-        }
-        return map
-      }, {})
-    ),
-    participants,
+    participantToContactName: I.Map(participantToContactName),
+    participantToDisplayName: I.Map(participantToDisplayName),
+    participants: I.List(i.participants || []).map(part => part.assertion),
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -354,6 +356,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   notificationsMobile: 'never' as Types.NotificationsType,
   offline: false,
   participantToContactName: I.Map(),
+  participantToDisplayName: I.Map(),
   participants: I.List<string>(),
   readMsgID: -1,
   rekeyers: I.Set(),
@@ -505,10 +508,19 @@ export const getConversationIDKeyMetasToLoad = (
     return arr
   }, [])
 
-export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
-  meta.participants
+export const getRowParticipants = (
+  meta: Types.ConversationMeta,
+  username: string,
+  useDisplayName?: boolean
+) => {
+  const ret = meta.participants
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.size === 1 ? true : participant !== username))
+  if (useDisplayName) {
+    return ret.map(participant => meta.participantToDisplayName.get(participant) || participant)
+  }
+  return ret
+}
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)
