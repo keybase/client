@@ -244,6 +244,7 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 	}
 
 	res.IsNonUser = true
+	assertion := url.String()
 
 	if url.IsSocial() {
 		res.Description = fmt.Sprintf("%s user", strings.Title(service))
@@ -267,6 +268,19 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 		res.SiteIcon = externals.MakeIcons(mctx, service, "logo_black", 16)
 		res.SiteIconFull = externals.MakeIcons(mctx, service, "logo_full", 64)
 	} else if service == "phone" || service == "email" {
+		contacts, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
+		if err == nil {
+			for _, v := range contacts {
+				if v.Assertion == assertion {
+					contact := v
+					res.Contact = &contact
+					break
+				}
+			}
+		} else {
+			mctx.Warning("Can't get contact list to match assertion: %s", err)
+		}
+
 		switch service {
 		case "phone":
 			res.Description = "Phone contact"

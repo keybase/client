@@ -5,7 +5,7 @@ import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import {formatPhoneNumber} from '../util/phone-numbers'
+import {formatPhoneNumberInternational} from '../util/phone-numbers'
 
 const identify3Result = (_, action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) => {
   const {guiID, result} = action.payload.params
@@ -233,8 +233,8 @@ const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload
           assertionKey: res.assertionKey,
           assertionValue: res.assertionValue,
           description: res.description,
-          siteIcon: res.siteIcon,
-          siteIconFull: res.siteIconFull,
+          siteIcon: res.siteIcon || [],
+          siteIconFull: res.siteIconFull || [],
           siteUrl: res.siteURL,
         }
         if (res.service) {
@@ -243,14 +243,15 @@ const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload
             ...res.service,
           })
         } else {
-          let formattedName
-          if (res.assertionKey === 'phone') {
-            formattedName = formatPhoneNumber('+' + res.assertionValue)
-            console.log('zzz Formatting', res, formattedName)
-          }
+          const formattedName =
+            res.assertionKey === 'phone'
+              ? formatPhoneNumberInternational('+' + res.assertionValue)
+              : undefined
+          const fullName = res.contact ? res.contact.contactName : undefined
           return Tracker2Gen.createLoadedNonUserProfile({
             ...common,
             formattedName,
+            fullName,
           })
         }
       }
