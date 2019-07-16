@@ -1,16 +1,22 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {Props} from './text-view'
 
 const TextView = (props: Props) => {
   const {url} = props
   const [content, setContent] = React.useState('')
   React.useEffect(() => {
-    const req = SafeElectron.getRemote().net.request({method: 'GET', url})
-    req.on('response', response => response.on('data', data => setContent(content => content + data)))
-    req.end()
+    const req = new XMLHttpRequest()
+    req.onreadystatechange = () => {
+      try {
+        if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
+          setContent(req.responseText)
+        }
+      } catch (e) {}
+    }
+    req.open('GET', url)
+    req.send()
   }, [url])
   return (
     <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
