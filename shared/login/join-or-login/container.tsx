@@ -3,7 +3,6 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as LoginGen from '../../actions/login-gen'
 import Intro from '.'
 import {connect, isMobile} from '../../util/container'
-import {compose, lifecycle} from 'recompose'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
