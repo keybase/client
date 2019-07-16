@@ -6,9 +6,12 @@ import Loading from './loading'
 
 const joinOrLoginProps = {
   bannerMessage: null,
+  checkIsOnline: Sb.action('checkIsOnline'),
+  isOnline: true,
   onFeedback: null,
   onLogin: Sb.action('onLogin'),
   onSignup: Sb.action('onSignup'),
+  showProxySettings: Sb.action('showProxySettings'),
 }
 
 const loadingProps = {
@@ -25,6 +28,7 @@ const load = () => {
     .add('Normal', () => <JoinOrLogin {...joinOrLoginProps} />)
     .add('Banner', () => <JoinOrLogin {...joinOrLoginProps} bannerMessage="You just deleted your account!" />)
     .add('Feedback', () => <JoinOrLogin {...joinOrLoginProps} onFeedback={Sb.action('onFeedback')} />)
+    .add('Feedback', () => <JoinOrLogin {...joinOrLoginProps} isOnline={false} />)
 
   Sb.storiesOf('Login/Loading', module)
     .add('Loading', () => <Loading {...loadingProps} />)

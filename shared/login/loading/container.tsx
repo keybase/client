@@ -2,6 +2,8 @@ import * as Constants from '../../constants/config'
 import * as ConfigGen from '../../actions/config-gen'
 import Splash from '.'
 import {connect, isMobile} from '../../util/container'
+import {createLoadProxyData} from '../../actions/settings-gen'
+import {compose, lifecycle} from 'recompose'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any

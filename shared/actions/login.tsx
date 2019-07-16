@@ -9,6 +9,7 @@ import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {RPCError, niceError} from '../util/errors'
+import * as SettingsGen from './settings-gen'
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
@@ -96,6 +97,11 @@ const launchAccountResetWebPage = () => {
   openURL('https://keybase.io/#account-reset')
 }
 
+const loadIsOnline = _ =>
+  RPCTypes.loginIsOnlineRpcPromise(undefined)
+    .then((result: boolean) => LoginGen.createLoadedIsOnline({result: result}))
+    .catch(err => logger.warn('Error in checking whether we are online', err))
+
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
   yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
@@ -107,6 +113,7 @@ function* loginSaga(): Saga.SagaGenerator<any, any> {
     LoginGen.launchAccountResetWebPage,
     launchAccountResetWebPage
   )
+  yield* Saga.chainAction<LoginGen.LoadIsOnlinePayload>(LoginGen.loadIsOnline, loadIsOnline)
 }
 
 export default loginSaga
