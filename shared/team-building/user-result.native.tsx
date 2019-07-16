@@ -87,9 +87,7 @@ const FormatPrettyName = (props: {
   props.keybaseResult ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
       {!!props.prettyName && (
-        <Kb.Text type="BodySmall">
-          {props.prettyName + (Object.keys(props.services).length ? ' •' : '')}
-        </Kb.Text>
+        <Kb.Text type="BodySmall">{props.prettyName + (props.services.length ? ' •' : '')}</Kb.Text>
       )}
       {props.services.map(service => (
         <Kb.WithTooltip key={service} text={props.services[service]} position="top center">
@@ -117,19 +115,21 @@ const Username = (props: {
       type="BodySemibold"
       style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
     >
-      {props.username}
+      {props.username ? props.username : props.prettyName}
     </Kb.Text>
-    {props.isPreExistingTeamMember ? (
-      <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
-    ) : (
-      <FormatPrettyName
-        followingState={props.followingState}
-        keybaseResult={props.keybaseResult}
-        keybaseUsername={props.keybaseUsername}
-        prettyName={props.prettyName}
-        services={Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]}
-      />
-    )}
+    {props.username ? (
+      props.isPreExistingTeamMember ? (
+        <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+      ) : (
+        <FormatPrettyName
+          followingState={props.followingState}
+          keybaseResult={props.keybaseResult}
+          keybaseUsername={props.keybaseUsername}
+          prettyName={props.prettyName}
+          services={Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]}
+        />
+      )
+    ) : null}
   </Kb.Box2>
 )
 
