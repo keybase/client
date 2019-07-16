@@ -263,15 +263,15 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.red,
   },
   rowContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
     height: 50,
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
   serviceIcon: {
-    marginLeft: Styles.globalMargins.tiny,
     height: 18,
+    marginLeft: Styles.globalMargins.tiny,
     width: 18,
   },
   services: {

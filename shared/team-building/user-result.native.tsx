@@ -184,9 +184,9 @@ const styles = Styles.styleSheetCreate({
   },
   rowContainer: {
     paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.tiny,
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
