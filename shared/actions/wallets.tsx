@@ -173,9 +173,9 @@ const sendPayment = (state: TypedState) => {
   )
     .then(res =>
       WalletsGen.createSentPayment({
+        jumpToChat: res.jumpToChat,
         kbTxID: new HiddenString(res.kbTxID),
         lastSentXLM: !notXLM,
-        jumpToChat: res.jumpToChat,
       })
     )
     .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
@@ -1406,9 +1406,9 @@ const sendPaymentAdvanced = (state: TypedState) =>
     Constants.sendPaymentAdvancedWaitingKey
   ).then(res =>
     WalletsGen.createSentPayment({
+      jumpToChat: res.jumpToChat,
       kbTxID: new HiddenString(res.kbTxID),
       lastSentXLM: false,
-      jumpToChat: res.jumpToChat,
     })
   )
 
