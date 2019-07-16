@@ -948,4 +948,4 @@ export type Actions =
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
   | WaitForKbfsDaemonPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

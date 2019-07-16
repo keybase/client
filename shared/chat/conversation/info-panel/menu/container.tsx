@@ -7,14 +7,14 @@ import {appendNewTeamBuilder} from '../../../../actions/typed-routes'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import {namedConnect} from '../../../../util/container'
-import {InfoPanelMenu} from '.'
+import {InfoPanelMenu, ConvProps} from '.'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   onHidden: () => void
   isSmallTeam: boolean
-  teamname: string
+  teamname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
   visible: boolean
 }
@@ -35,7 +35,7 @@ const moreThanOneSubscribedChannel = (metaMap, teamname) => {
 }
 
 const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
-  let convProps = null
+  let convProps: ConvProps | null = null
   if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
     const participants = ChatConstants.getRowParticipants(meta, state.config.username || '').toArray()
@@ -64,10 +64,10 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
       teamname,
     }
   }
-  const yourOperations = TeamConstants.getCanPerform(state, teamname)
+  const yourOperations = TeamConstants.getCanPerform(state, teamname || '')
   // We can get here without loading canPerform
-  const hasCanPerform = TeamConstants.hasCanPerform(state, teamname)
-  const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
+  const hasCanPerform = teamname ? TeamConstants.hasCanPerform(state, teamname) : false
+  const badgeSubscribe = !teamname || !TeamConstants.isTeamWithChosenChannels(state, teamname)
 
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
@@ -83,14 +83,14 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
-    memberCount: TeamConstants.getTeamMemberCount(state, teamname),
+    memberCount: teamname ? TeamConstants.getTeamMemberCount(state, teamname) : 0,
     teamname,
   }
 }
 
 const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) => ({
-  loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  onAddPeople: () => dispatch(appendNewTeamBuilder(teamname)),
+  loadOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
+  onAddPeople: () => teamname && dispatch(appendNewTeamBuilder(teamname)),
   onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
   onInvite: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamInviteByEmail'}]})),
@@ -101,7 +101,7 @@ const mapDispatchToProps = (dispatch, {teamname, conversationIDKey}: OwnProps) =
   },
   onManageChannels: () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))
-    dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
+    teamname && dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
   onMuteConv: (muted: boolean) => dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
   onUnhideConv: () => dispatch(ChatGen.createUnhideConversation({conversationIDKey})),

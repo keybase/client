@@ -40,7 +40,7 @@ type HeaderProps = {
   amountNominal: string
   approxWorth: string
   balanceChange: string
-  balanceChangeColor: AllowedColors | null
+  balanceChangeColor?: AllowedColors
   bottomLine: string
   errorDetails: string
   icon: 'sending' | 'receiving'
@@ -56,10 +56,10 @@ type HeaderProps = {
 export type Props = {
   attachTo?: () => React.Component<any> | null
   cancelButtonLabel: string
-  onCancel: () => void | null
-  onClaimLumens: () => void | null
+  onCancel: (() => void) | null
+  onClaimLumens: (() => void) | null
   onHidden: () => void
-  onSeeDetails: () => void | null
+  onSeeDetails: (() => void) | null
   position: Position
   style?: Styles.StylesCrossPlatform
   visible: boolean

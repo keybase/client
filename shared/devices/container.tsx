@@ -10,7 +10,7 @@ import * as Container from '../util/container'
 import {partition} from 'lodash-es'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _deviceMap: state.devices.deviceMap,

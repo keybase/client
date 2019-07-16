@@ -22,7 +22,10 @@ type BannerParagraphProps = {
 export const BannerParagraph = (props: BannerParagraphProps) => (
   <Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}>
     {(Array.isArray(props.content) ? props.content : [props.content])
-      .filter(Boolean)
+      .reduce<Array<_Segment | string>>((arr, s) => {
+        s && arr.push(s)
+        return arr
+      }, [])
       .map(segment => (typeof segment === 'string' ? {text: segment} : segment))
       .map((segment: _Segment, index) =>
         segment.text === ' ' ? (

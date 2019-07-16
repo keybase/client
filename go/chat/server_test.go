@@ -4368,7 +4368,7 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, getTLFRes.Convs[1].MemberStatus)
 			}
 			require.Equal(t, 1, len(getTLFRes.Convs[1].Participants))
-			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0])
+			require.Equal(t, users[0].Username, getTLFRes.Convs[1].Participants[0].Assertion)
 		}
 
 		// delete the channel make sure it's gone from both inboxes

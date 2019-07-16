@@ -2,28 +2,28 @@ import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 
 export type Props = {
-  className?: string | null
+  className?: string
   children?: any
   style?: StylesCrossPlatform
-  onClick?: (event: React.SyntheticEvent) => void | null
-  onDoubleClick?: (event: React.SyntheticEvent) => void | null
+  onClick?: (event: React.MouseEvent) => void
+  onDoubleClick?: (event: React.MouseEvent) => void
   onPress?: void
-  onLongPress?: (event: React.SyntheticEvent) => void | null
-  underlayColor?: string | null
-  onPressIn?: () => void | null
-  onPressOut?: () => void | null
+  onLongPress?: (event: React.MouseEvent) => void
+  underlayColor?: string
+  onPressIn?: () => void
+  onPressOut?: () => void
   feedback?: boolean
   // mobile only
   activeOpacity?: number
-  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only' | null
+  pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only'
   // desktop only
   hoverColor?: string | null
-  onMouseOver?: (event: React.MouseEvent) => void | null
-  onMouseEnter?: (event: React.MouseEvent) => void | null
-  onMouseLeave?: (event: React.MouseEvent) => void | null
-  onMouseDown?: (event: React.MouseEvent) => void | null
-  onMouseMove?: (event: React.MouseEvent) => void | null
-  onMouseUp?: (event: React.MouseEvent) => void | null
+  onMouseOver?: (event: React.MouseEvent) => void
+  onMouseEnter?: (event: React.MouseEvent) => void
+  onMouseLeave?: (event: React.MouseEvent) => void
+  onMouseDown?: (event: React.MouseEvent) => void
+  onMouseMove?: (event: React.MouseEvent) => void
+  onMouseUp?: (event: React.MouseEvent) => void
   title?: string
 }
 

@@ -7,7 +7,7 @@ export type MenuItem = {
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
   newTag?: boolean | null
-  onClick?: (evt?: React.SyntheticEvent) => void | null
+  onClick?: ((evt?: React.SyntheticEvent) => void) | null
   onPress?: void
   style?: Object
   subTitle?: string
@@ -16,7 +16,7 @@ export type MenuItem = {
 }
 
 type _InnerMenuItem = MenuItem | 'Divider' | null
-export type MenuItems = ReadonlyArray<_InnerMenuItem>
+export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
   backgroundColor?: Color

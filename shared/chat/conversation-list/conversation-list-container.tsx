@@ -10,7 +10,7 @@ import getFilteredRowsAndMetadata from '../inbox/container/filtered'
 type OwnProps = {
   filter?: string
   focusFilterOnMount?: boolean | null
-  onDone?: () => void | null
+  onDone?: (() => void) | null
   onSelect: (conversationIDKey: Types.ConversationIDKey) => void
   onSetFilter?: (filter: string) => void
   selected: Types.ConversationIDKey
@@ -82,7 +82,7 @@ const getSortedConversationIDKeys = memoize(
 )
 
 const getRows = (stateProps, ownProps: OwnProps) => {
-  let selectedIndex = null
+  let selectedIndex: number | null = null
   const rows = ownProps.filter
     ? getFilteredRowsAndMetadata(stateProps._metaMap, ownProps.filter, stateProps._username).rows.map(
         (row, index) => {

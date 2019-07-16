@@ -109,7 +109,7 @@ const makeUser = () => {
   }
 }
 const makeUsers = (num: number) => {
-  const users = []
+  const users: Array<ReturnType<typeof makeUser>> = []
   for (let i = 0; i < num; i++) {
     users.push(makeUser())
   }

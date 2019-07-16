@@ -11,7 +11,7 @@ import {sortBy, partition} from 'lodash-es'
 import {memoize} from '../util/memoize'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const sortRepos = (git: Array<Types.GitInfo>) => sortBy(git, ['teamname', 'name'])
 

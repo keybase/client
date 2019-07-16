@@ -131,4 +131,5 @@ export default compose(
     style: styles.popup,
   })),
   Kb.HeaderOrPopupWithHeader
+  // @ts-ignore
 )(WalletPopup) as any

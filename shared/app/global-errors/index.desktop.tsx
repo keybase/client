@@ -11,15 +11,15 @@ type Size = 'Closed' | 'Small' | 'Big'
 
 type State = {
   size: Size
-  cachedSummary: string | null
-  cachedDetails: string | null
+  cachedSummary?: string
+  cachedDetails?: string
 }
 
 type Props = PropsWithTimer<_Props>
 
 class GlobalError extends Component<Props, State> {
   state: State
-  timerID: number | null
+  timerID?: NodeJS.Timeout
   _mounted: boolean = false
 
   constructor(props: Props) {
@@ -50,7 +50,7 @@ class GlobalError extends Component<Props, State> {
     if (this.timerID) {
       this.props.clearTimeout(this.timerID)
     }
-    this.timerID = null
+    this.timerID = undefined
   }
 
   _resetError(newError: boolean) {
@@ -64,12 +64,12 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  _summaryForError(err: null | Error | RPCError): string | null {
-    return err ? err.message : null
+  _summaryForError(err: null | Error | RPCError) {
+    return err ? err.message : undefined
   }
 
-  _detailsForError(err: null | Error | RPCError): string | null {
-    return err ? err.stack : null
+  _detailsForError(err: null | Error | RPCError) {
+    return err ? err.stack : undefined
   }
 
   componentDidUpdate(prevProps: Props) {

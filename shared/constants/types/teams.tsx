@@ -82,7 +82,7 @@ export type TabKey = 'members' | 'requests' | 'pending'
 export type _SubteamInfo = {
   key: string
   members: number
-  onCreateSubteam: (e: React.SyntheticEvent) => void | null
+  onCreateSubteam: ((e: React.SyntheticEvent) => void) | null
   onHideSubteamsBanner: () => void
   onReadMore: () => void
   teamname: string

@@ -64,8 +64,9 @@ func TestContactSearch(t *testing.T) {
 	savedStore := contacts.NewSavedContactsStore(tc.G)
 	err = savedStore.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)
+	tc.G.SyncedContactList = savedStore
 
-	searchHandler := NewUserSearchHandler(nil, tc.G, savedStore)
+	searchHandler := NewUserSearchHandler(nil, tc.G)
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "",
@@ -113,8 +114,9 @@ func TestContactSearchWide(t *testing.T) {
 	savedStore := contacts.NewSavedContactsStore(tc.G)
 	err = savedStore.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)
+	tc.G.SyncedContactList = savedStore
 
-	searchHandler := NewUserSearchHandler(nil, tc.G, savedStore)
+	searchHandler := NewUserSearchHandler(nil, tc.G)
 
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,

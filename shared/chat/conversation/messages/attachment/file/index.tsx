@@ -4,8 +4,8 @@ import * as Styles from '../../../../../styles'
 
 type Props = {
   arrowColor: string
-  onDownload: null | (() => void)
-  onShowInFinder: null | (() => void)
+  onDownload?: () => void
+  onShowInFinder?: () => void
   title: string
   fileName: string
   progress: number

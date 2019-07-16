@@ -13,7 +13,7 @@ import PaymentPathCircle, {pathCircleDiameter} from '../../common/payment-path-c
 
 type EmptyProps = {}
 
-export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
+export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const accountMap = Container.useSelector(state => state.wallets.accountMap)
   const dispatch = Container.useDispatch()
@@ -21,8 +21,8 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
     recipientAmount => dispatch(WalletsGen.createSetBuildingAdvancedRecipientAmount({recipientAmount})),
     [dispatch]
   )
-  const accountName =
-    buildingAdvanced.recipientType === 'otherAccount' ? accountMap.get(buildingAdvanced.recipient).name : ''
+  const recipient = accountMap.get(buildingAdvanced.recipient)
+  const accountName = buildingAdvanced.recipientType === 'otherAccount' && recipient ? recipient.name : ''
   return (
     <Kb.Box2
       direction="vertical"
@@ -67,12 +67,12 @@ export const AssetInputRecipientAdvanced = (props: EmptyProps) => {
   )
 }
 
-const LeftBlock = (props: EmptyProps) => {
+const LeftBlock = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   return builtPaymentAdvanced.sourceDisplay ? (
     <Kb.Box2 direction="vertical" alignItems="flex-start">
-      <Kb.Text type="HeaderBigExtrabold" style={!!builtPaymentAdvanced.amountError && styles.error}>
+      <Kb.Text type="HeaderBigExtrabold" style={builtPaymentAdvanced.amountError ? styles.error : undefined}>
         ~{builtPaymentAdvanced.sourceDisplay}
       </Kb.Text>
       <Kb.Text type="BodyTiny">At most {builtPaymentAdvanced.sourceMaxDisplay}</Kb.Text>
@@ -90,9 +90,10 @@ const LeftBlock = (props: EmptyProps) => {
   )
 }
 
-export const AssetInputSenderAdvanced = (props: EmptyProps) => {
+export const AssetInputSenderAdvanced = (_: EmptyProps) => {
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
   const accountMap = Container.useSelector(state => state.wallets.accountMap)
+  const senderAccount = accountMap.get(buildingAdvanced.senderAccountID)
   return (
     <Kb.Box2
       direction="vertical"
@@ -101,10 +102,8 @@ export const AssetInputSenderAdvanced = (props: EmptyProps) => {
     >
       {buildingAdvanced.recipientType === 'otherAccount' ? (
         <Kb.Text type="BodyTinySemibold" style={styles.topLabel}>
-          {accountMap.get(buildingAdvanced.senderAccountID).name ? (
-            <Kb.Text type="BodyTinySemiboldItalic">
-              {accountMap.get(buildingAdvanced.senderAccountID).name}
-            </Kb.Text>
+          {senderAccount && senderAccount.name ? (
+            <Kb.Text type="BodyTinySemiboldItalic">{senderAccount.name}</Kb.Text>
           ) : (
             <Kb.Text type="BodyTinySemibold">
               {Constants.shortenAccountID(buildingAdvanced.senderAccountID)}
@@ -292,7 +291,10 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
           alignItems="flex-end"
           style={styles.pickAssetButton}
         >
-          <Kb.ClickableBox onClick={goToPickAsset} style={!goToPickAsset && styles.disabled}>
+          <Kb.ClickableBox
+            onClick={goToPickAsset || undefined}
+            style={!goToPickAsset ? styles.disabled : undefined}
+          >
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny" alignSelf="flex-end">
               <Kb.Text
                 type={asset === Constants.emptyAssetDescription ? 'HeaderExtrabold' : 'HeaderBigExtrabold'}

@@ -13,15 +13,7 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
-class HoverEmoji extends React.Component<
-  {
-    name: string
-    onClick: () => void
-  },
-  {
-    hovering: boolean
-  }
-> {
+class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
   _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
@@ -41,12 +33,7 @@ class HoverEmoji extends React.Component<
   }
 }
 
-class EmojiRow extends React.Component<
-  Props,
-  {
-    showingPicker: boolean
-  }
-> {
+class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = showingPicker => {
