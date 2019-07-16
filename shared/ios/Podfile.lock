@@ -15,7 +15,7 @@ PODS:
   - EXImagePicker (5.0.2):
     - UMCore
     - UMFileSystemInterface
-  - EXPermissions (5.0.0):
+  - EXPermissions (5.0.1):
     - UMCore
     - UMPermissionsInterface
   - EXSMS (5.0.0):
@@ -300,7 +300,7 @@ SPEC CHECKSUMS:
   EXContacts: cba6db9b4d8ef590c2185711a648fa32d90041b9
   EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
   EXImagePicker: 80ebecae5905b1d642ef5b12a592cf8af9f051dc
-  EXPermissions: db2fa0f23edd57e65735f3edbdf0668c5c0e04f0
+  EXPermissions: 8e05008ed4fc8c9be6c17ea95301fc3f3f005a7b
   EXSMS: a9b5c82b4f290271779270eb51e2c3be80ab9dff
   FLAnimatedImage: 4a0b56255d9b05f18b6dd7ee06871be5d3b89e31
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
@@ -333,6 +333,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
   yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
-PODFILE CHECKSUM: af2485f8bb9f854bfe6883511b056cae391d73be
+PODFILE CHECKSUM: 4af7acae0df5c99e54c8dc325f2ba1014c50c367
 
 COCOAPODS: 1.7.4

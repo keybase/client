@@ -7130,6 +7130,11 @@ expo-file-system@~5.0.0:
   version "5.0.2"
   resolved "git://github.com/MarcoPolo/expo-image-picker#da5219cbd737780754710157c17076e6f54b6c7e"
 
+expo-permissions@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/expo-permissions/-/expo-permissions-5.0.1.tgz#cc6af49a37ea3ab73e780a8a19f22b7662379941"
+  integrity sha512-cOg9f9TaV8grORTwLSuoPfviDGcJSALjaALvxdmQD5ujPW6lxO6Ofd/s4/dV4L3lJww4HXiurjPJnT5yo+3ydw==
+
 expo-permissions@~5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/expo-permissions/-/expo-permissions-5.0.0.tgz#ab6cf7666f7f54b06cf4d6737f61b36f258aa12a"
