@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import Header from './header'
 
 type Props = {
-  onBack: () => void
+  onBack?: (() => void) | null
   onClose: () => void
   children: React.ReactNode
   isRequest: boolean

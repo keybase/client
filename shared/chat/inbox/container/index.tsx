@@ -70,8 +70,8 @@ const mapDispatchToProps = dispatch => ({
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const unreadIndices = []
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
+  const unreadIndices: Array<number> = []
   for (let i = stateProps.rows.length - 1; i >= 0; i--) {
     const row = stateProps.rows[i]
     if (!['big', 'bigHeader'].includes(row.type)) {
@@ -97,7 +97,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isSearching: stateProps.isSearching,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {
-      // $ForceType
       if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
         return
       }
@@ -141,7 +140,7 @@ class InboxWrapper extends React.PureComponent<Props> {
       this.props._refreshInbox()
     }
     if (!this.props._hasLoadedTrusted && this.props.rows.length) {
-      const toUnbox = this.props.rows.slice(0, 20).reduce((arr, row) => {
+      const toUnbox = this.props.rows.slice(0, 20).reduce<Array<Types.ConversationIDKey>>((arr, row) => {
         if (row.type === 'small' || row.type === 'big') {
           arr.push(row.conversationIDKey)
         }

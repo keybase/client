@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
-import {DropdownButton, SendButton, SmallAccountID} from '../../common'
+import {SendButton, SmallAccountID} from '../../common'
 import MaybeSwitcher from './maybe-switcher'
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
   keybaseUser: string
   onBack: (() => void) | null
   onReceive: () => void
+  onSettings: () => void
   thisDeviceIsLockedOut: boolean
   unreadPayments: boolean
   walletName: string | null
@@ -83,7 +84,14 @@ const Header = (props: Props) => {
           label="Receive"
           disabled={!props.walletName}
         />
-        <DropdownButton />
+        <Kb.Button
+          onClick={props.onSettings}
+          mode="Secondary"
+          style={styles.settingsButton}
+          type="Wallet"
+        >
+          <Kb.Icon type="iconfont-gear" style={styles.gear} />
+        </Kb.Button>
       </Kb.Box2>
       {props.thisDeviceIsLockedOut && (
         <Kb.Text center={true} type="BodySmall">
@@ -108,6 +116,15 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flexShrink: 0,
+  },
+  gear: {
+    position: 'relative',
+    top: 1,
+  },
+  settingsButton: {
+    minWidth: undefined,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   smallAccountID: {
     marginLeft: Styles.globalMargins.tiny,

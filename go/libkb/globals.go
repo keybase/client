@@ -45,10 +45,6 @@ type DbNukeHook interface {
 	OnDbNuke(mctx MetaContext) error
 }
 
-type StandaloneChatConnector interface {
-	StartStandaloneChat(g *GlobalContext) error
-}
-
 type GlobalContext struct {
 	Log              logger.Logger // Handles all logging
 	VDL              *VDebugLog    // verbose debug log
@@ -162,6 +158,8 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+
+	SyncedContactList SyncedContactListProvider
 }
 
 type GlobalTestOptions struct {

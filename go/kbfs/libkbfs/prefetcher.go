@@ -74,6 +74,7 @@ const (
 type prefetch struct {
 	subtreeBlockCount int
 	subtreeTriggered  bool
+	subtreeRetrigger  bool
 	req               *prefetchRequest
 	// Each refnonce for this block ID can have a different set of
 	// parents.  Track the channel for the specific instance of the
@@ -611,6 +612,14 @@ func (p *blockPrefetcher) calculatePriority(
 	return basePriority - 1
 }
 
+// removeFinishedParent removes a parent from the given refmap if it's
+// finished or is otherwise no longer a prefetch in progress.
+func (p *blockPrefetcher) removeFinishedParent(
+	pptr data.BlockPointer, refMap map[data.BlockPointer]<-chan struct{},
+	ch <-chan struct{}) {
+	_ = p.getParentForApply(pptr, refMap, ch)
+}
+
 // request maps the parent->child block relationship in the prefetcher, and it
 // triggers child prefetches that aren't already in progress.
 func (p *blockPrefetcher) request(ctx context.Context, priority int,
@@ -635,6 +644,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		req := &prefetchRequest{
 			ptr, info.EncodedSize, block.NewEmptier(), kmd, priority,
 			lifetime, NoPrefetch, action, nil, obseleted, false}
+
 		pre = p.newPrefetch(1, uint64(info.EncodedSize), false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -650,6 +660,16 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		pre.req.action = newAction
 		if !oldAction.Sync() && newAction.Sync() {
 			p.incOverallSyncTotalBytes(pre.req)
+			// Delete the old parent waitCh if it's been canceled already.
+			if ch, ok := pre.parents[ptr.RefNonce][parentPtr]; ok {
+				p.removeFinishedParent(parentPtr, pre.parents[ptr.RefNonce], ch)
+			}
+			if pre.subtreeTriggered {
+				// Since this fetch is being converted into a sync, we
+				// need to re-trigger all the child fetches to be
+				// syncs as well.
+				pre.subtreeRetrigger = true
+			}
 		}
 
 		ch := p.retriever.Request(
@@ -1129,7 +1149,12 @@ func (p *blockPrefetcher) handlePrefetchRequest(req *prefetchRequest) {
 	}
 
 	if isPrefetchWaiting {
-		if pre.subtreeTriggered {
+		if pre.subtreeRetrigger {
+			p.vlog.CLogf(
+				ctx, libkb.VLog2,
+				"retriggering prefetch subtree for block ID %s", req.ptr.ID)
+			pre.subtreeRetrigger = false
+		} else if pre.subtreeTriggered {
 			p.vlog.CLogf(
 				ctx, libkb.VLog2, "prefetch subtree already triggered "+
 					"for block ID %s", req.ptr.ID)

@@ -57,8 +57,8 @@ const onDisconnected = () => {
 
 const onTrackingInfo = (state, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
-    followees: action.payload.params.followees,
-    followers: action.payload.params.followers,
+    followees: action.payload.params.followees || [],
+    followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
 
@@ -82,7 +82,9 @@ function* loadDaemonBootstrapStatus(
   }
 
   function* makeCall() {
-    const s = yield* Saga.callPromise(RPCTypes.configGetBootstrapStatusRpcPromise)
+    const s: Saga.RPCPromiseType<
+      typeof RPCTypes.configGetBootstrapStatusRpcPromise
+    > = yield RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       deviceID: s.deviceID,
       deviceName: s.deviceName,
@@ -96,13 +98,11 @@ function* loadDaemonBootstrapStatus(
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
     // request follower info in the background
-    yield* Saga.callPromise(RPCTypes.configRequestFollowerInfoRpcPromise, {
-      uid: s.uid,
-    })
+    yield RPCTypes.configRequestFollowerInfoRpcPromise({uid: s.uid})
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState = yield* Saga.selectState()
+      const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -221,16 +221,15 @@ function* loadDaemonAccounts(
     // only reload in the user-switching case
     const loadConfiguredAccountsAgain = state.config.loggedIn && flags.fastAccountSwitch
     if (loadConfiguredAccountsAgain) {
-      const configuredAccounts: Array<RPCTypes.ConfiguredAccount> = yield* Saga.callPromise(
-        RPCTypes.loginGetConfiguredAccountsRpcPromise
-      )
-
+      const configuredAccounts: Array<
+        RPCTypes.ConfiguredAccount
+      > = yield RPCTypes.loginGetConfiguredAccountsRpcPromise()
       const loadedAction = ConfigGen.createSetAccounts({configuredAccounts})
       yield Saga.put(loadedAction)
     }
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState = yield* Saga.selectState()
+      const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -244,7 +243,7 @@ function* loadDaemonAccounts(
   } catch (error) {
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState = yield* Saga.selectState()
+      const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -280,7 +279,7 @@ const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.Log
   }
 }
 
-const resetGlobalStore = (): any => ({payload: null, type: 'common:resetStore'})
+const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
@@ -313,7 +312,7 @@ const startLogoutHandshake = state =>
 // stuff to trigger this due to a timeout if there's no listeners or something
 function* maybeDoneWithLogoutHandshake(state) {
   if (state.config.logoutHandshakeWaiters.size <= 0) {
-    yield* Saga.callPromise(RPCTypes.loginLogoutRpcPromise)
+    yield RPCTypes.loginLogoutRpcPromise()
   }
 }
 
@@ -502,12 +501,11 @@ function* criticalOutOfDateCheck() {
   // check every hour
   while (true) {
     try {
-      const s: Unpacked<ReturnType<typeof RPCTypes.configGetUpdateInfo2RpcPromise>> = yield* Saga.callPromise(
-        RPCTypes.configGetUpdateInfo2RpcPromise,
-        {}
-      )
+      const s: Saga.RPCPromiseType<
+        typeof RPCTypes.configGetUpdateInfo2RpcPromise
+      > = yield RPCTypes.configGetUpdateInfo2RpcPromise({})
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
-      let message = ''
+      let message: string | null = null
       switch (s.status) {
         case RPCTypes.UpdateInfoStatus2.ok:
           break

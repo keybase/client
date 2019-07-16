@@ -12,7 +12,7 @@ import {StylesCrossPlatform} from '../../../../../styles/css'
 import Text from '.'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageWithReactionPopup
   onHidden: () => void
   position: Position
@@ -20,7 +20,7 @@ type OwnProps = {
   visible: boolean
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)
@@ -37,7 +37,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -57,10 +57,7 @@ const mapDispatchToProps = dispatch => ({
   },
   _onDelete: (message: Types.Message) =>
     dispatch(
-      Chat2Gen.createMessageDelete({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
+      Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
     ),
   _onDeleteMessageHistory: (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread())
@@ -97,42 +94,44 @@ const mapDispatchToProps = dispatch => ({
   _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const message = ownProps.message
-  const yourMessage = message.author === stateProps._you
-  const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
-  const isEditable = stateProps._isEditable && yourMessage
-  return {
-    attachTo: ownProps.attachTo,
-    author: message.author,
-    deviceName: message.deviceName,
-    deviceRevokedAt: message.deviceRevokedAt,
-    deviceType: message.deviceType,
-    isDeleteable,
-    isEditable,
-    onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
-    onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : null,
-    onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
-    onDeleteMessageHistory: stateProps._canDeleteHistory
-      ? () => dispatchProps._onDeleteMessageHistory(message)
-      : null,
-    onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : null,
-    onHidden: () => ownProps.onHidden(),
-    onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : null,
-    onReplyPrivately:
-      message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
-        ? () => dispatchProps._onReplyPrivately(message)
-        : null,
-    onViewProfile: message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : null,
-    position: ownProps.position,
-    showDivider: !message.deviceRevokedAt,
-    style: ownProps.style,
-    timestamp: message.timestamp,
-    visible: ownProps.visible,
-    yourMessage,
-  }
-}
-
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'MessagePopupText')(
-  Text
-)
+export default Container.namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const message = ownProps.message
+    const yourMessage = message.author === stateProps._you
+    const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
+    const isEditable = stateProps._isEditable && yourMessage
+    return {
+      attachTo: ownProps.attachTo,
+      author: message.author,
+      deviceName: message.deviceName,
+      deviceRevokedAt: message.deviceRevokedAt || undefined,
+      deviceType: message.deviceType,
+      isDeleteable,
+      isEditable,
+      onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
+      onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,
+      onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
+      onDeleteMessageHistory: stateProps._canDeleteHistory
+        ? () => dispatchProps._onDeleteMessageHistory(message)
+        : undefined,
+      onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
+      onHidden: () => ownProps.onHidden(),
+      onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
+      onReplyPrivately:
+        message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
+          ? () => dispatchProps._onReplyPrivately(message)
+          : undefined,
+      onViewProfile:
+        message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,
+      position: ownProps.position,
+      showDivider: !message.deviceRevokedAt,
+      style: ownProps.style,
+      timestamp: message.timestamp,
+      visible: ownProps.visible,
+      yourMessage,
+    }
+  },
+  'MessagePopupText'
+)(Text)

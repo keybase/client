@@ -31,7 +31,7 @@ enum Background {
 type BannerProps = {
   background: Background
   okIcon: boolean
-  onDismiss?: () => void | null
+  onDismiss?: (() => void)| null
   title: string
   body?: string | null
   button?: {

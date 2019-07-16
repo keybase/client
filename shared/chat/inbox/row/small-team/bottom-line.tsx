@@ -12,7 +12,7 @@ import {
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
-  backgroundColor: string | null
+  backgroundColor?: string
   participantNeedToRekey: boolean
   showBold: boolean
   snippet: string | null

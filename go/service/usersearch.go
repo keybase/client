@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -21,14 +20,12 @@ import (
 type UserSearchHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	savedContacts *contacts.SavedContactsStore
 }
 
-func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext, pbs *contacts.SavedContactsStore) *UserSearchHandler {
+func NewUserSearchHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserSearchHandler {
 	handler := &UserSearchHandler{
-		Contextified:  libkb.NewContextified(g),
-		BaseHandler:   NewBaseHandler(g, xp),
-		savedContacts: pbs,
+		Contextified: libkb.NewContextified(g),
+		BaseHandler:  NewBaseHandler(g, xp),
 	}
 	return handler
 }
@@ -130,27 +127,35 @@ func (q *compiledQuery) scoreString(str string) (bool, float64) {
 	return true, score
 }
 
-func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
-	var fieldsAndScores = []struct {
-		str  string
-		mult float64
-	}{
-		{contact.ContactName, 1.0},
-		{contact.DisplayName, 1.0},
-		{contact.DisplayLabel, 0.8},
-	}
+var fieldsAndScores = []struct {
+	multiplier float64
+	getter     func(*keybase1.ProcessedContact) string
+}{
+	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.ContactName }},
+	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.Component.ValueString() }},
+	{1.0, func(contact *keybase1.ProcessedContact) string { return contact.DisplayName }},
+	{0.8, func(contact *keybase1.ProcessedContact) string { return contact.DisplayLabel }},
+	{0.7, func(contact *keybase1.ProcessedContact) string { return contact.FullName }},
+	{0.7, func(contact *keybase1.ProcessedContact) string { return contact.Username }},
+}
 
+func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact) (bool, float64) {
 	for _, v := range fieldsAndScores {
-		found, score := query.scoreString(v.str)
+		str := v.getter(&contact)
+		if str == "" {
+			continue
+		}
+		found, score := query.scoreString(str)
 		if found {
-			return true, score * v.mult
+			return true, score * v.multiplier
 		}
 
 	}
 	return false, 0
 }
 
-func contactSearch(mctx libkb.MetaContext, store *contacts.SavedContactsStore, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
+	store := mctx.G().SyncedContactList
 	contactsRes, err := store.RetrieveContacts(mctx)
 	if err != nil {
 		return res, err
@@ -194,7 +199,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 
 	res, err = doSearchRequest(mctx, arg)
 	if arg.IncludeContacts {
-		contactsRes, err := contactSearch(mctx, h.savedContacts, arg)
+		contactsRes, err := contactSearch(mctx, arg)
 		if err != nil {
 			return nil, err
 		}

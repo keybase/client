@@ -9,7 +9,7 @@ import HiddenString from '../../util/hidden-string'
 type OwnProps = {
   deviceName: string
   onChange: (text: string) => void
-} & RouteProps<{}, {}>
+} & RouteProps
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _existingDevices: state.provision.existingDevices,
@@ -32,12 +32,13 @@ export default Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
     const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)
     const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
-    const loggedInAccounts = stateProps.configuredAccounts.filter(account => account.hasStoredSecret)
+    const loggedInAccounts = stateProps.configuredAccounts
+      .filter(account => account.hasStoredSecret)
+      .map(ac => ac.username)
     return {
       deviceName: ownProps.deviceName,
       error: stateProps.error,
-      onBack:
-        loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0).username) : null,
+      onBack: loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '') : null,
       onChange: ownProps.onChange,
       onSubmit,
     }

@@ -5,13 +5,11 @@ import {connect, compose, safeSubmitPerMount, TypedDispatch, TypedState} from '.
 import {RouteProps} from '../../route-tree/render-route'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = (state: TypedState) => ({
   devices: state.provision.devices,
-  loggedInAccounts: state.config.configuredAccounts
-    .filter(account => account.hasStoredSecret)
-    .map(account => account.username),
+  configuredAccounts: state.config.configuredAccounts,
 })
 const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
@@ -28,15 +26,17 @@ export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (stateProps, dispatchProps, ownProps: OwnProps) => ({
-      devices: stateProps.devices.toArray(),
-      onBack:
-        stateProps.loggedInAccounts.size > 0
-          ? () => dispatchProps.onLogIn(stateProps.loggedInAccounts.get(0))
-          : null,
-      onResetAccount: dispatchProps.onResetAccount,
-      onSelect: dispatchProps.onSelect,
-    })
+    (stateProps, dispatchProps, ownProps: OwnProps) => {
+      const loggedInAccounts = stateProps.configuredAccounts
+        .filter(account => account.hasStoredSecret)
+        .map(account => account.username)
+      return {
+        devices: stateProps.devices.toArray(),
+        onBack: loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '') : null,
+        onResetAccount: dispatchProps.onResetAccount,
+        onSelect: dispatchProps.onSelect,
+      }
+    }
   ),
   safeSubmitPerMount(['onSelect', 'onBack'])
 )(SelectOtherDevice)

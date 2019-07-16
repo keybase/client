@@ -8,8 +8,8 @@ type Size = 'Closed' | 'Small' | 'Big'
 
 type State = {
   size: Size
-  cachedSummary: string | null
-  cachedDetails: string | null
+  cachedSummary?: string
+  cachedDetails?: string
 }
 
 type Props = Kb.PropsWithTimer<_Props>
@@ -42,12 +42,12 @@ class GlobalError extends React.Component<Props, State> {
     }
   }
 
-  _summaryForError(err: null | Error | RPCError): string | null {
-    return err ? err.message : null
+  _summaryForError(err: null | Error | RPCError) {
+    return err ? err.message : undefined
   }
 
-  _detailsForError(err: null | Error | RPCError): string | null {
-    return err ? err.stack : null
+  _detailsForError(err: null | Error | RPCError) {
+    return err ? err.stack : undefined
   }
 
   componentDidUpdate(prevProps: Props) {

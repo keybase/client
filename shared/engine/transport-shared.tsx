@@ -168,6 +168,7 @@ class TransportShared extends RobustTransport {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args[0],
+      // @ts-ignore TODO fix this
       handler: (args: InvokeArgs) => {
         super.invoke(
           args,

@@ -6,7 +6,7 @@ import ProfileConfirmOrPending from './confirm-or-pending/container'
 import ProfileEdit from './edit-profile/container'
 import ProfileEditAvatar from './edit-avatar/container'
 import ProfileGenericEnterUsername from './generic/enter-username/container'
-import ProfileGenericProofSuccess from './generic/success/container'
+import ProfileGenericProofResult from './generic/result/container'
 import ProfilePostProof from './post-proof/container'
 import ProfileProofsList from './generic/proofs-list/container'
 import ProfileProveEnterUsername from './prove-enter-username/container'
@@ -44,8 +44,8 @@ export const newModalRoutes = {
       require('./generic/enter-username/container').default,
     upgraded: true,
   },
-  profileGenericProofSuccess: {
-    getScreen: (): typeof ProfileGenericProofSuccess => require('./generic/success/container').default,
+  profileGenericProofResult: {
+    getScreen: (): typeof ProfileGenericProofResult => require('./generic/result/container').default,
     upgraded: true,
   },
   profilePostProof: {

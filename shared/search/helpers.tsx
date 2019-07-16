@@ -32,6 +32,7 @@ type OutProps = {
   onClearSearch: () => void,
 }
 */
+// @ts-ignore
 const clearSearchHoc: any = withHandlers({
   // use existing onClearSearch if exists. TODO change how this whole thing works. so confusing
   onClearSearch: ({onExitSearch, onClearSearch}) =>
@@ -89,6 +90,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
               props.onExitSearch()
             }
           } else {
+            // @ts-ignore
             props.onAddUser(props.selectedSearchId)
             props.onChangeSearchText && props.onChangeSearchText('')
           }
@@ -112,6 +114,7 @@ const onChangeSelectedSearchResultHoc: any = compose(
   })
 )
 
+// @ts-ignore
 const placeholderServiceHoc: any = withPropsOnChange(['selectedService'], ({selectedService}) => ({
   placeholder: `Search ${selectedService}`,
 }))

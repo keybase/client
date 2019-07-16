@@ -36,9 +36,9 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     malformedEmails: I.Set(),
     role: 'reader' as TeamRoleType,
   }
-  _input: Kb.Input | null
+  _input: Kb.Input | null = null
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(_: Props, prevState: State) {
     // update contents of input box if we get a new list of malformed emails
     if (this.props.malformedEmails !== prevState.malformedEmails) {
       if (this.props.malformedEmails.size > 0) {

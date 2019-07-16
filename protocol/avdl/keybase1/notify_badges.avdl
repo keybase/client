@@ -36,6 +36,8 @@ protocol NotifyBadges {
     int newFollowers;
     int inboxVers;
     int homeTodoItems;
+    int unverifiedEmails;
+    int unverifiedPhones;
 
     array<DeviceID> newDevices;
     array<DeviceID> revokedDevices;

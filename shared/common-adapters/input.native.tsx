@@ -17,12 +17,12 @@ type State = {
 
 class Input extends Component<Props, State> {
   state: State
-  _input: typeof NativeTextInput | null
-  _lastNativeText: string | null
+  _input: typeof NativeTextInput | null = null
+  _lastNativeText: string | null = null
   _lastNativeSelection: {
-    start: number
-    end: number
-  } | null
+    start: number | null
+    end: number | null
+  } | null = null
 
   // TODO: Remove once we can use HOCTimers.
   _timeoutIds: Array<NodeJS.Timeout>
@@ -162,8 +162,8 @@ class Input extends Component<Props, State> {
       // it up if necessary.
       const text = this._getValue()
       let {start, end} = newTextInfo.selection
-      end = Math.max(0, Math.min(end, text.length))
-      start = Math.max(0, Math.min(start, end))
+      end = Math.max(0, Math.min(end || 0, text.length))
+      start = Math.max(0, Math.min(start || 0, end))
       const selection = {end, start}
       this.setNativeProps({selection})
       this._lastNativeSelection = selection
@@ -278,7 +278,7 @@ class Input extends Component<Props, State> {
       padding: 0,
     }
 
-    const multilineStyle = {
+    const multilineStyle: any = {
       ...commonInputStyle,
       height: undefined,
       minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
@@ -300,7 +300,7 @@ class Input extends Component<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    let keyboardType: KeyboardType | null = this.props.keyboardType
+    let keyboardType: KeyboardType | null = this.props.keyboardType || null
     if (!keyboardType) {
       if (isAndroid && this.props.type === 'passwordVisible') {
         keyboardType = 'visible-password'

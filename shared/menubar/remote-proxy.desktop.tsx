@@ -2,7 +2,7 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, namedConnect} from '../util/container'
+import * as Container from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
@@ -109,7 +109,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
   return RemoteWindowComponent
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _edits: state.fs.edits,
   _externalRemoteWindowID: state.config.menubarWindowID,
@@ -133,43 +133,9 @@ const mapStateToProps = state => ({
 
 let _lastUsername
 let _lastClearCacheTrigger = 0
-const mergeProps = stateProps => {
-  if (_lastUsername !== stateProps.username) {
-    _lastUsername = stateProps.username
-    _lastClearCacheTrigger++
-  }
-  return {
-    badgeKeys: stateProps._badgeInfo,
-    badgeMap: stateProps._badgeInfo,
-    clearCacheTrigger: _lastClearCacheTrigger,
-    conversationIDs: stateProps.conversationsToSend,
-    conversationMap: stateProps.conversationsToSend,
-    daemonHandshakeState: stateProps.daemonHandshakeState,
 
-    desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
-    diskSpaceStatus: stateProps.diskSpaceStatus,
-    externalRemoteWindow: stateProps._externalRemoteWindowID
-      ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
-      : null,
-    fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
-    following: stateProps._following,
-    kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-    kbfsEnabled: stateProps.kbfsEnabled,
-    loggedIn: stateProps.loggedIn,
-    outOfDate: stateProps.outOfDate,
-    showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
-    userInfo: stateProps.userInfo,
-    username: stateProps.username,
-    widgetBadge: stateProps.widgetBadge,
-    windowComponent: 'menubar',
-    windowOpts,
-    windowParam: '',
-    windowTitle: '',
-    ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
-  }
-}
-
-const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
+// TODO better type
+const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{
     externalRemoteWindow?: SafeElectron.BrowserWindowType
   }> {
@@ -177,6 +143,47 @@ const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>)
   }
 
 // Actions are handled by remote-container
-export default namedConnect(mapStateToProps, () => ({}), mergeProps, 'MenubarRemoteProxy')(
-  RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent))))
+export default Container.namedConnect(
+  mapStateToProps,
+  () => ({}),
+  stateProps => {
+    if (_lastUsername !== stateProps.username) {
+      _lastUsername = stateProps.username
+      _lastClearCacheTrigger++
+    }
+    return {
+      badgeKeys: stateProps._badgeInfo,
+      badgeMap: stateProps._badgeInfo,
+      clearCacheTrigger: _lastClearCacheTrigger,
+      conversationIDs: stateProps.conversationsToSend,
+      conversationMap: stateProps.conversationsToSend,
+      daemonHandshakeState: stateProps.daemonHandshakeState,
+
+      desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
+      diskSpaceStatus: stateProps.diskSpaceStatus,
+      externalRemoteWindow: stateProps._externalRemoteWindowID
+        ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
+        : null,
+      fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
+      following: stateProps._following,
+      kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
+      kbfsEnabled: stateProps.kbfsEnabled,
+      loggedIn: stateProps.loggedIn,
+      outOfDate: stateProps.outOfDate,
+      showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
+      userInfo: stateProps.userInfo,
+      username: stateProps.username,
+      widgetBadge: stateProps.widgetBadge,
+      windowComponent: 'menubar',
+      windowOpts,
+      windowParam: '',
+      windowTitle: '',
+      ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
+    }
+  },
+  'MenubarRemoteProxy'
+)(
+  RenderExternalWindowBranch(
+    RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(Container.NullComponent)))
+  )
 )

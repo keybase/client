@@ -12,7 +12,7 @@ import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToPropsHeader = state => ({
   myUsername: state.config.username,

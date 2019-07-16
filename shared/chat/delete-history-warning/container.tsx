@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import DeleteHistoryWarning from '.'
 import * as Container from '../../util/container'
 
-type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
+type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 export default Container.connect(
   () => ({}),

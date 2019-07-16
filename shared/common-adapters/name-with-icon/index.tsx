@@ -30,7 +30,7 @@ export type NameWithIconProps = {
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: (username: string) => void
   clickType?: 'profile' | 'onClick'
-  onEditIcon?: ((e?: React.SyntheticEvent) => void) | null
+  onEditIcon?: (e?: React.SyntheticEvent) => void
   selectable?: boolean
   size?: Size
   teamname?: string
@@ -46,7 +46,7 @@ export type NameWithIconProps = {
 class NameWithIcon extends React.Component<NameWithIconProps> {
   _onClickWrapper = (event: React.SyntheticEvent) => {
     if (!event.defaultPrevented && this.props.onClick) {
-      this.props.onClick(this.props.username)
+      this.props.username && this.props.onClick(this.props.username)
     }
   }
 

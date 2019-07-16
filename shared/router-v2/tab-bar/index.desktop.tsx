@@ -73,45 +73,18 @@ class TabBar extends React.PureComponent<Props, State> {
       </Kb.Box2>
     ),
   })
-  _menuItems = () =>
-    [
-      ...(flags.fastAccountSwitch
-        ? [
-            {
-              onClick: this.props.onAddAccount,
-              title: 'Log in as another user',
-            },
-            {
-              onClick: this.props.onCreateAccount,
-              title: 'Create a new account',
-            },
-          ]
-        : [
-            {
-              onClick: this.props.onProfileClick,
-              title: 'View profile',
-            },
-            'Divider' as const,
-          ]),
-      {
-        onClick: this.props.onSettings,
-        title: 'Settings',
-      },
-      {
-        onClick: this.props.onHelp,
-        title: 'Help',
-      },
-      {
-        danger: true,
-        onClick: this.props.onSignOut,
-        title: 'Sign out',
-      },
-      {
-        danger: true,
-        onClick: this.props.onQuit,
-        title: 'Quit Keybase',
-      },
-    ] as const
+  _menuItems = (): Kb.MenuItems => [
+    ...(flags.fastAccountSwitch
+      ? [
+          {onClick: this.props.onAddAccount, title: 'Log in as another user'},
+          {onClick: this.props.onCreateAccount, title: 'Create a new account'},
+        ]
+      : [{onClick: this.props.onProfileClick, title: 'View profile'}, 'Divider' as const]),
+    {onClick: this.props.onSettings, title: 'Settings'},
+    {onClick: this.props.onHelp, title: 'Help'},
+    {danger: true, onClick: this.props.onSignOut, title: 'Sign out'},
+    {danger: true, onClick: this.props.onQuit, title: 'Quit Keybase'},
+  ]
 
   render() {
     const p = this.props

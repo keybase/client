@@ -8,7 +8,7 @@ type Props = {
   confirmLabel: string | null
   iconUrl: string | null
   onConfirm: () => void
-  onDismiss: () => void | null
+  onDismiss: (() => void) | null
   text: string
   url: string | null
 }

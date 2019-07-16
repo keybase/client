@@ -331,6 +331,12 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 	timeout := time.Hour
 	m, cancel := m.WithTimeout(timeout)
 	defer cancel()
+	defer func() {
+		if err != nil && m.Ctx().Err() == context.DeadlineExceeded {
+			m.Debug("Prove.verifyLoop rewriting error after timeout: %v", err)
+			err = fmt.Errorf("Timed out after looking for proof for %v", timeout)
+		}
+	}()
 	uierr := m.UIs().ProveUI.Checking(m.Ctx(), keybase1.CheckingArg{
 		Name: p.serviceType.DisplayName(),
 	})
@@ -355,9 +361,6 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		wakeAt := m.G().Clock().Now().Add(2 * time.Second)
 		err = libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)
 		if err != nil {
-			if err == context.DeadlineExceeded {
-				return fmt.Errorf("Timed out looking a proof after %v", timeout)
-			}
 			return err
 		}
 	}

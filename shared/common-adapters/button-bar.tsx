@@ -35,19 +35,16 @@ class ButtonBar extends React.PureComponent<Props> {
     const Spacing = this._spacing()
     const surroundSpacing = this._surroundSpacing()
     const children = React.Children.toArray(this.props.children)
-    const childrenWithSpacing = children.reduce(
-      (arr: React.ReactElement[], c: React.ReactElement, idx) => {
-        if (surroundSpacing || idx > 0) {
-          arr.push(<Spacing key={arr.length} />)
-        }
-        arr.push(c)
-        if (surroundSpacing && idx === children.length - 1) {
-          arr.push(<Spacing key={arr.length} />)
-        }
-        return arr
-      },
-      [] as React.ReactElement[]
-    )
+    const childrenWithSpacing = children.reduce<Array<React.ReactNode>>((arr, c, idx) => {
+      if (surroundSpacing || idx > 0) {
+        arr.push(<Spacing key={arr.length} />)
+      }
+      arr.push(c)
+      if (surroundSpacing && idx === children.length - 1) {
+        arr.push(<Spacing key={arr.length} />)
+      }
+      return arr
+    }, [])
 
     const minHeight = {
       minHeight: isMobile ? (this.props.small ? 64 : 72) : this.props.small ? 44 : 64,
