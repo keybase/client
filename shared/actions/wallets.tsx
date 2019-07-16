@@ -880,11 +880,11 @@ const maybeNavigateAwayFromSendForm = () => {
 }
 
 const maybeNavigateToConversationFromPayment = (
-  state: TypedState,
-  action: WalletsGen.RequestedPaymentPayload,
+  _: TypedState,
+  action: WalletsGen.SentPaymentPayload,
   logger: Saga.SagaLogger
 ) => {
-  const actions = maybeNavigateAwayFromSendForm(state)
+  const actions = maybeNavigateAwayFromSendForm()
   if (action.payload.jumpToChat) {
     logger.info('Navigating to conversation because we sent a payment')
     actions.push(
