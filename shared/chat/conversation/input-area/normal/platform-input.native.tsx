@@ -15,7 +15,8 @@ import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
-import {parseUri} from '../../../../util/expo-image-picker'
+import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import * as Permissions from 'expo-permissions'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -50,13 +51,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
-    let mediaTypeParam: ImagePicker.MediaTypeOptions
     switch (mediaType) {
-      case 'photo':
-        mediaTypeParam = ImagePicker.MediaTypeOptions.Images
-        break
       case 'mixed':
-        mediaTypeParam = ImagePicker.MediaTypeOptions.All
         title = 'Select a Photo or Video'
         takePhotoButtonTitle = 'Take Photo or Video...'
         // 'mixed' never happens on Android, which is when the
@@ -65,7 +61,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         permDeniedText = 'Allow Keybase to take photos/video and choose images/videos from your library?'
         break
       case 'video':
-        mediaTypeParam = ImagePicker.MediaTypeOptions.Videos
         title = 'Select a Video'
         takePhotoButtonTitle = 'Take Video...'
         permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
@@ -89,10 +84,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     switch (location) {
       case 'camera':
-        ImagePicker.launchCameraAsync({mediaTypes: mediaTypeParam}).then(handleSelection)
+        launchCameraAsync(mediaType)
+          .then(handleSelection)
+          .catch(error => this.props.onFilePickerError(new Error(error)))
         break
       case 'library':
-        ImagePicker.launchImageLibraryAsync({mediaTypes: mediaTypeParam}).then(handleSelection)
+        launchImageLibraryAsync(mediaType)
+          .then(handleSelection)
+          .catch(error => this.props.onFilePickerError(new Error(error)))
         break
     }
   }
