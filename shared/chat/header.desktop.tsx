@@ -14,6 +14,7 @@ type Props = {
   canEditDesc: boolean
   channel: string | null
   desc: string
+  displayNames: {[key: string]: string}
   infoPanelOpen: boolean
   isTeam: boolean
   muted: boolean
@@ -85,16 +86,25 @@ const Header = (p: Props) => {
                 {p.channel}
               </Kb.Text>
             ) : p.participants ? (
-              <Kb.ConnectedUsernames
-                colorFollowing={true}
-                underline={true}
-                inline={false}
-                commaColor={Styles.globalColors.black_50}
-                type="Header"
-                usernames={p.participants}
-                onUsernameClicked="profile"
-                skipSelf={p.participants.length > 1 /* length ===1 means just you so show yourself */}
-              />
+              p.participants.map(part =>
+                p.displayNames[part] ? (
+                  <Kb.Text type="Header">{p.displayNames[part]}</Kb.Text>
+                ) : (
+                  <Kb.ConnectedUsernames
+                    colorFollowing={true}
+                    underline={true}
+                    inline={false}
+                    commaColor={Styles.globalColors.black_50}
+                    type="Header"
+                    usernames={[part]}
+                    onUsernameClicked="profile"
+                    skipSelf={
+                      !!p.participants &&
+                      p.participants.length > 1 /* length ===1 means just you so show yourself */
+                    }
+                  />
+                )
+              )
             ) : null}
             {p.muted && (
               <Kb.Icon
@@ -165,60 +175,60 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const mapStateToProps = state => {
-  const _conversationIDKey = Constants.getSelectedConversation(state)
-  const _fullnames = state.users.infoMap
-  const _meta = Constants.getMeta(state, _conversationIDKey)
+const Connected = Container.connect(
+  state => {
+    const _conversationIDKey = Constants.getSelectedConversation(state)
+    const _fullnames = state.users.infoMap
+    const _meta = Constants.getMeta(state, _conversationIDKey)
 
-  return {
-    _conversationIDKey,
-    _fullnames,
-    _meta,
-    _username: state.config.username,
-    canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
-    infoPanelOpen: Constants.isInfoPanelOpen(),
+    return {
+      _conversationIDKey,
+      _fullnames,
+      _meta,
+      _username: state.config.username,
+      canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
+      infoPanelOpen: Constants.isInfoPanelOpen(),
+    }
+  },
+  dispatch => ({
+    _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+    onNewChat: () => dispatch(appendNewChatBuilder()),
+    onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
+    onToggleThreadSearch: conversationIDKey =>
+      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
+    onUnMuteConversation: conversationIDKey =>
+      dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
+  }),
+  (stateProps, dispatchProps) => {
+    const meta = stateProps._meta
+    const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+    // If it's a one-on-one chat, use the user's fullname as the description
+    const desc =
+      meta.teamType === 'adhoc' && otherParticipants.length === 1
+        ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+        : meta.descriptionDecorated
+    return {
+      canEditDesc: stateProps.canEditDesc,
+      channel:
+        meta.teamType === 'big'
+          ? `${meta.teamname}#${meta.channelname}`
+          : meta.teamType === 'small'
+          ? meta.teamname
+          : null,
+      desc,
+      displayNames: meta.participantToDisplayName.toJS(),
+      infoPanelOpen: stateProps.infoPanelOpen,
+      isTeam: ['small', 'big'].includes(meta.teamType),
+      muted: meta.isMuted,
+      onNewChat: dispatchProps.onNewChat,
+      onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
+      onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+      onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
+      participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
+      showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
+      unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
+    }
   }
-}
-
-const mapDispatchToProps = dispatch => ({
-  _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-  onNewChat: () => dispatch(appendNewChatBuilder()),
-  onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-  onToggleThreadSearch: conversationIDKey => dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-  onUnMuteConversation: conversationIDKey =>
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
-})
-
-const mergeProps = (stateProps, dispatchProps) => {
-  const meta = stateProps._meta
-  const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
-  // If it's a one-on-one chat, use the user's fullname as the description
-  const desc =
-    meta.teamType === 'adhoc' && otherParticipants.length === 1
-      ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
-      : meta.descriptionDecorated
-  return {
-    canEditDesc: stateProps.canEditDesc,
-    channel:
-      meta.teamType === 'big'
-        ? `${meta.teamname}#${meta.channelname}`
-        : meta.teamType === 'small'
-        ? meta.teamname
-        : null,
-    desc,
-    infoPanelOpen: stateProps.infoPanelOpen,
-    isTeam: ['small', 'big'].includes(meta.teamType),
-    muted: meta.isMuted,
-    onNewChat: dispatchProps.onNewChat,
-    onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
-    onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
-    onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-    participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
-    showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
-    unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
-  }
-}
-
-const Connected = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)
+)(Header)
 
 export default Connected
