@@ -27,8 +27,10 @@ type Props = {
   onAcceptTx: () => void
   onBack: () => void
   onChangeAmount: (amount: string) => void
+  onLookupPath: () => void
   operation: 'pay' | 'tx'
   originDomain: string
+  path: any
   recipient: string | null
   summary: Summary
   userAmount: string | null
@@ -132,6 +134,8 @@ type PaymentInfoProps = {
   assetCode: string
   availableToSendNative: string
   displayAmountFiat: string
+  exchangeRate: string
+  issuerVerifiedDomain: string
   memo: string | null
   message: string | null
   onChangeAmount: (amount: string) => void
@@ -145,7 +149,21 @@ const PaymentInfo = (props: PaymentInfoProps) => (
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         Amount
       </Kb.Text>
-      {!!props.amount && (
+      {!!props.amount && (props.assetCode ? (
+          <>
+            <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
+              {props.amount} {props.assetCode}
+            </Kb.Text>
+            <Kb.Box2 direction="horizontal" alignSelf="flex-end">
+              <Kb.Text type="BodyTiny">{props.issuerVerifiedDomain}</Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
+            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+              (Exchange rate: {props.exchangeRate})
+            </Kb.Text>
+            </Kb.Box2>
+          </>
+        ) : (
         <>
           <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
             {props.amount} XLM
@@ -159,7 +177,7 @@ const PaymentInfo = (props: PaymentInfoProps) => (
             </Kb.Text>
           </Kb.Box2>
         </>
-      )}
+      ))}
     </Kb.Box2>
     {!!props.assetCode && <AssetPathIntermediate forSEP7={true} />}
     {!props.amount && <AssetInput amount={props.userAmount} onChangeAmount={props.onChangeAmount} />}
@@ -209,6 +227,8 @@ const SEP7Confirm = (props: Props) => (
             assetCode={props.assetCode}
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
+            exchangeRate={props.path.exchangeRate}
+            issuerVerifiedDomain={props.path.fullPath.issuerVerifiedDomain}
             memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
@@ -252,6 +272,7 @@ const SEP7Confirm = (props: Props) => (
 
 const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
+  React.useEffect(() => { props.assetCode && !props.path.destinationAmount && props.onLookupPath() }, [props.assetCode, props.path])
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (
