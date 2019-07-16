@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import openURL from '../../../util/open-url'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = RouteProps
 
 const mapStateToProps = state => ({
   _proofSuggestions: state.tracker2.proofSuggestions,

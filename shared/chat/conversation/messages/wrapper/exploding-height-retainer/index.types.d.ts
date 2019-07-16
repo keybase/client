@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../../../../../styles'
 export type Props = {
-  children?: React.ElementType
-  explodedBy: string | null
+  children?: React.ReactNode
+  explodedBy?: string
   exploding: boolean
-  measure: () => void | null
+  measure?: () => void
   messageKey: string
   style?: StylesCrossPlatform
   retainHeight: boolean

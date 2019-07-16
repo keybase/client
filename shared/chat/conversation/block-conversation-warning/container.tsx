@@ -6,12 +6,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {RouteProps} from '../../../route-tree/render-route'
 import {ConversationIDKey} from '../../../constants/types/chat2'
 
-type OwnProps = RouteProps<
-  {
-    conversationIDKey: ConversationIDKey
-  },
-  {}
->
+type OwnProps = RouteProps< { conversationIDKey: ConversationIDKey } >
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey')

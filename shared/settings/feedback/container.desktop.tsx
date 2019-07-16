@@ -5,7 +5,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {anyWaiting} from '../../constants/waiting'
 import * as Constants from '../../constants/settings'
 
-type OwnProps = RouteProps<{feedback: string}, {}>
+type OwnProps = RouteProps<{feedback: string}>
 
 const mapStateToProps = state => ({
   loggedOut: !state.config.loggedIn,

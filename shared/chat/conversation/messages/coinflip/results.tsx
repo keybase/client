@@ -13,7 +13,7 @@ const CoinFlipResult = (props: Props) => {
     case RPCChatTypes.UICoinFlipResultTyp.shuffle:
       return <CoinFlipResultShuffle shuffle={props.result.shuffle} />
     case RPCChatTypes.UICoinFlipResultTyp.deck:
-      return <CoinFlipResultDeck deck={props.result.deck} />
+      return <CoinFlipResultDeck deck={props.result.deck || undefined} />
     case RPCChatTypes.UICoinFlipResultTyp.hands:
       return <CoinFlipResultHands hands={props.result.hands} />
     case RPCChatTypes.UICoinFlipResultTyp.coin:
@@ -126,7 +126,7 @@ const Card = (props: CardType) => (
 )
 
 type DeckType = {
-  deck: Array<number> | null
+  deck?: Array<number>
   hand?: boolean
 }
 
@@ -184,7 +184,7 @@ const CoinFlipResultHands = (props: HandType) => {
               alignSelf="flex-start"
               style={styles.commonContainer}
             >
-              <CoinFlipResultDeck deck={hand.hand} hand={true} />
+              <CoinFlipResultDeck deck={hand.hand || undefined} hand={true} />
             </Kb.Box2>
           ))}
         </Kb.Box2>

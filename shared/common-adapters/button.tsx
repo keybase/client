@@ -18,7 +18,7 @@ export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black'
 // Either type or backgroundColor must be set
 export type Props = {
   children?: React.ReactNode
-  onClick?: null | ((event: React.SyntheticEvent) => void)
+  onClick?: (event: React.SyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
   onMouseLeave?: (e: React.MouseEvent) => void
   label?: string
@@ -78,13 +78,13 @@ class Button extends React.Component<Props> {
 
     containerStyle = Styles.collapseStyles([containerStyle, this.props.style])
 
-    const onClick = (!unclickable && this.props.onClick) || null
+    const onClick = (!unclickable && this.props.onClick) || undefined
     const whiteSpinner =
       (this.props.mode === 'Primary' && !(this.props.backgroundColor || this.props.type === 'Dim')) ||
       (this.props.mode === 'Secondary' && !!this.props.backgroundColor)
 
     // Hover border colors
-    let classNames = []
+    let classNames: Array<string> = []
     if (this.props.mode === 'Secondary' && !this.props.backgroundColor) {
       // base grey border
       classNames.push('button__border')
@@ -95,7 +95,7 @@ class Button extends React.Component<Props> {
     }
 
     // Hover background colors
-    let underlayClassNames = []
+    let underlayClassNames: Array<string> = []
     if (this.props.mode === 'Primary' && !unclickable) {
       underlayClassNames.push(
         'button__underlay',

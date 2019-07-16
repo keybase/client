@@ -9,13 +9,8 @@ const needMouseEnterLeaveHandlers = (props: Props): boolean => {
 }
 
 class ClickableBox extends React.Component<
-  Props & {
-    children: any
-  },
-  {
-    mouseDown: boolean
-    mouseIn: boolean
-  }
+  Props & {children: React.ReactNode},
+  {mouseDown: boolean; mouseIn: boolean}
 > {
   state = {
     mouseDown: false,
@@ -75,8 +70,8 @@ class ClickableBox extends React.Component<
         onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
         onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
         onMouseUp={this._onMouseUp}
-        onDoubleClick={onDoubleClick}
-        onClick={onClick}
+        onDoubleClick={onDoubleClick || undefined}
+        onClick={onClick || undefined}
         style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
       >
         {underlay}

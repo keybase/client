@@ -80,6 +80,8 @@ type BadgeState struct {
 	NewFollowers              int                     `codec:"newFollowers" json:"newFollowers"`
 	InboxVers                 int                     `codec:"inboxVers" json:"inboxVers"`
 	HomeTodoItems             int                     `codec:"homeTodoItems" json:"homeTodoItems"`
+	UnverifiedEmails          int                     `codec:"unverifiedEmails" json:"unverifiedEmails"`
+	UnverifiedPhones          int                     `codec:"unverifiedPhones" json:"unverifiedPhones"`
 	NewDevices                []DeviceID              `codec:"newDevices" json:"newDevices"`
 	RevokedDevices            []DeviceID              `codec:"revokedDevices" json:"revokedDevices"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
@@ -94,11 +96,13 @@ type BadgeState struct {
 
 func (o BadgeState) DeepCopy() BadgeState {
 	return BadgeState{
-		NewTlfs:       o.NewTlfs,
-		RekeysNeeded:  o.RekeysNeeded,
-		NewFollowers:  o.NewFollowers,
-		InboxVers:     o.InboxVers,
-		HomeTodoItems: o.HomeTodoItems,
+		NewTlfs:          o.NewTlfs,
+		RekeysNeeded:     o.RekeysNeeded,
+		NewFollowers:     o.NewFollowers,
+		InboxVers:        o.InboxVers,
+		HomeTodoItems:    o.HomeTodoItems,
+		UnverifiedEmails: o.UnverifiedEmails,
+		UnverifiedPhones: o.UnverifiedPhones,
 		NewDevices: (func(x []DeviceID) []DeviceID {
 			if x == nil {
 				return nil

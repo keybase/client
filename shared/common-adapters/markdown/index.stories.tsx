@@ -308,8 +308,8 @@ const MarkdownWithAst = ({children, meta}: {children: any; meta?: MarkdownMeta |
   ) : (
     <Kb.Box2 direction="vertical">
       <Markdown meta={meta}>{children}</Markdown>
-      <ShowAST text={children} meta={meta} />
-      <ShowPreview text={children} meta={meta} />
+      <ShowAST text={children} meta={meta || null} />
+      <ShowPreview text={children} meta={meta || null} />
     </Kb.Box2>
   )
 

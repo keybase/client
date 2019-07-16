@@ -18,16 +18,16 @@ type State = {
 
 class CopyableText extends React.Component<Props, State> {
   state = {hasCopied: false}
-  lastCopyTimeoutId: number
+  lastCopyTimeoutId?: NodeJS.Timeout
 
   _handleCopy() {
     Clipboard.setString(this.props.value)
     this.setState({hasCopied: true})
-    this.props.clearTimeout(this.lastCopyTimeoutId)
+    this.lastCopyTimeoutId && this.props.clearTimeout(this.lastCopyTimeoutId)
     this.lastCopyTimeoutId =
       this.props.setTimeout(() => {
         this.setState({hasCopied: false})
-      }, 5000) || null
+      }, 5000) || undefined
   }
 
   render() {

@@ -5,7 +5,7 @@ import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from './avatars'
 
 type Props = {
-  backgroundColor: string | null
+  backgroundColor?: string
   isMuted: boolean
   isSelected: boolean
   onSelectConversation: () => void

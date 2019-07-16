@@ -11,8 +11,7 @@ type OwnProps = Container.RouteProps<
     entityType: RetentionEntityType
     onCancel: (() => void) | null
     onConfirm: (() => void) | null
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -28,12 +27,12 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   return {
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
-      const onCancel: () => void | null = Container.getRouteProps(ownProps, 'onCancel')
+      const onCancel: (() => void) | null = Container.getRouteProps(ownProps, 'onCancel')
       onCancel && onCancel()
     },
     onConfirm: () => {
       dispatch(RouteTreeGen.createNavigateUp())
-      const cb: () => void | null = Container.getRouteProps(ownProps, 'onConfirm')
+      const cb: (() => void) | null = Container.getRouteProps(ownProps, 'onConfirm')
       cb && cb()
     },
   }
@@ -47,4 +46,5 @@ const withState = Container.withStateHandlers<
   {}
 >({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
 
-export default connected(withState(RetentionWarning))
+// @ts-ignore
+export default connected(withState(RetentionWarning)) as any

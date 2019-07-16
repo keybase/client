@@ -7,12 +7,7 @@ import * as Container from '../util/container'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
 
-type OwnProps = Container.RouteProps<
-  {
-    conversationIDKey: Types.ConversationIDKey
-  },
-  {}
->
+type OwnProps = Container.RouteProps< { conversationIDKey: Types.ConversationIDKey } >
 
 const mapStateToProps = state => ({
   baseTeam: '',

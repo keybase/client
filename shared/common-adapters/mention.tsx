@@ -10,7 +10,7 @@ export type OwnProps = {
 }
 
 export type Props = {
-  onClick: () => void
+  onClick?: () => void
 } & OwnProps
 
 export default ({username, theme, style, allowFontScaling, onClick}: Props) => (

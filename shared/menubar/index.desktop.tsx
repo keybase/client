@@ -217,7 +217,7 @@ class MenubarRender extends React.Component<Props, State> {
     )
   }
 
-  _menuItems() {
+  _menuItems(): Kb.MenuItems {
     const countMap = this.props.badgeInfo || {}
     const startingUp = this.props.daemonHandshakeState !== 'done'
     const loggedOut = !this.props.username
@@ -268,7 +268,7 @@ class MenubarRender extends React.Component<Props, State> {
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
       {onClick: this.props.quit, title: 'Quit Keybase'},
-    ]
+    ] as any
   }
 
   _getAttachmentRef = () => this.attachmentRef.current
@@ -336,7 +336,7 @@ class MenubarRender extends React.Component<Props, State> {
             <FilesPreview />
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} style={{height: 200}}>
-              <Loading path={undefined /* NOT here? TODO FS FIX FsTypes.defaultPath */} />
+              <Loading />
             </Kb.Box2>
           )}
         </Kb.ScrollView>

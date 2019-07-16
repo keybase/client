@@ -15,7 +15,7 @@ function SettingsRender(props: Props) {
           selectedTab={props.selectedTab}
           onTabChange={props.onTabChange}
           onLogout={props.onLogout}
-          hasRandomPW={props.hasRandomPW}
+          hasRandomPW={props.hasRandomPW || null}
         />
         <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>{props.children}</Box>
       </Box>

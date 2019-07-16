@@ -159,7 +159,7 @@ export const makeBuiltPayment = I.Record<Types._BuiltPayment>({
 })
 
 export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
-  fee: null,
+  fee: -1,
   memo: '',
   memoType: '',
   operations: null,
@@ -167,7 +167,7 @@ export const makeSEP7Summary = I.Record<Types._SEP7Summary>({
 })
 
 export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
-  amount: null,
+  amount: '',
   assetCode: '',
   assetIssuer: '',
   availableToSendFiat: '',
@@ -710,8 +710,8 @@ export const getOldestUnread = (state: TypedState, accountID: Types.AccountID) =
   state.wallets.paymentOldestUnreadMap.get(accountID, Types.noPaymentID)
 
 export const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  // @ts-ignore codemod issue
-  state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
+  state.wallets.paymentsMap.get(accountID, I.Map<Types.PaymentID, Types.Payment>()).get(paymentID) ||
+  makePayment()
 
 export const getAccountInner = (state: Types.State, accountID: Types.AccountID) =>
   state.accountMap.get(accountID, unknownAccount)
@@ -737,10 +737,9 @@ export const getDefaultAccountID = (state: TypedState) => {
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 
-export const getExternalPartners = (state: TypedState, accountID: Types.AccountID) =>
-  state.wallets.externalPartners
+export const getExternalPartners = (state: TypedState) => state.wallets.externalPartners
 
-export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
+export const getAssets = (state: TypedState, accountID: Types.AccountID): I.List<Types.Assets> =>
   state.wallets.assetsMap.get(accountID, I.List())
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {

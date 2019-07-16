@@ -3,7 +3,7 @@ import {FloatingMenu} from '../../../../common-adapters'
 import {isMobile} from '../../../../styles'
 
 type Props = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   visible: boolean
   onAddPeople: () => void
   onHidden: () => void

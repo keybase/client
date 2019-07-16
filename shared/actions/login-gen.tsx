@@ -49,4 +49,4 @@ export type Actions =
   | LaunchForgotPasswordWebPagePayload
   | LoginErrorPayload
   | LoginPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

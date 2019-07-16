@@ -357,6 +357,10 @@ function parseVariant(t, project) {
     project = projects[parts.shift()]
   }
 
+  const rootType = t.switch.type
+  const rootEnum = project.enums[rootType]
+
+  let unhandled = new Set(Object.keys(rootEnum))
   var type = parts.shift()
   const cases = t.cases
     .map(c => {
@@ -364,6 +368,7 @@ function parseVariant(t, project) {
         return null
       } else {
         var label = fixCase(c.label.name)
+        unhandled.delete(label)
         let bodyType = ''
         if (c.body === null) {
           bodyType = 'null'
@@ -377,8 +382,11 @@ function parseVariant(t, project) {
       }
     })
     .filter(Boolean)
-    .join(' | ')
-  return cases || 'void'
+
+  const otherCases = [...unhandled].map(label => `{ ${t.switch.name}: ${type}.${label}}`)
+  const s = [...cases, ...otherCases].join(' | ')
+
+  return s || 'void'
 }
 
 function writeActions() {

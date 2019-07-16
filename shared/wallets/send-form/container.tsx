@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
-type OwnProps = Container.RouteProps<{}, {}>
+type OwnProps = Container.RouteProps
 
 const mapStateToProps = state => ({
   isRequest: state.wallets.building.isRequest,

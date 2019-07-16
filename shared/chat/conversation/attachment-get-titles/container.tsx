@@ -11,8 +11,7 @@ type OwnProps = RouteProps<
   {
     pathAndOutboxIDs: Array<Types.PathAndOutboxID>
     conversationIDKey: Types.ConversationIDKey
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({

@@ -5,14 +5,14 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import {connect} from '../../../../../util/container'
+import * as Container from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageAttachment
   onHidden: () => void
   position: Position
@@ -92,38 +92,40 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const message = ownProps.message
-  const yourMessage = message.author === stateProps._you
-  const isDeleteable = yourMessage || stateProps._canAdminDelete
-  return {
-    attachTo: ownProps.attachTo,
-    author: message.author,
-    deviceName: message.deviceName,
-    deviceRevokedAt: message.deviceRevokedAt,
-    deviceType: message.deviceType,
-    isDeleteable,
-    onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : null,
-    onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
-    onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    // We only show the share/save options for video if we have the file stored locally from a download
-    onHidden: () => ownProps.onHidden(),
-    onReply: () => dispatchProps._onReply(message),
-    onSaveAttachment:
-      isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
-    onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
-    onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
-    pending: stateProps.pending,
-    position: ownProps.position,
-    style: ownProps.style,
-    timestamp: message.timestamp,
-    visible: ownProps.visible,
-    yourMessage,
-  }
-}
-
-export default connect(
+export default Container.connect(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const message = ownProps.message
+    const yourMessage = message.author === stateProps._you
+    const isDeleteable = yourMessage || stateProps._canAdminDelete
+    return {
+      attachTo: ownProps.attachTo,
+      author: message.author,
+      deviceName: message.deviceName,
+      deviceRevokedAt: message.deviceRevokedAt || undefined,
+      deviceType: message.deviceType,
+      isDeleteable,
+      onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
+      onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
+      onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
+      // We only show the share/save options for video if we have the file stored locally from a download
+      onHidden: () => ownProps.onHidden(),
+      onReply: () => dispatchProps._onReply(message),
+      onSaveAttachment:
+        isMobile && message.attachmentType === 'image'
+          ? () => dispatchProps._onSaveAttachment(message)
+          : undefined,
+      onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : undefined,
+      onShowInFinder:
+        !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
+      pending: stateProps.pending,
+      position: ownProps.position,
+      style: ownProps.style,
+      timestamp: message.timestamp,
+      visible: ownProps.visible,
+      yourMessage,
+    }
+  }
 )(Attachment)

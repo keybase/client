@@ -72,7 +72,7 @@ const makeThumbs = () => {
     previewURL: require('../../../images/mock/wsj_image.jpg').default,
     width: 180,
   }
-  const l = []
+  const l: Array<typeof thumb> = []
   for (let i = 0; i < 60; i++) {
     l.push(thumb)
   }
@@ -107,14 +107,14 @@ const makeDocs = () => {
     onShowInFinder: Sb.action('onShowInFinder'),
     progress: 0,
   }
-  const docs = []
+  const docs: Array<typeof doc> = []
   docs.push(doc)
   docs.push(downloadingDoc)
   docs.push(downloadedDoc)
   return docs
 }
 
-const makeLinks = () => {
+const makeLinks = (): any => {
   const bareLink = {
     author: 'mikem',
     ctime: 1542241021655,
@@ -129,7 +129,7 @@ const makeLinks = () => {
     title: 'Google this failure',
     url: 'https://www.google.com',
   }
-  const links = []
+  const links: Array<typeof bareLink> = []
   links.push(bareLink)
   links.push(unfurlLink)
   return links
@@ -142,7 +142,7 @@ const commonProps = {
     docs: makeDocs(),
     onLoadMore: Sb.action('onLoadMore'),
     status: 'success',
-  },
+  } as any,
   ignored: false,
   links: {
     links: makeLinks(),
@@ -187,7 +187,7 @@ const conversationProps = {
   admin: false,
   canEditChannel: true,
   canSetRetention: false,
-  channelname: null,
+  channelname: undefined,
   description: "You shouldn't be seeing this",
   isPreview: false,
   onAttachmentViewChange: Sb.action('onAttachmentViewChange'),
@@ -201,7 +201,7 @@ const conversationProps = {
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
   selectedTab: 'attachments',
   smallTeam: false,
-  teamname: null,
+  teamname: undefined,
 } as const
 
 const teamCommonProps = {
@@ -212,7 +212,6 @@ const teamCommonProps = {
   onAttachmentViewChange: Sb.action('onAttachmentViewChange'),
   onSelectTab: Sb.action('onSelectTab'),
   onShowBlockConversationDialog: Sb.unexpected('onShowBlockConversationDialog'),
-
   onShowClearConversationDialog: Sb.unexpected('onShowClearConversationDialog'),
   onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
@@ -246,7 +245,6 @@ const bigTeamPreviewProps = {
   channelname: 'somechannel',
   isPreview: true,
   onJoinChannel: Sb.action('onJoinChannel'),
-
   onLeaveConversation: Sb.unexpected('onLeaveConversation'),
   smallTeam: false,
 } as const
@@ -257,7 +255,6 @@ const bigTeamNoPreviewProps = {
   channelname: 'somechannel',
   isPreview: false,
   onJoinChannel: Sb.unexpected('onJoinChannel'),
-
   onLeaveConversation: Sb.action('onLeaveConversation'),
   smallTeam: false,
 }

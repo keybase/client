@@ -1,10 +1,10 @@
 import * as React from 'react'
 
 type TimerProps = {
-  setTimeout: (func: () => void, timing: number) => number | null
-  clearTimeout: (id: number) => void
-  setInterval: (func: () => void, timing: number) => number | null
-  clearInterval: (id: number) => void
+  setTimeout: (func: () => void, timing: number) => NodeJS.Timeout
+  clearTimeout: (id: NodeJS.Timeout) => void
+  setInterval: (func: () => void, timing: number) => NodeJS.Timeout
+  clearInterval: (id: NodeJS.Timeout) => void
 }
 
 // Use this to mix your props with timer props like type Props = PropsWithTimer<{foo: number}>
