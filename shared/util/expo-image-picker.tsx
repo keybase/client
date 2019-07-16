@@ -6,11 +6,12 @@ export const parseUri = (result: {uri: string}): string => {
   return isIOS ? result.uri.replace('file://', '') : result.uri.replace('file:', '')
 }
 
-const retyAfterAskingPerm = (retryFn: null | (() => Promise<ImagePicker.ImagePickerResult>)) => (
-  error: any
-): Promise<ImagePicker.ImagePickerResult> => {
+const retyAfterAskingPerm = (
+  perms: Array<Permissions.PermissionType>,
+  retryFn: null | (() => Promise<ImagePicker.ImagePickerResult>)
+) => (error: any): Promise<ImagePicker.ImagePickerResult> => {
   if (error.code === 'E_MISSING_PERMISSION' && retryFn) {
-    return Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL).then(retryFn)
+    return Permissions.askAsync(...perms).then(retryFn)
   } else {
     throw error
   }
@@ -30,7 +31,10 @@ export const launchCameraAsync = (
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
   return ImagePicker.launchCameraAsync({mediaTypes: mediaTypeToImagePickerMediaType(mediaType)}).catch(
-    retyAfterAskingPerm(askPermAndRetry ? () => launchCameraAsync(mediaType, false) : null)
+    retyAfterAskingPerm(
+      [Permissions.CAMERA, Permissions.CAMERA_ROLL],
+      askPermAndRetry ? () => launchCameraAsync(mediaType, false) : null
+    )
   )
 }
 
@@ -39,6 +43,9 @@ export const launchImageLibraryAsync = (
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
   return ImagePicker.launchImageLibraryAsync({mediaTypes: mediaTypeToImagePickerMediaType(mediaType)}).catch(
-    retyAfterAskingPerm(askPermAndRetry ? () => launchImageLibraryAsync(mediaType, false) : null)
+    retyAfterAskingPerm(
+      [Permissions.CAMERA_ROLL],
+      askPermAndRetry ? () => launchImageLibraryAsync(mediaType, false) : null
+    )
   )
 }
