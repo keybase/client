@@ -3,7 +3,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import {teamsLoadedWaitingKey} from '../../constants/teams'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {globalMargins, desktopStyles, platformStyles, styleSheetCreate} from '../../styles'
+import * as Styles from '../../styles'
 
 const NoTeamsPlaceholder = () => {
   const dispatch = Container.useDispatch()
@@ -34,12 +34,12 @@ const NoTeamsPlaceholder = () => {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
-    paddingBottom: globalMargins.large,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-    paddingTop: globalMargins.large,
+    paddingBottom: Styles.globalMargins.large,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.large,
   },
 })
 
