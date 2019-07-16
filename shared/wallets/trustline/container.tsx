@@ -7,18 +7,14 @@ import * as Waiting from '../../constants/waiting'
 import {debounce} from 'lodash-es'
 import Trustline from '.'
 
-type OwnProps = Container.RouteProps<
-  {
-    accountID: Types.AccountID
-  },
-  {}
->
+type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const accountID = Container.getRouteProps(ownProps, 'accountID') || Types.noAccountID
   return {
     accountAssets: Constants.getAssets(state, accountID),
     canAddTrustline: Constants.getAccount(state, accountID).canAddTrustline,
+    error: state.wallets.changeTrustlineError,
     trustline: state.wallets.trustline,
     waitingSearch: Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey),
   }
@@ -50,6 +46,7 @@ const mergeProps = (s, d, o: OwnProps) => {
     ).balanceAvailableToSend,
     canAddTrustline: s.canAddTrustline,
     clearTrustlineModal: d.clearTrustlineModal,
+    error: s.error,
     loaded: s.trustline.loaded,
     popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)).toArray(),
     searchingAssets: s.trustline.searchingAssets && s.trustline.searchingAssets.toArray(),

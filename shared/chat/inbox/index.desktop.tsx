@@ -28,7 +28,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _mounted: boolean = false
-  _list: VariableSizeList | null
+  _list: VariableSizeList | null = null
   _selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
@@ -139,12 +139,14 @@ class Inbox extends React.PureComponent<T.Props, State> {
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
     this._calculateShowUnreadShortcut()
-    const toUnbox = this.props.rows.slice(visibleStartIndex, visibleStopIndex + 1).reduce((arr, r) => {
-      if (r.type === 'small' && r.conversationIDKey) {
-        arr.push(r.conversationIDKey)
-      }
-      return arr
-    }, [])
+    const toUnbox = this.props.rows
+      .slice(visibleStartIndex, visibleStopIndex + 1)
+      .reduce<Array<Types.ConversationIDKey>>((arr, r) => {
+        if (r.type === 'small' && r.conversationIDKey) {
+          arr.push(r.conversationIDKey)
+        }
+        return arr
+      }, [])
     this._calculateShowFloating()
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)

@@ -6,8 +6,8 @@ export type Props = {
   progress: number
   progressLabel: string | null
   onClose: () => void
-  onDownloadAttachment: () => void | null
-  onShowInFinder: () => void | null
+  onDownloadAttachment: (() => void) | null
+  onShowInFinder: (() => void) | null
   isVideo: boolean
   autoPlay: boolean
 }

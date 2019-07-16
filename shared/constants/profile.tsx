@@ -72,11 +72,11 @@ export const getProfilePath = (
     props: I.Map<string, any>
   }>,
   username: string,
-  me: string,
+  _: string,
   state: TypedState
 ) => {
-  const onlyProfilesProps = peopleRouteProps.filter(segment =>
-    [peopleTab, 'profile', 'profileNonUserProfile'].includes(segment.node)
+  const onlyProfilesProps = peopleRouteProps.filter(
+    segment => segment.node && [peopleTab, 'profile', 'profileNonUserProfile'].includes(segment.node)
   )
   const onlyProfilesPath: Array<{
     selected: string | null

@@ -19,7 +19,7 @@ const noop = () => {}
 
 const measureStart = allowTiming
   ? (name: string) => {
-      mark(name)
+      mark && mark(name)
     }
   : noop
 
@@ -28,10 +28,10 @@ const measureStop = allowTiming
       const measureName = `${markPrefix} ${name}`
       try {
         // measure can throw if you mention something it hasn't seen
-        measure(measureName, name)
+        measure && measure(measureName, name)
       } catch (_) {}
-      clearMarks(name)
-      clearMeasures(measureName)
+      clearMarks && clearMarks(name)
+      clearMeasures && clearMeasures(measureName)
     }
   : noop
 
@@ -71,10 +71,10 @@ const _endSaga = effectId => {
   const markName = `${markPrefix} saga:${effectId}`
   const name = `${markPrefix} saga:${_effectIdToLabel[effectId]}`
   try {
-    measure(name, markName)
+    measure && measure(name, markName)
   } catch (_) {}
-  clearMarks(markName)
-  clearMeasures(name)
+  clearMarks && clearMarks(markName)
+  clearMeasures && clearMeasures(name)
 }
 
 const _getLabel = obj => {
@@ -142,7 +142,7 @@ const sagaTimer = allowTiming
         if (desc.effect && desc.effect.TAKE) {
           return
         }
-        mark(`${markPrefix} saga:${desc.effectId}`)
+        mark && mark(`${markPrefix} saga${desc.effectId}`)
       },
     }
   : null

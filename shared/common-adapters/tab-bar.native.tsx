@@ -50,7 +50,7 @@ const UnderlineHighlight = () => (
 const TabBarButton = (props: TabBarButtonProps) => {
   const badgeNumber = props.badgeNumber || 0
 
-  let badgeComponent = null
+  let badgeComponent: React.ReactNode = null
   if (props.badgeNumber) {
     if (props.badgePosition === 'top-right') {
       badgeComponent = (

@@ -5,7 +5,7 @@ import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from './avatars'
 
 type Props = {
-  backgroundColor: string | null
+  backgroundColor?: string
   isMuted: boolean
   isSelected: boolean
   onSelectConversation: () => void
@@ -69,6 +69,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           )}
           <Kb.Box style={styles.conversationRow}>
             <FilteredTopLine
+              isSelected={props.isSelected}
               numSearchHits={props.numSearchHits}
               maxSearchHits={props.maxSearchHits}
               participants={props.teamname ? [props.teamname] : props.participants}

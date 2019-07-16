@@ -28,18 +28,9 @@ export type Props = {
 }
 
 export type TabBarButtonSource =
-  | {
-      type: 'icon'
-      icon: IconType
-    }
-  | {
-      type: 'avatar'
-      username: string | null
-    }
-  | {
-      type: 'nav'
-      icon: IconType
-    }
+  | {type: 'icon'; icon: IconType}
+  | {type: 'avatar'; username?: string}
+  | {type: 'nav'; icon: IconType}
 
 export type TabBadgePosition = 'top-right'
 

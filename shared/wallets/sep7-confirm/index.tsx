@@ -201,14 +201,14 @@ const SEP7Confirm = (props: Props) => (
         {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         {props.operation === 'pay' ? (
           <PaymentInfo
-            amount={props.amount}
+            amount={props.amount || '' /* is this ok? */}
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
             memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
-            recipient={props.recipient}
-            userAmount={props.userAmount}
+            recipient={props.recipient || '' /* is this ok? */}
+            userAmount={props.userAmount || '' /* is this ok? */}
           />
         ) : (
           <TxInfo
@@ -230,7 +230,7 @@ const SEP7Confirm = (props: Props) => (
           type="Success"
           onClick={
             props.operation === 'pay'
-              ? () => props.onAcceptPay(props.amount || props.userAmount)
+              ? () => props.onAcceptPay(props.amount || props.userAmount || '' /* TODO is this ok? */)
               : props.onAcceptTx
           }
           waitingKey={props.waitingKey}

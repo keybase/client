@@ -24,7 +24,7 @@ describe('emoji data processing', () => {
   it('categorized data has same number of categories as category order', () =>
     expect(categories.length).toEqual(categoryOrder.length))
   it('search index is only missing skin tone variations', () => {
-    const missingEmojis = []
+    const missingEmojis: Array<string> = []
     emojidata.forEach(emoji => {
       const fromIndex = emojiIndex.emojis[emoji.short_name]
       if (!fromIndex) {

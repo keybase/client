@@ -14,7 +14,7 @@ export type _Props = {
   exploded: boolean
   explodesAt: number
   messageKey: string
-  onClick: () => void | null
+  onClick?: () => void
   pending: boolean
   style?: Styles.StylesCrossPlatform
 }
@@ -26,22 +26,22 @@ interface State {
 
 class ExplodingMeta extends React.Component<Props, State> {
   state = {mode: 'none'} as State
-  tickerID: TickerID
-  sharedTimerID: SharedTimerID
-  sharedTimerKey: string
+  tickerID?: TickerID
+  sharedTimerID?: SharedTimerID
+  sharedTimerKey: string = ''
 
   componentDidMount() {
     this._hideOrStart()
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props, _: State) {
     if (!this.props.pending && prevProps.pending) {
       this._hideOrStart()
     }
 
     if (this.props.exploded && !prevProps.exploded) {
       this.setState({mode: 'boom'})
-      SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
+      this.sharedTimerID && SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
       this.sharedTimerKey = this.props.messageKey
       this.sharedTimerID = SharedTimer.addObserver(() => this.setState({mode: 'hidden'}), {
         key: this.sharedTimerKey,
@@ -63,8 +63,8 @@ class ExplodingMeta extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    removeTicker(this.tickerID)
-    SharedTimer.removeObserver(this.sharedTimerKey, this.sharedTimerID)
+    this.tickerID && removeTicker(this.tickerID)
+    this.sharedTimerID && SharedTimer.removeObserver(this.sharedTimerKey, this.sharedTimerID)
   }
 
   _updateLoop = () => {
@@ -79,7 +79,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     }
     const interval = getLoopInterval(difference)
     if (interval < 1000) {
-      removeTicker(this.tickerID)
+      this.tickerID && removeTicker(this.tickerID)
       // switch to 'seconds' mode
       this.tickerID = addTicker(this._secondLoop)
       return
@@ -95,7 +95,7 @@ class ExplodingMeta extends React.Component<Props, State> {
       if (this.state.mode === 'countdown') {
         this.setState({mode: 'boom'})
       }
-      removeTicker(this.tickerID)
+      this.tickerID && removeTicker(this.tickerID)
       return
     }
     this.forceUpdate()
@@ -108,7 +108,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   render() {
     const backgroundColor =
       this.props.explodesAt - Date.now() < oneMinuteInMs ? Styles.globalColors.red : Styles.globalColors.black
-    let children
+    let children: React.ReactNode
     switch (this.state.mode) {
       case 'countdown':
         {

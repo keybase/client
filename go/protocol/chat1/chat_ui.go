@@ -204,6 +204,63 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 	}
 }
 
+type UIParticipantType int
+
+const (
+	UIParticipantType_NONE    UIParticipantType = 0
+	UIParticipantType_USER    UIParticipantType = 1
+	UIParticipantType_CONTACT UIParticipantType = 2
+)
+
+func (o UIParticipantType) DeepCopy() UIParticipantType { return o }
+
+var UIParticipantTypeMap = map[string]UIParticipantType{
+	"NONE":    0,
+	"USER":    1,
+	"CONTACT": 2,
+}
+
+var UIParticipantTypeRevMap = map[UIParticipantType]string{
+	0: "NONE",
+	1: "USER",
+	2: "CONTACT",
+}
+
+func (e UIParticipantType) String() string {
+	if v, ok := UIParticipantTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UIParticipant struct {
+	Type        UIParticipantType `codec:"type" json:"type"`
+	Assertion   string            `codec:"assertion" json:"assertion"`
+	FullName    *string           `codec:"fullName,omitempty" json:"fullName,omitempty"`
+	ContactName *string           `codec:"contactName,omitempty" json:"contactName,omitempty"`
+}
+
+func (o UIParticipant) DeepCopy() UIParticipant {
+	return UIParticipant{
+		Type:      o.Type.DeepCopy(),
+		Assertion: o.Assertion,
+		FullName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FullName),
+		ContactName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ContactName),
+	}
+}
+
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
@@ -216,8 +273,7 @@ type InboxUIItem struct {
 	Headline          string                        `codec:"headline" json:"headline"`
 	HeadlineDecorated string                        `codec:"headlineDecorated" json:"headlineDecorated"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
-	Participants      []string                      `codec:"participants" json:"participants"`
-	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
+	Participants      []UIParticipant               `codec:"participants" json:"participants"`
 	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
 	Status            ConversationStatus            `codec:"status" json:"status"`
 	MembersType       ConversationMembersType       `codec:"membersType" json:"membersType"`
@@ -254,29 +310,17 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		Headline:          o.Headline,
 		HeadlineDecorated: o.HeadlineDecorated,
 		Visibility:        o.Visibility.DeepCopy(),
-		Participants: (func(x []string) []string {
+		Participants: (func(x []UIParticipant) []UIParticipant {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]UIParticipant, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
 		})(o.Participants),
-		FullNames: (func(x map[string]string) map[string]string {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[string]string, len(x))
-			for k, v := range x {
-				kCopy := k
-				vCopy := v
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.FullNames),
 		ResetParticipants: (func(x []string) []string {
 			if x == nil {
 				return nil

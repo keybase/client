@@ -51,6 +51,7 @@ type State = {
 } & NewSettings
 
 type SettingProps = {
+  // TODO stronger type here
   setBoolSettings: (key: any) => (newSetting: boolean) => void
 } & Props &
   State
@@ -86,7 +87,7 @@ const SetMemberShowcase = (props: SettingProps) => (
 )
 
 const PublicityAnyMember = (props: SettingProps) =>
-  props.yourOperations.setPublicityAny && (
+  props.yourOperations.setPublicityAny ? (
     <Box style={stylesPublicitySettingsBox}>
       <Checkbox
         checked={props.newPublicityAnyMember}
@@ -99,12 +100,12 @@ const PublicityAnyMember = (props: SettingProps) =>
         onCheck={props.setBoolSettings('newPublicityAnyMember')}
       />
     </Box>
-  )
+  ) : null
 
 const teamsLink = 'keybase.io/popular-teams'
 
 const PublicityTeam = (props: SettingProps) =>
-  props.yourOperations.setTeamShowcase && (
+  props.yourOperations.setTeamShowcase ? (
     <Box style={stylesPublicitySettingsBox}>
       <Checkbox
         checked={props.newPublicityTeam}
@@ -122,7 +123,7 @@ const PublicityTeam = (props: SettingProps) =>
         onCheck={props.setBoolSettings('newPublicityTeam')}
       />
     </Box>
-  )
+  ) : null
 
 const OpenTeam = (props: SettingProps & RolePickerProps) => {
   if (!props.yourOperations.changeOpenTeam) {
@@ -172,15 +173,14 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
             </Box2>
           </Box>
         }
-        onCheck={props.isRolePickerOpen ? undefined : props.setBoolSettings('newOpenTeam')}
+        onCheck={props.isRolePickerOpen ? null : props.setBoolSettings('newOpenTeam')}
       />
     </Box>
   )
 }
 
 const IgnoreAccessRequests = (props: SettingProps) =>
-  !props.newOpenTeam &&
-  props.yourOperations.changeTarsDisabled && (
+  !props.newOpenTeam && props.yourOperations.changeTarsDisabled ? (
     <Box style={stylesPublicitySettingsBox}>
       <Checkbox
         checked={props.newIgnoreAccessRequests}
@@ -193,7 +193,7 @@ const IgnoreAccessRequests = (props: SettingProps) =>
         onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
       />
     </Box>
-  )
+  ) : null
 
 const toRolePickerPropsHelper = (state: State, setState) => ({
   disabledReasonsForRolePicker: {
@@ -266,7 +266,8 @@ export class Settings extends React.Component<Props, State> {
     })
   }
 
-  setBoolSettings = (key: any) => (newSetting: boolean) => {
+  // TODO just use real keys/setState and not this abstraction
+  setBoolSettings = (key: any) => (newSetting: boolean): void => {
     // @ts-ignore not sure how to type this
     this.setState({[key]: newSetting})
   }

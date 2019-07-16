@@ -39,14 +39,12 @@ const inputCommon = {
 const maxUsers: Array<UserDetails> = [
   {
     followingState: 'You',
-    icon: null,
     id: 'chromakode',
     service: 'Keybase',
     username: 'chromakode',
   },
   {
     followingState: 'Following',
-    icon: null,
     id: 'max',
     service: 'Keybase',
     username: 'max',
@@ -63,14 +61,12 @@ const maxUsers: Array<UserDetails> = [
 const chrisUsers: Array<UserDetails> = [
   {
     followingState: 'You',
-    icon: null,
     id: 'chromakode',
     service: 'Keybase',
     username: 'chromakode',
   },
   {
     followingState: 'Following',
-    icon: null,
     id: 'chris',
     service: 'Keybase',
     username: 'chris',
@@ -151,6 +147,7 @@ const UserInputEditable: any = compose(
       }
     },
   } as any)
+  // @ts-ignore
 )(UserInput)
 
 const defaultBoxStyle = {

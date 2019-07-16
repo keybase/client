@@ -231,8 +231,8 @@ const refreshDriverStatus = (
     .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
 
 const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
-  result &&
-  result.componentResults &&
+  !!result &&
+  !!result.componentResults &&
   result.componentResults.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
@@ -252,7 +252,6 @@ const driverEnableFuse = (state, action: FsGen.DriverEnablePayload): Promise<Sag
 const uninstallKBFSConfirm = () =>
   new Promise((resolve, reject) =>
     SafeElectron.getDialog().showMessageBox(
-      null,
       {
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -278,7 +277,6 @@ const uninstallDokanConfirm = state => {
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     return new Promise(resolve =>
       SafeElectron.getDialog().showMessageBox(
-        null,
         {
           buttons: ['Got it'],
           detail:
