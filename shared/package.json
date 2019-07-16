@@ -275,7 +275,7 @@
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "1.2.1",
     "tls": "git://github.com/keybase/nullModule",
-    "typescript": "3.5.2",
+    "typescript": "3.5.3",
     "webpack": "4.28.2",
     "webpack-cli": "3.2.1",
     "webpack-dashboard": "2.0.0",

@@ -17,7 +17,7 @@ export const makeDetails = I.Record<Types._Details>({
   following: null,
   followingCount: null,
   fullname: null,
-  guiID: null,
+  guiID: '',
   location: null,
   reason: '',
   registeredForAirdrop: false,

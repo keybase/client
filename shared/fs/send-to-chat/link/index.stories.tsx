@@ -39,7 +39,7 @@ const load = () =>
     .add('1:1 loading convID', () => (
       <SendLinkToChat
         {...common}
-        send={null}
+        send={undefined}
         pathTextToCopy={makePathTextToCopy('/keybase/private/songgao,songgao_test')}
         conversation={{name: 'songgao_test', type: 'person'}}
       />

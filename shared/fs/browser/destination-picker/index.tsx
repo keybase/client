@@ -15,11 +15,11 @@ type Props = {
   parentPath: Types.Path
   routePath: I.List<string>
   targetName: string
-  onCancel: () => void | null
-  onCopyHere?: () => void | null
-  onMoveHere?: () => void | null
-  onNewFolder?: () => void | null
-  onBackUp?: () => void | null
+  onCancel?: () => void
+  onCopyHere?: () => void
+  onMoveHere?: () => void
+  onNewFolder?: () => void
+  onBackUp?: () => void
 }
 
 const NewFolder = ({onNewFolder}) => (
@@ -121,7 +121,7 @@ const HighOrderDestinationPickerMobile = withProps(
   (props: Props & HeaderHocProps): Partial<HeaderHocProps> => ({
     customComponent: (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
+        <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel || undefined}>
           <Kb.Text type="BodyBigLink">Cancel</Kb.Text>
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
