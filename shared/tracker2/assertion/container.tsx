@@ -53,7 +53,6 @@ const mapStateToProps = (state, ownProps) => {
         type: nonUserDetails.assertionKey,
         value: nonUserDetails.assertionValue,
       }
-      console.log('zzz fake asssertion ', a)
     } else if (d.assertions) {
       a = d.assertions.get(ownProps.assertionKey, Constants.noAssertion)
     }

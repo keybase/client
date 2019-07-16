@@ -227,7 +227,6 @@ const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload
   return RPCTypes.userSearchGetNonUserDetailsRpcPromise({assertion}, Constants.nonUserProfileLoadWaitingKey)
     .then(res => {
       if (res.isNonUser) {
-        console.log('zzz dispatching ', name, res)
         const common = {
           assertion,
           assertionKey: res.assertionKey,

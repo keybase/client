@@ -69,9 +69,10 @@ const mapStateToProps = (state, ownProps) => {
       title: username,
     }
   } else {
-    // SBS profile
+    // SBS profile. But `nonUserDetails` might not have arrived yet,
+    // make sure the screen does not appear broken until then.
     const nonUserDetails = Constants.getNonUserDetails(state, username)
-    const name = nonUserDetails.assertionValue
+    const name = nonUserDetails.assertionValue || username
     const service = nonUserDetails.assertionKey
     // For SBS profiles, display service username as the "big username".
     let title = name
@@ -129,14 +130,15 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   }
 
   const notAUser = stateProps.state === 'notAUserYet'
-  let assertionKeys = notAUser
-    ? [stateProps.username]
-    : stateProps._assertions
-    ? stateProps._assertions
-        .sort((a, b) => a.priority - b.priority)
-        .keySeq()
-        .toArray()
-    : null
+  let assertionKeys =
+    notAUser && !!stateProps.service
+      ? [stateProps.username]
+      : stateProps._assertions
+      ? stateProps._assertions
+          .sort((a, b) => a.priority - b.priority)
+          .keySeq()
+          .toArray()
+      : null
 
   // For 'phone' or 'email' profiles do not display placeholder assertions.
   const service = stateProps.service
