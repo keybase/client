@@ -8,8 +8,8 @@ type NotifyActiveFunction = (isActive: boolean) => void
 class InputMonitor {
   active = true
   notifyActive: NotifyActiveFunction
-  activeTimeoutID: number | null
-  inactiveTimeoutID: number | null
+  activeTimeoutID?: number
+  inactiveTimeoutID?: number
 
   constructor(notifyActive: NotifyActiveFunction) {
     this.notifyActive = notifyActive
@@ -20,11 +20,11 @@ class InputMonitor {
   }
 
   _clearTimers = () => {
-    window.clearTimeout(this.activeTimeoutID)
-    this.activeTimeoutID = null
+    this.activeTimeoutID && window.clearTimeout(this.activeTimeoutID)
+    this.activeTimeoutID = undefined
 
-    window.clearTimeout(this.inactiveTimeoutID)
-    this.inactiveTimeoutID = null
+    this.inactiveTimeoutID && window.clearTimeout(this.inactiveTimeoutID)
+    this.inactiveTimeoutID = undefined
   }
 
   resetInactiveTimer = () => {

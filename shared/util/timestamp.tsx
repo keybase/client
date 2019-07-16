@@ -89,7 +89,11 @@ const calendarFormatsForFS = {
 }
 
 export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
-  moment(time).calendar(null, calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst'])
+  moment(time).calendar(
+    // TS definition incorrect
+    (null as unknown) as undefined,
+    calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst']
+  )
 
 export const formatDuration = (duration: number): string => {
   if (!duration) {

@@ -93,7 +93,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   })
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-    return <SimpleScreens.Loading path={props.path} />
+    return <SimpleScreens.Loading />
   }
 
   if (props.softError) {
@@ -103,27 +103,22 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case Types.PathType.Folder:
       return <Browser path={props.path} routePath={props.routePath} />
     case Types.PathType.Unknown:
-      return <SimpleScreens.Loading path={props.path} />
+      return <SimpleScreens.Loading />
     default:
       if (!props.mimeType) {
         // We don't have it yet, so don't render.
-        return <SimpleScreens.Loading path={props.path} />
+        return <SimpleScreens.Loading />
       }
       return bare ? (
         // doesn't matter here as we do a navigateAppend for bare views
-        <SimpleScreens.Loading path={props.path} />
+        <SimpleScreens.Loading />
       ) : (
         <NormalPreview path={props.path} routePath={props.routePath} />
       )
   }
 }
 
-type OwnProps = RouteProps<
-  {
-    path: Types.Path
-  },
-  {}
->
+type OwnProps = RouteProps<{path: Types.Path}>
 
 const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FsMain')(ChooseComponent)
 

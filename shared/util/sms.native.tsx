@@ -1,4 +1,3 @@
-// @ts-ignore not typed
 import * as SMS from 'expo-sms'
 
 const openSMS = (phonenos: Array<string>, body?: string): Promise<any> => {
@@ -6,7 +5,7 @@ const openSMS = (phonenos: Array<string>, body?: string): Promise<any> => {
     if (!isAvailable) {
       throw new Error('SMS not available')
     }
-    return SMS.sendSMSAsync(phonenos, body)
+    return SMS.sendSMSAsync(phonenos, body || '')
   })
 }
 

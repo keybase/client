@@ -37,13 +37,14 @@ class TestInput extends React.Component<
       if (selection) {
         this.setState(
           s => {
-            const value = s.value.substring(0, selection.start) + t + s.value.substring(selection.end)
+            const value =
+              s.value.substring(0, selection.start || 0) + t + s.value.substring(selection.end || 0)
             return {value}
           },
           () => {
             const input = this._input.current
             if (input) {
-              const newCursorPos = selection.start + t.length
+              const newCursorPos = (selection.start || 0) + t.length
               input.setSelection({end: newCursorPos, start: newCursorPos})
               input.focus()
             }

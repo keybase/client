@@ -66,32 +66,14 @@ class TabBar extends React.PureComponent<Props, State> {
       </Kb.Box2>
     ),
   })
-  _menuItems = () =>
-    [
-      {
-        onClick: this.props.onProfileClick,
-        title: 'View profile',
-      },
-      'Divider',
-      {
-        onClick: this.props.onSettings,
-        title: 'Settings',
-      },
-      {
-        onClick: this.props.onHelp,
-        title: 'Help',
-      },
-      {
-        danger: true,
-        onClick: this.props.onSignOut,
-        title: 'Sign out',
-      },
-      {
-        danger: true,
-        onClick: this.props.onQuit,
-        title: 'Quit Keybase',
-      },
-    ] as const
+  _menuItems = () => [
+    {onClick: this.props.onProfileClick, title: 'View profile'},
+    'Divider' as const,
+    {onClick: this.props.onSettings, title: 'Settings'},
+    {onClick: this.props.onHelp, title: 'Help'},
+    {danger: true, onClick: this.props.onSignOut, title: 'Sign out'},
+    {danger: true, onClick: this.props.onQuit, title: 'Quit Keybase'},
+  ]
 
   render() {
     const p = this.props

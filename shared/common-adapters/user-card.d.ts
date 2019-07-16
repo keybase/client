@@ -1,12 +1,12 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
-  onAvatarClicked?: (() => void)
+  onAvatarClicked?: () => void
   outerStyle?: Object | null
   style?: any
-  username?: string | null
-  children?: Array<any>
+  username?: string
+  children?: React.ReactNode
 }
 
-declare class UserCard extends Component<Props> {}
+declare class UserCard extends React.Component<Props> {}
 export default UserCard

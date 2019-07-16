@@ -9,7 +9,7 @@ import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
-type OwnProps = RouteProps<{feedback: string}, {}>
+type OwnProps = RouteProps<{feedback: string}>
 
 export type State = {
   sentFeedback: boolean

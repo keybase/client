@@ -67,7 +67,7 @@ export function fontSize(type: IconType): {fontSize: number} | null {
     throw new Error('Invalid icon type: ' + type)
   }
 
-  const fontSize: number | null = meta.gridSize
+  const fontSize: number | null = meta.gridSize || null
 
   if (fontSize) {
     return {fontSize}

@@ -5,7 +5,7 @@ import Text from './text'
 import Box from './box'
 import {globalStyles} from '../styles'
 
-const sizes = [128, 96, 64, 48, 32, 16]
+const sizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 16]
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )
@@ -15,7 +15,7 @@ const load = () => {
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
     .add('Avatar', () =>
-      sizes.map((size: AvatarSize) => {
+      sizes.map(size => {
         const commonProps = {
           onClick: Sb.action('Avatar clicked'),
           showFollowingStatus: true,

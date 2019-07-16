@@ -6,14 +6,7 @@ import {HeaderOrPopup} from '../../common-adapters'
 import {connect, compose, lifecycle, withHandlers, withStateHandlers, RouteProps} from '../../util/container'
 import SelectChannel from '.'
 
-type OwnProps = RouteProps<
-  {
-    teamname: string
-    selected: boolean
-    repoID: string
-  },
-  {}
->
+type OwnProps = RouteProps<{teamname: string; selected: boolean; repoID: string}>
 
 export type SelectChannelProps = {
   teamname: string

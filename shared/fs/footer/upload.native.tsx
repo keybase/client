@@ -30,30 +30,32 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 
   _startAnimationLoop() {
-    this._animations.loop = NativeAnimated.loop(
+    const loop = NativeAnimated.loop(
       NativeAnimated.timing(this.state.backgroundTop, {
         duration: 2000,
         easing: NativeEasing.linear,
         toValue: -80, // pattern loops on multiples of 80
       })
     )
-    this._animations.loop.start()
+    loop.start()
   }
   _startAnimationIn() {
-    this._animations.in = NativeAnimated.timing(this.state.uploadTop, {
+    const ain = NativeAnimated.timing(this.state.uploadTop, {
       duration: 300,
       easing,
       toValue: 0,
     })
-    this._animations.in.start()
+    this._animations.in = ain
+    ain.start()
   }
   _startAnimationOut(cbIfFinish: () => void) {
-    this._animations.out = NativeAnimated.timing(this.state.uploadTop, {
+    const out = NativeAnimated.timing(this.state.uploadTop, {
       duration: 300,
       easing,
       toValue: 48,
     })
-    this._animations.out.start(({finished}) => finished && cbIfFinish())
+    this._animations.out = out
+    out.start(({finished}) => finished && cbIfFinish())
   }
   _stopAnimation(animation: string) {
     if (!this._animations[animation]) {
