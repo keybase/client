@@ -7,7 +7,7 @@ export type Props = {
   className?: string
   containerStyle?: StylesCrossPlatform
   visible: boolean
-  attachTo?: () => any | null
+  attachTo?: () => any
   // applies on desktop only. Mobile is always centered in the screen
   position?: Position
 }
