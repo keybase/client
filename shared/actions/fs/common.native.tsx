@@ -4,37 +4,20 @@ import * as Types from '../../constants/types/fs'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import {TypedState} from '../../constants/reducer'
-import * as ImagePicker from 'expo-image-picker'
-import {parseUri} from '../../util/expo-image-picker'
+import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {makeRetriableErrorHandler} from './shared'
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 
 const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
-  new Promise((resolve, reject) => {
-    let mediaTypeParam: ImagePicker.MediaTypeOptions
-    switch (action.payload.type) {
-      case Types.MobilePickType.Photo:
-        mediaTypeParam = ImagePicker.MediaTypeOptions.Images
-        break
-      case Types.MobilePickType.Video:
-        mediaTypeParam = ImagePicker.MediaTypeOptions.Videos
-        break
-      case Types.MobilePickType.Mixed:
-        mediaTypeParam = ImagePicker.MediaTypeOptions.All
-        break
-    }
-    return ImagePicker.launchImageLibraryAsync({mediaTypes: mediaTypeParam}).then(result => {
-      result.cancelled === true ? resolve() : resolve(parseUri(result))
+  launchImageLibraryAsync(action.payload.type)
+    .then(result => {
+      result.cancelled === true
+        ? null
+        : FsGen.createUpload({
+            localPath: parseUri(result),
+            parentPath: action.payload.parentPath,
+          })
     })
-  })
-    .then(
-      (localPath: string | null) =>
-        localPath &&
-        FsGen.createUpload({
-          localPath,
-          parentPath: action.payload.parentPath,
-        })
-    )
     .catch(makeRetriableErrorHandler(action))
 
 const downloadSuccess = (state, action: FsGen.DownloadSuccessPayload) => {

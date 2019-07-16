@@ -26,11 +26,10 @@ import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import * as ImagePicker from 'expo-image-picker'
-import {TypedActions, TypedState} from '../../util/container'
+import {TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
-import {parseUri} from '../../util/expo-image-picker'
+import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 
 type NextURI = string
 
@@ -382,18 +381,16 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = (): Promise<TypedActions> =>
-  new Promise((resolve, reject) => {
-    ImagePicker.launchImageLibraryAsync({mediaTypes: ImagePicker.MediaTypeOptions.Images}).then(result => {
+const editAvatar = (): Promise<Saga.MaybeAction> =>
+  launchImageLibraryAsync('photo')
+    .then(result => {
       result.cancelled === true
-        ? resolve()
-        : resolve(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {image: parseUri(result)}, selected: 'profileEditAvatar'}],
-            })
-          )
+        ? null
+        : RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: parseUri(result)}, selected: 'profileEditAvatar'}],
+          })
     })
-  })
+    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
 
 const openAppStore = () =>
   Linking.openURL(
