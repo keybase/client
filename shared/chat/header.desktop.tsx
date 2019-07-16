@@ -3,6 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ProfileGen from '../actions/profile-gen'
 import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -18,6 +19,7 @@ type Props = {
   infoPanelOpen: boolean
   isTeam: boolean
   muted: boolean
+  onGoToProfile: (username: string) => void
   onOpenFolder: () => void
   onNewChat: () => void
   onToggleInfoPanel: () => void
@@ -25,6 +27,7 @@ type Props = {
   participants: Array<string> | null
   showActions: boolean
   unMuteConversation: () => void
+  username: string
 }
 
 const descStyle = {fontSize: 13, lineHeight: '17px' as any, wordBreak: 'break-all'} as const
@@ -67,8 +70,13 @@ const Header = (p: Props) => {
       </Kb.WithTooltip>
     )
   }
+  // length ===1 means just you so show yourself
+  const withoutSelf =
+    p.participants && p.participants.length > 1
+      ? p.participants.filter(part => part !== p.username)
+      : p.participants
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
+    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
         <ChatInboxHeader onNewChat={p.onNewChat} />
       </Kb.Box2>
@@ -85,26 +93,29 @@ const Header = (p: Props) => {
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
                 {p.channel}
               </Kb.Text>
-            ) : p.participants ? (
-              p.participants.map(part =>
-                p.displayNames[part] ? (
-                  <Kb.Text type="Header">{p.displayNames[part]}</Kb.Text>
-                ) : (
-                  <Kb.ConnectedUsernames
-                    colorFollowing={true}
-                    underline={true}
-                    inline={false}
-                    commaColor={Styles.globalColors.black_50}
-                    type="Header"
-                    usernames={[part]}
-                    onUsernameClicked="profile"
-                    skipSelf={
-                      !!p.participants &&
-                      p.participants.length > 1 /* length ===1 means just you so show yourself */
-                    }
-                  />
-                )
-              )
+            ) : withoutSelf ? (
+              <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
+                {withoutSelf.map((part, i, participants) => (
+                  <Kb.Text type="Header" key={part}>
+                    {p.displayNames[part] ? (
+                      <Kb.Text type="Header" onClick={() => p.onGoToProfile(part)}>
+                        {p.displayNames[part]}
+                      </Kb.Text>
+                    ) : (
+                      <Kb.ConnectedUsernames
+                        colorFollowing={true}
+                        underline={true}
+                        inline={true}
+                        commaColor={Styles.globalColors.black_50}
+                        type="Header"
+                        usernames={[part]}
+                        onUsernameClicked="profile"
+                      />
+                    )}
+                    {i !== participants.length - 1 && <Kb.Text type="Header">,&#32;</Kb.Text>}
+                  </Kb.Text>
+                ))}
+              </Kb.Box2>
             ) : null}
             {p.muted && (
               <Kb.Icon
@@ -188,10 +199,12 @@ const Connected = Container.connect(
       _username: state.config.username,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       infoPanelOpen: Constants.isInfoPanelOpen(),
+      username: state.config.username,
     }
   },
   dispatch => ({
     _onOpenFolder: conversationIDKey => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
+    onGoToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
     onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
     onToggleThreadSearch: conversationIDKey =>
@@ -220,6 +233,7 @@ const Connected = Container.connect(
       infoPanelOpen: stateProps.infoPanelOpen,
       isTeam: ['small', 'big'].includes(meta.teamType),
       muted: meta.isMuted,
+      onGoToProfile: dispatchProps.onGoToProfile,
       onNewChat: dispatchProps.onNewChat,
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
@@ -227,6 +241,7 @@ const Connected = Container.connect(
       participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
       showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
       unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
+      username: stateProps.username,
     }
   }
 )(Header)
