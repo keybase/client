@@ -156,10 +156,14 @@ func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 			return err
 		}
 		// write out commands to conv
+		vis := keybase1.TLFVisibility_PUBLIC
+		if ad.Typ != chat1.BotCommandsAdvertisementTyp_PUBLIC {
+			vis = keybase1.TLFVisibility_PRIVATE
+		}
 		if err := b.G().ChatHelper.SendMsgByID(ctx, conv.GetConvID(), conv.Info.TlfName,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: string(dat),
-			}), chat1.MessageType_TEXT); err != nil {
+			}), chat1.MessageType_TEXT, vis); err != nil {
 			return err
 		}
 		remote, err := ad.ToRemote(conv.GetConvID(), &conv.Info.Triple.Tlfid)
@@ -277,6 +281,7 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUp
 
 func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, convID chat1.ConversationID,
 	botUID gregor1.UID) (res *storageCommandAdvertisement) {
+	b.Debug(ctx, "getConvAdvertisement: reading commands from: %s for uid: %s", convID, botUID)
 	tv, err := b.G().ConvSource.Pull(ctx, convID, b.uid, chat1.GetThreadReason_BOTCOMMANDS,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -305,10 +310,12 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 		return nil
 	}
 	res = new(storageCommandAdvertisement)
+	b.Debug(ctx, "getConvAdvertisement: body: %s", body.Text().Body)
 	if err = json.Unmarshal([]byte(body.Text().Body), &res.Advertisement); err != nil {
 		b.Debug(ctx, "getConvAdvertisement: failed to JSON decode: %s", err)
 		return nil
 	}
+	b.Debug(ctx, "getConvAdvertisement: ad: %+v", res)
 	res.Username = msg.Valid().SenderUsername
 	return res
 }

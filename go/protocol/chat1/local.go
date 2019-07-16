@@ -5780,8 +5780,8 @@ type LocationDeniedArg struct {
 }
 
 type AdvertiseBotCommandsLocalArg struct {
-	Alias  *string                  `codec:"alias,omitempty" json:"alias,omitempty"`
-	Params []AdvertiseCommandsParam `codec:"params" json:"params"`
+	Alias          *string                  `codec:"alias,omitempty" json:"alias,omitempty"`
+	Advertisements []AdvertiseCommandsParam `codec:"advertisements" json:"advertisements"`
 }
 
 type ListBotCommandsLocalArg struct {

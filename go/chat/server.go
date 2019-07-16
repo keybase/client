@@ -2161,7 +2161,8 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		Policy:      policy,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, conv.Info.TlfName, body, chat1.MessageType_SYSTEM)
+	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, conv.Info.TlfName, body, chat1.MessageType_SYSTEM,
+		conv.Info.Visibility)
 }
 
 func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
@@ -3013,7 +3014,7 @@ func (h *Server) AdvertiseBotCommandsLocal(ctx context.Context, arg chat1.Advert
 	if err != nil {
 		return res, err
 	}
-	if err := h.G().BotCommandManager.Advertise(ctx, arg.Alias, arg.Params); err != nil {
+	if err := h.G().BotCommandManager.Advertise(ctx, arg.Alias, arg.Advertisements); err != nil {
 		return res, err
 	}
 	return res, nil

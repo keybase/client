@@ -272,6 +272,19 @@ func (c *chatServiceHandler) SetUnfurlSettingsV1(ctx context.Context, opts setUn
 	return Reply{Result: true}
 }
 
+func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertisementTyp, error) {
+	switch typ {
+	case "public":
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, nil
+	case "teamconvs":
+		return chat1.BotCommandsAdvertisementTyp_TLFID_CONVS, nil
+	case "teammembers":
+		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
+	default:
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, errors.New("unknown advertisement type")
+	}
+}
+
 func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts advertiseCommandsOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -282,9 +295,25 @@ func (c *chatServiceHandler) AdvertiseCommandsV1(ctx context.Context, opts adver
 		alias = new(string)
 		*alias = opts.Alias
 	}
+	var ads []chat1.AdvertiseCommandsParam
+	for _, ad := range opts.Advertisements {
+		typ, err := c.getAdvertTyp(ad.Typ)
+		if err != nil {
+			return c.errReply(err)
+		}
+		var teamName *string
+		if ad.TeamName != "" {
+			teamName = &ad.TeamName
+		}
+		ads = append(ads, chat1.AdvertiseCommandsParam{
+			Typ:      typ,
+			Commands: ad.Commands,
+			TeamName: teamName,
+		})
+	}
 	res, err := client.AdvertiseBotCommandsLocal(ctx, chat1.AdvertiseBotCommandsLocalArg{
-		Alias:  alias,
-		Params: opts.Commands,
+		Alias:          alias,
+		Advertisements: ads,
 	})
 	if err != nil {
 		return c.errReply(err)
@@ -1512,7 +1541,7 @@ type NewConvRes struct {
 }
 
 type ListCommandsRes struct {
-	Commands []chat1.UserBotCommandOutput
+	Commands []chat1.UserBotCommandOutput `json:"commands"`
 	RateLimits
 }
 

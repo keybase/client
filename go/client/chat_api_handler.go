@@ -531,14 +531,25 @@ func (o setUnfurlSettingsOptionsV1) Check() error {
 	return nil
 }
 
+type advertisementParam struct {
+	Typ      string `json:"type"`
+	Commands []chat1.UserBotCommandInput
+	TeamName string `json:"team_name,omitempty"`
+}
+
 type advertiseCommandsOptionsV1 struct {
-	Alias    string `json:"alias,omitempty"`
-	Commands []chat1.AdvertiseCommandsParam
+	Alias          string `json:"alias,omitempty"`
+	Advertisements []advertisementParam
 }
 
 func (a advertiseCommandsOptionsV1) Check() error {
-	if len(a.Commands) == 0 {
+	if len(a.Advertisements) == 0 {
 		return errors.New("must specify at least one commands advertiement")
+	}
+	for _, c := range a.Advertisements {
+		if len(c.Commands) == 0 {
+			return errors.New("must specify at least one command in each advertisement")
+		}
 	}
 	return nil
 }

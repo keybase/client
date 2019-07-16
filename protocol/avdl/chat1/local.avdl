@@ -1111,7 +1111,7 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias, 
-    array<AdvertiseCommandsParam> params);
+    array<AdvertiseCommandsParam> advertisements);
   record ListBotCommandsLocalRes {
     array<UserBotCommandOutput> commands;
     array<RateLimit> rateLimits;

@@ -70,6 +70,12 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.GetUnfurlSettingsV1(ctx, c, w)
 	case methodSetUnfurlSettings:
 		return d.handler.SetUnfurlSettingsV1(ctx, c, w)
+	case methodAdvertiseCommands:
+		return d.handler.AdvertiseCommandsV1(ctx, c, w)
+	case methodClearCommands:
+		return d.handler.ClearCommandsV1(ctx, c, w)
+	case methodListCommands:
+		return d.handler.ListCommandsV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

@@ -1254,11 +1254,11 @@ func NewMockChatHelper() *MockChatHelper {
 }
 
 func (m *MockChatHelper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string) error {
+	tlfName string, text string, vis keybase1.TLFVisibility) error {
 	return nil
 }
 func (m *MockChatHelper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error {
 	return nil
 }
 func (m *MockChatHelper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,

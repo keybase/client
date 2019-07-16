@@ -4779,7 +4779,7 @@
           ]
         },
         {
-          "name": "params",
+          "name": "advertisements",
           "type": {
             "type": "array",
             "items": "AdvertiseCommandsParam"
