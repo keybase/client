@@ -2,6 +2,7 @@ import * as React from 'react'
 import SelectOtherDevice from '.'
 import {action, storiesOf} from '../../stories/storybook'
 import * as Constants from '../../constants/provision'
+import * as Types from '../../constants/types/provision'
 
 const rd = {
   cTime: 0,
@@ -39,14 +40,27 @@ const props = {
   onSelect: action('onSelect'),
 }
 
-const tonsOfDevices = []
+const tonsOfDevices: Array<Types.Device> = []
 for (var i = 0; i < 100; ++i) {
+  let type: string
+  switch (i % 3) {
+    case 0:
+      type = 'desktop'
+      break
+    case 1:
+      type = 'mobile'
+      break
+    default:
+      type = 'backup'
+      break
+  }
+
   tonsOfDevices.push(
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: String(i + 1),
       name: 'name: ' + String(i),
-      type: ['desktop', 'mobile', 'backup'][i % 3],
+      type,
     })
   )
 }

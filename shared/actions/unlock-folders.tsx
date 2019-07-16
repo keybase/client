@@ -10,7 +10,7 @@ function* checkPaperKey(_, action: UnlockFoldersGen.CheckPaperKeyPayload) {
   const {paperKey} = action.payload
   yield Saga.put(UnlockFoldersGen.createWaiting({waiting: true}))
   try {
-    yield* Saga.callPromise(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
+    yield Saga.callUntyped(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone())
   } catch (e) {
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDoneError({error: e.message}))

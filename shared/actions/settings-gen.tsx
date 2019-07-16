@@ -817,4 +817,4 @@ export type Actions =
   | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
   | WaitingForResponsePayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

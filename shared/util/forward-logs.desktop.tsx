@@ -76,13 +76,14 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
     }
     const encoding = 'utf8'
     const logFd = setupFileWritable()
-    const writer = logFd ? fs.createWriteStream('', {fd: logFd}) : null
-    if (!writer) {
+    const w = logFd ? fs.createWriteStream('', {fd: logFd}) : null
+    if (!w) {
       const err = 'Error writing log lines to file'
       console.warn(err)
       reject(new Error(err))
       return
     }
+    const writer = w
     let i = 0
     // Adapted from the nodejs sample: https://nodejs.org/api/stream.html#stream_class_stream_writable
     write()
@@ -92,8 +93,7 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
         const line = JSON.stringify(lines[i]) + '\n'
         // last time!
         if (i === lines.length - 1) {
-          // @ts-ignore codemod-issue
-          writer.write(line, encoding, resolve)
+          writer.write(line, encoding, resolve as any)
         } else {
           // see if we should continue, or wait
           // don't pass the callback, because we're not done yet.

@@ -85,11 +85,11 @@ const Breadcrumb = Kb.OverlayParentHOC(
 )
 
 const MaybePublicTag = ({path}: {path: Types.Path}) =>
-  Constants.hasPublicTag(path) && (
+  Constants.hasPublicTag(path) ? (
     <Kb.Box2 direction="horizontal">
       <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} />
     </Kb.Box2>
-  )
+  ) : null
 
 const MainTitle = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" gap="tiny">
