@@ -40,7 +40,7 @@ class FilteredTopLine extends PureComponent<Props> {
           />
           {!!this.props.numSearchHits && (
             <Kb.Text type="BodySmall" style={Styles.collapseStyles([
-              this.props.isSelected && styles.selectedText
+              this.props.isSelected && styles.selectedText,
             ])}>
               {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
             </Kb.Text>
