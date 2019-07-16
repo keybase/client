@@ -8,7 +8,7 @@ type SortedAdmins = {
 
 // Transforms an array of public admins for display on profile
 function parsePublicAdmins(publicAdmins: Array<string>, you: string | null): SortedAdmins {
-  const idx = publicAdmins.indexOf(you)
+  const idx = you ? publicAdmins.indexOf(you) : -1
   if (idx !== -1) {
     const elem = publicAdmins.splice(idx, 1)
     publicAdmins.unshift(...elem)

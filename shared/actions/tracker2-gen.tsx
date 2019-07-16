@@ -139,4 +139,4 @@ export type Actions =
   | UpdateFollowersPayload
   | UpdateResultPayload
   | UpdatedDetailsPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

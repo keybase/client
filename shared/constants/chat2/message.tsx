@@ -801,14 +801,14 @@ const validUIMessagetoMessage = (
       let fileURL = ''
       let fileType = ''
       let fileURLCached = false
-      let videoDuration = null
+      let videoDuration: string | null = null
       let inlineVideoPlayable = false
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
         fileURLCached = m.assetUrlInfo.fullUrlCached
-        videoDuration = m.assetUrlInfo.videoDuration
+        videoDuration = m.assetUrlInfo.videoDuration || null
         inlineVideoPlayable = m.assetUrlInfo.inlineVideoPlayable
       }
 
@@ -1211,7 +1211,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message) => {
 
 export const enoughTimeBetweenMessages = (
   message: MessageTypes.Message,
-  previous: MessageTypes.Message | null
+  previous?: MessageTypes.Message
 ): boolean =>
   Boolean(
     previous &&

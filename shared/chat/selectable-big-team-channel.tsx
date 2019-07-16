@@ -90,7 +90,10 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               </Kb.Text>
             </Kb.Box2>
             {!!this.props.numSearchHits && (
-              <Kb.Text type="BodySmall">
+              <Kb.Text
+                type="BodySmall"
+                style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
+              >
                 {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
               </Kb.Text>
             )}
@@ -128,6 +131,9 @@ const styles = Styles.styleSheetCreate({
     height: rowHeight,
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
+  },
+  selectedText: {
+    color: Styles.globalColors.white,
   },
   teamname: Styles.platformStyles({
     common: {

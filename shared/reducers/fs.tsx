@@ -8,8 +8,8 @@ import * as Types from '../constants/types/fs'
 const initialState = Constants.makeState()
 
 const updatePathItem = (
-  oldPathItem?: Types.PathItem | null,
-  newPathItemFromAction?: Types.PathItem
+  oldPathItem: Types.PathItem | null | undefined,
+  newPathItemFromAction: Types.PathItem
 ): Types.PathItem => {
   if (!oldPathItem || oldPathItem.type !== newPathItemFromAction.type) {
     return newPathItemFromAction
@@ -132,7 +132,7 @@ const haveSamePartialSyncConfig = (tlf1: Types.Tlf, tlf2: Types.Tlf) =>
   tlf1.syncConfig.mode === Types.TlfSyncMode.Partial &&
   tlf2.syncConfig.enabledPaths.equals(tlf1.syncConfig.enabledPaths)
 
-const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => {
+const updateTlf = (oldTlf: Types.Tlf | undefined, newTlf: Types.Tlf): Types.Tlf => {
   if (!oldTlf) {
     return newTlf
   }
@@ -145,7 +145,7 @@ const updateTlf = (oldTlf?: Types.Tlf | null, newTlf?: Types.Tlf): Types.Tlf => 
   if (!newTlf.conflictState.equals(oldTlf.conflictState)) {
     return newTlf
   }
-  // syncConfig, resetParticipants, and conflict all stayed thte same in value,
+  // syncConfig, resetParticipants, and conflict all stayed the same in value,
   // so just reuse old reference.
   return oldTlf.merge(
     newTlf.withMutations(n =>
@@ -219,7 +219,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
       )
     case FsGen.folderListLoaded: {
-      const toRemove = []
+      const toRemove: Array<Types.Path> = []
       const toMerge = action.payload.pathItems.map((newPathItem, path) => {
         const oldPathItem = state.pathItems.get(path, Constants.unknownPathItem)
         const toSet =

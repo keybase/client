@@ -24,7 +24,7 @@ type TestInputProps = {
 }
 
 class TestInput extends React.Component<TestInputProps> {
-  _input: Input | null
+  _input: Input | null = null
 
   _setInput = (ref: Input | null) => {
     this._input = ref

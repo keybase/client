@@ -46,7 +46,7 @@ const initState = {
 
 const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
   class extends React.PureComponent<Props, State> {
-    _tickerID?: number | void
+    _tickerID?: NodeJS.Timeout
 
     _tick = () =>
       this.setState(prevState => {
@@ -91,7 +91,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
         return
       }
       this.props.clearInterval(this._tickerID)
-      this._tickerID = null
+      this._tickerID = undefined
     }
 
     _updateState = (prevState: Readonly<State>, props: Readonly<Props>) => {

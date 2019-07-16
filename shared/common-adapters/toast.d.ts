@@ -4,10 +4,10 @@ import {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   children: React.ReactNode
-  className?: string | null
+  className?: string
   containerStyle?: StylesCrossPlatform
   visible: boolean
-  attachTo?: (() => any | null) | null
+  attachTo?: () => any
   // applies on desktop only. Mobile is always centered in the screen
   position?: Position
 }

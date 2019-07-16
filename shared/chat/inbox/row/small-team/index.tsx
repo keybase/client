@@ -9,7 +9,7 @@ import * as RowSizes from '../sizes'
 import * as ChatTypes from '../../../../constants/types/chat2'
 
 export type Props = {
-  backgroundColor: string | null
+  backgroundColor?: string
   channelname?: string
   hasBadge: boolean
   hasBottomLine: boolean
@@ -82,12 +82,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     return (
       <SmallTeamBox
         {...clickProps}
-        style={Styles.collapseStyles([
-          {
-            backgroundColor: this._backgroundColor(),
-          },
-          styles.container,
-        ])}
+        style={Styles.collapseStyles([{backgroundColor: this._backgroundColor()}, styles.container])}
       >
         <Kb.Box style={Styles.collapseStyles([styles.rowContainer, styles.fastBlank])}>
           {props.teamname ? (

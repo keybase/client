@@ -13,8 +13,8 @@ type Props = {
   lastEditUser: string
   lastEditUserFollowing: boolean
   name: string
-  you: string | null
-  teamname: string | null
+  you?: string
+  teamname?: string
   url: string
   isNew: boolean
   onBrowseGitRepo: () => void

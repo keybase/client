@@ -15,8 +15,7 @@ type OwnProps = RouteProps<
     image: string
     sendChatNotification: boolean
     teamname: string
-  },
-  {}
+  }
 >
 
 const mapStateToProps = (state, ownProps) => ({

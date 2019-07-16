@@ -5,7 +5,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import AddDevice from '.'
 import {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}, {}>
+type OwnProps = RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}>
 
 export default Container.namedConnect(
   () => ({}),

@@ -59,9 +59,9 @@ type State = {
 class _CopyText extends React.Component<Props, State> {
   state = {revealed: !this.props.withReveal}
 
-  _attachmentRef = null
+  _attachmentRef: Box2 | null = null
   _toastRef: _ToastContainer | null = null
-  _textRef = null
+  _textRef: Text | null = null
 
   copy = () => {
     this._toastRef && this._toastRef.copy()
@@ -198,7 +198,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   toastText: Styles.platformStyles({
-    common: {color: Styles.globalColors.white},
+    common: {
+      color: Styles.globalColors.white,
+      textAlign: 'center',
+    },
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,

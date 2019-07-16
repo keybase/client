@@ -2,8 +2,8 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Container from '../../../../util/container'
 import ListComponent from '.'
-import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -14,7 +14,7 @@ type OwnProps = {
   scrollListUpCounter: number
 }
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last(null)
   const maybeCenterMessage = Constants.getMessageCenterOrdinal(state, conversationIDKey)
@@ -25,7 +25,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   let lastMessageIsOurs = false
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
-    lastMessageIsOurs = m && m.author === state.config.username
+    lastMessageIsOurs = !!m && m.author === state.config.username
   }
 
   return {
@@ -39,7 +39,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
   _loadNewerMessages: () => dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey})),
   _loadOlderMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
@@ -88,13 +88,9 @@ const loadMoreMessages = (state, props, loadFn) => ordinal => {
   }
 }
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  withStateHandlers(
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.withStateHandlers(
     {
       _conversationIDKey: Constants.noConversationIDKey,
       _lastLoadMoreOrdinalTime: Date.now(),
@@ -106,7 +102,7 @@ export default compose(
       loadOlderMessages: (state, props) => loadMoreMessages(state, props, props._loadOlderMessages),
     } as any
   ),
-  lifecycle({
+  Container.lifecycle({
     componentDidMount() {
       if (markedInitiallyLoaded) {
         return

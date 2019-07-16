@@ -24,7 +24,7 @@ class Request {
 
   updateWaiting(waiting: boolean, err?: RPCError | null) {
     this._waiting = waiting
-    this._waitingHandler(waiting, err)
+    this._waitingHandler(waiting, err || null)
   }
 }
 

@@ -1692,4 +1692,4 @@ export type Actions =
   | ValidatedSecretKeyPayload
   | ValidatedSecretKeyPayloadError
   | WalletDisclaimerReceivedPayload
-  | {type: 'common:resetStore', payload: null}
+  | {type: 'common:resetStore', payload: {}}

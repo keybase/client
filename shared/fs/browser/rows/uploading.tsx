@@ -9,7 +9,7 @@ import {Filename, PathItemIcon} from '../../common'
 type UploadingProps = {
   path: Types.Path
   type: Types.PathType
-  errorRetry?: () => void | null
+  errorRetry?: (() => void)| null
   writingToJournal: boolean
   syncing: boolean
 }

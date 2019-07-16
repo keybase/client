@@ -5,7 +5,7 @@ import {getStyle as getTextStyle} from '../../common-adapters/text'
 type Props = {
   autoFocus?: boolean
   value: string
-  placeholder?: string | null
+  placeholder?: string
   inputStyle?: Object
   onChange: (text: string) => void
   onKeyDown?: (ev: React.KeyboardEvent) => void
@@ -14,18 +14,16 @@ type Props = {
 }
 
 type State = {
-  measuredWidth: number | null
+  measuredWidth: number | undefined
 }
 
 class AutosizeInput extends Component<Props, State> {
-  _inputEl: HTMLElement | null
-  _measureEl: HTMLElement | null
-  _raf: number
+  _inputEl: HTMLElement | null = null
+  _measureEl: HTMLElement | null = null
+  _raf: number | undefined
   _mounted: boolean = false
 
-  state = {
-    measuredWidth: null,
-  }
+  state = {measuredWidth: undefined}
 
   componentDidMount() {
     this._mounted = true
@@ -45,7 +43,7 @@ class AutosizeInput extends Component<Props, State> {
 
   componentWillUnmount() {
     this._mounted = false
-    window.cancelAnimationFrame(this._raf)
+    this._raf && window.cancelAnimationFrame(this._raf)
   }
 
   _onChange = ev => {
@@ -73,11 +71,13 @@ class AutosizeInput extends Component<Props, State> {
   render() {
     return (
       <div
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'stretch',
-          width: this.state.measuredWidth,
-        }}
+        style={
+          {
+            ...globalStyles.flexBoxColumn,
+            alignItems: 'stretch',
+            width: this.state.measuredWidth,
+          } as const
+        }
       >
         <input
           autoFocus={this.props.autoFocus}

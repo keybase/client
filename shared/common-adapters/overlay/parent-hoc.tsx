@@ -2,7 +2,7 @@ import * as React from 'react'
 import {isMobile} from '../../constants/platform'
 
 export type OverlayParentProps = {
-  getAttachmentRef: () => React.Component<any> | null
+  getAttachmentRef?: () => React.Component<any> | null
   showingMenu: boolean
   setAttachmentRef: (arg0: React.Component<any> | null) => void
   setShowingMenu: (arg0: boolean) => void

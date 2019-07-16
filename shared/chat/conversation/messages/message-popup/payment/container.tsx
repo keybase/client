@@ -12,7 +12,7 @@ import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 
 type OwnProps = {
-  attachTo: () => React.Component<any> | null
+  attachTo?: () => React.Component<any> | null
   message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText
   paymentID?: WalletTypes.PaymentID
   onHidden: () => void

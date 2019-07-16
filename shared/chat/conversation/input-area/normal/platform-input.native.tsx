@@ -20,21 +20,13 @@ import * as Permissions from 'expo-permissions'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
-type State = {
-  hasText: boolean
-}
+type State = {hasText: boolean}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | Kb.PlainInput
-  _lastText: string | null
-  _whichMenu: menuType
-
-  constructor(props: PlatformInputPropsInternal) {
-    super(props)
-    this.state = {
-      hasText: false,
-    }
-  }
+  _input: null | Kb.PlainInput = null
+  _lastText?: string
+  _whichMenu?: menuType
+  state = {hasText: false}
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref

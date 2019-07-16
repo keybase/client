@@ -8,12 +8,7 @@ import {PlanLevel} from '../../constants/types/settings'
 import {RouteProps} from '../../route-tree/render-route'
 import {TypedState} from '../../constants/reducer'
 
-type OwnProps = RouteProps<
-  {
-    selectedLevel: PlanLevel
-  },
-  {}
->
+type OwnProps = RouteProps<{selectedLevel: PlanLevel}>
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
@@ -26,6 +21,7 @@ export default connect(
     }
 
     return {
+      // @ts-ignore
       gigabytes: availablePlan.gigabytes,
       numStars: planToStars(selectedLevel),
       paymentOption: {
@@ -33,6 +29,7 @@ export default connect(
         type: 'credit-card-no-past',
       },
       plan: selectedLevel,
+      // @ts-ignore
       price: priceToString(availablePlan.price_pennies),
     }
   },
