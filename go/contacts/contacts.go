@@ -15,7 +15,7 @@ import (
 func formatSBSAssertion(c keybase1.ContactComponent) string {
 	switch {
 	case c.Email != nil:
-		return fmt.Sprintf("[%s]@email", *c.Email)
+		return fmt.Sprintf("[%s]@email", strings.ToLower(string(*c.Email)))
 	case c.PhoneNumber != nil:
 		return fmt.Sprintf("%s@phone", strings.TrimLeft(string(*c.PhoneNumber), "+"))
 	default:
@@ -55,8 +55,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	mctx.Debug("Going to look up %d emails and %d phone numbers using provider", len(emailSet), len(phoneSet))
 
-	// contactIndex -> true for all contacts that have at least one component resolved.
+	// Set of contactIndexes for all contacts that have at least one component
+	// resolved. Once one component from a contact resolved, discard rest of
+	// that contact's components.
 	contactsFound := make(map[int]struct{})
+	// Deduplicate on resolved UIDs - so if multiple contacts / components
+	// resolve to the same user, only one should show up in the final list.
 	usersFound := make(map[keybase1.UID]struct{})
 	errorComponents := make(map[string]string)
 
@@ -95,6 +99,10 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 						if _, userFound := usersFound[lookupRes.UID]; userFound {
 							// This user was already resolved by looking up another
 							// component or another contact.
+
+							// Make sure we mark it so it does not show up as
+							// unresolved later on.
+							contactsFound[contactI] = struct{}{}
 							continue
 						}
 
@@ -104,13 +112,14 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 							continue
 						}
 
+						assertion := formatSBSAssertion(component)
 						res = append(res, keybase1.ProcessedContact{
 							ContactIndex: contactI,
 							ContactName:  contact.Name,
 							Component:    component,
 							Resolved:     true,
 							Uid:          lookupRes.UID,
-							Assertion:    formatSBSAssertion(component),
+							Assertion:    assertion,
 						})
 						contactsFound[contactI] = struct{}{}
 						usersFound[lookupRes.UID] = struct{}{}
@@ -156,6 +165,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			continue
 		}
 
+		// Skip same assertions within a contact.
+		assertionsSeen := make(map[string]struct{})
+
 		// Add e.g. "(Work)" labels to display labels if there are multiple
 		// components in a contact.
 		var addLabel = len(c.Components) > 1
@@ -163,6 +175,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 			if _, foundErr := errorComponents[component.ValueString()]; foundErr {
 				// Do not return error components. If server said they are
 				// invalid, they can't be used for SBS either.
+				continue
+			}
+
+			assertion := formatSBSAssertion(component)
+			if _, seen := assertionsSeen[assertion]; seen {
+				// Already seen *within this contact*.
 				continue
 			}
 
@@ -175,8 +193,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				DisplayName:  c.Name,
 				DisplayLabel: component.FormatDisplayLabel(addLabel),
 
-				Assertion: formatSBSAssertion(component),
+				Assertion: assertion,
 			})
+			assertionsSeen[assertion] = struct{}{}
 		}
 	}
 

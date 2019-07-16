@@ -453,3 +453,48 @@ func TestErrorsInResolution(t *testing.T) {
 	}
 	require.Equal(t, expected, displayResults(res))
 }
+
+func TestDuplicateEntries(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
+	defer tc.Cleanup()
+
+	contactList := []keybase1.Contact{
+		keybase1.Contact{
+			Name: "Alice",
+			Components: []keybase1.ContactComponent{
+				makePhoneComponent("home", "+1111222"),
+				makePhoneComponent("car", "+1111222"),
+				makePhoneComponent("car", "+1111222"),
+			},
+		},
+		keybase1.Contact{
+			Name: "Bob",
+			Components: []keybase1.ContactComponent{
+				makeEmailComponent("email", "bob+test@keyba.se"),
+			},
+		},
+		keybase1.Contact{
+			Name: "Robert B.",
+			Components: []keybase1.ContactComponent{
+				makeEmailComponent("E-Mail", "bob+test@keyba.se"),
+			},
+		},
+	}
+
+	provider := makeProvider(t)
+	provider.emails["bob+test@keyba.se"] = mockLookupUser{UID: keybase1.UID("2222"), Username: "bob", Fullname: "Bobby"}
+
+	// We expect to see one resolution for "bob+test@keyba.se" from "Bob"
+	// contact (comes first), and one unresolved entry for Alice for "+1111222"
+	// (one even though there are 3 components with the same phone number).
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+	require.True(t, res[0].Resolved)
+	require.False(t, res[1].Resolved)
+	expected := []string{
+		`"bob" "Bob"`,
+		`"Alice" "+1111222 (home)"`,
+	}
+	require.Equal(t, expected, displayResults(res))
+}
