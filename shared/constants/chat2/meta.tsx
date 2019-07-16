@@ -15,6 +15,7 @@ import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import {getFullname} from '../users'
 import {AllowedColors} from '../../common-adapters/text'
+import {e164ToDisplay} from '../../util/phone-numbers'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -281,6 +282,13 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   let cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
 
+  const participants = I.List((i.participants || [])).map(part => {
+    if (part.type === RPCChatTypes.UIParticipantType.phoneno) {
+      return e164ToDisplay('+' + part.assertion)
+    }
+    return part.assertion
+  })
+
   return makeConversationMeta({
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
@@ -306,7 +314,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
         return map
       }, {})
     ),
-    participants: I.List((i.participants || []).map(part => part.assertion)),
+    participants,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
