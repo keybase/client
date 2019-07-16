@@ -12,10 +12,6 @@ type Props = {
   showProxySettings: () => void
 }
 
-type State = {
-  intervalId: string
-}
-
 const Feedback = ({onFeedback}) =>
   onFeedback ? (
     <Kb.Text type="BodySmallSecondaryLink" onClick={onFeedback}>
@@ -31,7 +27,7 @@ const Feedback = ({onFeedback}) =>
     </Kb.Text>
   )
 
-class Intro extends React.Component<Props, State> {
+class Intro extends React.Component<Props, {}> {
   intervalId: NodeJS.Timeout
 
   componentDidMount() {

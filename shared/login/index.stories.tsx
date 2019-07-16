@@ -28,7 +28,7 @@ const load = () => {
     .add('Normal', () => <JoinOrLogin {...joinOrLoginProps} />)
     .add('Banner', () => <JoinOrLogin {...joinOrLoginProps} bannerMessage="You just deleted your account!" />)
     .add('Feedback', () => <JoinOrLogin {...joinOrLoginProps} onFeedback={Sb.action('onFeedback')} />)
-    .add('Feedback', () => <JoinOrLogin {...joinOrLoginProps} isOnline={false} />)
+    .add('Proxy Settings', () => <JoinOrLogin {...joinOrLoginProps} isOnline={false} />)
 
   Sb.storiesOf('Login/Loading', module)
     .add('Loading', () => <Loading {...loadingProps} />)
