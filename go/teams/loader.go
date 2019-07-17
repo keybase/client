@@ -527,7 +527,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		cachedName = &ret.Name
 	}
 
-	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret)
+	hiddenPackage, err := l.hiddenPackage(mctx, arg.teamID, ret, arg.me)
 	if err != nil {
 		return nil, err
 	}
@@ -912,17 +912,24 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	return &load2res, nil
 }
 
-func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData) (ret *hidden.LoaderPackage, err error) {
+func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData, me keybase1.UserVersion) (ret *hidden.LoaderPackage, err error) {
 	return hidden.NewLoaderPackage(mctx, id,
-		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, err error) {
+		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration,
+			role keybase1.TeamRole, err error) {
 			if team == nil {
-				return encKID, gen, nil
+				return encKID, gen, keybase1.TeamRole_NONE, nil
 			}
-			ptk, err := TeamSigChainState{inner: team.Chain}.GetLatestPerTeamKey(mctx)
+			state := TeamSigChainState{inner: team.Chain}
+
+			ptk, err := state.GetLatestPerTeamKey(mctx)
 			if err != nil {
-				return encKID, gen, err
+				return encKID, gen, keybase1.TeamRole_NONE, err
 			}
-			return ptk.EncKID, ptk.Gen, nil
+			role, err = state.GetUserRole(me)
+			if err != nil {
+				return encKID, gen, keybase1.TeamRole_NONE, err
+			}
+			return ptk.EncKID, ptk.Gen, role, nil
 		})
 }
 
