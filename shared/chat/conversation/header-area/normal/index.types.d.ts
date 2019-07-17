@@ -11,6 +11,7 @@ export type Props = {
   infoPanelOpen: boolean
   teamName?: string
   participants: Array<string>
+  participantToDisplayName: {[key: string]: string}
   pendingWaiting: boolean
   smallTeam: boolean
   unMuteConversation: () => void

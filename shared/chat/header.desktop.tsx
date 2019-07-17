@@ -96,26 +96,28 @@ const Header = (p: Props) => {
               </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
-                {withoutSelf.map((part, i, participants) => (
-                  <Kb.Text type="Header" key={part}>
-                    {p.displayNames[part] ? (
-                      <Kb.Text type="Header" onClick={() => p.onGoToProfile(part)}>
-                        {p.displayNames[part]}
-                      </Kb.Text>
-                    ) : (
-                      <Kb.ConnectedUsernames
-                        colorFollowing={true}
-                        underline={true}
-                        inline={true}
-                        commaColor={Styles.globalColors.black_50}
-                        type="Header"
-                        usernames={[part]}
-                        onUsernameClicked="profile"
-                      />
-                    )}
-                    {i !== participants.length - 1 && <Kb.Text type="Header">,&#32;</Kb.Text>}
-                  </Kb.Text>
-                ))}
+                <Kb.Text type="Header" lineClamp={1}>
+                  {withoutSelf.map((part, i, participants) => (
+                    <Kb.Text type="Header" key={part}>
+                      {p.displayNames[part] ? (
+                        <Kb.Text type="Header" onClick={() => p.onGoToProfile(part)}>
+                          {p.displayNames[part]}
+                        </Kb.Text>
+                      ) : (
+                        <Kb.ConnectedUsernames
+                          colorFollowing={true}
+                          underline={true}
+                          inline={true}
+                          commaColor={Styles.globalColors.black_50}
+                          type="Header"
+                          usernames={[part]}
+                          onUsernameClicked="profile"
+                        />
+                      )}
+                      {i !== participants.length - 1 && <Kb.Text type="Header">,&#32;</Kb.Text>}
+                    </Kb.Text>
+                  ))}
+                </Kb.Text>
               </Kb.Box2>
             ) : null}
             {p.muted && (
