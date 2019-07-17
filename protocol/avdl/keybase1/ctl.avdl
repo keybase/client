@@ -12,7 +12,9 @@ protocol ctl {
 
   enum DbType {
     MAIN_0,
-    CHAT_1
+    CHAT_1,
+    FS_BLOCK_CACHE_2,
+    FS_SYNC_BLOCK_CACHE_3
   }
 
   record DbKey {
