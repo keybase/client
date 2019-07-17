@@ -234,7 +234,6 @@ const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload
           description: res.description,
           siteIcon: res.siteIcon || [],
           siteIconFull: res.siteIconFull || [],
-          siteUrl: res.siteURL,
         }
         if (res.service) {
           return Tracker2Gen.createLoadedNonUserProfile({
@@ -246,7 +245,7 @@ const loadNonUserProfile = (state, action: Tracker2Gen.LoadNonUserProfilePayload
             res.assertionKey === 'phone'
               ? formatPhoneNumberInternational('+' + res.assertionValue)
               : undefined
-          const fullName = res.contact ? res.contact.contactName : undefined
+          const fullName = res.contact ? res.contact.contactName : ''
           return Tracker2Gen.createLoadedNonUserProfile({
             ...common,
             formattedName,

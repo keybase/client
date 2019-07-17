@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -289,7 +288,5 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 		}
 	}
 
-	//time.Sleep(5 * time.Second) // pretend its a request to see if gui lags
-	spew.Dump(res)
 	return res, nil
 }

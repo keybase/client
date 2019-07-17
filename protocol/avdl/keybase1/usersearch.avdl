@@ -57,8 +57,6 @@ protocol userSearch {
         string description; // "Twitter user", "Phone contact"
         union { null, ProcessedContact } contact;
         union { null, APIUserServiceResult } service;
-        @lint("ignore")
-        string siteURL; // https://twitter.com/bob
         array<SizedImage> siteIcon;
         array<SizedImage> siteIconFull;
     }

@@ -148,7 +148,6 @@ type NonUserDetails struct {
 	Description    string                `codec:"description" json:"description"`
 	Contact        *ProcessedContact     `codec:"contact,omitempty" json:"contact,omitempty"`
 	Service        *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
-	SiteURL        string                `codec:"siteURL" json:"siteURL"`
 	SiteIcon       []SizedImage          `codec:"siteIcon" json:"siteIcon"`
 	SiteIconFull   []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
 }
@@ -173,7 +172,6 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Service),
-		SiteURL: o.SiteURL,
 		SiteIcon: (func(x []SizedImage) []SizedImage {
 			if x == nil {
 				return nil

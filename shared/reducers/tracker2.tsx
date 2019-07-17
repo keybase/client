@@ -125,7 +125,6 @@ export default function(
     case Tracker2Gen.proofSuggestionsUpdated:
       return state.merge({proofSuggestions: I.List(action.payload.suggestions)})
     case Tracker2Gen.loadedNonUserProfile:
-      console.log('zzz merging', action.payload)
       return state.merge({
         usernameToNonUserDetails: state.usernameToNonUserDetails.updateIn(
           [action.payload.assertion],
@@ -141,7 +140,6 @@ export default function(
               pictureUrl: action.payload.pictureUrl,
               siteIcon: action.payload.siteIcon,
               siteIconFull: action.payload.siteIconFull,
-              siteURL: action.payload.siteUrl,
             })
         ),
       })

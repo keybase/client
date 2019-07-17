@@ -41,7 +41,6 @@ export type Props = {
   service: string // assertion key (if SBS)
   fullName: string | null // full name from profile
   title: string
-  impTofu: boolean
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {

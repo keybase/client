@@ -194,11 +194,6 @@
           "name": "service"
         },
         {
-          "type": "string",
-          "name": "siteURL",
-          "lint": "ignore"
-        },
-        {
           "type": {
             "type": "array",
             "items": "SizedImage"
