@@ -431,11 +431,13 @@ func TestPresentConversationParticipantsLocal(t *testing.T) {
 	}
 	res := presentConversationParticipantsLocal(context.TODO(), rawParticipants)
 
-	require.Equal(t, res[0].Assertion, "tofurkey@example.com")
+	emailAlone := "tofurkey@example.com"
+	require.Equal(t, res[0].DisplayName, &emailAlone)
 	require.Equal(t, res[0].ContactName, &tofurkeyhq)
 	require.Equal(t, res[0].Type, chat1.UIParticipantType_EMAIL)
 
-	require.Equal(t, res[1].Assertion, "18005558638")
+	phoneAlone := "18005558638"
+	require.Equal(t, res[1].DisplayName, &phoneAlone)
 	require.Equal(t, res[1].ContactName, &tofurus)
 	require.Equal(t, res[1].Type, chat1.UIParticipantType_PHONENO)
 
