@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
 )
@@ -85,6 +86,20 @@ func (r *Runner) statsLoop(stopCh chan struct{}) error {
 	}
 }
 
+func (r *Runner) addDbStats(
+	ctx context.Context, dbType keybase1.DbType, db *libkb.JSONLocalDb,
+	stats *keybase1.RuntimeStats) {
+	var s keybase1.DbStats
+	s.Type = dbType
+	var err error
+	s.MemCompActive, s.TableCompActive, err = db.CompactionStats()
+	if err != nil {
+		r.debug(ctx, "Couldn't get compaction stats for %s: %+v", err)
+		return
+	}
+	stats.DbStats = append(stats.DbStats, s)
+}
+
 func (r *Runner) updateStats(ctx context.Context) {
 	var memstats runtime.MemStats
 	stats := getStats().Export()
@@ -94,6 +109,11 @@ func (r *Runner) updateStats(ctx context.Context) {
 	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
 	stats.ConvLoaderActive = r.G().ConvLoader.IsBackgroundActive()
 	stats.SelectiveSyncActive = r.G().Indexer.IsBackgroundActive()
+
+	stats.DbStats = make([]keybase1.DbStats, 0, 2)
+	r.addDbStats(ctx, keybase1.DbType_MAIN, r.G().LocalDb, &stats)
+	r.addDbStats(ctx, keybase1.DbType_CHAT, r.G().LocalChatDb, &stats)
+
 	r.G().NotifyRouter.HandleRuntimeStatsUpdate(ctx, &stats)
 	r.debug(ctx, "update: %+v", stats)
 }
