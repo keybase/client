@@ -17,7 +17,7 @@ const SkipKeygenNilMerkleRoot = "Skipping key generation, unable to fetch merkle
 
 // Maximum number of retries for key generation
 const maxRetries = 5
-const cacheEntryLifetime = time.Minute * 5
+const LibCacheEntryLifetime = time.Minute * 5
 const lruSize = 200
 
 type EKLib struct {
@@ -116,7 +116,7 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext) {
 	}
 }
 
-func (e *EKLib) setClock(clock clockwork.Clock) {
+func (e *EKLib) SetClock(clock clockwork.Clock) {
 	e.clock = clock
 }
 
@@ -426,7 +426,7 @@ func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
 	if !ok || cacheEntry == nil {
 		return nil, false
 	}
-	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= cacheEntryLifetime
+	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= LibCacheEntryLifetime
 }
 
 func (e *EKLib) getStorageForType(mctx libkb.MetaContext, typ keybase1.TeamEphemeralKeyType) (libkb.TeamEKBoxStorage, error) {
@@ -467,6 +467,17 @@ func (e *EKLib) PurgeTeamEKCachesForTeamIDAndGeneration(mctx libkb.MetaContext, 
 
 func (e *EKLib) PurgeTeambotEKCachesForTeamIDAndGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
 	e.purgeCachesForTeamIDAndTypeByGeneration(mctx, teamID, generation, keybase1.TeamEphemeralKeyType_TEAMBOT)
+
+}
+
+func (e *EKLib) PurgeAllTeambotMetadataCaches(mctx libkb.MetaContext) {
+	e.teambotEKMetadataCache.Purge()
+}
+
+func (e *EKLib) PurgeTeambotMetadataCache(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	botUID keybase1.UID, generation keybase1.EkGeneration) {
+	cacheKey := e.teambotCacheKey(teamID, botUID, generation)
+	e.teambotEKMetadataCache.Remove(cacheKey)
 }
 
 func (e *EKLib) purgeCachesForTeamIDAndTypeByGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
@@ -680,6 +691,13 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 		created = false
 		ek, err = e.getLatestTeambotEK(mctx, teamID, botUID)
 		if err != nil {
+			switch err.(type) {
+			case EphemeralKeyError:
+				// Ping team members to generate the latest key for us
+				if err2 := notifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+					mctx.Debug("Unable to notifyTeambotEKNeeded %v", err2)
+				}
+			}
 			return ek, false, err
 		}
 	} else { // we are a team member who needs the latest bot key, get or create that puppy.
@@ -809,11 +827,30 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 	merkleRoot := *merkleRootPtr
 	defer storage.DeleteExpired(mctx, teamID, merkleRoot)
 
-	metadata, err := fetchLatestTeambotEK(mctx, teamID)
-	if err != nil {
-		return ek, err
-	} else if metadata == nil {
+	// Let's see what the latest teambot ek is. This verifies that the metadata
+	// was signed by the latest PTK and otherwise fails with wrongKID set.
+	metadata, wrongKID, err := fetchLatestTeambotEK(mctx, teamID)
+	if metadata == nil {
 		err = newEKMissingBoxErr(mctx, TeambotEKStr, -1)
+		return ek, err
+	} else if wrongKID {
+		now := keybase1.ToTime(e.clock.Now())
+		permitted, ctime, err := TeambotWrongKIDPermitted(mctx, teamID, botUID, metadata.Generation, now)
+		if err != nil {
+			return ek, err
+		}
+		mctx.Debug("getLatestTeambotEK: wrongKID set, perrmited: %v, ctime: %v ", permitted, ctime)
+		if !permitted {
+			return ek, newTeambotEKWrongKIDErr(mctx, ctime, now)
+		}
+
+		// Ping other team members to create the new key for us.
+		if err = notifyTeambotEKNeeded(mctx, teamID, 0); err != nil {
+			// Charge forward here, we'll try again next time we fetch this
+			// key.
+			mctx.Debug("Unable to notifyTeambotEKNeeded %v", err)
+		}
+	} else if err != nil {
 		return ek, err
 	}
 
@@ -844,6 +881,13 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 	if mctx.G().Env.GetUID().Equal(botUID) {
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
+			switch err.(type) {
+			case EphemeralKeyError:
+				// Ping team members to generate this key for us
+				if err2 := notifyTeambotEKNeeded(mctx, teamID, generation); err2 != nil {
+					mctx.Debug("Unable to notifyTeambotEKNeeded %v", err2)
+				}
+			}
 			return ek, err
 		}
 	} else {

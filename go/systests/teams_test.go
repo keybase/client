@@ -1024,22 +1024,24 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh         chan keybase1.TeamChangedByIDArg
-	abandonCh        chan keybase1.TeamID
-	badgeCh          chan keybase1.BadgeState
-	newTeamEKCh      chan keybase1.NewTeamEkArg
-	newTeambotEKCh   chan keybase1.NewTeambotEkArg
-	newlyAddedToTeam chan keybase1.TeamID
+	changeCh          chan keybase1.TeamChangedByIDArg
+	abandonCh         chan keybase1.TeamID
+	badgeCh           chan keybase1.BadgeState
+	newTeamEKCh       chan keybase1.NewTeamEkArg
+	newTeambotEKCh    chan keybase1.NewTeambotEkArg
+	teambotEKNeededCh chan keybase1.TeambotEkNeededArg
+	newlyAddedToTeam  chan keybase1.TeamID
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:         make(chan keybase1.TeamChangedByIDArg, 10),
-		abandonCh:        make(chan keybase1.TeamID, 10),
-		badgeCh:          make(chan keybase1.BadgeState, 10),
-		newTeamEKCh:      make(chan keybase1.NewTeamEkArg, 10),
-		newTeambotEKCh:   make(chan keybase1.NewTeambotEkArg, 10),
-		newlyAddedToTeam: make(chan keybase1.TeamID, 10),
+		changeCh:          make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:         make(chan keybase1.TeamID, 10),
+		badgeCh:           make(chan keybase1.BadgeState, 10),
+		newTeamEKCh:       make(chan keybase1.NewTeamEkArg, 10),
+		newTeambotEKCh:    make(chan keybase1.NewTeambotEkArg, 10),
+		teambotEKNeededCh: make(chan keybase1.TeambotEkNeededArg, 10),
+		newlyAddedToTeam:  make(chan keybase1.TeamID, 10),
 	}
 }
 
@@ -1082,6 +1084,11 @@ func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamE
 
 func (n *teamNotifyHandler) NewTeambotEk(ctx context.Context, arg keybase1.NewTeambotEkArg) error {
 	n.newTeambotEKCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) TeambotEkNeeded(ctx context.Context, arg keybase1.TeambotEkNeededArg) error {
+	n.teambotEKNeededCh <- arg
 	return nil
 }
 
