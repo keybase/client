@@ -22,6 +22,7 @@ export type NameWithIconProps = {
   horizontal?: boolean
   icon?: IconType
   iconBoxStyle?: Styles.StylesCrossPlatform
+  iconStyle?: Styles.StylesCrossPlatform
   isYou?: boolean
   metaOne?: string | React.ReactNode
   metaStyle?: Styles.StylesCrossPlatform
@@ -83,11 +84,12 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         <Icon
           boxStyle={this.props.iconBoxStyle}
           type={this.props.icon}
-          style={
+          style={Styles.collapseStyles([
             this.props.horizontal
               ? castPlatformStyles(styles.hIconStyle)
-              : {height: adapterProps.iconSize, width: adapterProps.iconSize}
-          }
+              : {height: adapterProps.iconSize, width: adapterProps.iconSize},
+            this.props.iconStyle,
+          ])}
           fontSize={this.props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
         />
       )
