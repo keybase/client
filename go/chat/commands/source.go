@@ -24,6 +24,7 @@ type Source struct {
 
 	allCmds  map[int]types.ConversationCommand
 	builtins map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand
+	botCmd   *Bot
 	clock    clockwork.Clock
 }
 
@@ -32,6 +33,7 @@ func NewSource(g *globals.Context) *Source {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Commands.Source", false),
 		clock:        clockwork.NewRealClock(),
+		botCmd:       NewBot(g),
 	}
 	s.makeBuiltins()
 	return s
@@ -182,6 +184,14 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
+	if strings.HasPrefix(text, "!") {
+		// if this is a bot command, then try previewing it
+		s.botCmd.Preview(ctx, uid, convID, tlfName, text)
+		return
+	}
+	if !strings.HasPrefix(text, "/") {
+		return
+	}
 	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
 		return

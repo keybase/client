@@ -43,6 +43,13 @@ func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName s
 		topicType, membersType, vis, h.ri, NewConvFindExistingNormal)
 }
 
+func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
+		topicType, membersType, vis, h.ri, NewConvFindExistingSkip)
+}
+
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
