@@ -97,22 +97,9 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const getFormattedPhoneOrEmail = (assertion: string) => {
-  const withoutSuffix = assertion.substring(0, assertion.length - 6)
-  const suffix = assertion.substring(assertion.length - 6)
-  if (suffix === '@email') {
-    return withoutSuffix.substring(1, withoutSuffix.length - 1)
-  }
-  try {
-    return formatPhoneNumber(withoutSuffix)
-  } catch (e) {
-    return assertion
-  }
-}
-
 const PhoneOrEmailHeader = (props: Props) => {
   const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
-  let formattedPhoneOrEmail = phoneOrEmail && getFormattedPhoneOrEmail(phoneOrEmail)
+  const formattedPhoneOrEmail = props.participantToDisplayName[phoneOrEmail] || phoneOrEmail
   const name = props.contactNames[phoneOrEmail]
   return (
     <Wrapper {...props}>
