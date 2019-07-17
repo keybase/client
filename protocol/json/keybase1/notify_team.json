@@ -57,6 +57,14 @@
         {
           "name": "changes",
           "type": "TeamChangeSet"
+        },
+        {
+          "name": "latestHiddenSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "latestPerTeamKeyGeneration",
+          "type": "PerTeamKeyGeneration"
         }
       ],
       "response": null,
@@ -79,6 +87,14 @@
         {
           "name": "changes",
           "type": "TeamChangeSet"
+        },
+        {
+          "name": "latestHiddenSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "latestPerTeamKeyGeneration",
+          "type": "PerTeamKeyGeneration"
         }
       ],
       "response": null,
