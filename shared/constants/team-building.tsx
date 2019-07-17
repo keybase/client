@@ -80,6 +80,7 @@ const parseRawResultToUser = (
       // TODO: prettyName is a placeholder
       prettyName: result.contact.displayName,
       serviceMap,
+      label: result.contact.displayLabel,
     }
   } else if (result.service) {
     if (result.service.serviceName !== service) {

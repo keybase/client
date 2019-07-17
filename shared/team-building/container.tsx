@@ -66,6 +66,7 @@ const deriveSearchResults = memoize(
       followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: teamSoFar.some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      displayLabel: info.label || '',
       prettyName: info.prettyName,
       services: info.serviceMap,
       userId: info.id,

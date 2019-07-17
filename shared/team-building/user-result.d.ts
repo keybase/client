@@ -7,6 +7,7 @@ export type Props = {
   resultForService: Types.ServiceIdWithContact
   username: string
   prettyName: string
+  displayLabel: string
   services: {[K in Types.ServiceIdWithContact]?: string}
   fixedHeight?: number
   inTeam: boolean

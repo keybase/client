@@ -36,6 +36,7 @@ class UserResult extends React.Component<Props> {
             isPreExistingTeamMember={this.props.isPreExistingTeamMember}
             keybaseResult={keybaseResult}
             keybaseUsername={keybaseUsername}
+            displayLabel={this.props.displayLabel}
             username={serviceUsername}
             prettyName={this.props.prettyName}
             followingState={this.props.followingState}
@@ -106,6 +107,7 @@ const FormatPrettyName = (props: {
 const Username = (props: {
   username: string
   prettyName: string
+  displayLabel: string
   isPreExistingTeamMember?: boolean
   followingState: Types.FollowingState
   keybaseResult: boolean
@@ -131,6 +133,8 @@ const Username = (props: {
           services={Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]}
         />
       )
+    ) : props.displayLabel ? (
+      <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
     ) : null}
   </Kb.Box2>
 )

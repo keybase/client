@@ -14,6 +14,7 @@ type SearchResult = {
   userId: string
   username: string
   prettyName: string
+  displayLabel: string
   services: {[K in ServiceIdWithContact]?: string}
   inTeam: boolean
   isPreExistingTeamMember: boolean
@@ -164,6 +165,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 fixedHeight={400}
                 username={result.username}
                 prettyName={result.prettyName}
+                displayLabel={result.displayLabel}
                 services={result.services}
                 inTeam={result.inTeam}
                 isPreExistingTeamMember={result.isPreExistingTeamMember}
