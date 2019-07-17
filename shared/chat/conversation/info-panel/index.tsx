@@ -13,6 +13,7 @@ export type Panel = 'settings' | 'members' | 'attachments'
 export type ParticipantTyp = {
   username: string
   fullname: string
+  displayName: string
   isAdmin: boolean
   isOwner: boolean
 }

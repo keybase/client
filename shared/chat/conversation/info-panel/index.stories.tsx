@@ -160,18 +160,21 @@ const commonProps = {
   onUnhideConv: Sb.action(`onUnhideConv`),
   participants: [
     {
+      displayName: '',
       fullname: 'Fred Akalin',
       isAdmin: true,
       isOwner: true,
       username: 'akalin',
     },
     {
+      displayName: '',
       fullname: 'Jeremy Stribling',
       isAdmin: true,
       isOwner: false,
       username: 'strib',
     },
     {
+      displayName: '',
       fullname: 'Max Krohn',
       isAdmin: false,
       isOwner: false,
@@ -264,6 +267,7 @@ const bigTeamLotsaUsersCommonProps = {
   participants: new Array(100).fill(0).map(
     (_, i) =>
       ({
+        displayName: '',
         fullname: `Agent ${i}`,
         isAdmin: false,
         isOwner: false,
