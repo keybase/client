@@ -151,7 +151,7 @@ const PaymentInfo = (props: PaymentInfoProps) => (
             <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
               {props.amount} {props.assetCode}
             </Kb.Text>
-            {!!props.exchangeRate ? (
+            {props.exchangeRate ? (
               <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
                 <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
                   (Exchange rate: {props.exchangeRate})
