@@ -543,6 +543,7 @@ protocol SimpleFS {
   record SimpleFSStats {
     array<string> blockCacheDbStats;
     array<string> syncCacheDbStats;
+    array<DbStats> runtimeDbStats;
   }
 
   SimpleFSStats simpleFSGetStats();

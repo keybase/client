@@ -14,7 +14,9 @@ protocol ctl {
     MAIN_0,
     CHAT_1,
     FS_BLOCK_CACHE_2,
-    FS_SYNC_BLOCK_CACHE_3
+    FS_BLOCK_CACHE_META_3,
+    FS_SYNC_BLOCK_CACHE_4,
+    FS_SYNC_BLOCK_CACHE_META_5
   }
 
   record DbKey {

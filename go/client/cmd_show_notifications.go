@@ -185,13 +185,17 @@ func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err 
 func (d *notificationDisplay) RuntimeStatsUpdate(
 	_ context.Context, stats *keybase1.RuntimeStats) (err error) {
 	err = d.printf(
-		"Runtime stats: Goheap=%s, Goheapsys=%s, Goreleased=%s ",
+		"Runtime stats: Goheap=%s, Goheapsys=%s, Goreleased=%s",
 		stats.Goheap, stats.Goheapsys, stats.Goreleased)
 	if err != nil {
 		return err
 	}
 
 	for _, s := range stats.DbStats {
+		if !s.MemCompActive && !s.TableCompActive {
+			continue
+		}
+
 		var name string
 		switch s.Type {
 		case keybase1.DbType_MAIN:
@@ -200,11 +204,15 @@ func (d *notificationDisplay) RuntimeStatsUpdate(
 			name = "dbChat"
 		case keybase1.DbType_FS_BLOCK_CACHE:
 			name = "dbFSBlockCache"
+		case keybase1.DbType_FS_BLOCK_CACHE_META:
+			name = "dbFSMetaBlockCache"
 		case keybase1.DbType_FS_SYNC_BLOCK_CACHE:
 			name = "dbFSSyncBlockCache"
+		case keybase1.DbType_FS_SYNC_BLOCK_CACHE_META:
+			name = "dbFSMetaSyncBlockCache"
 		}
 		err = d.printf(
-			"%s=[M:%t T:%t] ", name, s.MemCompActive, s.TableCompActive)
+			", %s=[M:%t T:%t] ", name, s.MemCompActive, s.TableCompActive)
 		if err != nil {
 			return err
 		}
