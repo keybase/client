@@ -45,8 +45,13 @@ func TestNewTeambotEK(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, nilMeta)
 
-	teamEK, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+	ek, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
 	require.NoError(t, err)
+	typ, err := ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK := ek.Team()
+
 	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK, merkleRoot)
 	require.NoError(t, err)
 
@@ -69,7 +74,7 @@ func TestNewTeambotEK(t *testing.T) {
 	keyer := NewTeambotEphemeralKeyer()
 	teambotEKBoxed, err := keyer.Fetch(mctx2, teamID, metadata.Generation, nil)
 	require.NoError(t, err)
-	typ, err := teambotEKBoxed.KeyType()
+	typ, err = teambotEKBoxed.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeambot())
 	require.Equal(t, metadata, teambotEKBoxed.Teambot().Metadata)
@@ -81,10 +86,14 @@ func TestNewTeambotEK(t *testing.T) {
 	require.True(t, typ.IsTeambot())
 
 	// this fails for the bot user
-	teamEK, err = mctx2.G().GetEKLib().GetTeamEK(mctx2, teamID, teambotEK.Generation(), nil)
+	_, err = mctx2.G().GetEKLib().GetTeamEK(mctx2, teamID, teambotEK.Generation(), nil)
 	require.Error(t, err)
 
-	teamEK, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
+	ek, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
+	typ, err = ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK = ek.Team()
 	require.NoError(t, err)
 	expectedSeed, err := deriveTeambotEKFromTeamEK(mctx, teamEK, botUID)
 	require.NoError(t, err)

@@ -229,6 +229,7 @@ export const makeState = I.Record<Types._State>({
   builtPayment: makeBuiltPayment(),
   builtPaymentAdvanced: emptyBuiltPaymentAdvanced,
   builtRequest: makeBuiltRequest(),
+  changeTrustlineError: '',
   createNewAccountError: '',
   currencies: I.List(),
   exportedSecretKey: new HiddenString(''),

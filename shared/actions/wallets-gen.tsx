@@ -31,6 +31,7 @@ export const changeAirdrop = 'wallets:changeAirdrop'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
 export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
+export const changedTrustline = 'wallets:changedTrustline'
 export const checkDisclaimer = 'wallets:checkDisclaimer'
 export const clearBuilding = 'wallets:clearBuilding'
 export const clearBuildingAdvanced = 'wallets:clearBuildingAdvanced'
@@ -160,6 +161,8 @@ type _ChangeDisplayCurrencyPayload = {readonly accountID: Types.AccountID; reado
 type _ChangeMobileOnlyModePayload = {readonly accountID: Types.AccountID; readonly enabled: boolean}
 type _ChangedAccountNamePayload = {readonly accountID: Types.AccountID}
 type _ChangedAccountNamePayloadError = {readonly name: string; readonly error: string}
+type _ChangedTrustlinePayload = void
+type _ChangedTrustlinePayloadError = {readonly error: string}
 type _CheckDisclaimerPayload = {readonly nextScreen: Types.NextScreenAfterAcceptance}
 type _ClearBuildingAdvancedPayload = void
 type _ClearBuildingPayload = void
@@ -1006,6 +1009,13 @@ export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlineP
 export const createCalculateBuildingAdvanced = (
   payload: _CalculateBuildingAdvancedPayload
 ): CalculateBuildingAdvancedPayload => ({payload, type: calculateBuildingAdvanced})
+export const createChangedTrustline = (payload: _ChangedTrustlinePayload): ChangedTrustlinePayload => ({
+  payload,
+  type: changedTrustline,
+})
+export const createChangedTrustlineError = (
+  payload: _ChangedTrustlinePayloadError
+): ChangedTrustlinePayloadError => ({error: true, payload, type: changedTrustline})
 export const createClearTrustlineSearchResults = (
   payload: _ClearTrustlineSearchResultsPayload
 ): ClearTrustlineSearchResultsPayload => ({payload, type: clearTrustlineSearchResults})
@@ -1175,6 +1185,15 @@ export type ChangedAccountNamePayloadError = {
   readonly error: true
   readonly payload: _ChangedAccountNamePayloadError
   readonly type: typeof changedAccountName
+}
+export type ChangedTrustlinePayload = {
+  readonly payload: _ChangedTrustlinePayload
+  readonly type: typeof changedTrustline
+}
+export type ChangedTrustlinePayloadError = {
+  readonly error: true
+  readonly payload: _ChangedTrustlinePayloadError
+  readonly type: typeof changedTrustline
 }
 export type CheckDisclaimerPayload = {
   readonly payload: _CheckDisclaimerPayload
@@ -1604,6 +1623,8 @@ export type Actions =
   | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
+  | ChangedTrustlinePayload
+  | ChangedTrustlinePayloadError
   | CheckDisclaimerPayload
   | ClearBuildingAdvancedPayload
   | ClearBuildingPayload

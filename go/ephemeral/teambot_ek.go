@@ -73,14 +73,15 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string
 	defer mctx.TraceTimed("postNewTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek",
+		Endpoint:    "teambot/key",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id": libkb.S{Val: string(teamID)},
-			"sig":     libkb.S{Val: sig},
-			"box":     libkb.S{Val: box},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"sig":          libkb.S{Val: sig},
+			"box":          libkb.S{Val: box},
+			"is_ephemeral": libkb.B{Val: true},
 		},
-		AppStatusCodes: []int{libkb.SCOk, libkb.SCEphemeralTeambotGenerationExists},
+		AppStatusCodes: []int{libkb.SCOk, libkb.SCTeambotKeyGenerationExists},
 	}
 	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
 	return err
@@ -161,10 +162,11 @@ func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metad
 	defer mctx.TraceTimed("fetchLatestTeambotEK", func() error { return err })()
 
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek",
+		Endpoint:    "teambot/key",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id": libkb.S{Val: string(teamID)},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"is_ephemeral": libkb.B{Val: true},
 		},
 	}
 	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
@@ -306,11 +308,12 @@ type teambotEKBoxedResponse struct {
 func (*TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (teambotEK keybase1.TeamEphemeralKeyBoxed, err error) {
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek_box",
+		Endpoint:    "teambot/box",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id":    libkb.S{Val: string(teamID)},
-			"generation": libkb.U{Val: uint64(generation)},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"generation":   libkb.U{Val: uint64(generation)},
+			"is_ephemeral": libkb.B{Val: true},
 		},
 	}
 

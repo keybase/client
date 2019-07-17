@@ -178,7 +178,6 @@ const (
 	StatusCode_SCEphemeralMemberAfterEK                    StatusCode = 2907
 	StatusCode_SCEphemeralDeviceStale                      StatusCode = 2908
 	StatusCode_SCEphemeralUserStale                        StatusCode = 2909
-	StatusCode_SCEphemeralTeambotGenerationExists          StatusCode = 2910
 	StatusCode_SCStellarError                              StatusCode = 3100
 	StatusCode_SCStellarBadInput                           StatusCode = 3101
 	StatusCode_SCStellarWrongRevision                      StatusCode = 3102
@@ -219,6 +218,7 @@ const (
 	StatusCode_SCPhoneNumberWrongVerificationCode          StatusCode = 3403
 	StatusCode_SCPhoneNumberLimitExceeded                  StatusCode = 3404
 	StatusCode_SCNoPaperKeys                               StatusCode = 3605
+	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -392,7 +392,6 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCEphemeralMemberAfterEK":                    2907,
 	"SCEphemeralDeviceStale":                      2908,
 	"SCEphemeralUserStale":                        2909,
-	"SCEphemeralTeambotGenerationExists":          2910,
 	"SCStellarError":                              3100,
 	"SCStellarBadInput":                           3101,
 	"SCStellarWrongRevision":                      3102,
@@ -433,6 +432,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCPhoneNumberWrongVerificationCode":          3403,
 	"SCPhoneNumberLimitExceeded":                  3404,
 	"SCNoPaperKeys":                               3605,
+	"SCTeambotKeyGenerationExists":                3800,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -604,7 +604,6 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2907: "SCEphemeralMemberAfterEK",
 	2908: "SCEphemeralDeviceStale",
 	2909: "SCEphemeralUserStale",
-	2910: "SCEphemeralTeambotGenerationExists",
 	3100: "SCStellarError",
 	3101: "SCStellarBadInput",
 	3102: "SCStellarWrongRevision",
@@ -645,6 +644,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3403: "SCPhoneNumberWrongVerificationCode",
 	3404: "SCPhoneNumberLimitExceeded",
 	3605: "SCNoPaperKeys",
+	3800: "SCTeambotKeyGenerationExists",
 }
 
 func (e StatusCode) String() string {
