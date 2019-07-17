@@ -459,7 +459,7 @@ func (u *userPlusDevice) readInviteEmails(email string) []string {
 		u.tc.T.Fatal(err)
 	}
 	if n == 0 {
-		u.tc.T.Fatalf("no invite tokens for %s", email)
+		require.Fail(u.tc.T, fmt.Sprintf("no invite tokens for %s", email))
 	}
 
 	exp := make([]string, n)
@@ -555,7 +555,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.BadgeState {
@@ -615,7 +615,7 @@ func (u *userPlusDevice) waitForAnyRotateByID(teamID keybase1.TeamID, toSeqno ke
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
@@ -632,7 +632,7 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
@@ -685,7 +685,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 			ForceRepoll: true,
 		})
 		if err != nil {
-			u.tc.T.Fatalf("error while loading team %q: %v", team, err)
+			require.Fail(u.tc.T, fmt.Sprintf("error while loading team %q: %v", team, err))
 		}
 
 		if after.CurrentSeqno() >= toSeqno {
@@ -696,7 +696,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", team))
 }
 
 func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
@@ -704,7 +704,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeam
 	for i := 0; i < 20; i++ {
 		details, err := teams.Load(context.Background(), u.tc.G, args)
 		if err != nil {
-			u.tc.T.Fatalf("error while loading team %v: %v", args, err)
+			require.Fail(u.tc.T, fmt.Sprintf("error while loading team %v: %v", args, err))
 		}
 
 		if details.CurrentSeqno() >= toSeqno {
@@ -715,7 +715,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeam
 		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
-	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team %v seqno link %d", args, toSeqno))
 }
 
 func (u *userPlusDevice) proveRooter() {

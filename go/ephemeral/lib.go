@@ -471,11 +471,14 @@ func (e *EKLib) PurgeTeambotEKCachesForTeamIDAndGeneration(mctx libkb.MetaContex
 }
 
 func (e *EKLib) PurgeAllTeambotMetadataCaches(mctx libkb.MetaContext) {
+	mctx.Debug("PurgeAllTeambotMetadataCaches")
 	e.teambotEKMetadataCache.Purge()
 }
 
 func (e *EKLib) PurgeTeambotMetadataCache(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, generation keybase1.EkGeneration) {
+	mctx.Debug("PurgeTeambotMetadataCache: teamID: %v, botUID: %v generation: %v",
+		teamID, botUID, generation)
 	cacheKey := e.teambotCacheKey(teamID, botUID, generation)
 	e.teambotEKMetadataCache.Remove(cacheKey)
 }

@@ -161,7 +161,7 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teamEK, _, err := ekLib1.GetOrCreateLatestTeamEK(mctx1, teamID)
 	require.NoError(t, err)
 
-	// now created = false since we published after receiving the teambot_ek_needed notif
+	// now created = false since we published after receiving the teambot_key_needed notif
 	teambotEK, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
@@ -218,12 +218,16 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teambotEK3, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
+	noTeambotEKNeeded(user1.tc, user1.notifications)
+	noTeambotEKNeeded(user2.tc, user2.notifications)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
 
 	// another PTK rotation happens, this time the bot proceeded with a key
 	// signed by the old PTK since the wrongKID cache did not expire
 	user1.removeTeamMember(teamName.String(), user2.username)
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
+	botua.waitForNewlyAddedToTeamByID(teamID)
 
 	// bot can access the old teambotEK, but asks for a new one to
 	// be created since it was signed by the old PTK

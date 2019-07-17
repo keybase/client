@@ -2,6 +2,7 @@ package hidden
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
@@ -343,6 +344,7 @@ func checkUpdateAgainstSeed(mctx libkb.MetaContext, getSeed func(keybase1.PerTea
 	gen := readerKey.Ptk.Gen
 	check := getSeed(gen)
 	if check == nil {
+		//		return nil
 		return NewLoaderError("seed check at generation %d wasn't found", gen)
 	}
 	hash, err := check.Hash()
