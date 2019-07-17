@@ -363,11 +363,12 @@ func (*TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.Team
 func notifyTeambotEKNeeded(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (err error) {
 	defer mctx.TraceTimed("notifyTeambotEKNeeded", func() error { return err })()
 	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/ek_needed",
+		Endpoint:    "teambot/key_needed",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id":    libkb.S{Val: string(teamID)},
-			"generation": libkb.U{Val: uint64(generation)},
+			"team_id":      libkb.S{Val: string(teamID)},
+			"generation":   libkb.U{Val: uint64(generation)},
+			"is_ephemeral": libkb.B{Val: true},
 		},
 	}
 	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
