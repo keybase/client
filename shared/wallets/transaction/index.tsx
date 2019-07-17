@@ -271,6 +271,13 @@ const Detail = (props: DetailProps) => {
         </Text>
       )
     }
+    case 'none': {
+      return (
+        <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
+        {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
+      </Text>
+      )
+    }
     default:
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
@@ -310,6 +317,7 @@ const getAmount = (role: Types.Role, amount: string, sourceAmount?: string): str
     case 'receiverOnly':
       return `+ ${amount}`
     case 'senderAndReceiver':
+    case 'none':
       return '0 XLM'
     default:
       throw new Error(`Unexpected role ${role}`)
