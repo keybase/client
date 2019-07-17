@@ -29,7 +29,7 @@ export const prepareAccountRows = <T extends {username: string; hasStoredSecret:
 ): I.List<T> =>
   accountRows
     .filter(account => account.username !== myUsername)
-    .sortBy(account => [account.hasStoredSecret, account.username])
+    .sortBy(account => [!account.hasStoredSecret, account.username])
 
 export const urlToUsername = (url: {
   protocol: string
