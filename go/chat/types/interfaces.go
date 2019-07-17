@@ -41,6 +41,11 @@ type CryptKey interface {
 	Generation() int
 }
 
+type EphemeralCryptKey interface {
+	Material() keybase1.Bytes32
+	Generation() keybase1.EkGeneration
+}
+
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
@@ -53,10 +58,10 @@ type NameInfoSource interface {
 		membersType chat1.ConversationMembersType, public bool,
 		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
 	EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (EphemeralCryptKey, error)
 	EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool,
-		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (EphemeralCryptKey, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 }
@@ -334,10 +339,10 @@ type KeyFinder interface {
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (CryptKey, error)
 	EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (EphemeralCryptKey, error)
 	EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool,
-		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (EphemeralCryptKey, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 	Reset()
@@ -365,6 +370,7 @@ type AttachmentFetcher interface {
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
 	OnDbNuke(mctx libkb.MetaContext) error
+	OnStart(mctx libkb.MetaContext)
 }
 
 type AttachmentURLSrv interface {

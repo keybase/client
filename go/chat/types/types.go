@@ -237,7 +237,7 @@ type AttachmentUploadResult struct {
 type BoxerEncryptionInfo struct {
 	Key                   CryptKey
 	SigningKeyPair        libkb.NaclSigningKeyPair
-	EphemeralSeed         *keybase1.TeamEk
+	EphemeralKey          EphemeralCryptKey
 	PairwiseMACRecipients []keybase1.KID
 	Version               chat1.MessageBoxedVersion
 }
@@ -298,6 +298,7 @@ func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.As
 	return false, nil
 }
 func (d DummyAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+func (d DummyAttachmentFetcher) OnStart(mctx libkb.MetaContext)        {}
 
 type DummyAttachmentHTTPSrv struct{}
 

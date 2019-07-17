@@ -835,14 +835,14 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(mctx MetaContext) error
 	// Team ephemeral keys
-	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
-	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	PurgeTeamEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeamEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 
 	// Teambot ephemeral keys
-	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeambotEk, bool, error)
-	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeambotEk, error)
+	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 

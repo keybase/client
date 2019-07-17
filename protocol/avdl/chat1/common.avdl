@@ -224,7 +224,6 @@
     MessageID basis;
   }
 
-  @mpackkey("em") @jsonkey("em")
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -353,7 +352,6 @@
     gregor1.Time composeTime;
   }
 
-  @mpackkey("em") @jsonkey("em")
   record MsgEphemeralMetadata {
     @mpackkey("l") @jsonkey("l")
     gregor1.DurationSec lifetime; // used to computed etime
@@ -363,7 +361,6 @@
     union { null, string } explodedBy;
   }
 
-  @mpackkey("pi") @jsonkey("pi")
   record EphemeralPurgeInfo {
     @mpackkey("c") @jsonkey("c")
     ConversationID convID;
@@ -415,6 +412,12 @@
     //           small teams. In V4, if MACs are present, the verifyKey is a dummy.
     @mpackkey("pm") @jsonkey("pm")
     map<keybase1.KID, bytes> pairwiseMacs;
+
+    // [V1, V2]: Missing
+    // [V3, V4]: Specifies which member is the bot recipient, if any, to select
+    //           appropriate crypt keys.
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   record MessageClientHeaderVerified {
@@ -449,6 +452,9 @@
 
     @mpackkey("pm") @jsonkey("pm")
     boolean hasPairwiseMacs;
+
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)

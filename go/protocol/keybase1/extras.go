@@ -3198,6 +3198,21 @@ func (k TeamEphemeralKey) Generation() EkGeneration {
 	}
 }
 
+func (k TeamEphemeralKey) Material() Bytes32 {
+	typ, err := k.KeyType()
+	if err != nil {
+		return [32]byte{}
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Seed
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Seed
+	default:
+		return [32]byte{}
+	}
+}
+
 func (k TeamEphemeralKeyBoxed) Generation() EkGeneration {
 	typ, err := k.KeyType()
 	if err != nil {
