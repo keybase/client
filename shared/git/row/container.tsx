@@ -34,7 +34,6 @@ const mapDispatchToProps = dispatch => ({
   _onOpenChannelSelection: (repoID: string, teamname: string | null, selected: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
         path: [{props: {repoID, selected, teamname}, selected: 'gitSelectChannel'}],
       })
     ),

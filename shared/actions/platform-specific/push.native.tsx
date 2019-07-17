@@ -60,13 +60,14 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}))
+    emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
     emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   })
   RNEmitter.addListener('onShareText', evt => {
     logger.debug('[ShareTextIntent]', evt)
-    emitter(RouteTreeGen.createNavigateTo({path: FsConstants.fsRootRouteForNav1}))
+    emitter(RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}))
     // TODO: implement
   })
 }
