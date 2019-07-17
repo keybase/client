@@ -157,7 +157,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             selectedIndex={props.highlightedIndex || 0}
             style={styles.list}
             contentContainerStyle={styles.listContentContainer}
-            keyProperty={'userId'}
+            keyProperty={'key'}
             onEndReached={props.onSearchForMore}
             renderItem={(index, result) => (
               <UserResult

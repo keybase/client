@@ -68,6 +68,7 @@ const deriveSearchResults = memoize(
       services: info.serviceMap,
       userId: info.id,
       username: info.id.split('@')[0],
+      key: [info.id, info.prettyName, info.label].join('&'),
     }))
 )
 
