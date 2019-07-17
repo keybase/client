@@ -56,24 +56,14 @@ class Checkbox extends Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    paddingBottom: 2,
-    paddingTop: 2,
-  },
-  icon: {
-    ...Styles.transition('opacity'),
-    alignSelf: 'center',
-  },
   checkbox: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.transition('background'),
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_20,
+    borderRadius: 2,
     borderStyle: 'solid',
     borderWidth: 1,
-    borderRadius: 2,
     height: CHECKBOX_SIZE,
     justifyContent: 'center',
     marginRight: CHECKBOX_MARGIN,
@@ -88,8 +78,15 @@ const styles = Styles.styleSheetCreate({
   checkboxInactive: {
     borderColor: Styles.globalColors.black_10,
   },
-  text: {
-    color: Styles.globalColors.black,
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    paddingBottom: 2,
+    paddingTop: 2,
+  },
+  icon: {
+    ...Styles.transition('opacity'),
+    alignSelf: 'center',
   },
   opaque: {
     opacity: 1,
@@ -99,6 +96,9 @@ const styles = Styles.styleSheetCreate({
   },
   semiTransparent: {
     opacity: 0.4,
+  },
+  text: {
+    color: Styles.globalColors.black,
   },
   transparent: {
     opacity: 0,
