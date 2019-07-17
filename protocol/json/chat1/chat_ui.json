@@ -433,6 +433,10 @@
         {
           "type": "ConversationCommandGroups",
           "name": "commands"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "botCommands"
         }
       ]
     },

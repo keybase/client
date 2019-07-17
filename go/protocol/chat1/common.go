@@ -1906,6 +1906,7 @@ const (
 	GetThreadReason_INDEXED_SEARCH     GetThreadReason = 7
 	GetThreadReason_KBFSFILEACTIVITY   GetThreadReason = 8
 	GetThreadReason_COINFLIP           GetThreadReason = 9
+	GetThreadReason_BOTCOMMANDS        GetThreadReason = 10
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -1921,19 +1922,21 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"INDEXED_SEARCH":     7,
 	"KBFSFILEACTIVITY":   8,
 	"COINFLIP":           9,
+	"BOTCOMMANDS":        10,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
-	0: "GENERAL",
-	1: "PUSH",
-	2: "FOREGROUND",
-	3: "BACKGROUNDCONVLOAD",
-	4: "FIXRETRY",
-	5: "PREPARE",
-	6: "SEARCHER",
-	7: "INDEXED_SEARCH",
-	8: "KBFSFILEACTIVITY",
-	9: "COINFLIP",
+	0:  "GENERAL",
+	1:  "PUSH",
+	2:  "FOREGROUND",
+	3:  "BACKGROUNDCONVLOAD",
+	4:  "FIXRETRY",
+	5:  "PREPARE",
+	6:  "SEARCHER",
+	7:  "INDEXED_SEARCH",
+	8:  "KBFSFILEACTIVITY",
+	9:  "COINFLIP",
+	10: "BOTCOMMANDS",
 }
 
 func (e GetThreadReason) String() string {
@@ -2401,6 +2404,35 @@ func (o Asset) DeepCopy() Asset {
 		Metadata: o.Metadata.DeepCopy(),
 		Tag:      o.Tag.DeepCopy(),
 	}
+}
+
+type BotCommandsAdvertisementTyp int
+
+const (
+	BotCommandsAdvertisementTyp_PUBLIC        BotCommandsAdvertisementTyp = 0
+	BotCommandsAdvertisementTyp_TLFID_MEMBERS BotCommandsAdvertisementTyp = 1
+	BotCommandsAdvertisementTyp_TLFID_CONVS   BotCommandsAdvertisementTyp = 2
+)
+
+func (o BotCommandsAdvertisementTyp) DeepCopy() BotCommandsAdvertisementTyp { return o }
+
+var BotCommandsAdvertisementTypMap = map[string]BotCommandsAdvertisementTyp{
+	"PUBLIC":        0,
+	"TLFID_MEMBERS": 1,
+	"TLFID_CONVS":   2,
+}
+
+var BotCommandsAdvertisementTypRevMap = map[BotCommandsAdvertisementTyp]string{
+	0: "PUBLIC",
+	1: "TLFID_MEMBERS",
+	2: "TLFID_CONVS",
+}
+
+func (e BotCommandsAdvertisementTyp) String() string {
+	if v, ok := BotCommandsAdvertisementTypRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type CommonInterface interface {

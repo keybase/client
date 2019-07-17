@@ -108,7 +108,9 @@ protocol chatUi {
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
+    // Command support
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
   }
 
   record InboxUIItemError {

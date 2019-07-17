@@ -36,6 +36,9 @@ type handlerTracker struct {
 	loadFlipV1          int
 	getUnfurlSettingsV1 int
 	setUnfurlSettingsV1 int
+	advertiseCommandsV1 int
+	clearCommandsV1     int
+	listCommandsV1      int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -138,6 +141,21 @@ func (h *handlerTracker) SetUnfurlSettingsV1(context.Context, Call, io.Writer) e
 	return nil
 }
 
+func (h *handlerTracker) AdvertiseCommandsV1(context.Context, Call, io.Writer) error {
+	h.advertiseCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ClearCommandsV1(context.Context, Call, io.Writer) error {
+	h.clearCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ListCommandsV1(context.Context, Call, io.Writer) error {
+	h.listCommandsV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -224,6 +242,17 @@ func (c *chatEcho) GetUnfurlSettingsV1(context.Context) Reply {
 }
 
 func (c *chatEcho) SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ClearCommandsV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+func (c *chatEcho) ListCommandsV1(context.Context, listCommandsOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
