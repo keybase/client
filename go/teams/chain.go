@@ -81,6 +81,13 @@ func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.inner.LastSeqno
 }
 
+func (t TeamSigChainState) GetLatestHiddenSeqno() keybase1.Seqno {
+	if t.hidden == nil {
+		return keybase1.Seqno(0)
+	}
+	return t.hidden.Last
+}
+
 func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }
@@ -2065,9 +2072,12 @@ func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 }
 
 func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
-	// check the per-team-key
-	if perTeamKey.Generation != expectedGeneration {
-		return res, fmt.Errorf("per-team-key generation expected %v but got %v", expectedGeneration, perTeamKey.Generation)
+
+	// check the per-team-key; with some links from hidden chains, it's possible to leave "holes" in the sequence of
+	// PTKs that'll later be filled in by playing the hidden chain; however, we should never be trampling old keys
+	// as we insert visible links. (this check used to be strict inequality (!=), but we've relaxed it to be onesided (<)).
+	if perTeamKey.Generation < expectedGeneration {
+		return res, fmt.Errorf("per-team-key generation expected %v but got %v, can't go backwards", expectedGeneration, perTeamKey.Generation)
 	}
 
 	// validate signing kid

@@ -2068,11 +2068,19 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 		g.Log.CDebugf(ctx, "| RetryIfPossible(%v)", i)
 		err = post(ctx, i)
 		if isSigOldSeqnoError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError", i)
+			g.Log.CDebugf(ctx, "| retrying due to SigOldSeqnoError %d", i)
 			continue
 		}
 		if isStaleBoxError(err) {
-			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError", i)
+			g.Log.CDebugf(ctx, "| retrying due to StaleBoxError %d", i)
+			continue
+		}
+		if isSigBadTotalOrder(err) {
+			g.Log.CDebugf(ctx, "| retrying since update would violate total ordering for team %d", i)
+			continue
+		}
+		if isSigMissingRatchet(err) {
+			g.Log.CDebugf(ctx, "| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 			continue
 		}
 		return err
@@ -2088,6 +2096,14 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 
 func isSigOldSeqnoError(err error) bool {
 	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigOldSeqno)
+}
+
+func isSigBadTotalOrder(err error) bool {
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigBadTotalOrder)
+}
+
+func isSigMissingRatchet(err error) bool {
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigMissingRatchet)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {
@@ -2276,7 +2292,7 @@ func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet, lates
 	if latestSeqno > 0 {
 		err = HintLatestSeqno(m, t.ID, latestSeqno)
 	}
-	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
+	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes, keybase1.Seqno(0))
 	return err
 }
 
