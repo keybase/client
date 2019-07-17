@@ -710,9 +710,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
-	err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
-	if err != nil {
-		return nil, err
+	if teamUpdate != nil {
+		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	preloadCancel()
@@ -880,15 +882,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
-		chain := TeamSigChainState{inner: ret.Chain}
+		chain := TeamSigChainState{inner: ret.Chain, hidden: hiddenPackage.ChainData()}
 		// Send a notification if we used to have the name cached and it has changed at all.
 		changeSet := keybase1.TeamChangeSet{Renamed: true}
 		go l.G().NotifyRouter.HandleTeamChangedByID(context.Background(),
-			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+			chain.GetID(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+			cachedName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
 		go l.G().NotifyRouter.HandleTeamChangedByName(context.Background(),
-			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet)
+			newName.String(), chain.GetLatestSeqno(), chain.IsImplicit(), changeSet, chain.GetLatestHiddenSeqno())
 	}
 
 	// Check request constraints

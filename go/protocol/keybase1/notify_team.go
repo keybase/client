@@ -54,17 +54,21 @@ func (e AvatarUpdateType) String() string {
 }
 
 type TeamChangedByIDArg struct {
-	TeamID       TeamID        `codec:"teamID" json:"teamID"`
-	LatestSeqno  Seqno         `codec:"latestSeqno" json:"latestSeqno"`
-	ImplicitTeam bool          `codec:"implicitTeam" json:"implicitTeam"`
-	Changes      TeamChangeSet `codec:"changes" json:"changes"`
+	TeamID                     TeamID               `codec:"teamID" json:"teamID"`
+	LatestSeqno                Seqno                `codec:"latestSeqno" json:"latestSeqno"`
+	ImplicitTeam               bool                 `codec:"implicitTeam" json:"implicitTeam"`
+	Changes                    TeamChangeSet        `codec:"changes" json:"changes"`
+	LatestHiddenSeqno          Seqno                `codec:"latestHiddenSeqno" json:"latestHiddenSeqno"`
+	LatestPerTeamKeyGeneration PerTeamKeyGeneration `codec:"latestPerTeamKeyGeneration" json:"latestPerTeamKeyGeneration"`
 }
 
 type TeamChangedByNameArg struct {
-	TeamName     string        `codec:"teamName" json:"teamName"`
-	LatestSeqno  Seqno         `codec:"latestSeqno" json:"latestSeqno"`
-	ImplicitTeam bool          `codec:"implicitTeam" json:"implicitTeam"`
-	Changes      TeamChangeSet `codec:"changes" json:"changes"`
+	TeamName                   string               `codec:"teamName" json:"teamName"`
+	LatestSeqno                Seqno                `codec:"latestSeqno" json:"latestSeqno"`
+	ImplicitTeam               bool                 `codec:"implicitTeam" json:"implicitTeam"`
+	Changes                    TeamChangeSet        `codec:"changes" json:"changes"`
+	LatestHiddenSeqno          Seqno                `codec:"latestHiddenSeqno" json:"latestHiddenSeqno"`
+	LatestPerTeamKeyGeneration PerTeamKeyGeneration `codec:"latestPerTeamKeyGeneration" json:"latestPerTeamKeyGeneration"`
 }
 
 type TeamDeletedArg struct {

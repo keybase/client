@@ -3146,10 +3146,17 @@ func (s TeamSigChainState) KeySummary() string {
 }
 
 func (h *HiddenTeamChain) IsStale() bool {
-	if h == nil || h.LatestSeqnoHint == Seqno(0) {
+	if h == nil {
 		return false
 	}
-	_, fresh := h.Outer[h.LatestSeqnoHint]
+	max := h.RatchetSet.Max()
+	if max < h.LatestSeqnoHint {
+		max = h.LatestSeqnoHint
+	}
+	if max == Seqno(0) {
+		return false
+	}
+	_, fresh := h.Outer[max]
 	return !fresh
 }
 

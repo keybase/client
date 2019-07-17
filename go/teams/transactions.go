@@ -728,8 +728,8 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			if err != nil {
 				return err
 			}
-			section.Ratchets = ratchet.ToTeamSection()
 		}
+		section.Ratchets = ratchet.ToTeamSection()
 
 		switch p.Tag {
 		case txPayloadTagCryptomembers:

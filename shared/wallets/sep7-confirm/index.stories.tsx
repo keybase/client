@@ -9,6 +9,7 @@ const commonPath = {
   amountError: '',
   destinationAccount: 'NOACCOUNTID',
   destinationDisplay: '', 
+  findPathError: '',
   exchangeRate: '',
   fullPath: Constants.makePaymentPath(),
   noPathFoundError: false,

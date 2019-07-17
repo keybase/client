@@ -148,11 +148,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByID': {
-    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet}
+    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno; readonly latestPerTeamKeyGeneration: PerTeamKeyGeneration}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByName': {
-    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet}
+    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno; readonly latestPerTeamKeyGeneration: PerTeamKeyGeneration}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamDeleted': {
@@ -1915,6 +1915,8 @@ export enum StatusCode {
   scsigwrongkey = 1008,
   scsigoldseqno = 1010,
   scsigcreationdisallowed = 1016,
+  scsigmissingratchet = 1021,
+  scsigbadtotalorder = 1022,
   scbadtracksession = 1301,
   scdevicebadname = 1404,
   scdevicenameinuse = 1408,
