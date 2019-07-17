@@ -62,7 +62,7 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.CoinFlipManager != nil {
 		<-c.ChatG.CoinFlipManager.Stop(context.TODO())
 	}
-	if c.ChatG.CoinFlipManager != nil {
+	if c.ChatG.BotCommandManager != nil {
 		<-c.ChatG.BotCommandManager.Stop(context.TODO())
 	}
 	c.TestContext.Cleanup()
