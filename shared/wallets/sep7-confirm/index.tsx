@@ -150,32 +150,35 @@ const PaymentInfo = (props: PaymentInfoProps) => (
       <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
         Amount
       </Kb.Text>
-      {!!props.amount && (props.assetCode ? (
+      {!!props.amount &&
+        (props.assetCode ? (
           <>
             <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
               {props.amount} {props.assetCode}
             </Kb.Text>
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
-            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
-              (Exchange rate: {props.exchangeRate})
-            </Kb.Text>
-            </Kb.Box2>
+            {!!props.exchangeRate && (
+              <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
+                <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+                  (Exchange rate: {props.exchangeRate})
+                </Kb.Text>
+              </Kb.Box2>
+            )}
           </>
         ) : (
-        <>
-          <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
-            {props.amount} XLM
-          </Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
-            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
-              (Approximately {props.displayAmountFiat})
+          <>
+            <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
+              {props.amount} XLM
             </Kb.Text>
-            <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
-              Your primary account has {props.availableToSendNative} available to send.
-            </Kb.Text>
-          </Kb.Box2>
-        </>
-      ))}
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
+              <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+                (Approximately {props.displayAmountFiat})
+              </Kb.Text>
+              <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
+                Your primary account has {props.availableToSendNative} available to send.
+              </Kb.Text>
+            </Kb.Box2>
+          </>
+        ))}
     </Kb.Box2>
     {!!props.assetCode && <AssetPathIntermediate forSEP7={true} />}
     {!props.amount && <AssetInput amount={props.userAmount} onChangeAmount={props.onChangeAmount} />}
@@ -252,7 +255,9 @@ const SEP7Confirm = (props: Props) => (
           type="Success"
           onClick={
             props.operation === 'pay'
-              ? () => props.onAcceptPay(props.amount || props.userAmount || '' /* TODO is this ok? */)
+              ? props.assetCode
+                ? () => props.onAcceptPath()
+                : () => props.onAcceptPay(props.amount || props.userAmount || '')
               : props.onAcceptTx
           }
           waitingKey={props.waitingKey}
@@ -269,7 +274,9 @@ const SEP7Confirm = (props: Props) => (
 
 const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
-  React.useEffect(() => { props.assetCode && !props.path.exchangeRate && props.onLookupPath() }, [props.assetCode, props.path.exchangeRate])
+  React.useEffect(() => {
+    props.assetCode && !props.path.exchangeRate && props.onLookupPath()
+  }, [props.assetCode, props.path.exchangeRate])
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (

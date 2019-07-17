@@ -149,6 +149,11 @@ const emptyAsset: RPCStellarTypes.Asset = {
   verifiedDomain: '',
 }
 
+const emptyAssetWithoutType: RPCStellarTypes.Asset = {
+  ...emptyAsset,
+  type: '',
+}
+
 const sendPayment = (state: TypedState) => {
   const notXLM = state.wallets.building.currency !== '' && state.wallets.building.currency !== 'XLM'
   return RPCStellarTypes.localSendPaymentLocalRpcPromise(
@@ -1356,30 +1361,26 @@ const calculateBuildingAdvanced = (
   action: WalletsGen.CalculateBuildingAdvancedPayload
 ) => {
   const {forSEP7} = action.payload
-  let amount, destinationAsset, from, sourceAsset, to
-  if (forSEP7) {
-    if (state.wallets.sep7ConfirmInfo == null) {
-      console.warn('Tried to calculate SEP7 path payment with no SEP7 info')
-      return
-    } 
-    amount = state.wallets.sep7ConfirmInfo.amount
-    destinationAsset = assetDescriptionOrNativeToRpcAsset(
-      Constants.makeAssetDescription({
-        code: state.wallets.sep7ConfirmInfo.assetCode,
-        issuerAccountID: state.wallets.sep7ConfirmInfo.assetIssuer,
-      })
-    )
-    from = ''
-    sourceAsset = assetDescriptionOrNativeToRpcAsset(Constants.makeAssetDescription())
-    to = state.wallets.sep7ConfirmInfo.recipient
-  } else {
-    // Regular path payment
-    amount = state.wallets.buildingAdvanced.recipientAmount
-    destinationAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset)
-    from = state.wallets.buildingAdvanced.senderAccountID
-    sourceAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset)
-    to = state.wallets.buildingAdvanced.recipient
+  if (forSEP7 && state.wallets.sep7ConfirmInfo == null) {
+    console.warn('Tried to calculate SEP7 path payment with no SEP7 info')
+    return
   }
+  const amount = forSEP7
+    ? state.wallets.sep7ConfirmInfo.amount
+    : state.wallets.buildingAdvanced.recipientAmount
+  const destinationAsset = assetDescriptionOrNativeToRpcAsset(
+    forSEP7
+      ? Constants.makeAssetDescription({
+          code: state.wallets.sep7ConfirmInfo.assetCode,
+          issuerAccountID: state.wallets.sep7ConfirmInfo.assetIssuer,
+        })
+      : state.wallets.buildingAdvanced.recipientAsset
+  )
+  const from = forSEP7 ? '' : state.wallets.buildingAdvanced.senderAccountID
+  const sourceAsset = forSEP7
+    ? emptyAssetWithoutType
+    : assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset)
+  const to = forSEP7 ? state.wallets.sep7ConfirmInfo.recipient : state.wallets.buildingAdvanced.recipient
 
   return RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
     {
@@ -1840,6 +1841,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.acceptSEP7Pay,
     acceptSEP7Pay,
     'acceptSEP7Pay'
+  )
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7PathPayload>(
+    WalletsGen.acceptSEP7Path,
+    acceptSEP7Path,
+    'acceptSEP7Path'
   )
   yield* Saga.chainAction<WalletsGen.AcceptSEP7TxPayload>(
     WalletsGen.acceptSEP7Tx,

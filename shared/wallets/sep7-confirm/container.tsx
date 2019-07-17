@@ -21,8 +21,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onLookupPath: () => dispatch(WalletsGen.createCalculateBuildingAdvanced({forSEP7: true})),
 })
 
-const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
-  if (stateProps.loading || !stateProps.sep7ConfirmInfo /* TODO is this ok */) {
+export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  if (stateProps.loading || !stateProps.sep7ConfirmInfo) {
     return {
       amount: null,
       assetCode: '',
@@ -37,6 +37,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
       onAcceptPay: (amount: string) => null,
       onAcceptTx: () => null,
       onBack: dispatchProps.onClose,
+      onLookupPath: () => null,
       operation: 'pay' as const,
       originDomain: '',
       path: stateProps.sep7ConfirmPath,
@@ -65,7 +66,6 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     summary,
   } = stateProps.sep7ConfirmInfo
   const path = stateProps.sep7ConfirmPath
-  console.warn('sep7ConfirmPath is', path)
   const rawOp = stateProps.sep7ConfirmInfo.operation
   const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
 
@@ -96,5 +96,3 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     waitingKey: stateProps.waitingKey,
   }
 })(SEP7Confirm)
-
-export default Connected

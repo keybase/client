@@ -578,6 +578,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadInflationDestination:
     case WalletsGen.loadExternalPartners:
     case WalletsGen.acceptSEP7Pay:
+    case WalletsGen.acceptSEP7Path:
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
