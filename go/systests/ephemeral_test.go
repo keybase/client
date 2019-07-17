@@ -135,6 +135,10 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
 
+	// grab the latest teamEK and make sure the generation lines up with the teambotEK
+	teamEK, _, err := ekLib1.GetOrCreateLatestTeamEK(mctx1, teamID)
+	require.NoError(t, err)
+
 	// initial get, bot has no key to access
 	_, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
@@ -156,10 +160,6 @@ func TestEphemeralTeambotEK(t *testing.T) {
 		Generation: 1,
 	}
 	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
-
-	// grab the latest teamEK and make sure the generation lines up with the teambotEK
-	teamEK, _, err := ekLib1.GetOrCreateLatestTeamEK(mctx1, teamID)
-	require.NoError(t, err)
 
 	// now created = false since we published after receiving the teambot_key_needed notif
 	teambotEK, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)

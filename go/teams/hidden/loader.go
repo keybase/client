@@ -344,7 +344,6 @@ func checkUpdateAgainstSeed(mctx libkb.MetaContext, getSeed func(keybase1.PerTea
 	gen := readerKey.Ptk.Gen
 	check := getSeed(gen)
 	if check == nil {
-		//		return nil
 		return NewLoaderError("seed check at generation %d wasn't found", gen)
 	}
 	hash, err := check.Hash()
