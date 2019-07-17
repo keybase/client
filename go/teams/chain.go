@@ -2077,7 +2077,7 @@ func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	// PTKs that'll later be filled in by playing the hidden chain; however, we should never be trampling old keys
 	// as we insert visible links. (this check used to be strict inequality (!=), but we've relaxed it to be onesided (<)).
 	if perTeamKey.Generation < expectedGeneration {
-		return res, fmt.Errorf("per-team-key generation expected %v but got %v, can't go backwards", expectedGeneration, perTeamKey.Generation)
+		return res, fmt.Errorf("per-team-key generation must be greater or equal to %v but got %v; we can't go backwards", expectedGeneration, perTeamKey.Generation)
 	}
 
 	// validate signing kid

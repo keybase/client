@@ -9,6 +9,7 @@ import {EnterEmailBody} from '../../signup/email/'
 import {EnterPhoneNumberBody} from '../../signup/phone-number/'
 import {VerifyBody} from '../../signup/phone-number/verify'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
+import {e164ToDisplay} from '../../util/phone-numbers'
 
 export const Email = () => {
   const dispatch = Container.useDispatch()
@@ -30,7 +31,7 @@ export const Email = () => {
       // success
       dispatch(RouteTreeGen.createClearModals())
     }
-  }, [addedEmail, dispatch])
+  }, [addEmailInProgress, addedEmail, dispatch])
 
   const onClose = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onContinue = React.useCallback(() => {
@@ -201,7 +202,7 @@ export const VerifyPhone = () => {
 
   const onResend = React.useCallback(
     () => dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber: pendingVerification})),
-    [dispatch]
+    [dispatch, pendingVerification]
   )
   const onClose = React.useCallback(() => {
     dispatch(SettingsGen.createClearPhoneNumberAdd())
@@ -212,6 +213,8 @@ export const VerifyPhone = () => {
     [dispatch, code, pendingVerification]
   )
   const disabled = !code
+
+  const displayPhone = e164ToDisplay(pendingVerification)
   return (
     <Kb.Modal
       onClose={onClose}
@@ -220,7 +223,7 @@ export const VerifyPhone = () => {
         style: styles.blueBackground,
         title: (
           <Kb.Text type="BodySmall" negative={true}>
-            {pendingVerification || 'Unknown number'}
+            {displayPhone || 'Unknown number'}
           </Kb.Text>
         ),
       }}

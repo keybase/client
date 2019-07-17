@@ -300,10 +300,12 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
     participantToContactName: I.Map(
-      (i.participants || []).reduce<{[key: string]: string}>(
-        (map, part) => (part.contactName ? {...map, [part.assertion]: part.contactName} : map),
-        {}
-      )
+      (i.participants || []).reduce<{[key: string]: string}>((map, part) => {
+        if (part.contactName) {
+          map[part.assertion] = part.contactName
+        }
+        return map
+      }, {})
     ),
     participants: I.List((i.participants || []).map(part => part.assertion)),
     readMsgID: i.readMsgID,

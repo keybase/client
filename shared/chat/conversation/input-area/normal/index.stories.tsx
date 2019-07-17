@@ -129,6 +129,11 @@ const InputContainer = (props: Props) => {
       {channelname: 'general', teamname: 'got'},
       {channelname: 'live', teamname: 'got'},
     ]),
+    suggestBotCommands: [
+      {description: 'Build the app', hasHelpText: true, name: 'build', usage: '[platform]'},
+      {description: '', hasHelpText: true, name: 'help', usage: ''},
+      {description: 'What is this bot doing', hasHelpText: false, name: 'status', usage: '[--extended]'},
+    ],
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
