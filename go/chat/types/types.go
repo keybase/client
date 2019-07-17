@@ -298,6 +298,7 @@ func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.As
 	return false, nil
 }
 func (d DummyAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+func (d DummyAttachmentFetcher) OnStart(mctx libkb.MetaContext)        {}
 
 type DummyAttachmentHTTPSrv struct{}
 
