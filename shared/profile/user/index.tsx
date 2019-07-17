@@ -63,8 +63,9 @@ const noopOnClick = () => {}
 const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
-      username={p.title}
       onClick={p.title === p.username ? 'profile' : noopOnClick}
+      title={p.title !== p.username ? p.title : null}
+      username={p.username}
       underline={false}
       selectable={true}
       colorFollowing={true}

@@ -93,7 +93,14 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       )
     }
     const username = this.props.username || ''
-    const usernameOrTitle = username ? (
+    const title = this.props.title || ''
+    const usernameOrTitle = title ? (
+      <TextOrComponent
+        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+        style={this.props.horizontal ? undefined : this.props.titleStyle}
+        val={this.props.title || ''}
+      />
+    ) : (
       <ConnectedUsernames
         onUsernameClicked={this.props.clickType === 'onClick' ? this.props.onClick : 'profile'}
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
@@ -110,12 +117,6 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorYou={this.props.notFollowingColorOverride}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
         style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
-      />
-    ) : (
-      <TextOrComponent
-        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-        style={this.props.horizontal ? undefined : this.props.titleStyle}
-        val={this.props.title || ''}
       />
     )
 
