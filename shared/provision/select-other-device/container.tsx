@@ -8,8 +8,8 @@ import HiddenString from '../../util/hidden-string'
 type OwnProps = RouteProps
 
 const mapStateToProps = (state: TypedState) => ({
-  devices: state.provision.devices,
   configuredAccounts: state.config.configuredAccounts,
+  devices: state.provision.devices,
 })
 const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
