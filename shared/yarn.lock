@@ -7131,9 +7131,9 @@ expo-file-system@~5.0.0:
   dependencies:
     uuid-js "^0.7.5"
 
-"expo-image-picker@git://github.com/MarcoPolo/expo-image-picker":
+expo-image-picker@keybase/expo#keybase-image-picker:
   version "5.0.2"
-  resolved "git://github.com/MarcoPolo/expo-image-picker#da5219cbd737780754710157c17076e6f54b6c7e"
+  resolved "https://codeload.github.com/keybase/expo/tar.gz/bf87b940ab44a5b499b5011cb8de17e40872770c"
 
 expo-permissions@5.0.1:
   version "5.0.1"
