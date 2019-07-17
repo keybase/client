@@ -12,9 +12,9 @@ import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
-import {isMobile} from '../../constants/platform'
+import {TypedState, isMobile} from '../../util/container'
 
-const editProfile = (state, action: ProfileGen.EditProfilePayload) =>
+const editProfile = (state: TypedState, action: ProfileGen.EditProfilePayload) =>
   RPCTypes.userProfileEditRpcPromise(
     {
       bio: action.payload.bio,
@@ -24,7 +24,7 @@ const editProfile = (state, action: ProfileGen.EditProfilePayload) =>
     TrackerConstants.waitingKey
   ).then(() => Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}))
 
-const uploadAvatar = (_, action: ProfileGen.UploadAvatarPayload) =>
+const uploadAvatar = (_: TypedState, action: ProfileGen.UploadAvatarPayload) =>
   RPCTypes.userUploadUserAvatarRpcPromise(
     {
       crop: action.payload.crop,
@@ -38,7 +38,7 @@ const uploadAvatar = (_, action: ProfileGen.UploadAvatarPayload) =>
       logger.warn(`Error uploading user avatar: ${e.message}`)
     })
 
-const finishRevoking = state => [
+const finishRevoking = (state: TypedState) => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
   Tracker2Gen.createLoad({
     assertion: state.config.username,
@@ -49,7 +49,7 @@ const finishRevoking = state => [
   ProfileGen.createRevokeFinish(),
 ]
 
-const showUserProfile = (state, action: ProfileGen.ShowUserProfilePayload) => {
+const showUserProfile = (state: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
   const {username: userId} = action.payload
   // TODO search itself should handle this
   const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
@@ -63,7 +63,7 @@ const showUserProfile = (state, action: ProfileGen.ShowUserProfilePayload) => {
   ]
 }
 
-const onClickAvatar = (_, action: ProfileGen.OnClickAvatarPayload) => {
+const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) => {
   if (!action.payload.username) {
     return
   }
@@ -75,7 +75,7 @@ const onClickAvatar = (_, action: ProfileGen.OnClickAvatarPayload) => {
   }
 }
 
-const submitRevokeProof = (state, action: ProfileGen.SubmitRevokeProofPayload) => {
+const submitRevokeProof = (state: TypedState, action: ProfileGen.SubmitRevokeProofPayload) => {
   const you = TrackerConstants.getDetails(state, state.config.username)
   if (!you || !you.assertions) return null
   const proof = you.assertions.find(a => a.sigID === action.payload.proofId)
@@ -98,7 +98,7 @@ const submitRevokeProof = (state, action: ProfileGen.SubmitRevokeProofPayload) =
   }
 }
 
-const submitBlockUser = (state, action: ProfileGen.SubmitBlockUserPayload) => {
+const submitBlockUser = (_: TypedState, action: ProfileGen.SubmitBlockUserPayload) => {
   return RPCTypes.userBlockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
     .then(() => [
       ProfileGen.createFinishBlockUser(),
@@ -117,7 +117,7 @@ const submitBlockUser = (state, action: ProfileGen.SubmitBlockUserPayload) => {
     })
 }
 
-const submitUnblockUser = (state, action: ProfileGen.SubmitUnblockUserPayload) => {
+const submitUnblockUser = (_: TypedState, action: ProfileGen.SubmitUnblockUserPayload) => {
   return RPCTypes.userUnblockUserRpcPromise(
     {username: action.payload.username},
     Constants.blockUserWaitingKey
