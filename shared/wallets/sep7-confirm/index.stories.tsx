@@ -35,6 +35,7 @@ const commonProps = {
   onChangeAmount: Sb.action('onChangeAmount'),
   onLookupPath: Sb.action('onLookupPath'),
   path: commonPath,
+  readyToSend: true,
   userAmount: '',
   waiting: false,
   waitingKey: 'false',

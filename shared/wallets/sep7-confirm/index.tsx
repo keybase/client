@@ -33,6 +33,7 @@ type Props = {
   operation: 'pay' | 'tx'
   originDomain: string
   path: Types._BuiltPaymentAdvanced
+  readyToSend: boolean
   recipient: string | null
   summary: Summary
   userAmount: string | null
@@ -56,13 +57,7 @@ type LoadingProps = {
 const Loading = (props: LoadingProps) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2
-        direction="vertical"
-        centerChildren={true}
-        fullWidth={true}
-        fullHeight={true}
-        style={styles.dialog}
-      >
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
         <Kb.ProgressIndicator />
       </Kb.Box2>
     </Kb.Box2>
@@ -156,11 +151,15 @@ const PaymentInfo = (props: PaymentInfoProps) => (
             <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
               {props.amount} {props.assetCode}
             </Kb.Text>
-            {!!props.exchangeRate && (
+            {!!props.exchangeRate ? (
               <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
                 <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
                   (Exchange rate: {props.exchangeRate})
                 </Kb.Text>
+              </Kb.Box2>
+            ) : (
+              <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
+                <Kb.ProgressIndicator type="Small" />
               </Kb.Box2>
             )}
           </>
@@ -264,7 +263,7 @@ const SEP7Confirm = (props: Props) => (
           fullWidth={true}
           style={styles.button}
           label={props.operation === 'pay' ? 'Pay' : 'Sign'}
-          disabled={!props.amount && !props.userAmount}
+          disabled={!props.readyToSend}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -272,7 +271,7 @@ const SEP7Confirm = (props: Props) => (
   </Kb.MaybePopup>
 )
 
-const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>) => {
+const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
   React.useEffect(() => {
     props.assetCode && !props.path.exchangeRate && props.onLookupPath()
@@ -280,7 +279,7 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>)
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (
-    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} />
+    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} readyToSend={props.assetCode ? !!props.path.exchangeRate : (!!props.amount || !!userAmount)} />
   )
 }
 
