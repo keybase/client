@@ -1,4 +1,4 @@
-FROM debian:10
+FROM debian:stretch
 MAINTAINER Keybase <admin@keybase.io>
 
 # Install dependencies from the standard repos.

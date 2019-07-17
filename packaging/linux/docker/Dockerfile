@@ -10,7 +10,7 @@ RUN /go/src/github.com/keybase/client/packaging/linux/build_binaries.sh \
     production /
 RUN chmod +x /binaries/amd64/usr/bin/keybase
 
-FROM debian:10
+FROM debian:stretch
 
 RUN apt-get update \
     && apt-get install -y gnupg2 \
