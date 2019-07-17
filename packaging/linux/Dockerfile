@@ -1,5 +1,5 @@
 FROM debian:stretch
-MAINTAINER Keybase <admin@keybase.io>
+LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but

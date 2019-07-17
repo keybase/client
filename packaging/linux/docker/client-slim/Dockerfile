@@ -3,17 +3,21 @@
 FROM golang:1.12.4-stretch AS builder
 LABEL maintainer="Keybase <admin@keybase.io>"
 
-ENV KEYBASE_SKIP_32_BIT=1
+ARG SOURCE_COMMIT=unknown
 
 COPY . /go/src/github.com/keybase/client
-RUN /go/src/github.com/keybase/client/packaging/linux/build_binaries.sh \
-    production /
+RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
+    KEYBASE_NO_GUI=1 \
+    KEYBASE_NO_KBFS=1 \
+    KEYBASE_SKIP_32_BIT=1 \
+    /go/src/github.com/keybase/client/packaging/linux/build_binaries.sh \
+    prerelease /
 RUN chmod +x /binaries/amd64/usr/bin/keybase
 
 FROM debian:stretch
 
 RUN apt-get update \
-    && apt-get install -y gnupg2 \
+    && apt-get install -y gnupg2 procps \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TINI_VERSION v0.18.0
@@ -23,10 +27,9 @@ RUN gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 595
     && gpg --batch --verify /tini.asc /tini \
     && chmod +x /tini
 
-RUN useradd --create-home --shell /bin/bash keybase
 USER keybase
 
 COPY --from=builder /binaries/amd64/usr/bin/keybase /usr/bin/keybase
 
 ENTRYPOINT ["/tini", "--"]
-CMD ["keybase", "service"]
+CMD ["keybase status"]
