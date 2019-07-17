@@ -380,6 +380,7 @@ protocol local {
     //   and could still fail.
     // If arg.quickReturn == false then result.pending should be ignored.
     boolean pending;
+    string jumpToChat;
   }
 
   SendPaymentResLocal sendPathLocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);

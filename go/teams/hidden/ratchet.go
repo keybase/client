@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -266,9 +267,12 @@ func generateRatchet(mctx libkb.MetaContext, b sig3.Tail) (ret *Ratchet, err err
 // MakeRatchet constructs a new Ratachet object for the given team's hidden tail, blinds
 // it with a randomly-generated blinding key, and then packages all relevant info up into
 // and encoding that can be easily posted to the API server.
-func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (*Ratchet, error) {
+func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (ret *Ratchet, err error) {
 
-	err := CheckFeatureGateForSupport(mctx, id, true /* isWrite */)
+	defer mctx.Trace(fmt.Sprintf("MakeRatchet(%s)", id), func() error { return err })()
+
+
+	err = CheckFeatureGateForSupport(mctx, id, true /* isWrite */)
 	if err != nil {
 		mctx.VLogf(libkb.VLog0, "skipping ratchet for team id %s due to feature-flag", id)
 		return nil, nil
@@ -279,13 +283,15 @@ func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (*Ratchet, error) {
 		return nil, err
 	}
 	if tail == nil || tail.Seqno == keybase1.Seqno(0) {
+		mctx.Debug("no tail found")
 		return nil, nil
 	}
 	itail, err := sig3.ImportTail(*tail)
 	if err != nil {
 		return nil, err
 	}
-	ret, err := generateRatchet(mctx, *itail)
+	mctx.Debug("ratcheting at tail %+v", *itail)
+	ret, err = generateRatchet(mctx, *itail)
 	if err != nil {
 		return nil, err
 	}

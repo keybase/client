@@ -425,7 +425,6 @@ const HoverBox = Styles.styled(Kb.Box)({
   borderStyle: 'dotted',
   borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
-  flex: 0,
   height: AVATAR_CONTAINER_SIZE,
   marginBottom: Styles.globalMargins.small,
   marginTop: Styles.globalMargins.medium,

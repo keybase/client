@@ -608,6 +608,10 @@
         {
           "type": "boolean",
           "name": "pending"
+        },
+        {
+          "type": "string",
+          "name": "jumpToChat"
         }
       ]
     },

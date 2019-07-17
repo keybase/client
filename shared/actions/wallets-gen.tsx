@@ -296,7 +296,11 @@ type _SendAssetChoicesReceivedPayload = {
 type _SendPaymentAdvancedPayload = void
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = {readonly error: string}
-type _SentPaymentPayload = {readonly kbTxID: HiddenString; readonly lastSentXLM: boolean}
+type _SentPaymentPayload = {
+  readonly kbTxID: HiddenString
+  readonly lastSentXLM: boolean
+  readonly jumpToChat: string
+}
 type _SetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
 type _SetBuildingAdvancedPublicMemoPayload = {readonly publicMemo: HiddenString}
 type _SetBuildingAdvancedRecipientAmountPayload = {readonly recipientAmount: string}

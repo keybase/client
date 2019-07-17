@@ -81,6 +81,7 @@ class AccountSettings extends React.Component<SettingsProps> {
   componentWillUnmount() {
     this.props.onSecretKeySeen()
   }
+
   render() {
     const props = this.props
     return (
