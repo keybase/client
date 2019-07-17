@@ -18,7 +18,6 @@ PODS:
   - EXSMS (5.0.0):
     - UMCore
     - UMPermissionsInterface
-  - FLAnimatedImage (1.0.12)
   - Folly (2018.10.22.00):
     - boost-for-react-native
     - DoubleConversion
@@ -28,8 +27,8 @@ PODS:
   - lottie-react-native (2.6.1):
     - lottie-ios (~> 2.5.0)
     - React
-  - React (0.59.9):
-    - React/Core (= 0.59.9)
+  - React (0.59.10):
+    - React/Core (= 0.59.10)
   - react-native-camera (2.0.0):
     - React
     - react-native-camera/RCT (= 2.0.0)
@@ -40,11 +39,9 @@ PODS:
     - React
   - react-native-contacts (2.2.5):
     - React
-  - react-native-fast-image (5.1.1):
-    - FLAnimatedImage
+  - react-native-fast-image (6.1.1):
     - React
-    - SDWebImage/Core
-    - SDWebImage/GIF
+    - SDWebImage (~> 5.0)
   - react-native-image-picker (0.27.1):
     - React
   - react-native-netinfo (1.2.3):
@@ -56,59 +53,59 @@ PODS:
     - React
   - react-native-webview (5.8.2):
     - React
-  - React/Core (0.59.9):
-    - yoga (= 0.59.9.React)
-  - React/CxxBridge (0.59.9):
+  - React/Core (0.59.10):
+    - yoga (= 0.59.10.React)
+  - React/CxxBridge (0.59.10):
     - Folly (= 2018.10.22.00)
     - React/Core
     - React/cxxreact
     - React/jsiexecutor
-  - React/cxxreact (0.59.9):
+  - React/cxxreact (0.59.10):
     - boost-for-react-native (= 1.63.0)
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
     - React/jsinspector
-  - React/DevSupport (0.59.9):
+  - React/DevSupport (0.59.10):
     - React/Core
     - React/RCTWebSocket
-  - React/fishhook (0.59.9)
-  - React/jsi (0.59.9):
+  - React/fishhook (0.59.10)
+  - React/jsi (0.59.10):
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
-  - React/jsiexecutor (0.59.9):
+  - React/jsiexecutor (0.59.10):
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
     - React/cxxreact
     - React/jsi
-  - React/jsinspector (0.59.9)
-  - React/RCTActionSheet (0.59.9):
+  - React/jsinspector (0.59.10)
+  - React/RCTActionSheet (0.59.10):
     - React/Core
-  - React/RCTAnimation (0.59.9):
+  - React/RCTAnimation (0.59.10):
     - React/Core
-  - React/RCTBlob (0.59.9):
+  - React/RCTBlob (0.59.10):
     - React/Core
-  - React/RCTCameraRoll (0.59.9):
+  - React/RCTCameraRoll (0.59.10):
     - React/Core
     - React/RCTImage
-  - React/RCTGeolocation (0.59.9):
+  - React/RCTGeolocation (0.59.10):
     - React/Core
-  - React/RCTImage (0.59.9):
+  - React/RCTImage (0.59.10):
     - React/Core
     - React/RCTNetwork
-  - React/RCTLinkingIOS (0.59.9):
+  - React/RCTLinkingIOS (0.59.10):
     - React/Core
-  - React/RCTNetwork (0.59.9):
+  - React/RCTNetwork (0.59.10):
     - React/Core
-  - React/RCTPushNotification (0.59.9):
+  - React/RCTPushNotification (0.59.10):
     - React/Core
-  - React/RCTSettings (0.59.9):
+  - React/RCTSettings (0.59.10):
     - React/Core
-  - React/RCTText (0.59.9):
+  - React/RCTText (0.59.10):
     - React/Core
-  - React/RCTWebSocket (0.59.9):
+  - React/RCTWebSocket (0.59.10):
     - React/Core
     - React/fishhook
     - React/RCTBlob
@@ -120,10 +117,9 @@ PODS:
     - React
   - RNScreens (1.0.0-alpha.22):
     - React
-  - SDWebImage/Core (4.4.2)
-  - SDWebImage/GIF (4.4.2):
-    - FLAnimatedImage (~> 1.0)
-    - SDWebImage/Core
+  - SDWebImage (5.0.6):
+    - SDWebImage/Core (= 5.0.6)
+  - SDWebImage/Core (5.0.6)
   - UMBarCodeScannerInterface (2.0.0)
   - UMCameraInterface (2.0.0)
   - UMConstantsInterface (2.0.0)
@@ -139,7 +135,7 @@ PODS:
     - UMFontInterface
   - UMSensorsInterface (2.0.0)
   - UMTaskManagerInterface (2.0.0)
-  - yoga (0.59.9.React)
+  - yoga (0.59.10.React)
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -195,7 +191,6 @@ DEPENDENCIES:
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - boost-for-react-native
-    - FLAnimatedImage
     - SDWebImage
 
 EXTERNAL SOURCES:
@@ -299,15 +294,14 @@ SPEC CHECKSUMS:
   EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
   EXPermissions: db2fa0f23edd57e65735f3edbdf0668c5c0e04f0
   EXSMS: a9b5c82b4f290271779270eb51e2c3be80ab9dff
-  FLAnimatedImage: 4a0b56255d9b05f18b6dd7ee06871be5d3b89e31
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
   lottie-ios: d699fdee68d7b63e721d949388b015fef1aaa4ac
   lottie-react-native: 3d8181d43619b1fe804c828bd5a09d20fe8bdea7
-  React: a86b92f00edbe1873a63e4a212c29b7a7ad5224f
+  React: 36d0768f9e93be2473b37e7fa64f92c1d5341eef
   react-native-camera: 4b810becdf9bebf269b252552ee9a074f5f03bd4
   react-native-contacts: f6e5c518598762081ff9cf7c70db36f71668538e
-  react-native-fast-image: 47487b71169aea34868e7b38bf870b6b3f2157c5
+  react-native-fast-image: fdfc612dba58fd73136cf5efdaeb8cfcad7f63b2
   react-native-image-picker: 3fac3bf5b8ec802785c884c5bde0239ad8433b34
   react-native-netinfo: 8b18f11bd389677d79eca48a07cedd4b3cc10f15
   react-native-video: 9aecbfc4628128838187df9d9c9f630670cfb1d1
@@ -316,7 +310,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: b65d391f4f570178d657b99a16ec99d09b8656b0
   RNReanimated: c8dd490ca98a4edcba229bfa49f2516c95a43afb
   RNScreens: 720a9e6968beb73e8196239801e887d8401f86ed
-  SDWebImage: 624d6e296c69b244bcede364c72ae0430ac14681
+  SDWebImage: 920f1a2ff1ca8296ad34f6e0510a1ef1d70ac965
   UMBarCodeScannerInterface: 1004fe3df1ca78c364e2e51e036f3a33c461e8e4
   UMCameraInterface: 56a8a7251c944deba01c889eb9dc33664bf8a42d
   UMConstantsInterface: a51e2c8fa14a87862676e2d31fcff8d45cb1801b
@@ -329,8 +323,8 @@ SPEC CHECKSUMS:
   UMReactNativeAdapter: 90b3418908718243f8073b297a116c52a7a0fe5a
   UMSensorsInterface: d438f93649e5467cb60ab2667d81e46e800b188b
   UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
-  yoga: 03ff42a6f223fb88deeaed60249020d80c3091ee
+  yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
 PODFILE CHECKSUM: af2485f8bb9f854bfe6883511b056cae391d73be
 
-COCOAPODS: 1.7.3
+COCOAPODS: 1.7.4
