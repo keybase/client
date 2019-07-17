@@ -610,7 +610,9 @@ protocol local {
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;
 
+    // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
   }
 
   record NonblockFetchRes {
@@ -1091,4 +1093,38 @@ protocol local {
   // Location updates
   void locationUpdate(Coordinate coord);
   void locationDenied(ConversationID convID);
+
+  // Bot commands
+  record UserBotCommandOutput {
+    string name;
+    string description;
+    string usage;
+    union { null, string } extendedDescription;
+    string username; 
+  }
+  record UserBotCommandInput {
+    string name;
+    string description;
+    string usage;
+    union { null, string } extendedDescription;
+  }
+  record AdvertiseCommandsParam {
+    BotCommandsAdvertisementTyp typ;
+    array<UserBotCommandInput> commands;
+    union { null, string } teamName;
+  }  
+  record AdvertiseBotCommandsLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias, 
+    array<AdvertiseCommandsParam> advertisements);
+  record ListBotCommandsLocalRes {
+    array<UserBotCommandOutput> commands;
+    array<RateLimit> rateLimits;
+  }
+  ListBotCommandsLocalRes listBotCommandsLocal(ConversationID convID);
+  record ClearBotCommandsLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  ClearBotCommandsLocalRes clearBotCommandsLocal();
 }

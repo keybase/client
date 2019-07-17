@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/bots"
+
 	"golang.org/x/net/context"
 
 	"encoding/base64"
@@ -435,6 +437,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
+	g.BotCommandManager.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 

@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"hash"
@@ -64,6 +65,10 @@ func MakeConvID(val string) (ConversationID, error) {
 
 func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
+}
+
+func (cid ConversationID) Bytes() []byte {
+	return []byte(cid)
 }
 
 func (cid ConversationID) IsNil() bool {
@@ -2059,6 +2064,30 @@ func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *ListBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ListBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ClearBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (i EphemeralPurgeInfo) String() string {
 	return fmt.Sprintf("EphemeralPurgeInfo{ ConvID: %v, IsActive: %v, NextPurgeTime: %v, MinUnexplodedID: %v }",
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
@@ -2385,4 +2414,62 @@ func (c Coordinate) IsZero() bool {
 
 func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
+}
+
+func (b BotInfo) Hash() BotInfoHash {
+	hash := sha256Pool.Get().(hash.Hash)
+	defer sha256Pool.Put(hash)
+	hash.Reset()
+	sort.Slice(b.CommandConvs, func(i, j int) bool {
+		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
+		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
+		return ikey < jkey
+	})
+	for _, cconv := range b.CommandConvs {
+		hash.Write(cconv.ConvID)
+		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+	}
+	return BotInfoHash(hash.Sum(nil))
+}
+
+func (b BotInfoHash) Eq(h BotInfoHash) bool {
+	return bytes.Equal(b, h)
+}
+
+func (p AdvertiseCommandsParam) ToRemote(convID ConversationID, tlfID *TLFID) (res RemoteBotCommandsAdvertisement, err error) {
+	switch p.Typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		return NewRemoteBotCommandsAdvertisementWithPublic(RemoteBotCommandsAdvertisementPublic{
+			ConvID: convID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidConvs(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidMembers(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
+	return UserBotCommandOutput{
+		Name:                c.Name,
+		Description:         c.Description,
+		Usage:               c.Usage,
+		ExtendedDescription: c.ExtendedDescription,
+		Username:            username,
+	}
 }

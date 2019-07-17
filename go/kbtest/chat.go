@@ -62,6 +62,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.CoinFlipManager != nil {
 		<-c.ChatG.CoinFlipManager.Stop(context.TODO())
 	}
+	if c.ChatG.BotCommandManager != nil {
+		<-c.ChatG.BotCommandManager.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 
@@ -961,6 +964,18 @@ func (m *ChatRemoteMock) GetExternalAPIKeys(ctx context.Context, typs []chat1.Ex
 	return res, errors.New("GetExternalAPIKeys not mocked")
 }
 
+func (m *ChatRemoteMock) AdvertiseBotCommands(ctx context.Context, ads []chat1.RemoteBotCommandsAdvertisement) (res chat1.AdvertiseBotCommandsRes, err error) {
+	return res, errors.New("AdvertiseBotCommands not mocked")
+}
+
+func (m *ChatRemoteMock) ClearBotCommands(ctx context.Context) (res chat1.ClearBotCommandsRes, err error) {
+	return res, errors.New("ClearBotCommands not mocked")
+}
+
+func (m *ChatRemoteMock) GetBotInfo(ctx context.Context, arg chat1.GetBotInfoArg) (res chat1.GetBotInfoRes, err error) {
+	return res, errors.New("GetBotInfo not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -1242,11 +1257,11 @@ func NewMockChatHelper() *MockChatHelper {
 }
 
 func (m *MockChatHelper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string) error {
+	tlfName string, text string, vis keybase1.TLFVisibility) error {
 	return nil
 }
 func (m *MockChatHelper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error {
 	return nil
 }
 func (m *MockChatHelper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,

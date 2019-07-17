@@ -314,7 +314,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 			err)
 		return
 	}
-	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url); err != nil {
+	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url, keybase1.TLFVisibility_PRIVATE); err != nil {
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
 			err)
 	}
