@@ -299,18 +299,18 @@ func (m *TlfMock) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1
 }
 
 func (m *TlfMock) EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (types.EphemeralCryptKey, error) {
 	// Returns a totally zero teamEK. That's enough to get some very simple
 	// round trip tests to pass.
-	return keybase1.TeamEk{}, nil
+	return keybase1.TeamEphemeralKey{}, nil
 }
 
 func (m *TlfMock) EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
+	membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (types.EphemeralCryptKey, error) {
 	// Returns a totally zero teamEK. That's enough to get some very simple
 	// round trip tests to pass.
-	return keybase1.TeamEk{}, nil
+	return keybase1.TeamEphemeralKey{}, nil
 }
 
 func (m *TlfMock) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,

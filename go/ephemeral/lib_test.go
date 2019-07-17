@@ -159,7 +159,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		require.False(t, expired)
 		require.NotNil(t, cacheEntry)
 		require.Equal(t, teamEKCreationInProgress, cacheEntry.CreationInProgress)
-		require.Equal(t, teamEK.Metadata.Generation, cacheEntry.Generation)
+		require.Equal(t, teamEK.Generation(), cacheEntry.Generation)
 
 		// verify deviceEK
 		deviceEKNeeded, err := ekLib.NewDeviceEKNeeded(mctx)
@@ -183,7 +183,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 		teamEKGen, err := teamEKBoxStorage.MaxGeneration(mctx, teamID, false)
 		require.NoError(t, err)
 		require.Equal(t, expectedTeamEKGen, teamEKGen)
-		require.Equal(t, expectedTeamEKGen, teamEK.Metadata.Generation)
+		require.Equal(t, expectedTeamEKGen, teamEK.Generation())
 
 		teamEKNeeded, err := ekLib.NewTeamEKNeeded(mctx, teamID)
 		require.NoError(t, err)
@@ -228,7 +228,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, teamEK, keybase1.TeamEk{})
+	require.Equal(t, teamEK, keybase1.TeamEphemeralKey{})
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /*created*/, false /* teamEKCreationInProgress */)
 
 	// Now let's kill our deviceEK by corrupting a single bit in the noiseFile,
@@ -256,7 +256,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr = err.(EphemeralKeyError)
 	require.Equal(t, DefaultHumanErrMsg, ekErr.HumanError())
-	require.Equal(t, teamEK, keybase1.TeamEk{})
+	require.Equal(t, teamEK, keybase1.TeamEphemeralKey{})
 	t.Logf("before expectedTeamEkGen: %v", expectedTeamEKGen)
 	select {
 	case created := <-ch:
@@ -436,7 +436,7 @@ func TestLoginOneshotNoEphemeral(t *testing.T) {
 	require.False(t, created)
 	_, ok := err.(EphemeralKeyError)
 	require.False(t, ok)
-	require.Equal(t, keybase1.TeamEk{}, teamEK)
+	require.Equal(t, keybase1.TeamEphemeralKey{}, teamEK)
 
 	deks := tc2.G.GetDeviceEKStorage()
 	gen, err := deks.MaxGeneration(mctx2, false)

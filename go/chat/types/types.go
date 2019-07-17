@@ -237,7 +237,7 @@ type AttachmentUploadResult struct {
 type BoxerEncryptionInfo struct {
 	Key                   CryptKey
 	SigningKeyPair        libkb.NaclSigningKeyPair
-	EphemeralSeed         *keybase1.TeamEk
+	EphemeralKey          EphemeralCryptKey
 	PairwiseMACRecipients []keybase1.KID
 	Version               chat1.MessageBoxedVersion
 }
