@@ -180,7 +180,7 @@ func TestImplicitTeamResetAll(t *testing.T) {
 	divDebug(ctx, "team looked up after resets")
 }
 
-func TestImplicitResetAndSBSBringback(t *testing.T) {
+func TestImplicitTeamResetAndSBSBringback(t *testing.T) {
 	// 1. ann and bob (both PUKful) make imp team
 	// 2. bob resets
 	// 3. bob doesn't get a PUK
@@ -264,7 +264,7 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 
 	if startPUK {
 		// Wait for rotation after bob resets.
-		ann.waitForRotateByID(iteam2, keybase1.Seqno(2))
+		ann.waitForAnyRotateByID(iteam2, keybase1.Seqno(1), keybase1.Seqno(1))
 	}
 	ann.reAddUserAfterReset(iteam, bob)
 
@@ -288,9 +288,6 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 
 		// Wait for SBS
 		expectedSeqno := keybase1.Seqno(3)
-		if startPUK {
-			expectedSeqno = keybase1.Seqno(4) // rotateKey link if crypto user resets.
-		}
 		ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: iteam}, expectedSeqno)
 	}
 
@@ -307,15 +304,15 @@ func testImplicitResetParametrized(t *testing.T, startPUK, getPUKAfter bool) {
 	require.NoError(t, err)
 }
 
-func TestImplicitResetNoPUKtoNoPUK(t *testing.T) {
+func TestImplicitTeamResetNoPUKtoNoPUK(t *testing.T) {
 	testImplicitResetParametrized(t, false /* startPUK */, false /* getPUKAfter */)
 }
 
-func TestImplicitResetNoPUKtoPUK(t *testing.T) {
+func TestImplicitTeamResetNoPUKtoPUK(t *testing.T) {
 	testImplicitResetParametrized(t, false /* startPUK */, true /* getPUKAfter */)
 }
 
-func TestImplicitResetPUKtoNoPUK(t *testing.T) {
+func TestImplicitTeamResetPUKtoNoPUK(t *testing.T) {
 	// We are lucky this case even works, it breaks the rules a little
 	// bit: there is no way to post removeMember+addInvite in one
 	// link, so when PUKful bob resets and ann re-adds him as PUKless,
@@ -326,7 +323,7 @@ func TestImplicitResetPUKtoNoPUK(t *testing.T) {
 	testImplicitResetParametrized(t, true /* startPUK */, false /* getPUKAfter */)
 }
 
-func TestImplicitResetNoPukEncore(t *testing.T) {
+func TestImplicitTeamResetNoPukEncore(t *testing.T) {
 	// 1. ann and bob (both PUKful) make imp team
 	// 2. bob resets
 	// 3. bob doesn't get a PUK
@@ -371,7 +368,7 @@ func TestImplicitResetNoPukEncore(t *testing.T) {
 	require.Equal(t, 0, len(invites), "leftover invite")
 }
 
-func TestImplicitResetBadReadds(t *testing.T) {
+func TestImplicitTeamResetBadReadds(t *testing.T) {
 	// Check if we can't ruin implicit team state by bad re-adds.
 	tt := newTeamTester(t)
 	defer tt.cleanup()

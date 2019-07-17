@@ -23,7 +23,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
   return !isLoading ? (
     props.isIcon ? (
-      builtPaymentAdvanced.noPathFoundError ? (
+      builtPaymentAdvanced.findPathError ? (
         <Kb.Icon type="iconfont-remove" sizeType="Big" color={Styles.globalColors.red} />
       ) : (
         <Kb.WithTooltip

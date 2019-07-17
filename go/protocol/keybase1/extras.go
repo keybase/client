@@ -3146,10 +3146,17 @@ func (s TeamSigChainState) KeySummary() string {
 }
 
 func (h *HiddenTeamChain) IsStale() bool {
-	if h == nil || h.LatestSeqnoHint == Seqno(0) {
+	if h == nil {
 		return false
 	}
-	_, fresh := h.Outer[h.LatestSeqnoHint]
+	max := h.RatchetSet.Max()
+	if max < h.LatestSeqnoHint {
+		max = h.LatestSeqnoHint
+	}
+	if max == Seqno(0) {
+		return false
+	}
+	_, fresh := h.Outer[max]
 	return !fresh
 }
 
@@ -3195,6 +3202,21 @@ func (k TeamEphemeralKey) Generation() EkGeneration {
 		return k.Teambot().Metadata.Generation
 	default:
 		return 0
+	}
+}
+
+func (k TeamEphemeralKey) Material() Bytes32 {
+	typ, err := k.KeyType()
+	if err != nil {
+		return [32]byte{}
+	}
+	switch typ {
+	case TeamEphemeralKeyType_TEAM:
+		return k.Team().Seed
+	case TeamEphemeralKeyType_TEAMBOT:
+		return k.Teambot().Seed
+	default:
+		return [32]byte{}
 	}
 }
 

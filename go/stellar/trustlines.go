@@ -112,7 +112,7 @@ func DeleteTrustlineLocal(mctx libkb.MetaContext, arg stellar1.DeleteTrustlineLo
 				return err
 			}
 			if currentAmount != 0 {
-				return fmt.Errorf("cannot delete a trustline with a balance")
+				return fmt.Errorf("Cannot delete a trustline with a balance.")
 			}
 			found = true
 			break

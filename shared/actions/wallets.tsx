@@ -155,7 +155,6 @@ const sendPayment = (state: TypedState) => {
     {
       amount: notXLM ? state.wallets.builtPayment.worthAmount : state.wallets.building.amount,
       asset: emptyAsset,
-      // FIXME -- support other assets.
       bid: state.wallets.building.bid,
       bypassBid: false,
       bypassReview: false,
@@ -174,6 +173,7 @@ const sendPayment = (state: TypedState) => {
   )
     .then(res =>
       WalletsGen.createSentPayment({
+        jumpToChat: res.jumpToChat,
         kbTxID: new HiddenString(res.kbTxID),
         lastSentXLM: !notXLM,
       })
@@ -879,7 +879,25 @@ const maybeNavigateAwayFromSendForm = () => {
   return actions
 }
 
-const maybeNavigateToConversation = (
+const maybeNavigateToConversationFromPayment = (
+  _: TypedState,
+  action: WalletsGen.SentPaymentPayload,
+  logger: Saga.SagaLogger
+) => {
+  const actions = maybeNavigateAwayFromSendForm()
+  if (action.payload.jumpToChat) {
+    logger.info('Navigating to conversation because we sent a payment')
+    actions.push(
+      Chat2Gen.createPreviewConversation({
+        participants: [action.payload.jumpToChat],
+        reason: 'sentPayment',
+      })
+    )
+  }
+  return actions
+}
+
+const maybeNavigateToConversationFromRequest = (
   _: TypedState,
   action: WalletsGen.RequestedPaymentPayload,
   logger: Saga.SagaLogger
@@ -1256,6 +1274,7 @@ const refreshTrustlinePopularAssets = () =>
 
 const addTrustline = (state: TypedState, {payload: {accountID, assetID}}) => {
   const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   return (
     asset !== Constants.emptyAssetDescription &&
     RPCStellarTypes.localAddTrustlineLocalRpcPromise(
@@ -1265,12 +1284,18 @@ const addTrustline = (state: TypedState, {payload: {accountID, assetID}}) => {
         trustline: {assetCode: asset.code, issuer: asset.issuerAccountID},
       },
       Constants.addTrustlineWaitingKey(accountID, assetID)
-    ).then(() => WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+    )
+      .then(() => [WalletsGen.createChangedTrustline(), refresh])
+      .catch(err => {
+        logger.warn(`Error: ${err.desc}`)
+        return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+      })
   )
 }
 
 const deleteTrustline = (state: TypedState, {payload: {accountID, assetID}}) => {
   const asset = state.wallets.trustline.assetMap.get(assetID, Constants.emptyAssetDescription)
+  const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   return (
     asset !== Constants.emptyAssetDescription &&
     RPCStellarTypes.localDeleteTrustlineLocalRpcPromise(
@@ -1279,7 +1304,12 @@ const deleteTrustline = (state: TypedState, {payload: {accountID, assetID}}) => 
         trustline: {assetCode: asset.code, issuer: asset.issuerAccountID},
       },
       Constants.deleteTrustlineWaitingKey(accountID, assetID)
-    ).then(() => WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+    )
+      .then(() => [WalletsGen.createChangedTrustline(), refresh])
+      .catch(err => {
+        logger.warn(`Error: ${err.desc}`)
+        return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+      })
   )
 }
 
@@ -1356,24 +1386,31 @@ const calculateBuildingAdvanced = (state: TypedState) =>
           destinationAccount,
           destinationDisplay,
           exchangeRate,
+          findPathError: '',
           fullPath: rpcPaymentPathToPaymentPath(fullPath),
-          noPathFoundError: false,
           readyToSend: !amountError,
           sourceDisplay,
           sourceMaxDisplay,
         }),
       })
     })
-    .catch(error => {
-      if (error && error.desc === 'no payment path found') {
-        return WalletsGen.createSetBuiltPaymentAdvanced({
-          builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
-            noPathFoundError: true,
-            readyToSend: false,
-          }),
-        })
+    .catch(err => {
+      let errorMessage = 'Error finding a path to convert these 2 assets.'
+      if (err && err.desc) {
+        errorMessage = err.desc
       }
-      throw error
+      if (err && err.code === RPCTypes.StatusCode.scapinetworkerror) {
+        errorMessage = 'Network error.'
+      }
+      if (err && err.desc === 'no payment path found') {
+        errorMessage = 'No path was found to convert these 2 assets. Please pick other assets.'
+      }
+      return WalletsGen.createSetBuiltPaymentAdvanced({
+        builtPaymentAdvanced: Constants.makeBuiltPaymentAdvanced({
+          findPathError: errorMessage,
+          readyToSend: false,
+        }),
+      })
     })
 
 const sendPaymentAdvanced = (state: TypedState) =>
@@ -1386,7 +1423,13 @@ const sendPaymentAdvanced = (state: TypedState) =>
       source: state.wallets.buildingAdvanced.senderAccountID,
     },
     Constants.sendPaymentAdvancedWaitingKey
-  ).then(() => RouteTreeGen.createClearModals())
+  ).then(res =>
+    WalletsGen.createSentPayment({
+      jumpToChat: res.jumpToChat,
+      kbTxID: new HiddenString(res.kbTxID),
+      lastSentXLM: false,
+    })
+  )
 
 function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakePayload, logger) {
   if (state.wallets.staticConfig) {
@@ -1647,10 +1690,16 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     'clearErrors'
   )
 
-  yield* Saga.chainAction<WalletsGen.SentPaymentPayload | WalletsGen.AbandonPaymentPayload>(
-    [WalletsGen.abandonPayment, WalletsGen.sentPayment],
+  yield* Saga.chainAction<WalletsGen.AbandonPaymentPayload>(
+    [WalletsGen.abandonPayment],
     maybeNavigateAwayFromSendForm,
     'maybeNavigateAwayFromSendForm'
+  )
+
+  yield* Saga.chainAction<WalletsGen.SentPaymentPayload>(
+    [WalletsGen.sentPayment],
+    maybeNavigateToConversationFromPayment,
+    'maybeNavigateToConversationFromPayment'
   )
 
   yield* Saga.chainGenerator<WalletsGen.RequestPaymentPayload>(
@@ -1665,8 +1714,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<WalletsGen.RequestedPaymentPayload>(
     WalletsGen.requestedPayment,
-    maybeNavigateToConversation,
-    'maybeNavigateToConversation'
+    maybeNavigateToConversationFromRequest,
+    'maybeNavigateToConversationFromRequest'
   )
 
   // Effects of abandoning payments

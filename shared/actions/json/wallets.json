@@ -299,7 +299,8 @@
     "sentPayment": {
       "_description": "Successfully sent a payment",
       "kbTxID": "HiddenString",
-      "lastSentXLM": "boolean"
+      "lastSentXLM": "boolean",
+      "jumpToChat": "string"
     },
     "sentPaymentError": {
       "_description": "Failed to send a payment",
@@ -472,6 +473,11 @@
     "deleteTrustline": {
       "accountID": "Types.AccountID",
       "assetID": "Types.AssetID"
+    },
+    "changedTrustline": {
+      "canError": {
+        "error": "string"
+      }
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",

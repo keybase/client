@@ -363,12 +363,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKeyError: actionHasError(action) ? action.payload.error : '',
         secretKeyValidationState: actionHasError(action) ? 'error' : 'valid',
       })
+    case WalletsGen.changedTrustline:
+      return actionHasError(action)
+        ? state.merge({changeTrustlineError: action.payload.error})
+        : state.merge({changeTrustlineError: ''})
     case WalletsGen.clearErrors:
       return state.merge({
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
         builtPayment: state.get('builtPayment').merge({readyToSend: 'spinning'}),
+        changeTrustlineError: '',
         createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
@@ -383,6 +388,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountName: '',
             accountNameError: '',
             accountNameValidationState: 'none',
+            changeTrustlineError: '',
             createNewAccountError: '',
             linkExistingAccountError: '',
             secretKey: new HiddenString(''),
