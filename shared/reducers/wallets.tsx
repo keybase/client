@@ -452,6 +452,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         sep7ConfirmError: '',
         sep7ConfirmInfo: null,
+        sep7ConfirmPath: Constants.emptyBuiltPaymentAdvanced,
         sep7ConfirmURI: '',
       })
     case WalletsGen.validateSEP7LinkError:
@@ -528,7 +529,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
-      return action.payload.forSEP7 
+      return action.payload.forSEP7
         ? state.set('sep7ConfirmPath', action.payload.builtPaymentAdvanced)
         : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case WalletsGen.staticConfigLoaded:

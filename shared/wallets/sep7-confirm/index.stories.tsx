@@ -1,9 +1,21 @@
 import * as React from 'react'
 import {Box} from '../../common-adapters/index'
 import * as Sb from '../../stories/storybook'
-
+import * as Constants from '../../constants/wallets'
 import SEP7Confirm from '.'
 import SEP7Error from './error'
+
+const commonPath = {
+  amountError: '',
+  destinationAccount: 'NOACCOUNTID',
+  destinationDisplay: '', 
+  exchangeRate: '',
+  fullPath: Constants.makePaymentPath(),
+  noPathFoundError: false,
+  readyToSend: false,
+  sourceDisplay: '',
+  sourceMaxDisplay: '',
+}
 
 const commonProps = {
   assetCode: '',
@@ -16,10 +28,13 @@ const commonProps = {
   loading: false,
   memo: '',
   memoType: 'MEMO_NONE',
+  onAcceptPath: Sb.action('onAcceptPath'),
   onAcceptPay: Sb.action('onAcceptPay'),
   onAcceptTx: Sb.action('onAcceptTx'),
   onBack: Sb.action('onBack'),
   onChangeAmount: Sb.action('onChangeAmount'),
+  onLookupPath: Sb.action('onLookupPath'),
+  path: commonPath,
   userAmount: '',
   waiting: false,
   waitingKey: 'false',

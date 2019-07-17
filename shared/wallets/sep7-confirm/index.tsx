@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/wallets'
 import {WalletBackButton} from '../common'
 import {AssetPathIntermediate} from '../send-form/asset-input/asset-input-advanced'
 import AssetInput from './asset-input-container'
@@ -23,6 +24,7 @@ type Props = {
   memo: string | null
   memoType: string | null
   message: string | null
+  onAcceptPath: () => void
   onAcceptPay: (amount: string) => void
   onAcceptTx: () => void
   onBack: () => void
@@ -30,7 +32,7 @@ type Props = {
   onLookupPath: () => void
   operation: 'pay' | 'tx'
   originDomain: string
-  path: any
+  path: Types._BuiltPaymentAdvanced
   recipient: string | null
   summary: Summary
   userAmount: string | null
@@ -135,7 +137,6 @@ type PaymentInfoProps = {
   availableToSendNative: string
   displayAmountFiat: string
   exchangeRate: string
-  issuerVerifiedDomain: string
   memo: string | null
   message: string | null
   onChangeAmount: (amount: string) => void
@@ -154,9 +155,6 @@ const PaymentInfo = (props: PaymentInfoProps) => (
             <Kb.Text type="HeaderBigExtrabold" style={styles.purpleText}>
               {props.amount} {props.assetCode}
             </Kb.Text>
-            <Kb.Box2 direction="horizontal" alignSelf="flex-end">
-              <Kb.Text type="BodyTiny">{props.issuerVerifiedDomain}</Kb.Text>
-            </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" gapStart={true} gapEnd={false}>
             <Kb.Text type="BodySmallSemibold" style={styles.headingText}>
               (Exchange rate: {props.exchangeRate})
@@ -228,7 +226,6 @@ const SEP7Confirm = (props: Props) => (
             availableToSendNative={props.availableToSendNative}
             displayAmountFiat={props.displayAmountFiat}
             exchangeRate={props.path.exchangeRate}
-            issuerVerifiedDomain={props.path.fullPath.issuerVerifiedDomain}
             memo={props.memoType === 'MEMO_TEXT' ? props.memo : ''}
             message={props.message}
             onChangeAmount={props.onChangeAmount}
@@ -272,7 +269,7 @@ const SEP7Confirm = (props: Props) => (
 
 const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
-  React.useEffect(() => { props.assetCode && !props.path.destinationAmount && props.onLookupPath() }, [props.assetCode, props.path])
+  React.useEffect(() => { props.assetCode && !props.path.exchangeRate && props.onLookupPath() }, [props.assetCode, props.path.exchangeRate])
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (

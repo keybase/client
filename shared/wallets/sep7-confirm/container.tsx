@@ -13,6 +13,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onAcceptPath: (inputURI: string) => dispatch(WalletsGen.createAcceptSEP7Path({inputURI})),
   _onAcceptPay: (inputURI: string, amount: string) =>
     dispatch(WalletsGen.createAcceptSEP7Pay({amount, inputURI})),
   _onAcceptTx: (inputURI: string) => dispatch(WalletsGen.createAcceptSEP7Tx({inputURI})),
@@ -32,6 +33,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
       memo: null,
       memoType: null,
       message: null,
+      onAcceptPath: () => null,
       onAcceptPay: (amount: string) => null,
       onAcceptTx: () => null,
       onBack: dispatchProps.onClose,
@@ -63,6 +65,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     summary,
   } = stateProps.sep7ConfirmInfo
   const path = stateProps.sep7ConfirmPath
+  console.warn('sep7ConfirmPath is', path)
   const rawOp = stateProps.sep7ConfirmInfo.operation
   const operation = rawOp === 'pay' ? ('pay' as const) : rawOp === 'tx' ? ('tx' as const) : ('' as const)
 
@@ -80,6 +83,7 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     memo,
     memoType,
     message,
+    onAcceptPath: () => dispatchProps._onAcceptPath(stateProps._inputURI),
     onAcceptPay: (amount: string) => dispatchProps._onAcceptPay(stateProps._inputURI, amount),
     onAcceptTx: () => dispatchProps._onAcceptTx(stateProps._inputURI),
     onBack: dispatchProps.onClose,
@@ -92,6 +96,5 @@ const Connected = Container.connect(mapStateToProps, mapDispatchToProps, (stateP
     waitingKey: stateProps.waitingKey,
   }
 })(SEP7Confirm)
-
 
 export default Connected

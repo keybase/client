@@ -12,6 +12,10 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "acceptSEP7Path": {
+      "_description": "Accept the prepared SEP7 path payment",
+      "inputURI": "string"
+    },
     "acceptSEP7Pay": {
       "_description": "Accept the prepared SEP7 payment",
       "amount": "string",
