@@ -109,6 +109,15 @@ func (c *lookupResultCache) findFreshOrSetEmpty(mctx libkb.MetaContext, key stri
 	return res, found
 }
 
+func (c *lookupResultCache) cleanup(mctx libkb.MetaContext) {
+	clock := mctx.G().Clock()
+	for key, val := range c.Lookups {
+		if clock.Since(val.CachedAt) > val.getFreshness() {
+			delete(c.Lookups, key)
+		}
+	}
+}
+
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res ContactLookupMap, err error) {
 
@@ -182,6 +191,8 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 		} else {
 			mctx.Warning("Unable to call Provider.LookupAll, returning only cached results: %s", err)
 		}
+
+		conCache.cleanup(mctx)
 
 		cerr := c.Store.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
 		if cerr != nil {
