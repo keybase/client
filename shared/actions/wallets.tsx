@@ -1361,26 +1361,28 @@ const calculateBuildingAdvanced = (
   action: WalletsGen.CalculateBuildingAdvancedPayload
 ) => {
   const {forSEP7} = action.payload
-  if (forSEP7 && state.wallets.sep7ConfirmInfo == null) {
-    console.warn('Tried to calculate SEP7 path payment with no SEP7 info')
-    return
+  let amount = state.wallets.buildingAdvanced.recipientAmount
+  let destinationAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset)
+  let from = state.wallets.buildingAdvanced.senderAccountID
+  let sourceAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset)
+  let to = state.wallets.buildingAdvanced.recipient
+
+  if (forSEP7) {
+    if (state.wallets.sep7ConfirmInfo == null) {
+      console.warn('Tried to calculate SEP7 path payment with no SEP7 info')
+      return
+    }
+    amount = state.wallets.sep7ConfirmInfo.amount
+    destinationAsset = assetDescriptionOrNativeToRpcAsset(
+      Constants.makeAssetDescription({
+        code: state.wallets.sep7ConfirmInfo.assetCode,
+        issuerAccountID: state.wallets.sep7ConfirmInfo.assetIssuer,
+      })
+    )
+    from = ''
+    sourceAsset = emptyAssetWithoutType
+    to = state.wallets.sep7ConfirmInfo.recipient
   }
-  const amount = forSEP7
-    ? state.wallets.sep7ConfirmInfo.amount
-    : state.wallets.buildingAdvanced.recipientAmount
-  const destinationAsset = assetDescriptionOrNativeToRpcAsset(
-    forSEP7
-      ? Constants.makeAssetDescription({
-          code: state.wallets.sep7ConfirmInfo.assetCode,
-          issuerAccountID: state.wallets.sep7ConfirmInfo.assetIssuer,
-        })
-      : state.wallets.buildingAdvanced.recipientAsset
-  )
-  const from = forSEP7 ? '' : state.wallets.buildingAdvanced.senderAccountID
-  const sourceAsset = forSEP7
-    ? emptyAssetWithoutType
-    : assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset)
-  const to = forSEP7 ? state.wallets.sep7ConfirmInfo.recipient : state.wallets.buildingAdvanced.recipient
 
   return RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
     {
