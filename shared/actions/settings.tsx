@@ -393,7 +393,7 @@ const loadSettings = (
         (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
       )
       const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
       )
       const loadedAction = SettingsGen.createLoadedSettings({
         emails: emailMap,
@@ -405,10 +405,8 @@ const loadSettings = (
       logger.warn(`Error loading settings: ${e.message}`)
     })
 
-const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
-  visibility === ChatTypes.Keybase1.IdentityVisibility.private
-    ? ChatTypes.Keybase1.IdentityVisibility.public
-    : ChatTypes.Keybase1.IdentityVisibility.private
+const flipVis = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
+  searchable ? ChatTypes.Keybase1.IdentityVisibility.private : ChatTypes.Keybase1.IdentityVisibility.public
 
 const editEmail = (state, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
@@ -443,7 +441,7 @@ const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.Sag
   if (action.payload.toggleSearchable) {
     const currentSettings = state.settings.phoneNumbers.phones.get(action.payload.phone)
     const newVisibility = currentSettings
-      ? flipVis(currentSettings.visibility)
+      ? flipVis(currentSettings.searchable)
       : ChatTypes.Keybase1.IdentityVisibility.private
     return RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
       phoneNumber: action.payload.phone,
