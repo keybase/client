@@ -1,25 +1,20 @@
-import Icon from './icon'
 import React, {Component} from 'react'
 import Box from './box'
+import Icon from './icon'
 import Text from './text'
 import {Props} from './checkbox'
 import * as Styles from '../styles'
 
 const Kb = {
   Box,
+  Icon,
+  Text,
 }
 
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
 
 class Checkbox extends Component<Props> {
-  _onCheck = (e: React.SyntheticEvent) =>
-    // If something in labelComponent needs to catch a click without calling this, use
-    // event.preventDefault()
-    this.props.disabled || e.defaultPrevented
-      ? undefined
-      : this.props.onCheck && this.props.onCheck(!this.props.checked)
-
   render() {
     return (
       <Kb.Box
@@ -28,9 +23,15 @@ class Checkbox extends Component<Props> {
           !this.props.disabled && Styles.desktopStyles.clickable,
           this.props.style,
         ])}
-        onClick={this._onCheck}
+        onClick={e =>
+          // If something in labelComponent needs to catch a click without calling this, use
+          // event.preventDefault()
+          this.props.disabled || e.defaultPrevented
+            ? undefined
+            : this.props.onCheck && this.props.onCheck(!this.props.checked)
+        }
       >
-        <Icon
+        <Kb.Icon
           boxStyle={Styles.collapseStyles([
             styles.checkbox,
             this.props.checked && styles.checkboxChecked,
@@ -43,12 +44,12 @@ class Checkbox extends Component<Props> {
           color={Styles.globalColors.white}
           fontSize={9}
         />
-        <Text onClick={this._onCheck} type="Body" style={Styles.collapseStyles([
+        <Kb.Text type="Body" style={Styles.collapseStyles([
             styles.text,
             this.props.disabled && styles.semiLessTransparent,
           ])}>
           {this.props.labelComponent || this.props.label}
-        </Text>
+        </Kb.Text>
       </Kb.Box>
     )
   }
