@@ -19,14 +19,14 @@ import {
   RefreshControl as NativeRefreshControl,
   SafeAreaView as NativeSafeAreaView,
   SectionList as NativeSectionList,
-  StyleSheet as NativeStyleSheet,
   StatusBar as NativeStatusBar,
+  StyleSheet as NativeStyleSheet,
   Switch as NativeSwitch,
   Text as NativeText,
-  TouchableNativeFeedback as NativeTouchableNativeFeedback,
-  TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
+  TouchableNativeFeedback as NativeTouchableNativeFeedback,
   TouchableOpacity as NativeTouchableOpacity,
+  TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   View as NativeView,
 } from 'react-native'
 import NativeScrollView from './scroll-view.native'
