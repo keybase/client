@@ -8,9 +8,9 @@ import SEP7Error from './error'
 const commonPath = {
   amountError: '',
   destinationAccount: 'NOACCOUNTID',
-  destinationDisplay: '', 
-  findPathError: '',
+  destinationDisplay: '',
   exchangeRate: '',
+  findPathError: '',
   fullPath: Constants.makePaymentPath(),
   noPathFoundError: false,
   readyToSend: false,
