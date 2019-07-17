@@ -186,7 +186,9 @@ class Input extends React.Component<InputProps, InputState> {
     }
     // + 1 for '/'
     this._maxCmdLength =
-      this.props.suggestCommands.reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+      this.props.suggestCommands
+        .concat(this.props.suggestBotCommands)
+        .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -339,13 +341,20 @@ class Input extends React.Component<InputProps, InputState> {
       // a little messy. Check if the message starts with '/' and that the cursor is
       // within maxCmdLength chars away from it. This happens before `onChangeText`, so
       // we can't do a more robust check on `this._lastText` because it's out of date.
-      if (!this._lastText.startsWith('/') || (sel.start || 0) > this._maxCmdLength) {
+      if (
+        !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
+        (sel.start || 0) > this._maxCmdLength
+      ) {
         // not at beginning of message
         return []
       }
     }
+    const commands =
+      this._lastText && this._lastText.startsWith('!')
+        ? this.props.suggestBotCommands
+        : this.props.suggestCommands
     const fil = filter.toLowerCase()
-    return this.props.suggestCommands.filter(c => c.name.includes(fil))
+    return commands.filter(c => c.name.includes(fil))
   }
 
   _renderTeamSuggestion = (teamname, channelname, selected) => (

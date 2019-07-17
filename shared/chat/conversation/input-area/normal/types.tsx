@@ -56,6 +56,7 @@ export type InputProps = {
     channelname: string
   }>
   suggestCommands: Array<RPCChatTypes.ConversationCommand>
+  suggestBotCommands: Array<RPCChatTypes.ConversationCommand>
 } & CommonProps
 
 export type PlatformInputProps = {

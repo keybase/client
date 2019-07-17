@@ -429,6 +429,15 @@ export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   }
 }
 
+export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {commands} = getMeta(state, id)
+  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && commands.custom) {
+    return commands.custom.commands || []
+  } else {
+    return []
+  }
+}
+
 const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
