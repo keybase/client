@@ -113,7 +113,9 @@ func IsPermDbKey(typ ObjType) bool {
 		DBChatReacji,
 		DBStellarDisclaimer,
 		DBChatIndex,
-		DBBoxAuditorPermanent:
+		DBBoxAuditorPermanent,
+		DBSavedContacts,
+		DBContactResolution:
 		return true
 	default:
 		return false
