@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
-type Props = {
+export type Props = {
   airdropIsLive: boolean | null
   bio: string | null
   followThem: boolean | null
