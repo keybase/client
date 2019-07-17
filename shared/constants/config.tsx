@@ -23,11 +23,13 @@ export const makeOutOfDate = I.Record<Types._OutOfDate>({
   updating: false,
 })
 
-export const prepareAccountRows = <T extends {username: string}>(
+export const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: I.List<T>,
-  username: string
+  myUsername: string
 ): I.List<T> =>
-  accountRows.filter(account => account.username !== username).sortBy(account => account.username)
+  accountRows
+    .filter(account => account.username !== myUsername)
+    .sortBy(account => [account.hasStoredSecret, account.username])
 
 export const urlToUsername = (url: {
   protocol: string

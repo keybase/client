@@ -58,7 +58,7 @@ const AccountsRows = (props: Props) => (
           <Kb.Avatar
             size={32}
             username={entry.account.username}
-            style={entry.account.hasStoredSecret ? styles.avatarSignedOut : {}}
+            style={entry.account.hasStoredSecret ? undefined : styles.avatarSignedOut}
           />
         }
         firstItem={true}
