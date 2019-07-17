@@ -85,7 +85,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
 
 const suggestorToMarker = {
   channels: '#',
-  commands: '/',
+  commands: /(\!|\/)/,
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
   users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
@@ -476,31 +476,38 @@ class Input extends React.Component<InputProps, InputState> {
   _transformChannelSuggestion = (channelname, marker, tData, preview) =>
     standardTransformer(`${marker}${channelname}`, tData, preview)
 
-  _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected) => (
-    <Kb.Box2
-      fullWidth={true}
-      direction="vertical"
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        styles.fixSuggestionHeight,
-        {
-          alignItems: 'flex-start',
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-    >
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodySemibold" style={styles.boldStyle}>
-          /{command.name}
-        </Kb.Text>
-        <Kb.Text type="Body">{command.usage}</Kb.Text>
+  _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected) => {
+    const prefix = command.username ? '!' : '/'
+    return (
+      <Kb.Box2
+        fullWidth={true}
+        direction="vertical"
+        style={Styles.collapseStyles([
+          styles.suggestionBase,
+          styles.fixSuggestionHeight,
+          {
+            alignItems: 'flex-start',
+            backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
+          },
+        ])}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          {!!command.username && <Kb.Avatar size={16} username={command.username} />}
+          <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+            {prefix}
+            {command.name}
+          </Kb.Text>
+          <Kb.Text type="Body">{command.usage}</Kb.Text>
+        </Kb.Box2>
+        <Kb.Text type="BodySmall">{command.description}</Kb.Text>
       </Kb.Box2>
-      <Kb.Text type="BodySmall">{command.description}</Kb.Text>
-    </Kb.Box2>
-  )
+    )
+  }
 
-  _transformCommandSuggestion = (command, marker, tData, preview) =>
-    standardTransformer(`/${command.name}`, tData, preview)
+  _transformCommandSuggestion = (command, marker, tData, preview) => {
+    const prefix = command.username ? '!' : '/'
+    return standardTransformer(`${prefix}${command.name}`, tData, preview)
+  }
 
   render = () => {
     const {

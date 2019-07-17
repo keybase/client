@@ -282,6 +282,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
 
   return makeConversationMeta({
+    botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
     commands: i.commands,
@@ -324,6 +325,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 }
 
 export const makeConversationMeta = I.Record<_ConversationMeta>({
+  botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',
   commands: {} as RPCChatTypes.ConversationCommandGroups,
@@ -430,9 +432,9 @@ export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
 }
 
 export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
-  const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && commands.custom) {
-    return commands.custom.commands || []
+  const {botCommands} = getMeta(state, id)
+  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && botCommands.custom) {
+    return botCommands.custom.commands || []
   } else {
     return []
   }
