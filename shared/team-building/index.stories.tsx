@@ -80,11 +80,11 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
+            displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
-            displayLabel: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
               github: 'malgorithms on GitHub',
@@ -97,11 +97,11 @@ const load = () => {
             username: 'chris',
           },
           {
+            displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
-            displayLabel: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
               hackernews: 'chrismikacle on HackerNews',
@@ -113,11 +113,11 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
-            displayLabel: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
               hackernews: 'cnojima on HackerNews',
@@ -177,11 +177,11 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
+            displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
-            displayLabel: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
               github: 'malgorithms on GitHub',
@@ -194,11 +194,11 @@ const load = () => {
             username: 'chris',
           },
           {
+            displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
-            displayLabel: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
               hackernews: 'chrismikacle on HackerNews',
@@ -210,11 +210,11 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
-            displayLabel: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
               hackernews: 'cnojima on HackerNews',
@@ -327,11 +327,11 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
+            displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
-            displayLabel: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
               github: 'malgorithms on GitHub',
@@ -344,11 +344,11 @@ const load = () => {
             username: 'chris',
           },
           {
+            displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
-            displayLabel: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
               hackernews: 'chrismikacle on HackerNews',
@@ -360,11 +360,11 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
-            displayLabel: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
               hackernews: 'cnojima on HackerNews',
@@ -405,11 +405,11 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
+            displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
-            displayLabel: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
               github: 'malgorithms on GitHub',
@@ -422,11 +422,11 @@ const load = () => {
             username: 'chris',
           },
           {
+            displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
-            displayLabel: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
               hackernews: 'chrismikacle on HackerNews',
@@ -438,11 +438,11 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
-            displayLabel: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
               hackernews: 'cnojima on HackerNews',
@@ -483,11 +483,11 @@ const load = () => {
         highlightedIndex={1}
         searchResults={[
           {
+            displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
-            displayLabel: 'Chris Coyne',
             services: {
               facebook: 'chriscoyne on Facebook',
               github: 'malgorithms on GitHub',
@@ -500,11 +500,11 @@ const load = () => {
             username: 'chris',
           },
           {
+            displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
-            displayLabel: 'Chris Mikacle',
             services: {
               github: 'chrismikacle on GitHub',
               hackernews: 'chrismikacle on HackerNews',
@@ -516,11 +516,11 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
-            displayLabel: 'Chris Nojima',
             services: {
               github: 'cnojima on GitHub',
               hackernews: 'cnojima on HackerNews',
