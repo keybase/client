@@ -39,7 +39,7 @@ export type Props = {
   username: string
   name: string // assertion value
   service: string // assertion key (if SBS)
-  fullName: string | null // full name from profile
+  fullName: string | null // full name from external profile
   title: string
 }
 
@@ -82,37 +82,32 @@ const BioLayout = p => (
 )
 
 const ProveIt = p => {
-  if (p.service === 'phone' || p.service === 'email') {
-    let verifyWhat = ''
-    switch (p.service) {
-      case 'phone':
-        verifyWhat = 'phone number'
-        break
-      case 'email':
-        verifyWhat = 'e-mail address'
-        break
-    }
-    return (
-      <Kb.Text type="BodySmall" style={styles.proveIt}>
-        Tell {p.fullName || 'them'} to join Keybase and verify their {verifyWhat}.
-      </Kb.Text>
-    )
-  } else {
-    const url = 'https://keybase.io/install'
-    return (
-      <React.Fragment>
-        <Kb.Text type="BodySmall" style={styles.proveIt}>
-          Tell {p.fullName || p.name} to join Keybase and prove their {upperFirst(p.service)}.
-        </Kb.Text>
-        <Kb.Text type="BodySmall" style={styles.proveIt}>
-          Send them this link:{' '}
-          <Kb.Text type="BodySmallPrimaryLink" onClickURL={url}>
-            {url}
-          </Kb.Text>
-        </Kb.Text>
-      </React.Fragment>
-    )
+  let doWhat: string
+  switch (p.service) {
+    case 'phone':
+      doWhat = 'verify their phone number'
+      break
+    case 'email':
+      doWhat = 'verify their e-mail address'
+      break
+    default:
+      doWhat = `prove their ${upperFirst(p.service)}`
+      break
   }
+  const url = 'https://keybase.io/install'
+  return (
+    <>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Tell {p.fullName || p.name} to join Keybase and {doWhat}.
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Send them this link:{' '}
+        <Kb.Text type="BodySmallPrimaryLink" onClickURL={url} selectable={true}>
+          {url}
+        </Kb.Text>
+      </Kb.Text>
+    </>
+  )
 }
 
 const Proofs = p => {

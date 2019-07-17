@@ -151,7 +151,7 @@ const Bio = (p: Props) => (
         {p.bio}
       </Kb.Text>
     )}
-    {!!p.location && !p.sbsDescription && (
+    {!!p.location && (
       <Kb.Text
         type="BodySmall"
         center={true}
