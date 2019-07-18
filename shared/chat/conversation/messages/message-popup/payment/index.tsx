@@ -126,7 +126,9 @@ const Header = (props: HeaderProps) =>
             type="BodySmallSemibold"
           />
         </Kb.Box2>
-        <Kb.Text type="BodySmall">using device {props.senderDeviceName}</Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          using device {props.senderDeviceName}
+        </Kb.Text>
         <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
       {!!props.status && (
