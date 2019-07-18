@@ -13447,7 +13447,7 @@ react-native-mime-types@2.2.1:
 
 "react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311-fcm":
   version "3.1.1"
-  resolved "git://github.com/keybase/react-native-push-notification#a9376a8d10fb518a1595769aef6a00d185b62f8a"
+  resolved "git://github.com/keybase/react-native-push-notification#ef2c6fe88bcaa08ba0ab5f76a647b1a3bf5d623c"
 
 react-native-reanimated@1.0.1:
   version "1.0.1"
