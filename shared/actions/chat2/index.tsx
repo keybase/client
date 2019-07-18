@@ -1918,6 +1918,7 @@ const _maybeAutoselectNewestConversation = (
     Constants.isValidConversationIDKey(selected) &&
     (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
   ) {
+    return
     // Stay with our existing convo if it was not empty or pending, or the
     // selected convo already doesn't belong to the team we're trying to switch
     // away from, or we're not avoiding it because it's a channel we're leaving
