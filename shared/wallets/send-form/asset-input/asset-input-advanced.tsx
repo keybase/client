@@ -127,7 +127,7 @@ export const AssetInputSenderAdvanced = (_: EmptyProps) => {
 }
 
 type AssetPathIntermediateProps = {
-  forSEP7: boolean
+  forSEP7?: boolean
 }
 export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
   const [expanded, setExpanded] = React.useState(false)
