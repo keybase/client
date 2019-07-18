@@ -24,25 +24,24 @@ type BotCommandUpdateStatusProps = {
   status: RPCChatTypes.UIBotCommandsUpdateStatus
 }
 
-export class BotCommandUpdateStatus extends React.Component<BotCommandUpdateStatusProps> {
-  _botCommandUpdateStatusText = () => {
-    switch (this.props.status) {
-      case RPCChatTypes.UIBotCommandsUpdateStatus.uptodate:
-        return 'Commands are up-to-date'
-      case RPCChatTypes.UIBotCommandsUpdateStatus.failed:
-        return 'Failed to update commands'
-      case RPCChatTypes.UIBotCommandsUpdateStatus.updating:
-        return 'Updating commands...'
-    }
+export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
+  let statusText = ''
+  switch (props.status) {
+    case RPCChatTypes.UIBotCommandsUpdateStatus.uptodate:
+      statusText = 'Commands are up-to-date'
+      break
+    case RPCChatTypes.UIBotCommandsUpdateStatus.failed:
+      statusText = 'Failed to update commands'
+      break
+    case RPCChatTypes.UIBotCommandsUpdateStatus.updating:
+      statusText = 'Updating commands...'
+      break
   }
-
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.botCommandContainer}>
-        <Kb.Text type="BodyTiny">{this._botCommandUpdateStatusText()}</Kb.Text>
-      </Kb.Box2>
-    )
-  }
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.botCommandContainer}>
+      <Kb.Text type="BodyTiny">{statusText}</Kb.Text>
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate({
