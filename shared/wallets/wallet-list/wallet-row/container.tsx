@@ -22,7 +22,7 @@ const mapStateToProps = (
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = getSelectedAccount(state)
-  const airdropSelected = getAirdropSelected(state)
+  const airdropSelected = getAirdropSelected()
   return {
     airdropSelected,
     contents: account.balanceDescription,

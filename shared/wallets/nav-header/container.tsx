@@ -6,7 +6,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 
 const mapStateToPropsHeaderTitle = state => ({
   _account: Constants.getSelectedAccountData(state),
-  airdropSelected: Constants.getAirdropSelected(state),
+  airdropSelected: Constants.getAirdropSelected(),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
   username: state.config.username,
 })
@@ -30,7 +30,7 @@ export const HeaderTitle = Container.namedConnect(
 
 const mapStateToPropsHeaderRightActions = state => ({
   _accountID: Constants.getSelectedAccount(state),
-  airdropSelected: Constants.getAirdropSelected(state),
+  airdropSelected: Constants.getAirdropSelected(),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
 })
 const mapDispatchToPropsHeaderRightActions = dispatch => ({

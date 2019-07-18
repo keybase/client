@@ -12,7 +12,7 @@ import JumpToRecent from './jump-to-recent'
 
 const debugEnabled = false
 
-const _debug = debugEnabled ? () => logger.debug('_scroll: ' + s) : s => {}
+const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : () => {}
 
 const targetHitArea = 1
 
