@@ -129,12 +129,12 @@ const rootReducer = (
     case TeamsGen.addParticipant:
       return state.updateIn(
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-        memberStatus => RPCChatTypes.ConversationMemberStatus.active
+        () => RPCChatTypes.ConversationMemberStatus.active
       )
     case TeamsGen.removeParticipant:
       return state.updateIn(
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-        memberStatus => RPCChatTypes.ConversationMemberStatus.left
+        () => RPCChatTypes.ConversationMemberStatus.left
       )
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:

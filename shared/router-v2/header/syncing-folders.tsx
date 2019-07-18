@@ -31,9 +31,9 @@ const mapStateToProps = state => ({
   online: state.fs.kbfsDaemonStatus.online,
 })
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 
-const mergeProps = (s, d, o: OwnProps) => {
+const mergeProps = (s, _, o: OwnProps) => {
   if (s._syncingFoldersProgress.bytesTotal === 0) {
     return {progress: 0, show: false, tooltip: ''}
   }

@@ -13,10 +13,10 @@ const mapStateToProps = (state, ownProps) => {
     username: ownProps.username,
   }
 }
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   fullname: stateProps.fullname,
   onClick: () => dispatchProps._onClick(stateProps.username),
   username: stateProps.username,

@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
   hint: `${state.provision.codePageOtherDeviceName || ''}...`,
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   // TODO remove
   onBack: () => {},
   onSubmit: (paperKey: string) =>
@@ -21,5 +21,5 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(PaperKey)

@@ -6,7 +6,7 @@ import {connect} from '../../util/container'
 type OwnProps = {}
 
 export default connect(
-  state => ({}),
+  () => ({}),
   dispatch => ({
     onCancel: () => {
       dispatch(ProfileGen.createCancelAddProof())
