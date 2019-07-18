@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import {TouchableOpacity, SafeAreaView} from 'react-native'
+import {NativeTouchableOpacity, NativeSafeAreaView} from '../../native-wrappers.native'
 import Box, {Box2} from '../../box'
 import Text from '../../text'
 import Meta from '../../meta'
@@ -20,7 +20,7 @@ type MenuRowProps = {
 } & MenuItem
 
 const MenuRow = (props: MenuRowProps) => (
-  <TouchableOpacity
+  <NativeTouchableOpacity
     disabled={props.disabled}
     onPress={() => {
       props.onHidden && props.onHidden() // auto hide after a selection
@@ -50,7 +50,7 @@ const MenuRow = (props: MenuRowProps) => (
         )}
       </>
     )}
-  </TouchableOpacity>
+  </NativeTouchableOpacity>
 )
 
 class MenuLayout extends React.Component<MenuLayoutProps> {
@@ -61,7 +61,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
     const beginningDivider = this.props.items[0] === 'Divider'
 
     return (
-      <SafeAreaView
+      <NativeSafeAreaView
         style={Styles.collapseStyles([
           styles.safeArea,
           this.props.backgroundColor && {backgroundColor: this.props.backgroundColor},
@@ -112,7 +112,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
             />
           </Box>
         </Box>
-      </SafeAreaView>
+      </NativeSafeAreaView>
     )
   }
 }
