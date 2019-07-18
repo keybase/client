@@ -14,7 +14,9 @@ import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
-type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+type EngineActions =
+  | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+  | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -866,6 +868,11 @@ const rootReducer = (
         })
       )
     }
+    case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
+      return state.setIn(
+        ['botCommandsUpdateStatusMap', Types.stringToConversationIDKey(action.payload.params.convID)],
+        action.payload.params.status
+      )
     case EngineGen.chat1NotifyChatChatTypingUpdate: {
       const {typingUpdates} = action.payload.params
       const typingMap = I.Map(

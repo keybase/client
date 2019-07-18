@@ -952,6 +952,20 @@ const onNewChatActivity = (
       }
       break
     }
+    case RPCChatTypes.ChatActivityType.convsUpdated: {
+      if (activity.convsUpdated) {
+        const inboxUIItems = activity.convsUpdated.items
+        const metas = (inboxUIItems || []).reduce<Array<Types.ConversationMeta>>((l, i) => {
+          const meta = Constants.inboxUIItemToConversationMeta(i)
+          if (meta) {
+            l.push(meta)
+          }
+          return l
+        }, [])
+        actions = [Chat2Gen.createMetasReceived({metas})]
+      }
+      break
+    }
   }
 
   return actions

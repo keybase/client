@@ -1596,6 +1596,15 @@
       "symbols": [
         "APPSETTINGS_0"
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UIBotCommandsUpdateStatus",
+      "symbols": [
+        "UPTODATE_0",
+        "UPDATING_1",
+        "FAILED_2"
+      ]
     }
   ],
   "messages": {
@@ -2028,6 +2037,23 @@
             "type": "array",
             "items": "UICommandStatusActionTyp"
           }
+        }
+      ],
+      "response": null
+    },
+    "chatBotCommandsUpdateStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "UIBotCommandsUpdateStatus"
         }
       ],
       "response": null

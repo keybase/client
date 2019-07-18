@@ -434,6 +434,7 @@ type ChatUI interface {
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
 		[]chat1.UICommandStatusActionTyp) error
+	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
 }
 
 type PromptDefault int
@@ -969,6 +970,9 @@ type UIDMapper interface {
 
 type ChatHelper interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
+	NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
 	NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,

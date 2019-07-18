@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -58,6 +59,8 @@ type CachingBotCommandManager struct {
 	ri              func() chat1.RemoteInterface
 	edb             *encrypteddb.EncryptedDB
 	commandUpdateCh chan commandUpdaterJob
+	queuedUpdatedMu sync.Mutex
+	queuedUpdates   map[string]bool
 }
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
@@ -73,6 +76,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 		ri:              ri,
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		commandUpdateCh: make(chan commandUpdaterJob, 100),
+		queuedUpdates:   make(map[string]bool),
 	}
 }
 
@@ -129,7 +133,7 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 			return res, errors.New("missing team name")
 		}
 		topicName := fmt.Sprintf("___keybase_botcommands_team_%s_%v", username, param.Typ)
-		return b.G().ChatHelper.NewConversation(ctx, b.uid, *param.TeamName, &topicName,
+		return b.G().ChatHelper.NewConversationSkipFindExisting(ctx, b.uid, *param.TeamName, &topicName,
 			chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE)
 	default:
 		return res, errors.New("unknown bot advertisement typ")
@@ -240,9 +244,36 @@ func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID ch
 	})
 }
 
+type nullChatUI struct {
+	libkb.ChatUI
+}
+
+func (n nullChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID chat1.ConversationID,
+	status chat1.UIBotCommandsUpdateStatus) error {
+	return nil
+}
+
+func (b *CachingBotCommandManager) getChatUI(ctx context.Context) libkb.ChatUI {
+	ui, err := b.G().UIRouter.GetChatUI()
+	if err != nil || ui == nil {
+		b.Debug(ctx, "getChatUI: no chat UI found: err: %s", err)
+		return nullChatUI{}
+	}
+	return ui
+}
+
 func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job commandUpdaterJob) error {
+	b.queuedUpdatedMu.Lock()
+	defer b.queuedUpdatedMu.Unlock()
+	if b.queuedUpdates[job.convID.String()] {
+		b.Debug(ctx, "queueCommandUpdate: skipping already queued: %s", job.convID)
+		return nil
+	}
 	select {
 	case b.commandUpdateCh <- job:
+		b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
+			chat1.UIBotCommandsUpdateStatus_UPDATING)
+		b.queuedUpdates[job.convID.String()] = true
 	default:
 		return errors.New("queue full")
 	}
@@ -274,6 +305,9 @@ func (b *CachingBotCommandManager) getBotInfo(ctx context.Context, job commandUp
 	case chat1.BotInfoResponseTyp_UPTODATE:
 		return botInfo, false, nil
 	case chat1.BotInfoResponseTyp_INFO:
+		if err := b.edb.Put(ctx, b.dbInfoKey(convID), res.Response.Info()); err != nil {
+			return botInfo, false, err
+		}
 		return res.Response.Info(), true, nil
 	}
 	return botInfo, false, errors.New("unknown response type")
@@ -322,6 +356,14 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 	ctx = globals.ChatCtx(ctx, b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer b.Trace(ctx, func() error { return err }, "commandUpdate")()
 	defer func() {
+		b.queuedUpdatedMu.Lock()
+		delete(b.queuedUpdates, job.convID.String())
+		b.queuedUpdatedMu.Unlock()
+		updateStatus := chat1.UIBotCommandsUpdateStatus_UPTODATE
+		if err != nil {
+			updateStatus = chat1.UIBotCommandsUpdateStatus_FAILED
+		}
+		b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
 		job.completeCh <- err
 	}()
 	botInfo, doUpdate, err := b.getBotInfo(ctx, job)
@@ -343,11 +385,22 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 		return err
 	}
 	// alert that the conv is now updated
-	b.G().Syncer.SendChatStaleNotifications(ctx, b.uid, []chat1.ConversationStaleUpdate{
-		chat1.ConversationStaleUpdate{
-			ConvID:     job.convID,
-			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
-		}}, true)
+	if err := storage.NewInbox(b.G()).IncrementLocalConvVersion(ctx, b.uid, job.convID); err != nil {
+		b.Debug(ctx, "commandUpdate: unable to IncrementLocalConvVersion, err", err)
+	}
+	conv, err := utils.GetVerifiedConv(ctx, b.G(), b.uid, job.convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	username, err := b.getMyUsername(ctx)
+	if err != nil {
+		return err
+	}
+	act := chat1.NewChatActivityWithConvsUpdated(chat1.ConvsUpdated{
+		Items: []chat1.InboxUIItem{utils.PresentConversationLocal(ctx, conv, username)},
+	})
+	b.G().ActivityNotifier.Activity(ctx, b.uid, chat1.TopicType_CHAT, &act,
+		chat1.ChatActivitySource_LOCAL)
 	return nil
 }
 

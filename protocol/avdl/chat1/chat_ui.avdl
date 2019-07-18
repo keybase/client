@@ -458,4 +458,10 @@ protocol chatUi {
     APPSETTINGS_0
   }
   void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
+  enum UIBotCommandsUpdateStatus {
+    UPTODATE_0,
+    UPDATING_1,
+    FAILED_2
+  }
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status); 
 }

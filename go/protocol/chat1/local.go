@@ -5183,12 +5183,26 @@ func (o LoadFlipRes) DeepCopy() LoadFlipRes {
 	}
 }
 
+type UserBotExtendedDescription struct {
+	Title       string `codec:"title" json:"title"`
+	DesktopBody string `codec:"desktopBody" json:"desktop_body"`
+	MobileBody  string `codec:"mobileBody" json:"mobile_body"`
+}
+
+func (o UserBotExtendedDescription) DeepCopy() UserBotExtendedDescription {
+	return UserBotExtendedDescription{
+		Title:       o.Title,
+		DesktopBody: o.DesktopBody,
+		MobileBody:  o.MobileBody,
+	}
+}
+
 type UserBotCommandOutput struct {
-	Name                string  `codec:"name" json:"name"`
-	Description         string  `codec:"description" json:"description"`
-	Usage               string  `codec:"usage" json:"usage"`
-	ExtendedDescription *string `codec:"extendedDescription,omitempty" json:"extendedDescription,omitempty"`
-	Username            string  `codec:"username" json:"username"`
+	Name                string                      `codec:"name" json:"name"`
+	Description         string                      `codec:"description" json:"description"`
+	Usage               string                      `codec:"usage" json:"usage"`
+	ExtendedDescription *UserBotExtendedDescription `codec:"extendedDescription,omitempty" json:"extended_description,omitempty"`
+	Username            string                      `codec:"username" json:"username"`
 }
 
 func (o UserBotCommandOutput) DeepCopy() UserBotCommandOutput {
@@ -5196,11 +5210,11 @@ func (o UserBotCommandOutput) DeepCopy() UserBotCommandOutput {
 		Name:        o.Name,
 		Description: o.Description,
 		Usage:       o.Usage,
-		ExtendedDescription: (func(x *string) *string {
+		ExtendedDescription: (func(x *UserBotExtendedDescription) *UserBotExtendedDescription {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ExtendedDescription),
 		Username: o.Username,
@@ -5208,10 +5222,10 @@ func (o UserBotCommandOutput) DeepCopy() UserBotCommandOutput {
 }
 
 type UserBotCommandInput struct {
-	Name                string  `codec:"name" json:"name"`
-	Description         string  `codec:"description" json:"description"`
-	Usage               string  `codec:"usage" json:"usage"`
-	ExtendedDescription *string `codec:"extendedDescription,omitempty" json:"extendedDescription,omitempty"`
+	Name                string                      `codec:"name" json:"name"`
+	Description         string                      `codec:"description" json:"description"`
+	Usage               string                      `codec:"usage" json:"usage"`
+	ExtendedDescription *UserBotExtendedDescription `codec:"extendedDescription,omitempty" json:"extended_description,omitempty"`
 }
 
 func (o UserBotCommandInput) DeepCopy() UserBotCommandInput {
@@ -5219,11 +5233,11 @@ func (o UserBotCommandInput) DeepCopy() UserBotCommandInput {
 		Name:        o.Name,
 		Description: o.Description,
 		Usage:       o.Usage,
-		ExtendedDescription: (func(x *string) *string {
+		ExtendedDescription: (func(x *UserBotExtendedDescription) *UserBotExtendedDescription {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ExtendedDescription),
 	}

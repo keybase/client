@@ -27,6 +27,7 @@ export const makeState = I.Record<Types._State>({
   attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map(),
   badgeMap: I.Map(),
+  botCommandsUpdateStatusMap: I.Map(),
   commandMarkdownMap: I.Map(),
   commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
@@ -390,6 +391,7 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
 
 export {
   getAllChannels,
+  getBotCommands,
   getChannelForTeam,
   getChannelSuggestions,
   getCommands,

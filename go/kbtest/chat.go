@@ -1212,6 +1212,11 @@ func (c *ChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string
 	return nil
 }
 
+func (c *ChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID,
+	chat1.UIBotCommandsUpdateStatus) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
@@ -1386,6 +1391,12 @@ func (m *MockChatHelper) UserReacjis(ctx context.Context, uid gregor1.UID) keyba
 }
 
 func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return chat1.ConversationLocal{}, nil
+}
+
+func (m *MockChatHelper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
 	return chat1.ConversationLocal{}, nil

@@ -11,6 +11,7 @@ export const chat1ChatUiChatAttachmentDownloadDone = 'engine-gen:chat1ChatUiChat
 export const chat1ChatUiChatAttachmentDownloadProgress =
   'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
 export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
+export const chat1ChatUiChatBotCommandsUpdateStatus = 'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus'
 export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
@@ -239,6 +240,15 @@ type _Chat1ChatUiChatAttachmentDownloadStartPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatClearWatchPayload = {
@@ -1704,6 +1714,9 @@ export const createChat1ChatUiChatAttachmentDownloadProgress = (
 export const createChat1ChatUiChatAttachmentDownloadStart = (
   payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
 ): Chat1ChatUiChatAttachmentDownloadStartPayload => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
+export const createChat1ChatUiChatBotCommandsUpdateStatus = (
+  payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
+): Chat1ChatUiChatBotCommandsUpdateStatusPayload => ({payload, type: chat1ChatUiChatBotCommandsUpdateStatus})
 export const createChat1ChatUiChatClearWatch = (
   payload: _Chat1ChatUiChatClearWatchPayload
 ): Chat1ChatUiChatClearWatchPayload => ({payload, type: chat1ChatUiChatClearWatch})
@@ -2363,6 +2376,10 @@ export type Chat1ChatUiChatAttachmentDownloadProgressPayload = {
 export type Chat1ChatUiChatAttachmentDownloadStartPayload = {
   readonly payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
   readonly type: typeof chat1ChatUiChatAttachmentDownloadStart
+}
+export type Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
+  readonly payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
+  readonly type: typeof chat1ChatUiChatBotCommandsUpdateStatus
 }
 export type Chat1ChatUiChatClearWatchPayload = {
   readonly payload: _Chat1ChatUiChatClearWatchPayload
@@ -3089,6 +3106,7 @@ export type Actions =
   | Chat1ChatUiChatAttachmentDownloadDonePayload
   | Chat1ChatUiChatAttachmentDownloadProgressPayload
   | Chat1ChatUiChatAttachmentDownloadStartPayload
+  | Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload

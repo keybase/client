@@ -32,7 +32,8 @@
         "EXPUNGE_9",
         "EPHEMERAL_PURGE_10",
         "REACTION_UPDATE_11",
-        "MESSAGES_UPDATED_12"
+        "MESSAGES_UPDATED_12",
+        "CONVS_UPDATED_13"
       ]
     },
     {
@@ -311,6 +312,19 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ConvsUpdated",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "items"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -401,6 +415,13 @@
             "def": false
           },
           "body": "MessagesUpdated"
+        },
+        {
+          "label": {
+            "name": "CONVS_UPDATED",
+            "def": false
+          },
+          "body": "ConvsUpdated"
         }
       ]
     },

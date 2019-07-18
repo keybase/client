@@ -85,7 +85,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
 
 const suggestorToMarker = {
   channels: '#',
-  commands: '/',
+  commands: /(!|\/)/,
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
   users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
@@ -151,6 +151,7 @@ const emojiTransformer = (
 
 type InputState = {
   inputHeight: number
+  showBotCommandUpdateStatus: boolean
 }
 
 class Input extends React.Component<InputProps, InputState> {
@@ -164,7 +165,7 @@ class Input extends React.Component<InputProps, InputState> {
 
   constructor(props: InputProps) {
     super(props)
-    this.state = {inputHeight: 0}
+    this.state = {inputHeight: 0, showBotCommandUpdateStatus: false}
     this._lastQuote = 0
     this._suggestorDatasource = {
       channels: this._getChannelSuggestions,
@@ -186,7 +187,9 @@ class Input extends React.Component<InputProps, InputState> {
     }
     // + 1 for '/'
     this._maxCmdLength =
-      this.props.suggestCommands.reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
+      this.props.suggestCommands
+        .concat(this.props.suggestBotCommands)
+        .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -217,10 +220,22 @@ class Input extends React.Component<InputProps, InputState> {
 
     // check if input matches a command with help text,
     // skip debouncing unsentText if so
+    const trimmedText = text.trim()
     let skipDebounce = false
     if (text.length <= this._maxCmdLength) {
-      skipDebounce = !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text.trim())
+      skipDebounce =
+        !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === trimmedText) ||
+        !!this.props.suggestBotCommands.find(sc => sc.hasHelpText && `!${sc.name}` === trimmedText) ||
+        trimmedText === '!'
     }
+
+    // Handle the command status bar
+    if (text.startsWith('!') && !this.state.showBotCommandUpdateStatus) {
+      this.setState({showBotCommandUpdateStatus: true})
+    } else if (!text.startsWith('!') && this.state.showBotCommandUpdateStatus) {
+      this.setState({showBotCommandUpdateStatus: false})
+    }
+
     if (skipDebounce) {
       debounced.cancel()
       this.props.unsentTextChanged(text)
@@ -339,13 +354,19 @@ class Input extends React.Component<InputProps, InputState> {
       // a little messy. Check if the message starts with '/' and that the cursor is
       // within maxCmdLength chars away from it. This happens before `onChangeText`, so
       // we can't do a more robust check on `this._lastText` because it's out of date.
-      if (!this._lastText.startsWith('/') || (sel.start || 0) > this._maxCmdLength) {
+      if (
+        !(this._lastText.startsWith('/') || this._lastText.startsWith('!')) ||
+        (sel.start || 0) > this._maxCmdLength
+      ) {
         // not at beginning of message
         return []
       }
     }
     const fil = filter.toLowerCase()
-    return this.props.suggestCommands.filter(c => c.name.includes(fil))
+    return (this._lastText && this._lastText.startsWith('!')
+      ? this.props.suggestBotCommands
+      : this.props.suggestCommands
+    ).filter(c => c.name.includes(fil))
   }
 
   _renderTeamSuggestion = (teamname, channelname, selected) => (
@@ -467,31 +488,53 @@ class Input extends React.Component<InputProps, InputState> {
   _transformChannelSuggestion = (channelname, marker, tData, preview) =>
     standardTransformer(`${marker}${channelname}`, tData, preview)
 
-  _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected) => (
-    <Kb.Box2
-      fullWidth={true}
-      direction="vertical"
-      style={Styles.collapseStyles([
-        styles.suggestionBase,
-        styles.fixSuggestionHeight,
-        {
-          alignItems: 'flex-start',
-          backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white,
-        },
-      ])}
-    >
-      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodySemibold" style={styles.boldStyle}>
-          /{command.name}
-        </Kb.Text>
-        <Kb.Text type="Body">{command.usage}</Kb.Text>
-      </Kb.Box2>
-      <Kb.Text type="BodySmall">{command.description}</Kb.Text>
-    </Kb.Box2>
-  )
+  _getCommandPrefix = (command: RPCChatTypes.ConversationCommand) => {
+    return command.username ? '!' : '/'
+  }
 
-  _transformCommandSuggestion = (command, marker, tData, preview) =>
-    standardTransformer(`/${command.name}`, tData, preview)
+  _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected) => {
+    const prefix = this._getCommandPrefix(command)
+    return (
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        fullWidth={true}
+        style={Styles.collapseStyles([
+          styles.suggestionBase,
+          {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+          {
+            alignItems: 'flex-start',
+          },
+        ])}
+      >
+        {!!command.username && <Kb.Avatar size={32} username={command.username} />}
+        <Kb.Box2
+          fullWidth={true}
+          direction="vertical"
+          style={Styles.collapseStyles([
+            styles.fixSuggestionHeight,
+            {
+              alignItems: 'flex-start',
+            },
+          ])}
+        >
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+            <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+              {prefix}
+              {command.name}
+            </Kb.Text>
+            <Kb.Text type="Body">{command.usage}</Kb.Text>
+          </Kb.Box2>
+          <Kb.Text type="BodySmall">{command.description}</Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+
+  _transformCommandSuggestion = (command, marker, tData, preview) => {
+    const prefix = this._getCommandPrefix(command)
+    return standardTransformer(`${prefix}${command.name}`, tData, preview)
+  }
 
   render = () => {
     const {
@@ -521,6 +564,9 @@ class Input extends React.Component<InputProps, InputState> {
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
           suggestionOverlayStyle={styles.suggestionOverlay}
+          suggestBotCommandsUpdateStatus={
+            this.state.showBotCommandUpdateStatus ? this.props.suggestBotCommandsUpdateStatus : undefined
+          }
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}
           onKeyDown={this._onKeyDown}
@@ -545,7 +591,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   fixSuggestionHeight: Styles.platformStyles({
-    isElectron: {height: 40},
     isMobile: {height: 48},
   }),
   paddingXTiny: {
