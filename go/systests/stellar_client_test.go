@@ -128,14 +128,14 @@ func (s *stellarRetryClient) ValidateAccountNameLocal(ctx context.Context, arg s
 	return err
 }
 
-func (s *stellarRetryClient) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (err error) {
+func (s *stellarRetryClient) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.ChangeWalletAccountNameLocalArg) (acct stellar1.WalletAccountLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.ChangeWalletAccountNameLocal(ctx, arg)
+		acct, err = s.cli.ChangeWalletAccountNameLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return acct, err
 }
 
 func (s *stellarRetryClient) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {

@@ -981,11 +981,12 @@ func TestBundleFlows(t *testing.T) {
 	require.EqualValues(t, s2, privKey)
 
 	// ChangeAccountName
-	err = tcs[0].Srv.ChangeWalletAccountNameLocal(ctx, stellar1.ChangeWalletAccountNameLocalArg{
+	res, err := tcs[0].Srv.ChangeWalletAccountNameLocal(ctx, stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: a2,
 		NewName:   "rename",
 	})
 	require.NoError(t, err)
+	require.Equal(t, "rename", res.Name)
 	bundle, err = remote.FetchAccountBundle(mctx, a2)
 	require.NoError(t, err)
 	for _, acc := range bundle.Accounts {

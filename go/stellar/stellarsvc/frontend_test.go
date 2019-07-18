@@ -352,11 +352,12 @@ func TestChangeWalletName(t *testing.T) {
 	chk("", "name required")
 	chk("office lunch money", "")
 	chk("savings", "")
-	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+	res, err := tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: accs[0].AccountID,
 		NewName:   "office lunch money",
 	})
 	require.NoError(t, err)
+	require.Equal(t, "office lunch money", res.Name)
 	chk("office lunch money", "you already have an account with that name")
 	chk("career debter", "")
 
@@ -372,7 +373,7 @@ func TestChangeWalletName(t *testing.T) {
 
 	// Try invalid argument
 	invalidAccID, _ := randomStellarKeypair()
-	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: invalidAccID,
 		NewName:   "savings",
 	})
@@ -739,7 +740,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = srvSender.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = srvSender.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: accountIDSender,
 		NewName:   "office lunch money",
 	})
@@ -1066,7 +1067,7 @@ func TestSendToSelf(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: accountID1,
 		NewName:   "office lunch money",
 	})
@@ -1078,7 +1079,7 @@ func TestSendToSelf(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+	_, err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
 		AccountID: accountID2,
 		NewName:   "savings",
 	})

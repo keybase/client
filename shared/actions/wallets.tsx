@@ -335,7 +335,6 @@ const loadAccounts = (
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -625,7 +624,7 @@ const changeAccountName = (_: TypedState, action: WalletsGen.ChangeAccountNamePa
       newName: action.payload.name,
     },
     Constants.changeAccountNameWaitingKey
-  ).then(() => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
+  ).then(res => WalletsGen.createChangedAccountName({account: Constants.accountResultToAccount(res)}))
 
 const deleteAccount = (_: TypedState, action: WalletsGen.DeleteAccountPayload) =>
   RPCStellarTypes.localDeleteWalletAccountLocalRpcPromise(
@@ -1519,14 +1518,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload
   >(
     [
       WalletsGen.loadAccounts,
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
-      WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
     ],
     loadAccounts,
