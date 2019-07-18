@@ -44,12 +44,15 @@ func NewRPCCache(g *libkb.GlobalContext) *RPCCache {
 	}
 }
 
+type hashStruct struct {
+	UID     keybase1.UID
+	RPCName string
+	Arg     interface{}
+}
+
 func hash(rpcName string, uid keybase1.UID, arg interface{}) ([]byte, error) {
 	h := sha256.New()
-	h.Write(uid.ToBytes())
-	h.Write([]byte(rpcName))
-	h.Write([]byte{0})
-	raw, err := msgpack.Encode(arg)
+	raw, err := msgpack.Encode(hashStruct{uid, rpcName, arg})
 	if err != nil {
 		return nil, err
 	}
