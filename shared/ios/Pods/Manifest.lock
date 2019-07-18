@@ -21,7 +21,6 @@ PODS:
   - EXSMS (5.0.0):
     - UMCore
     - UMPermissionsInterface
-  - FLAnimatedImage (1.0.12)
   - Folly (2018.10.22.00):
     - boost-for-react-native
     - DoubleConversion
@@ -43,11 +42,9 @@ PODS:
     - React
   - react-native-contacts (2.2.5):
     - React
-  - react-native-fast-image (5.1.1):
-    - FLAnimatedImage
+  - react-native-fast-image (6.1.1):
     - React
-    - SDWebImage/Core
-    - SDWebImage/GIF
+    - SDWebImage (~> 5.0)
   - react-native-netinfo (1.2.3):
     - React
   - react-native-video (4.4.1):
@@ -121,10 +118,9 @@ PODS:
     - React
   - RNScreens (1.0.0-alpha.22):
     - React
-  - SDWebImage/Core (4.4.2)
-  - SDWebImage/GIF (4.4.2):
-    - FLAnimatedImage (~> 1.0)
-    - SDWebImage/Core
+  - SDWebImage (5.0.6):
+    - SDWebImage/Core (= 5.0.6)
+  - SDWebImage/Core (5.0.6)
   - UMBarCodeScannerInterface (2.0.0)
   - UMCameraInterface (2.0.0)
   - UMConstantsInterface (2.0.0)
@@ -196,7 +192,6 @@ DEPENDENCIES:
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - boost-for-react-native
-    - FLAnimatedImage
     - SDWebImage
 
 EXTERNAL SOURCES:
@@ -302,7 +297,6 @@ SPEC CHECKSUMS:
   EXImagePicker: 80ebecae5905b1d642ef5b12a592cf8af9f051dc
   EXPermissions: 8e05008ed4fc8c9be6c17ea95301fc3f3f005a7b
   EXSMS: a9b5c82b4f290271779270eb51e2c3be80ab9dff
-  FLAnimatedImage: 4a0b56255d9b05f18b6dd7ee06871be5d3b89e31
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
   lottie-ios: d699fdee68d7b63e721d949388b015fef1aaa4ac
@@ -310,7 +304,7 @@ SPEC CHECKSUMS:
   React: 36d0768f9e93be2473b37e7fa64f92c1d5341eef
   react-native-camera: 4b810becdf9bebf269b252552ee9a074f5f03bd4
   react-native-contacts: f6e5c518598762081ff9cf7c70db36f71668538e
-  react-native-fast-image: 47487b71169aea34868e7b38bf870b6b3f2157c5
+  react-native-fast-image: fdfc612dba58fd73136cf5efdaeb8cfcad7f63b2
   react-native-netinfo: 8b18f11bd389677d79eca48a07cedd4b3cc10f15
   react-native-video: 9aecbfc4628128838187df9d9c9f630670cfb1d1
   react-native-webview: 45010be37680adba5ffb0e5a9e8822c6ca117049
@@ -318,7 +312,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: b65d391f4f570178d657b99a16ec99d09b8656b0
   RNReanimated: c8dd490ca98a4edcba229bfa49f2516c95a43afb
   RNScreens: 720a9e6968beb73e8196239801e887d8401f86ed
-  SDWebImage: 624d6e296c69b244bcede364c72ae0430ac14681
+  SDWebImage: 920f1a2ff1ca8296ad34f6e0510a1ef1d70ac965
   UMBarCodeScannerInterface: 1004fe3df1ca78c364e2e51e036f3a33c461e8e4
   UMCameraInterface: 56a8a7251c944deba01c889eb9dc33664bf8a42d
   UMConstantsInterface: a51e2c8fa14a87862676e2d31fcff8d45cb1801b

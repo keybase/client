@@ -43,6 +43,13 @@ func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName s
 		topicType, membersType, vis, h.ri, NewConvFindExistingNormal)
 }
 
+func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
+		topicType, membersType, vis, h.ri, NewConvFindExistingSkip)
+}
+
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
@@ -51,19 +58,21 @@ func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gr
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string) error {
+	tlfName string, text string, vis keybase1.TLFVisibility) error {
 	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
-	}), chat1.MessageType_TEXT)
+	}), chat1.MessageType_TEXT, vis)
 }
 
 func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
-	body chat1.MessageBody, msgType chat1.MessageType) error {
+	body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
+	public := vis == keybase1.TLFVisibility_PUBLIC
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			TlfName:     tlfName,
+			TlfPublic:   public,
 			MessageType: msgType,
 		},
 		MessageBody: body,

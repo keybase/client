@@ -27,7 +27,7 @@ import {TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import flags from '../../util/feature-flags'
 
-const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
+const onLoggedIn = (state: TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
   // only send this if we think we're not logged in
   if (!state.config.loggedIn) {
@@ -35,7 +35,7 @@ const onLoggedIn = (state, action: EngineGen.Keybase1NotifySessionLoggedInPayloa
   }
 }
 
-const onLoggedOut = (state, action: EngineGen.Keybase1NotifySessionLoggedOutPayload) => {
+const onLoggedOut = (state: TypedState) => {
   logger.info('keybase.1.NotifySession.loggedOut')
   // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
   if (state.config.loggedIn) {
@@ -43,7 +43,7 @@ const onLoggedOut = (state, action: EngineGen.Keybase1NotifySessionLoggedOutPayl
   }
 }
 
-const onLog = (_, action: EngineGen.Keybase1LogUiLogPayload) => {
+const onLog = (_: TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -53,7 +53,7 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-const onTrackingInfo = (state, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
+const onTrackingInfo = (_: TypedState, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
     followers: action.payload.params.followers || [],
@@ -63,7 +63,7 @@ const onTrackingInfo = (state, action: EngineGen.Keybase1NotifyTrackingTrackingI
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
-  state,
+  _: TypedState,
   action:
     | ConfigGen.LoggedInPayload
     | ConfigGen.DaemonHandshakePayload
@@ -100,7 +100,7 @@ function* loadDaemonBootstrapStatus(
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-        const newState: TypedState = yield* Saga.selectState()
+      const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -147,7 +147,7 @@ function* loadDaemonBootstrapStatus(
 }
 
 let _firstTimeConnecting = true
-const startHandshake = state => {
+const startHandshake = (state: TypedState) => {
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
   if (firstTimeConnecting) {
@@ -160,7 +160,7 @@ const startHandshake = state => {
 }
 
 let _firstTimeBootstrapDone = true
-const maybeDoneWithDaemonHandshake = (state, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (action.payload.version !== state.config.daemonHandshakeVersion) {
     // ignore out of date actions
     return
@@ -187,7 +187,7 @@ const maybeDoneWithDaemonHandshake = (state, action: ConfigGen.DaemonHandshakeWa
 const getAccountsWaitKey = 'config.getAccounts'
 
 function* loadDaemonAccounts(
-  state,
+  state: TypedState,
   action: DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
 ) {
   let handshakeWait = false
@@ -222,7 +222,7 @@ function* loadDaemonAccounts(
     yield Saga.put(loadedAction)
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState : TypedState = yield* Saga.selectState()
+      const newState: TypedState = yield* Saga.selectState()
       if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
         yield Saga.put(
           ConfigGen.createDaemonHandshakeWait({
@@ -252,23 +252,26 @@ function* loadDaemonAccounts(
 }
 
 const showDeletedSelfRootPage = () => [
-  RouteTreeGen.createSwitchRouteDef({loggedIn: false}),
-  RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}),
+  RouteTreeGen.createSwitchLoggedIn({loggedIn: false}),
+  RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
 ]
 
-const switchRouteDef = (state, action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload) => {
+const switchRouteDef = (
+  state: TypedState,
+  action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
+) => {
   if (state.config.loggedIn) {
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
-        RouteTreeGen.createSwitchRouteDef({loggedIn: true}),
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         ...(action.payload.causedBySignup && flags.sbsContacts
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
     }
   } else {
-    return RouteTreeGen.createSwitchRouteDef({loggedIn: false})
+    return RouteTreeGen.createSwitchLoggedIn({loggedIn: false})
   }
 }
 
@@ -277,19 +280,19 @@ const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set password screen.
-const startLogoutHandshakeIfAllowed = state =>
+const startLogoutHandshakeIfAllowed = (state: TypedState) =>
   RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
     if (canLogoutRes.canLogout) {
       return startLogoutHandshake(state)
     } else {
       const heading = canLogoutRes.reason
       if (isMobile) {
-        return RouteTreeGen.createNavigateTo({
+        return RouteTreeGen.createNavigateAppend({
           path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
         })
       } else {
         return [
-          RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab]}),
+          RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
           RouteTreeGen.createNavigateAppend({
             path: [{props: {heading}, selected: 'changePassword'}],
           }),
@@ -298,7 +301,7 @@ const startLogoutHandshakeIfAllowed = state =>
     }
   })
 
-const startLogoutHandshake = state =>
+const startLogoutHandshake = (state: TypedState) =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
 
 // This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
@@ -311,7 +314,7 @@ function* maybeDoneWithLogoutHandshake(state) {
 
 let routeToInitialScreenOnce = false
 
-const routeToInitialScreen2 = state => {
+const routeToInitialScreen2 = (state: TypedState) => {
   // bail if we don't have a navigator and loaded
   if (!Router2._getNavigator()) {
     return
@@ -324,7 +327,7 @@ const routeToInitialScreen2 = state => {
 }
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
-const routeToInitialScreen = state => {
+const routeToInitialScreen = (state: TypedState) => {
   if (routeToInitialScreenOnce) {
     return
   }
@@ -344,7 +347,7 @@ const routeToInitialScreen = state => {
         }),
       ]
       return [
-        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.chatTab]}),
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
         ChatGen.createSelectConversation({
           conversationIDKey: state.config.startupConversation,
@@ -356,7 +359,8 @@ const routeToInitialScreen = state => {
     // A share
     if (state.config.startupSharePath) {
       return [
-        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: FsConstants.fsRootRouteForNav1}),
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}),
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
       ]
@@ -365,7 +369,9 @@ const routeToInitialScreen = state => {
     // A follow
     if (state.config.startupFollowUser) {
       return [
-        RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.peopleTab]}),
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+        RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -378,7 +384,8 @@ const routeToInitialScreen = state => {
         logger.info('AppLink: url', url.href, 'username', username)
         if (username) {
           return [
-            RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: [Tabs.peopleTab]}),
+            RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+            RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
             ProfileGen.createShowUserProfile({username}),
           ]
         }
@@ -388,20 +395,17 @@ const routeToInitialScreen = state => {
     }
 
     // Just a saved tab
-    return RouteTreeGen.createSwitchRouteDef({
-      loggedIn: true,
-      path: [state.config.startupTab || Tabs.peopleTab],
-    })
+    return [
+      RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+      RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
+    ]
   } else {
     // Show a login screen
-    return [
-      RouteTreeGen.createSwitchRouteDef({loggedIn: false}),
-      RouteTreeGen.createNavigateTo({parentPath: [Tabs.loginTab], path: []}),
-    ]
+    return [RouteTreeGen.createSwitchLoggedIn({loggedIn: false})]
   }
 }
 
-const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
+const handleAppLink = (_: TypedState, action: ConfigGen.LinkPayload) => {
   const url = new URL(action.payload.link)
   if (action.payload.link.startsWith('web+stellar:')) {
     console.warn('Got SEP7 link:', action.payload.link)
@@ -410,17 +414,17 @@ const handleAppLink = (_, action: ConfigGen.LinkPayload) => {
     const username = Constants.urlToUsername(url)
     if (username) {
       return [
-        RouteTreeGen.createSwitchTo({path: [Tabs.peopleTab]}),
+        RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username}),
       ]
     }
   }
 }
 
-const emitInitialLoggedIn = state =>
+const emitInitialLoggedIn = (state: TypedState) =>
   state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
 
-function* allowLogoutWaiters(_, action: ConfigGen.LogoutHandshakePayload) {
+function* allowLogoutWaiters(_: TypedState, action: ConfigGen.LogoutHandshakePayload) {
   yield Saga.put(
     ConfigGen.createLogoutHandshakeWait({
       increment: true,
@@ -468,19 +472,17 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
-const setNavigator = (state, action: ConfigGen.SetNavigatorPayload) => {
+const setNavigator = (_: TypedState, action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
 }
 
 const newNavigation = (
-  _,
+  _: TypedState,
   action:
     | RouteTreeGen.NavigateAppendPayload
-    | RouteTreeGen.NavigateToPayload
     | RouteTreeGen.NavigateUpPayload
-    | RouteTreeGen.SwitchToPayload
-    | RouteTreeGen.SwitchRouteDefPayload
+    | RouteTreeGen.SwitchLoggedInPayload
     | RouteTreeGen.ClearModalsPayload
     | RouteTreeGen.NavUpToScreenPayload
     | RouteTreeGen.SwitchTabPayload
@@ -556,10 +558,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<
     | RouteTreeGen.NavigateAppendPayload
-    | RouteTreeGen.NavigateToPayload
     | RouteTreeGen.NavigateUpPayload
-    | RouteTreeGen.SwitchToPayload
-    | RouteTreeGen.SwitchRouteDefPayload
+    | RouteTreeGen.SwitchLoggedInPayload
     | RouteTreeGen.ClearModalsPayload
     | RouteTreeGen.NavUpToScreenPayload
     | RouteTreeGen.SwitchTabPayload
@@ -567,10 +567,8 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   >(
     [
       RouteTreeGen.navigateAppend,
-      RouteTreeGen.navigateTo,
       RouteTreeGen.navigateUp,
-      RouteTreeGen.switchTo,
-      RouteTreeGen.switchRouteDef,
+      RouteTreeGen.switchLoggedIn,
       RouteTreeGen.clearModals,
       RouteTreeGen.navUpToScreen,
       RouteTreeGen.switchTab,

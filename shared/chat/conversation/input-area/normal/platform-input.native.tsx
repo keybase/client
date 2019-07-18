@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {
   NativeKeyboard,
@@ -16,6 +17,7 @@ import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {BotCommandUpdateStatus} from './shared'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -138,6 +140,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     return (
       <Kb.Box onLayout={this._onLayout}>
+        {this.props.suggestBotCommandsUpdateStatus !== undefined &&
+          (this.props.suggestionsVisible ||
+            this.props.suggestBotCommandsUpdateStatus ===
+              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}

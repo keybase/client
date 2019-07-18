@@ -1,7 +1,14 @@
 import * as React from 'react'
-import {AvatarSize} from '../common-adapters/avatar'
-import * as Kb from '../common-adapters'
+import Avatar, {AvatarSize} from './avatar'
+import {Box2} from './box'
+import Text from './text'
 import * as Styles from '../styles/index'
+
+const Kb = {
+  Avatar,
+  Box2,
+  Text,
+}
 
 type Props = {
   usernames: Array<string>

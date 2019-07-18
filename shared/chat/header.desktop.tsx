@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
+import * as Platforms from '../constants/platform'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
@@ -116,7 +117,7 @@ const Header = (p: Props) => {
             alignSelf="flex-end"
             style={styles.actionIcons}
           >
-            <Kb.WithTooltip text="Search in this chat">
+            <Kb.WithTooltip text={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
               <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={p.onToggleThreadSearch} />
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Open folder">

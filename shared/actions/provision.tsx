@@ -339,7 +339,6 @@ class ProvisioningManager {
 
   showCodePage = () =>
     RouteTreeGen.createNavigateAppend({
-      parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
       path: ['codePage'],
       replace: true,
     })
@@ -434,7 +433,7 @@ function* addNewDevice(state) {
     ProvisioningManager.getSingleton().done('add device success')
     // Now refresh and nav back
     yield Saga.put(DevicesGen.createLoad())
-    yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [], path: devicesRoot}))
+    yield Saga.put(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     yield Saga.put(RouteTreeGen.createClearModals())
   } catch (finalError) {
     ProvisioningManager.getSingleton().done(finalError.message)
@@ -461,12 +460,11 @@ const maybeCancelProvision = (state: TypedState) =>
 
 const showDeviceListPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['selectOtherDevice'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true})
 
 const showNewDeviceNamePage = state =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({
-    parentPath: [Tabs.loginTab],
     path: ['setPublicName'],
     replace: true,
   })
@@ -476,15 +474,15 @@ const showCodePage = state =>
 
 const showGPGPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['gpgSign'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['gpgSign'], replace: true})
 
 const showPasswordPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['password'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['password'], replace: true})
 
 const showPaperkeyPage = state =>
   !state.provision.error.stringValue() &&
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['paperkey'], replace: true})
+  RouteTreeGen.createNavigateAppend({path: ['paperkey'], replace: true})
 
 const showFinalErrorPage = (state, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
@@ -495,11 +493,10 @@ const showFinalErrorPage = (state, action: ProvisionGen.ShowFinalErrorPagePayloa
     path = []
   }
 
-  return RouteTreeGen.createNavigateTo({path: [...parentPath, ...path], replace: true})
+  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace: true})
 }
 
-const showUsernameEmailPage = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [Tabs.loginTab], path: ['username']})
+const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
 
 const forgotUsername = (state, action: ProvisionGen.ForgotUsernamePayload) =>
   RPCTypes.accountRecoverUsernameWithEmailRpcPromise(

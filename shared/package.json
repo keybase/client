@@ -152,7 +152,7 @@
     "react-native": "0.59.10",
     "react-native-camera": "2.0.0",
     "react-native-contacts": "2.2.5",
-    "react-native-fast-image": "5.1.1",
+    "react-native-fast-image": "6.1.1",
     "react-native-gesture-handler": "1.1.0",
     "react-native-iphone-x-helper": "1.2.0",
     "react-native-mime-types": "2.2.1",

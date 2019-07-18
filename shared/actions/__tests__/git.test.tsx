@@ -125,8 +125,8 @@ const loadedStore = {
 }
 
 const startOnGitTab = dispatch => {
-  dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.gitTab]}))
+  dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+  dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.gitTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(gitSaga, initialStore, startOnGitTab)

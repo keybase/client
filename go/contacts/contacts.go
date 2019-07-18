@@ -15,12 +15,17 @@ import (
 func formatSBSAssertion(c keybase1.ContactComponent) string {
 	switch {
 	case c.Email != nil:
-		return fmt.Sprintf("[%s]@email", *c.Email)
+		return fmt.Sprintf("[%s]@email", strings.ToLower(string(*c.Email)))
 	case c.PhoneNumber != nil:
 		return fmt.Sprintf("%s@phone", strings.TrimLeft(string(*c.PhoneNumber), "+"))
 	default:
 		return ""
 	}
+}
+
+type contactAssertionPair struct {
+	contactName    string
+	componentValue string
 }
 
 // ResolveContacts resolves contacts with cache for UI. See API documentation
@@ -55,8 +60,12 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	mctx.Debug("Going to look up %d emails and %d phone numbers using provider", len(emailSet), len(phoneSet))
 
-	// contactIndex -> true for all contacts that have at least one component resolved.
+	// Set of contactIndexes for all contacts that have at least one component
+	// resolved. Once one component from a contact resolved, discard rest of
+	// that contact's components.
 	contactsFound := make(map[int]struct{})
+	// Deduplicate on resolved UIDs - so if multiple contacts / components
+	// resolve to the same user, only one should show up in the final list.
 	usersFound := make(map[keybase1.UID]struct{})
 	errorComponents := make(map[string]string)
 
@@ -95,6 +104,10 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 						if _, userFound := usersFound[lookupRes.UID]; userFound {
 							// This user was already resolved by looking up another
 							// component or another contact.
+
+							// Make sure we mark it so it does not show up as
+							// unresolved later on.
+							contactsFound[contactI] = struct{}{}
 							continue
 						}
 
@@ -151,6 +164,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 
 	// Add all components from all contacts that were not resolved by any
 	// component.
+
+	// Discard duplicate components that come from contacts with the same
+	// contact name and hold the same assertion. Will also skip same assertions
+	// within one contact (duplicated components with same value and same or
+	// different name)
+	contactAssertionsSeen := make(map[contactAssertionPair]struct{})
+
 	for i, c := range contacts {
 		if _, found := contactsFound[i]; found {
 			continue
@@ -166,6 +186,13 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				continue
 			}
 
+			assertion := formatSBSAssertion(component)
+			cvp := contactAssertionPair{c.Name, assertion}
+			if _, seen := contactAssertionsSeen[cvp]; seen {
+				// Already seen the exact contact name and assertion.
+				continue
+			}
+
 			res = append(res, keybase1.ProcessedContact{
 				ContactIndex: i,
 				ContactName:  c.Name,
@@ -175,8 +202,9 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 				DisplayName:  c.Name,
 				DisplayLabel: component.FormatDisplayLabel(addLabel),
 
-				Assertion: formatSBSAssertion(component),
+				Assertion: assertion,
 			})
+			contactAssertionsSeen[cvp] = struct{}{}
 		}
 	}
 

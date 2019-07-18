@@ -1241,6 +1241,7 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.TeamRetention = rawConv.TeamRetention
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
+	res.BotCommands = rawConv.BotCommands
 	return res
 }
 

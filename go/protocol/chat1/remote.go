@@ -928,6 +928,315 @@ func (o ExternalAPIKey) DeepCopy() ExternalAPIKey {
 	}
 }
 
+type CommandConvVers uint64
+
+func (o CommandConvVers) DeepCopy() CommandConvVers {
+	return o
+}
+
+type RemoteBotCommandsAdvertisementPublic struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o RemoteBotCommandsAdvertisementPublic) DeepCopy() RemoteBotCommandsAdvertisementPublic {
+	return RemoteBotCommandsAdvertisementPublic{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type RemoteBotCommandsAdvertisementTLFID struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	TlfID  TLFID          `codec:"tlfID" json:"tlfID"`
+}
+
+func (o RemoteBotCommandsAdvertisementTLFID) DeepCopy() RemoteBotCommandsAdvertisementTLFID {
+	return RemoteBotCommandsAdvertisementTLFID{
+		ConvID: o.ConvID.DeepCopy(),
+		TlfID:  o.TlfID.DeepCopy(),
+	}
+}
+
+type RemoteBotCommandsAdvertisement struct {
+	Typ__          BotCommandsAdvertisementTyp           `codec:"typ" json:"typ"`
+	Public__       *RemoteBotCommandsAdvertisementPublic `codec:"public,omitempty" json:"public,omitempty"`
+	TlfidMembers__ *RemoteBotCommandsAdvertisementTLFID  `codec:"tlfidMembers,omitempty" json:"tlfidMembers,omitempty"`
+	TlfidConvs__   *RemoteBotCommandsAdvertisementTLFID  `codec:"tlfidConvs,omitempty" json:"tlfidConvs,omitempty"`
+}
+
+func (o *RemoteBotCommandsAdvertisement) Typ() (ret BotCommandsAdvertisementTyp, err error) {
+	switch o.Typ__ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		if o.Public__ == nil {
+			err = errors.New("unexpected nil value for Public__")
+			return ret, err
+		}
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if o.TlfidMembers__ == nil {
+			err = errors.New("unexpected nil value for TlfidMembers__")
+			return ret, err
+		}
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if o.TlfidConvs__ == nil {
+			err = errors.New("unexpected nil value for TlfidConvs__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o RemoteBotCommandsAdvertisement) Public() (res RemoteBotCommandsAdvertisementPublic) {
+	if o.Typ__ != BotCommandsAdvertisementTyp_PUBLIC {
+		panic("wrong case accessed")
+	}
+	if o.Public__ == nil {
+		return
+	}
+	return *o.Public__
+}
+
+func (o RemoteBotCommandsAdvertisement) TlfidMembers() (res RemoteBotCommandsAdvertisementTLFID) {
+	if o.Typ__ != BotCommandsAdvertisementTyp_TLFID_MEMBERS {
+		panic("wrong case accessed")
+	}
+	if o.TlfidMembers__ == nil {
+		return
+	}
+	return *o.TlfidMembers__
+}
+
+func (o RemoteBotCommandsAdvertisement) TlfidConvs() (res RemoteBotCommandsAdvertisementTLFID) {
+	if o.Typ__ != BotCommandsAdvertisementTyp_TLFID_CONVS {
+		panic("wrong case accessed")
+	}
+	if o.TlfidConvs__ == nil {
+		return
+	}
+	return *o.TlfidConvs__
+}
+
+func NewRemoteBotCommandsAdvertisementWithPublic(v RemoteBotCommandsAdvertisementPublic) RemoteBotCommandsAdvertisement {
+	return RemoteBotCommandsAdvertisement{
+		Typ__:    BotCommandsAdvertisementTyp_PUBLIC,
+		Public__: &v,
+	}
+}
+
+func NewRemoteBotCommandsAdvertisementWithTlfidMembers(v RemoteBotCommandsAdvertisementTLFID) RemoteBotCommandsAdvertisement {
+	return RemoteBotCommandsAdvertisement{
+		Typ__:          BotCommandsAdvertisementTyp_TLFID_MEMBERS,
+		TlfidMembers__: &v,
+	}
+}
+
+func NewRemoteBotCommandsAdvertisementWithTlfidConvs(v RemoteBotCommandsAdvertisementTLFID) RemoteBotCommandsAdvertisement {
+	return RemoteBotCommandsAdvertisement{
+		Typ__:        BotCommandsAdvertisementTyp_TLFID_CONVS,
+		TlfidConvs__: &v,
+	}
+}
+
+func (o RemoteBotCommandsAdvertisement) DeepCopy() RemoteBotCommandsAdvertisement {
+	return RemoteBotCommandsAdvertisement{
+		Typ__: o.Typ__.DeepCopy(),
+		Public__: (func(x *RemoteBotCommandsAdvertisementPublic) *RemoteBotCommandsAdvertisementPublic {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Public__),
+		TlfidMembers__: (func(x *RemoteBotCommandsAdvertisementTLFID) *RemoteBotCommandsAdvertisementTLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfidMembers__),
+		TlfidConvs__: (func(x *RemoteBotCommandsAdvertisementTLFID) *RemoteBotCommandsAdvertisementTLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfidConvs__),
+	}
+}
+
+type BotCommandConv struct {
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Vers   CommandConvVers `codec:"vers" json:"vers"`
+	Mtime  gregor1.Time    `codec:"mtime" json:"mtime"`
+}
+
+func (o BotCommandConv) DeepCopy() BotCommandConv {
+	return BotCommandConv{
+		Uid:    o.Uid.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+		Vers:   o.Vers.DeepCopy(),
+		Mtime:  o.Mtime.DeepCopy(),
+	}
+}
+
+type BotInfo struct {
+	CommandConvs []BotCommandConv `codec:"commandConvs" json:"commandConvs"`
+}
+
+func (o BotInfo) DeepCopy() BotInfo {
+	return BotInfo{
+		CommandConvs: (func(x []BotCommandConv) []BotCommandConv {
+			if x == nil {
+				return nil
+			}
+			ret := make([]BotCommandConv, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.CommandConvs),
+	}
+}
+
+type AdvertiseBotCommandsRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o AdvertiseBotCommandsRes) DeepCopy() AdvertiseBotCommandsRes {
+	return AdvertiseBotCommandsRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type ClearBotCommandsRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o ClearBotCommandsRes) DeepCopy() ClearBotCommandsRes {
+	return ClearBotCommandsRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type BotInfoResponseTyp int
+
+const (
+	BotInfoResponseTyp_UPTODATE BotInfoResponseTyp = 0
+	BotInfoResponseTyp_INFO     BotInfoResponseTyp = 1
+)
+
+func (o BotInfoResponseTyp) DeepCopy() BotInfoResponseTyp { return o }
+
+var BotInfoResponseTypMap = map[string]BotInfoResponseTyp{
+	"UPTODATE": 0,
+	"INFO":     1,
+}
+
+var BotInfoResponseTypRevMap = map[BotInfoResponseTyp]string{
+	0: "UPTODATE",
+	1: "INFO",
+}
+
+func (e BotInfoResponseTyp) String() string {
+	if v, ok := BotInfoResponseTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type BotInfoResponse struct {
+	Typ__  BotInfoResponseTyp `codec:"typ" json:"typ"`
+	Info__ *BotInfo           `codec:"info,omitempty" json:"info,omitempty"`
+}
+
+func (o *BotInfoResponse) Typ() (ret BotInfoResponseTyp, err error) {
+	switch o.Typ__ {
+	case BotInfoResponseTyp_INFO:
+		if o.Info__ == nil {
+			err = errors.New("unexpected nil value for Info__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o BotInfoResponse) Info() (res BotInfo) {
+	if o.Typ__ != BotInfoResponseTyp_INFO {
+		panic("wrong case accessed")
+	}
+	if o.Info__ == nil {
+		return
+	}
+	return *o.Info__
+}
+
+func NewBotInfoResponseWithUptodate() BotInfoResponse {
+	return BotInfoResponse{
+		Typ__: BotInfoResponseTyp_UPTODATE,
+	}
+}
+
+func NewBotInfoResponseWithInfo(v BotInfo) BotInfoResponse {
+	return BotInfoResponse{
+		Typ__:  BotInfoResponseTyp_INFO,
+		Info__: &v,
+	}
+}
+
+func (o BotInfoResponse) DeepCopy() BotInfoResponse {
+	return BotInfoResponse{
+		Typ__: o.Typ__.DeepCopy(),
+		Info__: (func(x *BotInfo) *BotInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Info__),
+	}
+}
+
+type GetBotInfoRes struct {
+	Response  BotInfoResponse `codec:"response" json:"response"`
+	RateLimit *RateLimit      `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetBotInfoRes) DeepCopy() GetBotInfoRes {
+	return GetBotInfoRes{
+		Response: o.Response.DeepCopy(),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type BotInfoHash []byte
+
+func (o BotInfoHash) DeepCopy() BotInfoHash {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1143,6 +1452,18 @@ type GetExternalAPIKeysArg struct {
 	Typs []ExternalAPIKeyTyp `codec:"typs" json:"typs"`
 }
 
+type AdvertiseBotCommandsArg struct {
+	Ads []RemoteBotCommandsAdvertisement `codec:"ads" json:"ads"`
+}
+
+type ClearBotCommandsArg struct {
+}
+
+type GetBotInfoArg struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	InfoHash BotInfoHash    `codec:"infoHash" json:"infoHash"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1184,6 +1505,9 @@ type RemoteInterface interface {
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
 	ServerNow(context.Context) (ServerNowRes, error)
 	GetExternalAPIKeys(context.Context, []ExternalAPIKeyTyp) ([]ExternalAPIKey, error)
+	AdvertiseBotCommands(context.Context, []RemoteBotCommandsAdvertisement) (AdvertiseBotCommandsRes, error)
+	ClearBotCommands(context.Context) (ClearBotCommandsRes, error)
+	GetBotInfo(context.Context, GetBotInfoArg) (GetBotInfoRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1780,6 +2104,46 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"advertiseBotCommands": {
+				MakeArg: func() interface{} {
+					var ret [1]AdvertiseBotCommandsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AdvertiseBotCommandsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AdvertiseBotCommandsArg)(nil), args)
+						return
+					}
+					ret, err = i.AdvertiseBotCommands(ctx, typedArgs[0].Ads)
+					return
+				},
+			},
+			"clearBotCommands": {
+				MakeArg: func() interface{} {
+					var ret [1]ClearBotCommandsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.ClearBotCommands(ctx)
+					return
+				},
+			},
+			"getBotInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]GetBotInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetBotInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetBotInfoArg)(nil), args)
+						return
+					}
+					ret, err = i.GetBotInfo(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1998,5 +2362,21 @@ func (c RemoteClient) ServerNow(ctx context.Context) (res ServerNowRes, err erro
 func (c RemoteClient) GetExternalAPIKeys(ctx context.Context, typs []ExternalAPIKeyTyp) (res []ExternalAPIKey, err error) {
 	__arg := GetExternalAPIKeysArg{Typs: typs}
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getExternalAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) AdvertiseBotCommands(ctx context.Context, ads []RemoteBotCommandsAdvertisement) (res AdvertiseBotCommandsRes, err error) {
+	__arg := AdvertiseBotCommandsArg{Ads: ads}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.advertiseBotCommands", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) ClearBotCommands(ctx context.Context) (res ClearBotCommandsRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.clearBotCommands", []interface{}{ClearBotCommandsArg{}}, &res, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) GetBotInfo(ctx context.Context, __arg GetBotInfoArg) (res GetBotInfoRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
 }

@@ -71,20 +71,23 @@ func (u *smuUser) cleanup() {
 		for _, cl := range d.clones {
 			cl.Cleanup()
 		}
+		for _, cl := range d.usedClones {
+			cl.Cleanup()
+		}
 	}
 }
 
 // smuDeviceWrapper wraps a mock "device", meaning an independent running service and
 // some connected clients.
 type smuDeviceWrapper struct {
-	ctx       *smuContext
-	tctx      *libkb.TestContext
-	clones    []*libkb.TestContext
-	deviceKey keybase1.PublicKey
-	stopCh    chan error
-	service   *service.Service
-	cli       rpc.GenericClient
-	xp        rpc.Transporter
+	ctx                *smuContext
+	tctx               *libkb.TestContext
+	clones, usedClones []*libkb.TestContext
+	deviceKey          keybase1.PublicKey
+	stopCh             chan error
+	service            *service.Service
+	cli                rpc.GenericClient
+	xp                 rpc.Transporter
 }
 
 func (d *smuDeviceWrapper) KID() keybase1.KID {
@@ -185,6 +188,8 @@ func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	}
 	ret := d.clones[0]
 	d.clones = d.clones[1:]
+	// Hold a reference to this clone for cleanup
+	d.usedClones = append(d.usedClones, ret)
 	ui := genericUI{
 		g:          ret.G,
 		TerminalUI: smuTerminalUI{},

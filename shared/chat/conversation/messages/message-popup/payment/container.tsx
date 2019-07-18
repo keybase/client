@@ -69,8 +69,8 @@ const sendMapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onClaimLumens: () =>
     dispatch(
       Container.isMobile
-        ? RouteTreeGen.createNavigateTo({path: WalletConstants.rootWalletPath})
-        : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
+        ? RouteTreeGen.createNavigateAppend({path: WalletConstants.rootWalletPath})
+        : RouteTreeGen.createNavigateAppend({path: WalletConstants.rootWalletPath})
     ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) =>
     dispatch(WalletGen.createShowTransaction({accountID, paymentID})),

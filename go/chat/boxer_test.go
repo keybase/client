@@ -1628,28 +1628,28 @@ func TestRemarshalBoxed(t *testing.T) {
 	require.Equal(t, boxed1.ClientHeader.OutboxID, boxed2.ClientHeader.OutboxID, "obids should have same value")
 }
 
-func randomTeamEK() keybase1.TeamEk {
+func randomTeamEK() types.EphemeralCryptKey {
 	randBytes, err := libkb.RandBytes(32)
 	if err != nil {
 		panic(err)
 	}
 	seed := libkb.MakeByte32(randBytes)
 	dhKey := (*ephemeral.TeamEKSeed)(&seed).DeriveDHKey()
-	teamEK := keybase1.TeamEk{
+	return keybase1.NewTeamEphemeralKeyWithTeam(keybase1.TeamEk{
 		Seed: seed,
 		Metadata: keybase1.TeamEkMetadata{
 			Kid: dhKey.GetKID(),
 		},
-	}
-	return teamEK
+	})
 }
 
 func TestExplodingMessageUnbox(t *testing.T) {
+	tc, boxer := setupChatTest(t, "exploding")
+	defer tc.Cleanup()
+
 	key := cryptKey(t)
 	ephemeralKey := randomTeamEK()
 	text := "hello exploding"
-	tc, boxer := setupChatTest(t, "exploding")
-	defer tc.Cleanup()
 	// We need a user for unboxing to work.
 	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
 	require.NoError(t, err)
@@ -1662,7 +1662,8 @@ func TestExplodingMessageUnbox(t *testing.T) {
 
 	// Box it! Note that we pass in the ephemeral/exploding key, and also set
 	// V3 explicitly.
-	boxed, err := boxer.box(context.TODO(), msg, key, &ephemeralKey, getSigningKeyPairForTest(t, tc, u), chat1.MessageBoxedVersion_V3, nil)
+	boxed, err := boxer.box(context.TODO(), msg, key, ephemeralKey,
+		getSigningKeyPairForTest(t, tc, u), chat1.MessageBoxedVersion_V3, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageBoxedVersion_V3, boxed.Version)
 	require.True(t, len(boxed.BodyCiphertext.E) > 0)
@@ -1673,8 +1674,8 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	}
 
 	// Unbox it!!!
-	unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM, key,
-		&ephemeralKey)
+	unboxed, err := boxer.unbox(context.TODO(), boxed, chat1.ConversationMembersType_TEAM,
+		key, ephemeralKey)
 	require.NoError(t, err)
 	body := unboxed.MessageBody
 	typ, err := body.MessageType()

@@ -1029,7 +1029,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
 			Text:   string(infoBody),
 			GameID: gameID,
-		}), chat1.MessageType_FLIP); err != nil {
+		}), chat1.MessageType_FLIP, keybase1.TLFVisibility_PRIVATE); err != nil {
 		return err
 	}
 

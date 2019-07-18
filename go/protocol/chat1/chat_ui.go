@@ -294,6 +294,7 @@ type InboxUIItem struct {
 	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
+	BotCommands       ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
@@ -405,7 +406,8 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			}
 			return ret
 		})(o.SupersededBy),
-		Commands: o.Commands.DeepCopy(),
+		Commands:    o.Commands.DeepCopy(),
+		BotCommands: o.BotCommands.DeepCopy(),
 	}
 }
 
@@ -2246,6 +2248,35 @@ func (e UICommandStatusActionTyp) String() string {
 	return ""
 }
 
+type UIBotCommandsUpdateStatus int
+
+const (
+	UIBotCommandsUpdateStatus_UPTODATE UIBotCommandsUpdateStatus = 0
+	UIBotCommandsUpdateStatus_UPDATING UIBotCommandsUpdateStatus = 1
+	UIBotCommandsUpdateStatus_FAILED   UIBotCommandsUpdateStatus = 2
+)
+
+func (o UIBotCommandsUpdateStatus) DeepCopy() UIBotCommandsUpdateStatus { return o }
+
+var UIBotCommandsUpdateStatusMap = map[string]UIBotCommandsUpdateStatus{
+	"UPTODATE": 0,
+	"UPDATING": 1,
+	"FAILED":   2,
+}
+
+var UIBotCommandsUpdateStatusRevMap = map[UIBotCommandsUpdateStatus]string{
+	0: "UPTODATE",
+	1: "UPDATING",
+	2: "FAILED",
+}
+
+func (e UIBotCommandsUpdateStatus) String() string {
+	if v, ok := UIBotCommandsUpdateStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -2403,6 +2434,12 @@ type ChatCommandStatusArg struct {
 	Actions     []UICommandStatusActionTyp `codec:"actions" json:"actions"`
 }
 
+type ChatBotCommandsUpdateStatusArg struct {
+	SessionID int                       `codec:"sessionID" json:"sessionID"`
+	ConvID    string                    `codec:"convID" json:"convID"`
+	Status    UIBotCommandsUpdateStatus `codec:"status" json:"status"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -2434,6 +2471,7 @@ type ChatUiInterface interface {
 	ChatWatchPosition(context.Context, ChatWatchPositionArg) (LocationWatchID, error)
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
 	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
+	ChatBotCommandsUpdateStatus(context.Context, ChatBotCommandsUpdateStatusArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -2890,6 +2928,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatBotCommandsUpdateStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatBotCommandsUpdateStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatBotCommandsUpdateStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatBotCommandsUpdateStatusArg)(nil), args)
+						return
+					}
+					err = i.ChatBotCommandsUpdateStatus(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -3049,5 +3102,10 @@ func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchAr
 
 func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatBotCommandsUpdateStatus(ctx context.Context, __arg ChatBotCommandsUpdateStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []interface{}{__arg}, nil)
 	return
 }

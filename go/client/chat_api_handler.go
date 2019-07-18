@@ -40,6 +40,9 @@ const (
 	methodLoadFlip          = "loadflip"
 	methodGetUnfurlSettings = "getunfurlsettings"
 	methodSetUnfurlSettings = "setunfurlsettings"
+	methodAdvertiseCommands = "advertisecommands"
+	methodClearCommands     = "clearcommands"
+	methodListCommands      = "listcommands"
 )
 
 type RateLimit struct {
@@ -75,6 +78,9 @@ type ChatAPIHandler interface {
 	LoadFlipV1(context.Context, Call, io.Writer) error
 	GetUnfurlSettingsV1(context.Context, Call, io.Writer) error
 	SetUnfurlSettingsV1(context.Context, Call, io.Writer) error
+	AdvertiseCommandsV1(context.Context, Call, io.Writer) error
+	ClearCommandsV1(context.Context, Call, io.Writer) error
+	ListCommandsV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -525,6 +531,41 @@ func (o setUnfurlSettingsOptionsV1) Check() error {
 	return nil
 }
 
+type advertisementParam struct {
+	Typ      string `json:"type"`
+	Commands []chat1.UserBotCommandInput
+	TeamName string `json:"team_name,omitempty"`
+}
+
+type advertiseCommandsOptionsV1 struct {
+	Alias          string `json:"alias,omitempty"`
+	Advertisements []advertisementParam
+}
+
+func (a advertiseCommandsOptionsV1) Check() error {
+	if len(a.Advertisements) == 0 {
+		return errors.New("must specify at least one commands advertiement")
+	}
+	for _, c := range a.Advertisements {
+		if len(c.Commands) == 0 {
+			return errors.New("must specify at least one command in each advertisement")
+		}
+	}
+	return nil
+}
+
+type listCommandsOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string `json:"conversation_id"`
+}
+
+func (o listCommandsOptionsV1) Check() error {
+	if err := checkChannelConv(methodListCommands, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -820,7 +861,8 @@ func (a *ChatAPI) GetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) 
 
 func (a *ChatAPI) SetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodLoadFlip, err: errors.New("empty options")}
+		return ErrInvalidOptions{version: 1, method: methodSetUnfurlSettings,
+			err: errors.New("empty options")}
 	}
 	var opts setUnfurlSettingsOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -830,6 +872,40 @@ func (a *ChatAPI) SetUnfurlSettingsV1(ctx context.Context, c Call, w io.Writer) 
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.SetUnfurlSettingsV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) AdvertiseCommandsV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodAdvertiseCommands,
+			err: errors.New("empty options")}
+	}
+	var opts advertiseCommandsOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.AdvertiseCommandsV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) ClearCommandsV1(ctx context.Context, c Call, w io.Writer) error {
+	return a.encodeReply(c, a.svcHandler.ClearCommandsV1(ctx), w)
+}
+
+func (a *ChatAPI) ListCommandsV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodListCommands,
+			err: errors.New("empty options")}
+	}
+	var opts listCommandsOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.ListCommandsV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

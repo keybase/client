@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatBotCommands                = 0xb6
 	DBSavedContacts                  = 0xb7
 	DBChatLocation                   = 0xb8
 	DBHiddenChainStorage             = 0xb9
@@ -113,7 +114,9 @@ func IsPermDbKey(typ ObjType) bool {
 		DBChatReacji,
 		DBStellarDisclaimer,
 		DBChatIndex,
-		DBBoxAuditorPermanent:
+		DBBoxAuditorPermanent,
+		DBSavedContacts,
+		DBContactResolution:
 		return true
 	default:
 		return false
