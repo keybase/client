@@ -17,7 +17,7 @@ const generateTeamSofar = (count: number) => {
   const adjs = ['shaky', 'ded', 'smol', 'big', 'breaker of chains,', 'the kind', 'the erudite']
   const nouns = ['dino', 'frog', 'potato', 'dog', 'chris']
   const services: Array<Types.ServiceIdWithContact> = ['keybase', 'twitter', 'reddit']
-  return new Array(count).fill('').map((v, i) => {
+  return new Array(count).fill('').map((_, i) => {
     const adj = adjs[i % adjs.length]
     const noun = nouns[Math.floor(i / adjs.length) % nouns.length]
     const service = services[i % services.length]

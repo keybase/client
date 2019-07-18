@@ -110,7 +110,7 @@ type State = {
 class Teams extends React.PureComponent<Props, State> {
   state = {sawChatBanner: this.props.sawChatBanner}
 
-  _teamsAndExtras = memoize((deletedTeams, sawChatBanner, teamnames) => [
+  _teamsAndExtras = memoize((deletedTeams, teamnames) => [
     {key: '_banner', type: '_banner'},
     ...deletedTeams.map(t => ({key: 'deletedTeam' + t.teamName, team: t, type: 'deletedTeam'})),
     ...teamnames.map(t => ({key: t, team: t, type: 'team'})),
@@ -188,11 +188,7 @@ class Teams extends React.PureComponent<Props, State> {
           />
         )}
         <Kb.List
-          items={this._teamsAndExtras(
-            this.props.deletedTeams,
-            this.state.sawChatBanner,
-            this.props.teamnames
-          )}
+          items={this._teamsAndExtras(this.props.deletedTeams, this.props.teamnames)}
           renderItem={this._renderItem}
         />
       </Kb.Box2>

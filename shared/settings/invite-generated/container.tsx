@@ -4,7 +4,7 @@ import InviteGenerated from '.'
 
 type OwnProps = RouteProps<{email: string; link: string}>
 
-const mapStateToProps = (state: any, {routeProps}) => ({
+const mapStateToProps = (_: any, {routeProps}) => ({
   email: routeProps.get('email'),
   link: routeProps.get('link'),
 })
