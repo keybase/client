@@ -1916,7 +1916,7 @@ const _maybeAutoselectNewestConversation = (
     // away from, or we're not avoiding it because it's a channel we're leaving
   }
 
-    const isEligibleConvo = ( meta : Types.ConversationMeta) => {
+  const isEligibleConvo = (meta: Types.ConversationMeta) => {
     if (meta.teamType === 'big') {
       // Don't select a big team channel
       return false
