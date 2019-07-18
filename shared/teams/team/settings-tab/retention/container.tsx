@@ -127,7 +127,7 @@ const mapDispatchToProps = (
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
     dispatch(
-      RouteTreeGen.createNavigateTo({
+      RouteTreeGen.createNavigateAppend({
         path: [
           {
             props: {entityType, onCancel, onConfirm, policy},

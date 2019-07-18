@@ -16,16 +16,10 @@ const mapDispatchToProps = dispatch => ({
   _dismiss: (key: string) => dispatch(FsGen.createDismissFsError({key})),
   _onFeedback: (loggedIn: boolean) => {
     if (loggedIn) {
-      dispatch(RouteTreeGen.createSwitchTo({path: [settingsTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
       dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [settingsTab],
-          path: [
-            {
-              props: {heading: 'Oh no, a bug!'},
-              selected: feedbackTab,
-            },
-          ],
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {heading: 'Oh no, a bug!'}, selected: feedbackTab}],
         })
       )
     } else {

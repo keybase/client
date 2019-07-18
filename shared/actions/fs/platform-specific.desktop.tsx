@@ -387,7 +387,7 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
-    : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
+    : [RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})]),
 ]
 
 const changedFocus = (state, action: ConfigGen.ChangedFocusPayload) =>
