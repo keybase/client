@@ -103,14 +103,20 @@ func (r *Runner) addDbStats(
 	stats.DbStats = append(stats.DbStats, s)
 }
 
-func (r *Runner) updateStats(ctx context.Context) {
+// GetProcessStats gets CPU and memory stats for the running process.
+func GetProcessStats(t keybase1.ProcessType) keybase1.ProcessRuntimeStats {
+	stats := getStats().Export()
+	stats.Type = t
 	var memstats runtime.MemStats
-	serviceStats := getStats().Export()
-	serviceStats.Type = keybase1.ProcessType_MAIN
 	runtime.ReadMemStats(&memstats)
-	serviceStats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
-	serviceStats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
-	serviceStats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
+	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
+	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
+	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
+	return stats
+}
+
+func (r *Runner) updateStats(ctx context.Context) {
+	serviceStats := GetProcessStats(keybase1.ProcessType_MAIN)
 
 	var stats keybase1.RuntimeStats
 	stats.ProcessStats = append(stats.ProcessStats, serviceStats)
@@ -133,6 +139,8 @@ func (r *Runner) updateStats(ctx context.Context) {
 		if err != nil {
 			r.debug(ctx, "KBFS stats error: %+v", err)
 		} else {
+			stats.ProcessStats = append(
+				stats.ProcessStats, sfsStats.ProcessStats)
 			for _, s := range sfsStats.RuntimeDbStats {
 				stats.DbStats = append(stats.DbStats, s)
 			}

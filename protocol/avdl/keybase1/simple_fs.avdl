@@ -541,6 +541,7 @@ protocol SimpleFS {
   array<string> simpleFSDeobfuscatePath(Path path);
 
   record SimpleFSStats {
+    ProcessRuntimeStats processStats;
     array<string> blockCacheDbStats;
     array<string> syncCacheDbStats;
     array<DbStats> runtimeDbStats;
