@@ -20,7 +20,7 @@ import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
-//import com.dylanvann.fastimage.FastImageViewPackage;
+import com.dylanvann.fastimage.FastImageViewPackage;
 
 import org.reactnative.camera.RNCameraPackage;
 
@@ -111,7 +111,7 @@ public class MainApplication extends Application implements ReactApplication {
                     new ImagePickerPackage(),
                     new RNFetchBlobPackage(),
                     new ReactNativeContacts(),
-                    //new FastImageViewPackage(),
+                    new FastImageViewPackage(),
                     new LottiePackage(),
                     new RNGestureHandlerPackage(),
                     new RNScreensPackage(),

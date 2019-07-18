@@ -20,7 +20,7 @@ import * as I from 'immutable'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
-import {TypedState, actionHasError, TypedActions} from '../util/container'
+import {actionHasError, TypedActions, TypedState} from '../util/container'
 import {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
@@ -147,6 +147,11 @@ const emptyAsset: RPCStellarTypes.Asset = {
   issuerName: '',
   type: 'native',
   verifiedDomain: '',
+}
+
+const emptyAssetWithoutType: RPCStellarTypes.Asset = {
+  ...emptyAsset,
+  type: '',
 }
 
 const sendPayment = (state: TypedState) => {
@@ -284,10 +289,20 @@ const validateSEP7Link = (_: TypedState, action: WalletsGen.ValidateSEP7LinkPayl
       RouteTreeGen.createNavigateAppend({path: ['sep7ConfirmError']}),
     ])
 
-const acceptSEP7Tx = (state: TypedState, _: WalletsGen.AcceptSEP7TxPayload) =>
+const acceptSEP7Tx = (state: TypedState, action: WalletsGen.AcceptSEP7TxPayload) =>
   RPCStellarTypes.localApproveTxURILocalRpcPromise(
     {
-      inputURI: state.wallets.sep7ConfirmURI,
+      inputURI: action.payload.inputURI,
+    },
+    Constants.sep7WaitingKey
+  ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
+
+const acceptSEP7Path = (state: TypedState, action: WalletsGen.AcceptSEP7PathPayload) =>
+  RPCStellarTypes.localApprovePathURILocalRpcPromise(
+    {
+      fromCLI: false,
+      fullPath: paymentPathToRpcPaymentPath(state.wallets.sep7ConfirmPath.fullPath),
+      inputURI: action.payload.inputURI,
     },
     Constants.sep7WaitingKey
   ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
@@ -297,7 +312,7 @@ const acceptSEP7Pay = (state: TypedState, action: WalletsGen.AcceptSEP7PayPayloa
     {
       amount: action.payload.amount,
       fromCLI: false,
-      inputURI: state.wallets.sep7ConfirmURI,
+      inputURI: action.payload.inputURI,
     },
     Constants.sep7WaitingKey
   ).then(_ => [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})])
@@ -1359,14 +1374,41 @@ const rpcPaymentPathToPaymentPath = (rpcPaymentPath: RPCStellarTypes.PaymentPath
     sourceInsufficientBalance: rpcPaymentPath.sourceInsufficientBalance,
   })
 
-const calculateBuildingAdvanced = (state: TypedState) =>
-  RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
+const calculateBuildingAdvanced = (
+  state: TypedState,
+  action: WalletsGen.CalculateBuildingAdvancedPayload
+) => {
+  const {forSEP7} = action.payload
+  let amount = state.wallets.buildingAdvanced.recipientAmount
+  let destinationAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset)
+  let from = state.wallets.buildingAdvanced.senderAccountID
+  let sourceAsset = assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset)
+  let to = state.wallets.buildingAdvanced.recipient
+
+  if (forSEP7) {
+    if (state.wallets.sep7ConfirmInfo == null) {
+      console.warn('Tried to calculate SEP7 path payment with no SEP7 info')
+      return
+    }
+    amount = state.wallets.sep7ConfirmInfo.amount
+    destinationAsset = assetDescriptionOrNativeToRpcAsset(
+      Constants.makeAssetDescription({
+        code: state.wallets.sep7ConfirmInfo.assetCode,
+        issuerAccountID: state.wallets.sep7ConfirmInfo.assetIssuer,
+      })
+    )
+    from = ''
+    sourceAsset = emptyAssetWithoutType
+    to = state.wallets.sep7ConfirmInfo.recipient
+  }
+
+  return RPCStellarTypes.localFindPaymentPathLocalRpcPromise(
     {
-      amount: state.wallets.buildingAdvanced.recipientAmount,
-      destinationAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.recipientAsset),
-      from: state.wallets.buildingAdvanced.senderAccountID,
-      sourceAsset: assetDescriptionOrNativeToRpcAsset(state.wallets.buildingAdvanced.senderAsset),
-      to: state.wallets.buildingAdvanced.recipient,
+      amount,
+      destinationAsset,
+      from,
+      sourceAsset,
+      to,
     },
     Constants.calculateBuildingAdvancedWaitingKey
   )
@@ -1392,6 +1434,7 @@ const calculateBuildingAdvanced = (state: TypedState) =>
           sourceDisplay,
           sourceMaxDisplay,
         }),
+        forSEP7: action.payload.forSEP7,
       })
     })
     .catch(err => {
@@ -1410,8 +1453,10 @@ const calculateBuildingAdvanced = (state: TypedState) =>
           findPathError: errorMessage,
           readyToSend: false,
         }),
+        forSEP7: action.payload.forSEP7,
       })
     })
+}
 
 const sendPaymentAdvanced = (state: TypedState) =>
   RPCStellarTypes.localSendPathLocalRpcPromise(
@@ -1835,6 +1880,11 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     WalletsGen.acceptSEP7Pay,
     acceptSEP7Pay,
     'acceptSEP7Pay'
+  )
+  yield* Saga.chainAction<WalletsGen.AcceptSEP7PathPayload>(
+    WalletsGen.acceptSEP7Path,
+    acceptSEP7Path,
+    'acceptSEP7Path'
   )
   yield* Saga.chainAction<WalletsGen.AcceptSEP7TxPayload>(
     WalletsGen.acceptSEP7Tx,

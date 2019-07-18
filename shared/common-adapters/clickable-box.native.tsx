@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Props} from './clickable-box'
 import Box from './box'
-import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
+import {NativeTouchableOpacity, NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import {collapseStyles, globalColors} from '../styles'
 
 class ClickableBox extends React.Component<Props> {
@@ -12,7 +12,7 @@ class ClickableBox extends React.Component<Props> {
       const clickStyle = collapseStyles([boxStyle, props.style])
       if (feedback) {
         return (
-          <TouchableOpacity
+          <NativeTouchableOpacity
             disabled={!props.onClick}
             onPress={props.onClick}
             onPressIn={props.onPressIn}
@@ -29,11 +29,11 @@ class ClickableBox extends React.Component<Props> {
             }
           >
             {props.children}
-          </TouchableOpacity>
+          </NativeTouchableOpacity>
         )
       } else {
         return (
-          <TouchableWithoutFeedback
+          <NativeTouchableWithoutFeedback
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             style={clickStyle}
@@ -42,7 +42,7 @@ class ClickableBox extends React.Component<Props> {
             onLongPress={props.onLongPress}
           >
             {props.children}
-          </TouchableWithoutFeedback>
+          </NativeTouchableWithoutFeedback>
         )
       }
     } else {
