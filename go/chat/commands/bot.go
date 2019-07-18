@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"sync"
 
@@ -71,8 +70,9 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 		b.clearExtendedDisplayLocked(ctx, convID)
 		return
 	}
+	cmdText = cmdText[1:]
 	for _, cmd := range cmds {
-		if cmdText == fmt.Sprintf("!%s", cmd.Name) && cmd.ExtendedDescription != nil {
+		if cmdText == cmd.Name && cmd.ExtendedDescription != nil {
 			var body string
 			if b.G().IsMobileAppType() {
 				body = cmd.ExtendedDescription.MobileBody
