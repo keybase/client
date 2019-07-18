@@ -71,7 +71,7 @@ const typingTests = () => {
   // @ts-ignore should error (extra prop)
   test = <TestArea {...extraJunk} />
 
-  const testAreaFunc = (props: TestAreaProps) => {}
+  const testAreaFunc = (_: TestAreaProps) => {}
   // @ts-ignore todo investigate
   AddSuggestors(testAreaFunc)
 }
@@ -113,8 +113,8 @@ const props = {
   suggestionListStyle: Styles.isMobile ? {marginTop: 80} : {width: 200},
   suggestorToMarker: {fruit: '$', users: '@'},
   transformers: {
-    fruit: (fruit, marker, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
-    users: (username, marker, tData, preview) =>
+    fruit: (fruit, _, tData, preview) => Suggestors.standardTransformer(`$${fruit}`, tData, preview),
+    users: (username, _, tData, preview) =>
       Suggestors.standardTransformer(`@${username}`, tData, preview),
   },
 }

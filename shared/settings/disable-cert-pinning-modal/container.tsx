@@ -4,7 +4,7 @@ import ConfirmDisableCertPinningModal from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {createCertificatePinningToggled} from '../../actions/settings-gen'
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => {

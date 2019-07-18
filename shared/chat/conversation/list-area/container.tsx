@@ -13,7 +13,7 @@ type OwnProps = {
 }
 
 export default connect(
-  (state, {conversationIDKey}: OwnProps) => ({conversationIDKey}),
+  (_, {conversationIDKey}: OwnProps) => ({conversationIDKey}),
   dispatch => ({
     onShowTracker: (username: string) =>
       isMobile

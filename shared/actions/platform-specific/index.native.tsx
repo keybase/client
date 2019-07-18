@@ -460,7 +460,7 @@ const askForContactPermissions = () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(state: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
+function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()

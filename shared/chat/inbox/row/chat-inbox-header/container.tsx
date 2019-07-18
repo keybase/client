@@ -9,7 +9,7 @@ type OwnProps = {
   onNewChat: () => void
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({
+const mapStateToProps = (state) => ({
   isSearching: !!state.chat2.inboxSearch,
   showNewChat:
     !state.chat2.inboxSearch &&
@@ -25,7 +25,7 @@ const mapDispatchToProps = dispatch => ({
   onSelectUp: () => dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: false})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   isSearching: stateProps.isSearching,
   onBack: dispatchProps.onBack,
   onEnsureSelection: dispatchProps.onEnsureSelection,

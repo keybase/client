@@ -75,7 +75,7 @@ class LoginWrapper extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props) {
     // Clear the password when there's an input error.
     if (this.props.inputError !== prevProps.inputError) {
       this.setState(p => ({inputKey: p.inputKey + 1, password: ''}))

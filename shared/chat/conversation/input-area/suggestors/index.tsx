@@ -146,7 +146,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }
 
-    _checkTrigger = text => {
+    _checkTrigger = () => {
       this._timeoutID = setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
         // desktop would get the previous selection on arrowleft / arrowright
@@ -214,12 +214,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     _onChangeText = text => {
       this._lastText = text
       this.props.onChangeText && this.props.onChangeText(text)
-      this._checkTrigger(text)
+      this._checkTrigger()
     }
 
     _onKeyDown = (evt: React.KeyboardEvent, ici: boolean) => {
       if (evt.key === 'ArrowLeft' || evt.key === 'ArrowRight') {
-        this._checkTrigger(this._lastText || '')
+        this._checkTrigger()
       }
 
       if (!this.state.active || this._getResults().length === 0) {
@@ -266,12 +266,12 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _onFocus = () => {
       this.props.onFocus && this.props.onFocus()
-      this._checkTrigger(this._lastText || '')
+      this._checkTrigger()
     }
 
     _onSelectionChange = selection => {
       this.props.onSelectionChange && this.props.onSelectionChange(selection)
-      this._checkTrigger(this._lastText || '')
+      this._checkTrigger()
     }
 
     _triggerTransform = (value, final = true) => {
@@ -293,7 +293,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           !final
         )
         this._lastText = transformedText.text
-        input.transformText(textInfo => transformedText, final)
+        input.transformText(() => transformedText, final)
       }
     }
 
