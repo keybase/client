@@ -7131,9 +7131,9 @@ expo-file-system@~5.0.0:
   dependencies:
     uuid-js "^0.7.5"
 
-expo-image-picker@keybase/expo#keybase-image-picker:
+"expo-image-picker@git://github.com/keybase/keybase-image-picker":
   version "5.0.2"
-  resolved "https://codeload.github.com/keybase/expo/tar.gz/bf87b940ab44a5b499b5011cb8de17e40872770c"
+  resolved "git://github.com/keybase/keybase-image-picker#822b87b01014e2353c312b44565cc09a61e11e1a"
 
 expo-permissions@5.0.1:
   version "5.0.1"
@@ -13489,9 +13489,9 @@ react-native-tab-view@^2.2.0:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-2.2.0.tgz#30d015b8f33f497d82419b56df7d43ecfcc3f9b1"
   integrity sha512-mhFDRvPH/kmvqfAzTwNptbOM/xXmpqYRsD0PSMJX1nP0LzhU4uRI1QmSW6sWZGLyOwKgVw0ZYkwZ54N8AmoO1A==
 
-"react-native-unimodules@git://github.com/MarcoPolo/react-native-unimodules/#v0.4.0":
+"react-native-unimodules@git://github.com/keybase/react-native-unimodules/#v0.4.0":
   version "0.4.0"
-  resolved "git://github.com/MarcoPolo/react-native-unimodules/#9f9ad8d2db94e00292e64c0e1c1c755a83f1b12f"
+  resolved "git://github.com/keybase/react-native-unimodules/#9f9ad8d2db94e00292e64c0e1c1c755a83f1b12f"
   dependencies:
     "@unimodules/core" "~2.0.0"
     "@unimodules/react-native-adapter" "~2.0.0"
