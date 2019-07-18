@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
+import {_PhoneRow} from '../../constants/types/settings'
 import EmailPhoneRow from './email-phone-row'
 import * as I from 'immutable'
 import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
@@ -11,6 +12,8 @@ export type Props = {
   addedEmail: string | null
   contactKeys: I.List<string>
   hasPassword: boolean
+  supersededPhoneNumber?: _PhoneRow
+  onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
   onClearAddedEmail: () => void
@@ -128,6 +131,16 @@ const AccountSettings = (props: Props) => (
           <Kb.BannerParagraph
             bannerColor="yellow"
             content={`Check your inbox! A verification link was sent to ${props.addedEmail}.`}
+          />
+        </Kb.Banner>
+      )}
+      {props.supersededPhoneNumber && (
+        <Kb.Banner color="yellow" onClose={props.onClearSupersededPhoneNumber}>
+          <Kb.BannerParagraph
+            bannerColor="yellow"
+            content={`Your unverified phone number ${
+              props.supersededPhoneNumber.displayNumber
+            } is now associated with another Keybase user.`}
           />
         </Kb.Banner>
       )}

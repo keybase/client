@@ -12,6 +12,7 @@ const props = {
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
   onClearAddedEmail: Sb.action('onClearAddedEmail'),
+  onClearSupersededPhoneNumber: Sb.action('onClearSupersededPhoneNumber'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
   onManageContacts: Sb.action('onManageContacts'),
   onReload: Sb.action('onReload'),
@@ -37,6 +38,7 @@ const contacts: {
   f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: true},
   g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, superseded: false, type: 'phone', verified: true},
   h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: false},
+  i: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, superseded: true, type: 'phone', verified: false},
 }
 
 const confirmDeleteProps = {
@@ -53,7 +55,9 @@ const load = () => {
     .addDecorator(provider)
     .add('Empty', () => <AccountSettings {...props} />)
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
-    .add('With email/phone', () => <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />)
+    .add('With email/phone including superseded', () => (
+      <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />
+    ))
     .add('Confirm delete email', () => (
       <ConfirmDeleteAddress {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
     ))

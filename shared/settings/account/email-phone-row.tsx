@@ -36,6 +36,11 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
 )
 
 const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
+  // Short circuit superseded phone numbers - they get their own banner instead
+  if (props.superseded) {
+    return null
+  }
+
   let subtitle = ''
   if (props.type === 'email' && props.primary) {
     subtitle = addSpacer(subtitle, 'Primary')
@@ -104,7 +109,6 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
         {(!!subtitle || !props.verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
             {!props.verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
-            {props.superseded && <Kb.Meta backgroundColor={Styles.globalColors.red} title="SUPERSEDED" />}
             {!!subtitle && <Kb.Text type="BodySmall">{subtitle}</Kb.Text>}
           </Kb.Box2>
         )}
