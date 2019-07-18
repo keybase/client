@@ -189,9 +189,7 @@ func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	// function
 	s.botCmd.Preview(ctx, uid, convID, tlfName, text)
 
-	if !strings.HasPrefix(text, "/") {
-		return
-	}
+	// we let all strings through at this point, since we might need to clear a preview in a command
 	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
 		return
