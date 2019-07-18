@@ -91,7 +91,7 @@ class Thread extends React.PureComponent<Props, State> {
         fn()
         logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
       }
-    : (_,__, fn) => fn()
+    : (_, __, fn) => fn()
 
   _logAll = debug
     ? (list, name, fn) => {

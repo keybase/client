@@ -486,7 +486,7 @@ const provider = Sb.createPropProviderWithCommon({
     onBuildTeam: Sb.action('onBuildTeam'),
     loaded: true,
   }),
-  NewChooser:() => ({
+  NewChooser: () => ({
     isSelected: false,
     onCancel: Sb.action('onCancel'),
     onClick: Sb.action('onClick'),
