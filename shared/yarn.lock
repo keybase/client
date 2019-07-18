@@ -7133,7 +7133,7 @@ expo-file-system@~5.0.0:
 
 "expo-image-picker@git://github.com/keybase/keybase-image-picker":
   version "5.0.2"
-  resolved "git://github.com/keybase/keybase-image-picker#822b87b01014e2353c312b44565cc09a61e11e1a"
+  resolved "git://github.com/keybase/keybase-image-picker#b5d00e5032d85817023c24520eb67d79c83a2d6e"
 
 expo-permissions@5.0.1:
   version "5.0.1"
