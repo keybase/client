@@ -105,17 +105,22 @@ func (r *Runner) addDbStats(
 
 func (r *Runner) updateStats(ctx context.Context) {
 	var memstats runtime.MemStats
-	stats := getStats().Export()
+	serviceStats := getStats().Export()
+	serviceStats.Type = keybase1.ProcessType_MAIN
 	runtime.ReadMemStats(&memstats)
-	stats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
-	stats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
-	stats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
-	stats.ConvLoaderActive = r.G().ConvLoader.IsBackgroundActive()
-	stats.SelectiveSyncActive = r.G().Indexer.IsBackgroundActive()
+	serviceStats.Goheap = utils.PresentBytes(int64(memstats.HeapAlloc))
+	serviceStats.Goheapsys = utils.PresentBytes(int64(memstats.HeapSys))
+	serviceStats.Goreleased = utils.PresentBytes(int64(memstats.HeapReleased))
+
+	var stats keybase1.RuntimeStats
+	stats.ProcessStats = append(stats.ProcessStats, serviceStats)
 
 	stats.DbStats = make([]keybase1.DbStats, 0, 2)
 	r.addDbStats(ctx, keybase1.DbType_MAIN, r.G().LocalDb, &stats)
 	r.addDbStats(ctx, keybase1.DbType_CHAT, r.G().LocalChatDb, &stats)
+
+	stats.ConvLoaderActive = r.G().ConvLoader.IsBackgroundActive()
+	stats.SelectiveSyncActive = r.G().Indexer.IsBackgroundActive()
 
 	xp := r.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp != nil {
@@ -145,8 +150,8 @@ type statsResult struct {
 	TotalFree     int64
 }
 
-func (r statsResult) Export() keybase1.RuntimeStats {
-	return keybase1.RuntimeStats{
+func (r statsResult) Export() keybase1.ProcessRuntimeStats {
+	return keybase1.ProcessRuntimeStats{
 		Cpu:              fmt.Sprintf("%.2f%%", float64(r.TotalCPU)/100.0),
 		Resident:         utils.PresentBytes(r.TotalResident),
 		Virt:             utils.PresentBytes(r.TotalVirtual),
