@@ -194,7 +194,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
-  map[`${Platforms.shortcutSymbol}+${index + 1}`] = tab
+  map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
   return map
 }, {})
 const hotkeys = Object.keys(keysMap)
