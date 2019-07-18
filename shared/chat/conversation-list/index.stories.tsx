@@ -65,9 +65,9 @@ const bigProvider = (props: {conversationIDKey: Types.ConversationIDKey}) => ({
 
 const getRows = (numShown?: number, upstreamOnSelect?: () => void): Array<RowItem> => {
   const sbOnSelect = Sb.action('onSelect')
-  const onSelectConversation = function() {
+  const onSelectConversation = (...args: Array<any>) => {
     upstreamOnSelect && upstreamOnSelect()
-    sbOnSelect.apply(this, arguments)
+    sbOnSelect(args)
   }
   const rows = [
     {conversationIDKey: id('small1'), isSelected: false, onSelectConversation, type: 'small'},

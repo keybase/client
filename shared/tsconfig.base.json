@@ -11,7 +11,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
     "noImplicitReturns": false,
-    "noImplicitThis": false,
+    "noImplicitThis": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "outDir": "./.tsOuts/.tsOut/emit",
