@@ -13,7 +13,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
   _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, _, __) => {
   const asset = stateProps._asset
   return {
     availableToSend: asset.balanceAvailableToSend,

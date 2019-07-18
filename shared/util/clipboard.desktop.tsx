@@ -8,7 +8,7 @@ export type ClipboardData = {
 }
 
 function readImage(): Promise<Buffer | null> {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     const image = SafeElectron.getClipboard().readImage()
     if (!image) {
       // Nothing to read
@@ -38,7 +38,7 @@ export function readImageFromClipboard(
     return readImage()
   } else {
     // Nothing to read
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       resolve(null)
     })
   }
