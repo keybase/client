@@ -812,4 +812,6 @@ export const getShowAirdropBanner = (state: TypedState) =>
   flags.airdrop &&
   state.wallets.airdropDetails.isPromoted &&
   state.wallets.airdropShowBanner &&
-  (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified')
+  (state.wallets.airdropState === 'qualified' ||
+    state.wallets.airdropState === 'unqualified' ||
+    state.wallets.airdropState === 'needDisclaimer')
