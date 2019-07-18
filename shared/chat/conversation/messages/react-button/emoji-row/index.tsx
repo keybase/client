@@ -13,6 +13,15 @@ type Props = {
   style?: Styles.StylesCrossPlatform
 }
 
+const HoverBox = Styles.isMobile
+  ? Kb.Box
+  : Styles.styled(Kb.Box)({
+      ...Styles.desktopStyles.clickable,
+      ':hover .icon': {
+        color: Styles.globalColors.blue,
+      },
+    })
+
 class HoverEmoji extends React.Component<{name: string; onClick: () => void}, {hovering: boolean}> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
@@ -61,23 +70,25 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
           ))}
         </Kb.Box2>
         {!!this.props.onReply && (
-          <Kb.Box2 direction="horizontal" gap="tiny">
+          <Kb.Box2 direction="horizontal">
             <Kb.Divider style={styles.divider} vertical={true} />
             <Kb.WithTooltip text="React">
-              <Kb.Icon
-                hoverColor={Styles.globalColors.blue}
-                onClick={this._showPicker}
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                type="iconfont-reacji"
-              />
+              <HoverBox onClick={this._showPicker} style={styles.iconContainer}>
+                <Kb.Icon
+                  className="icon"
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-reacji"
+                />
+              </HoverBox>
             </Kb.WithTooltip>
             <Kb.WithTooltip text="Reply">
-              <Kb.Icon
-                hoverColor={Styles.globalColors.blue}
-                onClick={this.props.onReply}
-                style={Kb.iconCastPlatformStyles(styles.icon)}
-                type="iconfont-reply"
-              />
+              <HoverBox onClick={this.props.onReply} style={styles.iconContainer}>
+                <Kb.Icon
+                  className="icon"
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-reply"
+                />
+              </HoverBox>
             </Kb.WithTooltip>
           </Kb.Box2>
         )}
@@ -107,8 +118,10 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   divider: {
+    marginBottom: Styles.globalMargins.tiny,
     marginLeft: Styles.globalMargins.xsmall,
     marginRight: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   emojiBox: {
     ...Styles.globalStyles.flexBoxRow,
@@ -121,6 +134,9 @@ const styles = Styles.styleSheetCreate({
   icon: {
     position: 'relative',
     top: 1,
+  },
+  iconContainer: {
+    padding: Styles.globalMargins.tiny,
   },
   pickerContainer: Styles.platformStyles({
     isElectron: {
