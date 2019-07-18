@@ -156,9 +156,9 @@ type IssuerAccountIDProps = {
 }
 
 const IssuerAccountID = (props: IssuerAccountIDProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+  <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Text type="Body">Issuer:</Kb.Text>
-    <Kb.Text type="Body" selectable={true}>
+    <Kb.Text type="Body" selectable={true} lineClamp={3}>
       {props.issuerAccountID}
     </Kb.Text>
   </Kb.Box2>
