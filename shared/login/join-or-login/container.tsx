@@ -3,6 +3,7 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as LoginGen from '../../actions/login-gen'
 import Intro from '.'
 import {connect, isMobile} from '../../util/container'
+import {HOCTimers} from '../../common-adapters'
 
 type OwnProps = {
   navigateAppend: (...args: Array<any>) => any
@@ -45,4 +46,4 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(Intro)
+)(HOCTimers(Intro))

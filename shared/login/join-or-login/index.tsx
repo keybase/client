@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-type Props = {
+type Props = Kb.PropsWithTimer<{
   bannerMessage: string | null
   checkIsOnline: () => void
   onFeedback: (() => void) | null
@@ -10,7 +10,7 @@ type Props = {
   onSignup: () => void
   isOnline: boolean | null
   showProxySettings: () => void
-}
+}>
 
 const Feedback = ({onFeedback}) =>
   onFeedback ? (
@@ -38,13 +38,13 @@ class Intro extends React.Component<Props, {}> {
 
   componentDidMount() {
     this.props.checkIsOnline()
-    this.intervalId = setInterval(this.props.checkIsOnline, 2000)
+
+    this.intervalId && this.props.clearTimeout(this.intervalId)
+    this.intervalId = this.props.setInterval(this.props.checkIsOnline, 2000)
   }
 
   componentWillUnmount() {
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId)
-    }
+    this.intervalId && this.props.clearInterval(this.intervalId)
   }
 
   render() {
