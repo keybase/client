@@ -16,10 +16,24 @@ const mapStateToProps = (state: TypedState, o: OwnProps) => {
   return {
     _emails: state.settings.email.emails,
     _phones: state.settings.phoneNumbers.phones,
+    _supersededPhoneNumberKey: phoneNumberRecord && phoneNumberRecord.e164,
     addedEmail: state.settings.email.addedEmail,
     bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
     hasPassword: !state.settings.password.randomPW,
-    supersededPhoneNumber: phoneNumberRecord ? phoneNumberRecord.toObject() : undefined,
+    supersededPhoneNumber: phoneNumberRecord
+      ? {
+          address: phoneNumberRecord.displayNumber,
+          onDelete: () => null,
+          onMakePrimary: () => null,
+          onToggleSearchable: () => null,
+          onVerify: () => null,
+          primary: false,
+          searchable: phoneNumberRecord.searchable,
+          superseded: phoneNumberRecord.superseded,
+          type: 'phone' as const,
+          verified: phoneNumberRecord.verified,
+        }
+      : undefined,
     waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
   }
 }
@@ -55,8 +69,8 @@ export default connect(
     ]),
     hasPassword: stateProps.hasPassword,
     onClearSupersededPhoneNumber: () =>
-      stateProps.supersededPhoneNumber &&
-      dispatchProps._onClearSupersededPhoneNumber(stateProps.supersededPhoneNumber.e164),
+      stateProps._supersededPhoneNumberKey &&
+      dispatchProps._onClearSupersededPhoneNumber(stateProps._supersededPhoneNumberKey),
     supersededPhoneNumber: stateProps.supersededPhoneNumber,
     title: 'Account',
     waiting: stateProps.waiting,

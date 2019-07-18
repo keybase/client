@@ -38,7 +38,7 @@ const contacts: {
   f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: true},
   g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, superseded: false, type: 'phone', verified: true},
   h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: false},
-  i: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, superseded: true, type: 'phone', verified: false},
+  i: {...cc, address: '+33 6 76 38 86 98', primary: false, searchable: false, superseded: true, type: 'phone', verified: false},
 }
 
 const confirmDeleteProps = {
@@ -56,7 +56,11 @@ const load = () => {
     .add('Empty', () => <AccountSettings {...props} />)
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
     .add('With email/phone including superseded', () => (
-      <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />
+      <AccountSettings
+        {...props}
+        contactKeys={I.List(Object.keys(contacts))}
+        supersededPhoneNumber={contacts.i}
+      />
     ))
     .add('Confirm delete email', () => (
       <ConfirmDeleteAddress {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
