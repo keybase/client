@@ -297,7 +297,6 @@ function* unboxRows(
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
     incomingCallMap: {
-      // @ts-ignore TODO fix
       'chat.1.chatUi.chatInboxConversation': onUnboxed,
       'chat.1.chatUi.chatInboxFailed': onFailed,
       'chat.1.chatUi.chatInboxUnverified': () => {},
@@ -1096,8 +1095,6 @@ function* loadMoreMessages(
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-      // @ts-ignore codemod-issue
-      key = action.payload.conversationIDKey
   }
 
   if (!key || !Constants.isValidConversationIDKey(key)) {
@@ -1141,7 +1138,7 @@ function* loadMoreMessages(
   const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
 
   let calledClear = false
-  const onGotThread = ({thread}: {readonly thread: string | null}) => {
+  const onGotThread = (thread: string) => {
     if (!thread) {
       return
     }
@@ -1187,9 +1184,8 @@ function* loadMoreMessages(
   try {
     const results: RPCChatTypes.NonblockFetchRes = yield RPCChatTypes.localGetThreadNonblockRpcSaga({
       incomingCallMap: {
-        // @ts-ignore
-        'chat.1.chatUi.chatThreadCached': p => onGotThread(p),
-        'chat.1.chatUi.chatThreadFull': p => onGotThread(p),
+        'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+        'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
       },
       params: {
         cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
@@ -1394,7 +1390,7 @@ function* messageEdit(state: TypedState, action: Chat2Gen.MessageEditPayload, lo
       messageID: message.id,
       outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
     }
-    let actions = [
+    let actions: Array<Saga.Effect> = [
       Saga.callUntyped(
         RPCChatTypes.localPostEditNonblockRpcPromise,
         {
@@ -1412,7 +1408,6 @@ function* messageEdit(state: TypedState, action: Chat2Gen.MessageEditPayload, lo
     ]
     if (!message.id) {
       actions = actions.concat(
-        // @ts-ignore codemod-issue
         Saga.put(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
       )
     }
@@ -1515,8 +1510,6 @@ function* threadSearch(state: TypedState, action: Chat2Gen.ThreadSearchPayload, 
           afterContext: 0,
           beforeContext: 0,
           convID: Types.keyToConversationID(conversationIDKey),
-          // @ts-ignore this is probably a real error
-          forceReindex: false,
           isRegex: false,
           matchMentions: false,
           maxConvsHit: 0,
@@ -2796,12 +2789,20 @@ function* loadStaticConfig(
       []
     )
     return Chat2Gen.createStaticConfigLoaded({
-      // @ts-ignore codemod-issue
       staticConfig: Constants.makeStaticConfig({
-        builtinCommands: (res.builtinCommands || []).reduce((map, c) => {
-          map[c.typ] = c.commands
-          return map
-        }, {}),
+        builtinCommands: (res.builtinCommands || []).reduce<Types._StaticConfig['builtinCommands']>(
+          (map, c) => {
+            map[c.typ] = c.commands || []
+            return map
+          },
+          {
+            [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
+            [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
+            [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+            [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
+            [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
+          }
+        ),
         deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
       }),
     })
