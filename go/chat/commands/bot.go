@@ -64,8 +64,15 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 		b.Debug(ctx, "Preview: failed to list commands: %s", err)
 		return
 	}
+
+	cmdText, _, err := b.commandAndMessage(text)
+	if err != nil {
+		b.Debug(ctx, "Preview: no command text found: %s", err)
+		b.clearExtendedDisplayLocked(ctx, convID)
+		return
+	}
 	for _, cmd := range cmds {
-		if strings.HasPrefix(text, fmt.Sprintf("!%s", cmd.Name)) && cmd.ExtendedDescription != nil {
+		if cmdText == fmt.Sprintf("!%s", cmd.Name) && cmd.ExtendedDescription != nil {
 			var body string
 			if b.G().IsMobileAppType() {
 				body = cmd.ExtendedDescription.MobileBody
