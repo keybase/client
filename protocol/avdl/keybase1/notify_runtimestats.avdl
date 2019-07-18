@@ -7,6 +7,13 @@ protocol NotifyRuntimeStats {
     WARNING_1,
     SEVERE_2
   }
+
+  record DbStats {
+    DbType type;
+    boolean memCompActive;
+    boolean tableCompActive;
+  }
+
   record RuntimeStats {
     string cpu;
     string resident;
@@ -17,6 +24,7 @@ protocol NotifyRuntimeStats {
     string goreleased;
     StatsSeverityLevel cpuSeverity;
     StatsSeverityLevel residentSeverity;
+    array<DbStats> dbStats;
 
     // Chat specific
     boolean convLoaderActive;
