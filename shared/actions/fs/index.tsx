@@ -894,7 +894,7 @@ const closeDestinationPicker = (state: TypedState, action: FsGen.CloseDestinatio
   return [
     // TODO use as const
     FsGen.createClearRefreshTag({refreshTag: Types.RefreshTag.DestinationPicker}),
-    RouteTreeGen.createNavigateTo({path: newRoute}),
+    RouteTreeGen.createNavigateAppend({path: newRoute}),
   ]
 }
 

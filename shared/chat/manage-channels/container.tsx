@@ -105,8 +105,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreate: () =>
       dispatch(
-        RouteTreeGen.createNavigateTo({
-          parentPath: [],
+        RouteTreeGen.createNavigateAppend({
           path: [{props: {teamname}, selected: 'chatCreateChannel'}],
         })
       ),

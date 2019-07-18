@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
     dispatch(createAction)
     dispatch(navigateUp())
   },
-  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
+  onNewTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, 'teamNewTeamDialog']})),
 })
 
 export default connect(

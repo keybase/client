@@ -20,8 +20,7 @@ const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
     isMobile
       ? dispatch(
-          RouteTreeGen.createNavigateTo({
-            parentPath: [chatTab],
+          RouteTreeGen.createNavigateAppend({
             path: [{props: {teamname}, selected: 'chatManageChannels'}],
           })
         )

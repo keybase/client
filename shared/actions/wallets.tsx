@@ -1014,7 +1014,7 @@ const checkDisclaimer = (state: TypedState, _: WalletsGen.CheckDisclaimerPayload
 
 const maybeNavToLinkExisting = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload) =>
   action.payload.nextScreen === 'linkExisting' &&
-  RouteTreeGen.createNavigateTo({
+  RouteTreeGen.createNavigateAppend({
     path: [...Constants.rootWalletPath, ...(isMobile ? ['linkExisting'] : ['wallet', 'linkExisting'])],
   })
 
