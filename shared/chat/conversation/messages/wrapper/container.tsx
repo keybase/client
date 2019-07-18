@@ -134,7 +134,7 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   return {allowCancelRetry, failureDescription, resolveByEdit}
 }
 
-const getDecorate = (message, you) => {
+const getDecorate = message => {
   switch (message.type) {
     case 'text':
       return !message.exploded && !message.errorReason
@@ -160,7 +160,7 @@ export default Container.namedConnect(
 
     // show send only if its possible we sent while you're looking at it
     const showSendIndicator = _you === message.author && message.ordinal !== message.id
-    const decorate = getDecorate(message, _you)
+    const decorate = getDecorate(message)
     const onCancel = allowCancelRetry
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : undefined

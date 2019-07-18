@@ -693,7 +693,7 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
-export const getAirdropSelected = (state: TypedState) => {
+export const getAirdropSelected = () => {
   const path = Router2Constants.getVisibleScreen().routeName
   return path === 'airdrop' || path === 'airdropQualify'
 }

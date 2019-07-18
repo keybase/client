@@ -5,7 +5,7 @@ import ConfirmForm from '../../../wallets/confirm-form'
 
 type LoadingProps = {}
 
-const PaymentsConfirmLoading = Kb.HeaderOrPopup((props: LoadingProps) => (
+const PaymentsConfirmLoading = Kb.HeaderOrPopup((_: LoadingProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
       <Kb.ProgressIndicator />

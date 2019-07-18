@@ -52,11 +52,11 @@ function setupApp(store, runSagas) {
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
   // Listen for the menubarWindowID
-  SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (event, id) => {
+  SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (_, id) => {
     store.dispatch(ConfigGen.createUpdateMenubarWindowID({id}))
   })
 
-  SafeElectron.getIpcRenderer().on('dispatchAction', (event, action) => {
+  SafeElectron.getIpcRenderer().on('dispatchAction', (_, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     // _.merge() to get a plain object back out which we can send
@@ -82,7 +82,7 @@ function setupApp(store, runSagas) {
   }, 5 * 1000)
 
   // Run installer
-  SafeElectron.getIpcRenderer().on('installed', (event, message) => {
+  SafeElectron.getIpcRenderer().on('installed', () => {
     store.dispatch(ConfigGen.createInstallerRan())
   })
   SafeElectron.getIpcRenderer().send('install-check')

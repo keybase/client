@@ -146,7 +146,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   action: stateProps.action,
   amount: stateProps.amount,
   approxWorth: stateProps.approxWorth,

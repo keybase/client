@@ -141,7 +141,7 @@ class InboxSearch extends React.Component<Props, State> {
   _renderSectionHeader = ({section}) => {
     return section.renderHeader(section)
   }
-  _keyExtractor = (item, index) => index
+  _keyExtractor = (_, index) => index
   _nameResults = () => {
     return this.state.nameCollapsed ? [] : this.props.nameResults
   }
