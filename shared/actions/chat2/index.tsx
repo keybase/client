@@ -1471,14 +1471,14 @@ const hideThreadSearch = (state: TypedState, action: Chat2Gen.ToggleThreadSearch
 
 function* threadSearch(state: TypedState, action: Chat2Gen.ThreadSearchPayload, logger: Saga.SagaLogger) {
   const {conversationIDKey, query} = action.payload
-  const onHit = hit => {
+  const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam']) => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.searchHit.hitMessage)
     return message
       ? Saga.put(Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]}))
       : []
   }
-  const onInboxHit = resp => {
-    const messages = (resp.searchHit.hits || []).reduce((l, h) => {
+  const onInboxHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
+    const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
       const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, h.hitMessage)
       if (uiMsg) {
         l.push(uiMsg)
@@ -1573,11 +1573,11 @@ const onToggleInboxSearch = (state: TypedState) => {
 
 function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger: Saga.SagaLogger) {
   const {query} = action.payload
-  const teamType = t => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
-  const onConvHits = resp => {
+  const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
+  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
-        results: (resp.hits.hits || []).reduce((l, h) => {
+        results: (resp.hits.hits || []).reduce<I.List<Types.InboxSearchConvHit>>((l, h) => {
           return l.push(
             Constants.makeInboxSearchConvHit({
               conversationIDKey: Types.stringToConversationIDKey(h.convID),
@@ -1589,7 +1589,7 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
       })
     )
   }
-  const onTextHit = resp => {
+  const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const conversationIDKey = Types.conversationIDToKey(resp.searchHit.convID)
     return Saga.put(
       Chat2Gen.createInboxSearchTextResult({
@@ -1609,7 +1609,9 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
   const onDone = () => {
     return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
   }
-  const onIndexStatus = resp => {
+  const onIndexStatus = (
+    resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']
+  ) => {
     return Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
   }
   try {
@@ -1692,11 +1694,17 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
         yield Saga.put(Chat2Gen.createSetUnsentText({conversationIDKey, text}))
       }
     })
-  const onDataConfirm = ({summary}, response) => {
+  const onDataConfirm = (
+    {summary}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'],
+    response
+  ) => {
     storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
   }
-  const onDataError = ({error}, response) => {
+  const onDataError = (
+    {error}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam'],
+    response
+  ) => {
     storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
   }
@@ -1837,7 +1845,18 @@ const changeSelectedConversation = (
   return undefined
 }
 
-const _maybeAutoselectNewestConversation = (state: TypedState, action, logger: Saga.SagaLogger) => {
+const _maybeAutoselectNewestConversation = (
+  state: TypedState,
+  action:
+    | Chat2Gen.MetasReceivedPayload
+    | Chat2Gen.LeaveConversationPayload
+    | Chat2Gen.MetaDeletePayload
+    | Chat2Gen.MessageSendPayload
+    | Chat2Gen.AttachmentsUploadPayload
+    | Chat2Gen.BlockConversationPayload
+    | TeamsGen.LeaveTeamPayload,
+  logger: Saga.SagaLogger
+) => {
   // If there is a team we should avoid when selecting a new conversation (e.g.
   // on team leave) put the name in `avoidTeam` and `isEligibleConvo` below will
   // take it into account
