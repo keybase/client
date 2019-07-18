@@ -463,7 +463,7 @@ const askForContactPermissions = () => {
 function* requestContactPermissions(state: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions(state)
+  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
     yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
   }
