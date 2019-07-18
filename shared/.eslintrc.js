@@ -59,6 +59,7 @@ module.exports = {
     'no-mixed-operators': 'off',
     'no-unused-expressions': 'off',
     'no-extra-semi': 'off',
+    'promise/param-names': 'off',
     'react/jsx-boolean-value': ['error', 'always'],
     'react/jsx-curly-spacing': 'off',
     'react/jsx-equals-spacing': 'error',
