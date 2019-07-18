@@ -610,7 +610,13 @@ const changeDisplayCurrency = (_: TypedState, action: WalletsGen.ChangeDisplayCu
       currency: action.payload.code, // called currency, though it is a code
     },
     Constants.changeDisplayCurrencyWaitingKey
-  ).then(_ => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
+  ).then(currencyRes => {
+    WalletsGen.createDisplayCurrencyReceived({
+      accountID: action.payload.accountID,
+      currency: Constants.makeCurrency(currencyRes),
+      setBuildingCurrency: false,
+    })
+  })
 
 const changeAccountName = (_: TypedState, action: WalletsGen.ChangeAccountNamePayload) =>
   RPCStellarTypes.localChangeWalletAccountNameLocalRpcPromise(

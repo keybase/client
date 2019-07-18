@@ -178,14 +178,14 @@ func (s *stellarRetryClient) CreateWalletAccountLocal(ctx context.Context, arg s
 	return res, err
 }
 
-func (s *stellarRetryClient) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (err error) {
+func (s *stellarRetryClient) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.ChangeDisplayCurrencyLocal(ctx, arg)
+		res, err = s.cli.ChangeDisplayCurrencyLocal(ctx, arg)
 		if err == nil {
 			break
 		}
 	}
-	return err
+	return res, err
 }
 
 func (s *stellarRetryClient) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {

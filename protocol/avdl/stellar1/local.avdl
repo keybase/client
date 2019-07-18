@@ -212,7 +212,7 @@ protocol local {
 
   // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
   // supported currencies, returned from getDisplayCurrenciesLocal.
-  void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
+  CurrencyLocal changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
   // Gets display currency for primary account if no accountID is given.
   CurrencyLocal getDisplayCurrencyLocal(int sessionID, union { null, AccountID } accountID);
 

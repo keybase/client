@@ -578,7 +578,7 @@ func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.Dele
 	return stellar.DeleteAccount(mctx, arg.AccountID)
 }
 
-func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (err error) {
+func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.ChangeDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "ChangeDisplayCurrencyLocal",
 		Err:           &err,
@@ -586,13 +586,17 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 	})
 	defer fin()
 	if err != nil {
-		return err
+		return res, err
 	}
 
 	if arg.AccountID.IsNil() {
-		return ErrAccountIDMissing
+		return res, ErrAccountIDMissing
 	}
-	return remote.SetAccountDefaultCurrency(mctx.Ctx(), s.G(), arg.AccountID, string(arg.Currency))
+	err = remote.SetAccountDefaultCurrency(mctx.Ctx(), s.G(), arg.AccountID, string(arg.Currency))
+	if err != nil {
+		return res, err
+	}
+	return stellar.GetCurrencySetting(mctx, arg.AccountID)
 }
 
 func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDisplayCurrencyLocalArg) (res stellar1.CurrencyLocal, err error) {

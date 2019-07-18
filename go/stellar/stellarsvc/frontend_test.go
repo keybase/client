@@ -193,11 +193,12 @@ func TestGetAccountAssetsLocalWithCHFBalance(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+	curr, err := tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: accountID,
 		Currency:  stellar1.OutsideCurrencyCode("CHF"),
 	})
 	require.NoError(t, err)
+	require.Equal(t, stellar1.OutsideCurrencyCode("CHF"), curr.Code)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 
@@ -575,14 +576,14 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	accID := getPrimaryAccountID(tcs[0])
 
 	// Try invalid currency first.
-	err := tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+	_, err := tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: accID,
 		Currency:  stellar1.OutsideCurrencyCode("ZZZ"),
 	})
 	require.Error(t, err)
 
 	// Try empty account id.
-	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+	_, err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: stellar1.AccountID(""),
 		Currency:  stellar1.OutsideCurrencyCode("USD"),
 	})
@@ -590,7 +591,7 @@ func TestChangeDisplayCurrency(t *testing.T) {
 
 	// Try non-existant account id.
 	invalidAccID, _ := randomStellarKeypair()
-	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+	_, err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: invalidAccID,
 		Currency:  stellar1.OutsideCurrencyCode("USD"),
 	})
@@ -601,18 +602,19 @@ func TestChangeDisplayCurrency(t *testing.T) {
 	acceptDisclaimer(tcs[1])
 	tcs[1].Backend.ImportAccountsForUser(tcs[1])
 	accID2 := getPrimaryAccountID(tcs[1])
-	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+	_, err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: accID2,
 		Currency:  stellar1.OutsideCurrencyCode("EUR"),
 	})
 	require.Error(t, err)
 
 	// Finally, a happy path.
-	err = tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
+	res, err := tcs[0].Srv.ChangeDisplayCurrencyLocal(context.Background(), stellar1.ChangeDisplayCurrencyLocalArg{
 		AccountID: accID,
 		Currency:  stellar1.OutsideCurrencyCode("EUR"),
 	})
 	require.NoError(t, err)
+	require.Equal(t, stellar1.OutsideCurrencyCode("EUR"), res.Code)
 
 	// Check both CLI and Frontend RPCs.
 	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())

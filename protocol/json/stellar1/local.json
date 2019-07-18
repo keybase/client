@@ -1707,7 +1707,7 @@
           "type": "OutsideCurrencyCode"
         }
       ],
-      "response": null
+      "response": "CurrencyLocal"
     },
     "getDisplayCurrencyLocal": {
       "request": [

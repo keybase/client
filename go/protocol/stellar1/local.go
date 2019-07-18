@@ -1688,7 +1688,7 @@ type LocalInterface interface {
 	DeleteWalletAccountLocal(context.Context, DeleteWalletAccountLocalArg) error
 	LinkNewWalletAccountLocal(context.Context, LinkNewWalletAccountLocalArg) (AccountID, error)
 	CreateWalletAccountLocal(context.Context, CreateWalletAccountLocalArg) (AccountID, error)
-	ChangeDisplayCurrencyLocal(context.Context, ChangeDisplayCurrencyLocalArg) error
+	ChangeDisplayCurrencyLocal(context.Context, ChangeDisplayCurrencyLocalArg) (CurrencyLocal, error)
 	GetDisplayCurrencyLocal(context.Context, GetDisplayCurrencyLocalArg) (CurrencyLocal, error)
 	HasAcceptedDisclaimerLocal(context.Context, int) (bool, error)
 	AcceptDisclaimerLocal(context.Context, int) error
@@ -2021,7 +2021,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChangeDisplayCurrencyLocalArg)(nil), args)
 						return
 					}
-					err = i.ChangeDisplayCurrencyLocal(ctx, typedArgs[0])
+					ret, err = i.ChangeDisplayCurrencyLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2995,8 +2995,8 @@ func (c LocalClient) CreateWalletAccountLocal(ctx context.Context, __arg CreateW
 	return
 }
 
-func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, nil)
+func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, &res)
 	return
 }
 

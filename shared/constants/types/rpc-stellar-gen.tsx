@@ -73,7 +73,7 @@ export type MessageTypes = {
   }
   'stellar.1.local.changeDisplayCurrencyLocal': {
     inParam: {readonly accountID: AccountID; readonly currency: OutsideCurrencyCode}
-    outParam: void
+    outParam: CurrencyLocal
   }
   'stellar.1.local.changeWalletAccountNameLocal': {
     inParam: {readonly accountID: AccountID; readonly newName: String}
