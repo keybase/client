@@ -186,13 +186,6 @@
         {
           "type": "ResetState",
           "name": "resetState"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "supersededPhoneNumbers"
         }
       ]
     },

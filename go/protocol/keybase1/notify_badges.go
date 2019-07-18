@@ -92,7 +92,6 @@ type BadgeState struct {
 	TeamsWithResetUsers       []TeamMemberOutReset    `codec:"teamsWithResetUsers" json:"teamsWithResetUsers"`
 	UnreadWalletAccounts      []WalletAccountInfo     `codec:"unreadWalletAccounts" json:"unreadWalletAccounts"`
 	ResetState                ResetState              `codec:"resetState" json:"resetState"`
-	SupersededPhoneNumbers    []string                `codec:"supersededPhoneNumbers" json:"supersededPhoneNumbers"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -204,17 +203,6 @@ func (o BadgeState) DeepCopy() BadgeState {
 			return ret
 		})(o.UnreadWalletAccounts),
 		ResetState: o.ResetState.DeepCopy(),
-		SupersededPhoneNumbers: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.SupersededPhoneNumbers),
 	}
 }
 

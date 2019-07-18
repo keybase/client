@@ -49,7 +49,6 @@ protocol NotifyBadges {
     array<TeamMemberOutReset> teamsWithResetUsers;
     array<WalletAccountInfo> unreadWalletAccounts;
     ResetState resetState;
-    array<string> supersededPhoneNumbers;
   }
 
   record BadgeConversationInfo {

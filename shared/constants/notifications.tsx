@@ -25,7 +25,6 @@ export const badgeStateToBadgeCounts = (
     unreadWalletAccounts,
     unverifiedEmails,
     unverifiedPhones,
-    supersededPhoneNumbers,
   } = bs
 
   if (state.notifications.badgeVersion >= inboxVers) {
@@ -49,8 +48,8 @@ export const badgeStateToBadgeCounts = (
     (teamsWithResetUsers || []).length +
     (deletedTeams || []).length
 
-  const unverifiedAccSettings = unverifiedEmails + unverifiedPhones + (supersededPhoneNumbers || []).length
-  console.log(unverifiedAccSettings)
+  const unverifiedAccSettings = unverifiedEmails + unverifiedPhones
+
   return {
     counts: I.Map([
       [Tabs.chatTab, totalMessages],
