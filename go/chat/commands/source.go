@@ -184,11 +184,11 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
-	if strings.HasPrefix(text, "!") {
-		// if this is a bot command, then try previewing it
-		s.botCmd.Preview(ctx, uid, convID, tlfName, text)
-		return
-	}
+
+	// always try bot command, it might do something and is mutually exclusive with the rest of this
+	// function
+	s.botCmd.Preview(ctx, uid, convID, tlfName, text)
+
 	if !strings.HasPrefix(text, "/") {
 		return
 	}

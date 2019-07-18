@@ -3,6 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {namedConnect} from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -46,6 +47,10 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
   const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
+  const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
+    conversationIDKey,
+    RPCChatTypes.UIBotCommandsUpdateStatus.updating
+  )
   return {
     _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
@@ -72,6 +77,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestAllChannels: Constants.getAllChannels(state),
     suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
+    suggestBotCommandsUpdateStatus,
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -210,6 +216,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestAllChannels: stateProps.suggestAllChannels,
   suggestBotCommands: stateProps.suggestBotCommands,
+  suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),

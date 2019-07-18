@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -11,6 +14,8 @@ import (
 
 type Bot struct {
 	*baseCommand
+	sync.Mutex
+	extendedDisplay bool
 }
 
 func NewBot(g *globals.Context) *Bot {
@@ -24,9 +29,22 @@ func (b *Bot) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	return errors.New("bot command cannot be executed")
 }
 
+func (b *Bot) clearExtendedDisplayLocked(ctx context.Context, convID chat1.ConversationID) {
+	if b.extendedDisplay {
+		b.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+		b.extendedDisplay = false
+	}
+}
+
 func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) {
 	defer b.Trace(ctx, func() error { return nil }, "Preview")()
+	b.Lock()
+	defer b.Unlock()
+	if !strings.HasPrefix(text, "!") {
+		b.clearExtendedDisplayLocked(ctx, convID)
+		return
+	}
 	if text == "!" {
 		// spawn an update if the user is attempting to see bot commands
 		go func(ctx context.Context) {
@@ -40,13 +58,14 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 			}
 		}(globals.BackgroundChatCtx(ctx, b.G()))
 	}
+
 	cmds, err := b.G().BotCommandManager.ListCommands(ctx, convID)
 	if err != nil {
 		b.Debug(ctx, "Preview: failed to list commands: %s", err)
 		return
 	}
 	for _, cmd := range cmds {
-		if text == cmd.Name && cmd.ExtendedDescription != nil {
+		if strings.HasPrefix(text, fmt.Sprintf("!%s", cmd.Name)) && cmd.ExtendedDescription != nil {
 			var body string
 			if b.G().IsMobileAppType() {
 				body = cmd.ExtendedDescription.MobileBody
@@ -62,7 +81,9 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 				Body:  body,
 				Title: title,
 			})
-			break
+			b.extendedDisplay = true
+			return
 		}
 	}
+	b.clearExtendedDisplayLocked(ctx, convID)
 }

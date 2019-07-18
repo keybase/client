@@ -243,6 +243,24 @@ func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID ch
 	})
 }
 
+type nullChatUI struct {
+	libkb.ChatUI
+}
+
+func (n nullChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID chat1.ConversationID,
+	status chat1.UIBotCommandsUpdateStatus) error {
+	return nil
+}
+
+func (b *CachingBotCommandManager) getChatUI(ctx context.Context) libkb.ChatUI {
+	ui, err := b.G().UIRouter.GetChatUI()
+	if err != nil || ui == nil {
+		b.Debug(ctx, "getChatUI: no chat UI found: err: %s", err)
+		return nullChatUI{}
+	}
+	return ui
+}
+
 func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job commandUpdaterJob) error {
 	b.queuedUpdatedMu.Lock()
 	defer b.queuedUpdatedMu.Unlock()
@@ -252,7 +270,8 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job c
 	}
 	select {
 	case b.commandUpdateCh <- job:
-		// TODO: chat UI call
+		b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
+			chat1.UIBotCommandsUpdateStatus_UPDATING)
 		b.queuedUpdates[job.convID.String()] = true
 	default:
 		return errors.New("queue full")
@@ -339,7 +358,11 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 		b.queuedUpdatedMu.Lock()
 		delete(b.queuedUpdates, job.convID.String())
 		b.queuedUpdatedMu.Unlock()
-		// TODO: chat UI call
+		updateStatus := chat1.UIBotCommandsUpdateStatus_UPTODATE
+		if err != nil {
+			updateStatus = chat1.UIBotCommandsUpdateStatus_FAILED
+		}
+		b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
 		job.completeCh <- err
 	}()
 	botInfo, doUpdate, err := b.getBotInfo(ctx, job)

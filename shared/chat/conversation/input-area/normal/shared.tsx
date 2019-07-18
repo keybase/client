@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
@@ -19,7 +20,38 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
   )
 }
 
+type BotCommandUpdateStatusProps = {
+  status: RPCChatTypes.UIBotCommandsUpdateStatus
+}
+
+export class BotCommandUpdateStatus extends React.Component<BotCommandUpdateStatusProps> {
+  _botCommandUpdateStatusText = () => {
+    switch (this.props.status) {
+      case RPCChatTypes.UIBotCommandsUpdateStatus.uptodate:
+        return 'Commands are up-to-date'
+      case RPCChatTypes.UIBotCommandsUpdateStatus.failed:
+        return 'Failed to update commands'
+      case RPCChatTypes.UIBotCommandsUpdateStatus.updating:
+        return 'Updating commands...'
+    }
+  }
+
+  render() {
+    return (
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.botCommandContainer}>
+        <Kb.Text type="BodyTiny">{this._botCommandUpdateStatusText()}</Kb.Text>
+      </Kb.Box2>
+    )
+  }
+}
+
 const styles = Styles.styleSheetCreate({
+  botCommandContainer: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+  }),
   timeBadge: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.white,

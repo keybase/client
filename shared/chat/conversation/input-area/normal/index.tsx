@@ -85,7 +85,7 @@ const searchUsersAndTeamsAndTeamChannels = memoize((users, teams, allChannels, f
 
 const suggestorToMarker = {
   channels: '#',
-  commands: /(\!|\/)/,
+  commands: /(!|\/)/,
   emoji: ':',
   // 'users' is for @user, @team, and @team#channel
   users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
@@ -151,6 +151,7 @@ const emojiTransformer = (
 
 type InputState = {
   inputHeight: number
+  showBotCommandUpdateStatus: boolean
 }
 
 class Input extends React.Component<InputProps, InputState> {
@@ -164,7 +165,7 @@ class Input extends React.Component<InputProps, InputState> {
 
   constructor(props: InputProps) {
     super(props)
-    this.state = {inputHeight: 0}
+    this.state = {inputHeight: 0, showBotCommandUpdateStatus: false}
     this._lastQuote = 0
     this._suggestorDatasource = {
       channels: this._getChannelSuggestions,
@@ -219,12 +220,22 @@ class Input extends React.Component<InputProps, InputState> {
 
     // check if input matches a command with help text,
     // skip debouncing unsentText if so
+    const trimmedText = text.trim()
     let skipDebounce = false
     if (text.length <= this._maxCmdLength) {
       skipDebounce =
-        !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text.trim()) ||
-        text.trim() == '!'
+        !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === trimmedText) ||
+        !!this.props.suggestBotCommands.find(sc => sc.hasHelpText && `!${sc.name}` === trimmedText) ||
+        trimmedText === '!'
     }
+
+    // Handle the command status bar
+    if (text.startsWith('!') && !this.state.showBotCommandUpdateStatus) {
+      this.setState({showBotCommandUpdateStatus: true})
+    } else if (!text.startsWith('!') && this.state.showBotCommandUpdateStatus) {
+      this.setState({showBotCommandUpdateStatus: false})
+    }
+
     if (skipDebounce) {
       debounced.cancel()
       this.props.unsentTextChanged(text)
@@ -351,12 +362,11 @@ class Input extends React.Component<InputProps, InputState> {
         return []
       }
     }
-    const commands =
-      this._lastText && this._lastText.startsWith('!')
-        ? this.props.suggestBotCommands
-        : this.props.suggestCommands
     const fil = filter.toLowerCase()
-    return commands.filter(c => c.name.includes(fil))
+    return (this._lastText && this._lastText.startsWith('!')
+      ? this.props.suggestBotCommands
+      : this.props.suggestCommands
+    ).filter(c => c.name.includes(fil))
   }
 
   _renderTeamSuggestion = (teamname, channelname, selected) => (
@@ -551,6 +561,9 @@ class Input extends React.Component<InputProps, InputState> {
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
           suggestionOverlayStyle={styles.suggestionOverlay}
+          suggestBotCommandsUpdateStatus={
+            this.state.showBotCommandUpdateStatus ? this.props.suggestBotCommandsUpdateStatus : undefined
+          }
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}
           onKeyDown={this._onKeyDown}
