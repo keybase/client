@@ -10,7 +10,7 @@ import {makeRetriableErrorHandler} from './shared'
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 import {types} from '@babel/core'
 
-const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
+const pickAndUploadToPromise = (_: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
   new Promise((resolve, reject) => {
     let title = 'Select a photo'
     let takePhotoButtonTitle = 'Take photo...'
@@ -56,7 +56,7 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
     )
     .catch(makeRetriableErrorHandler(action))
 
-const downloadSuccess = (state, action: FsGen.DownloadSuccessPayload) => {
+const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {

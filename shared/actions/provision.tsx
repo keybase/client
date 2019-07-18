@@ -45,7 +45,7 @@ class ProvisioningManager {
   _addingANewDevice: boolean
   _done: boolean = false
 
-  constructor(addingANewDevice: boolean, onlyCallThisFromTheHelper: 'ONLY_CALL_THIS_FROM_HELPER') {
+  constructor(addingANewDevice: boolean, _: 'ONLY_CALL_THIS_FROM_HELPER') {
     this._addingANewDevice = addingANewDevice
     ProvisioningManager.singleton = this
   }
@@ -104,7 +104,7 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (params, response) => {
+  chooseDeviceTypeHandler = (_, response) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
       return
@@ -208,7 +208,7 @@ class ProvisioningManager {
   }
 
   // Trying to use gpg flow
-  chooseGPGMethodHandler = (params, response) => {
+  chooseGPGMethodHandler = (_, response) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet chooseGPGMethodHandler called')
       return
@@ -247,7 +247,7 @@ class ProvisioningManager {
     ])
   }
 
-  submitGPGSignOK = (state, action) => {
+  submitGPGSignOK = (_, action) => {
     if (this._done) {
       logger.info('ProvisioningManager done, yet submitGPGSignOK called')
       return
@@ -343,7 +343,7 @@ class ProvisioningManager {
       replace: true,
     })
 
-  maybeCancelProvision = state => {
+  maybeCancelProvision = () => {
     // TODO fix
     // let root = state.routeTree.routeState && state.routeTree.routeState.selected
     // let onDevicesTab = root === devicesRoot[0]
@@ -420,7 +420,7 @@ function* startProvisioning(state) {
   }
 }
 
-function* addNewDevice(state) {
+function* addNewDevice() {
   // Make a new handler each time just in case
   makeProvisioningManager(true)
   try {
@@ -455,8 +455,7 @@ const submitPasswordOrPaperkey = (
   state,
   action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload
 ) => ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
-const maybeCancelProvision = (state: TypedState) =>
-  ProvisioningManager.getSingleton().maybeCancelProvision(state)
+const maybeCancelProvision = () => ProvisioningManager.getSingleton().maybeCancelProvision()
 
 const showDeviceListPage = state =>
   !state.provision.error.stringValue() &&
@@ -498,12 +497,12 @@ const showFinalErrorPage = (state, action: ProvisionGen.ShowFinalErrorPagePayloa
 
 const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
 
-const forgotUsername = (state, action: ProvisionGen.ForgotUsernamePayload) =>
+const forgotUsername = (_, action: ProvisionGen.ForgotUsernamePayload) =>
   RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
     {email: action.payload.email},
     Constants.forgotUsernameWaitingKey
   )
-    .then(result => ProvisionGen.createForgotUsernameResult({result: 'success'}))
+    .then(() => ProvisionGen.createForgotUsernameResult({result: 'success'}))
     .catch(error =>
       ProvisionGen.createForgotUsernameResult({
         result: Constants.decodeForgotUsernameError(error),

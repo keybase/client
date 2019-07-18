@@ -52,7 +52,8 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
     .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
-  const isStillInSameQuery = (state: TypedState): boolean =>
+  // TODO this isn't reading from state????? how can it change. likely wrong
+  const isStillInSameQuery = (_: TypedState): boolean =>
     teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
     teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
 
@@ -155,7 +156,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       }
       return suggestions.concat(contacts)
     })
-    .catch(e => {
+    .catch(() => {
       logger.error(`Error in fetching recs`)
       return []
     })
@@ -172,7 +173,7 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-function filterGenForNs<S, A, L, R>(
+function filterGenForNs<S, A, L>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
 ) {
