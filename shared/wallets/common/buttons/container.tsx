@@ -53,7 +53,6 @@ type DropdownButtonOwnProps = {
 const mapStateToPropsDropdownButton = mapStateToPropsSendButton
 
 const mapDispatchToPropsDropdownButton = dispatch => ({
-  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
   _onShowSecretKey: (accountID: Types.AccountID, walletName: string | null) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -65,6 +64,7 @@ const mapDispatchToPropsDropdownButton = dispatch => ({
         ],
       })
     ),
+  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
 
 const mergePropsDropdownButton = (stateProps, dispatchProps, ownProps) => ({
