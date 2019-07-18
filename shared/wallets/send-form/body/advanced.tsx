@@ -59,7 +59,7 @@ const SecretNoteAndPublicMemo = () => {
   )
 }
 
-const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
+const SendBodyAdvanced = (_: SendBodyAdvancedProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.ScrollView style={sharedStyles.scrollView}>
       <AssetInputRecipientAdvanced />

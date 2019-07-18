@@ -33,7 +33,7 @@ const BannerBox = (props: {
 
 const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
-function brokenSeparator(idx, item, arr) {
+function brokenSeparator(idx, _, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
@@ -64,7 +64,7 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
       <BannerText>
         {intersperseFn(
           brokenSeparator,
-          users.map((user, idx) => (
+          users.map(user => (
             <BannerText type="BodySmallSemiboldPrimaryLink" key={user} onClick={() => onClick(user)}>
               {user}
             </BannerText>

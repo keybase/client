@@ -1,1 +1,1 @@
-export const ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch = (e: never) => {}
+export const ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch = (_: never) => {}

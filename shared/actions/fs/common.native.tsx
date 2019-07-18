@@ -8,7 +8,7 @@ import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {makeRetriableErrorHandler} from './shared'
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 
-const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
+const pickAndUploadToPromise = (_: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
   launchImageLibraryAsync(action.payload.type)
     .then(result => {
       result.cancelled === true
@@ -20,7 +20,7 @@ const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPa
     })
     .catch(makeRetriableErrorHandler(action))
 
-const downloadSuccess = (state, action: FsGen.DownloadSuccessPayload) => {
+const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {

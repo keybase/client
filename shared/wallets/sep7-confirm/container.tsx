@@ -34,7 +34,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
       memoType: null,
       message: null,
       onAcceptPath: () => null,
-      onAcceptPay: (amount: string) => null,
+      onAcceptPay: () => null,
       onAcceptTx: () => null,
       onBack: dispatchProps.onClose,
       onLookupPath: () => null,

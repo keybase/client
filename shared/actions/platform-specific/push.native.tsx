@@ -248,8 +248,7 @@ const requestPermissionsFromNative = () =>
   isIOS ? PushNotifications.requestPermissions() : Promise.resolve()
 const askNativeIfSystemPushPromptHasBeenShown = () =>
   isIOS ? NativeModules.PushPrompt.getHasShownPushPrompt() : Promise.resolve(false)
-const checkPermissionsFromNative = () =>
-  new Promise((resolve, reject) => PushNotifications.checkPermissions(resolve))
+const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
 function* neverShowMonsterAgain(state) {

@@ -45,14 +45,13 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
         ],
       })
     ),
-  _onSettings: (accountID: Types.AccountID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
+  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
-const mergePropsHeaderRightActions = (s, d, o) => ({
+const mergePropsHeaderRightActions = (s, d, _) => ({
   airdropSelected: s.airdropSelected,
   noDisclaimer: s.noDisclaimer,
   onReceive: () => d._onReceive(s._accountID),
-  onSettings: () => d._onSettings(s._accountID),
+  onSettings: d.onSettings,
 })
 
 export const HeaderRightActions = Container.namedConnect(

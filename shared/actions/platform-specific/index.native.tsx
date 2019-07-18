@@ -256,13 +256,13 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   )
 }
 
-const updateMobileNetState = (state, action) => {
+const updateMobileNetState = (_, action) => {
   RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
     console.warn('Error sending mobileNetStateUpdate', err)
   })
 }
 
-const initOsNetworkStatus = (state, action) =>
+const initOsNetworkStatus = () =>
   NetInfo.getConnectionInfo().then(({type}) =>
     ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
   )
@@ -290,7 +290,7 @@ function* loadStartupDetails() {
   const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGetValueRpcPromise({path: 'ui.routeState2'})
       .then(v => v.s || '')
-      .catch(e => {})
+      .catch(() => {})
   )
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
@@ -397,7 +397,7 @@ const openAppStore = () =>
     isAndroid
       ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
-  ).catch(e => {})
+  ).catch(() => {})
 
 const expoPermissionStatusMap = {
   [Permissions.PermissionStatus.GRANTED]: 'granted' as const,
@@ -438,35 +438,26 @@ const loadContactPermissions = async (
   return SettingsGen.createLoadedContactPermissions({status})
 }
 
-const askForContactPermissionsAndroid = async (state: TypedState, logger: Saga.SagaLogger) => {
+const askForContactPermissionsAndroid = async () => {
   const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS)
   // status is 'granted' | 'denied' | 'never_ask_again'
   // map 'denied' -> 'undetermined' since 'undetermined' means we can show the prompt again
   return status === 'denied' ? 'undetermined' : status
 }
 
-const askForContactPermissionsIOS = async (state: TypedState, logger: Saga.SagaLogger) => {
+const askForContactPermissionsIOS = async () => {
   const {status} = await Permissions.askAsync(Permissions.CONTACTS)
   return expoPermissionStatusMap[status]
 }
 
-const askForContactPermissions = (state: TypedState, logger: Saga.SagaLogger) => {
-  return isAndroid
-    ? askForContactPermissionsAndroid(state, logger)
-    : askForContactPermissionsIOS(state, logger)
+const askForContactPermissions = () => {
+  return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(
-  state: TypedState,
-  action: SettingsGen.RequestContactPermissionsPayload,
-  logger: Saga.SagaLogger
-) {
+function* requestContactPermissions(state: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
-  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions(
-    state,
-    logger
-  )
+  const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()
   if (result === 'granted' && thenToggleImportOn) {
     yield Saga.put(SettingsGen.createEditContactImportEnabled({enable: true}))
   }
