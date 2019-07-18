@@ -12,7 +12,7 @@ type CalculateAdvancedButtonProps = {
 const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(() => {
-    dispatch(WalletsGen.createCalculateBuildingAdvanced())
+    dispatch(WalletsGen.createCalculateBuildingAdvanced({forSEP7: false}))
   }, [dispatch])
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)

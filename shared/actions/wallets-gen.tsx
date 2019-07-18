@@ -11,6 +11,7 @@ export const resetStore = 'common:resetStore' // not a part of wallets but is ha
 export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
+export const acceptSEP7Path = 'wallets:acceptSEP7Path'
 export const acceptSEP7Pay = 'wallets:acceptSEP7Pay'
 export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
@@ -135,6 +136,7 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 // Payload Types
 type _AbandonPaymentPayload = void
 type _AcceptDisclaimerPayload = void
+type _AcceptSEP7PathPayload = {readonly inputURI: string}
 type _AcceptSEP7PayPayload = {readonly amount: string; readonly inputURI: string}
 type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
@@ -146,7 +148,7 @@ type _BuildPaymentPayload = void
 type _BuildingPaymentIDReceivedPayload = {readonly bid: string}
 type _BuiltPaymentReceivedPayload = {readonly build: Types.BuiltPayment; readonly forBuildCounter: number}
 type _BuiltRequestReceivedPayload = {readonly build: Types.BuiltRequest; readonly forBuildCounter: number}
-type _CalculateBuildingAdvancedPayload = void
+type _CalculateBuildingAdvancedPayload = {readonly forSEP7: boolean}
 type _CancelPaymentPayload = {readonly showAccount?: boolean; readonly paymentID: Types.PaymentID}
 type _CancelRequestPayload = {
   readonly conversationIDKey?: ChatTypes.ConversationIDKey
@@ -318,7 +320,10 @@ type _SetBuildingPublicMemoPayload = {readonly publicMemo: HiddenString}
 type _SetBuildingRecipientTypePayload = {readonly recipientType: Types.CounterpartyType}
 type _SetBuildingSecretNotePayload = {readonly secretNote: HiddenString}
 type _SetBuildingToPayload = {readonly to: string}
-type _SetBuiltPaymentAdvancedPayload = {readonly builtPaymentAdvanced: Types.BuiltPaymentAdvanced}
+type _SetBuiltPaymentAdvancedPayload = {
+  readonly builtPaymentAdvanced: Types.BuiltPaymentAdvanced
+  readonly forSEP7: boolean
+}
 type _SetInflationDestinationPayload = {
   readonly accountID: Types.AccountID
   readonly destination: Types.AccountID
@@ -397,6 +402,13 @@ export const createChangedAccountNameError = (
 export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload): AcceptDisclaimerPayload => ({
   payload,
   type: acceptDisclaimer,
+})
+/**
+ * Accept the prepared SEP7 path payment
+ */
+export const createAcceptSEP7Path = (payload: _AcceptSEP7PathPayload): AcceptSEP7PathPayload => ({
+  payload,
+  type: acceptSEP7Path,
 })
 /**
  * Accept the prepared SEP7 payment
@@ -1102,6 +1114,10 @@ export type AcceptDisclaimerPayload = {
   readonly payload: _AcceptDisclaimerPayload
   readonly type: typeof acceptDisclaimer
 }
+export type AcceptSEP7PathPayload = {
+  readonly payload: _AcceptSEP7PathPayload
+  readonly type: typeof acceptSEP7Path
+}
 export type AcceptSEP7PayPayload = {
   readonly payload: _AcceptSEP7PayPayload
   readonly type: typeof acceptSEP7Pay
@@ -1590,6 +1606,7 @@ export type WalletDisclaimerReceivedPayload = {
 export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
+  | AcceptSEP7PathPayload
   | AcceptSEP7PayPayload
   | AcceptSEP7TxPayload
   | AccountUpdateReceivedPayload

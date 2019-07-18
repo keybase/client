@@ -458,6 +458,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         sep7ConfirmError: '',
         sep7ConfirmInfo: null,
+        sep7ConfirmPath: Constants.emptyBuiltPaymentAdvanced,
         sep7ConfirmURI: '',
       })
     case WalletsGen.validateSEP7LinkError:
@@ -534,7 +535,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
-      return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+      return action.payload.forSEP7
+        ? state.set('sep7ConfirmPath', action.payload.builtPaymentAdvanced)
+        : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case WalletsGen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     // Saga only actions
@@ -575,6 +578,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadInflationDestination:
     case WalletsGen.loadExternalPartners:
     case WalletsGen.acceptSEP7Pay:
+    case WalletsGen.acceptSEP7Path:
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:
