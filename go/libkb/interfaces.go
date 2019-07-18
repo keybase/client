@@ -835,14 +835,14 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(mctx MetaContext) error
 	// Team ephemeral keys
-	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEk, bool, error)
-	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
+	GetOrCreateLatestTeamEK(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeamEK(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	PurgeTeamEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeamEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 
 	// Teambot ephemeral keys
-	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeambotEk, bool, error)
-	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeambotEk, error)
+	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeamEphemeralKey, bool, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 
@@ -975,9 +975,9 @@ type ChatHelper interface {
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string) error
+		tlfName string, text string, vis keybase1.TLFVisibility) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,

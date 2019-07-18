@@ -118,8 +118,8 @@ export type _BuiltPaymentAdvanced = {
   destinationAccount: AccountID
   destinationDisplay: string
   exchangeRate: string
+  findPathError: string
   fullPath: PaymentPath
-  noPathFoundError: boolean
   readyToSend: boolean
   sourceDisplay: string
   sourceMaxDisplay: string
@@ -405,6 +405,7 @@ export type _State = {
   sentPaymentError: string
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmPath: BuiltPaymentAdvanced
   sep7ConfirmURI: string
   staticConfig: StaticConfig | null
   trustline: Trustline

@@ -374,7 +374,7 @@ func (u *Uploader) uploadFile(ctx context.Context, diskLRU *disklru.DiskLRU, dir
 	}
 
 	// Add an entry to the disk LRU mapping with the tmpfilename to limit the
-	// number of resources on disk.  If we evict something we remove the
+	// number of resources on disk. If we evict something we remove the
 	// remnants.
 	evicted, err := diskLRU.Put(ctx, u.G(), f.Name(), f.Name())
 	if err != nil {
@@ -633,11 +633,11 @@ func (u *Uploader) GetUploadTempFile(ctx context.Context, outboxID chat1.OutboxI
 func (u *Uploader) OnDbNuke(mctx libkb.MetaContext) error {
 	baseDir := u.getBaseDir()
 	previewsDir := filepath.Join(baseDir, uploadedPreviewsDir)
-	if err := u.previewsLRU.Clean(mctx.Ctx(), mctx.G(), previewsDir); err != nil {
+	if err := u.previewsLRU.Clean(mctx, previewsDir); err != nil {
 		u.Debug(mctx.Ctx(), "unable to run clean for uploadedPreviews: %v", err)
 	}
 	fullsDir := filepath.Join(baseDir, uploadedFullsDir)
-	if err := u.fullsLRU.Clean(mctx.Ctx(), mctx.G(), fullsDir); err != nil {
+	if err := u.fullsLRU.Clean(mctx, fullsDir); err != nil {
 		u.Debug(mctx.Ctx(), "unable to run clean for uploadedFulls: %v", err)
 	}
 	return nil

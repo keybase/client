@@ -333,4 +333,52 @@ protocol remote {
   case GIPHY: string;
   }
   array<ExternalAPIKey> getExternalAPIKeys(array<ExternalAPIKeyTyp> typs);
+
+  // Bot commands
+  @typedef("uint64") @lint("ignore") record CommandConvVers {} 
+  record RemoteBotCommandsAdvertisementPublic {
+    ConversationID convID;
+  }
+  record RemoteBotCommandsAdvertisementTLFID {
+    ConversationID convID;
+    TLFID tlfID;
+  }
+  variant RemoteBotCommandsAdvertisement switch(BotCommandsAdvertisementTyp typ) {
+    case PUBLIC: RemoteBotCommandsAdvertisementPublic;
+    case TLFID_MEMBERS: RemoteBotCommandsAdvertisementTLFID;
+    case TLFID_CONVS: RemoteBotCommandsAdvertisementTLFID;
+  }
+  record BotCommandConv {
+    gregor1.UID uid;
+    ConversationID convID;
+    CommandConvVers vers;
+    gregor1.Time mtime;
+  }
+  record BotInfo {
+    array<BotCommandConv> commandConvs;
+  }
+  record AdvertiseBotCommandsRes {
+    union { null, RateLimit } rateLimit;
+  }
+  record ClearBotCommandsRes {
+    union { null, RateLimit } rateLimit;
+  } 
+  AdvertiseBotCommandsRes advertiseBotCommands(array<RemoteBotCommandsAdvertisement> ads);
+  ClearBotCommandsRes clearBotCommands();
+  
+  enum BotInfoResponseTyp {
+    UPTODATE_0,
+    INFO_1
+  }
+  variant BotInfoResponse switch (BotInfoResponseTyp typ) {
+    case UPTODATE: void;
+    case INFO: BotInfo;
+  } 
+  record GetBotInfoRes {
+    BotInfoResponse response;
+    union { null, RateLimit } rateLimit;
+  }
+  @typedef("bytes") record BotInfoHash {}
+  GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash);
+  
 }

@@ -1,18 +1,14 @@
 import * as React from 'react'
 import {Props} from './video'
-import Box, {Box2} from './box'
+import Box from './box'
 import * as Styles from '../styles'
 import {useVideoSizer, CheckURL} from './video.shared'
-import {NativeStatusBar, NativeWebView} from './native-wrappers.native'
 import RNVideo from 'react-native-video'
 import {StatusBar} from 'react-native'
 import logger from '../logger'
 
 const Kb = {
   Box,
-  Box2,
-  NativeStatusBar,
-  NativeWebView,
 }
 
 // There seems to be a race between navigation animation and the measurement stuff

@@ -12,6 +12,10 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "acceptSEP7Path": {
+      "_description": "Accept the prepared SEP7 path payment",
+      "inputURI": "string"
+    },
     "acceptSEP7Pay": {
       "_description": "Accept the prepared SEP7 payment",
       "amount": "string",
@@ -299,7 +303,8 @@
     "sentPayment": {
       "_description": "Successfully sent a payment",
       "kbTxID": "HiddenString",
-      "lastSentXLM": "boolean"
+      "lastSentXLM": "boolean",
+      "jumpToChat": "string"
     },
     "sentPaymentError": {
       "_description": "Failed to send a payment",
@@ -349,8 +354,11 @@
     "setBuildingAdvancedSenderAccountID": {"senderAccountID": "Types.AccountID"},
     "setBuildingAdvancedSenderAsset": {"senderAsset": "Types.AssetDescriptionOrNative"},
     "setBuildingAdvancedSecretNote": {"secretNote": "HiddenString"},
-    "calculateBuildingAdvanced": {},
-    "setBuiltPaymentAdvanced": {"builtPaymentAdvanced": "Types.BuiltPaymentAdvanced"},
+    "calculateBuildingAdvanced": {"forSEP7": "boolean"},
+    "setBuiltPaymentAdvanced": {
+      "builtPaymentAdvanced": "Types.BuiltPaymentAdvanced",
+      "forSEP7": "boolean"
+    },
     "sendPaymentAdvanced": {"_description": "tell service to send this path payment"},
     "setLastSentXLM": {
       "_description": "Set whether last currency used to send was XLM",

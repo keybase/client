@@ -148,11 +148,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByID': {
-    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet}
+    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByName': {
-    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet}
+    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamDeleted': {
@@ -1915,6 +1915,8 @@ export enum StatusCode {
   scsigwrongkey = 1008,
   scsigoldseqno = 1010,
   scsigcreationdisallowed = 1016,
+  scsigmissingratchet = 1021,
+  scsigbadtotalorder = 1022,
   scbadtracksession = 1301,
   scdevicebadname = 1404,
   scdevicenameinuse = 1408,
@@ -2025,7 +2027,6 @@ export enum StatusCode {
   scephemeralmemberafterek = 2907,
   scephemeraldevicestale = 2908,
   scephemeraluserstale = 2909,
-  scephemeralteambotgenerationexists = 2910,
   scstellarerror = 3100,
   scstellarbadinput = 3101,
   scstellarwrongrevision = 3102,
@@ -2066,6 +2067,7 @@ export enum StatusCode {
   scphonenumberwrongverificationcode = 3403,
   scphonenumberlimitexceeded = 3404,
   scnopaperkeys = 3605,
+  scteambotkeygenerationexists = 3800,
 }
 
 export enum TLFIdentifyBehavior {

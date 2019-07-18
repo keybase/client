@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {TouchableWithoutFeedback} from 'react-native'
+import {NativeTouchableWithoutFeedback} from '../native-wrappers.native'
 import {Box, Box2} from '../box'
 import FloatingBox from '../floating-box'
 import {Props} from '.'
@@ -15,10 +15,10 @@ const Overlay = (props: Props) => {
         direction="vertical"
         style={collapseStyles([styles.container, !!props.color && {color: props.color}])}
       >
-        <TouchableWithoutFeedback onPress={props.onHidden}>
+        <NativeTouchableWithoutFeedback onPress={props.onHidden}>
           {/* This has to be a `Box` so `TouchableWithoutFeedback`'s touch responders get piped through to the `View` */}
           <Box style={styles.touchArea} />
-        </TouchableWithoutFeedback>
+        </NativeTouchableWithoutFeedback>
         {props.children}
       </Box2>
     </FloatingBox>

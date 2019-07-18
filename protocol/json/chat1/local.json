@@ -1098,6 +1098,15 @@
           "name": "ephemeralMetadata",
           "mpackkey": "em",
           "jsonkey": "em"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1900,6 +1909,10 @@
         {
           "type": "ConversationCommandGroups",
           "name": "commands"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "botCommands"
         }
       ]
     },
@@ -3181,6 +3194,130 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBotCommandOutput",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "usage"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "extendedDescription"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBotCommandInput",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "usage"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "extendedDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseCommandsParam",
+      "fields": [
+        {
+          "type": "BotCommandsAdvertisementTyp",
+          "name": "typ"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandInput"
+          },
+          "name": "commands"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "teamName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseBotCommandsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListBotCommandsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandOutput"
+          },
+          "name": "commands"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClearBotCommandsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     }
@@ -4651,6 +4788,38 @@
         }
       ],
       "response": null
+    },
+    "advertiseBotCommandsLocal": {
+      "request": [
+        {
+          "name": "alias",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "advertisements",
+          "type": {
+            "type": "array",
+            "items": "AdvertiseCommandsParam"
+          }
+        }
+      ],
+      "response": "AdvertiseBotCommandsLocalRes"
+    },
+    "listBotCommandsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "ListBotCommandsLocalRes"
+    },
+    "clearBotCommandsLocal": {
+      "request": [],
+      "response": "ClearBotCommandsLocalRes"
     }
   },
   "namespace": "chat.1"
