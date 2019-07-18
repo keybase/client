@@ -49,7 +49,6 @@ export const badgeStateToBadgeCounts = (
     (deletedTeams || []).length
 
   const unverifiedAccSettings = unverifiedEmails + unverifiedPhones
-
   return {
     counts: I.Map([
       [Tabs.chatTab, totalMessages],
