@@ -10,13 +10,12 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta} from './shared'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
-import {BotCommandUpdateStatus} from './shared'
+import {BotCommandUpdateStatus, ExplodingMeta} from './shared'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
