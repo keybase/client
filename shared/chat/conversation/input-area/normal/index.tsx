@@ -502,6 +502,9 @@ class Input extends React.Component<InputProps, InputState> {
         style={Styles.collapseStyles([
           styles.suggestionBase,
           {backgroundColor: selected ? Styles.globalColors.blueLighter2 : Styles.globalColors.white},
+          {
+            alignItems: 'flex-start',
+          },
         ])}
       >
         {!!command.username && <Kb.Avatar size={32} username={command.username} />}

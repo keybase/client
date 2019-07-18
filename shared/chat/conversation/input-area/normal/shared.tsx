@@ -51,6 +51,9 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.tiny,
+    },
   }),
   timeBadge: Styles.platformStyles({
     common: {
