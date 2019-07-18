@@ -1184,6 +1184,12 @@ const updateAirdropState = (
     })
     .catch(e => {
       logger.info(e)
+      if (e.name === 'STELLAR_NEED_DISCLAIMER') {
+        return WalletsGen.createUpdatedAirdropState({
+          airdropQualifications: [],
+          airdropState: 'needDisclaimer',
+        })
+      }
     })
 
 const hideAirdropBanner = (): TypedActions =>

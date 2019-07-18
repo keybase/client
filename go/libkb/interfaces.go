@@ -151,6 +151,7 @@ type LocalDb interface {
 	LocalDbOps
 	Open() error
 	Stats() string
+	CompactionStats() (bool, bool, error)
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)

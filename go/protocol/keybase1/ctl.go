@@ -40,20 +40,32 @@ func (e ExitCode) String() string {
 type DbType int
 
 const (
-	DbType_MAIN DbType = 0
-	DbType_CHAT DbType = 1
+	DbType_MAIN                     DbType = 0
+	DbType_CHAT                     DbType = 1
+	DbType_FS_BLOCK_CACHE           DbType = 2
+	DbType_FS_BLOCK_CACHE_META      DbType = 3
+	DbType_FS_SYNC_BLOCK_CACHE      DbType = 4
+	DbType_FS_SYNC_BLOCK_CACHE_META DbType = 5
 )
 
 func (o DbType) DeepCopy() DbType { return o }
 
 var DbTypeMap = map[string]DbType{
-	"MAIN": 0,
-	"CHAT": 1,
+	"MAIN":                     0,
+	"CHAT":                     1,
+	"FS_BLOCK_CACHE":           2,
+	"FS_BLOCK_CACHE_META":      3,
+	"FS_SYNC_BLOCK_CACHE":      4,
+	"FS_SYNC_BLOCK_CACHE_META": 5,
 }
 
 var DbTypeRevMap = map[DbType]string{
 	0: "MAIN",
 	1: "CHAT",
+	2: "FS_BLOCK_CACHE",
+	3: "FS_BLOCK_CACHE_META",
+	4: "FS_SYNC_BLOCK_CACHE",
+	5: "FS_SYNC_BLOCK_CACHE_META",
 }
 
 func (e DbType) String() string {
