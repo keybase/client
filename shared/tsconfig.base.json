@@ -24,7 +24,6 @@
   "include": ["globals.d.ts"],
   "exclude": [
     "node_modules",
-    "node_modules/popper.js/index.d.ts",
     "react-native",
     "desktop/dist",
     "desktop/build"
