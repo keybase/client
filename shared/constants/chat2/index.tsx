@@ -157,7 +157,7 @@ export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.
   state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.OrderedSet())
+  state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (

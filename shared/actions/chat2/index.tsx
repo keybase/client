@@ -62,7 +62,7 @@ function* inboxRefresh(
     return
   }
 
-  let reason
+  let reason: string = ''
   let clearExistingMetas = false
   let clearExistingMessages = false
   switch (action.type) {
@@ -136,7 +136,7 @@ const requestTeamsUnboxing = (_: TypedState, action: Chat2Gen.MetasReceivedPaylo
 }
 
 // Only get the untrusted conversations out
-const untrustedConversationIDKeys = (state: TypedState, ids) =>
+const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
   ids.filter(id => state.chat2.metaMap.getIn([id, 'trustedState'], 'untrusted') === 'untrusted')
 
 // We keep a set of conversations to unbox
@@ -186,7 +186,7 @@ const rpcMetaRequestConversationIDKeys = (
     | Chat2Gen.SelectConversationPayload
     | Chat2Gen.MetasReceivedPayload
 ) => {
-  let keys
+  let keys: Array<Types.ConversationIDKey>
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
       keys = action.payload.conversationIDKeys
@@ -312,7 +312,11 @@ function* unboxRows(
 }
 
 // We get an incoming message streamed to us
-const onIncomingMessage = (state: TypedState, incoming, logger: Saga.SagaLogger) => {
+const onIncomingMessage = (
+  state: TypedState,
+  incoming: RPCChatTypes.IncomingMessage,
+  logger: Saga.SagaLogger
+) => {
   const {
     message: cMsg,
     modifiedMessage,
@@ -468,7 +472,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
       if (error) {
         // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
         const reason = Constants.rpcErrorToString(error)
-        let tempForceRedBox
+        let tempForceRedBox: string | null = null
         if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
           // Find out the user who failed identify
           const match = error.message && error.message.match(/"(.*)"/)
@@ -985,9 +989,9 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   }
 }
 
-type scrollDirection = 'none' | 'back' | 'forward'
+type ScrollDirection = 'none' | 'back' | 'forward'
 
-const scrollDirectionToPagination = (sd: scrollDirection, numberOfMessagesToLoad) => {
+const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
   let pagination = {
     last: false,
     next: '',
@@ -1025,7 +1029,7 @@ function* loadMoreMessages(
   // Get the conversationIDKey
   let key: Types.ConversationIDKey | null = null
   let reason: string = ''
-  let sd: scrollDirection = 'none'
+  let sd: ScrollDirection = 'none'
   let messageIDControl: RPCChatTypes.MessageIDControl | null = null
   let forceClear = false
   let forceContainsLatestCalc = false
@@ -1430,7 +1434,7 @@ function* loadAttachmentView(state: TypedState, action: Chat2Gen.LoadAttachmentV
   const conversationIDKey = action.payload.conversationIDKey
   const viewType = action.payload.viewType
 
-  const onHit = hit => {
+  const onHit = (hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']) => {
     const message = Constants.uiMessageToMessage(state, conversationIDKey, hit.message)
     return message
       ? Saga.put(Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType}))
@@ -1696,14 +1700,14 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
     })
   const onDataConfirm = (
     {summary}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'],
-    response
+    response: StellarConfirmWindowResponse
   ) => {
     storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
   }
   const onDataError = (
     {error}: RPCChatTypes.MessageTypes['chat.1.chatUi.chatStellarDataError']['inParam'],
-    response
+    response: StellarConfirmWindowResponse
   ) => {
     storeStellarConfirmWindowResponse(false, response)
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
@@ -1743,9 +1747,10 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
 
-let _stellarConfirmWindowResponse: any = null
+type StellarConfirmWindowResponse = {result: (b: boolean) => void}
+let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | null = null
 
-function storeStellarConfirmWindowResponse(accept: boolean, response) {
+function storeStellarConfirmWindowResponse(accept: boolean, response: StellarConfirmWindowResponse | null) {
   _stellarConfirmWindowResponse && _stellarConfirmWindowResponse.result(accept)
   _stellarConfirmWindowResponse = response
 }
@@ -1836,6 +1841,7 @@ const changeSelectedConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
+    | Chat2Gen.HideConversationPayload
     | TeamsGen.LeaveTeamPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -1854,6 +1860,7 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
+    | Chat2Gen.HideConversationPayload
     | TeamsGen.LeaveTeamPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -1873,6 +1880,7 @@ const _maybeAutoselectNewestConversation = (
   if (!selectedMeta) {
     selected = Constants.noConversationIDKey
   }
+
   let avoidConversationID = Constants.noConversationIDKey
   if (action.type === Chat2Gen.hideConversation) {
     avoidConversationID = selected
@@ -1901,16 +1909,14 @@ const _maybeAutoselectNewestConversation = (
     // Intentional fall-through -- force select a new one
   } else if (
     Constants.isValidConversationIDKey(selected) &&
-    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam)) &&
-    !(action.type === Chat2Gen.navigateToInbox && selected !== action.payload.avoidConversationID)
+    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
   ) {
     // Stay with our existing convo if it was not empty or pending, or the
     // selected convo already doesn't belong to the team we're trying to switch
     // away from, or we're not avoiding it because it's a channel we're leaving
-    return
   }
 
-  const isEligibleConvo = meta => {
+    const isEligibleConvo = ( meta : Types.ConversationMeta) => {
     if (meta.teamType === 'big') {
       // Don't select a big team channel
       return false
@@ -1954,7 +1960,7 @@ const _maybeAutoselectNewestConversation = (
   }
 }
 
-const startupUserReacjisLoad = (_: TypedState, action) =>
+const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
 
 // onUpdateUserReacjis hooks `userReacjis`, frequently used reactions
@@ -2111,18 +2117,14 @@ const attachmentPreviewSelect = (_: TypedState, action: Chat2Gen.AttachmentPrevi
 }
 
 // Handle an image pasted into a conversation
-const attachmentPasted = (_: TypedState, action: Chat2Gen.AttachmentPastedPayload) => {
+const attachmentPasted = async (_: TypedState, action: Chat2Gen.AttachmentPastedPayload) => {
   const {conversationIDKey, data} = action.payload
   const outboxID = Constants.generateOutboxID()
-  return RPCChatTypes.localMakeUploadTempFileRpcPromise({
-    data,
-    filename: 'paste.png',
-    outboxID,
-  }).then(path => {
-    const pathAndOutboxIDs = [{outboxID, path}]
-    return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-    })
+  const path = await RPCChatTypes.localMakeUploadTempFileRpcPromise({data, filename: 'paste.png', outboxID})
+
+  const pathAndOutboxIDs = [{outboxID, path}]
+  return RouteTreeGen.createNavigateAppend({
+    path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
   })
 }
 
@@ -2242,15 +2244,15 @@ const markThreadAsRead = (
     return
   }
 
-  let message
+  let message: Types.Message | undefined
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const ordinal = ordinals.findLast(o => {
       const m = mmap.get(o)
-      return m && !!m.id
+      return m ? !!m.id : false
     })
-    message = mmap.get(ordinal)
+    message = ordinal ? mmap.get(ordinal) : undefined
   }
 
   const readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
@@ -2285,7 +2287,7 @@ const deleteMessageHistory = (
 }
 
 // Get the rights a user has on certain actions in a team
-const loadCanUserPerform = (state, action: Chat2Gen.SelectConversationPayload) => {
+const loadCanUserPerform = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamname = meta.teamname
@@ -2329,8 +2331,7 @@ const navigateToInbox = (
     | Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
     | TeamsGen.LeaveTeamPayload
-    | TeamsGen.LeftTeamPayload,
-  logger
+    | TeamsGen.LeftTeamPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
@@ -2342,7 +2343,7 @@ const navigateToInbox = (
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
 //
-const navigateToThreadRoute = conversationIDKey => {
+const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey) => {
   let replace = false
 
   const visible = Router2Constants.getVisibleScreen()
@@ -2582,7 +2583,7 @@ const toggleMessageCollapse = (_: TypedState, action: Chat2Gen.ToggleMessageColl
     collapse,
     convID: Types.keyToConversationID(conversationIDKey),
     msgID: messageID,
-  }).then(() => {})
+  })
 }
 
 // TODO This will break if you try to make 2 new conversations at the same time because there is
@@ -2884,7 +2885,7 @@ const setMinWriterRole = (
   return RPCChatTypes.localSetConvMinWriterRoleLocalRpcPromise({
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.TeamRole[role],
-  }).then(() => {})
+  })
 }
 
 const unfurlRemove = (state: TypedState, action: Chat2Gen.UnfurlRemovePayload, logger: Saga.SagaLogger) => {
@@ -3055,22 +3056,17 @@ const onChatWatchPosition = (
   return []
 }
 
-const onChatClearWatch = (
-  state: TypedState,
-  action: EngineGen.Chat1ChatUiChatClearWatchPayload,
-  logger: Saga.SagaLogger
-) => {
+const onChatClearWatch = (_: TypedState, action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
   navigator.geolocation.clearWatch(action.payload.params.id)
 }
 
-const resolveMaybeMention = (state: TypedState, action: Chat2Gen.ResolveMaybeMentionPayload) => {
-  return RPCChatTypes.localResolveMaybeMentionRpcPromise({
+const resolveMaybeMention = (_: TypedState, action: Chat2Gen.ResolveMaybeMentionPayload) =>
+  RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
   })
-}
 
 const openChatFromWidget = (
-  state: TypedState,
+  _: TypedState,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
 ) => [
   ConfigGen.createShowMain(),
@@ -3163,22 +3159,24 @@ const prepareFulfillRequestForm = (
   })
 }
 
-const addUsersToChannel = (
+const addUsersToChannel = async (
   _: TypedState,
   action: Chat2Gen.AddUsersToChannelPayload,
   logger: Saga.SagaLogger
 ) => {
   const {conversationIDKey, usernames} = action.payload
-  return RPCChatTypes.localBulkAddToConvRpcPromise(
-    {convID: Types.keyToConversationID(conversationIDKey), usernames},
-    Constants.waitingKeyAddUsersToChannel
-  )
-    .then(() => [
+  try {
+    await RPCChatTypes.localBulkAddToConvRpcPromise(
+      {convID: Types.keyToConversationID(conversationIDKey), usernames},
+      Constants.waitingKeyAddUsersToChannel
+    ).then(() => [
       Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
       RouteTreeGen.createClearModals(),
       Chat2Gen.createNavigateToThread(),
     ])
-    .catch(err => logger.error(`addUsersToChannel: ${err.message}`)) // surfaced in UI via waiting key
+  } catch (err) {
+    logger.error(`addUsersToChannel: ${err.message}`) // surfaced in UI via waiting key
+  }
 }
 
 const onMarkInboxSearchOld = (state: TypedState) =>
@@ -3245,6 +3243,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
+    | Chat2Gen.HideConversationPayload
     | TeamsGen.LeaveTeamPayload
   >(
     [
