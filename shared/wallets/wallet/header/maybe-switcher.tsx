@@ -8,7 +8,7 @@ type Props = React.PropsWithChildren<{}>
 // @ts-ignore to fix wrap in fragment
 const NoSwitcher: React.FunctionComponent<Props> = props => props.children
 
-const _Switcher: React.FunctionComponent<Props & Kb.OverlayParentProps> = props => (
+const _Switcher: React.FunctionComponent<Kb.PropsWithOverlay<Props>> = props => (
   <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
     {props.children}
     <WalletSwitcher
