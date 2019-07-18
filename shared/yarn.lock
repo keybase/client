@@ -7131,6 +7131,15 @@ expo-file-system@~5.0.0:
   dependencies:
     uuid-js "^0.7.5"
 
+"expo-image-picker@git://github.com/keybase/keybase-image-picker":
+  version "5.0.2"
+  resolved "git://github.com/keybase/keybase-image-picker#b5d00e5032d85817023c24520eb67d79c83a2d6e"
+
+expo-permissions@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/expo-permissions/-/expo-permissions-5.0.1.tgz#cc6af49a37ea3ab73e780a8a19f22b7662379941"
+  integrity sha512-cOg9f9TaV8grORTwLSuoPfviDGcJSALjaALvxdmQD5ujPW6lxO6Ofd/s4/dV4L3lJww4HXiurjPJnT5yo+3ydw==
+
 expo-permissions@~5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/expo-permissions/-/expo-permissions-5.0.0.tgz#ab6cf7666f7f54b06cf4d6737f61b36f258aa12a"
@@ -13429,10 +13438,6 @@ react-native-gesture-handler@1.1.0:
     invariant "^2.2.2"
     prop-types "^15.5.10"
 
-"react-native-image-picker@git://github.com/keybase/react-native-image-picker#v0.27.1-with-keybase-fixes":
-  version "0.27.1"
-  resolved "git://github.com/keybase/react-native-image-picker#bbbf8fdf1fb351c3e739ea6dab55b15c390430d4"
-
 react-native-iphone-x-helper@1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.2.0.tgz#9f8a376eb00bc712115abff4420318a0063fa796"
@@ -13484,10 +13489,9 @@ react-native-tab-view@^2.2.0:
   resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-2.2.0.tgz#30d015b8f33f497d82419b56df7d43ecfcc3f9b1"
   integrity sha512-mhFDRvPH/kmvqfAzTwNptbOM/xXmpqYRsD0PSMJX1nP0LzhU4uRI1QmSW6sWZGLyOwKgVw0ZYkwZ54N8AmoO1A==
 
-react-native-unimodules@0.4.0:
+"react-native-unimodules@git://github.com/keybase/react-native-unimodules/#v0.4.0":
   version "0.4.0"
-  resolved "https://registry.yarnpkg.com/react-native-unimodules/-/react-native-unimodules-0.4.0.tgz#34127fe881aa3b3ee8f8eae8280b2720252efa36"
-  integrity sha512-GbaBjq/jj7avF7DSQ8GBQp91pO4op6mjKm8JvhsslRv9S5EkHegn/GUbOhDxp0LJ+Yil8YwqXSOc7AW90eNt2g==
+  resolved "git://github.com/keybase/react-native-unimodules/#9f9ad8d2db94e00292e64c0e1c1c755a83f1b12f"
   dependencies:
     "@unimodules/core" "~2.0.0"
     "@unimodules/react-native-adapter" "~2.0.0"
