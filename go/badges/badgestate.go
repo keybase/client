@@ -115,6 +115,10 @@ type unverifiedCountBody struct {
 	UnverifiedCount int `json:"unverified_count"`
 }
 
+type phoneNumberBody struct {
+	Phone string `json:"phone"`
+}
+
 type homeTodoMap map[keybase1.HomeScreenTodoType]int
 type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
 
@@ -181,6 +185,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.Lock()
 	defer b.Unlock()
 
+	b.MetaContext(ctx).Warning("hello there %+v", gstate)
+
 	b.state.NewTlfs = 0
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
@@ -195,6 +201,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.ResetState = keybase1.ResetState{}
 	b.state.UnverifiedEmails = 0
 	b.state.UnverifiedPhones = 0
+	b.state.SupersededPhoneNumbers = []string{}
 
 	var hsb *homeStateBody
 
@@ -210,6 +217,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			continue
 		}
 		category := categoryObj.String()
+		b.MetaContext(ctx).Warning("hello %s", category)
 		switch category {
 		case "home.state":
 			var tmp homeStateBody
@@ -382,6 +390,13 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			b.state.UnverifiedPhones = body.UnverifiedCount
+		case "phone.superseded":
+			var body phoneNumberBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.G().Log.CDebugf(ctx, "BadgeState encountered non-json 'phone.superseded' item: %v", err)
+				continue
+			}
+			b.state.SupersededPhoneNumbers = append(b.state.SupersededPhoneNumbers, body.Phone)
 		}
 	}
 

@@ -16,6 +16,7 @@ export type Props = {
   onVerify: () => void
   primary: boolean
   searchable: boolean
+  superseded: boolean
   type: 'phone' | 'email'
   verified: boolean
 }
@@ -103,6 +104,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
         {(!!subtitle || !props.verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
             {!props.verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
+            {props.superseded && <Kb.Meta backgroundColor={Styles.globalColors.red} title="SUPERSEDED" />}
             {!!subtitle && <Kb.Text type="BodySmall">{subtitle}</Kb.Text>}
           </Kb.Box2>
         )}
@@ -215,6 +217,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
         searchable: pr.searchable,
+        superseded: pr.superseded,
         type: 'phone' as const,
         verified: pr.verified,
       }

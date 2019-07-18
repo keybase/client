@@ -29,14 +29,14 @@ const cc = {
 const contacts: {
   [K in string]: ContactRowProps;
 } = {
-  a: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, type: 'email', verified: true},
-  b: {...cc, address: 'cecile@keyba.se', primary: false, searchable: false, type: 'email', verified: true},
-  c: {...cc, address: 'cecile@keyba.se', primary: true, searchable: false, type: 'email', verified: true},
-  d: {...cc, address: 'cecile@keyba.se', primary: true, searchable: true, type: 'email', verified: false},
-  e: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, type: 'email', verified: false},
-  f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: true},
-  g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, type: 'phone', verified: true},
-  h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: false},
+  a: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, superseded: false, type: 'email', verified: true},
+  b: {...cc, address: 'cecile@keyba.se', primary: false, searchable: false, superseded: false, type: 'email', verified: true},
+  c: {...cc, address: 'cecile@keyba.se', primary: true, searchable: false, superseded: false, type: 'email', verified: true},
+  d: {...cc, address: 'cecile@keyba.se', primary: true, searchable: true, superseded: false, type: 'email', verified: false},
+  e: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, superseded: false, type: 'email', verified: false},
+  f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: true},
+  g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, superseded: false, type: 'phone', verified: true},
+  h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: false},
 }
 
 const confirmDeleteProps = {
