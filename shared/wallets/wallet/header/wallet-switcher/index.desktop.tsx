@@ -1,3 +1,3 @@
 import {Props} from '.'
 
-export const WalletSwitcher = (props: Props) => null
+export const WalletSwitcher = () => null

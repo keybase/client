@@ -34,7 +34,7 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onClickRequest: () => {
     dispatch(WalletsGen.createRequestPayment())
   },
@@ -42,18 +42,13 @@ const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
     dispatch(WalletsGen.createReviewPayment())
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: Constants.confirmFormRouteKey,
-          },
-        ],
+        path: [{props: {}, selected: Constants.confirmFormRouteKey}],
       })
     )
   },
 })
 
-const mergeProps = (s, d, o) => ({
+const mergeProps = (s, d, _: OwnProps) => ({
   calculating: s.calculating,
   disabled: s.disabled,
   onClickRequest: s.isRequest ? d.onClickRequest : undefined,

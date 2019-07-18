@@ -7,7 +7,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
+const mapStateToProps = (_, {conversationIDKey}: OwnProps) => ({
   conversationIDKey,
 })
 
@@ -15,12 +15,7 @@ const mapDispatchToProps = dispatch => ({
   _onShowNewTeamDialog: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey},
-            selected: 'chatShowNewTeamDialog',
-          },
-        ],
+        path: [{props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}],
       })
     )
   },

@@ -244,7 +244,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _tabsSection = (): Section => {
     return {
       data: ['tabs'],
-      renderItem: ({item}) => null,
+      renderItem: () => null,
       renderSectionHeader: this._renderTabs,
     }
   }

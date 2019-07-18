@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch, {accountID}: OwnProps) => ({
     accountID !== Types.noAccountID && dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})),
 })
 
-const mergeProps = (s, d, o: OwnProps) => ({
+const mergeProps = (s, d, _: OwnProps) => ({
   assets: s.acceptedAssets
     .keySeq()
     .toArray()

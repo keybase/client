@@ -36,7 +36,7 @@ class _DisplayCurrencyDropdown extends React.Component<Kb.PropsWithTimer<Props>,
     this.props.onCurrencyChange(this.state.selected)
     this.setState({showingMenu: false})
   }
-  componentDidUpdate(prevProps: Kb.PropsWithTimer<Props>, prevState: State) {
+  componentDidUpdate(prevProps: Kb.PropsWithTimer<Props>) {
     if (this.props.selected.code === this.state.selected && prevProps.selected.code !== this.state.selected) {
       this.setState({showingToast: true})
       this.props.setTimeout(() => this.setState({showingToast: false}), 1000)

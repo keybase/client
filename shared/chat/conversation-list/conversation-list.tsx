@@ -43,7 +43,7 @@ type Props = {
   onSelectUp: () => void
 }
 
-const _itemRenderer = (index, row) => {
+const _itemRenderer = (_, row) => {
   switch (row.type) {
     case 'small':
       return (

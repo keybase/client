@@ -93,7 +93,7 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
     this._propsOnChangeRecipient(recipientPublicKey)
   }
 
-  componentDidUpdate(prevProps: ToStellarPublicKeyProps, prevState: ToStellarPublicKeyState) {
+  componentDidUpdate(prevProps: ToStellarPublicKeyProps) {
     if (
       this.props.recipientPublicKey !== prevProps.recipientPublicKey &&
       this.props.recipientPublicKey !== this.state.recipientPublicKey

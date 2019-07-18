@@ -118,7 +118,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   _onLayout = ({
     nativeEvent: {
-      layout: {x, y, width, height},
+      layout: {height},
     },
   }) => this.props.setHeight(height)
 

@@ -39,7 +39,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   copyToClipboard: dispatchProps.copyToClipboard,
   daemonError: stateProps.daemonError,
   error: stateProps.error,

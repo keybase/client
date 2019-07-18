@@ -114,7 +114,7 @@ const createLoadMoreSection = (
 ): Section => {
   return {
     data: ['load more'],
-    renderItem: ({item, index}) => {
+    renderItem: () => {
       if (onLoadMore && status !== 'loading') {
         return (
           <Kb.Button
@@ -140,7 +140,7 @@ const createLoadMoreSection = (
       }
       return null
     },
-    renderSectionHeader: ({section}) => {
+    renderSectionHeader: () => {
       return null
     },
   }
@@ -216,7 +216,7 @@ export class MediaView {
     }
   }
 
-  _renderSectionHeader = (section, month: string, year: number) => {
+  _renderSectionHeader = (_, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -303,7 +303,7 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
 const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
 
 export class DocView {
-  _renderSectionHeader = (section, month: string, year: number) => {
+  _renderSectionHeader = (_, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -340,7 +340,7 @@ export class DocView {
 }
 
 export class LinkView {
-  _renderSectionHeader = (section, month: string, year: number) => {
+  _renderSectionHeader = (_, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }

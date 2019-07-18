@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     _muteConversation: (muted: boolean) => dispatchProps._onMuteConversation(muted),
     _storeChannelWide: stateProps.channelWide,

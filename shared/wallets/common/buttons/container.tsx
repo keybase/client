@@ -53,8 +53,7 @@ type DropdownButtonOwnProps = {
 const mapStateToPropsDropdownButton = mapStateToPropsSendButton
 
 const mapDispatchToPropsDropdownButton = dispatch => ({
-  _onSettings: (accountID: Types.AccountID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
+  onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
   _onShowSecretKey: (accountID: Types.AccountID, walletName: string | null) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -70,7 +69,7 @@ const mapDispatchToPropsDropdownButton = dispatch => ({
 
 const mergePropsDropdownButton = (stateProps, dispatchProps, ownProps) => ({
   disabled: !stateProps._account.name,
-  onSettings: () => dispatchProps._onSettings(stateProps._account.accountID),
+  onSettings: dispatchProps.onSettings,
   onShowSecretKey: stateProps.thisDeviceIsLockedOut
     ? null
     : () => dispatchProps._onShowSecretKey(stateProps._account.accountID, stateProps._account.name),
