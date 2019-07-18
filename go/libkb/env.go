@@ -267,6 +267,7 @@ type Env struct {
 	writer        ConfigWriter
 	Test          *TestParameters
 	updaterConfig UpdaterConfigReader
+	guiConfig     *JSONFile
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -298,6 +299,18 @@ func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	defer e.Unlock()
 	e.config = r
 	e.writer = w
+}
+
+func (e *Env) SetGUIConfig(j *JSONFile) {
+	e.Lock()
+	defer e.Unlock()
+	e.guiConfig = j
+}
+
+func (e *Env) GetGUIConfig() *JSONFile {
+	e.RLock()
+	defer e.RUnlock()
+	return e.guiConfig
 }
 
 func (e *Env) SetUpdaterConfig(r UpdaterConfigReader) {

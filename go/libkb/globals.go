@@ -160,6 +160,8 @@ type GlobalContext struct {
 	MobileOsVersion string
 
 	SyncedContactList SyncedContactListProvider
+
+	GUIConfig *JSONFile
 }
 
 type GlobalTestOptions struct {
@@ -402,7 +404,23 @@ func (g *GlobalContext) ConfigureConfig() error {
 
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
+	if err != nil {
+		return err
+	}
+	guiConfigErr := g.ConfigureGUIConfig()
+	if guiConfigErr != nil {
+		g.Log.Debug("Failed to open gui config: %s\n", guiConfigErr)
+	}
 	g.ConfigureUpdaterConfig()
+	return err
+}
+
+func (g *GlobalContext) ConfigureGUIConfig() error {
+	c := NewJSONFile(g, GUIConfigFile, "gui config")
+	err := c.Load(false /* warnOnNotFound */)
+	if err == nil {
+		g.Env.SetGUIConfig(c)
+	}
 	return err
 }
 

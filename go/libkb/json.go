@@ -155,6 +155,19 @@ func newJSONFileTransaction(f *JSONFile) (*jsonFileTransaction, error) {
 	return ret, nil
 }
 
+func (f *JSONFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
+	err := f.jw.SetValueAtPath(p, w)
+	if err == nil {
+		err = f.Save()
+	}
+	return err
+}
+
+func (f *JSONFile) DeleteAtPath(p string) {
+	f.jw.DeleteValueAtPath(p)
+	f.Save()
+}
+
 func (f *JSONFile) Save() error {
 	tx, txCreated, err := f.getOrMakeTx()
 	if err != nil {

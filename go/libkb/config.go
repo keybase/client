@@ -72,14 +72,6 @@ func (f *JSONConfigFile) GetTopLevelBool(s string) (res, isSet bool) {
 	return
 }
 
-func (f *JSONConfigFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
-	err := f.jw.SetValueAtPath(p, w)
-	if err == nil {
-		err = f.Save()
-	}
-	return err
-}
-
 func (f *JSONConfigFile) GetUserConfig() (*UserConfig, error) {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
@@ -381,11 +373,6 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 	}
 
 	return f.Save()
-}
-
-func (f *JSONConfigFile) DeleteAtPath(p string) {
-	f.jw.DeleteValueAtPath(p)
-	f.Save()
 }
 
 func (f *JSONConfigFile) Reset() {
