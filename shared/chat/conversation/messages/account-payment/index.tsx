@@ -91,10 +91,10 @@ const AccountPayment = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         {props.canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
-        {!Styles.isMobile && !props.memo && balanceChange}
+        {!Styles.isMobile && balanceChange}
       </Kb.Box2>
       <MarkdownMemo memo={props.memo} />
-      {(Styles.isMobile || props.memo) && balanceChange}
+      {Styles.isMobile && balanceChange}
       {!!props.sendButtonLabel && (
         <Kb.Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
           <ButtonText text={props.sendButtonLabel} amount={props.amount} />
