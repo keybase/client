@@ -21,7 +21,7 @@ type WrapperState = {
   width: number
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state: TypedState) => ({
   topReacjis: state.chat2.userReacjis.topReacjis,
 })
 
@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
 })

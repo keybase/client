@@ -35,7 +35,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _) => {
   const {_meta} = stateProps
   return {
     author: stateProps.author,

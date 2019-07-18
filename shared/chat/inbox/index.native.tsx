@@ -59,7 +59,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  _renderItem = ({item, index}) => {
+  _renderItem = ({item}) => {
     const row = item
     let element
     if (row.type === 'divider') {
@@ -87,7 +87,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  _keyExtractor = (item, index) => {
+  _keyExtractor = (item) => {
     const row = item
 
     if (row.type === 'divider' || row.type === 'bigTeamsLabel') {

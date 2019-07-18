@@ -45,7 +45,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     updateIcon(false)
   }
 
-  SafeElectron.getIpcMain().on('showTray', (event, regular, selected, count) => {
+  SafeElectron.getIpcMain().on('showTray', (_, regular, selected, count) => {
     setIcons(regular, selected)
     const dock = SafeElectron.getApp().dock
     if (dock && dock.isVisible()) {
@@ -122,7 +122,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window && mb.window.getBounds())
     })
-    mb.tray.on('click', (e, bounds) => {
+    mb.tray.on('click', (_, bounds) => {
       logger.info('Clicked tray icon:', bounds)
     })
   })

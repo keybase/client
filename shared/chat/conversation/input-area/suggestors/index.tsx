@@ -146,7 +146,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
       }
     }
 
-    _checkTrigger = text => {
+    _checkTrigger = () => {
       this._timeoutID = setTimeout(() => {
         // inside a timeout so selection will settle, there was a problem where
         // desktop would get the previous selection on arrowleft / arrowright
@@ -293,7 +293,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
           !final
         )
         this._lastText = transformedText.text
-        input.transformText(textInfo => transformedText, final)
+        input.transformText(() => transformedText, final)
       }
     }
 

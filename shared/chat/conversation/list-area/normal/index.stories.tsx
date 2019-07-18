@@ -135,7 +135,7 @@ const provider = Sb.createPropProviderWithCommon({
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,
   Channel: p => ({name: p.name}),
-  ExplodingMeta: (p: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
+  ExplodingMeta: (_: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
     // no exploding messages here
     exploded: false,
 
@@ -145,7 +145,7 @@ const provider = Sb.createPropProviderWithCommon({
     pending: false,
   }),
   Mention: p => ({username: p.username}),
-  BottomMessage: p => ({
+  BottomMessage: () => ({
     showResetParticipants: null,
     showSuperseded: null,
     measure: null,
@@ -158,7 +158,7 @@ const provider = Sb.createPropProviderWithCommon({
     showTeamOffer: false,
     measure: p.measure,
   }),
-  MessagePopupText: p => ({
+  MessagePopupText: () => ({
     attachTo: undefined,
     author: 'a',
     deviceName: 'a',

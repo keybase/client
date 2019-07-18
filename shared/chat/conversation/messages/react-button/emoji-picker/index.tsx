@@ -121,7 +121,7 @@ class EmojiPicker extends React.Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.width !== prevProps.width) {
       this._chunkData()
     }

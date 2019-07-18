@@ -12,7 +12,7 @@ import JumpToRecent from './jump-to-recent'
 
 const debugEnabled = false
 
-const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : s => {}
+const _debug = debugEnabled ? () => logger.debug('_scroll: ' + s) : s => {}
 
 const targetHitArea = 1
 
@@ -20,7 +20,7 @@ class ConversationList extends React.PureComponent<Props> {
   _listRef = React.createRef<NativeVirtualizedList>()
   _scrollCenterTarget?: number
 
-  _renderItem = ({index, item}) => {
+  _renderItem = ({item}) => {
     if (item === 'specialTop') {
       return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
     } else if (item === 'specialBottom') {

@@ -65,7 +65,7 @@ export default compose(
       saving: false,
     }),
     {
-      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
+      syncLocalToStore: () => (channelWide, desktop, mobile, muted) => ({
         channelWide,
         desktop,
         mobile,

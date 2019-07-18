@@ -43,7 +43,7 @@ function SyncPropsFactory(serializer: Serializer) {
         }
       }
 
-      _onNeedProps = ({sender}, windowComponent: string, windowParam: string) => {
+      _onNeedProps = (_, windowComponent: string, windowParam: string) => {
         if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
           // If the remote asks for props send the whole thing
           this._lastProps = null

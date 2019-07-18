@@ -134,7 +134,7 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   return {allowCancelRetry, failureDescription, resolveByEdit}
 }
 
-const getDecorate = (message, you) => {
+const getDecorate = (message) => {
   switch (message.type) {
     case 'text':
       return !message.exploded && !message.errorReason
