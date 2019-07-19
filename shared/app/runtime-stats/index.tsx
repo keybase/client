@@ -135,13 +135,41 @@ const RuntimeStatsDesktop = (props: Props) => {
   )
 }
 
+const compactionActive = (props: Props, typs: Array<RPCTypes.DbType>) => {
+  for (let i = 0; i < props.dbStats.length; i++) {
+    const stats = props.dbStats[i]
+    if (typs.indexOf(stats.type) >= 0 && (stats.memCompaction || stats.tableCompaction)) {
+      return true
+    }
+  }
+  return false
+}
+
+const chatDbs = [RPCTypes.DbType.chat, RPCTypes.DbType.main]
+const kbfsDbs = [
+  RPCTypes.DbType.fsBlockCache,
+  RPCTypes.DbType.fsBlockCacheMeta,
+  RPCTypes.DbType.fsSyncBlockCache,
+  RPCTypes.DbType.fsSyncBlockCacheMeta,
+]
+
+const coreCompactionActive = (props: Props) => {
+  return compactionActive(props, chatDbs)
+}
+
+const kbfsCompactionActive = (props: Props) => {
+  return compactionActive(props, kbfsDbs)
+}
+
 const RuntimeStatsMobile = (props: Props) => {
   if (!props.hasData) {
     return null
   }
   const stats = props.processStats[0]
+  const coreCompaction = coreCompactionActive(props)
+  const kbfsCompaction = kbfsCompactionActive(props)
   return (
-    <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
+    <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny">
       <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
           <Kb.Text
@@ -176,6 +204,22 @@ const RuntimeStatsMobile = (props: Props) => {
           ])}
           type="BodyTiny"
         >{`SSA: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical">
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.stat,
+            coreCompaction ? styles.statWarning : styles.statNormal,
+          ])}
+          type="BodyTiny"
+        >{`LC: ${yesNo(coreCompaction)}`}</Kb.Text>
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.stat,
+            kbfsCompaction ? styles.statWarning : styles.statNormal,
+          ])}
+          type="BodyTiny"
+        >{`LK: ${yesNo(kbfsCompaction)}`}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
