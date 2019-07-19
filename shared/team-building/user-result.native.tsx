@@ -100,10 +100,10 @@ const FormatPrettyName = (props: {
         )
       )}
       {props.services.map(service => (
-        <Kb.WithTooltip key={service} text={props.services[service]} position="top center">
+        <Kb.WithTooltip key={service} text={service} position="top center">
           <Kb.Icon
             fontSize={14}
-            type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
+            type={serviceIdToIconFont(service)}
             style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
           />
         </Kb.WithTooltip>
