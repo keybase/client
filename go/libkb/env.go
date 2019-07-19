@@ -27,6 +27,7 @@ func (n NullConfiguration) GetMobileSharedHome() string                         
 func (n NullConfiguration) GetServerURI() (string, error)                                  { return "", nil }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetGUIConfigFilename() string                                   { return "" }
 func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
@@ -684,6 +685,15 @@ func (e *Env) GetUpdaterConfigFilename() string {
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
+func (e *Env) GetGUIConfigFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGUIConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
+		func() string { return e.GetConfig().GetGUIConfigFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), GUIConfigFile) },
 	)
 }
 

@@ -412,6 +412,7 @@ func (g *GlobalContext) ConfigReload() error {
 	return err
 }
 
+// migrateGUIConfig does not delete old values from service's config.
 func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	var errs []error
 
@@ -448,11 +449,15 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	if err != nil {
 		errs = append(errs, err)
 	} else {
-		syncSettings, ok := syncSettings.(map[string]bool)
+		syncSettings, ok := syncSettings.(map[string]interface{})
 		if !ok {
 			errs = append(errs, fmt.Errorf("Failed to coerce ui.importContacts in migration"))
 		} else {
 			for username, syncEnabled := range syncSettings {
+				syncEnabled, ok := syncEnabled.(bool)
+				if !ok {
+					errs = append(errs, fmt.Errorf("Failed to coerce syncEnabled in migration for %s", username))
+				}
 				err := guiConfig.SetBoolAtPath(fmt.Sprintf("%s.%s", p, username), syncEnabled)
 				if err != nil {
 					errs = append(errs, err)
@@ -464,10 +469,11 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 }
 
 func (g *GlobalContext) ConfigureGUIConfig() error {
-	guiConfig := NewJSONFile(g, GUIConfigFile, "gui config")
+	guiConfig := NewJSONFile(g, g.Env.GetGUIConfigFilename(), "gui config")
 	found, err := guiConfig.LoadCheckFound()
 	if err == nil {
 		if !found {
+			guiConfig.SetBoolAtPath("gui", true)
 			// If this is the first time creating this file, manually migrate
 			// old GUI config values from the main config file best-effort.
 			serviceConfig := g.Env.GetConfig()
