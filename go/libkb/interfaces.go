@@ -871,7 +871,7 @@ type TeambotBotKeyer interface {
 
 type TeambotMemberKeyer interface {
 	GetOrCreateTeambotKey(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
-		key keybase1.TeamApplicationKey) (keybase1.TeambotKey, bool, error)
+		appKey keybase1.TeamApplicationKey) (keybase1.TeambotKey, bool, error)
 	PurgeCache(mctx MetaContext)
 	PurgeCacheAtGeneration(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
 }
