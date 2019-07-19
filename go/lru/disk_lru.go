@@ -416,12 +416,13 @@ func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (e
 	return entries, nil
 }
 
-func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) error {
-	_, err := d.clean(mctx, cacheDir, 0)
+func (d *DiskLRU) CleanOutOfSync(mctx libkb.MetaContext, cacheDir string) error {
+	_, err := d.cleanOutOfSync(mctx, cacheDir, 0)
 	return err
 }
 
-func (d *DiskLRU) clean(mctx libkb.MetaContext, cacheDir string, batchSize int) (completed bool, err error) {
+func (d *DiskLRU) cleanOutOfSync(mctx libkb.MetaContext, cacheDir string, batchSize int) (completed bool, err error) {
+	defer mctx.TraceTimed("cleanOutOfSync", func() error { return err })()
 	d.Lock()
 	defer d.Unlock()
 
@@ -468,17 +469,17 @@ func (d *DiskLRU) clean(mctx libkb.MetaContext, cacheDir string, batchSize int) 
 	return true, nil
 }
 
-// CleanAfterDelay runs the LRU clean function after the `delay` duration. If
+// CleanOutOfSyncWithDelay runs the LRU clean function after the `delay` duration. If
 // the service crashes it's possible that temporarily files get stranded on
 // disk before they can get recorded in the LRU. Callers can run this in the
 // background to prevent leaking space.  We delay to keep off the critical path
 // to start up.
-func CleanAfterDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string, delay time.Duration) {
+func CleanOutOfSyncWithDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string, delay time.Duration) {
 
-	mctx.Debug("CleanAfterDelay: cleaning %s in %v", cacheDir, delay)
+	mctx.Debug("CleanOutOfSyncWithDelay: cleaning %s in %v", cacheDir, delay)
 	time.Sleep(delay)
 
-	defer mctx.TraceTimed("CleanAfterDelay", func() error { return nil })()
+	defer mctx.TraceTimed("CleanOutOfSyncWithDelay", func() error { return nil })()
 
 	// Batch deletions so we don't hog the lock.
 	batchSize := 1000
@@ -488,7 +489,7 @@ func CleanAfterDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string, delay 
 		batchDelay = 25 * time.Millisecond
 	}
 	for {
-		if completed, err := d.clean(mctx, cacheDir, batchSize); err != nil {
+		if completed, err := d.cleanOutOfSync(mctx, cacheDir, batchSize); err != nil {
 			mctx.Debug("unable to run clean: %v", err)
 			break
 		} else if completed {
