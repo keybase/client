@@ -37,7 +37,7 @@
   BOOL securityAccessGroupOverride = NO;
 #endif
   // set to true to see logs in xcode
-  BOOL skipLogFile = true;
+  BOOL skipLogFile = false;
 
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
   NSError* err;
@@ -128,16 +128,13 @@
 {
   [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
-// Required for the registrationError event.
-- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
-{
-  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
-}
+
 // Required for the notification event.
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
 {
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
 }
+
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
@@ -157,7 +154,7 @@
       // This always tries to unbox the notification and adds a plaintext
       // notification if displayPlaintext is set.
       KeybaseHandleBackgroundNotification(convID, body, membersType, displayPlaintext,
-            messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
+                                          messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
@@ -184,13 +181,16 @@
     completionHandler(UIBackgroundFetchResultNewData);
   }
 }
-
+// Required for the registrationError event.
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
+}
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
-
 - (void)applicationWillTerminate:(UIApplication *)application {
   self.window.rootViewController.view.hidden = YES;
   KeybaseAppWillExit([[PushNotifier alloc] init]);

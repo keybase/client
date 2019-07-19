@@ -26,15 +26,15 @@ const commands = {
   },
   postinstall: {
     code: () => {
-      // storybook uses react-docgen which really cr*ps itself with flow
-      // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
-      makeShims()
+      fixModules()
     },
     help: '',
   },
 }
 
-function makeShims() {
+function fixModules() {
+  // storybook uses react-docgen which really cr*ps itself with flow
+  // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
   const root = path.resolve(__dirname, '..', '..', 'node_modules', 'babel-plugin-react-docgen')
 
   try {

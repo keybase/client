@@ -115,8 +115,6 @@ PODS:
     - React
   - react-native-contacts (5.0.1):
     - React
-  - react-native-image-picker (0.27.1):
-    - React
   - react-native-netinfo (4.1.2):
     - React
   - react-native-video (4.4.4):
@@ -209,7 +207,6 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - react-native-contacts (from `../node_modules/react-native-contacts`)
-  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -301,8 +298,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-camera"
   react-native-contacts:
     :path: "../node_modules/react-native-contacts"
-  react-native-image-picker:
-    :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-video:
@@ -405,7 +400,6 @@ SPEC CHECKSUMS:
   React-jsinspector: 73f24a02fa684ed6a2b828ba116874a2191ded88
   react-native-camera: 53e453fd5e6501afbac79d6b21a5fbfd84950eda
   react-native-contacts: 160fba93e4faf7ac9db16312c3f50d964af9c1cd
-  react-native-image-picker: 3fac3bf5b8ec802785c884c5bde0239ad8433b34
   react-native-netinfo: 88a4003f68c6f979c1f439e7bd7c5c0b2e819160
   react-native-video: 8c49eca5a6087de968a05b340933b10e3b58169a
   react-native-webview: 5036ed4a973ad1deeeff118262d2df7b60b3419d
@@ -441,6 +435,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 296793ab2a7e181fe5ebe2ba9b40ae208ab4b8fa
   yoga: c2c050f6ae6e222534760cc82f559b89214b67e2
 
-PODFILE CHECKSUM: 07657522403fd38352977b9bd8a2c42eb55b1bb7
+PODFILE CHECKSUM: e23809c0b36ca546af76fff317a2e9c50bd493e0
 
 COCOAPODS: 1.7.3

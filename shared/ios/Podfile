@@ -31,6 +31,7 @@ target 'Keybase' do
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
   # 3rd party / special
+  # Really should use lean core version but react-native-push-notification uses the react-native version
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   use_unimodules!(modules_paths: ['../node_modules'])
   use_native_modules!
