@@ -4,37 +4,36 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const blank = {
   convLoaderActive: false,
-  cpu: '???',
-  cpuSeverity: RPCTypes.StatsSeverityLevel.normal,
-  free: '???',
-  goheap: '???',
-  goheapsys: '???',
-  goreleased: '???',
   hasData: false,
-  resident: '???',
-  residentSeverity: RPCTypes.StatsSeverityLevel.normal,
+  processStats: [],
   selectiveSyncActive: false,
-  virt: '???',
 }
 
 const mapStateToProps = (state: TypedState) => {
   const rs = state.config.runtimeStats
-  return rs
-    ? {
-        convLoaderActive: rs.convLoaderActive,
-        cpu: rs.cpu,
-        cpuSeverity: rs.cpuSeverity,
-        free: rs.free,
-        goheap: rs.goheap,
-        goheapsys: rs.goheapsys,
-        goreleased: rs.goreleased,
-        hasData: true,
-        resident: rs.resident,
-        residentSeverity: rs.residentSeverity,
-        selectiveSyncActive: rs.selectiveSyncActive,
-        virt: rs.virt,
-      }
-    : blank
+  if (!rs) {
+    return blank
+  }
+  const processStats = (rs.processStats || []).map(stats => {
+    return {
+      cpu: stats.cpu,
+      cpuSeverity: stats.cpuSeverity,
+      free: stats.free,
+      goheap: stats.goheap,
+      goheapsys: stats.goheapsys,
+      goreleased: stats.goreleased,
+      resident: stats.resident,
+      residentSeverity: stats.residentSeverity,
+      type: stats.type,
+      virt: stats.virt,
+    }
+  })
+  return {
+    convLoaderActive: rs.convLoaderActive,
+    hasData: true,
+    processStats,
+    selectiveSyncActive: rs.selectiveSyncActive,
+  }
 }
 
 export default connect(
