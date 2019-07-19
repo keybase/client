@@ -168,9 +168,6 @@ class Header extends React.PureComponent<Props> {
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-        {flags.airdrop && this.props.loggedIn && (
-          <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
-        )}
         <Kb.Box2
           noShrink={true}
           direction="vertical"
@@ -182,6 +179,9 @@ class Header extends React.PureComponent<Props> {
             opt.headerStyle,
           ])}
         >
+          {flags.airdrop && this.props.loggedIn && (
+            <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
+          )}
           <Kb.Box2
             key="topBar"
             direction="horizontal"

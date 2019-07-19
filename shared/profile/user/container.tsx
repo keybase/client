@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../constants/tracker2'
+import {getShowAirdropBanner} from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -13,7 +14,7 @@ import {RouteProps} from '../../route-tree/render-route'
 import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps< { username: string } >
+type OwnProps = RouteProps<{username: string}>
 
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
@@ -37,6 +38,7 @@ const mapStateToProps = (state, ownProps) => {
     (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followersCount'])) || 0
   const followingCount =
     (!notAUser && state.tracker2.usernameToDetails.getIn([username, 'followingCount'])) || 0
+  const showAirdropBanner = getShowAirdropBanner(state)
 
   return {
     _assertions: d.assertions,
@@ -49,6 +51,7 @@ const mapStateToProps = (state, ownProps) => {
     followingCount,
     guiID: d.guiID,
     reason: d.reason,
+    showAirdropBanner,
     state: d.state,
     userIsYou,
     username,
@@ -112,6 +115,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onReload,
     onSearch: dispatchProps.onSearch,
     reason: stateProps.reason,
+    showAirdropBanner: stateProps.showAirdropBanner,
     state: stateProps.state,
     suggestionKeys: stateProps._suggestionKeys
       ? stateProps._suggestionKeys

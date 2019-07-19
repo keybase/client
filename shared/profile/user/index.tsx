@@ -32,6 +32,7 @@ export type Props = {
   onSearch: () => void
   onEditAvatar: (() => void) | null
   reason: string
+  showAirdropBanner: boolean
   state: Types.DetailsState
   suggestionKeys: Array<string> | null
   userIsYou: boolean
@@ -359,6 +360,8 @@ class User extends React.Component<Props, State> {
       }
     }
 
+    const paddingTop = styles.container.paddingTop + (this.props.showAirdropBanner ? 70 : 0)
+
     return (
       <Kb.Reloadable
         reloadOnMount={true}
@@ -371,7 +374,10 @@ class User extends React.Component<Props, State> {
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={Styles.collapseStyles([styles.container, colorTypeToStyle(this.props.backgroundColorType)])}
+          style={Styles.collapseStyles([
+            {...styles.container, paddingTop},
+            colorTypeToStyle(this.props.backgroundColorType),
+          ])}
         >
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
             {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
@@ -426,7 +432,7 @@ export const styles = Styles.styleSheetCreate({
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
-    height: (avatarSize / 2) + Styles.globalMargins.tiny,
+    height: avatarSize / 2 + Styles.globalMargins.tiny,
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
