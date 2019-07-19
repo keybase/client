@@ -212,14 +212,6 @@ const getStartupDetailsFromShare = (): Promise<
       })
     : Promise.resolve(null)
 
-function* clearRouteState() {
-  yield Saga.spawn(() =>
-    RPCTypes.configGuiSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(
-      () => {}
-    )
-  )
-}
-
 let _lastPersist = ''
 function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
@@ -331,9 +323,6 @@ function* loadStartupDetails() {
         startupConversation = item.param && item.param.selectedConversationIDKey
         startupTab = item.routeName
       }
-
-      // immediately clear route state in case this is a bad route
-      yield clearRouteState()
     } catch (_) {
       startupConversation = null
       startupTab = null
@@ -559,7 +548,6 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
-  yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
   yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(

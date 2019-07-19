@@ -416,14 +416,7 @@ func (g *GlobalContext) ConfigReload() error {
 func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	var errs []error
 
-	p := "ui.routeState"
-	if uiRouteState, isSet := serviceConfig.GetStringAtPath(p); isSet {
-		if err := guiConfig.SetStringAtPath(p, uiRouteState); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	p = "ui.routeState2"
+	p := "ui.routeState2"
 	if uiRouteState2, isSet := serviceConfig.GetStringAtPath(p); isSet {
 		if err := guiConfig.SetStringAtPath(p, uiRouteState2); err != nil {
 			errs = append(errs, err)
