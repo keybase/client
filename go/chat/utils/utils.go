@@ -2394,3 +2394,7 @@ func DedupStringLists(lists ...[]string) (res []string) {
 	}
 	return res
 }
+
+func CurrentUserIsBot(mctx libkb.MetaContext, botUID *gregor1.UID) bool {
+	return botUID != nil && botUID.Eq(gregor1.UID(mctx.G().Env.GetUID().ToBytes()))
+}

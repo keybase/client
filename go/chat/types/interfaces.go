@@ -53,10 +53,10 @@ type NameInfoSource interface {
 	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (CryptKey, NameInfo, error)
 	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
+		keyGeneration int, kbfsEncrypted bool, botUID *gregor1.UID) (CryptKey, error)
 	EphemeralEncryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (EphemeralCryptKey, error)
 	EphemeralDecryptionKey(mctx libkb.MetaContext, tlfName string, tlfID chat1.TLFID,
@@ -334,10 +334,10 @@ type IdentifyNotifier interface {
 
 type KeyFinder interface {
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (CryptKey, NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (CryptKey, NameInfo, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
-		kbfsEncrypted bool) (CryptKey, error)
+		kbfsEncrypted bool, botUID *gregor1.UID) (CryptKey, error)
 	EphemeralKeyForEncryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (EphemeralCryptKey, error)
 	EphemeralKeyForDecryption(mctx libkb.MetaContext, tlfName string, teamID chat1.TLFID,

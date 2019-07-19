@@ -305,7 +305,8 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
 		encryptionKey, err := globals.CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 			tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
-			conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
+			conv.IsPublic(), boxed.KeyGeneration,
+			keyMembersType == chat1.ConversationMembersType_KBFS, boxed.ClientHeader.BotUID)
 		if err != nil {
 			// Post-process error from this
 			uberr = b.detectPermanentError(err, tlfName)
@@ -1319,7 +1320,7 @@ func (b *Boxer) GetEncryptionInfo(ctx context.Context, msg *chat1.MessagePlainte
 	}
 	encryptionKey, nameInfo, err := globals.CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
-		msg.ClientHeader.TlfPublic)
+		msg.ClientHeader.TlfPublic, msg.ClientHeader.BotUID)
 	if err != nil {
 		return res, NewBoxingCryptKeysError(err)
 	}
