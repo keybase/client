@@ -4,7 +4,7 @@ import {compose, connect} from '../../../../util/container'
 
 type OwnProps = RouteProps
 
-const mapStateToProps = (_) => ({})
+const mapStateToProps = _ => ({})
 
 const mapDispatchToProps = () => ({
   onCancel: () => {},
