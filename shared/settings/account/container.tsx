@@ -8,7 +8,7 @@ import AccountSettings from '.'
 import {isMobile} from '../../styles'
 
 type OwnProps = {}
-const mapStateToProps = (state: TypedState, o: OwnProps) => {
+const mapStateToProps = (state: TypedState) => {
   const phoneNumberRecord =
     state.settings.phoneNumbers.phones &&
     state.settings.phoneNumbers.phones.find(phoneNumber => phoneNumber.superseded)
