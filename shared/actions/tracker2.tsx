@@ -96,7 +96,7 @@ const changeFollow = (_, action: Tracker2Gen.ChangeFollowPayload) =>
         result: 'valid',
       })
     )
-    .catch(e =>
+    .catch(() =>
       Tracker2Gen.createUpdateResult({
         guiID: action.payload.guiID,
         reason: `Failed to ${action.payload.follow ? 'follow' : 'unfollow'}`,
@@ -113,7 +113,7 @@ const ignore = (_, action: Tracker2Gen.IgnorePayload) =>
         result: 'valid',
       })
     )
-    .catch(e =>
+    .catch(() =>
       Tracker2Gen.createUpdateResult({
         guiID: action.payload.guiID,
         reason: `Failed to ignore`,
@@ -180,7 +180,7 @@ const loadFollow = (_, action: Tracker2Gen.LoadPayload) => {
 
 const getProofSuggestions = () =>
   RPCTypes.userProofSuggestionsRpcPromise(undefined, Constants.profileLoadWaitingKey)
-    .then(({suggestions, showMore}) =>
+    .then(({suggestions}) =>
       Tracker2Gen.createProofSuggestionsUpdated({
         suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
       })

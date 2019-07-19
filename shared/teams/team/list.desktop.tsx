@@ -11,7 +11,7 @@ export default class extends React.PureComponent<Props> {
     return cache[index]
   }
 
-  _renderItem = (index, item) => this.props.renderRow(item)
+  _renderItem = (_, item) => this.props.renderRow(item)
 
   render() {
     return (

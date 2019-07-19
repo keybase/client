@@ -74,7 +74,7 @@ const calendarFormatsForFS = {
     lastDay: '[yesterday at] LT',
     lastWeek: 'ddd [at] LT',
     sameDay: '[today at] LT',
-    sameElse: function(now) {
+    sameElse: function(this: moment.Moment, now: moment.Moment) {
       return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
     },
   },
@@ -82,7 +82,7 @@ const calendarFormatsForFS = {
     lastDay: '[Yesterday at] LT',
     lastWeek: 'ddd [at] LT',
     sameDay: '[Today at] LT',
-    sameElse: function(now) {
+    sameElse: function(this: moment.Moment, now: moment.Moment) {
       return this.year() !== now.year() ? 'ddd MMM D YYYY [at] LT' : 'ddd MMM D [at] LT'
     },
   },
@@ -92,6 +92,7 @@ export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
   moment(time).calendar(
     // TS definition incorrect
     (null as unknown) as undefined,
+    // @ts-ignore definition incorrect
     calendarFormatsForFS[dontUpperCase ? 'noUpperCaseFirst' : 'upperCaseFirst']
   )
 

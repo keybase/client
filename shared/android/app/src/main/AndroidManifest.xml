@@ -95,5 +95,11 @@
               android:name="android.support.FILE_PROVIDER_PATHS"
               android:resource="@xml/fileprovider"/>
       </provider>
+
+      <!-- For expo image picker  -->
+      <activity
+          android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+          android:theme="@style/Base.Theme.AppCompat">
+      </activity>
     </application>
 </manifest>

@@ -55,8 +55,8 @@ export const collapseStyles = (
 ): ReadonlyArray<Object | null | false | void> => {
   return styles
 }
-export const transition = (...properties: Array<string>) => ({})
-export const backgroundURL = (...path: Array<string>) => ({})
+export const transition = () => ({})
+export const backgroundURL = () => ({})
 export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'

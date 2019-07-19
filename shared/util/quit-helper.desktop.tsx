@@ -55,7 +55,7 @@ export function executeActionsForContext(context: Context) {
 }
 
 export function setupExecuteActionsListener() {
-  SafeElectron.getIpcMain().on('executeActions', (event, actions) => {
+  SafeElectron.getIpcMain().on('executeActions', (_, actions) => {
     console.log('executeActionsRecieved', actions)
     _executeActions(actions)
   })

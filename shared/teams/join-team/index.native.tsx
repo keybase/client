@@ -75,7 +75,7 @@ const styles = styleSheetCreate({
 })
 
 export default compose(
-  withProps<any, any>((props: Props) => ({
+  withProps<any, any>(() => ({
     headerStyle: {borderBottomWidth: 0},
     title: 'Join a team',
   })),

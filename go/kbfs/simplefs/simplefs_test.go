@@ -1556,3 +1556,54 @@ func TestSyncConfigFavorites(t *testing.T) {
 	}
 	require.Equal(t, 1, numSyncing)
 }
+
+func TestRemoveFavorite(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "alice")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Write a file in the shared directory")
+	pathPriv := keybase1.NewPathWithKbfs(`/private/alice,jdoe`)
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPriv, `test.txt`), []byte(`foo`))
+	syncFS(ctx, t, sfs, "/private/alice,jdoe")
+
+	t.Log("Make sure it's in the favorites list")
+	favs, err := sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 3)
+	find := func() bool {
+		for _, f := range favs.FavoriteFolders {
+			t.Logf("NAME=%s", f.Name)
+			if f.FolderType == keybase1.FolderType_PRIVATE &&
+				f.Name == "alice,jdoe" {
+				return true
+			}
+		}
+		return false
+	}
+	found := find()
+	require.True(t, found)
+
+	t.Log("Remove the favorite")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID: opid,
+		Path: pathPriv,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, pathPriv, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Check that it's gone")
+	favs, err = sfs.SimpleFSListFavorites(ctx)
+	require.NoError(t, err)
+	require.Len(t, favs.FavoriteFolders, 2)
+	found = find()
+	require.False(t, found)
+}

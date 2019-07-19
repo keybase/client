@@ -69,7 +69,7 @@ if (enableStoreLogging) {
 
 let lastError = new Error('')
 
-const errorCatching = store => next => action => {
+const errorCatching = () => next => action => {
   try {
     return next(action)
   } catch (error) {

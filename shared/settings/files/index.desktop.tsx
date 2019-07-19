@@ -14,7 +14,7 @@ import {Props} from '.'
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
-const EnableSystemFileManagerIntegration = (props: Props) => (
+const EnableSystemFileManagerIntegration = (_: Props) => (
   <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
     <Kb.Text type="Body">Enable Keybase in {Platform.fileUIName}</Kb.Text>
     <Kb.Text type="BodySmall">

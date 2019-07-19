@@ -4,7 +4,7 @@ import {connect, compose, defaultProps, RouteProps} from '../util/container'
 
 type OwnProps = RouteProps<{source: string; title: string}>
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (_: TypedState, ownProps: OwnProps) => ({
   source: ownProps.routeProps.get('source'),
   title: ownProps.routeProps.get('title'),
 })

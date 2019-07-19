@@ -78,7 +78,7 @@ const revoke = (state, action: DevicesGen.RevokePayload) => {
   }
 }
 
-const navigateAfterRevoked = (state, action: DevicesGen.RevokedPayload) => {
+const navigateAfterRevoked = (_, action: DevicesGen.RevokedPayload) => {
   if (!action.payload.wasCurrentDevice) {
     return RouteTreeGen.createNavUpToScreen({
       routeName: Constants.devicesTabLocation[Constants.devicesTabLocation.length - 1],
@@ -103,9 +103,9 @@ const showDevicePage = (_, {payload: {deviceID}}) =>
 const showPaperKeyPage = () =>
   RouteTreeGen.createNavigateAppend({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
 
-const clearNavBadges = state => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
+const clearNavBadges = () => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
-const receivedBadgeState = (state, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+const receivedBadgeState = (_, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   DevicesGen.createBadgeAppForDevices({
     ids: (action.payload.badgeState.newDevices || []).concat(action.payload.badgeState.revokedDevices || []),
   })

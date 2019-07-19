@@ -164,7 +164,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onSelect(selected)
   }
 
-  _onChangeFilter = filter => this.setState(s => ({filter}))
+  _onChangeFilter = filter => this.setState(() => ({filter}))
 
   clearFilter() {
     this._onChangeFilter('')

@@ -39,7 +39,7 @@ const trackerMapStateToProps = (state, ownProps) => {
   }
 }
 
-const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
+const trackerMergeProps = (stateProps, _, ownProps) => {
   return {
     assertions: stateProps.assertions,
     bio: stateProps.bio,
@@ -97,7 +97,7 @@ const mapStateToProps = state => ({
   // _trackers: state.tracker.userTrackers,
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, _, __) => ({
   users: stateProps._users
     .filter(d => d.showTracker)
     .map(d => d.username)

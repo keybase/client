@@ -18,7 +18,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {navigateAppend, navigation}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   clearBadges: () => dispatch(DevicesGen.createClearBadges()),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
@@ -80,7 +80,7 @@ class ReloadableDevices extends React.PureComponent<Props & {clearBadges: () => 
 const NamedConnected = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
     const revokedItems = revoked.map(deviceToItem)
     const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)

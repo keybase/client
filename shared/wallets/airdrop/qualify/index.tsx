@@ -135,7 +135,7 @@ class Qualified extends React.PureComponent<Props, State> {
     this._kickNextLoad()
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     // got new rows or more to load
     if (!shallowEqual(this.props.rows, prevProps.rows)) {
       this.setState({rowIdxLoaded: -1})

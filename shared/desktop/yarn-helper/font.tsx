@@ -152,7 +152,7 @@ const fontsGeneratedSuccess = (web, result) => {
 
 const generateWebCSS = result => {
   const svgFilenames = getSvgNames(false /* print skipped */)
-  const rules = svgFilenames.reduce((map, {counter, name, size}) => {
+  const rules = svgFilenames.reduce((map, {counter, name}) => {
     map[`kb-iconfont-${name}`] = baseCharCode + counter - 1
     return map
   }, {})
@@ -254,7 +254,7 @@ function updateIconConstants() {
 
   // Build constants for iconfont svgs
   const svgFilenames = getSvgNames(false /* print skipped */)
-  svgFilenames.reduce((acc, {counter, name, size}) => {
+  svgFilenames.reduce((_, {counter, name, size}) => {
     return (icons[`iconfont-${name}`] = {
       isFont: true,
       gridSize: size,
