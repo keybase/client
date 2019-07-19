@@ -69,7 +69,7 @@ func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1
 		return libkb.AppStatusError{
 			Code: libkb.SCBadSignupTeamName,
 			Name: "BAD_SIGNUP_TEAM_NAME",
-			Desc: "This username is already taken by a team. Please pick another one.",
+			Desc: "This username is already taken. Please pick another one.",
 		}
 	default:
 		return libkb.AppStatusError{
