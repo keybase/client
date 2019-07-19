@@ -96,25 +96,29 @@ const RuntimeStatsDesktop = (props: Props) => {
 }
 
 const RuntimeStatsMobile = (props: Props) => {
-  return !props.hasData ? null : (
+  if (!props.hasData) {
+    return null
+  }
+  const stats = props.processStats[0]
+  return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="tiny">
       <Kb.Box2 direction="vertical">
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
           <Kb.Text
-            style={Styles.collapseStyles([styles.stat, severityStyle(props.cpuSeverity)])}
+            style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
             type="BodyTiny"
-          >{`C:${props.cpu}`}</Kb.Text>
+          >{`C:${stats.cpu}`}</Kb.Text>
           <Kb.Text
-            style={Styles.collapseStyles([styles.stat, severityStyle(props.residentSeverity)])}
+            style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
             type="BodyTiny"
-          >{`R:${props.resident}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`V:${props.virt}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`F:${props.free}`}</Kb.Text>
+          >{`R:${stats.resident}`}</Kb.Text>
+          <Kb.Text style={styles.stat} type="BodyTiny">{`V:${stats.virt}`}</Kb.Text>
+          <Kb.Text style={styles.stat} type="BodyTiny">{`F:${stats.free}`}</Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-          <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${props.goheap}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${props.goheapsys}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${props.goreleased}`}</Kb.Text>
+          <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${stats.goheap}`}</Kb.Text>
+          <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${stats.goheapsys}`}</Kb.Text>
+          <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${stats.goreleased}`}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Box2 direction="vertical">
