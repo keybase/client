@@ -416,7 +416,12 @@ func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (e
 	return entries, nil
 }
 
-func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) (err error) {
+func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) error {
+	_, err := d.clean(mctx, cacheDir, 0)
+	return err
+}
+
+func (d *DiskLRU) clean(mctx libkb.MetaContext, cacheDir string, batchSize int) (completed bool, err error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -427,22 +432,25 @@ func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) (err error) {
 	cacheRevMap := map[string]string{}
 	allVals, err := d.allValuesLocked(mctx.Ctx(), mctx.G())
 	if err != nil {
-		return err
+		return false, err
 	}
 	for _, entry := range allVals {
 		path, ok := entry.Value.(string)
 		if !ok {
 			continue
 		}
+		// normalize the filepath in case the abs path to of the cacheDir
+		// changed.
+		path = filepath.Join(cacheDir, filepath.Base(path))
 		cacheRevMap[path] = entry.Key
 	}
 
 	files, err := filepath.Glob(filepath.Join(cacheDir, "*"))
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	d.debug(mctx.Ctx(), mctx.G(), "Clean: found %d files to delete in %s, %d in cache",
+	d.debug(mctx.Ctx(), mctx.G(), "Clean: found %d files in %s, %d in cache",
 		len(files), cacheDir, len(cacheRevMap))
 	removed := 0
 	for _, v := range files {
@@ -451,13 +459,13 @@ func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) (err error) {
 				d.debug(mctx.Ctx(), mctx.G(), "Clean: failed to delete file %q: %s", v, err)
 			}
 			removed++
-			// Keep mobile out of a tight loop with a short sleep.
-			if removed%1000 == 0 && mctx.G().IsMobileAppType() {
-				time.Sleep(25 * time.Millisecond)
+			if batchSize > 0 && removed > batchSize {
+				d.debug(mctx.Ctx(), mctx.G(), "Clean: Aborting clean, reached batch size %d", batchSize)
+				return false, nil
 			}
 		}
 	}
-	return nil
+	return true, nil
 }
 
 // CleanAfterDelay runs the LRU clean function after the `delay` duration. If
@@ -465,14 +473,29 @@ func (d *DiskLRU) Clean(mctx libkb.MetaContext, cacheDir string) (err error) {
 // disk before they can get recorded in the LRU. Callers can run this in the
 // background to prevent leaking space.  We delay to keep off the critical path
 // to start up.
-func CleanAfterDelay(mctx libkb.MetaContext, d *DiskLRU,
-	cacheDir string, delay time.Duration) {
-	defer mctx.TraceTimed(fmt.Sprintf("CleanAfterDelay: cleaning %s in %v", cacheDir, delay),
-		func() error { return nil })()
+func CleanAfterDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string, delay time.Duration) {
 
+	mctx.Debug("CleanAfterDelay: cleaning %s in %v", cacheDir, delay)
 	time.Sleep(delay)
-	if err := d.Clean(mctx, cacheDir); err != nil {
-		mctx.Debug("unable to run clean: %v", err)
+
+	defer mctx.TraceTimed("CleanAfterDelay", func() error { return nil })()
+
+	// Batch deletions so we don't hog the lock.
+	batchSize := 1000
+
+	batchDelay := 10 * time.Millisecond
+	if mctx.G().IsMobileAppType() {
+		batchDelay = 25 * time.Millisecond
+	}
+	for {
+		if completed, err := d.clean(mctx, cacheDir, batchSize); err != nil {
+			mctx.Debug("unable to run clean: %v", err)
+			break
+		} else if completed {
+			break
+		}
+		// Keep out of a tight loop with a short sleep.
+		time.Sleep(batchDelay)
 	}
 	size, err := d.Size(mctx.Ctx(), mctx.G())
 	if err != nil {
