@@ -149,7 +149,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     return (
       <Kb.Box onLayout={this._onLayout}>
-        {this.props.suggestBotCommandsUpdateStatus !== undefined &&
+        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
           (this.props.suggestionsVisible ||
             this.props.suggestBotCommandsUpdateStatus ===
               RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (

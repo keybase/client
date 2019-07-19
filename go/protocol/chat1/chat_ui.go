@@ -2256,6 +2256,7 @@ const (
 	UIBotCommandsUpdateStatus_UPTODATE UIBotCommandsUpdateStatus = 0
 	UIBotCommandsUpdateStatus_UPDATING UIBotCommandsUpdateStatus = 1
 	UIBotCommandsUpdateStatus_FAILED   UIBotCommandsUpdateStatus = 2
+	UIBotCommandsUpdateStatus_BLANK    UIBotCommandsUpdateStatus = 3
 )
 
 func (o UIBotCommandsUpdateStatus) DeepCopy() UIBotCommandsUpdateStatus { return o }
@@ -2264,12 +2265,14 @@ var UIBotCommandsUpdateStatusMap = map[string]UIBotCommandsUpdateStatus{
 	"UPTODATE": 0,
 	"UPDATING": 1,
 	"FAILED":   2,
+	"BLANK":    3,
 }
 
 var UIBotCommandsUpdateStatusRevMap = map[UIBotCommandsUpdateStatus]string{
 	0: "UPTODATE",
 	1: "UPDATING",
 	2: "FAILED",
+	3: "BLANK",
 }
 
 func (e UIBotCommandsUpdateStatus) String() string {

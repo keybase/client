@@ -462,7 +462,8 @@ protocol chatUi {
   enum UIBotCommandsUpdateStatus {
     UPTODATE_0,
     UPDATING_1,
-    FAILED_2
+    FAILED_2,
+    BLANK_3
   }
   void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status); 
 }

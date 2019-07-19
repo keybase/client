@@ -1607,7 +1607,8 @@
       "symbols": [
         "UPTODATE_0",
         "UPDATING_1",
-        "FAILED_2"
+        "FAILED_2",
+        "BLANK_3"
       ]
     }
   ],
