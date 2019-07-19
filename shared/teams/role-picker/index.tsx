@@ -63,7 +63,7 @@ type RolesMetaInfo = {
   extra?: Array<string>
   icon: React.ReactNode | null
 }
-const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaInfo => {
+const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
   switch (infoForRole) {
     case 'admin':
       return {
@@ -132,8 +132,7 @@ const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaI
 const roleAbilities = (
   abilities: Array<string>,
   canDo: boolean,
-  addFinalPadding: boolean,
-  selected: boolean
+  addFinalPadding: boolean
 ): Array<React.ReactNode> => {
   return abilities.map((ability, i) => (
     <Kb.Box2
@@ -159,7 +158,7 @@ const roleAbilities = (
 
 const roleElementHelper = (selectedRole: Role | null) =>
   orderedRoles
-    .map(role => [role, rolesMetaInfo(role as Role, selectedRole)])
+    .map(role => [role, rolesMetaInfo(role as Role)])
     .map(([role, info]) => {
       // Using as to avoid lots of ts-ignore
       const roleInfo = info as RolesMetaInfo
@@ -167,8 +166,8 @@ const roleElementHelper = (selectedRole: Role | null) =>
         body:
           selectedRole === role
             ? [
-                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, selectedRole === role),
-                roleAbilities(roleInfo.cants, false, true, selectedRole === role),
+                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
+                roleAbilities(roleInfo.cants, false, true),
               ]
             : undefined,
         icon: roleInfo.icon,

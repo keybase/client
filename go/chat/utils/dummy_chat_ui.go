@@ -131,6 +131,10 @@ func (r DummyChatUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusA
 	return nil
 }
 
+func (r DummyChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

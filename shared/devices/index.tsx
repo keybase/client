@@ -44,7 +44,7 @@ class Devices extends React.PureComponent<Props, State> {
     this.props.loadDevices()
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(_: Props, prevState: State) {
     if (this.props.hasNewlyRevoked && !prevState.revokedExpanded) {
       this.setState({revokedExpanded: true})
     }
@@ -83,9 +83,7 @@ class Devices extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {Styles.isMobile && (
-          <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
-        )}
+        {Styles.isMobile && <DeviceHeader onAddNew={() => this.props.onAddDevice()} />}
         {this.props.showPaperKeyNudge && (
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
@@ -112,7 +110,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const DeviceHeader = ({onAddNew, waiting}) => (
+const DeviceHeader = ({onAddNew}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
     <Kb.Button label="Add a device or paper key">
       <Kb.Icon

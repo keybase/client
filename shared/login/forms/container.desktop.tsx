@@ -3,7 +3,7 @@ import {globalStyles} from '../../styles'
 
 import {Props} from './container'
 
-const Container = ({children, onBack, style, outerStyle}: Props) => {
+const Container = ({children, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
       <div style={{...stylesInnerContainer, ...style}}>{children}</div>

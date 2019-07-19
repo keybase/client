@@ -74,6 +74,7 @@ const Friends = () => (
         </Kb.Text>
         <Kb.Text type="Body">
           <Kb.Text
+            selectable={true}
             type="BodyPrimaryLink"
             style={styles.link}
             onClick={() => openURL('https://keybase.io/airdrop')}

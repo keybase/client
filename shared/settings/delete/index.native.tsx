@@ -1,6 +1,4 @@
-import {Props} from './index'
-
-function DeleteMe(props: Props) {
+function DeleteMe() {
   return null
 }
 

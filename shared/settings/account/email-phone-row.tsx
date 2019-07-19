@@ -99,7 +99,9 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
-        <Kb.Text type="BodySemibold">{props.address}</Kb.Text>
+        <Kb.Text type="BodySemibold" selectable={true}>
+          {props.address}
+        </Kb.Text>
         {(!!subtitle || !props.verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
             {!props.verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
@@ -206,18 +208,17 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
   mapDispatchToProps,
   (stateProps, dispatchProps, _: OwnProps) => {
     if (stateProps._phoneRow) {
-      const searchable = stateProps._phoneRow.visibility === RPCTypes.IdentityVisibility.public
+      const pr = stateProps._phoneRow
       return {
-        address: stateProps._phoneRow.phoneNumber,
+        address: pr.displayNumber,
         onDelete: dispatchProps.phone.onDelete,
         onMakePrimary: dispatchProps.phone.onMakePrimary,
         onToggleSearchable: dispatchProps.phone.onToggleSearchable,
-        onVerify: () =>
-          stateProps._phoneRow && dispatchProps.phone._onVerify(stateProps._phoneRow.phoneNumber),
+        onVerify: () => dispatchProps.phone._onVerify(pr.e164),
         primary: false,
-        searchable,
+        searchable: pr.searchable,
         type: 'phone' as const,
-        verified: stateProps._phoneRow.verified,
+        verified: pr.verified,
       }
     } else if (stateProps._emailRow) {
       const searchable = stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public

@@ -106,7 +106,7 @@ const getPeopleData = (state, action: PeopleGen.GetPeopleDataPayload) => {
       })
       // never throw black bars
     })
-    .catch(e => {})
+    .catch(() => {})
 }
 
 const dismissAnnouncement = (_, action: PeopleGen.DismissAnnouncementPayload) =>
@@ -135,7 +135,7 @@ const skipTodo = (_, action: PeopleGen.SkipTodoPayload) =>
   )
 
 let _wasOnPeopleTab = false
-const homeUIRefresh = (_, action: EngineGen.Keybase1HomeUIHomeUIRefreshPayload) =>
+const homeUIRefresh = () =>
   _wasOnPeopleTab &&
   PeopleGen.createGetPeopleData({
     markViewed: false,

@@ -61,8 +61,8 @@ const startReduxSaga = (initialStore?: Object) => {
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}))
+  dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+  dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
 
   return {
     dispatch,
@@ -669,8 +669,8 @@ describe('final errors show', () => {
 
   it('shows the final error page (devices add)', () => {
     const {getState, dispatch} = startReduxSaga()
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
     // expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
     const error = new RPCError('something bad happened', 1, [])
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
@@ -680,8 +680,8 @@ describe('final errors show', () => {
 
   it('ignore cancel (devices add)', () => {
     const {getState, dispatch} = startReduxSaga()
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true}))
-    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
     const error = new RPCError('Input canceled', RPCTypes.StatusCode.scinputcanceled)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
     expect(getState().provision.finalError).toEqual(null)

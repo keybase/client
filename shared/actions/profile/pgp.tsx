@@ -27,7 +27,7 @@ function* generatePgp(state) {
   const onShouldPushPrivate = ({prompt}, response) => {
     return Saga.callUntyped(function*() {
       yield Saga.put(
-        RouteTreeGen.createNavigateTo({
+        RouteTreeGen.createNavigateAppend({
           path: [
             peopleTab,
             'profile',
@@ -48,7 +48,7 @@ function* generatePgp(state) {
   const onFinished = () => {}
 
   yield Saga.put(
-    RouteTreeGen.createNavigateTo({
+    RouteTreeGen.createNavigateAppend({
       path: [peopleTab, 'profile', 'profilePgp', 'profileProvideInfo', 'profileGenerate'],
     })
   )

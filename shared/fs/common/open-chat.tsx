@@ -45,6 +45,6 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
     : null,
 })
 
-const mergeProps = (s, d, o) => d
+const mergeProps = (_, d) => d
 
 export default namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'OpenChat')(OpenChat)

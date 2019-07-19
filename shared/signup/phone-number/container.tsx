@@ -6,7 +6,9 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import EnterPhoneNumber, {Props} from '.'
 
-const mapStateToProps = (state: Container.TypedState, ownProps: {}) => ({
+type OwnProps = {}
+
+const mapStateToProps = (state: Container.TypedState) => ({
   error: state.settings.phoneNumbers.error,
   pendingVerification: state.settings.phoneNumbers.pendingVerification,
   waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
@@ -58,7 +60,7 @@ class WatchForGoToVerify extends React.Component<WatcherProps> {
 const ConnectedEnterPhoneNumber = Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'ConnectedEnterPhoneNumber'
 )(WatchForGoToVerify)
 

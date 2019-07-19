@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/maps"
@@ -414,6 +415,7 @@ func (d *Service) startChatModules() {
 		g.CoinFlipManager.Start(context.Background(), uid)
 		g.TeamMentionLoader.Start(context.Background(), uid)
 		g.LiveLocationTracker.Start(context.Background(), uid)
+		g.BotCommandManager.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -428,6 +430,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
 	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
 	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
+	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
 	return nil
 }
 
@@ -496,6 +499,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

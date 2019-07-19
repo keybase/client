@@ -22,7 +22,8 @@ protocol NotifyTeam {
     TeamID teamID,
     Seqno latestSeqno,
     boolean implicitTeam,
-    TeamChangeSet changes
+    TeamChangeSet changes,
+    Seqno latestHiddenSeqno
   ) oneway;
 
   // All fields are unverified
@@ -30,7 +31,8 @@ protocol NotifyTeam {
     string teamName,
     Seqno latestSeqno,
     boolean implicitTeam,
-    TeamChangeSet changes
+    TeamChangeSet changes,
+    Seqno latestHiddenSeqno
   ) oneway;
 
   void teamDeleted(TeamID teamID) oneway;

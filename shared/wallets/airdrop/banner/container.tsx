@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCheckQualify: () => {
     // Switch to the wallet tab to make sure the disclaimer appears.
     dispatch(RouteTreeGen.createSwitchTab({tab: Constants.rootWalletTab}))
-    dispatch(RouteTreeGen.createNavigateTo({path: [...Constants.walletPath, 'airdrop']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [...Constants.walletPath, 'airdrop']}))
   },
 })
 

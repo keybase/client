@@ -17,12 +17,15 @@ const mapStateToProps = (state, {path}: OwnProps) => {
   }
 }
 
-const mergeProps = (s, d, {path, routePath, onLoadingStateChange}: OwnProps) => ({
+const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
+
+const mergeProps = (s, _, {path, routePath, onLoadingStateChange}: OwnProps) => ({
   lastModifiedTimestamp: s._pathItem.lastModifiedTimestamp,
   mime: s._pathItem.type === Types.PathType.File ? s._pathItem.mimeType : null,
   onLoadingStateChange,
   path,
   routePath,
+  tooLargeForText: s._pathItem.type === Types.PathType.File && s._pathItem.size > textViewUpperLimit,
   type: s._pathItem.type,
   url: Constants.generateFileURL(path, s._serverInfo),
 })

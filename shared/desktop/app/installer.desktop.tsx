@@ -114,7 +114,7 @@ const darwinInstall = (callback: CB) => {
       )
       .catch(err => logger.error('[Installer]: Error zipping up logs: ', err))
 
-  const handleResults = (err, attempted, stdout, stderr) => {
+  const handleResults = (err, _, stdout, stderr) => {
     const loggingPromise = logOutput(stdout, stderr)
     const errors: Array<string> = []
     const errorTypes = {

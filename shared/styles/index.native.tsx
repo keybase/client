@@ -22,7 +22,7 @@ const font = isIOS
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: 'normal'},
       fontTerminal: {fontFamily: 'SourceCodePro-Medium', fontWeight: 'normal'},
-      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
+      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semibold', fontWeight: 'normal'},
       italic: {fontStyle: 'italic'},
     }
 
@@ -55,8 +55,8 @@ export const collapseStyles = (
 ): ReadonlyArray<Object | null | false | void> => {
   return styles
 }
-export const transition = (...properties: Array<string>) => ({})
-export const backgroundURL = (...path: Array<string>) => ({})
+export const transition = () => ({})
+export const backgroundURL = () => ({})
 export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'

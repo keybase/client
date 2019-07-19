@@ -15,7 +15,7 @@ const mapDispatchToProps = dispatch => ({
   onReadMore: () => openURL('https://keybase.io/docs/teams/design'),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   onHideSubteamsBanner: dispatchProps.onHideSubteamsBanner,
   onReadMore: dispatchProps.onReadMore,
   teamname: ownProps.teamname,

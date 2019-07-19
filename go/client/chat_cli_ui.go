@@ -371,3 +371,7 @@ func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) err
 func (c *ChatCLIUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
+	return nil
+}

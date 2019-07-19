@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
   _sendAttachmentToChat: state.fs.sendAttachmentToChat,
 })
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   _send: (conversationIDKey, path, title) => {
     dispatch(
       ChatGen.createAttachmentsUpload({
@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onSetTitle: (title: string) => dispatch(FsGen.createSetSendAttachmentToChatTitle({title})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownPropps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onCancel: dispatchProps.onCancel,
   onSetTitle: dispatchProps.onSetTitle,
   path: stateProps._sendAttachmentToChat.path,

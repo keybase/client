@@ -63,6 +63,10 @@ export type MessageTypes = {
     inParam: {readonly id: TeamID; readonly generation: EkGeneration}
     outParam: void
   }
+  'keybase.1.NotifyEphemeral.teambotEkNeeded': {
+    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: EkGeneration}
+    outParam: void
+  }
   'keybase.1.NotifyFS.FSActivity': {
     inParam: {readonly notification: FSNotification}
     outParam: void
@@ -148,11 +152,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByID': {
-    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet}
+    inParam: {readonly teamID: TeamID; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamChangedByName': {
-    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet}
+    inParam: {readonly teamName: String; readonly latestSeqno: Seqno; readonly implicitTeam: Boolean; readonly changes: TeamChangeSet; readonly latestHiddenSeqno: Seqno}
     outParam: void
   }
   'keybase.1.NotifyTeam.teamDeleted': {
@@ -1340,6 +1344,10 @@ export enum ConflictStateType {
 export enum DbType {
   main = 0,
   chat = 1,
+  fsBlockCache = 2,
+  fsBlockCacheMeta = 3,
+  fsSyncBlockCache = 4,
+  fsSyncBlockCacheMeta = 5,
 }
 
 export enum DeviceType {
@@ -1660,6 +1668,11 @@ export enum PrefetchStatus {
   complete = 2,
 }
 
+export enum ProcessType {
+  main = 0,
+  kbfs = 1,
+}
+
 export enum PromptDefault {
   none = 0,
   yes = 1,
@@ -1919,6 +1932,8 @@ export enum StatusCode {
   scsigwrongkey = 1008,
   scsigoldseqno = 1010,
   scsigcreationdisallowed = 1016,
+  scsigmissingratchet = 1021,
+  scsigbadtotalorder = 1022,
   scbadtracksession = 1301,
   scdevicebadname = 1404,
   scdevicenameinuse = 1408,
@@ -2029,7 +2044,6 @@ export enum StatusCode {
   scephemeralmemberafterek = 2907,
   scephemeraldevicestale = 2908,
   scephemeraluserstale = 2909,
-  scephemeralteambotgenerationexists = 2910,
   scstellarerror = 3100,
   scstellarbadinput = 3101,
   scstellarwrongrevision = 3102,
@@ -2070,6 +2084,7 @@ export enum StatusCode {
   scphonenumberwrongverificationcode = 3403,
   scphonenumberlimitexceeded = 3404,
   scnopaperkeys = 3605,
+  scteambotkeygenerationexists = 3800,
 }
 
 export enum TLFIdentifyBehavior {
@@ -2265,6 +2280,7 @@ export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; reado
 export type CsrfToken = String
 export type CurrentStatus = {readonly configured: Boolean; readonly registered: Boolean; readonly loggedIn: Boolean; readonly sessionIsValid: Boolean; readonly user?: User | null}
 export type DbKey = {readonly dbType: DbType; readonly objType: Int; readonly key: String}
+export type DbStats = {readonly type: DbType; readonly memCompActive: Boolean; readonly tableCompActive: Boolean}
 export type DbValue = Bytes
 export type DeletedTeamInfo = {readonly teamName: String; readonly deletedBy: String; readonly id: Gregor1.MsgID}
 export type DesktopStatus = {readonly version: String; readonly running: Boolean; readonly log: String}
@@ -2486,6 +2502,7 @@ export type ProblemSet = {readonly user: User; readonly kid: KID; readonly tlfs?
 export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devices?: Array<Device> | null}
 export type ProblemTLF = {readonly tlf: TLF; readonly score: Int; readonly solution_kids?: Array<KID> | null}
 export type Process = {readonly pid: String; readonly command: String; readonly fileDescriptors?: Array<FileDescriptor> | null}
+export type ProcessRuntimeStats = {readonly type: ProcessType; readonly cpu: String; readonly resident: String; readonly virt: String; readonly free: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel}
 export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly assertion: String; readonly displayName: String; readonly displayLabel: String; readonly rawScore: Double}
 export type ProfileTeamLoadRes = {readonly loadTimeNsec: Long}
 export type Progress = Int
@@ -2523,7 +2540,7 @@ export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; read
 export type RevokeWarning = {readonly endangeredTLFs?: Array<TLF> | null}
 export type RevokedKey = {readonly key: PublicKey; readonly time: KeybaseTime; readonly by: KID}
 export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDiff; readonly snoozed: Boolean}
-export type RuntimeStats = {readonly cpu: String; readonly resident: String; readonly virt: String; readonly free: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
+export type RuntimeStats = {readonly processStats?: Array<ProcessRuntimeStats> | null; readonly dbStats?: Array<DbStats> | null; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
@@ -2566,7 +2583,7 @@ export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolea
 export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
-export type SimpleFSStats = {readonly blockCacheDbStats?: Array<String> | null; readonly syncCacheDbStats?: Array<String> | null}
+export type SimpleFSStats = {readonly processStats: ProcessRuntimeStats; readonly blockCacheDbStats?: Array<String> | null; readonly syncCacheDbStats?: Array<String> | null; readonly runtimeDbStats?: Array<DbStats> | null}
 export type SizedImage = {readonly path: String; readonly width: Int}
 export type SocialAssertion = {readonly user: String; readonly service: SocialAssertionService}
 export type SocialAssertionService = String
@@ -2757,6 +2774,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyEmailAddress.emailsChanged'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyEphemeral.newTeamEk'?: (params: MessageTypes['keybase.1.NotifyEphemeral.newTeamEk']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyEphemeral.newTeambotEk'?: (params: MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifyEphemeral.teambotEkNeeded'?: (params: MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFavorites.favoritesChanged'?: (params: MessageTypes['keybase.1.NotifyFavorites.favoritesChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSActivity'?: (params: MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyFS.FSPathUpdated'?: (params: MessageTypes['keybase.1.NotifyFS.FSPathUpdated']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -2876,6 +2894,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyEmailAddress.emailAddressVerified'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEmailAddress.emailAddressVerified']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyEmailAddress.emailsChanged'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyEphemeral.newTeambotEk'?: (params: MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyEphemeral.teambotEkNeeded'?: (params: MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['outParam']) => void}) => IncomingReturn
@@ -3315,6 +3334,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.NotifyEmailAddress.emailsChanged'
 // 'keybase.1.NotifyEphemeral.newTeamEk'
 // 'keybase.1.NotifyEphemeral.newTeambotEk'
+// 'keybase.1.NotifyEphemeral.teambotEkNeeded'
 // 'keybase.1.NotifyFavorites.favoritesChanged'
 // 'keybase.1.NotifyFS.FSActivity'
 // 'keybase.1.NotifyFS.FSPathUpdated'

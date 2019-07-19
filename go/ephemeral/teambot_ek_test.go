@@ -22,9 +22,9 @@ func TestNewTeambotEK(t *testing.T) {
 	teams.ServiceInit(mctx2.G())
 
 	teamID := createTeam(tc)
-	botUser, err := kbtest.CreateAndSignupFakeUser("t", tc2.G)
+	botua, err := kbtest.CreateAndSignupFakeUser("t", tc2.G)
 	require.NoError(t, err)
-	botUID := botUser.GetUID()
+	botuaUID := botua.GetUID()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 		ID:          teamID,
@@ -32,22 +32,28 @@ func TestNewTeambotEK(t *testing.T) {
 	})
 	require.NoError(t, err)
 	res, err := teams.AddMember(context.TODO(), mctx.G(), team.Name().String(),
-		botUser.Username, keybase1.TeamRole_BOT)
+		botua.Username, keybase1.TeamRole_BOT)
 	require.NoError(t, err)
-	require.Equal(t, botUser.Username, res.User.Username)
+	require.Equal(t, botua.Username, res.User.Username)
 
 	merkleRootPtr, err := mctx.G().GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 
 	// Before we've published anything, should get back a nil botkey
-	nilMeta, err := fetchLatestTeambotEK(mctx2, teamID)
+	nilMeta, wrongKID, err := fetchLatestTeambotEK(mctx2, teamID)
 	require.NoError(t, err)
 	require.Nil(t, nilMeta)
+	require.False(t, wrongKID)
 
-	teamEK, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+	ek, _, err := mctx.G().GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
 	require.NoError(t, err)
-	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK, merkleRoot)
+	typ, err := ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK := ek.Team()
+
+	publishedMetadata, err := publishNewTeambotEK(mctx, teamID, botuaUID, teamEK, merkleRoot)
 	require.NoError(t, err)
 
 	// bot users don't have access to team secrets so they can't get the teamEK
@@ -56,12 +62,13 @@ func TestNewTeambotEK(t *testing.T) {
 
 	// this fails as well since bots can't sign things on behalf of the team
 	// either, even if we pass a valid teamEK from the non-bot
-	_, err = publishNewTeambotEK(mctx2, teamID, botUID, teamEK, merkleRoot)
+	_, err = publishNewTeambotEK(mctx2, teamID, botuaUID, teamEK, merkleRoot)
 	require.Error(t, err)
 
-	metaPtr, err := fetchLatestTeambotEK(mctx2, teamID)
+	metaPtr, wrongKID, err := fetchLatestTeambotEK(mctx2, teamID)
 	require.NoError(t, err)
 	require.NotNil(t, metaPtr)
+	require.False(t, wrongKID)
 	metadata := *metaPtr
 	require.Equal(t, publishedMetadata, metadata)
 	require.EqualValues(t, 1, metadata.Generation)
@@ -69,7 +76,7 @@ func TestNewTeambotEK(t *testing.T) {
 	keyer := NewTeambotEphemeralKeyer()
 	teambotEKBoxed, err := keyer.Fetch(mctx2, teamID, metadata.Generation, nil)
 	require.NoError(t, err)
-	typ, err := teambotEKBoxed.KeyType()
+	typ, err = teambotEKBoxed.KeyType()
 	require.NoError(t, err)
 	require.True(t, typ.IsTeambot())
 	require.Equal(t, metadata, teambotEKBoxed.Teambot().Metadata)
@@ -81,12 +88,16 @@ func TestNewTeambotEK(t *testing.T) {
 	require.True(t, typ.IsTeambot())
 
 	// this fails for the bot user
-	teamEK, err = mctx2.G().GetEKLib().GetTeamEK(mctx2, teamID, teambotEK.Generation(), nil)
+	_, err = mctx2.G().GetEKLib().GetTeamEK(mctx2, teamID, teambotEK.Generation(), nil)
 	require.Error(t, err)
 
-	teamEK, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
+	ek, err = mctx.G().GetEKLib().GetTeamEK(mctx, teamID, teambotEK.Generation(), nil)
+	typ, err = ek.KeyType()
 	require.NoError(t, err)
-	expectedSeed, err := deriveTeambotEKFromTeamEK(mctx, teamEK, botUID)
+	require.True(t, typ.IsTeam())
+	teamEK = ek.Team()
+	require.NoError(t, err)
+	expectedSeed, err := deriveTeambotEKFromTeamEK(mctx, teamEK, botuaUID)
 	require.NoError(t, err)
 	require.Equal(t, keybase1.Bytes32(expectedSeed), teambotEK.Teambot().Seed)
 

@@ -39,13 +39,15 @@ func (c *CmdShowNotifications) Run() error {
 		keybase1.NotifyFSProtocol(display),
 		keybase1.NotifyTrackingProtocol(display),
 		keybase1.NotifyAuditProtocol(display),
+		keybase1.NotifyRuntimeStatsProtocol(display),
 	}
 	channels := keybase1.NotificationChannels{
-		Session:  true,
-		Users:    true,
-		Kbfs:     true,
-		Tracking: true,
-		Audit:    true,
+		Session:      true,
+		Users:        true,
+		Kbfs:         true,
+		Tracking:     true,
+		Audit:        true,
+		Runtimestats: true,
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -178,4 +180,51 @@ func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err
 
 func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err error) {
 	return d.printf("Box audit error (report with `keybase log send`): %s\n", msg)
+}
+
+func (d *notificationDisplay) RuntimeStatsUpdate(
+	_ context.Context, stats *keybase1.RuntimeStats) (err error) {
+	err = d.printf("Runtime stats:")
+	if err != nil {
+		return err
+	}
+
+	comma := ""
+	for _, s := range stats.ProcessStats {
+		err = d.printf(
+			"%s [%s: Goheap=%s, Goheapsys=%s, Goreleased=%s]",
+			comma, s.Type, s.Goheap, s.Goheapsys, s.Goreleased)
+		if err != nil {
+			return err
+		}
+		comma = ","
+	}
+
+	for _, s := range stats.DbStats {
+		if !s.MemCompActive && !s.TableCompActive {
+			continue
+		}
+
+		var name string
+		switch s.Type {
+		case keybase1.DbType_MAIN:
+			name = "dbMain"
+		case keybase1.DbType_CHAT:
+			name = "dbChat"
+		case keybase1.DbType_FS_BLOCK_CACHE:
+			name = "dbFSBlockCache"
+		case keybase1.DbType_FS_BLOCK_CACHE_META:
+			name = "dbFSMetaBlockCache"
+		case keybase1.DbType_FS_SYNC_BLOCK_CACHE:
+			name = "dbFSSyncBlockCache"
+		case keybase1.DbType_FS_SYNC_BLOCK_CACHE_META:
+			name = "dbFSMetaSyncBlockCache"
+		}
+		err = d.printf(
+			", %s=[M:%t T:%t] ", name, s.MemCompActive, s.TableCompActive)
+		if err != nil {
+			return err
+		}
+	}
+	return d.printf("\n")
 }

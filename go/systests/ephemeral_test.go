@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +33,7 @@ func TestEphemeralNewTeamEKNotif(t *testing.T) {
 
 	expectedArg := keybase1.NewTeamEkArg{
 		Id:         teamID,
-		Generation: teamEK.Metadata.Generation,
+		Generation: teamEK.Generation(),
 	}
 
 	checkNewTeamEKNotifications(user1.tc, user1.notifications, expectedArg)
@@ -45,7 +46,7 @@ func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotif
 		require.Equal(tc.T, expectedArg, arg)
 		return
 	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
-		tc.T.Fatal("no notification on newTeamEK")
+		require.Fail(tc.T, "no notification on newTeamEK")
 	}
 }
 
@@ -54,27 +55,26 @@ func TestEphemeralNewTeambotEKNotif(t *testing.T) {
 	defer tt.cleanup()
 
 	user1 := tt.addUser("one")
-	botUser := tt.addUser("bot")
-	botUID := gregor1.UID(botUser.uid.ToBytes())
+	botua := tt.addUser("botua")
+	botuaUID := gregor1.UID(botua.uid.ToBytes())
 	mctx := libkb.NewMetaContextForTest(*user1.tc)
 
 	teamID, teamName := user1.createTeam2()
-	// TODO move to keybase1.TeamRole_BOT
-	user1.addTeamMember(teamName.String(), botUser.username, keybase1.TeamRole_WRITER)
+	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
 
 	ephemeral.ServiceInit(mctx)
 	ekLib := user1.tc.G.GetEKLib()
 
-	teambotEK, created, err := ekLib.GetOrCreateLatestTeambotEK(mctx, teamID, botUID)
+	teambotEK, created, err := ekLib.GetOrCreateLatestTeambotEK(mctx, teamID, botuaUID)
 	require.NoError(t, err)
 	require.True(t, created)
 
 	expectedArg := keybase1.NewTeambotEkArg{
 		Id:         teamID,
-		Generation: teambotEK.Metadata.Generation,
+		Generation: teambotEK.Generation(),
 	}
 
-	checkNewTeambotEKNotifications(botUser.tc, botUser.notifications, expectedArg)
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, expectedArg)
 }
 
 func checkNewTeambotEKNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler, expectedArg keybase1.NewTeambotEkArg) {
@@ -83,7 +83,33 @@ func checkNewTeambotEKNotifications(tc *libkb.TestContext, notifications *teamNo
 		require.Equal(tc.T, expectedArg, arg)
 		return
 	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
-		tc.T.Fatal("no notification on newTeamEK")
+		require.Fail(tc.T, "no notification on newTeambotEK")
+	}
+}
+
+func checkTeambotEKNeededNotifications(tc *libkb.TestContext, notifications *teamNotifyHandler, expectedArg keybase1.TeambotEkNeededArg) {
+	select {
+	case arg := <-notifications.teambotEKNeededCh:
+		require.Equal(tc.T, expectedArg, arg)
+		return
+	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+		require.Fail(tc.T, "no notification on teambotEKNeeded")
+	}
+}
+
+func noNewTeambotEKNotification(tc *libkb.TestContext, notifications *teamNotifyHandler) {
+	select {
+	case <-notifications.newTeambotEKCh:
+		require.Fail(tc.T, "unexpected newTeambotEK notification")
+	default:
+	}
+}
+
+func noTeambotEKNeeded(tc *libkb.TestContext, notifications *teamNotifyHandler) {
+	select {
+	case <-notifications.teambotEKNeededCh:
+		require.Fail(tc.T, "unexpected teambotEKNeeded notification")
+	default:
 	}
 }
 
@@ -91,87 +117,187 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
+	fc := clockwork.NewFakeClockAt(time.Now())
+
 	user1 := tt.addUser("one")
 	user2 := tt.addUserWithPaper("two")
-	botUser := tt.addUser("bot")
-	botUID := gregor1.UID(botUser.uid.ToBytes())
+	botua := tt.addUser("botua")
+	botuaUID := gregor1.UID(botua.uid.ToBytes())
 	mctx1 := libkb.NewMetaContextForTest(*user1.tc)
 	mctx2 := libkb.NewMetaContextForTest(*user2.tc)
-	mctx3 := libkb.NewMetaContextForTest(*botUser.tc)
+	mctx3 := libkb.NewMetaContextForTest(*botua.tc)
 	ekLib1 := mctx1.G().GetEKLib()
 	ekLib2 := mctx2.G().GetEKLib()
-	ekLib3 := mctx3.G().GetEKLib()
+	ekLib3 := mctx3.G().GetEKLib().(*ephemeral.EKLib)
+	ekLib3.SetClock(fc)
 
 	teamID, teamName := user1.createTeam2()
-	// TODO move to keybase1.TeamRole_BOT
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
-	user1.addTeamMember(teamName.String(), botUser.username, keybase1.TeamRole_WRITER)
+	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_BOT)
+
+	// grab the latest teamEK and make sure the generation lines up with the teambotEK
+	teamEK, _, err := ekLib1.GetOrCreateLatestTeamEK(mctx1, teamID)
+	require.NoError(t, err)
 
 	// initial get, bot has no key to access
-	teambotEK, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botUID)
+	_, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
 	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
 	require.False(t, created)
 
-	// non-bot member derives a teambotEK from the teamEK and publishes it for
-	// the bot.
-	teamEK, _, err := ekLib1.GetOrCreateLatestTeamEK(mctx1, teamID)
-	require.NoError(t, err)
+	// cry for help has been issued.
+	ekNeededArg := keybase1.TeambotEkNeededArg{
+		Id:         teamID,
+		Uid:        botua.uid,
+		Generation: 0,
+	}
+	checkTeambotEKNeededNotifications(user1.tc, user1.notifications, ekNeededArg)
+	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
 
-	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
-	require.NoError(t, err)
-	require.True(t, created)
-	require.Equal(t, teamEK.Metadata.Generation, teambotEK.Metadata.Generation)
+	// and answered.
+	newEkArg := keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: 1,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
 
-	// now created = false
-	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
+	// now created = false since we published after receiving the teambot_key_needed notif
+	teambotEK, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Equal(t, teamEK.Metadata.Generation, teambotEK.Metadata.Generation)
+	require.Equal(t, teamEK.Generation(), teambotEK.Generation())
 
 	// bot can access the key
-	teambotEK2, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botUID)
+	teambotEK2, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, teambotEK, teambotEK2)
+	noTeambotEKNeeded(user1.tc, user1.notifications)
+	noTeambotEKNeeded(user2.tc, user2.notifications)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
 
-	// force the non-bot member to make a new teambotEK
+	// force a PTK rotation
 	user2.revokePaperKey()
 	user1.waitForRotateByID(teamID, keybase1.Seqno(4))
 
-	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
+	// Force a wrongKID error on the bot user by expiring the wrongKID cache
+	key := ephemeral.TeambotEKWrongKIDCacheKey(teamID, botua.uid, teambotEK2.Generation())
+	expired := keybase1.ToTime(fc.Now())
+	mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	permitted, ctime, err := ephemeral.TeambotWrongKIDPermitted(mctx3, teamID, botua.uid,
+		teambotEK2.Generation(), keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
-	require.True(t, created)
-	require.Equal(t, teamEK.Metadata.Generation+1, teambotEK.Metadata.Generation)
+	require.True(t, permitted)
+	require.Equal(t, expired, ctime)
 
-	teambotEK2, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botUID)
+	fc.Advance(ephemeral.MaxTeambotEKWrongKIDPermitted) // expire wrong KID cache
+	permitted, ctime, err = ephemeral.TeambotWrongKIDPermitted(mctx3, teamID, botua.uid,
+		teambotEK2.Generation(), keybase1.ToTime(fc.Now()))
+	require.NoError(t, err)
+	require.False(t, permitted)
+	require.Equal(t, expired, ctime)
+
+	fc.Advance(ephemeral.LibCacheEntryLifetime) // expire lib ek caches
+	_, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
+	require.Error(t, err)
+	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	require.False(t, created)
+	ekNeededArg = keybase1.TeambotEkNeededArg{
+		Id:         teamID,
+		Uid:        botua.uid,
+		Generation: 0,
+	}
+	checkTeambotEKNeededNotifications(user1.tc, user1.notifications, ekNeededArg)
+	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
+	newEkArg = keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: teambotEK2.Generation() + 1,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
+
+	teambotEK3, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
+	require.NoError(t, err)
+	require.False(t, created)
+	noTeambotEKNeeded(user1.tc, user1.notifications)
+	noTeambotEKNeeded(user2.tc, user2.notifications)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
+
+	// another PTK rotation happens, this time the bot proceeded with a key
+	// signed by the old PTK since the wrongKID cache did not expire
+	user1.removeTeamMember(teamName.String(), user2.username)
+	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
+	botua.waitForNewlyAddedToTeamByID(teamID)
+
+	// bot can access the old teambotEK, but asks for a new one to
+	// be created since it was signed by the old PTK
+	fc.Advance(ephemeral.LibCacheEntryLifetime) // expire lib ek caches
+	teambotEK4, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
+	require.NoError(t, err)
+	require.False(t, created)
+	require.Equal(t, teambotEK3, teambotEK4)
+	ekNeededArg = keybase1.TeambotEkNeededArg{
+		Id:         teamID,
+		Uid:        botua.uid,
+		Generation: 0,
+	}
+	checkTeambotEKNeededNotifications(user1.tc, user1.notifications, ekNeededArg)
+	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
+
+	newEkArg = keybase1.NewTeambotEkArg{
+		Id:         teamID,
+		Generation: teambotEK4.Generation() + 1,
+	}
+	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
+
+	teambotEK, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
+	require.NoError(t, err)
+	require.False(t, created)
+	require.Equal(t, teamEK.Generation()+2, teambotEK.Generation())
+
+	teambotEK2, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, teambotEK, teambotEK2)
+	noTeambotEKNeeded(user1.tc, user1.notifications)
+	noTeambotEKNeeded(user2.tc, user2.notifications)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
 
 	// kill the ek cache and make sure we don't republish
 	ekLib1.ClearCaches(mctx1)
-	teambotEKNoCache, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botUID)
+	teambotEKNoCache, created, err := ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
 	require.NoError(t, err)
 	// created is True since we attempt to publish but the generation remains
 	require.True(t, created)
-	require.Equal(t, teambotEK.Metadata.Generation, teambotEKNoCache.Metadata.Generation)
+	require.Equal(t, teambotEK.Generation(), teambotEKNoCache.Generation())
 
 	// Make sure we can access the teambotEK at various generations
-	for i := keybase1.EkGeneration(1); i < teambotEK.Metadata.Generation; i++ {
-		teambotEKBot, err := ekLib3.GetTeambotEK(mctx3, teamID, botUID, i, nil)
+	for i := keybase1.EkGeneration(1); i < teambotEK.Generation(); i++ {
+		teambotEKBot, err := ekLib3.GetTeambotEK(mctx3, teamID, botuaUID, i, nil)
 		require.NoError(t, err)
+		noTeambotEKNeeded(user1.tc, user1.notifications)
+		noTeambotEKNeeded(user2.tc, user2.notifications)
+		noNewTeambotEKNotification(botua.tc, botua.notifications)
 
-		teambotEKNonBot1, err := ekLib1.GetTeambotEK(mctx1, teamID, botUID, i, nil)
+		teambotEKNonBot1, err := ekLib1.GetTeambotEK(mctx1, teamID, botuaUID, i, nil)
 		require.NoError(t, err)
-		require.Equal(t, teambotEKBot.Metadata.Generation, teambotEKNonBot1.Metadata.Generation)
-		require.Equal(t, teambotEKBot.Seed, teambotEKNonBot1.Seed)
+		require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot1.Generation())
+		require.Equal(t, teambotEKBot.Material(), teambotEKNonBot1.Material())
 
-		teambotEKNonBot2, err := ekLib2.GetTeambotEK(mctx2, teamID, botUID, i, nil)
+		teambotEKNonBot2, err := ekLib2.GetTeambotEK(mctx2, teamID, botuaUID, i, nil)
 		require.NoError(t, err)
-		require.Equal(t, teambotEKBot.Metadata.Generation, teambotEKNonBot2.Metadata.Generation)
-		require.Equal(t, teambotEKBot.Seed, teambotEKNonBot2.Seed)
+		require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot2.Generation())
+		require.Equal(t, teambotEKBot.Material(), teambotEKNonBot2.Material())
 	}
+
+	// bot asks for a non-existent generation, no new key is created.
+	badGen := teambotEK.Generation() + 1
+	_, err = ekLib3.GetTeambotEK(mctx3, teamID, botuaUID, badGen, nil)
+	require.Error(t, err)
+	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	noTeambotEKNeeded(user1.tc, user1.notifications)
+	noTeambotEKNeeded(user2.tc, user2.notifications)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
 }
 
 func TestEphemeralAddMemberWithTeamEK(t *testing.T) {
@@ -221,9 +347,13 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 	var expectedGeneration keybase1.EkGeneration
 	if createTeamEK {
 		ekLib := annMctx.G().GetEKLib()
-		teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
+		ek, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 		require.NoError(t, err)
 		require.True(t, created)
+		typ, err := ek.KeyType()
+		require.NoError(t, err)
+		require.True(t, typ.IsTeam())
+		teamEK := ek.Team()
 
 		expectedMetadata = teamEK.Metadata
 		expectedGeneration = expectedMetadata.Generation
@@ -281,16 +411,21 @@ func TestEphemeralResetMember(t *testing.T) {
 	bob.reset()
 
 	annEkLib := annMctx.G().GetEKLib()
-	teamEK, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
+	ek, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 	require.NoError(t, err)
 	require.True(t, created)
+
+	typ, err := ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK := ek.Team()
 
 	expectedMetadata := teamEK.Metadata
 	expectedGeneration := expectedMetadata.Generation
 
 	annTeamEK, annErr := getTeamEK(annMctx, teamID, expectedGeneration)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 	require.NoError(t, annErr)
+	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
 
 	// Bob should not have access to this teamEK since he's no longer in the
 	// team after resetting.
@@ -307,9 +442,13 @@ func TestEphemeralResetMember(t *testing.T) {
 	ann.addWriter(team, joe)
 
 	// ann gets the new teamEk which joe can access but bob cannot after he reset.
-	teamEK2, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
+	ek2, created, err := annEkLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 	require.NoError(t, err)
 	require.False(t, created)
+	typ, err = ek.KeyType()
+	require.NoError(t, err)
+	require.True(t, typ.IsTeam())
+	teamEK2 := ek2.Team()
 
 	expectedMetadata2 := teamEK2.Metadata
 	expectedGeneration2 := expectedMetadata2.Generation
@@ -318,8 +457,8 @@ func TestEphemeralResetMember(t *testing.T) {
 	require.True(t, expectedGeneration < expectedGeneration2)
 
 	annTeamEK, annErr = getTeamEK(annMctx, teamID, expectedGeneration2)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
 	require.NoError(t, annErr)
+	require.Equal(t, annTeamEK.Metadata, expectedMetadata2)
 
 	bobTeamEK, bobErr = getTeamEK(bobMctx, teamID, expectedGeneration2)
 	require.NoError(t, bobErr)
@@ -359,7 +498,7 @@ func runRotate(t *testing.T, createTeamEK bool) {
 		teamEK, created, err := ekLib.GetOrCreateLatestTeamEK(annMctx, teamID)
 		require.NoError(t, err)
 		require.True(t, created)
-		expectedGeneration = teamEK.Metadata.Generation + 1
+		expectedGeneration = teamEK.Generation() + 1
 	} else {
 		expectedGeneration = 1
 	}
@@ -420,12 +559,8 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	teamEKBoxStorage.ClearCache()
 	_, err = annMctx.G().LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	ekPostRoll, err := teamEKBoxStorage.Get(annMctx, teamID, teamEKPreRoll.Metadata.Generation, nil)
+	teamEKPostRoll, err := teamEKBoxStorage.Get(annMctx, teamID, teamEKPreRoll.Generation(), nil)
 	require.NoError(t, err)
-	typ, err := ekPostRoll.KeyType()
-	require.NoError(t, err)
-	require.True(t, typ.IsTeam())
-	teamEKPostRoll := ekPostRoll.Team()
 	require.Equal(t, teamEKPreRoll, teamEKPostRoll)
 
 	// After rotating, ensure we can create a new TeamEK without issue.
@@ -437,7 +572,7 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	require.NoError(t, err)
 	metadata, err := ephemeral.ForcePublishNewTeamEKForTesting(annMctx, teamID, *merkleRoot)
 	require.NoError(t, err)
-	require.Equal(t, teamEKPreRoll.Metadata.Generation+1, metadata.Generation)
+	require.Equal(t, teamEKPreRoll.Generation()+1, metadata.Generation)
 }
 
 func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
@@ -525,7 +660,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	require.NoError(t, err)
 	require.True(t, created)
 
-	currentGen := teamEK.Metadata.Generation
+	currentGen := teamEK.Generation()
 	var expectedGen keybase1.EkGeneration
 	if leave {
 		user2.leave(teamName.String())

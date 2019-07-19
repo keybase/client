@@ -1,5 +1,3 @@
-import {Props} from './index'
-
-function UpdateEmail(props: Props) {}
+function UpdateEmail() {}
 
 export default UpdateEmail

@@ -119,7 +119,7 @@ export const commonProvider = {
     progress: 0.67,
     show: true,
   }),
-  TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
+  TlfInfo: ({mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
   }),

@@ -684,9 +684,9 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
 }
 
 export const escapePath = (path: Types.Path): string =>
-  Types.pathToString(path).replace(/(\\)|( )/g, (match, p1, p2) => `\\${p1 || p2}`)
+  Types.pathToString(path).replace(/(\\)|( )/g, (_, p1, p2) => `\\${p1 || p2}`)
 export const unescapePath = (escaped: string): Types.Path =>
-  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (match, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
+  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (_, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
 
 const makeParsedPathRoot = I.Record<Types._ParsedPathRoot>({kind: Types.PathKind.Root})
 export const parsedPathRoot: Types.ParsedPathRoot = makeParsedPathRoot()
@@ -988,31 +988,23 @@ export const makeActionForOpenPathInFilesTab = (
   path: Types.Path
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
-export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
+export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
-export const makeActionsForShowSendLinkToChat = (
-  path: Types.Path,
-  routePath?: I.List<string> | null
-): Array<TypedActions> => [
+export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendLinkToChat({path}),
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendLinkToChat'}],
     }),
-    routePath
   ),
 ]
 
-export const makeActionsForShowSendAttachmentToChat = (
-  path: Types.Path,
-  routePath?: I.List<string> | null
-): Array<TypedActions> => [
+export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendAttachmentToChat({path}),
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendAttachmentToChat'}],
     }),
-    routePath
   ),
 ]
 

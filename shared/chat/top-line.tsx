@@ -1,9 +1,10 @@
 import React, {PureComponent} from 'react'
-import {PlaintextUsernames, Box, Text} from '../common-adapters'
-import {globalStyles} from '../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {pluralize} from '../util/string'
 
 type Props = {
+  isSelected: boolean
   numSearchHits?: number
   maxSearchHits?: number
   participants: Array<string>
@@ -24,38 +25,42 @@ class FilteredTopLine extends PureComponent<Props> {
     return `${this.props.numSearchHits}`
   }
   render() {
-    const {participants, showBold, usernameColor} = this.props
-    const boldOverride = showBold ? globalStyles.fontBold : null
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flex: 1,
-          justifyContent: 'flex-start',
-          position: 'relative',
-        }}
-      >
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-          }}
-        >
-          <PlaintextUsernames
+      <Kb.Box2 alignSelf="flex-start" direction="horizontal">
+        <Kb.Box2 direction="vertical">
+          <Kb.PlaintextUsernames
             type="BodySemibold"
-            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-            users={participants.map(p => ({username: p}))}
-            title={participants.join(', ')}
+            containerStyle={Styles.collapseStyles([
+              this.props.showBold && styles.boldOverride,
+              styles.usernames,
+              {color: this.props.usernameColor},
+            ])}
+            users={this.props.participants.map(p => ({username: p}))}
+            title={this.props.participants.join(', ')}
           />
           {!!this.props.numSearchHits && (
-            <Text type="BodySmall">
+            <Kb.Text type="BodySmall" style={Styles.collapseStyles([
+              this.props.isSelected && styles.selectedText,
+            ])}>
               {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
-            </Text>
+            </Kb.Text>
           )}
-        </Box>
-      </Box>
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  boldOverride: {
+    ...Styles.globalStyles.fontBold,
+  },
+  selectedText: {
+    color: Styles.globalColors.white,
+  },
+  usernames: {
+    paddingRight: Styles.globalMargins.tiny,
+  },
+})
 
 export {FilteredTopLine}

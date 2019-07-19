@@ -20,6 +20,13 @@ func (u UID) Eq(other UID) bool {
 	return bytes.Equal(u.Bytes(), other.Bytes())
 }
 
+func UIDPtrEq(x, y *UID) bool {
+	if x != nil && y != nil {
+		return (*x).Eq(*y)
+	}
+	return (x == nil) && (y == nil)
+}
+
 func (d DeviceID) Bytes() []byte  { return []byte(d) }
 func (d DeviceID) String() string { return hex.EncodeToString(d) }
 func (d DeviceID) Eq(other DeviceID) bool {

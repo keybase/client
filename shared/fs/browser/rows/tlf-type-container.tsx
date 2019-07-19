@@ -16,7 +16,7 @@ const mapStateToProps = (state, {name}: OwnProps) => ({
   _tlfList: Constants.getTlfListFromType(state.fs.tlfs, name),
 })
 
-const mergeProps = (stateProps, dispatchProps, {name, routePath, destinationPickerIndex}: OwnProps) => {
+const mergeProps = (stateProps, _, {name, routePath, destinationPickerIndex}: OwnProps) => {
   const badgeCount = Constants.computeBadgeNumberForTlfList(stateProps._tlfList)
   const path = Types.stringToPath(`/keybase/${name}`)
   return {

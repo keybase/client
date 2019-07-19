@@ -19,7 +19,7 @@ const mapStateToProps = (state, ownProps) => {
     _youAreInTeams: state.teams.teamnames.count() > 0,
   }
 }
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
   onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   onViewTeam: (teamname: string) => {
@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
   },
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onEdit: stateProps._isYou && stateProps._youAreInTeams ? dispatchProps.onEdit : null,
   onJoinTeam: dispatchProps.onJoinTeam,
   onViewTeam: dispatchProps.onViewTeam,

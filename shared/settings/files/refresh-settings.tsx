@@ -4,18 +4,18 @@ import * as FsGen from '../../actions/fs-gen'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   refresh: () => dispatch(FsGen.createLoadSettings()),
 })
 
-const mergeProps = (s, d, o) => ({
+const mergeProps = (_, d, __: OwnProps) => ({
   refresh: d.refresh,
 })
 
 type Props = {
-  refresh: (() => void)
+  refresh: () => void
 }
 
 class Component extends React.PureComponent<Props> {

@@ -1,1 +1,0 @@
-../../../../../node_modules/react-native-image-picker/ios/ImagePickerManager.h

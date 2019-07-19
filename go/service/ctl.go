@@ -59,7 +59,7 @@ func (c *CtlHandler) DbClean(ctx context.Context, arg keybase1.DbCleanArg) error
 	case keybase1.DbType_CHAT:
 		return c.G().LocalChatDb.Clean(arg.Force)
 	default:
-		return libkb.NewDBError("no such DB type")
+		return libkb.NewDBError("unsupported DB type")
 	}
 }
 

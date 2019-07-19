@@ -753,8 +753,9 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		return res, err
 	}
 	return stellar1.SendPaymentResLocal{
-		KbTxID:  sendRes.KbTxID,
-		Pending: sendRes.Pending,
+		KbTxID:     sendRes.KbTxID,
+		Pending:    sendRes.Pending,
+		JumpToChat: sendRes.JumpToChat,
 	}, nil
 }
 

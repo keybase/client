@@ -16,7 +16,7 @@ const mapStateToProps = (state, {routeProps, navigation}) => ({
   waitingKey: Constants.loadingWaitingKey,
 })
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps, navigation}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateUp, routeProps, navigation}) => ({
   loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCancel: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
     dispatch(createAction)
     dispatch(navigateUp())
   },
-  onNewTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, 'teamNewTeamDialog']})),
+  onNewTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, 'teamNewTeamDialog']})),
 })
 
 export default connect(

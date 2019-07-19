@@ -22,7 +22,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 
 const emptySet = I.Set()
 
-const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => {
+const mergeProps = (stateProps, _, {path}: OwnProps) => {
   const parsedPath = Constants.parsePath(path)
   switch (parsedPath.kind) {
     case Types.PathKind.Root:

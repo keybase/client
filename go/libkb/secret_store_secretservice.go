@@ -20,7 +20,7 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
-const sessionOpenTimeout = 10 * time.Millisecond
+const sessionOpenTimeout = 5 * time.Second
 
 type SecretStoreRevokableSecretService struct{}
 

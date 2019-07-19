@@ -244,6 +244,7 @@
   "keybase.1.user.unblockUser": {"promise": true},
   "keybase.1.userSearch.userSearch": {"promise": true},
   "stellar.1.local.acceptDisclaimerLocal": {"promise": true},
+  "stellar.1.local.approvePathURILocal": {"promise": true},
   "stellar.1.local.approvePayURILocal": {"promise": true},
   "stellar.1.local.approveTxURILocal": {"promise": true},
   "stellar.1.local.airdropDetailsLocal": {"promise": true},

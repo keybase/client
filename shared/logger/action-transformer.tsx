@@ -11,17 +11,7 @@ import * as EntitiesGen from '../actions/entities-gen'
 import {TypedState} from '../constants/reducer'
 
 // If you use nullTransform it'll not be logged at all
-const nullTransform = action => {
-  return null
-}
-
-const pathActionTransformer = (action, oldState) => {
-  const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
-  return {
-    payload: {path},
-    type: action.type,
-  }
-}
+const nullTransform = () => null
 
 const entityTransformer = (
   action:
@@ -38,9 +28,16 @@ const defaultTransformer = ({type}) => ({type})
 const fullOutput = a => a
 
 const actionTransformMap = {
-  [RouteTreeGen.switchTo]: pathActionTransformer,
-  [RouteTreeGen.navigateTo]: pathActionTransformer,
-  [RouteTreeGen.navigateAppend]: pathActionTransformer,
+  [RouteTreeGen.switchTab]: fullOutput,
+  [RouteTreeGen.switchLoggedIn]: fullOutput,
+  [RouteTreeGen.navigateAppend]: action => ({
+    payload: {
+      fromKey: action.payload.fromKey,
+      path: Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected))),
+      replace: action.payload.replace,
+    },
+    type: action.type,
+  }),
 
   [EntitiesGen.deleteEntity]: entityTransformer,
   [EntitiesGen.mergeEntity]: entityTransformer,

@@ -433,6 +433,10 @@
         {
           "type": "ConversationCommandGroups",
           "name": "commands"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "botCommands"
         }
       ]
     },
@@ -602,6 +606,10 @@
         {
           "type": "stellar1.Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "string",
+          "name": "issuerDescription"
         }
       ]
     },
@@ -1592,6 +1600,16 @@
       "symbols": [
         "APPSETTINGS_0"
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UIBotCommandsUpdateStatus",
+      "symbols": [
+        "UPTODATE_0",
+        "UPDATING_1",
+        "FAILED_2",
+        "BLANK_3"
+      ]
     }
   ],
   "messages": {
@@ -2024,6 +2042,23 @@
             "type": "array",
             "items": "UICommandStatusActionTyp"
           }
+        }
+      ],
+      "response": null
+    },
+    "chatBotCommandsUpdateStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "status",
+          "type": "UIBotCommandsUpdateStatus"
         }
       ],
       "response": null

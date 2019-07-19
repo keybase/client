@@ -87,6 +87,9 @@ func TestGregorForwardToElectron(t *testing.T) {
 	}
 	tc.G.SetUI(&sui)
 	signup := client.NewCmdSignupRunner(tc.G)
+	// Signup without e-mail address so we don't get a gregor badge
+	// ("unverified email") immediately after signing up.
+	signup.SetNoEmail()
 	signup.SetTest()
 
 	// Wait for the server to start up

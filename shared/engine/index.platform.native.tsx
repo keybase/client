@@ -98,7 +98,7 @@ function createClient(
   return client
 }
 
-function resetClient(client: createClientType) {
+function resetClient() {
   // Tell the RN bridge to reset itself
   nativeBridge.reset()
 }
