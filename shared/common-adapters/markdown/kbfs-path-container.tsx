@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, {escapedPath}: OwnProps) => {
   }
 }
 
-const mergeProps = (stateProps, {path, onClick}, {allowFontScaling, style}: OwnProps) => ({
+const mergeProps = (_, {path, onClick}, {allowFontScaling, style}: OwnProps) => ({
   allowFontScaling,
   onClick,
   path,

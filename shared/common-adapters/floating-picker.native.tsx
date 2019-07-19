@@ -26,7 +26,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
         {props.prompt}
         <Picker
           selectedValue={props.selectedValue}
-          onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
+          onValueChange={(itemValue) => props.onSelect(itemValue)}
           prompt={props.promptString}
           style={styles.picker}
           itemStyle={Styles.globalStyles.fontRegular}

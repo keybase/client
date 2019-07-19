@@ -6,7 +6,7 @@ type OwnProps = RouteProps
 
 const mapStateToProps = (_) => ({})
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = () => ({
   onCancel: () => {},
 })
 

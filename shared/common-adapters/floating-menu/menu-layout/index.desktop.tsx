@@ -25,7 +25,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
         key={index}
         className={hoverClassName}
         style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
-        onClick={event => {
+        onClick={() => {
           item.onClick && item.onClick()
           if (this.props.closeOnClick && this.props.onHidden) {
             this.props.onHidden()

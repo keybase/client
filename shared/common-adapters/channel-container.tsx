@@ -11,7 +11,7 @@ type OwnProps = {
   allowFontScaling?: boolean | null
 }
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   _onClick: (name, convID) =>
@@ -24,7 +24,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   allowFontScaling: ownProps.allowFontScaling,
   convID: ownProps.convID,
   name: ownProps.name,

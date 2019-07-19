@@ -13,7 +13,7 @@
     "noImplicitReturns": false,
     "noImplicitThis": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "resolveJsonModule": true,
     "sourceMap": true,

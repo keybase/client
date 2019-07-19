@@ -19,7 +19,7 @@ const mapStateToProps = (state, {path}: OwnProps) => {
 
 const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
-const mergeProps = (s, d, {path, routePath, onLoadingStateChange}: OwnProps) => ({
+const mergeProps = (s, _, {path, routePath, onLoadingStateChange}: OwnProps) => ({
   lastModifiedTimestamp: s._pathItem.lastModifiedTimestamp,
   mime: s._pathItem.type === Types.PathType.File ? s._pathItem.mimeType : null,
   onLoadingStateChange,

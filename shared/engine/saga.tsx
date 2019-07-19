@@ -92,7 +92,7 @@ function* call(p: {
   // @ts-ignore codemode issue
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
-    const callMap = bothCallMaps.reduce((map, {method, custom, handler}) => {
+    const callMap = bothCallMaps.reduce((map, {method, custom}) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {

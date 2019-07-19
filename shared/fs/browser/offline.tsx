@@ -48,7 +48,7 @@ const mapStateToProps = (state, {path}) => ({
   syncConfig: Constants.getTlfFromPath(state.fs.tlfs, path).syncConfig,
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   ...ownProps,
   syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === Types.TlfSyncMode.Enabled,
 })

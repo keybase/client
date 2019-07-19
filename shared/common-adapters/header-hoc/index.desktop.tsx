@@ -9,11 +9,9 @@ import {Props, LeftActionProps} from './types'
 export const HeaderHocHeader = ({
   headerStyle,
   customComponent,
-  hideBackLabel,
   title,
   titleComponent,
   onCancel,
-  onBack,
   rightActions,
   theme = 'light',
 }: Props) => (

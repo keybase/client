@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _) => {
   const channelNames = stateProps._channelInfos
     .map(info => info.channelname)
     .valueSeq()

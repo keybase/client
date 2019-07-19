@@ -990,10 +990,7 @@ export const makeActionForOpenPathInFilesTab = (
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
-export const makeActionsForShowSendLinkToChat = (
-  path: Types.Path,
-  routePath?: I.List<string> | null
-): Array<TypedActions> => [
+export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendLinkToChat({path}),
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
@@ -1002,10 +999,7 @@ export const makeActionsForShowSendLinkToChat = (
   ),
 ]
 
-export const makeActionsForShowSendAttachmentToChat = (
-  path: Types.Path,
-  routePath?: I.List<string> | null
-): Array<TypedActions> => [
+export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendAttachmentToChat({path}),
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({

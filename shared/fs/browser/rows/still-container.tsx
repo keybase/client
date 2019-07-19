@@ -18,7 +18,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
-const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinationPickerIndex}: OwnProps) => {
+const mergeProps = (stateProps, _, {name, path, routePath, destinationPickerIndex}: OwnProps) => {
   const {_downloads, _pathItem} = stateProps
   const download = _downloads.find(t => t.meta.path === path && !t.state.isDone)
   return {
