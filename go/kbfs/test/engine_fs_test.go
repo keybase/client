@@ -31,21 +31,22 @@ import (
 	"golang.org/x/net/context"
 )
 
-type createUserFn func(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
+type createUserFn func( // nolint
+	tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser
 
-type fsEngine struct {
+type fsEngine struct { // nolint
 	name       string
 	tb         testing.TB
 	createUser createUserFn
 	// journal directory
 	journalDir string
 }
-type fsNode struct {
+type fsNode struct { // nolint
 	path string
 }
 
-type fsUser struct {
+type fsUser struct { // nolint
 	mntDir   string
 	username kbname.NormalizedUsername
 	config   *libkbfs.ConfigLocal
@@ -76,7 +77,7 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	return session.UID
 }
 
-func buildRootPath(u *fsUser, t tlf.Type) string {
+func buildRootPath(u *fsUser, t tlf.Type) string { // nolint
 	var path string
 	switch t {
 	case tlf.Public:
@@ -93,7 +94,7 @@ func buildRootPath(u *fsUser, t tlf.Type) string {
 	return path
 }
 
-func buildTlfPath(u *fsUser, tlfName string, t tlf.Type) string {
+func buildTlfPath(u *fsUser, tlfName string, t tlf.Type) string { // nolint
 	return filepath.Join(buildRootPath(u, t), tlfName)
 }
 
@@ -641,7 +642,7 @@ func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	return fi.ModTime(), err
 }
 
-type prevRevisions struct {
+type prevRevisions struct { // nolint
 	PrevRevisions data.PrevRevisions
 }
 
@@ -686,7 +687,7 @@ func (e *fsEngine) SyncAll(
 	return u.config.KBFSOps().SyncAll(ctx, dir.GetFolderBranch())
 }
 
-func fiTypeString(fi os.FileInfo) string {
+func fiTypeString(fi os.FileInfo) string { // nolint
 	m := fi.Mode()
 	switch {
 	case m&os.ModeSymlink != 0:
@@ -763,8 +764,11 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 			if err != nil {
 				panic(fmt.Sprintf("No disk limiter for %d: %+v", i, err))
 			}
-			c.EnableJournaling(context.Background(),
+			err = c.EnableJournaling(context.Background(),
 				journalRoot, libkbfs.TLFJournalBackgroundWorkEnabled)
+			if err != nil {
+				panic(fmt.Sprintf("Couldn't enable journaling: %+v", err))
+			}
 			jManager, err := libkbfs.GetJournalManager(c)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %d: %+v", i, err))
@@ -785,7 +789,7 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 	return res
 }
 
-func nameToUID(t testing.TB, config libkbfs.Config) keybase1.UID {
+func nameToUID(t testing.TB, config libkbfs.Config) keybase1.UID { // nolint
 	session, err := config.KBPKI().GetCurrentSession(context.Background())
 	if err != nil {
 		t.Fatal(err)

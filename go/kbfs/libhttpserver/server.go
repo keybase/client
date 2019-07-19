@@ -59,7 +59,7 @@ func (s *Server) NewToken() (token string, err error) {
 
 func (s *Server) handleInvalidToken(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusForbidden)
-	io.WriteString(w, `
+	_, _ = io.WriteString(w, `
     <html>
         <head>
             <title>KBFS HTTP Token Invalid</title>

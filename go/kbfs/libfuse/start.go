@@ -163,7 +163,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.MountErrorIsFatal {
 				// If we exit we might want to clean a mount behind us.
-				mi.Done()
+				_ = mi.Done()
 				return libfs.MountError(err.Error())
 			}
 		}

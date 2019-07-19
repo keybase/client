@@ -188,5 +188,5 @@ func main() {
 		StatsReporter:    statsReporter,
 	}
 
-	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
+	_ = libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }
