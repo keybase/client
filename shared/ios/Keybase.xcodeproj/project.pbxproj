@@ -40,6 +40,7 @@
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		D1FCCAC47E689E1A984FAC43 /* libPods-Keybase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AC024A34A307F5688461FEB2 /* libPods-Keybase.a */; };
+		DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07050422E21B8B002F273D /* KeepThisFile.swift */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB59F9B72238A27E00E271C1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB59F97B2238A27E00E271C1 /* JavaScriptCore.framework */; };
@@ -155,6 +156,7 @@
 		C3A47BFD1E8B148A00974A63 /* keybasemessage.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; name = keybasemessage.wav; path = ../../../sounds/keybasemessage.wav; sourceTree = "<group>"; };
 		C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		C64043E42DC6AC6D37CACDD8 /* Pods-Keybase-KeybaseShare.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase-KeybaseShare.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase-KeybaseShare/Pods-Keybase-KeybaseShare.debug.xcconfig"; sourceTree = "<group>"; };
+		DB07050422E21B8B002F273D /* KeepThisFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepThisFile.swift; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
 		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
@@ -354,6 +356,7 @@
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DBCE36231B90F14800ECADDE /* Engine.h */,
+				DB07050422E21B8B002F273D /* KeepThisFile.swift */,
 				DBCE36241B90F14800ECADDE /* Engine.m */,
 				DBBCC6171D9C5C6A00312652 /* main.m */,
 				DB27DE551D747A6B003DE8BC /* Utils.h */,
@@ -614,6 +617,7 @@
 			files = (
 				3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */,
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
+				DB07050522E21B8B002F273D /* KeepThisFile.swift in Sources */,
 				DBEE30861FE8511F0020EBA5 /* DDFileLogger.m in Sources */,
 				DBEE30871FE8511F0020EBA5 /* DDASLLogCapture.m in Sources */,
 				DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */,
@@ -670,6 +674,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C3FBA67CB37D117BE5224A75 /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
@@ -706,7 +711,7 @@
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALID_ARCHS = "arm64 armv7s arm7";
 			};
@@ -716,6 +721,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0ABADDEB05DAE442686D300D /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
@@ -751,7 +757,7 @@
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALID_ARCHS = "arm64 armv7s arm7";
 			};
