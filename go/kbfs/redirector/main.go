@@ -423,7 +423,7 @@ func main() {
 	restartChan := make(chan os.Signal, 1)
 	signal.Notify(restartChan, syscall.SIGUSR1)
 	go func() {
-		_ = <-restartChan
+		<-restartChan
 
 		fmt.Printf("Relaunching after an upgrade\n")
 
@@ -460,5 +460,5 @@ func main() {
 			return context.Background()
 		},
 	})
-	srv.Serve(r)
+	_ = srv.Serve(r)
 }

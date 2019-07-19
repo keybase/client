@@ -48,7 +48,7 @@ func TestRunnerCapabilities(t *testing.T) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte("capabilities\n\n"))
+		_, _ = inputWriter.Write([]byte("capabilities\n\n"))
 	}()
 
 	var output bytes.Buffer
@@ -94,7 +94,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte("list\n\n"))
+		_, _ = inputWriter.Write([]byte("list\n\n"))
 	}()
 
 	h, err := tlfhandle.ParseHandle(
@@ -194,9 +194,9 @@ func testPushWithTemplate(ctx context.Context, t *testing.T,
 	defer inputWriter.Close()
 	go func() {
 		for _, refspec := range refspecs {
-			inputWriter.Write([]byte(fmt.Sprintf("push %s\n", refspec)))
+			_, _ = inputWriter.Write([]byte(fmt.Sprintf("push %s\n", refspec)))
 		}
-		inputWriter.Write([]byte("\n\n"))
+		_, _ = inputWriter.Write([]byte("\n\n"))
 	}()
 
 	var output bytes.Buffer
@@ -241,7 +241,7 @@ func testListAndGetHeadsWithName(ctx context.Context, t *testing.T,
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte("list\n\n"))
+		_, _ = inputWriter.Write([]byte("list\n\n"))
 	}()
 
 	var output bytes.Buffer
@@ -333,7 +333,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte(fmt.Sprintf(
+		_, _ = inputWriter.Write([]byte(fmt.Sprintf(
 			"%sfetch %s refs/heads/master\n\n\n", cloningStr, heads[0])))
 	}()
 
@@ -578,7 +578,7 @@ func testCloneIntoNewLocalRepo(
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte(fmt.Sprintf(
+		_, _ = inputWriter.Write([]byte(fmt.Sprintf(
 			"option cloning true\n"+
 				"fetch %s refs/heads/master\n\n\n", heads[0])))
 	}()
@@ -695,7 +695,7 @@ func TestPushcertOptions(t *testing.T) {
 		inputReader, inputWriter := io.Pipe()
 		defer inputWriter.Close()
 		go func() {
-			inputWriter.Write([]byte(fmt.Sprintf(
+			_, _ = inputWriter.Write([]byte(fmt.Sprintf(
 				"option pushcert %s\n\n", option)))
 		}()
 
@@ -870,8 +870,8 @@ func TestPackRefsAndDeletePackedRef(t *testing.T) {
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte("push :refs/heads/test\n"))
-		inputWriter.Write([]byte("\n\n"))
+		_, _ = inputWriter.Write([]byte("push :refs/heads/test\n"))
+		_, _ = inputWriter.Write([]byte("\n\n"))
 	}()
 
 	var output bytes.Buffer

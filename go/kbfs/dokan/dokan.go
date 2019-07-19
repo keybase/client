@@ -56,7 +56,7 @@ func (m *MountHandle) BlockTillDone() error {
 	// Two cases:
 	// 1) Mount got send from Mounted hook (nil) and we wait for the ctx.Run case
 	// 2) Mount got send from Mount (which errored) and closed the channel
-	err, _ := <-m.errChan
+	err := <-m.errChan
 	return err
 }
 

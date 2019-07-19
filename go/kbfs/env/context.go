@@ -89,10 +89,22 @@ func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 // main functions.
 func NewContext() *KBFSContext {
 	g := libkb.NewGlobalContextInit()
-	g.ConfigureConfig()
-	g.ConfigureLogging()
-	g.ConfigureCaches()
-	g.ConfigureMerkleClient()
+	err := g.ConfigureConfig()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureLogging()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureCaches()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureMerkleClient()
+	if err != nil {
+		panic(err)
+	}
 	return NewContextFromGlobalContext(g)
 }
 

@@ -177,11 +177,19 @@ func (c *CodecMsgpack) Encode(obj interface{}) (buf []byte, err error) {
 
 // RegisterType implements the Codec interface for CodecMsgpack
 func (c *CodecMsgpack) RegisterType(rt reflect.Type, code ExtCode) {
-	c.h.(*codec.MsgpackHandle).SetExt(rt, uint64(code), ext{c.ExtCodec})
+	err := c.h.(*codec.MsgpackHandle).SetBytesExt(
+		rt, uint64(code), ext{c.ExtCodec})
+	if err != nil {
+		panic(err)
+	}
 }
 
 // RegisterIfaceSliceType implements the Codec interface for CodecMsgpack
-func (c *CodecMsgpack) RegisterIfaceSliceType(rt reflect.Type, code ExtCode,
-	typer func(interface{}) reflect.Value) {
-	c.h.(*codec.MsgpackHandle).SetExt(rt, uint64(code), extSlice{c, typer})
+func (c *CodecMsgpack) RegisterIfaceSliceType(
+	rt reflect.Type, code ExtCode, typer func(interface{}) reflect.Value) {
+	err := c.h.(*codec.MsgpackHandle).SetBytesExt(
+		rt, uint64(code), extSlice{c, typer})
+	if err != nil {
+		panic(err)
+	}
 }

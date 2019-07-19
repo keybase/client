@@ -16,9 +16,6 @@ import (
 const (
 	// idByteLen is the number of bytes in a git repo ID.
 	idByteLen = 16
-	// idStringLen is the number of characters in the string
-	// representation of a git repo ID.
-	idStringLen = 2 * idByteLen
 
 	idSuffix = 0x2c
 )

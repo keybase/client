@@ -26,7 +26,6 @@ import (
 const (
 	updatePointerPrefetchPriority int           = 1
 	prefetchTimeout               time.Duration = 24 * time.Hour
-	maxNumPrefetches              int           = 10000
 	overallSyncStatusInterval     time.Duration = 1 * time.Second
 )
 

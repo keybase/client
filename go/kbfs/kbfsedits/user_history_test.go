@@ -142,6 +142,7 @@ func TestUserHistorySimple(t *testing.T) {
 			require.Equal(t, expected[i].serverTime, wh.ServerTime)
 			require.Equal(t, expected[i].writer, wh.History[0].WriterName)
 			require.Len(t, wh.History[0].Edits, expected[i].num)
+			require.Len(t, wh.History[0].Deletes, expected[i].numDeletes)
 		}
 	}
 	check(expected)

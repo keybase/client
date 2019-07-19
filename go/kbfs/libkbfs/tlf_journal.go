@@ -104,9 +104,6 @@ const (
 	// unsquashed MD bytes in the journal that will trigger an
 	// automatic branch conversion (and subsequent resolution).
 	ForcedBranchSquashBytesThresholdDefault = uint64(25 << 20) // 25 MB
-	// Maximum number of blocks to delete from the local saved block
-	// journal at a time while holding the lock.
-	maxSavedBlockRemovalsAtATime = uint64(500)
 	// How often to check the server for conflicts while flushing.
 	tlfJournalServerMDCheckInterval = 1 * time.Minute
 

@@ -182,14 +182,10 @@ var ZeroPtr BlockPointer
 // IsValid returns whether the block pointer is valid. A zero block
 // pointer is considered invalid.
 func (p BlockPointer) IsValid() bool {
-	if !p.ID.IsValid() {
-		return false
-	}
+	return p.ID.IsValid()
 
 	// TODO: Should also check KeyGen, Ver, and Creator. (A
 	// bunch of tests use invalid values for one of these.)
-
-	return true
 }
 
 func (p BlockPointer) String() string {

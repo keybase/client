@@ -173,7 +173,6 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 		// since it contains `off`.
 		index := -1
 		nextBlockStartOff = nil
-		startOff = pblock.FirstOffset()
 		var prevPtr BlockPointer
 		if !checkedPrevBlock && i > 0 {
 			prevInfo, _ := pblock.IndirectPtr(i - 1)

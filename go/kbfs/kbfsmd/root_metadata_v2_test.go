@@ -704,35 +704,6 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 	require.Equal(t, expectedRKeys, brmd.RKeys)
 }
 
-type userDeviceSet UserDevicePublicKeys
-
-// union returns the union of the user's keys in uds and other. For a
-// particular user, it's assumed that that user's keys in uds and
-// other are disjoint.
-func (uds userDeviceSet) union(other userDeviceSet) userDeviceSet {
-	u := make(userDeviceSet)
-	for uid, keys := range uds {
-		u[uid] = make(DevicePublicKeys)
-		for key := range keys {
-			u[uid][key] = true
-		}
-	}
-	for uid, keys := range other {
-		if u[uid] == nil {
-			u[uid] = make(DevicePublicKeys)
-		}
-		for key := range keys {
-			if u[uid][key] {
-				panic(fmt.Sprintf(
-					"uid=%s key=%s exists in both",
-					uid, key))
-			}
-			u[uid][key] = true
-		}
-	}
-	return u
-}
-
 // userDevicePrivateKeys is a map from users to that user's set of
 // device private keys.
 type userDevicePrivateKeys map[keybase1.UID]map[kbfscrypto.CryptPrivateKey]bool

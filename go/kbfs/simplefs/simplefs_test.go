@@ -19,7 +19,6 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/env"
-	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
@@ -50,17 +49,6 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	syncFS(ctx, t, fs, "/private/jdoe")
 	err := fs.config.Shutdown(ctx)
 	require.NoError(t, err)
-}
-
-func newTempRemotePath() (keybase1.Path, error) {
-	var bs = make([]byte, 8)
-	err := kbfscrypto.RandRead(bs)
-	if err != nil {
-		return keybase1.Path{}, err
-	}
-
-	raw := fmt.Sprintf(`/private/jdoe/%X`, bs)
-	return keybase1.NewPathWithKbfs(raw), nil
 }
 
 func deleteTempLocalPath(path keybase1.Path) {
@@ -1343,7 +1331,8 @@ func TestGetRevisions(t *testing.T) {
 	clock.Add(gcJump)
 	fb, _, err := sfs.getFolderBranchFromPath(ctx, path)
 	require.NoError(t, err)
-	libkbfs.ForceQuotaReclamationForTesting(config, fb)
+	err = libkbfs.ForceQuotaReclamationForTesting(config, fb)
+	require.NoError(t, err)
 	err = config.KBFSOps().SyncFromServer(ctx, fb, nil)
 	require.NoError(t, err)
 	syncFS(ctx, t, sfs, "/private/jdoe")
@@ -1369,7 +1358,8 @@ func TestOverallStatusFile(t *testing.T) {
 	path := keybase1.NewPathWithKbfs("/" + libfs.StatusFileName)
 	buf := readRemoteFile(ctx, t, sfs, path)
 	var status libkbfs.KBFSStatus
-	json.Unmarshal(buf, &status)
+	err := json.Unmarshal(buf, &status)
+	require.NoError(t, err)
 	require.Equal(t, "jdoe", status.CurrentUser)
 }
 
@@ -1503,6 +1493,7 @@ func TestSyncConfigFavorites(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_simplefs_favs")
+	require.NoError(t, err)
 	defer os.RemoveAll(tempdir)
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)

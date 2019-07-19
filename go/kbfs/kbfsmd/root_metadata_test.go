@@ -69,28 +69,3 @@ func runTestsOverMetadataVers(t *testing.T, prefix string,
 		})
 	}
 }
-
-// runBenchmarkOverMetadataVers runs the given benchmark function over
-// all metadata versions to test. Example use:
-//
-// func BenchmarkFoo(b *testing.B) {
-//	runBenchmarkOverMetadataVers(b, testFoo)
-// }
-//
-// func benchmarkFoo(b *testing.B, ver MetadataVer) {
-//	...
-// 	brmd, err := MakeInitialRootMetadata(ver, ...)
-//	...
-// }
-func runBenchmarkOverMetadataVers(
-	b *testing.B, f func(b *testing.B, ver MetadataVer)) {
-	for _, ver := range testMetadataVers {
-		ver := ver // capture range variable.
-		b.Run(ver.String(), func(b *testing.B) {
-			f(b, ver)
-		})
-	}
-}
-
-// TODO: Add way to test with all possible (ver, maxVer) combos,
-// e.g. for upconversion tests.
