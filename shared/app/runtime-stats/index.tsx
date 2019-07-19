@@ -128,8 +128,8 @@ const RuntimeStatsDesktop = (props: Props) => {
             <Kb.Text
               type="BodyTiny"
               style={Styles.collapseStyles([
-                stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
                 styles.stat,
+                stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
               ])}
             >
               {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
