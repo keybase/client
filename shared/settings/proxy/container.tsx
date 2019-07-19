@@ -21,8 +21,6 @@ import {connect, lifecycle, TypedState} from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from './index'
 
-type OwnProps = {}
-
 const mapStateToProps = (state: TypedState) => {
   return {
     allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
@@ -40,44 +38,30 @@ const mapDispatchToProps = dispatch => ({
   saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
 })
 
-// Export the popup as the default export so it is easy to make a route pointing to it
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props._loadProxyData()
-    },
-    componentWillUnmount() {
-      this.props._resetCertPinningToggle()
-    },
-  } as any),
-  HeaderHoc
-  // @ts-ignore
-)(ProxySettingsPopup)
-
-const ProxySettings = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props._loadProxyData()
-    },
-    componentWillUnmount() {
-      this.props._resetCertPinningToggle()
-    },
-  } as any),
-  HeaderHoc
-  // @ts-ignore
-)(ProxySettingsComponent)
-
-export {
-  // The proxy settings component used in the advanced settings screen
-  ProxySettings,
+const mergeProps = (stateProps, dispatchProps, _) => {
+  return {
+    _loadProxyData: dispatchProps._loadProxyData,
+    _resetCertPinningToggle: dispatchProps._resetCertPinningToggle,
+    allowTlsMitmToggle: stateProps.allowTlsMitmToggle,
+    onBack: dispatchProps.onBack,
+    onDisableCertPinning: dispatchProps.onDisableCertPinning,
+    onEnableCertPinning: dispatchProps.onEnableCertPinning,
+    proxyData: stateProps.proxyData,
+    saveProxyData: dispatchProps.saveProxyData,
+  }
 }
+
+// Export the popup as the default export so it is easy to make a route pointing to it
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(HeaderHoc(ProxySettingsPopup))
+
+// The proxy settings component used in the advanced settings screen
+const ProxySettings = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(HeaderHoc(ProxySettingsComponent))
+export {ProxySettings}
