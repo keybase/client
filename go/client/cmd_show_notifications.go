@@ -184,11 +184,20 @@ func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err 
 
 func (d *notificationDisplay) RuntimeStatsUpdate(
 	_ context.Context, stats *keybase1.RuntimeStats) (err error) {
-	err = d.printf(
-		"Runtime stats: Goheap=%s, Goheapsys=%s, Goreleased=%s",
-		stats.Goheap, stats.Goheapsys, stats.Goreleased)
+	err = d.printf("Runtime stats:")
 	if err != nil {
 		return err
+	}
+
+	comma := ""
+	for _, s := range stats.ProcessStats {
+		err = d.printf(
+			"%s [%s: Goheap=%s, Goheapsys=%s, Goreleased=%s]",
+			comma, s.Type, s.Goheap, s.Goheapsys, s.Goreleased)
+		if err != nil {
+			return err
+		}
+		comma = ","
 	}
 
 	for _, s := range stats.DbStats {
