@@ -99,7 +99,9 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
-        <Kb.Text type="BodySemibold">{props.address}</Kb.Text>
+        <Kb.Text type="BodySemibold" selectable={true}>
+          {props.address}
+        </Kb.Text>
         {(!!subtitle || !props.verified) && (
           <Kb.Box2 direction="horizontal" alignItems="flex-start" gap="xtiny" fullWidth={true}>
             {!props.verified && <Kb.Meta backgroundColor={Styles.globalColors.red} title="UNVERIFIED" />}
