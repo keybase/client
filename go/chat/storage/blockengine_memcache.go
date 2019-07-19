@@ -35,7 +35,7 @@ func (c *logContext) GetVDebugLog() *libkb.VDebugLog {
 type blockEngineMemCacheImpl struct {
 	blockCache *lru.Cache
 	logContext *logContext
-	lockTab    *libkb.LockTable
+	lockTab    libkb.LockTable
 }
 
 func newBlockEngineMemCache() *blockEngineMemCacheImpl {
@@ -43,7 +43,6 @@ func newBlockEngineMemCache() *blockEngineMemCacheImpl {
 	return &blockEngineMemCacheImpl{
 		blockCache: c,
 		logContext: newLogContext(),
-		lockTab:    &libkb.LockTable{},
 	}
 }
 

@@ -33,6 +33,7 @@ const setupNotifications = () =>
       service: true,
       session: true,
       team: true,
+      teambot: false,
       tracking: true,
       users: true,
       wallet: true,

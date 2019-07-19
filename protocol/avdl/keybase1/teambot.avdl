@@ -1,0 +1,30 @@
+@namespace("keybase.1")
+
+protocol teambot {
+  import idl "common.avdl";
+
+  @lint("ignore")
+  @typedef("int64")
+  record TeambotKeyGeneration {}
+
+  record TeambotKeyMetadata {
+    @jsonkey("teambot_dh_public")
+    KID kid;
+    // NOTE this generation is the PTK generation which this key is
+    // derived from.
+    TeambotKeyGeneration generation;
+    UID uid;
+    @jsonkey("puk_generation")
+    PerUserKeyGeneration pukGeneration;
+  }
+
+  record TeambotKeyBoxed {
+    string box;
+    TeambotKeyMetadata metadata;
+  }
+
+  record TeambotKey {
+    Bytes32 seed;
+    TeambotKeyMetadata metadata;
+  }
+}

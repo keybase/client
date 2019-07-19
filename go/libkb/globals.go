@@ -82,20 +82,22 @@ type GlobalContext struct {
 	loadUserLockTab        LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
-	stellar                Stellar          // Stellar related ops
-	deviceEKStorage        DeviceEKStorage  // Store device ephemeral keys
-	userEKBoxStorage       UserEKBoxStorage // Store user ephemeral key boxes
-	teamEKBoxStorage       TeamEKBoxStorage // Store team ephemeral key boxes
-	teambotEKBoxStorage    TeamEKBoxStorage // Store team bot ephemeral key boxes
-	ekLib                  EKLib            // Wrapper to call ephemeral key methods
-	itciCacher             LRUer            // Cacher for implicit team conflict info
-	iteamCacher            MemLRUer         // In memory cacher for implicit teams
-	cardCache              *UserCardCache   // cache of keybase1.UserCard objects
-	fullSelfer             FullSelfer       // a loader that gets the full self object
-	pvlSource              MerkleStore      // a cache and fetcher for pvl
-	paramProofStore        MerkleStore      // a cache and fetcher for param proofs
-	externalURLStore       MerkleStore      // a cache and fetcher for external urls
-	PayloadCache           *PayloadCache    // cache of ChainLink payload json wrappers
+	stellar                Stellar            // Stellar related ops
+	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
+	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
+	teamEKBoxStorage       TeamEKBoxStorage   // Store team ephemeral key boxes
+	teambotEKBoxStorage    TeamEKBoxStorage   // Store team bot ephemeral key boxes
+	ekLib                  EKLib              // Wrapper to call ephemeral key methods
+	teambotBotKeyer        TeambotBotKeyer    // TeambotKeyer for bot members
+	teambotMemberKeyer     TeambotMemberKeyer // TeambotKeyer for non-bot members
+	itciCacher             LRUer              // Cacher for implicit team conflict info
+	iteamCacher            MemLRUer           // In memory cacher for implicit teams
+	cardCache              *UserCardCache     // cache of keybase1.UserCard objects
+	fullSelfer             FullSelfer         // a loader that gets the full self object
+	pvlSource              MerkleStore        // a cache and fetcher for pvl
+	paramProofStore        MerkleStore        // a cache and fetcher for param proofs
+	externalURLStore       MerkleStore        // a cache and fetcher for external urls
+	PayloadCache           *PayloadCache      // cache of ChainLink payload json wrappers
 	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -178,6 +180,8 @@ func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return 
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
+func (g *GlobalContext) GetTeambotBotKeyer() TeambotBotKeyer           { return g.teambotBotKeyer }
+func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return g.teambotMemberKeyer }
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 
 type LogGetter func() logger.Logger
@@ -219,6 +223,10 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
+
+func (g *GlobalContext) SetTeambotBotKeyer(keyer TeambotBotKeyer) { g.teambotBotKeyer = keyer }
+
+func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.teambotMemberKeyer = keyer }
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
