@@ -17,8 +17,15 @@ type ProcessProps = {
   virt: string
 }
 
+type DbProps = {
+  memCompaction: boolean
+  tableCompaction: boolean
+  type: RPCTypes.DbType
+}
+
 type Props = {
   convLoaderActive: boolean
+  dbStats: Array<DbProps>
   hasData: boolean
   processStats: Array<ProcessProps>
   selectiveSyncActive: boolean
@@ -49,27 +56,29 @@ const processTypeString = (s: RPCTypes.ProcessType) => {
   }
 }
 
+const dbTypeString = (s: RPCTypes.DbType) => {
+  switch (s) {
+    case RPCTypes.DbType.main:
+      return 'Core'
+    case RPCTypes.DbType.chat:
+      return 'Chat'
+    case RPCTypes.DbType.fsBlockCache:
+      return 'FSBlkCache'
+    case RPCTypes.DbType.fsBlockCacheMeta:
+      return 'FSBlkCacheMeta'
+    case RPCTypes.DbType.fsSyncBlockCache:
+      return 'FSSyncBlkCache'
+    case RPCTypes.DbType.fsSyncBlockCacheMeta:
+      return 'FSSyncBlkCacheMeta'
+  }
+}
+
 const RuntimeStatsDesktop = (props: Props) => {
   return !props.hasData ? null : (
-    <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny">
-      <Kb.Text
-        style={Styles.collapseStyles([
-          styles.stat,
-          props.convLoaderActive ? styles.statWarning : styles.statNormal,
-        ])}
-        type="BodyTinyBold"
-      >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
-      <Kb.Text
-        style={Styles.collapseStyles([
-          styles.stat,
-          props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
-        ])}
-        type="BodyTinyBold"
-      >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
-      <Kb.Divider />
+    <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
       {props.processStats.map((stats, i) => {
         return (
-          <Kb.Box2 direction="vertical" key={i}>
+          <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true}>
             <Kb.Text type="BodyTinyBold" style={styles.stat}>
               {processTypeString(stats.type)}
             </Kb.Text>
@@ -88,6 +97,37 @@ const RuntimeStatsDesktop = (props: Props) => {
             <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stats.goreleased}`}</Kb.Text>
             <Kb.Divider />
             <Kb.Divider />
+          </Kb.Box2>
+        )
+      })}
+      <Kb.Divider />
+      <Kb.Text type="BodyTinyBold" style={styles.stat}>
+        Chat Bkg Activity
+      </Kb.Text>
+      <Kb.Text
+        style={Styles.collapseStyles([
+          styles.stat,
+          props.convLoaderActive ? styles.statWarning : styles.statNormal,
+        ])}
+        type="BodyTiny"
+      >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
+      <Kb.Text
+        style={Styles.collapseStyles([
+          styles.stat,
+          props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+        ])}
+        type="BodyTiny"
+      >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
+      <Kb.Divider />
+      <Kb.Text type="BodyTinyBold" style={styles.stat}>
+        LevelDB Compaction
+      </Kb.Text>
+      {props.dbStats.map((stats, i) => {
+        return (
+          <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
+            <Kb.Text type="BodyTiny" style={styles.stat}>
+              {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
+            </Kb.Text>
           </Kb.Box2>
         )
       })}

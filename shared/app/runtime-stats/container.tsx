@@ -28,8 +28,16 @@ const mapStateToProps = (state: TypedState) => {
       virt: stats.virt,
     }
   })
+  const dbStats = (rs.dbStats || []).map(stats => {
+    return {
+      memCompaction: stats.memCompActive,
+      tableCompaction: stats.tableCompActive,
+      type: stats.type,
+    }
+  })
   return {
     convLoaderActive: rs.convLoaderActive,
+    dbStats,
     hasData: true,
     processStats,
     selectiveSyncActive: rs.selectiveSyncActive,
