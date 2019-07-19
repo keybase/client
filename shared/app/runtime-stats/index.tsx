@@ -125,7 +125,13 @@ const RuntimeStatsDesktop = (props: Props) => {
       {props.dbStats.map((stats, i) => {
         return (
           <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
-            <Kb.Text type="BodyTiny" style={styles.stat}>
+            <Kb.Text
+              type="BodyTiny"
+              style={Styles.collapseStyles([
+                stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
+                styles.stat,
+              ])}
+            >
               {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
             </Kb.Text>
           </Kb.Box2>
