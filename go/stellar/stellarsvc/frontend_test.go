@@ -400,10 +400,11 @@ func TestSetAccountAsDefault(t *testing.T) {
 
 	// Should work for accounts that are already primary and not post
 	// a bundle.
-	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+	res, err := tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
 		AccountID: accs[0].AccountID,
 	})
 	require.NoError(t, err)
+	require.Equal(t, accs[0].AccountID, res[0].AccountID)
 
 	mctx := libkb.NewMetaContextBackground(tcs[0].G)
 	bundle, err := remote.FetchSecretlessBundle(mctx)
@@ -412,12 +413,12 @@ func TestSetAccountAsDefault(t *testing.T) {
 
 	// Test invalid arguments
 	invalidAccID, _ := randomStellarKeypair()
-	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+	_, err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
 		AccountID: invalidAccID,
 	})
 	require.Error(t, err)
 
-	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
+	_, err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), stellar1.SetWalletAccountAsDefaultLocalArg{
 		AccountID: stellar1.AccountID(""),
 	})
 	require.Error(t, err)
@@ -441,7 +442,7 @@ func TestSetAccountAsDefault(t *testing.T) {
 		arg := stellar1.SetWalletAccountAsDefaultLocalArg{
 			AccountID: v,
 		}
-		err := tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), arg)
+		_, err := tcs[0].Srv.SetWalletAccountAsDefaultLocal(context.Background(), arg)
 		require.NoError(t, err)
 
 		accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())

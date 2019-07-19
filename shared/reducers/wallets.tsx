@@ -24,6 +24,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState
+    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.accountsReceived: {
       const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
         action.payload.accounts.map(account => [account.accountID, account])
@@ -545,7 +546,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeAirdrop:
     case WalletsGen.updateAirdropState:
     case WalletsGen.rejectDisclaimer:
-    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:

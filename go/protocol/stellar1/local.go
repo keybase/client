@@ -1684,7 +1684,7 @@ type LocalInterface interface {
 	ValidateSecretKeyLocal(context.Context, ValidateSecretKeyLocalArg) error
 	ValidateAccountNameLocal(context.Context, ValidateAccountNameLocalArg) error
 	ChangeWalletAccountNameLocal(context.Context, ChangeWalletAccountNameLocalArg) (WalletAccountLocal, error)
-	SetWalletAccountAsDefaultLocal(context.Context, SetWalletAccountAsDefaultLocalArg) error
+	SetWalletAccountAsDefaultLocal(context.Context, SetWalletAccountAsDefaultLocalArg) ([]WalletAccountLocal, error)
 	DeleteWalletAccountLocal(context.Context, DeleteWalletAccountLocalArg) error
 	LinkNewWalletAccountLocal(context.Context, LinkNewWalletAccountLocalArg) (AccountID, error)
 	CreateWalletAccountLocal(context.Context, CreateWalletAccountLocalArg) (AccountID, error)
@@ -1961,7 +1961,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SetWalletAccountAsDefaultLocalArg)(nil), args)
 						return
 					}
-					err = i.SetWalletAccountAsDefaultLocal(ctx, typedArgs[0])
+					ret, err = i.SetWalletAccountAsDefaultLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2975,8 +2975,8 @@ func (c LocalClient) ChangeWalletAccountNameLocal(ctx context.Context, __arg Cha
 	return
 }
 
-func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg SetWalletAccountAsDefaultLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, nil)
+func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg SetWalletAccountAsDefaultLocalArg) (res []WalletAccountLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, &res)
 	return
 }
 

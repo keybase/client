@@ -540,7 +540,7 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 	return stellar.WalletAccount(mctx, s.remoter, arg.AccountID)
 }
 
-func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (err error) {
+func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar1.SetWalletAccountAsDefaultLocalArg) (accts []stellar1.WalletAccountLocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "SetWalletAccountAsDefaultLocal",
 		Err:           &err,
@@ -548,15 +548,19 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 	})
 	defer fin()
 	if err != nil {
-		return err
+		return accts, err
 	}
 
 	if arg.AccountID.IsNil() {
 		mctx.Debug("SetWalletAccountAsDefaultLocal called with an empty account id")
-		return ErrAccountIDMissing
+		return accts, ErrAccountIDMissing
 	}
 
-	return stellar.SetAccountAsPrimary(mctx, s.walletState, arg.AccountID)
+	err = stellar.SetAccountAsPrimary(mctx, s.walletState, arg.AccountID)
+	if err != nil {
+		return accts, err
+	}
+	return stellar.AllWalletAccounts(mctx, s.remoter)
 }
 
 func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.DeleteWalletAccountLocalArg) (err error) {

@@ -1643,7 +1643,10 @@
           "type": "AccountID"
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "WalletAccountLocal"
+      }
     },
     "deleteWalletAccountLocal": {
       "request": [

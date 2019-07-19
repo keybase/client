@@ -198,7 +198,7 @@ protocol local {
   void validateAccountNameLocal(int sessionID, string name);
 
   WalletAccountLocal changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
-  void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
+  array<WalletAccountLocal> setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
 
   // Deleting an account is irreversible, even with Keybase, Inc. help.
   // Consumer of this API should always prompt the user and warn that if

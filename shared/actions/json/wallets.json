@@ -202,7 +202,7 @@
     },
     "didSetAccountAsDefault": {
       "_description": "A response from the service after an account is set as the default",
-      "accountID": "Types.AccountID"
+      "accounts": "Array<Types.Account>"
     },
     "deleteAccount": {
       "_description": "Delete an account",

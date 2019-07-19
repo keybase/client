@@ -954,10 +954,12 @@ func TestBundleFlows(t *testing.T) {
 	assertFetchAccountBundles(t, tcs[0], a2)
 
 	// switch which account is primary
-	err = tcs[0].Srv.SetWalletAccountAsDefaultLocal(ctx, stellar1.SetWalletAccountAsDefaultLocalArg{
+	defaultChangeRes, err := tcs[0].Srv.SetWalletAccountAsDefaultLocal(ctx, stellar1.SetWalletAccountAsDefaultLocalArg{
 		AccountID: a1,
 	})
 	require.NoError(t, err)
+	require.Equal(t, a1, defaultChangeRes[0].AccountID)
+	require.True(t, defaultChangeRes[0].IsDefault)
 	assertFetchAccountBundles(t, tcs[0], a1)
 
 	fullBundle, err := fetchWholeBundleForTesting(mctx)

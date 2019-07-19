@@ -188,7 +188,7 @@ type _CreatedNewAccountPayloadError = {readonly name: string; readonly error: st
 type _DeleteAccountPayload = {readonly accountID: Types.AccountID}
 type _DeleteTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _DeletedAccountPayload = void
-type _DidSetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
+type _DidSetAccountAsDefaultPayload = {readonly accounts: Array<Types.Account>}
 type _DisplayCurrenciesReceivedPayload = {readonly currencies: Array<Types.Currency>}
 type _DisplayCurrencyReceivedPayload = {
   readonly accountID: Types.AccountID | null

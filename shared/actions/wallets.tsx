@@ -639,7 +639,17 @@ const setAccountAsDefault = (_: TypedState, action: WalletsGen.SetAccountAsDefau
   RPCStellarTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
     {accountID: action.payload.accountID},
     Constants.setAccountAsDefaultWaitingKey
-  ).then(() => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
+  ).then(accountsAfterUpdate =>
+    WalletsGen.createDidSetAccountAsDefault({
+      // @ts-ignore codemod-issue
+      accounts: (accountsAfterUpdate || []).map(account => {
+        if (!account.accountID) {
+          logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
+        }
+        return Constants.accountResultToAccount(account)
+      }),
+    })
+  )
 
 const loadPaymentDetail = (
   _: TypedState,
