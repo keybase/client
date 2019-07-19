@@ -66,6 +66,8 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
+  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+    return <Kb.Avatar size={AvatarSize} username={'invalid username for placeholder avatar'} />
   }
 
   return (
@@ -81,6 +83,7 @@ const isPreExistingTeamMemberText = (prettyName: string) =>
   `${prettyName ? prettyName + ' • ' : ''} Already in team`
 
 const FormatPrettyName = (props: {
+  displayLabel: string
   followingState: Types.FollowingState
   keybaseResult: boolean
   keybaseUsername: string | null
@@ -89,8 +92,12 @@ const FormatPrettyName = (props: {
 }) =>
   props.keybaseResult ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
-      {!!props.prettyName && (
+      {props.prettyName && props.prettyName !== props.keybaseUsername ? (
         <Kb.Text type="BodySmall">{props.prettyName + (props.services.length ? ' •' : '')}</Kb.Text>
+      ) : (
+        !!props.displayLabel && (
+          <Kb.Text type="BodySmall">{props.displayLabel + (props.services.length ? ' •' : '')}</Kb.Text>
+        )
       )}
       {props.services.map(service => (
         <Kb.WithTooltip key={service} text={props.services[service]} position="top center">
@@ -115,27 +122,37 @@ const Username = (props: {
   services: {[K in Types.ServiceIdWithContact]?: string}
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
-    <Kb.Text
-      type="BodySemibold"
-      style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
-    >
-      {props.username ? props.username : props.prettyName}
-    </Kb.Text>
     {props.username ? (
-      props.isPreExistingTeamMember ? (
-        <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
-      ) : (
-        <FormatPrettyName
-          followingState={props.followingState}
-          keybaseResult={props.keybaseResult}
-          keybaseUsername={props.keybaseUsername}
-          prettyName={props.prettyName}
-          services={Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]}
-        />
-      )
-    ) : props.displayLabel ? (
-      <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
-    ) : null}
+      <>
+        <Kb.Text
+          type="BodySemibold"
+          style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
+        >
+          {props.username}
+        </Kb.Text>
+        {props.isPreExistingTeamMember ? (
+          <Kb.Text type="BodySmall">{isPreExistingTeamMemberText(props.prettyName)}</Kb.Text>
+        ) : (
+          <FormatPrettyName
+            displayLabel={props.displayLabel}
+            followingState={props.followingState}
+            keybaseResult={props.keybaseResult}
+            keybaseUsername={props.keybaseUsername}
+            prettyName={props.prettyName}
+            services={
+              Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]
+            }
+          />
+        )}
+      </>
+    ) : (
+      <>
+        <Kb.Text type="BodySemibold"> {props.prettyName} </Kb.Text>
+        {props.displayLabel && props.displayLabel !== props.prettyName && (
+          <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
+        )}
+      </>
+    )}
   </Kb.Box2>
 )
 
