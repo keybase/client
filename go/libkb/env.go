@@ -27,6 +27,7 @@ func (n NullConfiguration) GetMobileSharedHome() string                         
 func (n NullConfiguration) GetServerURI() (string, error)                                  { return "", nil }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetGUIConfigFilename() string                                   { return "" }
 func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
@@ -267,6 +268,7 @@ type Env struct {
 	writer        ConfigWriter
 	Test          *TestParameters
 	updaterConfig UpdaterConfigReader
+	guiConfig     *JSONFile
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -298,6 +300,18 @@ func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	defer e.Unlock()
 	e.config = r
 	e.writer = w
+}
+
+func (e *Env) SetGUIConfig(j *JSONFile) {
+	e.Lock()
+	defer e.Unlock()
+	e.guiConfig = j
+}
+
+func (e *Env) GetGUIConfig() *JSONFile {
+	e.RLock()
+	defer e.RUnlock()
+	return e.guiConfig
 }
 
 func (e *Env) SetUpdaterConfig(r UpdaterConfigReader) {
@@ -671,6 +685,15 @@ func (e *Env) GetUpdaterConfigFilename() string {
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
+func (e *Env) GetGUIConfigFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGUIConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
+		func() string { return e.GetConfig().GetGUIConfigFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), GUIConfigFile) },
 	)
 }
 

@@ -63,6 +63,7 @@ const (
 	ConfigFile           = "config.json"
 	SessionFile          = "session.json"
 	UpdaterConfigFile    = "updater.json"
+	GUIConfigFile        = "gui_config.json"
 	DeviceCloneStateFile = "device_clone.json"
 	DBFile               = "keybase.leveldb"
 	ChatDBFile           = "keybase.chat.leveldb"
