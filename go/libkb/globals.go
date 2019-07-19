@@ -415,11 +415,77 @@ func (g *GlobalContext) ConfigReload() error {
 	return err
 }
 
+func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
+	var errs []error
+
+	p := "ui.routeState"
+	uiRouteState, isSet := serviceConfig.GetStringAtPath(p)
+	if isSet {
+		err := guiConfig.SetStringAtPath(p, uiRouteState)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.routeState2"
+	uiRouteState2, isSet := serviceConfig.GetStringAtPath(p)
+	if isSet {
+		err := guiConfig.SetStringAtPath(p, uiRouteState2)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.shownMonsterPushPrompt"
+	uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p)
+	if isSet {
+		err := guiConfig.SetBoolAtPath(p, uiMonsterStorage)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "stellar.lastSentXLM"
+	stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p)
+	if isSet {
+		err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	p = "ui.importContacts"
+	syncSettings, err := serviceConfig.GetInterfaceAtPath(p)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		syncSettings, ok := syncSettings.(map[string]bool)
+		if !ok {
+			errs = append(errs, fmt.Errorf("Failed to coerce ui.importContacts in migration"))
+		} else {
+			for username, syncEnabled := range syncSettings {
+				err := guiConfig.SetBoolAtPath(fmt.Sprintf("%s.%s", p, username), syncEnabled)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+	}
+	return CombineErrors(errs...)
+}
+
 func (g *GlobalContext) ConfigureGUIConfig() error {
-	c := NewJSONFile(g, GUIConfigFile, "gui config")
-	err := c.Load(false /* warnOnNotFound */)
+	guiConfig := NewJSONFile(g, GUIConfigFile, "gui config")
+	found, err := guiConfig.LoadCheckFound()
 	if err == nil {
-		g.Env.SetGUIConfig(c)
+		if !found {
+			// If this is the first time creating this file, manually migrate
+			// old GUI config values from the main config file best-effort.
+			serviceConfig := g.Env.GetConfig()
+			migrateGUIConfig(serviceConfig, guiConfig)
+
+		}
+		g.Env.SetGUIConfig(guiConfig)
 	}
 	return err
 }

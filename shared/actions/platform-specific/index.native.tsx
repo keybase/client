@@ -214,7 +214,9 @@ const getStartupDetailsFromShare = (): Promise<
 
 function* clearRouteState() {
   yield Saga.spawn(() =>
-    RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
+    RPCTypes.configGuiSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(
+      () => {}
+    )
   )
 }
 
@@ -249,7 +251,7 @@ function* persistRoute(state, action: ConfigGen.PersistRoutePayload) {
   const s = JSON.stringify({param, routeName})
   _lastPersist = routeName
   yield Saga.spawn(() =>
-    RPCTypes.configSetValueRpcPromise({
+    RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s},
     }).catch(() => {})
@@ -288,7 +290,7 @@ function* loadStartupDetails() {
   let startupSharePath = null
 
   const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState2'})
+    RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
       .then(v => v.s || '')
       .catch(() => {})
   )
@@ -299,7 +301,7 @@ function* loadStartupDetails() {
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(() => {
-    RPCTypes.configSetValueRpcPromise({
+    RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
       value: {isNull: false, s: ''},
     })
