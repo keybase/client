@@ -34,6 +34,23 @@
         }
       ],
       "response": null
+    },
+    "teambotEkNeeded": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "generation",
+          "type": "EkGeneration"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

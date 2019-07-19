@@ -97,6 +97,11 @@ func newEKMissingBoxErr(mctx libkb.MetaContext, boxType EKType, boxGeneration ke
 	return newEphemeralKeyError(debugMsg, "")
 }
 
+func newTeambotEKWrongKIDErr(mctx libkb.MetaContext, ctime, now keybase1.Time) EphemeralKeyError {
+	debugMsg := fmt.Sprintf("Wrong KID for %v, first seen at %v, now %v", TeambotEKStr, ctime.Time(), now.Time())
+	return newEphemeralKeyError(debugMsg, "")
+}
+
 func newEKCorruptedErr(mctx libkb.MetaContext, boxType EKType,
 	expectedGeneration, boxGeneration keybase1.EkGeneration) EphemeralKeyError {
 	debugMsg := fmt.Sprintf("Storage error for %s@generation:%v, got generation %v instead", boxType, boxGeneration, expectedGeneration)
