@@ -6,11 +6,14 @@ import * as Platforms from '../../constants/platform'
 import KeyHandler from '../../util/key-handler.desktop'
 import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
-
-type Props = {
+import flags from '../../util/feature-flags'
+import AccountSwitcher from '../account-switcher/container'
+export type Props = {
   badgeNumbers: {[K in string]: number}
   fullname: string
   isWalletsNew?: boolean
+  onAddAccount: () => void
+  onCreateAccount: () => void
   onHelp: () => void
   onProfileClick: () => void
   onQuit: () => void
@@ -46,29 +49,37 @@ class TabBar extends React.PureComponent<Props, State> {
   _getAttachmentRef = () => this._attachmentRef.current
   _showMenu = () => this.setState({showingMenu: true})
   _hideMenu = () => this.setState({showingMenu: false})
+  _onClickWrapper = () => {
+    this._hideMenu()
+    this.props.onProfileClick()
+  }
   _menuHeader = () => ({
     onClick: this.props.onProfileClick,
     title: '',
     view: (
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true}>
-        <Kb.ConnectedNameWithIcon
-          username={this.props.username}
-          onClick={() => {
-            this._hideMenu()
-            this.props.onProfileClick()
-          }}
-          metaTwo={
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {this.props.fullname}
-            </Kb.Text>
-          }
-        />
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={this._onClickWrapper} style={styles.headerBox}>
+          <Kb.ConnectedNameWithIcon
+            username={this.props.username}
+            onClick={this._onClickWrapper}
+            metaTwo={
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
+                {this.props.fullname}
+              </Kb.Text>
+            }
+          />
+        </Kb.ClickableBox>
+        {flags.fastAccountSwitch && <AccountSwitcher />}
       </Kb.Box2>
     ),
   })
-  _menuItems = () => [
-    {onClick: this.props.onProfileClick, title: 'View profile'},
-    'Divider' as const,
+  _menuItems = (): Kb.MenuItems => [
+    ...(flags.fastAccountSwitch
+      ? [
+          {onClick: this.props.onAddAccount, title: 'Log in as another user'},
+          {onClick: this.props.onCreateAccount, title: 'Create a new account'},
+        ]
+      : [{onClick: this.props.onProfileClick, title: 'View profile'}, 'Divider' as const]),
     {onClick: this.props.onSettings, title: 'Settings'},
     {onClick: this.props.onHelp, title: 'Help'},
     {danger: true, onClick: this.props.onSignOut, title: 'Sign out'},
@@ -170,7 +181,11 @@ const styles = Styles.styleSheetCreate({
   },
   caret: {marginRight: 12},
   divider: {marginTop: Styles.globalMargins.tiny},
+  fullname: {maxWidth: 180},
   header: {height: 80, marginBottom: 20},
+  headerBox: {
+    paddingTop: Styles.globalMargins.small,
+  },
   iconBox: {
     justifyContent: 'flex-end',
     position: 'relative',
