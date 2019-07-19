@@ -404,12 +404,9 @@ func (g *GlobalContext) ConfigureConfig() error {
 
 func (g *GlobalContext) ConfigReload() error {
 	err := g.ConfigureConfig()
-	if err != nil {
-		return err
-	}
 	guiConfigErr := g.ConfigureGUIConfig()
 	if guiConfigErr != nil {
-		g.Log.Debug("Failed to open gui config: %s\n", guiConfigErr)
+		g.Log.Debug("Failed to open gui config: %s", guiConfigErr)
 	}
 	g.ConfigureUpdaterConfig()
 	return err
@@ -419,37 +416,29 @@ func migrateGUIConfig(serviceConfig ConfigReader, guiConfig *JSONFile) error {
 	var errs []error
 
 	p := "ui.routeState"
-	uiRouteState, isSet := serviceConfig.GetStringAtPath(p)
-	if isSet {
-		err := guiConfig.SetStringAtPath(p, uiRouteState)
-		if err != nil {
+	if uiRouteState, isSet := serviceConfig.GetStringAtPath(p); isSet {
+		if err := guiConfig.SetStringAtPath(p, uiRouteState); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	p = "ui.routeState2"
-	uiRouteState2, isSet := serviceConfig.GetStringAtPath(p)
-	if isSet {
-		err := guiConfig.SetStringAtPath(p, uiRouteState2)
-		if err != nil {
+	if uiRouteState2, isSet := serviceConfig.GetStringAtPath(p); isSet {
+		if err := guiConfig.SetStringAtPath(p, uiRouteState2); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	p = "ui.shownMonsterPushPrompt"
-	uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p)
-	if isSet {
-		err := guiConfig.SetBoolAtPath(p, uiMonsterStorage)
-		if err != nil {
+	if uiMonsterStorage, isSet := serviceConfig.GetBoolAtPath(p); isSet {
+		if err := guiConfig.SetBoolAtPath(p, uiMonsterStorage); err != nil {
 			errs = append(errs, err)
 		}
 	}
 
 	p = "stellar.lastSentXLM"
-	stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p)
-	if isSet {
-		err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM)
-		if err != nil {
+	if stellarLastSentXLM, isSet := serviceConfig.GetBoolAtPath(p); isSet {
+		if err := guiConfig.SetBoolAtPath(p, stellarLastSentXLM); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -482,7 +471,9 @@ func (g *GlobalContext) ConfigureGUIConfig() error {
 			// If this is the first time creating this file, manually migrate
 			// old GUI config values from the main config file best-effort.
 			serviceConfig := g.Env.GetConfig()
-			migrateGUIConfig(serviceConfig, guiConfig)
+			if migrateErr := migrateGUIConfig(serviceConfig, guiConfig); migrateErr != nil {
+				g.Log.Warning("Failed to migrate config to new GUI config file: %s", migrateErr)
+			}
 
 		}
 		g.Env.SetGUIConfig(guiConfig)
