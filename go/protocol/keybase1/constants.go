@@ -221,6 +221,8 @@ const (
 	StatusCode_SCPhoneNumberLimitExceeded                  StatusCode = 3404
 	StatusCode_SCNoPaperKeys                               StatusCode = 3605
 	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
+	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
+	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -437,6 +439,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCPhoneNumberLimitExceeded":                  3404,
 	"SCNoPaperKeys":                               3605,
 	"SCTeambotKeyGenerationExists":                3800,
+	"SCTeambotKeyOldBoxedGeneration":              3801,
+	"SCTeambotKeyBadGeneration":                   3802,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -651,6 +655,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3404: "SCPhoneNumberLimitExceeded",
 	3605: "SCNoPaperKeys",
 	3800: "SCTeambotKeyGenerationExists",
+	3801: "SCTeambotKeyOldBoxedGeneration",
+	3802: "SCTeambotKeyBadGeneration",
 }
 
 func (e StatusCode) String() string {

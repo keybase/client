@@ -863,6 +863,19 @@ type EKLib interface {
 	NewTeamEKNeeded(mctx MetaContext, teamID keybase1.TeamID) (bool, error)
 }
 
+type TeambotBotKeyer interface {
+	GetLatestTeambotKey(mctx MetaContext, teamID keybase1.TeamID) (keybase1.TeambotKey, error)
+	GetTeambotKeyAtGeneration(mctx MetaContext, teamID keybase1.TeamID,
+		generation keybase1.TeambotKeyGeneration) (keybase1.TeambotKey, error)
+}
+
+type TeambotMemberKeyer interface {
+	GetOrCreateTeambotKey(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
+		key keybase1.TeamApplicationKey) (keybase1.TeambotKey, bool, error)
+	PurgeCache(mctx MetaContext)
+	PurgeCacheAtGeneration(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
+}
+
 type ImplicitTeamConflictInfoCacher interface {
 	Get(context.Context, bool, keybase1.TeamID) *keybase1.ImplicitTeamConflictInfo
 	Put(context.Context, bool, keybase1.TeamID, keybase1.ImplicitTeamConflictInfo) error

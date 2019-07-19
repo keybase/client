@@ -403,6 +403,12 @@
         "keybase1NotifyTeamAvatarUpdated": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeam.avatarUpdated']['outParam']) => void}"
         },
+        "keybase1NotifyTeambotNewTeambotKey": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeambot.newTeambotKey']['inParam'] & {sessionID: number}"
+        },
+        "keybase1NotifyTeambotTeambotKeyNeeded": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyTeambot.teambotKeyNeeded']['outParam']) => void}"
+        },
         "keybase1NotifyTrackingTrackingChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyTracking.trackingChanged']['inParam'] & {sessionID: number}"
         },
