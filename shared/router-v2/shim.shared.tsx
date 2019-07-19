@@ -8,7 +8,7 @@ const shimAsRouteTree = (Original: any) => {
     static navigationOptions = Original.navigationOptions
     _routeProps = {get: key => this.props.navigation.getParam(key)}
     _routeState = {
-      get: key => {
+      get: () => {
         throw new Error('Route state NOT supported anymore')
       },
     }

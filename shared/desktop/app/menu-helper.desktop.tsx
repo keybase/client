@@ -39,7 +39,7 @@ export default function makeMenu(window: any) {
             },
             {
               accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
-              click: (item, focusedWindow) => {
+              click: () => {
                 devToolsState = !devToolsState
                 SafeElectron.BrowserWindow.getAllWindows().map(bw =>
                   devToolsState
@@ -146,7 +146,7 @@ export function setupContextMenu(window: any) {
     {role: 'selectall'},
   ])
 
-  window.webContents.on('context-menu', (e, props) => {
+  window.webContents.on('context-menu', (_, props) => {
     const {selectionText, isEditable} = props
     if (isEditable) {
       inputMenu.popup(window)

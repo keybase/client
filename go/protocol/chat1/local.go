@@ -3266,6 +3266,7 @@ type ConversationLocal struct {
 	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
 	Commands         ConversationCommandGroups     `codec:"commands" json:"commands"`
+	BotCommands      ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -3360,7 +3361,8 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConvSettings),
-		Commands: o.Commands.DeepCopy(),
+		Commands:    o.Commands.DeepCopy(),
+		BotCommands: o.BotCommands.DeepCopy(),
 	}
 }
 
@@ -5181,6 +5183,168 @@ func (o LoadFlipRes) DeepCopy() LoadFlipRes {
 	}
 }
 
+type UserBotExtendedDescription struct {
+	Title       string `codec:"title" json:"title"`
+	DesktopBody string `codec:"desktopBody" json:"desktop_body"`
+	MobileBody  string `codec:"mobileBody" json:"mobile_body"`
+}
+
+func (o UserBotExtendedDescription) DeepCopy() UserBotExtendedDescription {
+	return UserBotExtendedDescription{
+		Title:       o.Title,
+		DesktopBody: o.DesktopBody,
+		MobileBody:  o.MobileBody,
+	}
+}
+
+type UserBotCommandOutput struct {
+	Name                string                      `codec:"name" json:"name"`
+	Description         string                      `codec:"description" json:"description"`
+	Usage               string                      `codec:"usage" json:"usage"`
+	ExtendedDescription *UserBotExtendedDescription `codec:"extendedDescription,omitempty" json:"extended_description,omitempty"`
+	Username            string                      `codec:"username" json:"username"`
+}
+
+func (o UserBotCommandOutput) DeepCopy() UserBotCommandOutput {
+	return UserBotCommandOutput{
+		Name:        o.Name,
+		Description: o.Description,
+		Usage:       o.Usage,
+		ExtendedDescription: (func(x *UserBotExtendedDescription) *UserBotExtendedDescription {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ExtendedDescription),
+		Username: o.Username,
+	}
+}
+
+type UserBotCommandInput struct {
+	Name                string                      `codec:"name" json:"name"`
+	Description         string                      `codec:"description" json:"description"`
+	Usage               string                      `codec:"usage" json:"usage"`
+	ExtendedDescription *UserBotExtendedDescription `codec:"extendedDescription,omitempty" json:"extended_description,omitempty"`
+}
+
+func (o UserBotCommandInput) DeepCopy() UserBotCommandInput {
+	return UserBotCommandInput{
+		Name:        o.Name,
+		Description: o.Description,
+		Usage:       o.Usage,
+		ExtendedDescription: (func(x *UserBotExtendedDescription) *UserBotExtendedDescription {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ExtendedDescription),
+	}
+}
+
+type AdvertiseCommandsParam struct {
+	Typ      BotCommandsAdvertisementTyp `codec:"typ" json:"typ"`
+	Commands []UserBotCommandInput       `codec:"commands" json:"commands"`
+	TeamName *string                     `codec:"teamName,omitempty" json:"teamName,omitempty"`
+}
+
+func (o AdvertiseCommandsParam) DeepCopy() AdvertiseCommandsParam {
+	return AdvertiseCommandsParam{
+		Typ: o.Typ.DeepCopy(),
+		Commands: (func(x []UserBotCommandInput) []UserBotCommandInput {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBotCommandInput, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Commands),
+		TeamName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.TeamName),
+	}
+}
+
+type AdvertiseBotCommandsLocalRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o AdvertiseBotCommandsLocalRes) DeepCopy() AdvertiseBotCommandsLocalRes {
+	return AdvertiseBotCommandsLocalRes{
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type ListBotCommandsLocalRes struct {
+	Commands   []UserBotCommandOutput `codec:"commands" json:"commands"`
+	RateLimits []RateLimit            `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o ListBotCommandsLocalRes) DeepCopy() ListBotCommandsLocalRes {
+	return ListBotCommandsLocalRes{
+		Commands: (func(x []UserBotCommandOutput) []UserBotCommandOutput {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBotCommandOutput, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Commands),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type ClearBotCommandsLocalRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o ClearBotCommandsLocalRes) DeepCopy() ClearBotCommandsLocalRes {
+	return ClearBotCommandsLocalRes{
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -5647,6 +5811,18 @@ type LocationDeniedArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type AdvertiseBotCommandsLocalArg struct {
+	Alias          *string                  `codec:"alias,omitempty" json:"alias,omitempty"`
+	Advertisements []AdvertiseCommandsParam `codec:"advertisements" json:"advertisements"`
+}
+
+type ListBotCommandsLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type ClearBotCommandsLocalArg struct {
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5721,6 +5897,9 @@ type LocalInterface interface {
 	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 	LocationUpdate(context.Context, Coordinate) error
 	LocationDenied(context.Context, ConversationID) error
+	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
+	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
+	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6792,6 +6971,46 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"advertiseBotCommandsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AdvertiseBotCommandsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AdvertiseBotCommandsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AdvertiseBotCommandsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.AdvertiseBotCommandsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"listBotCommandsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ListBotCommandsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListBotCommandsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListBotCommandsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ListBotCommandsLocal(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"clearBotCommandsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ClearBotCommandsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.ClearBotCommandsLocal(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -7176,5 +7395,21 @@ func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err 
 func (c LocalClient) LocationDenied(ctx context.Context, convID ConversationID) (err error) {
 	__arg := LocationDeniedArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.locationDenied", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) AdvertiseBotCommandsLocal(ctx context.Context, __arg AdvertiseBotCommandsLocalArg) (res AdvertiseBotCommandsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.advertiseBotCommandsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ListBotCommandsLocal(ctx context.Context, convID ConversationID) (res ListBotCommandsLocalRes, err error) {
+	__arg := ListBotCommandsLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.listBotCommandsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) ClearBotCommandsLocal(ctx context.Context) (res ClearBotCommandsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.clearBotCommandsLocal", []interface{}{ClearBotCommandsLocalArg{}}, &res)
 	return
 }

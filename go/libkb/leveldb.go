@@ -242,6 +242,16 @@ func (l *LevelDb) Stats() (stats string) {
 	return stats
 }
 
+func (l *LevelDb) CompactionStats() (memActive, tableActive bool, err error) {
+	var dbStats leveldb.DBStats
+	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
+		return l.db.Stats(&dbStats)
+	}); err != nil {
+		return false, false, err
+	}
+	return dbStats.MemCompactionActive, dbStats.TableCompactionActive, nil
+}
+
 func (l *LevelDb) GetFilename() string {
 	if len(l.filename) == 0 {
 		l.G().Log.Fatalf("DB filename empty")

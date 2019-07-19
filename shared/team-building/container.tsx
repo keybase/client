@@ -60,9 +60,11 @@ const deriveSearchResults = memoize(
   ) =>
     searchResults &&
     searchResults.map(info => ({
-      followingState: followStateHelperWithId(myUsername, followingState, info.id),
+      displayLabel: info.label || '',
+      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: teamSoFar.some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
+      key: [info.id, info.prettyName, info.label].join('&'),
       prettyName: info.prettyName,
       services: info.serviceMap,
       userId: info.id,

@@ -5,7 +5,7 @@ import * as Container from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import File from '.'
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 
 type OwnProps = {
   message: Types.MessageAttachment
@@ -25,7 +25,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const arrowColor = message.downloadPath
     ? globalColors.green

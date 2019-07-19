@@ -4,7 +4,6 @@
     "isolatedModules": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "tsBuildInfoFile": "./.tsOuts/.tsOutStrict/cache",

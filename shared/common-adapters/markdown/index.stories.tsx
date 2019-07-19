@@ -207,7 +207,7 @@ const randomGenerated = {
 }
 
 export const provider = Sb.createPropProviderWithCommon({
-  PaymentPopup: p => ({}),
+  PaymentPopup: () => ({}),
   PaymentStatus: p => ({
     allowFontScaling: true,
     allowPopup: false,

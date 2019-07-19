@@ -26,7 +26,7 @@ export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (stateProps, dispatchProps, ownProps: OwnProps) => {
+    (stateProps, dispatchProps, _: OwnProps) => {
       const loggedInAccounts = stateProps.configuredAccounts
         .filter(account => account.hasStoredSecret)
         .map(account => account.username)

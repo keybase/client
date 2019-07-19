@@ -314,7 +314,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 			err)
 		return
 	}
-	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url); err != nil {
+	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url, keybase1.TLFVisibility_PRIVATE); err != nil {
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
 			err)
 	}
@@ -574,8 +574,9 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 		r.servePendingPreview(ctx, w, req)
 	case r.attachmentPrefix:
 		r.serveAttachment(ctx, w, req)
+	default:
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid key prefix")
 	}
-	r.makeError(ctx, w, http.StatusBadRequest, "invalid key prefix")
 }
 
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
@@ -881,12 +882,12 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 }
 
 func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
-	go disklru.CleanAfterDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
+	go disklru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
 }
 
 func (c *CachingAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(mctx, c.getCacheDir()); err != nil {
+		if err := c.diskLRU.CleanOutOfSync(mctx, c.getCacheDir()); err != nil {
 			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
 		}
 	}

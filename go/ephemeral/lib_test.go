@@ -118,7 +118,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	ekLib := NewEKLib(mctx)
 	defer ekLib.Shutdown()
 	fc := clockwork.NewFakeClockAt(time.Now())
-	ekLib.setClock(fc)
+	ekLib.SetClock(fc)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()
@@ -292,13 +292,13 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	}
 
 	// First we ensure that we don't do background generation for expired teamEKs.
-	fc.Advance(cacheEntryLifetime) // expire our cache
+	fc.Advance(LibCacheEntryLifetime) // expire our cache
 	forceEKCtime(expectedTeamEKGen, -libkb.EphemeralKeyGenInterval)
 	expectedTeamEKGen++
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, true /*created*/, false /* teamEKCreationInProgress */)
 
 	// If we are *almost* expired, background generation is possible.
-	fc.Advance(cacheEntryLifetime) // expire our cache
+	fc.Advance(LibCacheEntryLifetime) // expire our cache
 	forceEKCtime(expectedTeamEKGen, -libkb.EphemeralKeyGenInterval+30*time.Minute)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /*created*/, true /* teamEKCreationInProgress */)
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /*created*/, true /* teamEKCreationInProgress */)

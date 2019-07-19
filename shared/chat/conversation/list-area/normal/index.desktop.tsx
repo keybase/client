@@ -83,7 +83,7 @@ class Thread extends React.PureComponent<Props, State> {
           this._ignoreScrollOnetime
         )
       }
-    : (name, fn) => fn()
+    : (_, fn) => fn()
 
   _logScrollTop = debug
     ? (list, name, fn) => {
@@ -91,7 +91,7 @@ class Thread extends React.PureComponent<Props, State> {
         fn()
         logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
       }
-    : (list, name, fn) => fn()
+    : (_, __, fn) => fn()
 
   _logAll = debug
     ? (list, name, fn) => {
@@ -111,7 +111,7 @@ class Thread extends React.PureComponent<Props, State> {
           list.scrollTop
         )
       }
-    : (list, name, fn) => fn()
+    : (_, __, fn) => fn()
 
   _scrollToCentered = () => {
     const list = this._listRef.current
@@ -178,7 +178,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
-  getSnapshotBeforeUpdate(prevProps: Props, prevState: State) {
+  getSnapshotBeforeUpdate(prevProps: Props) {
     // prepending, lets keep track of the old scrollHeight
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
@@ -190,7 +190,7 @@ class Thread extends React.PureComponent<Props, State> {
     return null
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
+  componentDidUpdate(prevProps: Props, _: State, snapshot: Snapshot) {
     if (this.props === prevProps) {
       // don't do any of the below if just state changes
       return
@@ -296,7 +296,7 @@ class Thread extends React.PureComponent<Props, State> {
     this._checkForLoadMoreThrottled.cancel()
   }
 
-  _onScroll = e => {
+  _onScroll = () => {
     if (this._ignoreScrollOnetime) {
       this._logIgnoreScroll('_onScroll', () => {
         this._ignoreScrollOnetime = false

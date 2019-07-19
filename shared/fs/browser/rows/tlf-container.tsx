@@ -21,7 +21,7 @@ const mapStateToProps = (state, {tlfType, name}: OwnProps) => ({
 
 const mergeProps = (
   stateProps,
-  dispatchProps,
+  _,
   {tlfType, name, routePath, destinationPickerIndex}: OwnProps
 ) => {
   const shouldBadge = Constants.tlfIsBadged(stateProps._tlf)

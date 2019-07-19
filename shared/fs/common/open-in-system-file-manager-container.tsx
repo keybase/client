@@ -8,7 +8,7 @@ type OwnProps = {
   path: Types.Path
 }
 
-const mapStateToProps = (state, {path}: OwnProps) => ({
+const mapStateToProps = state => ({
   driverEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
 })
 
@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 const connected = namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...s, ...d}),
+    (s, d, _: OwnProps) => ({...s, ...d}),
   'ConnectedOpenInSystemFileManager'
 )(OpenInSystemFileManager)
 

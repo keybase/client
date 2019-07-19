@@ -160,7 +160,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     this._init()
   }
 
-  componentDidUpdate(prevProps: PropsWithOverlay<Props>, prevState: State) {
+  componentDidUpdate(prevProps: PropsWithOverlay<Props>) {
     if (
       !policyEquals(this.props.policy, prevProps.policy) ||
       !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)

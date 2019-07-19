@@ -17,7 +17,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   error: state.provision.error.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
 })
@@ -25,9 +25,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
 export default Container.compose(
   Container.withStateHandlers<any, any, any>(
     {deviceName: ''},
-    {
-      onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
-    }
+    {onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)})}
   ),
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
     const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)

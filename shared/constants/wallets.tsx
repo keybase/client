@@ -255,6 +255,7 @@ export const makeState = I.Record<Types._State>({
   sentPaymentError: '',
   sep7ConfirmError: '',
   sep7ConfirmInfo: null,
+  sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
   staticConfig: null,
   trustline: emptyTrustline,
@@ -692,7 +693,7 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
-export const getAirdropSelected = (state: TypedState) => {
+export const getAirdropSelected = () => {
   const path = Router2Constants.getVisibleScreen().routeName
   return path === 'airdrop' || path === 'airdropQualify'
 }
@@ -811,4 +812,6 @@ export const getShowAirdropBanner = (state: TypedState) =>
   flags.airdrop &&
   state.wallets.airdropDetails.isPromoted &&
   state.wallets.airdropShowBanner &&
-  (state.wallets.airdropState === 'qualified' || state.wallets.airdropState === 'unqualified')
+  (state.wallets.airdropState === 'qualified' ||
+    state.wallets.airdropState === 'unqualified' ||
+    state.wallets.airdropState === 'needDisclaimer')

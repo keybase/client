@@ -12,7 +12,7 @@ class List extends PureComponent<Props<any>> {
     return this.props.renderItem(index, item)
   }
 
-  _getItemLayout = (data, index) => ({
+  _getItemLayout = (_, index) => ({
     index,
     length: this.props.fixedHeight || 0,
     offset: (this.props.fixedHeight || 0) * index,

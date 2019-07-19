@@ -120,7 +120,7 @@ const rules = {
   emoji: {
     match: SimpleMarkdown.inlineRegex(emojiRegex),
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
-    parse: function(capture, parse, state) {
+    parse: function(capture, _, __) {
       // If it's a unicode emoji, let's get it's shortname
       const shortName = emojiIndexByChar[capture[0]]
       return {content: shortName || capture[0]}
@@ -137,7 +137,7 @@ const rules = {
   // it won't match.
   fallbackParagraph: {
     // $FlowIssue - tricky to get this to type properly
-    match: (source, state, lookBehind) => (Styles.isMobile && !state.inParagraph ? [source] : null),
+    match: (source, state, _) => (Styles.isMobile && !state.inParagraph ? [source] : null),
     order: 10000,
     parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
   },
@@ -149,7 +149,7 @@ const rules = {
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
     order: 0,
-    parse: function(capture, parse, state) {
+    parse: function(capture, _, __) {
       return {
         content: capture[1],
         lang: undefined,

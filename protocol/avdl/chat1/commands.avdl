@@ -13,7 +13,8 @@ protocol commands {
 
   enum ConversationCommandGroupsTyp {
     BUILTIN_0,
-    CUSTOM_1
+    CUSTOM_1,
+    NONE_2
   }
 
   enum ConversationBuiltinCommandTyp {
@@ -31,5 +32,6 @@ protocol commands {
   variant ConversationCommandGroups switch (ConversationCommandGroupsTyp typ) {
     case BUILTIN: ConversationBuiltinCommandTyp;
     case CUSTOM: ConversationCommandGroupsCustom;
+    case NONE: void;
   }
 }

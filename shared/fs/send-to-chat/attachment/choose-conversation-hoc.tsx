@@ -10,7 +10,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _sendAttachmentToChat: state.fs.sendAttachmentToChat,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, _: OwnProps) => ({
   onSelect: (convID: ChatTypes.ConversationIDKey) =>
     dispatch(FsGen.createSetSendAttachmentToChatConvID({convID})),
   onSetFilter: (filter: string) => dispatch(FsGen.createSetSendAttachmentToChatFilter({filter})),

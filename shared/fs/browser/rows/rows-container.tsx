@@ -115,7 +115,7 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): I.List<RowTy
   )
 }
 
-const getRootRows = (stateProps): I.List<RowTypes.TlfTypeRowItem> =>
+const getRootRows = (): I.List<RowTypes.TlfTypeRowItem> =>
   I.List([
     {
       key: 'tlfType:private',
@@ -179,7 +179,7 @@ const getNormalRowItemsFromStateProps = (stateProps, path): I.List<RowTypes.Name
     case 0:
       return I.List() // should never happen
     case 1:
-      return getRootRows(stateProps)
+      return getRootRows()
     case 2:
       return getTlfItemsFromStateProps(stateProps, path)
     default:

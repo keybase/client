@@ -11,6 +11,7 @@ export const chat1ChatUiChatAttachmentDownloadDone = 'engine-gen:chat1ChatUiChat
 export const chat1ChatUiChatAttachmentDownloadProgress =
   'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
 export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
+export const chat1ChatUiChatBotCommandsUpdateStatus = 'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus'
 export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
@@ -123,6 +124,7 @@ export const keybase1NotifyEmailAddressEmailAddressVerified =
 export const keybase1NotifyEmailAddressEmailsChanged = 'engine-gen:keybase1NotifyEmailAddressEmailsChanged'
 export const keybase1NotifyEphemeralNewTeamEk = 'engine-gen:keybase1NotifyEphemeralNewTeamEk'
 export const keybase1NotifyEphemeralNewTeambotEk = 'engine-gen:keybase1NotifyEphemeralNewTeambotEk'
+export const keybase1NotifyEphemeralTeambotEkNeeded = 'engine-gen:keybase1NotifyEphemeralTeambotEkNeeded'
 export const keybase1NotifyFSFSActivity = 'engine-gen:keybase1NotifyFSFSActivity'
 export const keybase1NotifyFSFSEditListResponse = 'engine-gen:keybase1NotifyFSFSEditListResponse'
 export const keybase1NotifyFSFSFavoritesChanged = 'engine-gen:keybase1NotifyFSFSFavoritesChanged'
@@ -239,6 +241,15 @@ type _Chat1ChatUiChatAttachmentDownloadStartPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatClearWatchPayload = {
@@ -1047,6 +1058,17 @@ type _Keybase1NotifyEphemeralNewTeambotEkPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void
   }
 }
+type _Keybase1NotifyEphemeralTeambotEkNeededPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['outParam']
+    ) => void
+  }
+}
 type _Keybase1NotifyFSFSActivityPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {
     sessionID: number
@@ -1704,6 +1726,9 @@ export const createChat1ChatUiChatAttachmentDownloadProgress = (
 export const createChat1ChatUiChatAttachmentDownloadStart = (
   payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
 ): Chat1ChatUiChatAttachmentDownloadStartPayload => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
+export const createChat1ChatUiChatBotCommandsUpdateStatus = (
+  payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
+): Chat1ChatUiChatBotCommandsUpdateStatusPayload => ({payload, type: chat1ChatUiChatBotCommandsUpdateStatus})
 export const createChat1ChatUiChatClearWatch = (
   payload: _Chat1ChatUiChatClearWatchPayload
 ): Chat1ChatUiChatClearWatchPayload => ({payload, type: chat1ChatUiChatClearWatch})
@@ -2068,6 +2093,9 @@ export const createKeybase1NotifyEphemeralNewTeamEk = (
 export const createKeybase1NotifyEphemeralNewTeambotEk = (
   payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
 ): Keybase1NotifyEphemeralNewTeambotEkPayload => ({payload, type: keybase1NotifyEphemeralNewTeambotEk})
+export const createKeybase1NotifyEphemeralTeambotEkNeeded = (
+  payload: _Keybase1NotifyEphemeralTeambotEkNeededPayload
+): Keybase1NotifyEphemeralTeambotEkNeededPayload => ({payload, type: keybase1NotifyEphemeralTeambotEkNeeded})
 export const createKeybase1NotifyFSFSActivity = (
   payload: _Keybase1NotifyFSFSActivityPayload
 ): Keybase1NotifyFSFSActivityPayload => ({payload, type: keybase1NotifyFSFSActivity})
@@ -2363,6 +2391,10 @@ export type Chat1ChatUiChatAttachmentDownloadProgressPayload = {
 export type Chat1ChatUiChatAttachmentDownloadStartPayload = {
   readonly payload: _Chat1ChatUiChatAttachmentDownloadStartPayload
   readonly type: typeof chat1ChatUiChatAttachmentDownloadStart
+}
+export type Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
+  readonly payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
+  readonly type: typeof chat1ChatUiChatBotCommandsUpdateStatus
 }
 export type Chat1ChatUiChatClearWatchPayload = {
   readonly payload: _Chat1ChatUiChatClearWatchPayload
@@ -2774,6 +2806,10 @@ export type Keybase1NotifyEphemeralNewTeambotEkPayload = {
   readonly payload: _Keybase1NotifyEphemeralNewTeambotEkPayload
   readonly type: typeof keybase1NotifyEphemeralNewTeambotEk
 }
+export type Keybase1NotifyEphemeralTeambotEkNeededPayload = {
+  readonly payload: _Keybase1NotifyEphemeralTeambotEkNeededPayload
+  readonly type: typeof keybase1NotifyEphemeralTeambotEkNeeded
+}
 export type Keybase1NotifyFSFSActivityPayload = {
   readonly payload: _Keybase1NotifyFSFSActivityPayload
   readonly type: typeof keybase1NotifyFSFSActivity
@@ -3089,6 +3125,7 @@ export type Actions =
   | Chat1ChatUiChatAttachmentDownloadDonePayload
   | Chat1ChatUiChatAttachmentDownloadProgressPayload
   | Chat1ChatUiChatAttachmentDownloadStartPayload
+  | Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload
@@ -3193,6 +3230,7 @@ export type Actions =
   | Keybase1NotifyEmailAddressEmailsChangedPayload
   | Keybase1NotifyEphemeralNewTeamEkPayload
   | Keybase1NotifyEphemeralNewTeambotEkPayload
+  | Keybase1NotifyEphemeralTeambotEkNeededPayload
   | Keybase1NotifyFSFSActivityPayload
   | Keybase1NotifyFSFSEditListResponsePayload
   | Keybase1NotifyFSFSFavoritesChangedPayload

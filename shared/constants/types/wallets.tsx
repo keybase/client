@@ -301,7 +301,8 @@ export type AccountInflationDestination = I.RecordOf<_AccountInflationDestinatio
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
-export type AirdropState = 'loading' | 'accepted' | 'qualified' | 'unqualified'
+export type AirdropState = 'loading' | 'accepted' | 'qualified' | 'unqualified' | 'needDisclaimer'
+
 export type _AirdropQualification = {
   title: string
   subTitle: string
@@ -405,6 +406,7 @@ export type _State = {
   sentPaymentError: string
   sep7ConfirmError: string
   sep7ConfirmInfo: SEP7ConfirmInfo | null
+  sep7ConfirmPath: BuiltPaymentAdvanced
   sep7ConfirmURI: string
   staticConfig: StaticConfig | null
   trustline: Trustline

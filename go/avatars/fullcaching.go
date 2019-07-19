@@ -87,7 +87,7 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
-	go lru.CleanAfterDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
+	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
@@ -394,7 +394,7 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 
 func (c *FullCachingSource) OnDbNuke(m libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(m, c.getCacheDir(m)); err != nil {
+		if err := c.diskLRU.CleanOutOfSync(m, c.getCacheDir(m)); err != nil {
 			c.debug(m, "unable to run clean: %v", err)
 		}
 	}

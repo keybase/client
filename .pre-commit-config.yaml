@@ -18,7 +18,7 @@ repos:
     -   id: tsc
         name: tsc
         entry: node
-        args: ['--max-old-space-size=4096', 'shared/node_modules/.bin/tsc', '-p', 'shared/tsconfig.json']
+        args: ['--max-old-space-size=4096', 'shared/node_modules/.bin/tsc', '-p', 'shared/tsconfig.fast.json']
         language: node
         files: \.(ts|tsx)$
         pass_filenames: false

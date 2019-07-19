@@ -8,7 +8,7 @@ const mapStateToPropsHeaderTitle = state => Constants.getDeviceCounts(state)
 export const HeaderTitle = Container.namedConnect(
   mapStateToPropsHeaderTitle,
   () => ({}),
-  (s, d, o) => s,
+  s => s,
   'DevicesHeaderTitle'
 )(_HeaderTitle)
 
@@ -19,6 +19,6 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
 export const HeaderRightActions = Container.namedConnect(
   () => ({}),
   mapDispatchToPropsHeaderRightActions,
-  (s, d, o) => d,
+  (_, d) => d,
   'DevicesHeaderRightActions'
 )(_HeaderRightActions)

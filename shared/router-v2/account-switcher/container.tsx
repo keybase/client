@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
     dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onSelectAccountLoggedOut: username => {
     dispatch(ConfigGen.createSetDefaultUsername({username}))
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: false, path: ''}))
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
   },
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+  (stateProps, dispatchProps, _: OwnProps): Props => {
     const accountRows = Constants.prepareAccountRows(stateProps.accountRows, stateProps.username)
     return {
       accountRows: accountRows

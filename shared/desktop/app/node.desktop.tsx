@@ -115,7 +115,7 @@ const handleCrashes = () => {
   })
 
   if (!__DEV__) {
-    SafeElectron.getApp().on('browser-window-created', (e, win) => {
+    SafeElectron.getApp().on('browser-window-created', (_, win) => {
       if (!win) {
         return
       }
@@ -126,7 +126,7 @@ const handleCrashes = () => {
       })
 
       if (win.webContents) {
-        win.webContents.on('crashed', (e, killed) => {
+        win.webContents.on('crashed', (_, killed) => {
           if (killed) {
             console.log('browser window killed')
           } else {
@@ -165,7 +165,7 @@ const createMainWindow = () => {
   })
 }
 
-const handleInstallCheck = (event, arg) => {
+const handleInstallCheck = event => {
   installer(err => {
     if (err) {
       console.log('Error: ', err)
@@ -174,7 +174,7 @@ const handleInstallCheck = (event, arg) => {
   })
 }
 
-const handleKBServiceCheck = (event, arg) => {
+const handleKBServiceCheck = () => {
   if (isWindows) {
     console.log('kb-service-check: starting keybase.exe')
     startWinService()
@@ -183,7 +183,7 @@ const handleKBServiceCheck = (event, arg) => {
 
 const handleActivate = () => mainWindow && mainWindow.show()
 
-const handleCloseWindows = event => {
+const handleCloseWindows = () => {
   const windows = SafeElectron.BrowserWindow.getAllWindows()
   windows.forEach(w => {
     // We tell it to close, we can register handlers for the 'close' event if we want to

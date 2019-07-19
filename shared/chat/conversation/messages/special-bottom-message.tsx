@@ -34,7 +34,7 @@ class BottomMessage extends React.PureComponent<Props> {
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
-  measure: (() => void)| null
+  measure: (() => void) | null
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -51,7 +51,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     showSuperseded,
   }
 }
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'BottomMessage')(

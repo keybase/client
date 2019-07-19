@@ -12,7 +12,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   hint: `${state.provision.codePageOtherDeviceName || ''}...`,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onSubmit: (paperKey: string) =>
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey: new HiddenString(paperKey)})),

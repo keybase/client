@@ -201,3 +201,12 @@ func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.Conve
 		Actions:     actions,
 	})
 }
+
+func (r *RemoteChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID chat1.ConversationID,
+	status chat1.UIBotCommandsUpdateStatus) error {
+	return r.cli.ChatBotCommandsUpdateStatus(ctx, chat1.ChatBotCommandsUpdateStatusArg{
+		SessionID: r.sessionID,
+		ConvID:    convID.String(),
+		Status:    status,
+	})
+}

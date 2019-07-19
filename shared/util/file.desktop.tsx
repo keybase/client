@@ -39,7 +39,7 @@ export function downloadFilePath(suffix: string): Promise<string> {
 }
 
 export function exists(filepath: string): Promise<boolean> {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     fs.access(filepath, fs.constants.F_OK, err => {
       resolve(!err)
     })
@@ -89,7 +89,7 @@ export function copy(from: string, to: string): Promise<void> {
 }
 
 export function unlink(filepath: string): Promise<void> {
-  return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
+  return new Promise(resolve => fs.unlink(filepath, () => resolve()))
 }
 
 export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<WriteStream> {

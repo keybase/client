@@ -131,8 +131,8 @@ class Text extends Component<Props> {
 function _getStyle(
   type: TextType,
   negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null,
+  _?: number | null,
+  __?: boolean | null,
   // @ts-ignore the order of these parameters because this is used in a lot
   // of places
   forceUnderline: boolean
@@ -153,8 +153,8 @@ function _getStyle(
 function getStyle(
   type: TextType,
   negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null
+  _?: number | null,
+  __?: boolean | null
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)

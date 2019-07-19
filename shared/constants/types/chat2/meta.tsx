@@ -12,6 +12,7 @@ export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
 export type _ConversationMeta = {
+  botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
   commands: RPCChatTypes.ConversationCommandGroups

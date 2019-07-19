@@ -6,7 +6,7 @@ if (!__STORYBOOK__) {
 
 // Does not fully mock members
 // Add properties & functions as necessary
-export const clipboard = {writeText: s => {}}
+export const clipboard = {writeText: _ => {}}
 export const remote = {
   BrowserWindow: {},
   Menu: {},

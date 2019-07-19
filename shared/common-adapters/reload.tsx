@@ -141,8 +141,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     reason: (error && error.message) || '',
   }
 }
-const mapDispatchToProps = dispatch => ({})
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mapDispatchToProps = () => ({})
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   children: ownProps.children,
   needsReload: stateProps.needsReload,
   onBack: ownProps.onBack,

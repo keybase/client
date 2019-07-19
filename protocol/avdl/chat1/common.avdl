@@ -545,7 +545,8 @@
     SEARCHER_6,
     INDEXED_SEARCH_7,
     KBFSFILEACTIVITY_8,
-    COINFLIP_9
+    COINFLIP_9,
+    BOTCOMMANDS_10
   }
 
   enum ReIndexingMode {
@@ -672,5 +673,12 @@
     bytes nonce;               // encryption nonce
     AssetMetadata metadata;    // type-specific metadata
     AssetTag tag;              // for multiple previews, a tag to differentiate
+  }
+
+  // Bot Commands
+  enum BotCommandsAdvertisementTyp {
+    PUBLIC_0,
+    TLFID_MEMBERS_1,
+    TLFID_CONVS_2
   }
 }

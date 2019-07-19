@@ -364,7 +364,7 @@ function* refreshNotifications() {
 
 const dbNuke = () => RPCTypes.ctlDbNukeRpcPromise()
 
-const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccountForeverPayload) => {
+const deleteAccountForever = (state: TypedState) => {
   const username = state.config.username
   const allowDeleteAccount = state.settings.allowDeleteAccount
 
@@ -393,7 +393,7 @@ const loadSettings = (
         (settings.emails || []).map(row => [row.email, Constants.makeEmailRow(row)])
       )
       const phoneMap: I.Map<string, Types.PhoneRow> = I.Map(
-        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.makePhoneRow(row)])
+        (settings.phoneNumbers || []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
       )
       const loadedAction = SettingsGen.createLoadedSettings({
         emails: emailMap,
@@ -405,12 +405,10 @@ const loadSettings = (
       logger.warn(`Error loading settings: ${e.message}`)
     })
 
-const flipVis = (visibility: ChatTypes.Keybase1.IdentityVisibility): ChatTypes.Keybase1.IdentityVisibility =>
-  visibility === ChatTypes.Keybase1.IdentityVisibility.private
-    ? ChatTypes.Keybase1.IdentityVisibility.public
-    : ChatTypes.Keybase1.IdentityVisibility.private
+const flipVis = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
+  searchable ? ChatTypes.Keybase1.IdentityVisibility.private : ChatTypes.Keybase1.IdentityVisibility.public
 
-const editEmail = (state, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
+const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -443,7 +441,7 @@ const editPhone = (state, action: SettingsGen.EditPhonePayload, logger: Saga.Sag
   if (action.payload.toggleSearchable) {
     const currentSettings = state.settings.phoneNumbers.phones.get(action.payload.phone)
     const newVisibility = currentSettings
-      ? flipVis(currentSettings.visibility)
+      ? flipVis(currentSettings.searchable)
       : ChatTypes.Keybase1.IdentityVisibility.private
     return RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
       phoneNumber: action.payload.phone,
@@ -499,7 +497,7 @@ const loadLockdownMode = (state: TypedState) =>
     )
     .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
-const loadProxyData = state =>
+const loadProxyData = () =>
   RPCTypes.configGetProxyDataRpcPromise(undefined)
     .then((result: RPCTypes.ProxyData) => SettingsGen.createLoadedProxyData({proxyData: result}))
     .catch(err => logger.warn('Error in loading proxy data', err))
@@ -551,7 +549,7 @@ const sendFeedback = (
     })
 }
 
-const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
+const unfurlSettingsRefresh = (state: TypedState) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
@@ -599,7 +597,7 @@ const stop = (_: TypedState, action: SettingsGen.StopPayload) =>
   RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
 const addPhoneNumber = (
-  state: TypedState,
+  _: TypedState,
   action: SettingsGen.AddPhoneNumberPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -621,7 +619,7 @@ const addPhoneNumber = (
 }
 
 const resendVerificationForPhoneNumber = (
-  state: TypedState,
+  _: TypedState,
   action: SettingsGen.ResendVerificationForPhoneNumberPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -672,7 +670,7 @@ const loadContactImportEnabled = async (
   }
   let enabled = false
   try {
-    const res = await RPCTypes.configGetValueRpcPromise(
+    const res = await RPCTypes.configGuiGetValueRpcPromise(
       {
         path: Constants.importContactsConfigKey(state.config.username),
       },
@@ -692,7 +690,7 @@ const editContactImportEnabled = (
   logger: Saga.SagaLogger
 ) =>
   state.config.username
-    ? RPCTypes.configSetValueRpcPromise(
+    ? RPCTypes.configGuiSetValueRpcPromise(
         {
           path: Constants.importContactsConfigKey(state.config.username),
           value: {b: action.payload.enable, isNull: false},

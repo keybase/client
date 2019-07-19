@@ -16,6 +16,7 @@ type Props = {
   path: Types.Path
   type: Types.PathType
   routePath: I.List<string>
+  tooLargeForText: boolean
   url: string
 }
 
@@ -82,7 +83,9 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
       case Types.FileViewType.Default:
         return <DefaultView path={this.props.path} routePath={this.props.routePath} />
       case Types.FileViewType.Text:
-        return (
+        return this.props.tooLargeForText ? (
+          <DefaultView path={this.props.path} routePath={this.props.routePath} />
+        ) : (
           <>
             {reloadBanner}
             <TextView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />

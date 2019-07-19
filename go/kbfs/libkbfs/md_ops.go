@@ -1275,7 +1275,8 @@ func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id tlf.ID,
 
 func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
-	priority keybase1.MDPriority) (ImmutableRootMetadata, error) {
+	priority keybase1.MDPriority, bps data.BlockPutState) (
+	ImmutableRootMetadata, error) {
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -1318,6 +1319,8 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 		return ImmutableRootMetadata{}, err
 	}
 
+	rmd = rmd.loadCachedBlockChanges(
+		ctx, bps, md.log, md.vlog, md.config.Codec())
 	irmd := MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, md.config.Clock().Now(), true)
 	// Revisions created locally should always override anything else
@@ -1334,17 +1337,19 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 // Put implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
-	priority keybase1.MDPriority) (ImmutableRootMetadata, error) {
+	priority keybase1.MDPriority, bps data.BlockPutState) (
+	ImmutableRootMetadata, error) {
 	if rmd.MergedStatus() == kbfsmd.Unmerged {
 		return ImmutableRootMetadata{}, UnexpectedUnmergedPutError{}
 	}
-	return md.put(ctx, rmd, verifyingKey, lockContext, priority)
+	return md.put(ctx, rmd, verifyingKey, lockContext, priority, bps)
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(
 	ctx context.Context, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+	verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+	ImmutableRootMetadata, error) {
 	rmd.SetUnmerged()
 	if rmd.BID() == kbfsmd.NullBranchID {
 		// new branch ID
@@ -1354,7 +1359,7 @@ func (md *MDOpsStandard) PutUnmerged(
 		}
 		rmd.SetBranchID(bid)
 	}
-	return md.put(ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal)
+	return md.put(ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal, bps)
 }
 
 // PruneBranch implements the MDOps interface for MDOpsStandard.
@@ -1370,10 +1375,11 @@ func (md *MDOpsStandard) PruneBranch(
 // ResolveBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, _ []kbfsblock.ID,
-	rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (
-	ImmutableRootMetadata, error) {
+	rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey,
+	bps data.BlockPutState) (ImmutableRootMetadata, error) {
 	// Put the MD first.
-	irmd, err := md.Put(ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal)
+	irmd, err := md.Put(
+		ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal, bps)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}

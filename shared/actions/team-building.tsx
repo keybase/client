@@ -52,9 +52,14 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
     .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
-  const isStillInSameQuery = (state: TypedState): boolean =>
-    teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-    teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
+  const isStillInSameQuery = (state: TypedState): boolean => {
+    const teamBuildingState = state[namespace].teamBuilding
+
+    return (
+      teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
+      teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
+    )
+  }
 
   // Defer so we aren't conflicting with the main search
   yield Saga.callUntyped(Saga.delay, 100)
@@ -136,7 +141,8 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       const contacts = contactRes.map(
         (x): TeamBuildingTypes.User => ({
           id: x.assertion,
-          prettyName: x.displayLabel,
+          label: x.displayLabel,
+          prettyName: x.displayName,
           serviceMap: {keybase: x.username},
         })
       )
@@ -155,7 +161,7 @@ const fetchUserRecs = (state: TypedState, {payload: {namespace}}: NSAction) =>
       }
       return suggestions.concat(contacts)
     })
-    .catch(e => {
+    .catch(() => {
       logger.error(`Error in fetching recs`)
       return []
     })
@@ -172,7 +178,7 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-function filterGenForNs<S, A, L, R>(
+function filterGenForNs<S, A, L>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
 ) {

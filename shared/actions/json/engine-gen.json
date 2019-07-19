@@ -97,6 +97,9 @@
         "chat1ChatUiChatCommandStatus": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatCommandStatus']['outParam']) => void}"
         },
+        "chat1ChatUiChatBotCommandsUpdateStatus": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}"
+        },
         "chat1NotifyChatNewChatActivity": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}"
         },
@@ -321,6 +324,9 @@
         },
         "keybase1NotifyEphemeralNewTeambotEk": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void}"
+        },
+        "keybase1NotifyEphemeralTeambotEkNeeded": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['outParam']) => void}"
         },
         "keybase1NotifyFavoritesFavoritesChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyFavorites.favoritesChanged']['inParam'] & {sessionID: number}"

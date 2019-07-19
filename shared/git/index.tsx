@@ -37,7 +37,7 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
     onToggleExpand: this.props.onToggleExpand,
   })
 
-  _renderItem = ({item, section}) => <Row key={item} {...this._rowPropsToProps(item)} />
+  _renderItem = ({item}) => <Row key={item} {...this._rowPropsToProps(item)} />
 
   _renderSectionHeader = ({section}) => (
     <Kb.SectionDivider label={section.title} showSpinner={section.loading} />

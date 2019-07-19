@@ -22,12 +22,11 @@ export default Container.connect(
       },
       onInvite: () => {
         dispatch(
-          RouteTreeGen.createNavigateTo({
-            parentPath: [teamsTab],
+          RouteTreeGen.createNavigateAppend({
             path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'teamInviteByEmail'}],
           })
         )
-        dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
+        dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab]}))
       },
       onSlackImport: () => openURL(`https://keybase.io/slack-importer/${teamname}`),
     }

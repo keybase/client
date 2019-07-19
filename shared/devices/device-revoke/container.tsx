@@ -14,7 +14,7 @@ const mapStateToProps = state => ({
   waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {routeProps}) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })

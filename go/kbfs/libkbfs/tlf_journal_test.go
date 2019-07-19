@@ -342,7 +342,7 @@ func teardownTLFJournalTest(
 func putOneMD(ctx context.Context, config *testTLFJournalConfig,
 	tlfJournal *tlfJournal) {
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
-	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 	require.NoError(config.t, err)
 }
 
@@ -661,7 +661,7 @@ func testTLFJournalBlockOpDiskQuotaLimitResolve(t *testing.T, ver kbfsmd.Metadat
 	}()
 
 	md1 := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
-	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
 	require.NoError(t, err)
 	mdID1 := irmd.mdID
 
@@ -675,7 +675,7 @@ func testTLFJournalBlockOpDiskQuotaLimitResolve(t *testing.T, ver kbfsmd.Metadat
 	md2 := config.makeMD(kbfsmd.RevisionInitial+1, mdID1)
 	_, retry, err := tlfJournal.doResolveBranch(
 		ctx, bid, []kbfsblock.ID{id1}, md2,
-		unflushedPathMDInfo{}, unflushedPathsPerRevMap{}, tlfJournal.key)
+		unflushedPathMDInfo{}, unflushedPathsPerRevMap{}, tlfJournal.key, nil)
 	require.NoError(t, err)
 	require.False(t, retry)
 
@@ -813,7 +813,7 @@ func testTLFJournalMDServerBusyPause(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mdserver = mdserver
 
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
-	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 	require.NoError(t, err)
 
 	mdserver.waitForPut(ctx, t)
@@ -835,7 +835,7 @@ func testTLFJournalMDServerBusyShutdown(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mdserver = mdserver
 
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
-	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 	require.NoError(t, err)
 
 	mdserver.waitForPut(ctx, t)
@@ -854,7 +854,7 @@ func testTLFJournalBlockOpWhileBusy(t *testing.T, ver kbfsmd.MetadataVer) {
 	config.mdserver = mdserver
 
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
-	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+	_, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 	require.NoError(t, err)
 
 	mdserver.waitForPut(ctx, t)
@@ -944,7 +944,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -989,7 +989,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 	for i := 0; i < mdCount/2; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1009,11 +1009,11 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 
 		revision := firstRevision + kbfsmd.Revision(mdCount/2)
 		md := config.makeMD(revision, prevRoot)
-		_, err = tlfJournal.putMD(ctx, md, tlfJournal.key)
+		_, err = tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.IsType(t, MDJournalConflictError{}, err)
 
 		md.SetUnmerged()
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1022,7 +1022,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
 		md.SetUnmerged()
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1142,7 +1142,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
 	err := tlfJournal.putBlockData(
 		ctx, bid1, bCtx1, []byte{1}, serverHalf1)
 	require.NoError(t, err)
-	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 
@@ -1152,7 +1152,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
 			ctx, bid2, bCtx2, []byte{2}, serverHalf2)
 		require.NoError(t, err)
 		md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md2, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1163,7 +1163,7 @@ func testTLFJournalFlushOrdering(t *testing.T, ver kbfsmd.MetadataVer) {
 			ctx, bid3, bCtx3, []byte{3}, serverHalf3)
 		require.NoError(t, err)
 		md3 := config.makeMD(kbfsmd.Revision(12), prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md3, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md3, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 		return nil
@@ -1236,12 +1236,12 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 		require.NoError(t, err)
 	}
 
-	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 	md2 := config.makeMD(firstRev+1, prevRoot)
 	require.NoError(t, err)
-	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key)
+	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot = irmd.mdID
 
@@ -1254,8 +1254,9 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	requireJournalEntryCounts(t, tlfJournal, blockEnd+2, 2)
 
 	squashMD := config.makeMD(firstRev, firstPrevRoot)
-	irmd, err = tlfJournal.resolveBranch(ctx,
-		kbfsmd.PendingLocalSquashBranchID, []kbfsblock.ID{}, squashMD, tlfJournal.key)
+	irmd, err = tlfJournal.resolveBranch(
+		ctx, kbfsmd.PendingLocalSquashBranchID, []kbfsblock.ID{}, squashMD,
+		tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot = irmd.mdID
 	requireJournalEntryCounts(t, tlfJournal, blockEnd+3, 1)
@@ -1271,7 +1272,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	blockEnd += 20
 	md2 = config.makeMD(firstRev+1, prevRoot)
 	require.NoError(t, err)
-	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key)
+	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot = irmd.mdID
 
@@ -1316,7 +1317,7 @@ func testTLFJournalFlushOrderingAfterSquashAndCR(
 	// device).
 	resolveMD := config.makeMD(md2.Revision(), firstPrevRoot)
 	_, err = tlfJournal.resolveBranch(
-		ctx, branchID, []kbfsblock.ID{}, resolveMD, tlfJournal.key)
+		ctx, branchID, []kbfsblock.ID{}, resolveMD, tlfJournal.key, nil)
 	require.NoError(t, err)
 	// Blocks: the ones from the last check, plus the new blocks, plus
 	// the resolve rev marker.
@@ -1372,7 +1373,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 		require.NoError(t, err)
 	}
 	md1 := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
-	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 
@@ -1386,7 +1387,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver kbfsmd.MetadataVer) {
 		require.NoError(t, err)
 	}
 	md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
-	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key)
+	irmd, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot = irmd.mdID
 
@@ -1475,7 +1476,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	firstRev = kbfsmd.Revision(10)
 	firstRoot = kbfsmd.FakeID(1)
 	md1 := config.makeMD(firstRev, firstRoot)
-	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 	rev := firstRev
@@ -1496,7 +1497,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(ctx context.Context,
 	for i := 0; i < ForcedBranchSquashRevThreshold+1; i++ {
 		rev++
 		md := config.makeMD(rev, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		if isRevisionConflict(err) {
 			// Branch conversion is done, we can stop now.
 			break
@@ -1557,9 +1558,9 @@ func testTLFJournalSquashWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	// While it's paused, resolve the branch.
 	resolveMD := config.makeMD(firstRev, firstPrevRoot)
-	_, err := tlfJournal.resolveBranch(ctx,
-		tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{}, resolveMD,
-		tlfJournal.key)
+	_, err := tlfJournal.resolveBranch(
+		ctx, tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{}, resolveMD,
+		tlfJournal.key, nil)
 	require.NoError(t, err)
 	requireJournalEntryCounts(
 		t, tlfJournal, blocksLeftAfterFlush+maxJournalBlockFlushBatchSize+1, 1)
@@ -1618,7 +1619,7 @@ func testTLFJournalFlushRetry(t *testing.T, ver kbfsmd.MetadataVer) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1663,7 +1664,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1688,9 +1689,9 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	// Resolve the branch.
 	resolveMD := config.makeMD(firstRevision, firstPrevRoot)
-	_, err = tlfJournal.resolveBranch(ctx,
-		tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{bids[1]}, resolveMD,
-		tlfJournal.key)
+	_, err = tlfJournal.resolveBranch(
+		ctx, tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{bids[1]},
+		resolveMD, tlfJournal.key, nil)
 	require.NoError(t, err)
 
 	blockEnd, newMDEnd, err := tlfJournal.getJournalEnds(ctx)
@@ -1707,7 +1708,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Equal(t, 0, blocks.adds.numBlocks())
 	// 1 ignored block, 3 ignored MD markers, 1 real MD marker
 	require.Len(t, blocks.other, 5)
-	ptrs := blocks.puts.ptrs()
+	ptrs := blocks.puts.Ptrs()
 	ids := make([]kbfsblock.ID, len(ptrs))
 	for i, ptr := range ptrs {
 		ids[i] = ptr.ID
@@ -1742,7 +1743,7 @@ func testTLFJournalSquashByBytes(t *testing.T, ver kbfsmd.MetadataVer) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 	}
@@ -1775,7 +1776,7 @@ func testTLFJournalFirstRevNoSquash(t *testing.T, ver kbfsmd.MetadataVer) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + kbfsmd.Revision(i)
 		md := config.makeMD(revision, prevRoot)
-		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key)
+		irmd, err := tlfJournal.putMD(ctx, md, tlfJournal.key, nil)
 		require.NoError(t, err)
 		prevRoot = irmd.mdID
 		if i == 0 {
@@ -1823,7 +1824,7 @@ func testTLFJournalSingleOp(t *testing.T, ver kbfsmd.MetadataVer) {
 	putBlock(ctx, t, config, tlfJournal, []byte{5, 6})
 
 	md1 := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
-	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key, nil)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 
@@ -1831,7 +1832,7 @@ func testTLFJournalSingleOp(t *testing.T, ver kbfsmd.MetadataVer) {
 	putBlock(ctx, t, config, tlfJournal, []byte{9, 10})
 
 	md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
-	_, err = tlfJournal.putMD(ctx, md2, tlfJournal.key)
+	_, err = tlfJournal.putMD(ctx, md2, tlfJournal.key, nil)
 	require.NoError(t, err)
 
 	tlfJournal.resumeBackgroundWork()
@@ -1862,8 +1863,9 @@ func testTLFJournalSingleOp(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.Equal(
 		t, kbfsmd.PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
 	resolveMD := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
-	_, err = tlfJournal.resolveBranch(ctx,
-		tlfJournal.mdJournal.getBranchID(), nil, resolveMD, tlfJournal.key)
+	_, err = tlfJournal.resolveBranch(
+		ctx, tlfJournal.mdJournal.getBranchID(), nil, resolveMD, tlfJournal.key,
+		nil)
 	require.NoError(t, err)
 
 	// Now the flushing should complete.

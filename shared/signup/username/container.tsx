@@ -27,7 +27,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(RouteTreeGen.createNavigateUp())
   },
   _onReturnToMain: () => {
-    dispatch(RouteTreeGen.createSwitchRouteDef({loggedIn: true, path: ''}))
+    dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
   },
   onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
   onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),

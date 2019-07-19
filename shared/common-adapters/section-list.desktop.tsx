@@ -36,7 +36,7 @@ class SectionList extends React.Component<Props, State> {
   }
 
   /* Methods from native SectionList */
-  scrollToLocation(params: any) {
+  scrollToLocation() {
     console.warn('TODO desktop SectionList')
   }
   recordInteraction() {
@@ -47,7 +47,7 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, key, renderingSticky) => {
+  _itemRenderer = (index, _, renderingSticky) => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle

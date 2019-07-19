@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -996,6 +997,17 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
+	}
+	botCommands, err := s.G().BotCommandManager.ListCommands(ctx,
+		conversationLocal.GetConvID())
+	if err != nil {
+		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
+	} else {
+		if len(botCommands) > 0 {
+			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
+		} else {
+			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
+		}
 	}
 	return conversationLocal
 }

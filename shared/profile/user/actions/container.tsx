@@ -31,7 +31,7 @@ const mapStateToProps = (state, ownProps) => {
     username,
   }
 }
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onAddToTeam: (username: string) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})),
   _onBlock: (username: string) =>
@@ -62,9 +62,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
     )
   },
-  _onUnblock: (username: string, guiID: string) => dispatch(ProfileGen.createSubmitUnblockUser({guiID, username})),
+  _onUnblock: (username: string, guiID: string) =>
+    dispatch(ProfileGen.createSubmitUnblockUser({guiID, username})),
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   blocked: stateProps.blocked,
   followThem: stateProps.followThem,
   followsYou: stateProps.followsYou,

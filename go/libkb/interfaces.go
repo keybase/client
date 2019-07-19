@@ -92,6 +92,7 @@ type configGetter interface {
 	GetUPAKCacheSize() (int, bool)
 	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
+	GetGUIConfigFilename() string
 	GetDeviceCloneStateFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
@@ -151,6 +152,7 @@ type LocalDb interface {
 	LocalDbOps
 	Open() error
 	Stats() string
+	CompactionStats() (bool, bool, error)
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
@@ -222,6 +224,8 @@ type JSONWriter interface {
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
 	SetNullAtPath(string) error
+	SetWrapperAtPath(string, *jsonw.Wrapper) error
+	DeleteAtPath(string)
 }
 
 type ConfigWriter interface {
@@ -230,8 +234,6 @@ type ConfigWriter interface {
 	SwitchUser(un NormalizedUsername) error
 	NukeUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
-	SetWrapperAtPath(string, *jsonw.Wrapper) error
-	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
@@ -434,6 +436,7 @@ type ChatUI interface {
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
 		[]chat1.UICommandStatusActionTyp) error
+	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
 }
 
 type PromptDefault int
@@ -845,6 +848,8 @@ type EKLib interface {
 	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
 	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
+	PurgeAllTeambotMetadataCaches(mctx MetaContext)
+	PurgeTeambotMetadataCache(mctx MetaContext, teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration)
 
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
@@ -971,13 +976,16 @@ type ChatHelper interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
+	NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
 	NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string) error
+		tlfName string, text string, vis keybase1.TLFVisibility) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, text string, outboxID *chat1.OutboxID, replyTo *chat1.MessageID) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,

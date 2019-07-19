@@ -14,7 +14,7 @@ let _response: EngineGen.Keybase1SecretUiGetPassphrasePayload['payload']['respon
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
-    .then(response => {
+    .then(() => {
       logger.info('Registered secret ui')
     })
     .catch(error => {
@@ -22,7 +22,7 @@ const onConnect = () => {
     })
 }
 
-const onGetPassword = (state, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
+const onGetPassword = (_, action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => {
   logger.info('Asked for password')
   const {pinentry} = action.payload.params
   const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry

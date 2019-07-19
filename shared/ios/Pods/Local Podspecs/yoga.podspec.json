@@ -1,6 +1,6 @@
 {
   "name": "yoga",
-  "version": "0.59.9.React",
+  "version": "0.59.10.React",
   "license": {
     "type": "MIT"
   },
@@ -11,7 +11,7 @@
   "authors": "Facebook",
   "source": {
     "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.59.9"
+    "tag": "v0.59.10"
   },
   "module_name": "yoga",
   "requires_arc": false,
