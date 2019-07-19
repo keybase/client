@@ -306,7 +306,7 @@ const VerifyAllPhoneNumberConnector = connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     },
   }),
-  (stateProps, dispatchProps, ownProps: TodoOwnProps) => ({
+  (_, dispatchProps, ownProps: TodoOwnProps) => ({
     ...ownProps,
     buttons: [
       ...(ownProps.metadata

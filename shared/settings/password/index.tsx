@@ -147,7 +147,7 @@ class UpdatePassword extends Component<Props, State> {
           <Kb.Checkbox
             boxBackgroundColor={Styles.globalColors.white}
             label="Show typing"
-            onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+            onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
             style={styles.checkbox}
           />

@@ -10,7 +10,7 @@ const mapStateToProps = state => ({
   error: state.provision.finalError,
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   onAccountReset: () => openURL('https://keybase.io/#account-reset'),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onKBHome: () => openURL('https://keybase.io/'),
@@ -20,5 +20,5 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(RenderError)

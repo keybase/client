@@ -71,7 +71,7 @@ export const deserialize = (state: any = initialState, props: any) => {
 function SyncAvatarProps(ComposedComponent: any) {
   class RemoteAvatarConnected extends React.PureComponent<Props> {
     _onRemoteActionFired = (
-      event: any,
+      _: any,
       action: {
         type: string
         payload: any

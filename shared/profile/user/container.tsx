@@ -13,7 +13,7 @@ import {RouteProps} from '../../route-tree/render-route'
 import ProfileSearch from '../search/bar'
 import flags from '../../util/feature-flags'
 
-type OwnProps = RouteProps< { username: string } >
+type OwnProps = RouteProps<{username: string}>
 
 const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
@@ -55,7 +55,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onEditAvatar: (image?) => dispatch(ProfileGen.createEditAvatar()),
+  _onEditAvatar: () => dispatch(ProfileGen.createEditAvatar()),
   _onReload: (username: string, isYou: boolean) => {
     dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
 
@@ -75,7 +75,7 @@ const followToArray = memoize((followers, following) => ({
   following: following ? following.toArray() : null,
 }))
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   let onAddIdentity = null
   if (
     stateProps.userIsYou &&
@@ -130,7 +130,7 @@ const connected = Container.namedConnect(mapStateToProps, mapDispatchToProps, me
   Profile2
 )
 
-const Header = ({onSearch, backgroundColorType}) => (
+const Header = ({onSearch}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
     <ProfileSearch whiteText={true} onSearch={onSearch} />
   </Kb.Box2>

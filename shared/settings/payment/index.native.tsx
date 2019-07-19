@@ -1,6 +1,4 @@
-import {Props} from './index'
-
-function PaymentForm(props: Props) {
+function PaymentForm() {
   return null
 }
 

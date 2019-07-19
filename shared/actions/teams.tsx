@@ -1110,7 +1110,7 @@ const teamChangedByName = (
 ) => {
   const {teamName} = action.payload.params
   logger.info(`Got teamChanged for ${teamName} from service`)
-  const selectedTeamNames = Constants.getSelectedTeamNames(state)
+  const selectedTeamNames = Constants.getSelectedTeamNames()
   if (selectedTeamNames.includes(teamName) && _wasOnTeamsTab()) {
     // only reload if that team is selected
     return [TeamsGen.createGetTeams(), TeamsGen.createGetDetails({teamname: teamName})]
@@ -1123,7 +1123,7 @@ const teamDeletedOrExit = (
   action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
 ) => {
   const {teamID} = action.payload.params
-  const selectedTeamNames = Constants.getSelectedTeamNames(state)
+  const selectedTeamNames = Constants.getSelectedTeamNames()
   const toFind = Constants.getTeamNameFromID(state, teamID)
   if (toFind && selectedTeamNames.includes(toFind)) {
     return [RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'}), ...getLoadCalls()]

@@ -189,7 +189,7 @@ const LoggedOutStackNavigator = createNavigator(
   StackRouter(
     {...Shim.shim(loggedOutRoutes)},
     {
-      defaultNavigationOptions: p => ({headerHideBorder: true}),
+      defaultNavigationOptions: () => ({headerHideBorder: true}),
       initialRouteName: 'login',
     }
   ),

@@ -4,7 +4,7 @@ import EditTeamDescription from '.'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps< { teamname: string } >
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 const mapStateToProps = (state, ownProps) => {
   const teamname = Container.getRouteProps(ownProps, 'teamname')
@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   ...stateProps,
   ...dispatchProps,
 })
