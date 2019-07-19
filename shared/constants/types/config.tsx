@@ -15,7 +15,7 @@ export type OutOfDate = I.RecordOf<_OutOfDate>
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
 // 'notavailable' is the desktop default
-export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
+export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 export type _State = {
   appFocused: boolean

@@ -11,7 +11,7 @@ function immediateCallback(cb: (info: TimeoutInfo) => void): NodeJS.Immediate {
     _onImmediate: () => {},
     ref: () => {},
     unref: () => {},
-  }
+  } as any
 }
 
 function timeoutFallback(cb: (info: TimeoutInfo) => void): NodeJS.Timer {
