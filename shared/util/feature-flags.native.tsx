@@ -14,11 +14,11 @@ const ff: FeatureFlags = {
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
   moveOrCopy: false,
-  newTeamBuildingForChatAllowMakeTeam: true, // TODO: make false before merging
+  newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: true, // TODO: make false before merging
+  sbsContacts: false,
   stellarExternalPartners: true,
 }
 

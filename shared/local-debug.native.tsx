@@ -59,7 +59,6 @@ if (__DEV__) {
   config.enableActionLogging = true
   config.enableStoreLogging = true
   config.immediateStateLogging = false
-  config.forceImmediateLogging = true
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
