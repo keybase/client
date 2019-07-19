@@ -1273,7 +1273,19 @@ func (k *SimpleFS) doRemove(
 		return err
 	}
 	if !recursive {
+		if finalElem == "" {
+			// If this is trying to remove a TLF, use favorite removal
+			// instead.
+			if asLibFS, ok := fs.(*libfs.FS); ok {
+				h := asLibFS.Handle()
+				return k.config.KBFSOps().DeleteFavorite(ctx, h.ToFavorite())
+			}
+		}
 		return fs.Remove(finalElem)
+	} else if finalElem == "" {
+		// Give a nice error in the case where we're trying to
+		// recursively delete a TLF.
+		return errors.Errorf("Cannot recursively delete %s", fs.Root())
 	}
 	fi, err := fs.Stat(finalElem)
 	if err != nil {

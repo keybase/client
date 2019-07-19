@@ -69,7 +69,7 @@ const mapStateToProps = state => ({
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   // TODO remove
   onBack: () => {},
   onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
@@ -80,5 +80,5 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(_Password)

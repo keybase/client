@@ -159,8 +159,8 @@ class OrientedImage extends React.Component<Props, State> {
     const {src} = this.props
     return new Promise((resolve, reject) => {
       try {
-        // @ts-ignore codemod issue
-        const ret = EXIF.getData({src}, function() {
+        // @ts-ignore types actually wrong
+        const ret = EXIF.getData({src}, function(this: unknown) {
           const orientation = EXIF.getTag(this, 'Orientation')
           resolve(orientation)
         })

@@ -351,7 +351,7 @@ const finishedSearch = (_, {payload: {searchKey, searchResultTerm, service}}) =>
     keyPath: ['search', 'searchKeyToSearchResultQuery'],
   })
 
-const maybeNewSearch = (state, {payload: {searchKey}}) => {
+const maybeNewSearch = (_, {payload: {searchKey}}) => {
   // When you select a search result, we want to clear the shown results and
   // start back with new recommendations, *unless* you're building a convo,
   // in which case we're showing any convo you selected by choosing a result.

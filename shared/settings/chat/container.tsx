@@ -8,7 +8,7 @@ import Chat from '.'
 
 type OwnProps = {}
 
-const mapStateToProps = (state, ownProps: {}) => {
+const mapStateToProps = state => {
   const whitelist = state.settings.chat.unfurl.unfurlWhitelist
   const unfurlWhitelist = whitelist ? whitelist.toArray() : []
   return {
@@ -19,13 +19,16 @@ const mapStateToProps = (state, ownProps: {}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, ownProps: {}) => ({
+const mapDispatchToProps = (dispatch: any) => ({
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onRefresh: () => dispatch(SettingsGen.createUnfurlSettingsRefresh()),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) =>
     dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: I.List(whitelist)})),
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'Chat')(
-  Chat
-)
+export default namedConnect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  'Chat'
+)(Chat)

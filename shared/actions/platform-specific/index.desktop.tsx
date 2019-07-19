@@ -20,16 +20,16 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import AppState from '../../app/app-state.desktop'
 
-export function showShareActionSheetFromURL(options: {url?: any | null; message?: any | null}): void {
+export function showShareActionSheetFromURL() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
-export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
+export function showShareActionSheetFromFile() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
-export function saveAttachmentDialog(filePath: string): Promise<void> {
+export function saveAttachmentDialog() {
   throw new Error('Save Attachment - unsupported on this platform')
 }
-export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll() {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
@@ -39,13 +39,7 @@ const showMainWindow = () => {
   showDockIcon()
 }
 
-export function displayNewMessageNotification(
-  text: string,
-  convID: string | null,
-  badgeCount: number | null,
-  myMsgID: number | null,
-  soundName: string | null
-) {
+export function displayNewMessageNotification() {
   throw new Error('Display new message notification not available on this platform')
 }
 
@@ -124,8 +118,8 @@ function* initializeInputMonitor(): Iterable<any> {
 // get this value from electron and update our store version
 function* initializeAppSettingsState(): Iterable<any> {
   const getAppState = () =>
-    new Promise((resolve, reject) => {
-      SafeElectron.getIpcRenderer().once('getAppStateReply', (event, data) => resolve(data))
+    new Promise(resolve => {
+      SafeElectron.getIpcRenderer().once('getAppStateReply', (_, data) => resolve(data))
       SafeElectron.getIpcRenderer().send('getAppState')
     })
 
@@ -164,7 +158,7 @@ function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
     yield Saga.callUntyped(
       () =>
         new Promise((resolve, reject) => {
-          execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
+          execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
               // error will be logged in bootstrap check
@@ -202,7 +196,7 @@ function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
   }
 }
 
-const initOsNetworkStatus = (state, action) =>
+const initOsNetworkStatus = () =>
   ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
 
 function* setupReachabilityWatcher() {

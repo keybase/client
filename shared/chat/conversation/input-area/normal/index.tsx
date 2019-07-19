@@ -94,17 +94,7 @@ const suggestorToMarker = {
 const suggestorKeyExtractors = {
   commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
   emoji: (item: {id: string}) => item.id,
-  users: ({
-    username,
-    fullName,
-    teamname,
-    channelname,
-  }: {
-    username: string
-    fullName: string
-    teamname?: string
-    channelname?: string
-  }) => {
+  users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
     if (teamname) {
       if (channelname) {
         return teamname + '#' + channelname
@@ -141,7 +131,7 @@ const emojiTransformer = (
     colons: string
     native: string
   },
-  marker,
+  _,
   tData,
   preview
 ) => {
@@ -531,7 +521,7 @@ class Input extends React.Component<InputProps, InputState> {
     )
   }
 
-  _transformCommandSuggestion = (command, marker, tData, preview) => {
+  _transformCommandSuggestion = (command, _, tData, preview) => {
     const prefix = this._getCommandPrefix(command)
     return standardTransformer(`${prefix}${command.name}`, tData, preview)
   }

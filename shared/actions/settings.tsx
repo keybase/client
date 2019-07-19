@@ -364,7 +364,7 @@ function* refreshNotifications() {
 
 const dbNuke = () => RPCTypes.ctlDbNukeRpcPromise()
 
-const deleteAccountForever = (state: TypedState, action: SettingsGen.DeleteAccountForeverPayload) => {
+const deleteAccountForever = (state: TypedState) => {
   const username = state.config.username
   const allowDeleteAccount = state.settings.allowDeleteAccount
 
@@ -408,7 +408,7 @@ const loadSettings = (
 const flipVis = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
   searchable ? ChatTypes.Keybase1.IdentityVisibility.private : ChatTypes.Keybase1.IdentityVisibility.public
 
-const editEmail = (state, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
+const editEmail = (_, action: SettingsGen.EditEmailPayload, logger: Saga.SagaLogger) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
   if (action.payload.delete) {
@@ -497,7 +497,7 @@ const loadLockdownMode = (state: TypedState) =>
     )
     .catch(() => SettingsGen.createLoadedLockdownMode({status: null}))
 
-const loadProxyData = state =>
+const loadProxyData = () =>
   RPCTypes.configGetProxyDataRpcPromise(undefined)
     .then((result: RPCTypes.ProxyData) => SettingsGen.createLoadedProxyData({proxyData: result}))
     .catch(err => logger.warn('Error in loading proxy data', err))
@@ -549,7 +549,7 @@ const sendFeedback = (
     })
 }
 
-const unfurlSettingsRefresh = (state: TypedState, action: SettingsGen.UnfurlSettingsRefreshPayload) =>
+const unfurlSettingsRefresh = (state: TypedState) =>
   state.config.loggedIn &&
   ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
     .then((result: ChatTypes.UnfurlSettingsDisplay) =>
@@ -597,7 +597,7 @@ const stop = (_: TypedState, action: SettingsGen.StopPayload) =>
   RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
 
 const addPhoneNumber = (
-  state: TypedState,
+  _: TypedState,
   action: SettingsGen.AddPhoneNumberPayload,
   logger: Saga.SagaLogger
 ) => {
@@ -619,7 +619,7 @@ const addPhoneNumber = (
 }
 
 const resendVerificationForPhoneNumber = (
-  state: TypedState,
+  _: TypedState,
   action: SettingsGen.ResendVerificationForPhoneNumberPayload,
   logger: Saga.SagaLogger
 ) => {

@@ -22,18 +22,13 @@ const mapDispatchToProps = dispatch => ({
   _onDelete: (accountID: Types.AccountID) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {accountID},
-            selected: 'reallyRemoveAccount',
-          },
-        ],
+        path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
       })
     )
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   balance: stateProps.balance,
   name: stateProps.name,
   onClose: () => dispatchProps._onClose(),

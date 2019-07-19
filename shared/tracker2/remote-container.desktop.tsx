@@ -56,7 +56,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   assertionKeys: stateProps.assertions ? stateProps.assertions.keySeq().toArray() : null,
   bio: stateProps.bio,
   followThem: stateProps.followThem,

@@ -17,18 +17,16 @@ import {AdvancedBanner} from '../../constants/types/rpc-stellar-gen'
 const provider = banner =>
   Sb.createPropProviderWithCommon({
     // TODO mock out meaningful values once type `OwnProps` is defined
-    AssetInputBasic: props => assetInputProps,
+    AssetInputBasic: () => assetInputProps,
 
-    Available: props => ({
-      amountErrMsg: '',
-    }),
-    Banner: props => ({}),
-    ConnectedPublicMemo: props => ({maxLength: 28, onChangePublicMemo: Sb.action('onChangePublicMemo')}),
+    Available: () => ({amountErrMsg: ''}),
+    Banner: () => ({}),
+    ConnectedPublicMemo: () => ({maxLength: 28, onChangePublicMemo: Sb.action('onChangePublicMemo')}),
     ConnectedRequestBody: props => ({
       banners: [],
       isProcessing: props.isProcessing,
     }),
-    ConnectedSecretNote: props => ({maxLength: 500, onChangeSecretNote: Sb.action('onChangeSecretNote')}),
+    ConnectedSecretNote: () => ({maxLength: 500, onChangeSecretNote: Sb.action('onChangeSecretNote')}),
     ConnectedSendBody: props => ({
       banners: JSON.stringify(banner) === '{}' ? [] : [banner],
       isProcessing: props.isProcessing,
@@ -42,11 +40,9 @@ const provider = banner =>
       onClickRequest: props.isRequest ? Sb.action('onClickRequest') : undefined,
       onClickSend: props.isRequest ? undefined : Sb.action('onClickSend'),
     }),
-    Header: props => ({}),
-    Participants: props => ({
-      recipientType: 'keybaseUser',
-    }),
-    ParticipantsKeybaseUser: props => ({
+    Header: () => ({}),
+    Participants: () => ({recipientType: 'keybaseUser'}),
+    ParticipantsKeybaseUser: () => ({
       isRequest: false,
       onChangeRecipient: Sb.action('onChangeRecipient'),
       onRemoveProfile: Sb.action('onRemoveProfile'),

@@ -4,13 +4,13 @@ import {compose, connect} from '../../../../util/container'
 
 type OwnProps = RouteProps
 
-const mapStateToProps = (state, ownProps: OwnProps) => ({})
+const mapStateToProps = (_) => ({})
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch) => ({
   onCancel: () => {},
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (_, dispatchProps, __: OwnProps) => ({
   onBack: dispatchProps.onCancel,
   onCancel: dispatchProps.onCancel,
 })

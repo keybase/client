@@ -72,7 +72,7 @@ class PaymentStateHolder extends Component<Props, State> {
 }
 
 export default connect(
-  (state: TypedState, ownProps: OwnProps) => {
+  (state: TypedState, _: OwnProps) => {
     const {
       // @ts-ignore doesn't exist
       planBilling: {plan, errorMessage},
@@ -91,7 +91,7 @@ export default connect(
       },
     }
   },
-  (dispatch: (a: any) => void, ownProps: OwnProps) => ({
+  (dispatch: (a: any) => void, _: OwnProps) => ({
     clearBillingError: () => {
       // @ts-ignore
       dispatch(actions.clearBillingError())
@@ -105,7 +105,7 @@ export default connect(
       dispatch(actions.updateBilling(args))
     },
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, _: OwnProps) => {
     if (stateProps.bootstrapDone === false) {
       return {
         bootstrapDone: false,

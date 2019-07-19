@@ -25,7 +25,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, _, ownProps) => {
   const hasUnread = stateProps._hasUnread
   const styles = Constants.getRowStyles(stateProps._meta, ownProps.isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
