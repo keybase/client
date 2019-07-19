@@ -210,6 +210,7 @@ export type _ChatPaymentInfo = {
   amountDescription: string
   delta: 'none' | 'increase' | 'decrease'
   fromUsername: string
+  issuerDescription: string
   note: HiddenString
   paymentID: WalletTypes.PaymentID
   sourceAmount: string

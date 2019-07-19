@@ -606,6 +606,10 @@
         {
           "type": "stellar1.Asset",
           "name": "sourceAsset"
+        },
+        {
+          "type": "string",
+          "name": "issuerDescription"
         }
       ]
     },

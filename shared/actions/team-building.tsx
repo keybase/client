@@ -52,10 +52,14 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
     .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
-  // TODO this isn't reading from state????? how can it change. likely wrong
-  const isStillInSameQuery = (_: TypedState): boolean =>
-    teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-    teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
+  const isStillInSameQuery = (state: TypedState): boolean => {
+    const teamBuildingState = state[namespace].teamBuilding
+
+    return (
+      teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
+      teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
+    )
+  }
 
   // Defer so we aren't conflicting with the main search
   yield Saga.callUntyped(Saga.delay, 100)

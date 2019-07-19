@@ -22,7 +22,7 @@ const unlockFolderMapPropsToState = state => {
   }
 }
 
-const mergeProps = (stateProps, _, __) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   devices: stateProps.devices.toJS(), // Never send immutable over the wire
   paperkeyError: stateProps.paperkeyError,
   phase: stateProps.phase,

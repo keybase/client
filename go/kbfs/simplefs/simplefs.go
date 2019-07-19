@@ -2699,9 +2699,34 @@ func (k *SimpleFS) SimpleFSGetStats(ctx context.Context) (
 	statusMap := dbc.Status(ctx)
 	if status, ok := statusMap["SyncBlockCache"]; ok {
 		res.SyncCacheDbStats = status.BlockDBStats
+
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_SYNC_BLOCK_CACHE,
+				MemCompActive:   status.MemCompActive,
+				TableCompActive: status.TableCompActive,
+			})
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_SYNC_BLOCK_CACHE_META,
+				MemCompActive:   status.MetaMemCompActive,
+				TableCompActive: status.MetaTableCompActive,
+			})
 	}
 	if status, ok := statusMap["WorkingSetBlockCache"]; ok {
 		res.BlockCacheDbStats = status.BlockDBStats
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_BLOCK_CACHE,
+				MemCompActive:   status.MemCompActive,
+				TableCompActive: status.TableCompActive,
+			})
+		res.RuntimeDbStats = append(res.RuntimeDbStats,
+			keybase1.DbStats{
+				Type:            keybase1.DbType_FS_BLOCK_CACHE_META,
+				MemCompActive:   status.MetaMemCompActive,
+				TableCompActive: status.MetaTableCompActive,
+			})
 	}
 	return res, nil
 }

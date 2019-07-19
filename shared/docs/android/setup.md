@@ -70,8 +70,8 @@ Project with Gradle Files'.
 
 Sometimes, especially after opening Android Studio after a run of
 `yarn modules`, you'll get an "Unsupported Modules Detected" message
-for "react-native-fetch-blob", "react-native-contacts", and
-"react-native-image-picker". This seems to be harmless.
+for "react-native-fetch-blob" and "react-native-contacts". This seems
+to be harmless.
 
 Sometimes you'll also get an "An IDE Error has occured" message. That
 also seems to be harmless, although you may want to resync/reopen the

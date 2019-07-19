@@ -26,10 +26,10 @@ import * as PushNotifications from 'react-native-push-notification'
 import {Permissions} from 'react-native-unimodules'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import ImagePicker from 'react-native-image-picker'
-import {TypedActions, TypedState} from '../../util/container'
+import {TypedState} from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 
 type NextURI = string
 
@@ -381,22 +381,16 @@ const handleFilePickerError = (_, action: ConfigGen.FilePickerErrorPayload) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = (): Promise<TypedActions> =>
-  new Promise(resolve => {
-    ImagePicker.showImagePicker({mediaType: 'photo'}, response => {
-      if (response.didCancel) {
-        resolve()
-      } else if (response.error) {
-        resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
-      } else {
-        resolve(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: response}, selected: 'profileEditAvatar'}],
+const editAvatar = (): Promise<Saga.MaybeAction> =>
+  launchImageLibraryAsync('photo')
+    .then(result => {
+      result.cancelled === true
+        ? null
+        : RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
           })
-        )
-      }
     })
-  })
+    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
 
 const openAppStore = () =>
   Linking.openURL(
@@ -460,7 +454,7 @@ const askForContactPermissions = () => {
   return isAndroid ? askForContactPermissionsAndroid() : askForContactPermissionsIOS()
 }
 
-function* requestContactPermissions(_: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
+function* requestContactPermissions(state: TypedState, action: SettingsGen.RequestContactPermissionsPayload) {
   const {thenToggleImportOn} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
   const result: Saga.RPCPromiseType<typeof askForContactPermissions> = yield askForContactPermissions()

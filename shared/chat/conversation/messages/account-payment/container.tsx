@@ -75,10 +75,15 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
           ? sourceAmountDesc
           : paymentInfo.amountDescription
+
+      const amountDescription = paymentInfo.sourceAmount
+        ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
+        : paymentInfo.amountDescription
+      const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
-        amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
+        amount,
         approxWorth: paymentInfo.worthAtSendTime,
         balanceChange: completed
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`

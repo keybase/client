@@ -18,6 +18,24 @@
     },
     {
       "type": "record",
+      "name": "DbStats",
+      "fields": [
+        {
+          "type": "DbType",
+          "name": "type"
+        },
+        {
+          "type": "boolean",
+          "name": "memCompActive"
+        },
+        {
+          "type": "boolean",
+          "name": "tableCompActive"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RuntimeStats",
       "fields": [
         {
@@ -55,6 +73,13 @@
         {
           "type": "StatsSeverityLevel",
           "name": "residentSeverity"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DbStats"
+          },
+          "name": "dbStats"
         },
         {
           "type": "boolean",
