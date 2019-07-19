@@ -44,7 +44,7 @@ const WithContent = (props: Props) => (
   </Kb.Box2>
 )
 
-const SelfReset = (props: Props) => (
+const SelfReset = (_: Props) => (
   <Kb.Box2 direction="vertical" fullHeight={true}>
     <Kb.Banner color="red">
       <Kb.BannerParagraph

@@ -18,7 +18,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(FsGen.createLoadPathMetadata({path: Types.stringToPath('/keybase/private' + name)})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   bannerType: Constants.getMainBannerType(stateProps._kbfsDaemonStatus, stateProps._overallSyncStatus),
   onRetry: dispatchProps._onRetry(stateProps._name),
 })

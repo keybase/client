@@ -78,7 +78,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     }
   }
 
-  _onDragLeave = e => {
+  _onDragLeave = () => {
     this.setState({showDropOverlay: false})
   }
 

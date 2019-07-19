@@ -27,7 +27,7 @@ class Input extends React.PureComponent<Props, State> {
     this.props.autoFocus && this.focus()
   }
 
-  componentDidUpdate = (prevProps: Props, prevState: State) => {
+  componentDidUpdate = (prevProps: Props) => {
     if (!this.props.uncontrolled && this.props.value !== prevProps.value) {
       this._autoResize()
     }

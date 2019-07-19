@@ -66,7 +66,7 @@ const useBare = isMobile
   ? (mimeType: Types.Mime | null) => {
       return Constants.viewTypeFromMimeType(mimeType) === Types.FileViewType.Image
     }
-  : (mimeType: Types.Mime | null) => {
+  : () => {
       return false
     }
 
